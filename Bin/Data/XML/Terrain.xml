@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Class>
+  <Terrain ClassID="0" ClassName="Default" Width="1025" Height="1025" CellWidth="128" CellHeight="128" >
+    <RawHeightMap Name="RawHeightMap" Path="Texture\" File="heightmap.r16" Scaling="5.0 60.0 5.0" DefaultPos="0.0 -125.0 0.0"/>
+    <ColorMap Name="ColorMap" Path="Texture\" File="ColorMap2.bmp"/>
+    <Material Name="TestTerrain" Group="0" Path="Texture\\" AlbedoColor="1.0 1.0 1.0 1.0" EmissiveColor="1.0 1.0 1.0 1.0" Displacement="0.0" Roughness="1.0" Metalic="0.0" Emissive="0.0" Surface="0.0" Specular="0.0" SpecularTint="0.0" Anisotropic="0.0" Sheen="0.0" SheenTint="0.0" Clearcoat="0.0" ClearcoatGloss="0.0" TexAlbedo="dirt01d.dds" TexNormal="dirt01n.dds" TexDisplacement="" TexRoughness="" TexMetalic="" TexSpecularColor="" TexEmissive="" TexSurface="" TexSpecular="" TexSpecularTint="" TexAnisotropic="" TexSheen="" TexSheenTint="" TexClearcoat="" TexClearcoatGloss="" MaterialType ="Albedo Normal"/>
+    <Physics Name="Physics" Mass="0.0" Restitution="0.25" Friction="0.75" LinearDamping="0.0" AngularDamping="0.0"/>
+  </Terrain>
+</Class>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Class>
+  <UI ClassID="0" ClassName="Default" Name="DXUT UI" File="dxutcontrols.dds">
+    <Rect Name="Button_main" Rect="0 0 136 54"/>
+    <Rect Name="Button_bg" Rect="136 0 252 54"/>
+    <Rect Name="CheckBox" Rect="0 54 27 81"/>
+    <Rect Name="Check" Rect="27 54 54 81"/>
+    <Rect Name="RadioBox" Rect="54, 54, 81, 81"/>
+    <Rect Name="Radio" Rect="81 54 108 81"/>
+    <Rect Name="EditBox" Rect="7 81 247 123"/>
+    <Rect Name="EditBox_Inside" Rect="14 90 241 113"/>
+    <Rect Name="EditBox_LeftTop" Rect="8 82 14 90"/>
+    <Rect Name="EditBox_Top" Rect="14 82 241 90"/>
+    <Rect Name="EditBox_RightTop" Rect="241 82 246 90"/>
+    <Rect Name="EditBox_Left" Rect="8 90 14 113"/>
+    <Rect Name="EditBox_Right" Rect="241 90 246 113"/>
+    <Rect Name="EditBox_LeftBottom" Rect="8 113 14 121"/>
+    <Rect Name="EditBox_Bottom" Rect="14 113 241 121"/>
+    <Rect Name="EditBox_RightBottom" Rect="241 113 246 121 "/>
+    <Rect Name="DropDown_bg" Rect="13 123 241 160"/>
+    <Rect Name="DropDown_btn" Rect="98 189 151 238"/>
+    <Rect Name="Selection" Rect="12 163 239 183"/>
+    <Rect Name="Selection_Inside" Rect="16 166 240 183"/>
+    <Rect Name="SliderTrack" Rect="1 187 93 228"/>
+    <Rect Name="SliderButton" Rect="151 193 192 234"/>
+    <Rect Name="UpArrow" Rect="196 192 218 212"/>
+    <Rect Name="DownArrow" Rect="192 223 218 244"/>
+    <Rect Name="ScrollTrack" Rect="196 212 218 223"/>
+    <Rect Name="ScrollButton" Rect="220 192 238 234"/>
+    <Rect Name="Caret" Rect="11 66 15 71"/>
+  </UI>
+</Class>
