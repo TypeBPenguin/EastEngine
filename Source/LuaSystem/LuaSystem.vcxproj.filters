@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="LuaSystem">
+      <UniqueIdentifier>{deb26806-ed78-4849-b5c0-23d990598238}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="LuaThread">
+      <UniqueIdentifier>{dfa6cb79-707f-4ca6-96cb-edf3c2bdbe24}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LuaSystem.h">
+      <Filter>LuaSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="LuaThread.h">
+      <Filter>LuaThread</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LuaSystem.cpp">
+      <Filter>LuaSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="LuaThread.cpp">
+      <Filter>LuaThread</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

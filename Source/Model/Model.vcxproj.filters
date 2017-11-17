@@ -1,0 +1,177 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="소스 파일">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="헤더 파일">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="리소스 파일">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Model">
+      <UniqueIdentifier>{39a8b5cf-4ea2-4f81-be0f-82a9abf6afee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Motion">
+      <UniqueIdentifier>{ac381ac7-0d6f-4b4e-9091-7965e1b08da6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Model\Geomtery">
+      <UniqueIdentifier>{5eb38c97-8fe3-459f-a711-63696f054f20}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Model\Importer">
+      <UniqueIdentifier>{2a9e2962-04c3-4d5b-bb57-01bf52dac019}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Model\Importer\FBX">
+      <UniqueIdentifier>{33e27350-54a3-4f82-bc15-a89147130620}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Model\Importer\Obj">
+      <UniqueIdentifier>{0d1de716-bfa3-448e-97ff-a68ee5215a28}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Model\Instance">
+      <UniqueIdentifier>{77280fd2-9881-4abc-a3fa-43bda9af3f68}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Model\Loader">
+      <UniqueIdentifier>{f52624a6-045e-4ed9-af89-5da76be9232e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Model\Node">
+      <UniqueIdentifier>{b1667382-3542-40cb-8738-34dfb7e666dc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Motion\Loader">
+      <UniqueIdentifier>{75c5302f-3798-499b-b779-8e9dcf17c6af}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Motion\System">
+      <UniqueIdentifier>{f247bee4-4c31-40f8-8c5b-ca0a1655dc1f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Model\Skeleton">
+      <UniqueIdentifier>{86d986b1-3c96-49c8-abdd-c98b91cebaba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Motion\Manager">
+      <UniqueIdentifier>{4c9cef71-96d1-4aa6-b8d7-d3c657cf82fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Interface">
+      <UniqueIdentifier>{40f7557c-4855-4f60-a709-6a99a0f52357}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="MotionLoader.h">
+      <Filter>Motion\Loader</Filter>
+    </ClInclude>
+    <ClInclude Include="FbxImporter.h">
+      <Filter>Model\Importer\FBX</Filter>
+    </ClInclude>
+    <ClInclude Include="GeometryModel.h">
+      <Filter>Model\Geomtery</Filter>
+    </ClInclude>
+    <ClInclude Include="Model.h">
+      <Filter>Model</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelNodeSkinned.h">
+      <Filter>Model\Node</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelNodeStatic.h">
+      <Filter>Model\Node</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelLoader.h">
+      <Filter>Model\Loader</Filter>
+    </ClInclude>
+    <ClInclude Include="Motion.h">
+      <Filter>Motion</Filter>
+    </ClInclude>
+    <ClInclude Include="MotionSystem.h">
+      <Filter>Motion\System</Filter>
+    </ClInclude>
+    <ClInclude Include="Skeleton.h">
+      <Filter>Model\Skeleton</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjImporter.h">
+      <Filter>Model\Importer\Obj</Filter>
+    </ClInclude>
+    <ClInclude Include="MtlImporter.h">
+      <Filter>Model\Importer\Obj</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelInstance.h">
+      <Filter>Model\Instance</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelNode.h">
+      <Filter>Model\Node</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelManager.h">
+      <Filter>Model</Filter>
+    </ClInclude>
+    <ClInclude Include="MotionManager.h">
+      <Filter>Motion\Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelInterface.h">
+      <Filter>Interface</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="MotionLoader.cpp">
+      <Filter>Motion\Loader</Filter>
+    </ClCompile>
+    <ClCompile Include="FbxImporter.cpp">
+      <Filter>Model\Importer\FBX</Filter>
+    </ClCompile>
+    <ClCompile Include="GeometryModel.cpp">
+      <Filter>Model\Geomtery</Filter>
+    </ClCompile>
+    <ClCompile Include="Model.cpp">
+      <Filter>Model</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelNodeSkinned.cpp">
+      <Filter>Model\Node</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelNodeStatic.cpp">
+      <Filter>Model\Node</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelLoader.cpp">
+      <Filter>Model\Loader</Filter>
+    </ClCompile>
+    <ClCompile Include="Motion.cpp">
+      <Filter>Motion</Filter>
+    </ClCompile>
+    <ClCompile Include="MotionSystem.cpp">
+      <Filter>Motion\System</Filter>
+    </ClCompile>
+    <ClCompile Include="Skeleton.cpp">
+      <Filter>Model\Skeleton</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjImporter.cpp">
+      <Filter>Model\Importer\Obj</Filter>
+    </ClCompile>
+    <ClCompile Include="MtlImporter.cpp">
+      <Filter>Model\Importer\Obj</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelInstance.cpp">
+      <Filter>Model\Instance</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelNode.cpp">
+      <Filter>Model\Node</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelManager.cpp">
+      <Filter>Model</Filter>
+    </ClCompile>
+    <ClCompile Include="MotionManager.cpp">
+      <Filter>Motion\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelInterface.cpp">
+      <Filter>Interface</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

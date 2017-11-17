@@ -1,0 +1,212 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="소스 파일">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="헤더 파일">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="리소스 파일">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Singleton">
+      <UniqueIdentifier>{f21e0a1c-ffad-405d-a801-5c5f54d0ad0f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Math">
+      <UniqueIdentifier>{1a92ee4a-9682-4387-8c1f-858deee315cb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="String">
+      <UniqueIdentifier>{7e0fee86-bcd2-46a0-90d1-d13f9b6d1977}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="File">
+      <UniqueIdentifier>{a349faec-d12c-49cd-9903-9501d9d67e45}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ClassIdenfier">
+      <UniqueIdentifier>{f345d0f7-9906-44d8-8419-1ea196ba1b9d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Log">
+      <UniqueIdentifier>{67901970-4a02-4b9d-aeec-a8c9bd8c99c6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Timer">
+      <UniqueIdentifier>{71303102-2844-4ed9-bff2-eac98c21f341}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="File\Util">
+      <UniqueIdentifier>{52731b4e-a059-409f-8ffe-03d2af69fef9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="File\DirectoryMonitor">
+      <UniqueIdentifier>{26a22a4e-f3ec-4b02-a93c-0d66272f60ea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="File\FileStream">
+      <UniqueIdentifier>{c354834a-0e16-4b6c-86be-338a278e372e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Collision">
+      <UniqueIdentifier>{4ed9ef4d-7b1e-442c-a631-8d74bd8398fd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ThreadPool">
+      <UniqueIdentifier>{0b0f6fd3-2737-4722-b6de-96b9c5c065d3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Config">
+      <UniqueIdentifier>{1418b84c-664b-4e2b-b964-bd721f3bce9c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PipeStream">
+      <UniqueIdentifier>{eaf16f6a-571e-4e7d-85b6-9b557308d151}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PipeStream\PipeData">
+      <UniqueIdentifier>{7ec9285c-f541-4602-bac5-18e360d2412b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Performance">
+      <UniqueIdentifier>{9b62e0f4-518a-44a5-a4e5-fdf80cdd41c2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CommandLine">
+      <UniqueIdentifier>{ce9f105e-3eab-4b97-94f0-94ecf728d695}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Memory">
+      <UniqueIdentifier>{ec81b44a-3675-476f-93a4-5d149a6d6535}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Colony">
+      <UniqueIdentifier>{705dee3a-9830-4b1f-bb69-b621b0a5bd0b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Singleton.h">
+      <Filter>Singleton</Filter>
+    </ClInclude>
+    <ClInclude Include="StringUtil.h">
+      <Filter>String</Filter>
+    </ClInclude>
+    <ClInclude Include="ClassIdentifier.h">
+      <Filter>ClassIdenfier</Filter>
+    </ClInclude>
+    <ClInclude Include="Math.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Log.h">
+      <Filter>Log</Filter>
+    </ClInclude>
+    <ClInclude Include="FileUtil.h">
+      <Filter>File\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectoryMonitor.h">
+      <Filter>File\DirectoryMonitor</Filter>
+    </ClInclude>
+    <ClInclude Include="FileStream.h">
+      <Filter>File\FileStream</Filter>
+    </ClInclude>
+    <ClInclude Include="Collision.h">
+      <Filter>Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="ThreadPoolMgr.h">
+      <Filter>ThreadPool</Filter>
+    </ClInclude>
+    <ClInclude Include="PipeStream.h">
+      <Filter>PipeStream</Filter>
+    </ClInclude>
+    <ClInclude Include="PipeData.h">
+      <Filter>PipeStream\PipeData</Filter>
+    </ClInclude>
+    <ClInclude Include="Performance.h">
+      <Filter>Performance</Filter>
+    </ClInclude>
+    <ClInclude Include="Config.h">
+      <Filter>Config</Filter>
+    </ClInclude>
+    <ClInclude Include="CommonLib.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="StringID.h">
+      <Filter>String</Filter>
+    </ClInclude>
+    <ClInclude Include="StringTable.h">
+      <Filter>String</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandLine.h">
+      <Filter>CommandLine</Filter>
+    </ClInclude>
+    <ClInclude Include="Timer.h">
+      <Filter>Timer</Filter>
+    </ClInclude>
+    <ClInclude Include="Memory.h">
+      <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="plf_colony.h">
+      <Filter>Colony</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="StringUtil.cpp">
+      <Filter>String</Filter>
+    </ClCompile>
+    <ClCompile Include="Math.cpp">
+      <Filter>Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Log.cpp">
+      <Filter>Log</Filter>
+    </ClCompile>
+    <ClCompile Include="Timer.cpp">
+      <Filter>Timer</Filter>
+    </ClCompile>
+    <ClCompile Include="FileUtil.cpp">
+      <Filter>File\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectoryMonitor.cpp">
+      <Filter>File\DirectoryMonitor</Filter>
+    </ClCompile>
+    <ClCompile Include="FileStream.cpp">
+      <Filter>File\FileStream</Filter>
+    </ClCompile>
+    <ClCompile Include="Collision.cpp">
+      <Filter>Collision</Filter>
+    </ClCompile>
+    <ClCompile Include="PipeStream.cpp">
+      <Filter>PipeStream</Filter>
+    </ClCompile>
+    <ClCompile Include="PipeData.cpp">
+      <Filter>PipeStream\PipeData</Filter>
+    </ClCompile>
+    <ClCompile Include="Performance.cpp">
+      <Filter>Performance</Filter>
+    </ClCompile>
+    <ClCompile Include="Config.cpp">
+      <Filter>Config</Filter>
+    </ClCompile>
+    <ClCompile Include="CommonLib.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="StringID.cpp">
+      <Filter>String</Filter>
+    </ClCompile>
+    <ClCompile Include="StringTable.cpp">
+      <Filter>String</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandLine.cpp">
+      <Filter>CommandLine</Filter>
+    </ClCompile>
+    <ClCompile Include="Memory.cpp">
+      <Filter>Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="ThreadPoolMgr.cpp">
+      <Filter>ThreadPool</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Math.inl">
+      <Filter>Math</Filter>
+    </None>
+  </ItemGroup>
+</Project>

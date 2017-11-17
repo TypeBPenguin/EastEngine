@@ -1,0 +1,93 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="소스 파일">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="헤더 파일">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="리소스 파일">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="PhysicsSystem">
+      <UniqueIdentifier>{7329569a-b29b-48a3-95de-d075ce038ebf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PhysicsSystem\RigidBody">
+      <UniqueIdentifier>{5d0b6a4a-6e97-4953-94c7-2b6a36be873d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PhysicsSystem\MathConvertor">
+      <UniqueIdentifier>{3f2592ba-931d-4366-956b-da0647b6b2a9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PhysicsSystem\Constraint">
+      <UniqueIdentifier>{345074e2-315a-4a0d-8483-a96eea40a8b1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PhysicsSystem\ActionController">
+      <UniqueIdentifier>{baeb84de-847b-43c4-bd4c-a3c00f14881e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PhysicsSystem\GhostObject">
+      <UniqueIdentifier>{bb8c92ac-4362-44f0-8ab5-fcc3f054607a}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="RigidBody.h">
+      <Filter>PhysicsSystem\RigidBody</Filter>
+    </ClInclude>
+    <ClInclude Include="MathConvertor.h">
+      <Filter>PhysicsSystem\MathConvertor</Filter>
+    </ClInclude>
+    <ClInclude Include="PhysicsSystem.h">
+      <Filter>PhysicsSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="PhysicsDefine.h">
+      <Filter>PhysicsSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Constraint.h">
+      <Filter>PhysicsSystem\Constraint</Filter>
+    </ClInclude>
+    <ClInclude Include="GhostObject.h">
+      <Filter>PhysicsSystem\GhostObject</Filter>
+    </ClInclude>
+    <ClInclude Include="KinematicCharacterController.h">
+      <Filter>PhysicsSystem\ActionController</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="RigidBody.cpp">
+      <Filter>PhysicsSystem\RigidBody</Filter>
+    </ClCompile>
+    <ClCompile Include="MathConvertor.cpp">
+      <Filter>PhysicsSystem\MathConvertor</Filter>
+    </ClCompile>
+    <ClCompile Include="PhysicsSystem.cpp">
+      <Filter>PhysicsSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="PhysicsDefine.cpp">
+      <Filter>PhysicsSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Constraint.cpp">
+      <Filter>PhysicsSystem\Constraint</Filter>
+    </ClCompile>
+    <ClCompile Include="GhostObject.cpp">
+      <Filter>PhysicsSystem\GhostObject</Filter>
+    </ClCompile>
+    <ClCompile Include="KinematicCharacterController.cpp">
+      <Filter>PhysicsSystem\ActionController</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

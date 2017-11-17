@@ -1,0 +1,180 @@
+#pragma once
+
+#include "ModelInterface.h"
+
+namespace EastEngine
+{
+	namespace Graphics
+	{
+		class SkeletonInstance;
+
+		class Skeleton : public ISkeleton
+		{
+		public:
+			class Bone : public ISkeleton::IBone
+			{
+			public:
+				Bone(Bone* pParentBone, const Math::Matrix& matOffset, const Math::Matrix& matTransformation);
+				virtual ~Bone();
+
+			public:
+				virtual const String::StringID& GetName() override { return m_strBoneName; }
+				virtual const Math::Matrix& GetMotionOffsetMatrix() override { return m_matOffset; }
+				virtual const Math::Matrix& GetTransformation() override { return m_matTransformation; }
+
+				virtual IBone* GetParent() override { return m_pParentBone; }
+
+				virtual uint32_t GetChildBoneCount() override { return m_vecChildBone.size(); }
+				virtual IBone* GetChildBone(uint32_t nIndex) override { return m_vecChildBone[nIndex]; }
+				virtual IBone* GetChildBone(const String::StringID& strBoneName, bool isFindInAllDepth = false) override;
+
+				virtual bool IsRootBone() override { return false; }
+
+			public:
+				Bone* AddChildBone(const String::StringID& strBoneName, const Math::Matrix& matOffset, const Math::Matrix& matTransformation);
+
+			private:
+				String::StringID m_strBoneName;
+
+				Math::Matrix m_matOffset;
+				Math::Matrix m_matTransformation;
+
+				Bone* m_pParentBone;
+				std::vector<Bone*> m_vecChildBone;
+			};
+
+		private:
+			class RootBone : public Bone
+			{
+			public:
+				RootBone()
+					: Bone(nullptr, Math::Matrix::Identity, Math::Matrix::Identity)
+				{
+				}
+				virtual ~RootBone() {}
+
+				virtual bool IsRootBone() override { return true; }
+			};
+
+		public:
+			Skeleton();
+			virtual ~Skeleton();
+
+		public:
+			ISkeletonInstance* CreateInstance();
+			void DestroyInstance(ISkeletonInstance** ppSkeleton);
+
+		public:
+			virtual IBone* GetRootBone() const override { return m_pRootBone; }
+
+			virtual uint32_t GetBoneCount() const override { return m_vecBones.size(); }
+			virtual IBone* GetBone(uint32_t nIndex) const override { return m_vecBones[nIndex]; }
+			virtual IBone* GetBone(const String::StringID& strBoneName) const override;
+
+			virtual uint32_t GetSkinnedListCount() const override { return m_vecSkinnedList.size(); }
+			virtual void GetSkinnedList(uint32_t nIndex, String::StringID& strSkinnedName_out, const String::StringID** ppBoneNames_out, uint32_t& nElementCount_out) override;
+
+		public:
+			Bone* CreateBone(const String::StringID& strBoneName, const Math::Matrix& matOffset, const Math::Matrix& matTransformation);
+			Bone* CreateBone(const String::StringID& strParentBoneName, const String::StringID& strBoneName, const Math::Matrix& matOffset, const Math::Matrix& matTransformation);
+
+			void SetSkinnedList(const String::StringID& strSkinnedName, const String::StringID* pBoneNames, uint32_t nNameCount);
+
+		private:
+			Bone* CreateChildBone(Bone* pParentBone, const String::StringID& strBoneName, const Math::Matrix& matOffset, const Math::Matrix& matTransformation);
+
+		private:
+			Bone* m_pRootBone;
+
+			std::vector<Bone*> m_vecBones;
+
+			struct SkinnedData
+			{
+				String::StringID strName;
+				std::vector<String::StringID> vecBoneNames;
+
+				SkinnedData(const String::StringID& strName);
+			};
+			std::vector<SkinnedData> m_vecSkinnedList;
+
+			std::set<SkeletonInstance*> m_setSkeletonInstance;
+		};
+
+		class SkeletonInstance : public ISkeletonInstance
+		{
+		public:
+			class BoneInstance : public ISkeletonInstance::IBone
+			{
+			public:
+				BoneInstance(Skeleton::IBone* pBoneHierarchy, BoneInstance* pParentBone);
+				virtual ~BoneInstance();
+
+			public:
+				virtual void Update(const Math::Matrix& matParent, bool isPlayingMotion) override;
+
+			public:
+				virtual const String::StringID& GetName() override { return m_pBoneHierarchy->GetName(); }
+
+				virtual IBone* GetParent() override { return m_pParentBone; }
+
+				virtual uint32_t GetChildBoneCount() override { return m_vecChildBone.size(); }
+				virtual IBone* GetChildBone(uint32_t nIndex) override { return m_vecChildBone[nIndex]; }
+				virtual IBone* GetChildBone(const String::StringID& strBoneName, bool isFindInAllDepth = false) override;
+
+				virtual const Math::Matrix& GetTransform() override { return m_matTransform; }
+				virtual void SetMotionMatrix(const Math::Matrix& matrix) override { m_matMotionData = matrix; }
+
+			public:
+				SkeletonInstance::BoneInstance* AddChildBone(Skeleton::IBone* pBoneHierarchy);
+
+			protected:
+				Math::Matrix m_matMotionData;
+				Math::Matrix m_matTransform;
+
+				BoneInstance* m_pParentBone;
+				std::vector<BoneInstance*> m_vecChildBone;
+
+				Skeleton::IBone* m_pBoneHierarchy;
+			};
+
+		private:
+			class RootBone : public BoneInstance
+			{
+			public:
+				RootBone(Skeleton::Bone* pBoneHierarchy);
+				virtual ~RootBone();
+
+				virtual void Update(const Math::Matrix& matParent, bool isPlayingMotion);
+			};
+
+		public:
+			SkeletonInstance(ISkeleton* pSkeleton);
+			virtual ~SkeletonInstance();
+
+		public:
+			virtual void Update(bool isPlayingMotion) override;
+
+			virtual ISkeleton* GetSkeleton() override { return m_pSkeleton; }
+
+			virtual uint32_t GetBoneCount() const override { return m_vecBones.size(); }
+			virtual IBone* GetBone(uint32_t nIndex) const override { return m_vecBones[nIndex]; }
+			virtual IBone* GetBone(const String::StringID& strBoneName) const override;
+
+			virtual void GetSkinnedData(const String::StringID& strSkinnedName, const Math::Matrix*** pppMatrixList_out, uint32_t& nElementCount_out) override;
+
+		private:
+			void CreateBone(Skeleton::IBone* pBoneHierarchy, BoneInstance* pParentBone);
+			void CreateSkinnedData(ISkeleton* pSkeleton);
+
+		private:
+			ISkeleton* m_pSkeleton;
+
+			RootBone* m_pRootBone;
+
+			std::vector<BoneInstance*> m_vecBones;
+			boost::unordered_map<String::StringID, BoneInstance*> m_umapBone;
+
+			boost::unordered_map<String::StringID, std::vector<const Math::Matrix*>> m_umapSkinnendData;
+		};
+	}
+}

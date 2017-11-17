@@ -1,0 +1,183 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="소스 파일">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="헤더 파일">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Component">
+      <UniqueIdentifier>{9724dea9-8a08-48e6-9e3c-c590a5c23b09}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Component\Model">
+      <UniqueIdentifier>{14870dae-64e4-4667-94d1-239cbf9d982f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sector">
+      <UniqueIdentifier>{8d7549bf-3c18-4610-9eee-1d2bf400db7d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Component\Physics">
+      <UniqueIdentifier>{b60f4e54-122f-44eb-9360-a3221b8f579b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sky">
+      <UniqueIdentifier>{4a491453-6e76-4cf9-b641-dda964d076f1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Component\Camera">
+      <UniqueIdentifier>{b5003bef-f21d-46b7-9010-446bede2b72e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Actor">
+      <UniqueIdentifier>{8176d9a3-b32e-4cee-81f9-5a6a2194e28c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="BehaviorTree">
+      <UniqueIdentifier>{054468bd-d773-4a88-bf96-4f06c5f91254}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Component\Timer">
+      <UniqueIdentifier>{6a0a75a7-e97a-4fd8-af68-c0deb75b4267}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Physics">
+      <UniqueIdentifier>{58a04f44-d6a1-4dcb-9d1e-5b921e75266e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Physics\RagDoll">
+      <UniqueIdentifier>{87e1c62f-23fc-4904-b1ca-572f5c06db0c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Terrain">
+      <UniqueIdentifier>{1f8a3e54-e40c-418d-8156-b316b20f869a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Terrain\Cells">
+      <UniqueIdentifier>{27328c21-c672-4980-8e49-97ec78cc0d7e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="리소스 파일">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Cloud">
+      <UniqueIdentifier>{a262fc7a-33ec-420e-bd10-248b0efa51f9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Component\Light">
+      <UniqueIdentifier>{56e46121-76d0-445f-ab58-ff9932f4ad87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Component\ActionState">
+      <UniqueIdentifier>{4a5a7229-1721-4fc2-a44d-3116a4e0c4e4}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentModel.h">
+      <Filter>Component\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="Sector.h">
+      <Filter>Sector</Filter>
+    </ClInclude>
+    <ClInclude Include="SectorMgr.h">
+      <Filter>Sector</Filter>
+    </ClInclude>
+    <ClInclude Include="Actor.h">
+      <Filter>Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentPhysics.h">
+      <Filter>Component\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Terrain.h">
+      <Filter>Terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="SkyDome.h">
+      <Filter>Sky</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainCells.h">
+      <Filter>Terrain\Cells</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentCamera.h">
+      <Filter>Component\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="BehaviorTree.h">
+      <Filter>BehaviorTree</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentActionState.h">
+      <Filter>Component\ActionState</Filter>
+    </ClInclude>
+    <ClInclude Include="RagDoll.h">
+      <Filter>Physics\RagDoll</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentInterface.h">
+      <Filter>Component</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentTimer.h">
+      <Filter>Component\Timer</Filter>
+    </ClInclude>
+    <ClInclude Include="ActorManager.h">
+      <Filter>Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentLight.h">
+      <Filter>Component\Light</Filter>
+    </ClInclude>
+    <ClInclude Include="ActorInterface.h">
+      <Filter>Actor</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentModel.cpp">
+      <Filter>Component\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="Sector.cpp">
+      <Filter>Sector</Filter>
+    </ClCompile>
+    <ClCompile Include="SectorMgr.cpp">
+      <Filter>Sector</Filter>
+    </ClCompile>
+    <ClCompile Include="Actor.cpp">
+      <Filter>Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentPhysics.cpp">
+      <Filter>Component\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="Terrain.cpp">
+      <Filter>Terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="SkyDome.cpp">
+      <Filter>Sky</Filter>
+    </ClCompile>
+    <ClCompile Include="TerrainCells.cpp">
+      <Filter>Terrain\Cells</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentCamera.cpp">
+      <Filter>Component\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="BehaviorTree.cpp">
+      <Filter>BehaviorTree</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentActionState.cpp">
+      <Filter>Component\ActionState</Filter>
+    </ClCompile>
+    <ClCompile Include="RagDoll.cpp">
+      <Filter>Physics\RagDoll</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentInterface.cpp">
+      <Filter>Component</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentTimer.cpp">
+      <Filter>Component\Timer</Filter>
+    </ClCompile>
+    <ClCompile Include="ActorManager.cpp">
+      <Filter>Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentLight.cpp">
+      <Filter>Component\Light</Filter>
+    </ClCompile>
+    <ClCompile Include="ActorInterface.cpp">
+      <Filter>Actor</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
