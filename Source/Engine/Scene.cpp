@@ -3,7 +3,7 @@
 
 #include "SceneMgr.h"
 
-#include "../GameObject/SectorMgr.h"
+#include "GameObject/SectorMgr.h"
 
 namespace EastEngine
 {

@@ -2,8 +2,8 @@
 #include "ObjImporter.h"
 #include "GeometryModel.h"
 
-#include "../CommonLib/FileStream.h"
-#include "../CommonLib/FileUtil.h"
+#include "CommonLib/FileStream.h"
+#include "CommonLib/FileUtil.h"
 
 #include "ModelInterface.h"
 

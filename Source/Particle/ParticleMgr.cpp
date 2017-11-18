@@ -3,7 +3,7 @@
 
 #include "ParticleInterface.h"
 
-#include "../DirectX/CameraManager.h"
+#include "DirectX/CameraManager.h"
 
 namespace EastEngine
 {

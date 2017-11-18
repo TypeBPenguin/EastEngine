@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../CommonLib/plf_colony.h"
+#include "CommonLib/plf_colony.h"
 
 #include "ModelInterface.h"
 

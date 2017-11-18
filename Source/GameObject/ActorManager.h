@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../CommonLib/Singleton.h"
-#include "../CommonLib/plf_colony.h"
+#include "CommonLib/Singleton.h"
+#include "CommonLib/plf_colony.h"
 
 #include "Actor.h"
 

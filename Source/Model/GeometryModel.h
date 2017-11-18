@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../DirectX/Vertex.h"
+#include "DirectX/Vertex.h"
 
 namespace EastEngine
 {

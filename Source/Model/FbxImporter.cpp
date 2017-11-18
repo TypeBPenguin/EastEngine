@@ -1,10 +1,10 @@
 #include "StdAfx.h"
 #include "FbxImporter.h"
 
-#include "../CommonLib/FileStream.h"
-#include "../CommonLib/FileUtil.h"
+#include "CommonLib/FileStream.h"
+#include "CommonLib/FileUtil.h"
 
-#include "../DirectX/Vertex.h"
+#include "DirectX/Vertex.h"
 
 #include "Model.h"
 #include "ModelNodeStatic.h"

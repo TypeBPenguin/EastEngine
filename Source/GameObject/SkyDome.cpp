@@ -1,12 +1,12 @@
 #include "stdafx.h"
 #include "SkyDome.h"
 
-#include "../XmlParser/XmlParser.h"
-#include "../CommonLib/FileUtil.h"
+#include "XmlParser/XmlParser.h"
+#include "CommonLib/FileUtil.h"
 
 #include "SkyDome.inc"
 
-#include "../Model/GeometryModel.h"
+#include "Model/GeometryModel.h"
 
 namespace EastEngine
 {

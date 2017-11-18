@@ -17,5 +17,5 @@
 
 #include <ppltasks.h>
 
-#include "../CommonLib/CommonLib.h"
-#include "../DirectX/D3DInterface.h"
+#include "CommonLib/CommonLib.h"
+#include "DirectX/D3DInterface.h"

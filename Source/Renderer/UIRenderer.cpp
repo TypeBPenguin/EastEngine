@@ -1,8 +1,8 @@
 #include "stdafx.h"
 #include "UIRenderer.h"
 
-#include "../DirectX/ISpriteBatch.h"
-#include "../DirectX/ISpriteFont.h"
+#include "DirectX/ISpriteBatch.h"
+#include "DirectX/ISpriteFont.h"
 
 namespace StrID
 {

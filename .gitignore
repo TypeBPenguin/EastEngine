@@ -14,7 +14,6 @@
 # Compiled Dynamic libraries
 *.so
 *.dylib
-*.dll
 
 # Fortran module files
 *.mod
@@ -29,3 +28,7 @@
 *.exe
 *.out
 *.app
+/ipch
+/Source/ExternLib/DirectXTex/.vs/DirectXTex_Desktop_2015/v15
+/Source/ExternLib/DirectXTK/.gitignore
+/Source/ExternLib/TCMalloc/.vs/gperftools/v14

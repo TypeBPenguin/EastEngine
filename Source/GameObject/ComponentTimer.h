@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../CommonLib/Timer.h"
+#include "CommonLib/Timer.h"
 
 #include "ComponentInterface.h"
 

@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "ModelLoader.h"
 
-#include "../CommonLib/FileUtil.h"
+#include "CommonLib/FileUtil.h"
 
 #include "ModelInterface.h"
 

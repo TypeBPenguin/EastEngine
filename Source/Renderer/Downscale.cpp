@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "Downscale.h"
 
-#include "../CommonLib/FileUtil.h"
+#include "CommonLib/FileUtil.h"
 
 namespace StrID
 {

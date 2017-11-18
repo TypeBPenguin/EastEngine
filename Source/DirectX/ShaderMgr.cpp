@@ -1,8 +1,8 @@
 #include "stdafx.h"
 #include "ShaderMgr.h"
 
-#include "../CommonLib/FileUtil.h"
-#include "../CommonLib/DirectoryMonitor.h"
+#include "CommonLib/FileUtil.h"
+#include "CommonLib/DirectoryMonitor.h"
 
 #include "Effect.h"
 

@@ -3,8 +3,8 @@
 
 #include "ComponentPhysics.h"
 
-#include "../DirectX/DebugUtil.h"
-#include "../DirectX/CameraManager.h"
+#include "DirectX/DebugUtil.h"
+#include "DirectX/CameraManager.h"
 
 namespace EastEngine
 {

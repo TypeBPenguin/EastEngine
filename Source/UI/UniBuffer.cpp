@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "UniBuffer.h"
 
-#include "../DirectX/ISpriteFont.h"
+#include "DirectX/ISpriteFont.h"
 
 namespace EastEngine
 {

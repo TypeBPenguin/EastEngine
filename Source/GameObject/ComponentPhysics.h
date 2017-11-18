@@ -1,13 +1,13 @@
 #pragma once
 
-#include "../Physics/RigidBody.h"
-#include "../Physics/Constraint.h"
-#include "../Physics/GhostObject.h"
-#include "../Physics/KinematicCharacterController.h"
+#include "Physics/RigidBody.h"
+#include "Physics/Constraint.h"
+#include "Physics/GhostObject.h"
+#include "Physics/KinematicCharacterController.h"
 
-#include "../Model/ModelInterface.h"
+#include "Model/ModelInterface.h"
 
-#include "../GameObject/RagDoll.h"
+#include "GameObject/RagDoll.h"
 
 #include "ComponentInterface.h"
 

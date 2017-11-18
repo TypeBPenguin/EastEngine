@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../CommonLib/Singleton.h"
+#include "CommonLib/Singleton.h"
 
 #include "LuaThread.h"
 

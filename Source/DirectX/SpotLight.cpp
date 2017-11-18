@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "SpotLight.h"
 
-#include "../CommonLib/Config.h"
+#include "CommonLib/Config.h"
 
 #include "LightMgr.h"
 #include "Shadow.h"

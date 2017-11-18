@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "RagDoll.h"
 
-#include "../Model/ModelInterface.h"
+#include "Model/ModelInterface.h"
 
 namespace StrID
 {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Engine/SceneMgr.h"
+#include "Engine/SceneMgr.h"
 
 class MaterialNodeManager;
 

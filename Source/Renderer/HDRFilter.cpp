@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "HDRFilter.h"
 
-#include "../CommonLib/FileUtil.h"
+#include "CommonLib/FileUtil.h"
 
 #include "Downscale.h"
 #include "GaussianBlur.h"

@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "WaterSimulator.h"
 
-#include "../CommonLib/FileUtil.h"
+#include "CommonLib/FileUtil.h"
 
 #define HALF_SQRT_2	0.7071068f
 #define GRAV_ACCEL	981.0f	// The acceleration of gravity, cm/s^2

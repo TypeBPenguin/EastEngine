@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "TextureManager.h"
 
-#include "../CommonLib/FileUtil.h"
+#include "CommonLib/FileUtil.h"
 
 #include "Texture.h"
 

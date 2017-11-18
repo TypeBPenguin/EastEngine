@@ -1,10 +1,10 @@
 #include "stdafx.h"
 #include "ComponentPhysics.h"
 
-#include "../DirectX/CameraManager.h"
+#include "DirectX/CameraManager.h"
 
-#include "../Model/ModelInterface.h"
-#include "../Model/ModelLoader.h"
+#include "Model/ModelInterface.h"
+#include "Model/ModelLoader.h"
 
 #include "RagDoll.h"
 

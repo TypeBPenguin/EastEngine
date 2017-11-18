@@ -2,10 +2,10 @@
 #include "Terrain.h"
 
 #ifndef NEW_TERRAIN
-#include "../CommonLib/FileStream.h"
+#include "CommonLib/FileStream.h"
 
-#include "../DirectX/Device.h"
-#include "../DirectX/CameraManager.h"
+#include "DirectX/Device.h"
+#include "DirectX/CameraManager.h"
 
 namespace StrID
 {
@@ -1096,7 +1096,7 @@ namespace EastEngine
 }
 #else
 
-#include "../CommonLib/FileUtil.h"
+#include "CommonLib/FileUtil.h"
 
 namespace EastEngine
 {

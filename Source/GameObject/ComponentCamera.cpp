@@ -1,8 +1,8 @@
 #include "stdafx.h"
 #include "ComponentCamera.h"
 
-#include "../DirectX/Camera.h"
-#include "../Input/InputDevice.h"
+#include "DirectX/Camera.h"
+#include "Input/InputDevice.h"
 
 #include "ActorInterface.h"
 

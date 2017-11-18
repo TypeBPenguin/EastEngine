@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../CommonLib/Singleton.h"
+#include "CommonLib/Singleton.h"
 
 #include "Mouse.h"
 #include "Keyboard.h"

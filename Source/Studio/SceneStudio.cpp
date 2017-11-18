@@ -1,35 +1,35 @@
 #include "stdafx.h"
 #include "SceneStudio.h"
 
-#include "../CommonLib/FileUtil.h"
-#include "../CommonLib/Config.h"
+#include "CommonLib/FileUtil.h"
+#include "CommonLib/Config.h"
 
-#include "../DirectX/CameraManager.h"
-#include "../DirectX/Light.h"
-#include "../DirectX/MaterialNode.h"
+#include "DirectX/CameraManager.h"
+#include "DirectX/Light.h"
+#include "DirectX/MaterialNode.h"
 
-#include "../Renderer/ASSAO.h"
-#include "../Renderer/DepthOfField.h"
+#include "Renderer/ASSAO.h"
+#include "Renderer/DepthOfField.h"
 
-#include "../Model/ModelManager.h"
-#include "../Model/MotionManager.h"
+#include "Model/ModelManager.h"
+#include "Model/MotionManager.h"
 
-#include "../Particle/ParticleInterface.h"
+#include "Particle/ParticleInterface.h"
 
-#include "../Windows/Windows.h"
+#include "Windows/Windows.h"
 
-#include "../Input/Mouse.h"
+#include "Input/Mouse.h"
 
-#include "../Renderer/DepthOfField.h"
-#include "../Renderer/HDRFilter.h"
+#include "Renderer/DepthOfField.h"
+#include "Renderer/HDRFilter.h"
 
-#include "../GameObject/ActorManager.h"
-#include "../GameObject/ComponentModel.h"
-#include "../GameObject/ComponentPhysics.h"
-#include "../GameObject/SkyDome.h"
-#include "../GameObject/Terrain.h"
+#include "GameObject/ActorManager.h"
+#include "GameObject/ComponentModel.h"
+#include "GameObject/ComponentPhysics.h"
+#include "GameObject/SkyDome.h"
+#include "GameObject/Terrain.h"
 
-#include "../Contents/Sun.h"
+#include "Contents/Sun.h"
 
 #include "imgui.h"
 #include "imgui_impl_dx11.h"

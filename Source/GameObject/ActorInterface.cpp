@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "ActorInterface.h"
 
-#include "../CommonLib/FileStream.h"
+#include "CommonLib/FileStream.h"
 
 #include "ActorManager.h"
 

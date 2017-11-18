@@ -1,12 +1,12 @@
 #include "stdafx.h"
 #include <iostream>
 
-#include "../CommonLib/FileUtil.h"
+#include "CommonLib/FileUtil.h"
 
-#include "../Windows/Windows.h"
-#include "../DirectX/Device.h"
-#include "../Model/ModelManager.h"
-#include "../Model/MotionManager.h"
+#include "Windows/Windows.h"
+#include "DirectX/Device.h"
+#include "Model/ModelManager.h"
+#include "Model/MotionManager.h"
 
 using namespace EastEngine;
 

@@ -1,12 +1,12 @@
 #include "stdafx.h"
 #include "UIMgr.h"
 
-#include "../XmlParser/XmlParser.h"
-#include "../CommonLib/FileUtil.h"
+#include "XmlParser/XmlParser.h"
+#include "CommonLib/FileUtil.h"
 
 #include "UIPanel.h"
 
-#include "../DirectX/ISpriteFont.h"
+#include "DirectX/ISpriteFont.h"
 
 namespace EastEngine
 {

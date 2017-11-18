@@ -1,8 +1,8 @@
 #include "stdafx.h"
 #include "Skeleton.h"
 
-#include "../DirectX/DebugUtil.h"
-#include "../Renderer/RendererManager.h"
+#include "DirectX/DebugUtil.h"
+#include "Renderer/RendererManager.h"
 
 namespace StrID
 {

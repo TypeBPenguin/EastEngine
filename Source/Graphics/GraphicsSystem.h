@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../CommonLib/Singleton.h"
+#include "CommonLib/Singleton.h"
 
-#include "../DirectX/D3DInterface.h"
+#include "DirectX/D3DInterface.h"
 
 namespace EastEngine
 {

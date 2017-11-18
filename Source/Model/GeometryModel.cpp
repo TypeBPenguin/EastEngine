@@ -1165,8 +1165,8 @@ namespace EastEngine
 			// Include the teapot control point data.
 			namespace
 			{
-		#include "../DirectXTK/Src/TeapotData.inc"
-		#include "../DirectXTK/Src/Bezier.h"
+		#include "ExternLib/DirectXTK/Src/TeapotData.inc"
+		#include "ExternLib/DirectXTK/Src/Bezier.h"
 			}
 
 			bool CreateTeapot(IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer, float size, uint32_t tessellation, bool rhcoords)

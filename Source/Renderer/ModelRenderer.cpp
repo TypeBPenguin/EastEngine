@@ -1,14 +1,14 @@
 #include "stdafx.h"
 #include "ModelRenderer.h"
 
-#include "../CommonLib/FileUtil.h"
-#include "../CommonLib/Performance.h"
-#include "../CommonLib/Config.h"
+#include "CommonLib/FileUtil.h"
+#include "CommonLib/Performance.h"
+#include "CommonLib/Config.h"
 
-#include "../DirectX/CameraManager.h"
-#include "../DirectX/LightMgr.h"
-#include "../DirectX/OcclusionCulling.h"
-#include "../DirectX/VTFMgr.h"
+#include "DirectX/CameraManager.h"
+#include "DirectX/LightMgr.h"
+#include "DirectX/OcclusionCulling.h"
+#include "DirectX/VTFMgr.h"
 
 namespace StrID
 {

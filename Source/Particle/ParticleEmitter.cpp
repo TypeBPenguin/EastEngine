@@ -1,11 +1,11 @@
 #include "stdafx.h"
 #include "ParticleEmitter.h"
 
-#include "../CommonLib/FileUtil.h"
+#include "CommonLib/FileUtil.h"
 
-#include "../DirectX/D3DInterface.h"
+#include "DirectX/D3DInterface.h"
 
-#include "../Renderer/RendererManager.h"
+#include "Renderer/RendererManager.h"
 
 #include "ParticleMgr.h"
 

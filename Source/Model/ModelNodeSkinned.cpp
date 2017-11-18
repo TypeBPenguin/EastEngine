@@ -1,12 +1,12 @@
 #include "stdafx.h"
 #include "ModelNodeSkinned.h"
 
-#include "../CommonLib/FileStream.h"
+#include "CommonLib/FileStream.h"
 
-#include "../DirectX/CameraManager.h"
-#include "../DirectX/VTFMgr.h"
+#include "DirectX/CameraManager.h"
+#include "DirectX/VTFMgr.h"
 
-#include "../Renderer/RendererManager.h"
+#include "Renderer/RendererManager.h"
 
 #include "Skeleton.h"
 

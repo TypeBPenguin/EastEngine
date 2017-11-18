@@ -6,9 +6,9 @@
 #include "ComponentModel.h"
 #include "ComponentPhysics.h"
 
-#include "../DirectX/Device.h"
+#include "DirectX/Device.h"
 
-#include "../Model/ModelManager.h"
+#include "Model/ModelManager.h"
 
 namespace StrID
 {

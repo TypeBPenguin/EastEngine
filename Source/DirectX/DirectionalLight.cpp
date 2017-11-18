@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "DirectionalLight.h"
 
-#include "../CommonLib/Config.h"
+#include "CommonLib/Config.h"
 
 #include "CascadedShadows.h"
 

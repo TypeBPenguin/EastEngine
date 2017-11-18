@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "UIEditBox.h"
 
-#include "../CommonLib/Timer.h"
+#include "CommonLib/Timer.h"
 
 #include "IUIPanel.h"
 

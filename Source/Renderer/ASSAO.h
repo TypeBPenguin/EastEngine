@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "../CommonLib/Singleton.h"
+#include "CommonLib/Singleton.h"
 
 struct ID3D11Device;
 struct ID3D11DeviceContext;

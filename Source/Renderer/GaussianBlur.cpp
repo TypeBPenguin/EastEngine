@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "GaussianBlur.h"
 
-#include "../CommonLib/FileUtil.h"
+#include "CommonLib/FileUtil.h"
 
 namespace StrID
 {

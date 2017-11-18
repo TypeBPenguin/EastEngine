@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "ModelNode.h"
 
-#include "../CommonLib/FileStream.h"
+#include "CommonLib/FileStream.h"
 
 namespace EastEngine
 {

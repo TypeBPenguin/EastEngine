@@ -1,12 +1,12 @@
 #include "stdafx.h"
 #include "Sun.h"
 
-#include "../GameObject/ActorInterface.h"
-#include "../GameObject/ComponentModel.h"
-#include "../GameObject/ComponentTimer.h"
+#include "GameObject/ActorInterface.h"
+#include "GameObject/ComponentModel.h"
+#include "GameObject/ComponentTimer.h"
 
-#include "../DirectX/Light.h"
-#include "../Model/ModelLoader.h"
+#include "DirectX/Light.h"
+#include "Model/ModelLoader.h"
 
 namespace Contents
 {

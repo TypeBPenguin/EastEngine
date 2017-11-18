@@ -8,10 +8,10 @@
 #include "HDRFilter.h"
 #include "ASSAO.h"
 
-#include "../CommonLib/Timer.h"
-#include "../CommonLib/Config.h"
+#include "CommonLib/Timer.h"
+#include "CommonLib/Config.h"
 
-#include "../DirectX/GBuffers.h"
+#include "DirectX/GBuffers.h"
 
 namespace EastEngine
 {

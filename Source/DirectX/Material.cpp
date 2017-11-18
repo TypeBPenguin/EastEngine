@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "Material.h"
 
-#include "../CommonLib/FileStream.h"
+#include "CommonLib/FileStream.h"
 
 #include "D3DInterface.h"
 

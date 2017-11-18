@@ -3,10 +3,10 @@
 
 #include "WaterSimulator.h"
 
-#include "../CommonLib/FileUtil.h"
-#include "../CommonLib/Timer.h"
+#include "CommonLib/FileUtil.h"
+#include "CommonLib/Timer.h"
 
-#include "../DirectX/CameraManager.h"
+#include "DirectX/CameraManager.h"
 
 #define FRESNEL_TEX_SIZE			256
 #define PERLIN_TEX_SIZE				64

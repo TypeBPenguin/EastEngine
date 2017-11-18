@@ -14,4 +14,4 @@
 #include <dinput.h>
 #include <Xinput.h>
 
-#include "../CommonLib/CommonLib.h"
+#include "CommonLib/CommonLib.h"

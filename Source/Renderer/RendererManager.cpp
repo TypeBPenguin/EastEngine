@@ -11,7 +11,7 @@
 #include "WaterRenderer.h"
 #include "VertexRenderer.h"
 
-#include "../CommonLib/FileUtil.h"
+#include "CommonLib/FileUtil.h"
 
 namespace StrID
 {

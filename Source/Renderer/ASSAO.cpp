@@ -19,10 +19,10 @@
 #include "stdafx.h"
 #include "ASSAO.h"
 
-#include "../CommonLib/FileUtil.h"
+#include "CommonLib/FileUtil.h"
 
-#include "../DirectX/CameraManager.h"
-#include "../DirectX/Vertex.h"
+#include "DirectX/CameraManager.h"
+#include "DirectX/Vertex.h"
 
 #include <d3dcompiler.h>
 

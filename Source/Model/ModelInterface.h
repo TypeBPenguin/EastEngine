@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../DirectX/D3DInterface.h"
+#include "DirectX/D3DInterface.h"
 
 namespace EastEngine
 {

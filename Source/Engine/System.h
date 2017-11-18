@@ -1,11 +1,11 @@
 #pragma once
 
-#include "../CommonLib/Singleton.h"
+#include "CommonLib/Singleton.h"
 
-#include "../CommonLib/CommonLib.h"
+#include "CommonLib/CommonLib.h"
 
-#include "../Windows/Windows.h"
-#include "../Graphics/GraphicsSystem.h"
+#include "Windows/Windows.h"
+#include "Graphics/GraphicsSystem.h"
 
 namespace EastEngine
 {

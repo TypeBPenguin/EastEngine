@@ -1,8 +1,8 @@
 #include "stdafx.h"
 #include "ModelInterface.h"
 
-#include "../CommonLib/FileUtil.h"
-#include "../CommonLib/FileStream.h"
+#include "CommonLib/FileUtil.h"
+#include "CommonLib/FileStream.h"
 
 #include "ModelManager.h"
 #include "Model.h"

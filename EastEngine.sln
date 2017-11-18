@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26730.16
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "2. Graphics", "2. Graphics", "{11BD9C14-3E95-4566-A54E-7EB31BA5E0D7}"
 EndProject
@@ -60,8 +60,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "9_0. Contents", "9_0. Contents", "{4FC329DA-D51A-482D-B510-6D73542AEC04}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Contents", "Source\Contents\Contents.vcxproj", "{B0ABB007-8EBA-4721-B3F2-17529BB5B55D}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "9_9. TheMagic", "9_9. TheMagic", "{DD8729A1-C9CE-4D4C-9408-870F57E91499}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -456,7 +454,6 @@ Global
 		{8E9E37CD-7FC9-41B2-9B7E-8B01BD5998A8} = {580F7A8B-FDEB-492B-A292-207877BD59EE}
 		{4FC329DA-D51A-482D-B510-6D73542AEC04} = {6CCBF0D8-F460-4FAD-9310-35D230BAB24A}
 		{B0ABB007-8EBA-4721-B3F2-17529BB5B55D} = {4FC329DA-D51A-482D-B510-6D73542AEC04}
-		{DD8729A1-C9CE-4D4C-9408-870F57E91499} = {6CCBF0D8-F460-4FAD-9310-35D230BAB24A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {123BA54A-6854-4312-9B89-9A0B069537F1}

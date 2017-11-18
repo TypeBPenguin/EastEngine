@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "FXAA.h"
 
-#include "../CommonLib/FileUtil.h"
+#include "CommonLib/FileUtil.h"
 
 namespace StrID
 {

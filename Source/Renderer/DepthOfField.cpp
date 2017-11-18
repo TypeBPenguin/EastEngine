@@ -1,9 +1,9 @@
 #include "stdafx.h"
 #include "DepthOfField.h"
 
-#include "../CommonLib/FileUtil.h"
+#include "CommonLib/FileUtil.h"
 
-#include "../DirectX/CameraManager.h"
+#include "DirectX/CameraManager.h"
 
 #include "GaussianBlur.h"
 #include "Downscale.h"

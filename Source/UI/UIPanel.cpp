@@ -3,8 +3,8 @@
 
 #include "UIMgr.h"
 
-#include "../DirectX/RenderTarget.h"
-#include "../DirectX/ISpriteFont.h"
+#include "DirectX/RenderTarget.h"
+#include "DirectX/ISpriteFont.h"
 
 namespace EastEngine
 {

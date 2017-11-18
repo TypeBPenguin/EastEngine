@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ParticleInterface.h"
-#include "../DirectX/Vertex.h"
+#include "DirectX/Vertex.h"
 
 namespace EastEngine
 {

@@ -2,7 +2,7 @@
 #include "MotionManager.h"
 
 #include "ModelInterface.h"
-#include "../CommonLib/FileStream.h"
+#include "CommonLib/FileStream.h"
 
 namespace EastEngine
 {

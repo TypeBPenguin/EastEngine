@@ -3,8 +3,8 @@
 
 #include "ParticleMgr.h"
 
-#include "../DirectX/D3DInterface.h"
-#include "../Renderer/RendererManager.h"
+#include "DirectX/D3DInterface.h"
+#include "Renderer/RendererManager.h"
 
 namespace EastEngine
 {

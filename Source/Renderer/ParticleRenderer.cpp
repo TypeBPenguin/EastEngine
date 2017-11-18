@@ -1,10 +1,10 @@
 #include "stdafx.h"
 #include "ParticleRenderer.h"
 
-#include "../CommonLib/FileUtil.h"
-#include "../CommonLib/Config.h"
+#include "CommonLib/FileUtil.h"
+#include "CommonLib/Config.h"
 
-#include "../DirectX/CameraManager.h"
+#include "DirectX/CameraManager.h"
 
 namespace StrID
 {

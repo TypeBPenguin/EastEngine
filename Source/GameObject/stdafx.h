@@ -13,7 +13,7 @@
 #define _SCL_SECURE_NO_WARNINGS
 #endif
 
-#include "../CommonLib/CommonLib.h"
-#include "../Model/ModelManager.h"
-#include "../Renderer/RendererManager.h"
-#include "../Physics/PhysicsSystem.h"
+#include "CommonLib/CommonLib.h"
+#include "Model/ModelManager.h"
+#include "Renderer/RendererManager.h"
+#include "Physics/PhysicsSystem.h"

@@ -4,21 +4,21 @@
 #include "FpsChecker.h"
 #include "SceneMgr.h"
 
-#include "../CommonLib/CommandLine.h"
-#include "../CommonLib/DirectoryMonitor.h"
-#include "../CommonLib/Timer.h"
+#include "CommonLib/CommandLine.h"
+#include "CommonLib/DirectoryMonitor.h"
+#include "CommonLib/Timer.h"
 
-#include "../CommonLib/PipeStream.h"
+#include "CommonLib/PipeStream.h"
 
-#include "../DirectX/Device.h"
-#include "../LuaSystem/LuaSystem.h"
-#include "../Input/InputDevice.h"
-#include "../Physics/PhysicsSystem.h"
-#include "../SoundSystem/SoundSystem.h"
-#include "../GameObject/ActorManager.h"
-#include "../UI/UIMgr.h"
+#include "DirectX/Device.h"
+#include "LuaSystem/LuaSystem.h"
+#include "Input/InputDevice.h"
+#include "Physics/PhysicsSystem.h"
+#include "SoundSystem/SoundSystem.h"
+#include "GameObject/ActorManager.h"
+#include "UI/UIMgr.h"
 
-#include "../GameObject/ComponentModel.h"
+#include "GameObject/ComponentModel.h"
 
 #include <ppl.h>
 

@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "ParticleInterface.h"
 
-#include "../CommonLib/FileUtil.h"
+#include "CommonLib/FileUtil.h"
 
 #include "ParticleDecal.h"
 #include "ParticleEmitter.h"

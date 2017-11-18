@@ -1,14 +1,14 @@
 #include "stdafx.h"
 #include "DeferredRenderer.h"
 
-#include "../CommonLib/FileUtil.h"
-#include "../CommonLib/Config.h"
+#include "CommonLib/FileUtil.h"
+#include "CommonLib/Config.h"
 
-#include "../DirectX/CameraManager.h"
+#include "DirectX/CameraManager.h"
 
-#include "../DirectX/LightMgr.h"
-#include "../DirectX/PointLight.h"
-#include "../DirectX/SpotLight.h"
+#include "DirectX/LightMgr.h"
+#include "DirectX/PointLight.h"
+#include "DirectX/SpotLight.h"
 
 #include "FXAA.h"
 
