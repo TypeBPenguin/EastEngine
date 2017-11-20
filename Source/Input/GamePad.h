@@ -243,8 +243,8 @@ namespace EastEngine
 			}
 
 			// Handle suspending/resuming
-			void Suspend();
-			void Resume();
+			/*void Suspend();
+			void Resume();*/
 
 			void Update(float fElapsedTime);
 

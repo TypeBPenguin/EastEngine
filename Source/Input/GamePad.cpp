@@ -247,7 +247,7 @@ namespace EastEngine
 		{
 		}
 
-		void GamePad::Suspend()
+		/*void GamePad::Suspend()
 		{
 			XInputEnable(FALSE);
 		}
@@ -255,7 +255,7 @@ namespace EastEngine
 		void GamePad::Resume()
 		{
 			XInputEnable(TRUE);
-		}
+		}*/
 
 		void GamePad::Update(float fElapsedTime)
 		{
