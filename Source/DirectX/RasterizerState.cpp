@@ -7,6 +7,7 @@ namespace EastEngine
 	{
 		RasterizerState::RasterizerState()
 			: m_pRasterizerState(nullptr)
+			, m_rasterizerStateKey(String::UnregisteredKey)
 		{
 		}
 

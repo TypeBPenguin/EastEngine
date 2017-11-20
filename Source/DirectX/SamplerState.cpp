@@ -7,6 +7,7 @@ namespace EastEngine
 	{
 		SamplerState::SamplerState()
 			: m_pSamplerState(nullptr)
+			, m_samplerStateKey(String::UnregisteredKey)
 		{
 		}
 

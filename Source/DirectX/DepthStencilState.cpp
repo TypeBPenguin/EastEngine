@@ -7,6 +7,7 @@ namespace EastEngine
 	{
 		DepthStencilState::DepthStencilState()
 			: m_pDepthStencilState(nullptr)
+			, m_depthStencilStateKey(String::UnregisteredKey)
 		{
 		}
 

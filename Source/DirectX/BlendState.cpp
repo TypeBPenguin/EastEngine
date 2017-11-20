@@ -7,6 +7,7 @@ namespace EastEngine
 	{
 		BlendState::BlendState()
 			: m_pBlendState(nullptr)
+			, m_blendStateKey(String::UnregisteredKey)
 		{
 		}
 
@@ -21,7 +22,6 @@ namespace EastEngine
 				return false;
 
 			m_blendStateDesc = blendStateDesc;
-
 			m_blendStateKey = m_blendStateDesc.GetKey();
 
 			return true;

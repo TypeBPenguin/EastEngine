@@ -13,6 +13,7 @@ namespace EastEngine
 			, m_pTexture(nullptr)
 			, m_isNeedClear(false)
 			, m_colorClear(Math::Color::Black)
+			, m_keyRenderTarget(String::UnregisteredKey)
 		{
 		}
 

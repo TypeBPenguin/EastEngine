@@ -3,7 +3,7 @@
 
 #include "fmod_errors.h"
 
-#include "../CommonLib/FileUtil.h"
+#include "CommonLib/FileUtil.h"
 
 namespace EastEngine
 {

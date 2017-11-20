@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Type.h"
+
 #ifndef CHECK_DUPLICATE_STRING_KEY
 #define CHECK_DUPLICATE_STRING_KEY 0
 #endif
@@ -8,8 +10,10 @@ namespace EastEngine
 {
 	namespace String
 	{
-		typedef std::size_t StringKey;
-		const StringKey UnregisteredKey = 1;	// '\0'
+		struct stringKeyT {};
+		using StringKey = Type<stringKeyT, std::size_t>;
+		
+		static const StringKey UnregisteredKey(1);	// '\0'
 
 		class StringID
 		{
@@ -48,7 +52,7 @@ namespace EastEngine
 
 			void clear() { m_nStringKey = UnregisteredKey; }
 
-			StringID& Format(const char* format, ...);
+			static StringID Format(const char* format, ...);
 
 		private:
 			StringKey m_nStringKey;
@@ -67,11 +71,20 @@ namespace StrID
 namespace std
 {
 	template <>
+	struct hash<EastEngine::String::StringKey>
+	{
+		std::size_t operator()(const EastEngine::String::StringKey& key) const
+		{
+			return key.value;
+		}
+	};
+
+	template <>
 	struct hash<EastEngine::String::StringID>
 	{
 		std::size_t operator()(const EastEngine::String::StringID& key) const
 		{
-			return key.Key();
+			return key.Key().value;
 		}
 	};
 }
@@ -79,11 +92,20 @@ namespace std
 namespace boost
 {
 	template <>
+	struct hash<EastEngine::String::StringKey>
+	{
+		std::size_t operator()(const EastEngine::String::StringKey& key) const
+		{
+			return key.value;
+		}
+	};
+
+	template <>
 	struct hash<EastEngine::String::StringID>
 	{
 		std::size_t operator()(const EastEngine::String::StringID& key) const
 		{
-			return key.Key();
+			return key.Key().value;
 		}
 	};
 }

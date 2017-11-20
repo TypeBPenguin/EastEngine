@@ -43,13 +43,13 @@ namespace EastEngine
 
 		inline StringKey Hash(const char* pString)
 		{
-			StringKey v = 1;
+			std::size_t v = 1;
 			while (char c = *pString++)
 			{
 				v = (v << 6) + (v << 16) - v + c;
 			}
 
-			return v;
+			return StringKey(v);
 		}
 
 		inline char* GetStringPtr(StringKey key) { return s_pStringTable->umapStringTable[key]; }

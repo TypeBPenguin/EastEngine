@@ -140,24 +140,8 @@ namespace EastEngine
 		//////////////////
 		// SamplerState //
 		//////////////////
-		struct SamplerStateKey
-		{
-		private:
-			String::StringKey key;
-			
-		public:
-			SamplerStateKey();
-			SamplerStateKey(const String::StringKey& key);
-
-			operator String::StringKey() const { return key; }
-			bool operator == (const SamplerStateKey& source) const { return key == source.key; }
-			
-			static const SamplerStateKey& EmptyKey()
-			{
-				static SamplerStateKey emtpyKey;
-				return emtpyKey;
-			}
-		};
+		struct samplerStateKeyT {};
+		using SamplerStateKey = Type<samplerStateKeyT, String::StringKey>;
 
 		struct SamplerStateDesc : public CD3D11_SAMPLER_DESC
 		{
@@ -176,24 +160,8 @@ namespace EastEngine
 		////////////////
 		// BlendState //
 		////////////////
-		struct BlendStateKey
-		{
-		private:
-			String::StringKey key;
-
-		public:
-			BlendStateKey();
-			BlendStateKey(const String::StringKey& key);
-
-			operator String::StringKey() const { return key; }
-			bool operator == (const BlendStateKey& source) const { return key == source.key; }
-
-			static const BlendStateKey& EmptyKey()
-			{
-				static BlendStateKey emptyKey;
-				return emptyKey;
-			}
-		};
+		struct blendStateKeyT {};
+		using BlendStateKey = Type<blendStateKeyT, String::StringKey>;
 
 		struct BlendStateDesc : public CD3D11_BLEND_DESC
 		{
@@ -211,24 +179,8 @@ namespace EastEngine
 		///////////////////////
 		// DepthStencilState //
 		///////////////////////
-		struct DepthStencilStateKey
-		{
-		private:
-			String::StringKey key;
-
-		public:
-			DepthStencilStateKey();
-			DepthStencilStateKey(const String::StringKey& key);
-
-			operator String::StringKey() const { return key; }
-			bool operator == (const DepthStencilStateKey& source) const { return key == source.key; }
-
-			static const DepthStencilStateKey& EmptyKey()
-			{
-				static DepthStencilStateKey emptyKey;
-				return emptyKey;
-			};
-		};
+		struct depthStencilStateKeyT {};
+		using DepthStencilStateKey = Type<depthStencilStateKeyT, String::StringKey>;
 
 		struct DepthStencilStateDesc : public CD3D11_DEPTH_STENCIL_DESC
 		{
@@ -246,24 +198,8 @@ namespace EastEngine
 		/////////////////////
 		// RasterizerState //
 		/////////////////////
-		struct RasterizerStateKey
-		{
-		private:
-			String::StringKey key;
-
-		public:
-			RasterizerStateKey();
-			RasterizerStateKey(const String::StringKey& key);
-
-			operator String::StringKey() const { return key; }
-			bool operator == (const RasterizerStateKey& source) const { return key == source.key; }
-
-			static const RasterizerStateKey& EmptyKey()
-			{
-				static RasterizerStateKey emptyKey;
-				return emptyKey;
-			};
-		};
+		struct rasterizerStateKeyT {};
+		using RasterizerStateKey = Type<rasterizerStateKeyT, String::StringKey>;
 
 		struct RasterizerStateDesc : public CD3D11_RASTERIZER_DESC
 		{
@@ -368,21 +304,8 @@ namespace EastEngine
 		//////////////////
 		// RenderTarget //
 		//////////////////
-		struct RenderTargetKey
-		{
-		private:
-			String::StringKey key;
-
-		public:
-			RenderTargetKey();
-			RenderTargetKey(const String::StringKey& key);
-
-			operator String::StringKey() const { return key; }
-
-			bool operator == (const RenderTargetKey& source) const { return key == source.key; }
-
-			static RenderTargetKey EmptyKey() { return RenderTargetKey(); };
-		};
+		struct renderTargetKeyT {};
+		using RenderTargetKey = Type<renderTargetKeyT, String::StringKey>;
 
 		struct RenderTargetDesc1D : public TextureDesc1D
 		{
@@ -599,7 +522,7 @@ namespace std
 	{
 		std::size_t operator()(const EastEngine::Graphics::SamplerStateKey& key) const
 		{
-			return key;
+			return key.value.value;
 		}
 	};
 
@@ -608,7 +531,7 @@ namespace std
 	{
 		std::size_t operator()(const EastEngine::Graphics::BlendStateKey& key) const
 		{
-			return key;
+			return key.value.value;
 		}
 	};
 
@@ -617,7 +540,7 @@ namespace std
 	{
 		std::size_t operator()(const EastEngine::Graphics::DepthStencilStateKey& key) const
 		{
-			return key;
+			return key.value.value;
 		}
 	};
 
@@ -626,7 +549,7 @@ namespace std
 	{
 		std::size_t operator()(const EastEngine::Graphics::RasterizerStateKey& key) const
 		{
-			return key;
+			return key.value.value;
 		}
 	};
 
@@ -635,7 +558,7 @@ namespace std
 	{
 		std::size_t operator()(const EastEngine::Graphics::RenderTargetKey& key) const
 		{
-			return key;
+			return key.value.value;
 		}
 	};
 }
@@ -647,7 +570,7 @@ namespace boost
 	{
 		std::size_t operator()(const EastEngine::Graphics::SamplerStateKey& key) const
 		{
-			return key;
+			return key.value.value;
 		}
 	};
 
@@ -656,7 +579,7 @@ namespace boost
 	{
 		std::size_t operator()(const EastEngine::Graphics::BlendStateKey& key) const
 		{
-			return key;
+			return key.value.value;
 		}
 	};
 
@@ -665,7 +588,7 @@ namespace boost
 	{
 		std::size_t operator()(const EastEngine::Graphics::DepthStencilStateKey& key) const
 		{
-			return key;
+			return key.value.value;
 		}
 	};
 
@@ -674,7 +597,7 @@ namespace boost
 	{
 		std::size_t operator()(const EastEngine::Graphics::RasterizerStateKey& key) const
 		{
-			return key;
+			return key.value.value;
 		}
 	};
 
@@ -683,7 +606,7 @@ namespace boost
 	{
 		std::size_t operator()(const EastEngine::Graphics::RenderTargetKey& key) const
 		{
-			return key;
+			return key.value.value;
 		}
 	};
 }

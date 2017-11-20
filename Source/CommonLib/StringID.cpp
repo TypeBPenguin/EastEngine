@@ -35,7 +35,7 @@ namespace EastEngine
 		{
 		}
 
-		StringID& StringID::Format(const char* format, ...)
+		StringID StringID::Format(const char* format, ...)
 		{
 			va_list args;
 			va_start(args, format);
@@ -47,10 +47,7 @@ namespace EastEngine
 			std::vsnprintf(buf.get(), size, format, args);
 			va_end(args);
 
-			m_nStringKey = String::GetKey(buf.get());
-			m_strPtr = String::GetString(m_nStringKey);
-
-			return *this;
+			return { buf.get() };
 		}
 	}
 }

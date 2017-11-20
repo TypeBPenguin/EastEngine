@@ -5,16 +5,6 @@ namespace EastEngine
 {
 	namespace Graphics
 	{
-		SamplerStateKey::SamplerStateKey()
-			: key(String::UnregisteredKey)
-		{
-		}
-
-		SamplerStateKey::SamplerStateKey(const String::StringKey& key)
-			: key(key)
-		{
-		}
-
 		SamplerStateDesc::SamplerStateDesc()
 			: CD3D11_SAMPLER_DESC(CD3D11_DEFAULT())
 		{
@@ -39,17 +29,7 @@ namespace EastEngine
 				*(reinterpret_cast<const uint32_t*>(&MinLOD)),
 				*(reinterpret_cast<const uint32_t*>(&MaxLOD)));
 
-			return strKey.Key();
-		}
-
-		BlendStateKey::BlendStateKey()
-			: key(String::UnregisteredKey)
-		{
-		}
-
-		BlendStateKey::BlendStateKey(const String::StringKey& key)
-			: key(key)
-		{
+			return SamplerStateKey(strKey.Key());
 		}
 
 		BlendStateDesc::BlendStateDesc()
@@ -79,17 +59,7 @@ namespace EastEngine
 				static_cast<int>(RenderTarget[7].BlendEnable), RenderTarget[7].SrcBlend, RenderTarget[7].DestBlend, RenderTarget[7].BlendOp,
 				RenderTarget[7].SrcBlendAlpha, RenderTarget[7].DestBlendAlpha, RenderTarget[7].BlendOpAlpha, static_cast<int>(RenderTarget[7].RenderTargetWriteMask));
 
-			return strKey.Key();
-		}
-
-		DepthStencilStateKey::DepthStencilStateKey()
-			: key(String::UnregisteredKey)
-		{
-		}
-
-		DepthStencilStateKey::DepthStencilStateKey(const String::StringKey& key)
-			: key(key)
-		{
+			return BlendStateKey(strKey.Key());
 		}
 
 		DepthStencilStateDesc::DepthStencilStateDesc()
@@ -112,17 +82,7 @@ namespace EastEngine
 				BackFace.StencilFunc,
 				BackFace.StencilPassOp);
 
-			return strKey.Key();
-		}
-
-		RasterizerStateKey::RasterizerStateKey()
-			: key(String::UnregisteredKey)
-		{
-		}
-
-		RasterizerStateKey::RasterizerStateKey(const String::StringKey& key)
-			: key(key)
-		{
+			return DepthStencilStateKey(strKey.Key());
 		}
 
 		RasterizerStateDesc::RasterizerStateDesc()
@@ -142,7 +102,7 @@ namespace EastEngine
 				MultisampleEnable,
 				AntialiasedLineEnable);
 
-			return strKey.Key();
+			return RasterizerStateKey(strKey.Key());
 		}
 
 		TextureDesc1D::TextureDesc1D()
@@ -241,16 +201,6 @@ namespace EastEngine
 			SRVDesc = CD3D11_SHADER_RESOURCE_VIEW_DESC(D3D11_SRV_DIMENSION_TEXTURE3D, Format, nMostDetailedMip, MipLevels, nFirstArraySlice, 1, nFlags);
 		}
 
-		RenderTargetKey::RenderTargetKey()
-			: key(String::UnregisteredKey)
-		{
-		}
-
-		RenderTargetKey::RenderTargetKey(const String::StringKey& key)
-			: key(key)
-		{
-		}
-
 		RenderTargetDesc1D::RenderTargetDesc1D()
 			: TextureDesc1D()
 		{
@@ -280,7 +230,7 @@ namespace EastEngine
 			strKey.Format("1D_%u_%u_%u_%u_%u_%u_%u_%u",
 				Width, MipLevels, ArraySize, Format, Usage, BindFlags, CPUAccessFlags, MiscFlags);
 
-			return strKey.Key();
+			return RenderTargetKey(strKey.Key());
 		}
 
 		RenderTargetDesc2D::RenderTargetDesc2D()
@@ -327,7 +277,7 @@ namespace EastEngine
 				CPUAccessFlags,
 				MiscFlags);
 
-			return strKey.Key();
+			return RenderTargetKey(strKey.Key());
 		}
 
 		DepthStencilDesc::DepthStencilDesc(DXGI_FORMAT format,
