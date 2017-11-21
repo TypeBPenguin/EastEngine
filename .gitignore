@@ -28,7 +28,14 @@
 *.exe
 *.out
 *.app
+*.log
+*.tlog
+*.idb
+*.cache
+*.db
+*.sdf
 /ipch
 /Source/ExternLib/DirectXTex/.vs/DirectXTex_Desktop_2015/v15
-/Source/ExternLib/DirectXTK/.gitignore
 /Source/ExternLib/TCMalloc/.vs/gperftools/v14
+/Source/ExternLib/DirectXTK/ipch/directxtk_desktop_2013-ec4340ba
+/.vs/EastEngine
