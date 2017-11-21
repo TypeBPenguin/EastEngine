@@ -91,8 +91,8 @@ namespace EastEngine
 			Math::Quaternion GetOrientation();
 			Math::Vector3 GetCenterOfMassPosition();
 
-			String::StringID GetName() { return m_rigidBodyProperty.strName; }
-			void SetName(String::StringID strName) { m_rigidBodyProperty.strName = strName; }
+			const String::StringID& GetName() { return m_rigidBodyProperty.strName; }
+			void SetName(const String::StringID& strName) { m_rigidBodyProperty.strName = strName; }
 
 			void SetLinearVelocity(const Math::Vector3& f3Velocity);
 
