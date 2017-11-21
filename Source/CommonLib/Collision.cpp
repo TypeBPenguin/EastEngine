@@ -2395,7 +2395,6 @@ namespace EastEngine
 		EmContainment::Type Frustum::Contains(_In_ const Sphere& sh) const
 		{
 			using namespace DirectX;
-			DirectX::BoundingFrustum;
 
 			// Load origin and orientation of the frustum.
 			XMVECTOR vOrigin = Origin;
