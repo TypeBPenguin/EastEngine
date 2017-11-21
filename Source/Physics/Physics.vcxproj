@@ -95,7 +95,7 @@
     </Link>
     <Lib>
       <AdditionalLibraryDirectories>$(SolutionDir)\Source\ExternLib\BulletPhysics\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>BulletCollision_vs2015_debug.lib;BulletDynamics_vs2015_debug.lib;BulletSoftBody_vs2015_debug.lib;LinearMath_vs2015_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>BulletCollision_vs2017_debug.lib;BulletDynamics_vs2017_debug.lib;BulletSoftBody_vs2017_debug.lib;LinearMath_vs2017_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -130,7 +130,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>BulletCollision_vs2015.lib;BulletDynamics_vs2015.lib;BulletSoftBody_vs2015.lib;LinearMath_vs2015.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>BulletCollision_vs2017.lib;BulletDynamics_vs2017.lib;BulletSoftBody_vs2017.lib;LinearMath_vs2017.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)\Source\ExternLib\BulletPhysics\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
