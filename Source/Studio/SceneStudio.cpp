@@ -26,7 +26,6 @@
 #include "GameObject/ActorManager.h"
 #include "GameObject/ComponentModel.h"
 #include "GameObject/ComponentPhysics.h"
-#include "GameObject/SkyDome.h"
 #include "GameObject/Terrain.h"
 
 #include "Contents/Sun.h"
@@ -147,8 +146,6 @@ SceneStudio::~SceneStudio()
 {
 	SafeDelete(m_pMaterialNodeManager);
 }
-
-GameObject::SkyDome* s_pSkyDome;
 
 void SceneStudio::Enter()
 {
@@ -342,12 +339,6 @@ void SceneStudio::Enter()
 		pCompPhysics->Init(pModelInst, prop);
 	}
 
-	//{
-	//	std::string strPath = File::GetPath(File::eXML);
-	//	strPath.append("Sky.xml");
-	//	s_pSkyDome = GameObject::SkyDome::Create(strPath.c_str());
-	//}
-
 	{
 		for (int i = 0; i < 10; ++i)
 		{
@@ -400,9 +391,7 @@ void SceneStudio::Exit()
 
 	SafeDelete(m_pMaterialNodeManager);
 	SafeDelete(s_pTerrain);
-
-	GameObject::SkyDome::Destroy(&s_pSkyDome);
-
+	
 	ImGui_ImplDX11_Shutdown();
 }
 
@@ -420,8 +409,6 @@ void SceneStudio::Update(float fElapsedTime)
 		m_pSectorMgr->Update(fElapsedTime);
 	}
 	//s_pTerrain->Update(fElapsedTime);
-
-	//s_pSkyDome->Update(fElapsedTime);
 }
 
 void SceneStudio::ProcessInput(float fElapsedTime)
