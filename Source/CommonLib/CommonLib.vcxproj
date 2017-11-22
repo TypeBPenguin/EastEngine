@@ -161,11 +161,6 @@
   <ItemGroup>
     <None Include="Math.inl" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\XmlParser\XmlParser.vcxproj">
-      <Project>{aa24454a-53aa-492f-819b-d2b16289761f}</Project>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
