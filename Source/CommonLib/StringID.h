@@ -52,7 +52,7 @@ namespace EastEngine
 
 			void clear() { m_nStringKey = UnregisteredKey; }
 
-			static StringID Format(const char* format, ...);
+			StringID& Format(const char* format, ...);
 
 		private:
 			StringKey m_nStringKey;
