@@ -73,13 +73,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>Lib</OutDir>
     <TargetName>$(ProjectName)_D</TargetName>
-    <IncludePath>..\boost_1_61_0;$(IncludePath)</IncludePath>
-    <LibraryPath>..\boost_1_61_0\stage\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\boost_1_65_1;$(IncludePath)</IncludePath>
+    <LibraryPath>..\boost_1_65_1\lib32-msvc-14.1;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>Lib</OutDir>
-    <IncludePath>..\boost_1_61_0;$(IncludePath)</IncludePath>
-    <LibraryPath>..\boost_1_61_0\stage\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\boost_1_65_1;$(IncludePath)</IncludePath>
+    <LibraryPath>..\boost_1_65_1\lib32-msvc-14.1;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <TargetName>$(ProjectName)_D</TargetName>
@@ -132,6 +132,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir);..\LuaJIT\include</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

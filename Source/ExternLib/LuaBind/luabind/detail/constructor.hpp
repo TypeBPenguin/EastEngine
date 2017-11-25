@@ -45,7 +45,7 @@ struct construct_aux<0, T, Pointer, Signature>
     {
         object_rep* self = touserdata<object_rep>(self_);
 
-        std::auto_ptr<T> instance(new T);
+        std::unique_ptr<T> instance(new T);
         inject_backref(self_.interpreter(), instance.get(), instance.get());
 
         void* naked_ptr = instance.get();
@@ -90,7 +90,7 @@ struct construct_aux<N, T, Pointer, Signature>
     {
         object_rep* self = touserdata<object_rep>(self_);
 
-        std::auto_ptr<T> instance(new T(BOOST_PP_ENUM_PARAMS(N,_)));
+        std::unique_ptr<T> instance(new T(BOOST_PP_ENUM_PARAMS(N,_)));
         inject_backref(self_.interpreter(), instance.get(), instance.get());
 
         void* naked_ptr = instance.get();

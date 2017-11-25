@@ -71,8 +71,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\ExternLib\boost_1_61_0;$(IncludePath)</IncludePath>
-    <LibraryPath>..\ExternLib\boost_1_61_0\stage\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\ExternLib\boost_1_65_1;$(IncludePath)</IncludePath>
+    <LibraryPath>..\ExternLib\boost_1_65_1\lib32-msvc-14.1;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)Bin\</OutDir>
     <TargetName>$(ProjectName)_D</TargetName>
   </PropertyGroup>
@@ -81,8 +81,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <LibraryPath>..\ExternLib\boost_1_61_0\stage\lib;$(LibraryPath)</LibraryPath>
-    <IncludePath>..\ExternLib\boost_1_61_0;$(IncludePath)</IncludePath>
+    <LibraryPath>..\ExternLib\boost_1_65_1\lib32-msvc-14.1;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\ExternLib\boost_1_65_1;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)Bin\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
