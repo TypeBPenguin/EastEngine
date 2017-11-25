@@ -11,7 +11,7 @@ namespace EastEngine
 	{
 		struct StringTable
 		{
-			boost::unordered_map<StringKey, char*> umapStringTable;
+			boost::unordered_map<StringKey, std::unique_ptr<char[]>> umapStringTable;
 			int nRegisteredKeyCount = 0;
 
 			std::mutex mutex;
@@ -29,17 +29,14 @@ namespace EastEngine
 
 			void Release()
 			{
-				for (auto& iter : umapStringTable)
-				{
-					if (iter.second != nullptr)
-					{
-						delete[] iter.second;
-					}
-				}
 				umapStringTable.clear();
 			}
 		};
-		static std::shared_ptr<StringTable> s_pStringTable = nullptr;
+
+		// StringTable 을 shared_ptr 또는 unique_ptr로 관리하게 될 경우,
+		// exe 프로젝트에서 한번, 라이브러리 프로젝트에서 한번
+		// 총 2번 초기화 하는 현상이 발생하게 되어, 메모리릭이 생기게 됨
+		static StringTable* s_pStringTable = nullptr;
 
 		inline StringKey Hash(const char* pString)
 		{
@@ -52,15 +49,18 @@ namespace EastEngine
 			return StringKey(v);
 		}
 
-		inline char* GetStringPtr(StringKey key) { return s_pStringTable->umapStringTable[key]; }
-		inline void SetStringPtr(StringKey key, char* str) { s_pStringTable->umapStringTable[key] = str; }
+		inline char* GetStringPtr(StringKey key) { return s_pStringTable->umapStringTable[key].get(); }
+		inline void SetStringPtr(StringKey key, std::unique_ptr<char[]> str) { s_pStringTable->umapStringTable[key] = std::move(str); }
 
 		bool Init()
-		{
+		{ 
 			if (s_pStringTable != nullptr)
+			{
+				PRINT_LOG("StringTable is Already Init");
 				return true;
+			}
 
-			s_pStringTable = std::make_shared<StringTable>();
+			s_pStringTable = new StringTable;
 			s_pStringTable->Init();
 
 			return true;
@@ -72,7 +72,8 @@ namespace EastEngine
 				return;
 
 			s_pStringTable->Release();
-			s_pStringTable.reset();
+			delete s_pStringTable;
+			s_pStringTable = nullptr;
 		}
 
 		StringKey Register(const char* str)
@@ -82,7 +83,7 @@ namespace EastEngine
 				Init();
 			}
 
-			std::unique_lock<std::mutex> lock(s_pStringTable->mutex);
+			std::lock_guard<std::mutex> lock(s_pStringTable->mutex);
 
 			if (str == nullptr)
 				return UnregisteredKey;
@@ -106,10 +107,10 @@ namespace EastEngine
 			}
 
 			std::size_t nLength = String::Length(str) + 1;
-			char* pNewStr = new char[nLength];
-			String::Copy(pNewStr, nLength, str);
+			std::unique_ptr<char[]> pNewStr(new char[nLength]);
+			String::Copy(pNewStr.get(), nLength, str);
 
-			SetStringPtr(hashKey, pNewStr);
+			SetStringPtr(hashKey, std::move(pNewStr));
 
 			++s_pStringTable->nRegisteredKeyCount;
 
