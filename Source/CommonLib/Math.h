@@ -1,6 +1,7 @@
 #pragma once
 
 #include <xmmintrin.h>
+#include <random>
 
 struct D3D11_VIEWPORT;
 
@@ -14,6 +15,8 @@ namespace EastEngine
 		const float DIVPI2 = 0.15915494309189533576888376337251f;
 		const float PIDIV2 = 1.5707963267948966192313216916398f;
 		const float PIDIV4 = 0.78539816339744830961566084581988f;
+
+		std::mt19937& mt19937();
 
 		float ToRadians(float fDegrees);
 		float ToDegrees(float fRadians);

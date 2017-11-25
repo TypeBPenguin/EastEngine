@@ -77,7 +77,7 @@ namespace EastEngine
 				{
 					out_vecRandomNode = m_vecChildNode;
 
-					std::random_shuffle(out_vecRandomNode.begin(), out_vecRandomNode.end());
+					std::shuffle(out_vecRandomNode.begin(), out_vecRandomNode.end(), Math::mt19937());
 				}
 
 			private:

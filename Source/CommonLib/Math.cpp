@@ -14,6 +14,8 @@ namespace EastEngine
 		static std::random_device s_randDevice;
 		static std::mt19937 s_rand(s_randDevice());
 
+		std::mt19937& mt19937() { return s_rand; }
+
 		float ToRadians(float fDegrees)
 		{
 			return DirectX::XMConvertToRadians(fDegrees);
