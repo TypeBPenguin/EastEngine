@@ -152,7 +152,8 @@ namespace EastEngine
 			m_materialInfo = pMaterialInfo != nullptr ? *pMaterialInfo : MaterialInfo();
 			m_isRhcoords = rhcoords;
 
-			m_info.cube.fSize = fSize;
+			LoadInfoCube& loadInfo = m_loadGeometryInfo.emplace<LoadInfoCube>();
+			loadInfo.fSize = fSize;
 
 			m_emLoadModelType = EmModelLoader::eGeometry;
 			m_emLoadGeometryType = EmModelLoader::eCube;
@@ -166,7 +167,8 @@ namespace EastEngine
 			m_isRhcoords = rhcoords;
 			m_isInvertn = invertn;
 
-			m_info.box.f3Size = size;
+			LoadInfoBox& loadInfo = m_loadGeometryInfo.emplace<LoadInfoBox>();
+			loadInfo.f3Size = size;
 
 			m_emLoadModelType = EmModelLoader::eGeometry;
 			m_emLoadGeometryType = EmModelLoader::eBox;
@@ -180,8 +182,9 @@ namespace EastEngine
 			m_isRhcoords = rhcoords;
 			m_isInvertn = invertn;
 
-			m_info.sphere.fDiameter = diameter;
-			m_info.sphere.nTessellation = nTessellation;
+			LoadInfoSphere& loadInfo = m_loadGeometryInfo.emplace<LoadInfoSphere>();
+			loadInfo.fDiameter = diameter;
+			loadInfo.nTessellation = nTessellation;
 
 			m_emLoadModelType = EmModelLoader::eGeometry;
 			m_emLoadGeometryType = EmModelLoader::eSphere;
@@ -194,8 +197,9 @@ namespace EastEngine
 			m_materialInfo = pMaterialInfo != nullptr ? *pMaterialInfo : MaterialInfo();
 			m_isRhcoords = rhcoords;
 
-			m_info.geoSphere.fDiameter = diameter;
-			m_info.geoSphere.nTessellation = nTessellation;
+			LoadInfoGeoSphere& loadInfo = m_loadGeometryInfo.emplace<LoadInfoGeoSphere>();
+			loadInfo.fDiameter = diameter;
+			loadInfo.nTessellation = nTessellation;
 
 			m_emLoadModelType = EmModelLoader::eGeometry;
 			m_emLoadGeometryType = EmModelLoader::eGeoSphere;
@@ -208,9 +212,10 @@ namespace EastEngine
 			m_materialInfo = pMaterialInfo != nullptr ? *pMaterialInfo : MaterialInfo();
 			m_isRhcoords = rhcoords;
 
-			m_info.cylinder.fHeight = height;
-			m_info.cylinder.fDiameter = diameter;
-			m_info.cylinder.nTessellation = nTessellation;
+			LoadInfoCylinder& loadInfo = m_loadGeometryInfo.emplace<LoadInfoCylinder>();
+			loadInfo.fHeight = height;
+			loadInfo.fDiameter = diameter;
+			loadInfo.nTessellation = nTessellation;
 
 			m_emLoadModelType = EmModelLoader::eGeometry;
 			m_emLoadGeometryType = EmModelLoader::eCylinder;
@@ -223,9 +228,10 @@ namespace EastEngine
 			m_materialInfo = pMaterialInfo != nullptr ? *pMaterialInfo : MaterialInfo();
 			m_isRhcoords = rhcoords;
 
-			m_info.cone.fDiameter = diameter;
-			m_info.cone.fHeight = height;
-			m_info.cone.nTessellation = nTessellation;
+			LoadInfoCone& loadInfo = m_loadGeometryInfo.emplace<LoadInfoCone>();
+			loadInfo.fDiameter = diameter;
+			loadInfo.fHeight = height;
+			loadInfo.nTessellation = nTessellation;
 
 			m_emLoadModelType = EmModelLoader::eGeometry;
 			m_emLoadGeometryType = EmModelLoader::eCone;
@@ -238,9 +244,10 @@ namespace EastEngine
 			m_materialInfo = pMaterialInfo != nullptr ? *pMaterialInfo : MaterialInfo();
 			m_isRhcoords = rhcoords;
 
-			m_info.torus.fDiameter = diameter;
-			m_info.torus.fThickness = thickness;
-			m_info.torus.nTessellation = nTessellation;
+			LoadInfoTorus& loadInfo = m_loadGeometryInfo.emplace<LoadInfoTorus>();
+			loadInfo.fDiameter = diameter;
+			loadInfo.fThickness = thickness;
+			loadInfo.nTessellation = nTessellation;
 
 			m_emLoadModelType = EmModelLoader::eGeometry;
 			m_emLoadGeometryType = EmModelLoader::eTorus;
@@ -253,7 +260,8 @@ namespace EastEngine
 			m_materialInfo = pMaterialInfo != nullptr ? *pMaterialInfo : MaterialInfo();
 			m_isRhcoords = rhcoords;
 
-			m_info.tetrahedron.fSize = fSize;
+			LoadInfoTetrahedron& loadInfo = m_loadGeometryInfo.emplace<LoadInfoTetrahedron>();
+			loadInfo.fSize = fSize;
 
 			m_emLoadModelType = EmModelLoader::eGeometry;
 			m_emLoadGeometryType = EmModelLoader::eTetrahedron;
@@ -266,7 +274,8 @@ namespace EastEngine
 			m_materialInfo = pMaterialInfo != nullptr ? *pMaterialInfo : MaterialInfo();
 			m_isRhcoords = rhcoords;
 
-			m_info.octahedron.fSize = fSize;
+			LoadInfoOctahedron& loadInfo = m_loadGeometryInfo.emplace<LoadInfoOctahedron>();
+			loadInfo.fSize = fSize;
 
 			m_emLoadModelType = EmModelLoader::eGeometry;
 			m_emLoadGeometryType = EmModelLoader::eOctahedron;
@@ -279,7 +288,8 @@ namespace EastEngine
 			m_materialInfo = pMaterialInfo != nullptr ? *pMaterialInfo : MaterialInfo();
 			m_isRhcoords = rhcoords;
 
-			m_info.dodecahedron.fSize = fSize;
+			LoadInfoDodecahedron& loadInfo = m_loadGeometryInfo.emplace<LoadInfoDodecahedron>();
+			loadInfo.fSize = fSize;
 
 			m_emLoadModelType = EmModelLoader::eGeometry;
 			m_emLoadGeometryType = EmModelLoader::eDodecahedron;
@@ -292,7 +302,8 @@ namespace EastEngine
 			m_materialInfo = pMaterialInfo != nullptr ? *pMaterialInfo : MaterialInfo();
 			m_isRhcoords = rhcoords;
 
-			m_info.icosahedron.fSize = fSize;
+			LoadInfoIcosahedron& loadInfo = m_loadGeometryInfo.emplace<LoadInfoIcosahedron>();
+			loadInfo.fSize = fSize;
 
 			m_emLoadModelType = EmModelLoader::eGeometry;
 			m_emLoadGeometryType = EmModelLoader::eIcosahedron;
@@ -305,8 +316,9 @@ namespace EastEngine
 			m_materialInfo = pMaterialInfo != nullptr ? *pMaterialInfo : MaterialInfo();
 			m_isRhcoords = rhcoords;
 
-			m_info.teapot.fSize = fSize;
-			m_info.teapot.nTessellation = nTessellation;
+			LoadInfoTeapot& loadInfo = m_loadGeometryInfo.emplace<LoadInfoTeapot>();
+			loadInfo.fSize = fSize;
+			loadInfo.nTessellation = nTessellation;
 
 			m_emLoadModelType = EmModelLoader::eGeometry;
 			m_emLoadGeometryType = EmModelLoader::eTeapot;
@@ -318,7 +330,8 @@ namespace EastEngine
 			m_strModelName = strModelName;
 			m_materialInfo = pMaterialInfo != nullptr ? *pMaterialInfo : MaterialInfo();
 
-			m_info.hexagon.fRadius = radius;
+			LoadInfoHexagon& loadInfo = m_loadGeometryInfo.emplace<LoadInfoHexagon>();
+			loadInfo.fRadius = radius;
 
 			m_emLoadModelType = EmModelLoader::eGeometry;
 			m_emLoadGeometryType = EmModelLoader::eHexagon;
@@ -329,10 +342,11 @@ namespace EastEngine
 			m_strModelName = strModelName;
 			m_materialInfo = pMaterialInfo != nullptr ? *pMaterialInfo : MaterialInfo();
 
-			m_info.capsule.fRadius = fRadius;
-			m_info.capsule.fHeight = fHeight;
-			m_info.capsule.nSubdivisionHeight = nSubdivisionHeight;
-			m_info.capsule.nSegments = nSegments;
+			LoadInfoCapsule& loadInfo = m_loadGeometryInfo.emplace<LoadInfoCapsule>();
+			loadInfo.fRadius = fRadius;
+			loadInfo.fHeight = fHeight;
+			loadInfo.nSubdivisionHeight = nSubdivisionHeight;
+			loadInfo.nSegments = nSegments;
 
 			m_emLoadModelType = EmModelLoader::eGeometry;
 			m_emLoadGeometryType = EmModelLoader::eCapsule;
@@ -344,10 +358,11 @@ namespace EastEngine
 			m_strModelName = strModelName;
 			m_materialInfo = pMaterialInfo != nullptr ? *pMaterialInfo : MaterialInfo();
 
-			m_info.grid.fGridSizeX = fGridSizeX;
-			m_info.grid.fGridSizeZ = fGridSizeZ;
-			m_info.grid.nBlockCountWidth = nBlockCountWidth;
-			m_info.grid.nBlockCountLength = nBlockCountLength;
+			LoadInfoGrid& loadInfo = m_loadGeometryInfo.emplace<LoadInfoGrid>();
+			loadInfo.fGridSizeX = fGridSizeX;
+			loadInfo.fGridSizeZ = fGridSizeZ;
+			loadInfo.nBlockCountWidth = nBlockCountWidth;
+			loadInfo.nBlockCountLength = nBlockCountLength;
 
 			m_emLoadModelType = EmModelLoader::eGeometry;
 			m_emLoadGeometryType = EmModelLoader::eGrid;
@@ -359,10 +374,11 @@ namespace EastEngine
 			m_strModelName = strModelName;
 			m_materialInfo = pMaterialInfo != nullptr ? *pMaterialInfo : MaterialInfo();
 
-			m_info.plane.fEachLengthX = fEachLengthX;
-			m_info.plane.fEachLengthZ = fEachLengthZ;
-			m_info.plane.nTotalCountX = nTotalCountX;
-			m_info.plane.nTotalCountZ = nTotalCountZ;
+			LoadInfoPlane& loadInfo = m_loadGeometryInfo.emplace<LoadInfoPlane>();
+			loadInfo.fEachLengthX = fEachLengthX;
+			loadInfo.fEachLengthZ = fEachLengthZ;
+			loadInfo.nTotalCountX = nTotalCountX;
+			loadInfo.nTotalCountZ = nTotalCountZ;
 
 			m_emLoadModelType = EmModelLoader::eGeometry;
 			m_emLoadGeometryType = EmModelLoader::ePlane;
@@ -374,9 +390,10 @@ namespace EastEngine
 			m_strModelName = strModelName;
 			m_materialInfo = pMaterialInfo != nullptr ? *pMaterialInfo : MaterialInfo();
 
-			m_info.customStaticModel.strNodeName = strNodeName;
-			m_info.customStaticModel.pVertexBuffer = pVertexBuffer;
-			m_info.customStaticModel.pIndexBuffer = pIndexBuffer;
+			LoadInfoCustomStaticModel& loadInfo = m_loadGeometryInfo.emplace<LoadInfoCustomStaticModel>();
+			loadInfo.strNodeName = strNodeName;
+			loadInfo.pVertexBuffer = pVertexBuffer;
+			loadInfo.pIndexBuffer = pIndexBuffer;
 
 			m_emLoadModelType = EmModelLoader::eGeometry;
 			m_emLoadGeometryType = EmModelLoader::eCustomStaticModel;

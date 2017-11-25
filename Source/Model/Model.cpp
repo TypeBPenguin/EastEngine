@@ -271,53 +271,149 @@ namespace EastEngine
 				switch (loader.GetLoadGeometryType())
 				{
 				case EmModelLoader::eCube:
-					isSuccess = GeometryModel::CreateCube(&pVertexBuffer, &pIndexBuffer, loader.GetCubeInfo().fSize, loader.IsRightHandCoords());
-					break;
+				{
+					const LoadInfoCube* pLoadInfo = loader.GetCubeInfo();
+					if (pLoadInfo != nullptr)
+					{
+						isSuccess = GeometryModel::CreateCube(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fSize, loader.IsRightHandCoords());
+					}
+				}
+				break;
 				case EmModelLoader::eBox:
-					isSuccess = GeometryModel::CreateBox(&pVertexBuffer, &pIndexBuffer, loader.GetBoxInfo().f3Size, loader.IsRightHandCoords(), loader.IsInvertNormal());
-					break;
+				{
+					const LoadInfoBox* pLoadInfo = loader.GetBoxInfo();
+					if (pLoadInfo != nullptr)
+					{
+						isSuccess = GeometryModel::CreateBox(&pVertexBuffer, &pIndexBuffer, pLoadInfo->f3Size, loader.IsRightHandCoords(), loader.IsInvertNormal());
+					}
+				}
+				break;
 				case EmModelLoader::eSphere:
-					isSuccess = GeometryModel::CreateSphere(&pVertexBuffer, &pIndexBuffer, loader.GetSphereInfo().fDiameter, loader.GetSphereInfo().nTessellation, loader.IsRightHandCoords(), loader.IsInvertNormal());
-					break;
+				{
+					const LoadInfoSphere* pLoadInfo = loader.GetSphereInfo();
+					if (pLoadInfo != nullptr)
+					{
+						isSuccess = GeometryModel::CreateSphere(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fDiameter, pLoadInfo->nTessellation, loader.IsRightHandCoords(), loader.IsInvertNormal());
+					}
+				}
+				break;
 				case EmModelLoader::eGeoSphere:
-					isSuccess = GeometryModel::CreateGeoSphere(&pVertexBuffer, &pIndexBuffer, loader.GetGeoSphereInfo().fDiameter, loader.GetSphereInfo().nTessellation, loader.IsRightHandCoords());
-					break;
+				{
+					const LoadInfoGeoSphere* pLoadInfo = loader.GetGeoSphereInfo();
+					if (pLoadInfo != nullptr)
+					{
+						isSuccess = GeometryModel::CreateGeoSphere(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fDiameter, pLoadInfo->nTessellation, loader.IsRightHandCoords());
+					}
+				}
+				break;
 				case EmModelLoader::eCylinder:
-					isSuccess = GeometryModel::CreateCylinder(&pVertexBuffer, &pIndexBuffer, loader.GetCylinderInfo().fHeight, loader.GetCylinderInfo().fDiameter, loader.GetCylinderInfo().nTessellation, loader.IsRightHandCoords());
-					break;
+				{
+					const LoadInfoCylinder* pLoadInfo = loader.GetCylinderInfo();
+					if (pLoadInfo != nullptr)
+					{
+						isSuccess = GeometryModel::CreateCylinder(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fHeight, pLoadInfo->fDiameter, pLoadInfo->nTessellation, loader.IsRightHandCoords());
+					}
+				}
+				break;
 				case EmModelLoader::eCone:
-					isSuccess = GeometryModel::CreateCone(&pVertexBuffer, &pIndexBuffer, loader.GetConeInfo().fDiameter, loader.GetConeInfo().fHeight, loader.GetConeInfo().nTessellation, loader.IsRightHandCoords());
-					break;
+				{
+					const LoadInfoCone* pLoadInfo = loader.GetConeInfo();
+					if (pLoadInfo != nullptr)
+					{
+						isSuccess = GeometryModel::CreateCone(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fDiameter, pLoadInfo->fHeight, pLoadInfo->nTessellation, loader.IsRightHandCoords());
+					}
+				}
+				break;
 				case EmModelLoader::eTorus:
-					isSuccess = GeometryModel::CreateTorus(&pVertexBuffer, &pIndexBuffer, loader.GetTorusInfo().fDiameter, loader.GetTorusInfo().fThickness, loader.GetTorusInfo().nTessellation, loader.IsRightHandCoords());
-					break;
+				{
+					const LoadInfoTorus* pLoadInfo = loader.GetTorusInfo();
+					if (pLoadInfo != nullptr)
+					{
+						isSuccess = GeometryModel::CreateTorus(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fDiameter, pLoadInfo->fThickness, pLoadInfo->nTessellation, loader.IsRightHandCoords());
+					}
+				}
+				break;
 				case EmModelLoader::eTetrahedron:
-					isSuccess = GeometryModel::CreateTetrahedron(&pVertexBuffer, &pIndexBuffer, loader.GetTetrahedronInfo().fSize, loader.IsRightHandCoords());
-					break;
+				{
+					const LoadInfoTetrahedron* pLoadInfo = loader.GetTetrahedronInfo();
+					if (pLoadInfo != nullptr)
+					{
+						isSuccess = GeometryModel::CreateTetrahedron(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fSize, loader.IsRightHandCoords());
+					}
+				}
+				break;
 				case EmModelLoader::eOctahedron:
-					isSuccess = GeometryModel::CreateOctahedron(&pVertexBuffer, &pIndexBuffer, loader.GetOctahedronInfo().fSize, loader.IsRightHandCoords());
-					break;
+				{
+					const LoadInfoOctahedron* pLoadInfo = loader.GetOctahedronInfo();
+					if (pLoadInfo != nullptr)
+					{
+						isSuccess = GeometryModel::CreateOctahedron(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fSize, loader.IsRightHandCoords());
+					}
+				}
+				break;
 				case EmModelLoader::eDodecahedron:
-					isSuccess = GeometryModel::CreateDodecahedron(&pVertexBuffer, &pIndexBuffer, loader.GetDodecahedronInfo().fSize, loader.IsRightHandCoords());
-					break;
+				{
+					const LoadInfoDodecahedron* pLoadInfo = loader.GetDodecahedronInfo();
+					if (pLoadInfo != nullptr)
+					{
+						isSuccess = GeometryModel::CreateDodecahedron(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fSize, loader.IsRightHandCoords());
+					}
+				}
+				break;
 				case EmModelLoader::eIcosahedron:
-					isSuccess = GeometryModel::CreateIcosahedron(&pVertexBuffer, &pIndexBuffer, loader.GetIcosahedronInfo().fSize, loader.IsRightHandCoords());
-					break;
+				{
+					const LoadInfoIcosahedron* pLoadInfo = loader.GetIcosahedronInfo();
+					if (pLoadInfo != nullptr)
+					{
+						isSuccess = GeometryModel::CreateIcosahedron(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fSize, loader.IsRightHandCoords());
+					}
+				}
+				break;
 				case EmModelLoader::eTeapot:
-					isSuccess = GeometryModel::CreateTeapot(&pVertexBuffer, &pIndexBuffer, loader.GetTeapotInfo().fSize, loader.GetTeapotInfo().nTessellation, loader.IsRightHandCoords());
-					break;
+				{
+					const LoadInfoTeapot* pLoadInfo = loader.GetTeapotInfo();
+					if (pLoadInfo != nullptr)
+					{
+						isSuccess = GeometryModel::CreateTeapot(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fSize, pLoadInfo->nTessellation, loader.IsRightHandCoords());
+					}
+				}
+				break;
 				case EmModelLoader::eHexagon:
-					isSuccess = GeometryModel::CreateHexagon(&pVertexBuffer, &pIndexBuffer, loader.GetHexagonInfo().fRadius, loader.IsRightHandCoords());
-					break;
+				{
+					const LoadInfoHexagon* pLoadInfo = loader.GetHexagonInfo();
+					if (pLoadInfo != nullptr)
+					{
+						isSuccess = GeometryModel::CreateHexagon(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fRadius, loader.IsRightHandCoords());
+					}
+				}
+				break;
 				case EmModelLoader::eCapsule:
-					isSuccess = GeometryModel::CreateCapsule(&pVertexBuffer, &pIndexBuffer, loader.GetCapsuleInfo().fRadius, loader.GetCapsuleInfo().fHeight, loader.GetCapsuleInfo().nSubdivisionHeight, loader.GetCapsuleInfo().nSegments);
-					break;
+				{
+					const LoadInfoCapsule* pLoadInfo = loader.GetCapsuleInfo();
+					if (pLoadInfo != nullptr)
+					{
+						isSuccess = GeometryModel::CreateCapsule(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fRadius, pLoadInfo->fHeight, pLoadInfo->nSubdivisionHeight, pLoadInfo->nSegments);
+					}
+				}
+				break;
 				case EmModelLoader::eGrid:
-					isSuccess = GeometryModel::CreateGrid(&pVertexBuffer, &pIndexBuffer, loader.GetGridInfo().fGridSizeX, loader.GetGridInfo().fGridSizeZ, loader.GetGridInfo().nBlockCountWidth, loader.GetGridInfo().nBlockCountLength);
-					break;
+				{
+					const LoadInfoGrid* pLoadInfo = loader.GetGridInfo();
+					if (pLoadInfo != nullptr)
+					{
+						isSuccess = GeometryModel::CreateGrid(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fGridSizeX, pLoadInfo->fGridSizeZ, pLoadInfo->nBlockCountWidth, pLoadInfo->nBlockCountLength);
+					}
+				}
+				break;
 				case EmModelLoader::ePlane:
-					isSuccess = GeometryModel::CreatePlane(&pVertexBuffer, &pIndexBuffer, loader.GetPlaneInfo().fEachLengthX, loader.GetPlaneInfo().fEachLengthZ, loader.GetPlaneInfo().nTotalCountX, loader.GetPlaneInfo().nTotalCountZ);
-					break;
+				{
+					const LoadInfoPlane* pLoadInfo = loader.GetPlaneInfo();
+					if (pLoadInfo != nullptr)
+					{
+						isSuccess = GeometryModel::CreatePlane(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fEachLengthX, pLoadInfo->fEachLengthZ, pLoadInfo->nTotalCountX, pLoadInfo->nTotalCountZ);
+					}
+				}
+				break;
 				case EmModelLoader::eCustomStaticModel:
 					break;
 				}

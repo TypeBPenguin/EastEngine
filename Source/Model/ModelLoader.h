@@ -65,7 +65,12 @@ namespace EastEngine
 			float fDiameter;
 			uint32_t nTessellation;
 		};
-		typedef LoadInfoSphere LoadInfoGeoSphere;
+
+		struct LoadInfoGeoSphere
+		{
+			float fDiameter;
+			uint32_t nTessellation;
+		};
 
 		struct LoadInfoCylinder
 		{
@@ -212,23 +217,23 @@ namespace EastEngine
 			bool IsRightHandCoords() const { return m_isRhcoords; }
 			bool IsInvertNormal() const { return m_isInvertn; }
 
-			const LoadInfoCube& GetCubeInfo() const { return m_info.cube; }
-			const LoadInfoBox& GetBoxInfo() const { return m_info.box; }
-			const LoadInfoSphere& GetSphereInfo() const { return m_info.sphere; }
-			const LoadInfoGeoSphere& GetGeoSphereInfo() const { return m_info.geoSphere; }
-			const LoadInfoCylinder& GetCylinderInfo() const { return m_info.cylinder; }
-			const LoadInfoCone& GetConeInfo() const { return m_info.cone; }
-			const LoadInfoTorus& GetTorusInfo() const { return m_info.torus; }
-			const LoadInfoTetrahedron& GetTetrahedronInfo() const { return m_info.tetrahedron; }
-			const LoadInfoOctahedron& GetOctahedronInfo() const { return m_info.octahedron; }
-			const LoadInfoDodecahedron& GetDodecahedronInfo() const { return m_info.dodecahedron; }
-			const LoadInfoIcosahedron& GetIcosahedronInfo() const { return m_info.icosahedron; }
-			const LoadInfoTeapot& GetTeapotInfo() const { return m_info.teapot; }
-			const LoadInfoHexagon& GetHexagonInfo() const { return m_info.hexagon; }
-			const LoadInfoCapsule& GetCapsuleInfo() const { return m_info.capsule; }
-			const LoadInfoGrid& GetGridInfo() const { return m_info.grid; }
-			const LoadInfoPlane& GetPlaneInfo() const { return m_info.plane; }
-			const LoadInfoCustomStaticModel& GetCustomStaticModelInfo() const { return m_info.customStaticModel; }
+			const LoadInfoCube* GetCubeInfo() const { return std::get_if<LoadInfoCube>(&m_loadGeometryInfo); }
+			const LoadInfoBox* GetBoxInfo() const { return std::get_if<LoadInfoBox>(&m_loadGeometryInfo); }
+			const LoadInfoSphere* GetSphereInfo() const { return std::get_if<LoadInfoSphere>(&m_loadGeometryInfo);; }
+			const LoadInfoGeoSphere* GetGeoSphereInfo() const { return std::get_if<LoadInfoGeoSphere>(&m_loadGeometryInfo);; }
+			const LoadInfoCylinder* GetCylinderInfo() const { return std::get_if<LoadInfoCylinder>(&m_loadGeometryInfo);; }
+			const LoadInfoCone* GetConeInfo() const { return std::get_if<LoadInfoCone>(&m_loadGeometryInfo);; }
+			const LoadInfoTorus* GetTorusInfo() const { return std::get_if<LoadInfoTorus>(&m_loadGeometryInfo);; }
+			const LoadInfoTetrahedron* GetTetrahedronInfo() const { return std::get_if<LoadInfoTetrahedron>(&m_loadGeometryInfo);; }
+			const LoadInfoOctahedron* GetOctahedronInfo() const { return std::get_if<LoadInfoOctahedron>(&m_loadGeometryInfo);; }
+			const LoadInfoDodecahedron* GetDodecahedronInfo() const { return std::get_if<LoadInfoDodecahedron>(&m_loadGeometryInfo);; }
+			const LoadInfoIcosahedron* GetIcosahedronInfo() const { return std::get_if<LoadInfoIcosahedron>(&m_loadGeometryInfo);; }
+			const LoadInfoTeapot* GetTeapotInfo() const { return std::get_if<LoadInfoTeapot>(&m_loadGeometryInfo);; }
+			const LoadInfoHexagon* GetHexagonInfo() const { return std::get_if<LoadInfoHexagon>(&m_loadGeometryInfo);; }
+			const LoadInfoCapsule* GetCapsuleInfo() const { return std::get_if<LoadInfoCapsule>(&m_loadGeometryInfo);; }
+			const LoadInfoGrid* GetGridInfo() const { return std::get_if<LoadInfoGrid>(&m_loadGeometryInfo);; }
+			const LoadInfoPlane* GetPlaneInfo() const { return std::get_if<LoadInfoPlane>(&m_loadGeometryInfo);; }
+			const LoadInfoCustomStaticModel* GetCustomStaticModelInfo() const { return std::get_if<LoadInfoCustomStaticModel>(&m_loadGeometryInfo);; }
 
 		private:
 			bool m_isEnableThreadLoad;
@@ -256,55 +261,23 @@ namespace EastEngine
 			bool m_isRhcoords;
 			bool m_isInvertn;
 
-			union LoadInfo
-			{
-				LoadInfoCube cube;
-				LoadInfoBox box;
-				LoadInfoSphere sphere;
-				LoadInfoGeoSphere geoSphere;
-				LoadInfoCylinder cylinder;
-				LoadInfoCone cone;
-				LoadInfoTorus torus;
-				LoadInfoTetrahedron tetrahedron;
-				LoadInfoOctahedron octahedron;
-				LoadInfoDodecahedron dodecahedron;
-				LoadInfoIcosahedron icosahedron;
-				LoadInfoTeapot teapot;
-				LoadInfoHexagon hexagon;
-				LoadInfoCapsule capsule;
-				LoadInfoGrid grid;
-				LoadInfoPlane plane;
-				LoadInfoCustomStaticModel customStaticModel;
-
-				LoadInfo() {}
-				LoadInfo(const LoadInfo& source)
-				{
-					*this = source;
-				}
-				~LoadInfo() {}
-
-				LoadInfo* operator=(const LoadInfo& source)
-				{
-					cube = source.cube;
-					box = source.box;
-					sphere = source.sphere;
-					geoSphere = source.geoSphere;
-					cylinder = source.cylinder;
-					cone = source.cone;
-					torus = source.torus;
-					tetrahedron = source.tetrahedron;
-					octahedron = source.octahedron;
-					dodecahedron = source.dodecahedron;
-					icosahedron = source.icosahedron;
-					teapot = source.teapot;
-					hexagon = source.hexagon;
-					grid = source.grid;
-					plane = source.plane;
-					customStaticModel = source.customStaticModel;
-
-					return this;
-				}
-			} m_info;
+			std::variant<LoadInfoCube,
+				LoadInfoBox,
+				LoadInfoSphere,
+				LoadInfoGeoSphere,
+				LoadInfoCylinder,
+				LoadInfoCone,
+				LoadInfoTorus,
+				LoadInfoTetrahedron,
+				LoadInfoOctahedron,
+				LoadInfoDodecahedron,
+				LoadInfoIcosahedron,
+				LoadInfoTeapot,
+				LoadInfoHexagon,
+				LoadInfoCapsule,
+				LoadInfoGrid,
+				LoadInfoPlane,
+				LoadInfoCustomStaticModel> m_loadGeometryInfo;
 		};
 	}
 }
