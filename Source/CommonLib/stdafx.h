@@ -11,6 +11,7 @@
 #define NOMINMAX
 
 #include <cstdint>
+#include <assert.h>
 #include <Windows.h>
 
 #include <mutex>

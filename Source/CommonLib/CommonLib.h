@@ -7,6 +7,7 @@
 	#include <d3d11_1.h>
 #endif
 
+#include <assert.h>
 #include <Windows.h>
 #include <algorithm>
 #include <cassert>
