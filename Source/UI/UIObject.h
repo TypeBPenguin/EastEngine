@@ -11,7 +11,7 @@ namespace EastEngine
 		class CUIObject : public IUIObject
 		{
 		public:
-			CUIObject(IUIPanel* pUIPanel, String::StringID strID, EmUI::Type emType);
+			CUIObject(IUIPanel* pUIPanel, const String::StringID& strID, EmUI::Type emType);
 			virtual ~CUIObject() override;
 
 			virtual void Release() override;
@@ -22,8 +22,8 @@ namespace EastEngine
 			virtual bool HandleKeyboard(uint32_t nMsg, WPARAM wParam, LPARAM lParam) = 0;
 			virtual bool HandleMouse(uint32_t nMsg, POINT pt, WPARAM wParam, LPARAM lParam) = 0;
 
-			virtual IUIElement* CreateElement(String::StringID strID, EmUI::ElementType emType) override;
-			virtual IUIElement* GetElement(String::StringID strID) override;
+			virtual IUIElement* CreateElement(const String::StringID& strID, EmUI::ElementType emType) override;
+			virtual IUIElement* GetElement(const String::StringID& strID) override;
 
 			virtual void UpdateRects() override { SetRect(&m_rcBoundingBox, m_nPosX, m_nPosY, m_nPosX + m_nWidth, m_nPosY + m_nHeight); }
 
@@ -52,29 +52,29 @@ namespace EastEngine
 
 		public:
 			virtual IUIObject* GetParent() override { return m_pParent; }
-			virtual IUIObject* GetChildByID(String::StringID strID) override;
-			virtual void AddChild(String::StringID strID, IUIObject* pUIObject) override { m_umapChildUI.emplace(strID, pUIObject); }
+			virtual IUIObject* GetChildByID(const String::StringID& strID) override;
+			virtual void AddChild(const String::StringID& strID, IUIObject* pUIObject) override { m_umapChildUI.emplace(strID, pUIObject); }
 
 			virtual IUIObject* GetMouseOverUI() override { return nullptr; }
 
 		public:
-			virtual void SetEnterSound(String::StringID strSoundName) override { m_strEnterSound = strSoundName; }
-			virtual void SetLeaveSound(String::StringID strSoundName) override { m_strLeaveSound = strSoundName; }
+			virtual void SetEnterSound(const String::StringID& strSoundName) override { m_strEnterSound = strSoundName; }
+			virtual void SetLeaveSound(const String::StringID& strSoundName) override { m_strLeaveSound = strSoundName; }
 
-			virtual void SetKeyTypingSound(String::StringID strSoundName) override { m_strKeyTypingSound = strSoundName; }
+			virtual void SetKeyTypingSound(const String::StringID& strSoundName) override { m_strKeyTypingSound = strSoundName; }
 
 			virtual void SetEnterAnim() override {}
 			virtual void SetLeaveAnim() override {}
 			virtual void SetStayAnim() override {}
 
-			virtual void SetMouseEnterScript(String::StringID strScpFuncName) override { m_strMouseEnterScp = strScpFuncName; }
-			virtual void SetMouseLeaveScript(String::StringID strScpFuncName) override { m_strMouseLeaveScp = strScpFuncName; }
-			virtual void SetMouseClickScript(Input::EmMouse::Button emMouseButton, String::StringID strScpFuncName) override { m_strMouseClickScp[emMouseButton] = strScpFuncName; }
-			virtual void SetMouseDoubleClickScript(Input::EmMouse::Button emMouseButton, String::StringID strScpFuncName) override { m_strMouseDoubleClickScp[emMouseButton] = strScpFuncName; }
-			virtual void SetMouseDragScript(Input::EmMouse::Button emMouseButton, String::StringID strScpFuncName) override { m_strMouseDragScp[emMouseButton] = strScpFuncName; }
+			virtual void SetMouseEnterScript(const String::StringID& strScpFuncName) override { m_strMouseEnterScp = strScpFuncName; }
+			virtual void SetMouseLeaveScript(const String::StringID& strScpFuncName) override { m_strMouseLeaveScp = strScpFuncName; }
+			virtual void SetMouseClickScript(Input::EmMouse::Button emMouseButton, const String::StringID& strScpFuncName) override { m_strMouseClickScp[emMouseButton] = strScpFuncName; }
+			virtual void SetMouseDoubleClickScript(Input::EmMouse::Button emMouseButton, const String::StringID& strScpFuncName) override { m_strMouseDoubleClickScp[emMouseButton] = strScpFuncName; }
+			virtual void SetMouseDragScript(Input::EmMouse::Button emMouseButton, const String::StringID& strScpFuncName) override { m_strMouseDragScp[emMouseButton] = strScpFuncName; }
 
 		public:
-			virtual String::StringID GetID() override { return m_strID; }
+			virtual const String::StringID& GetID() override { return m_strID; }
 			virtual EmUI::Type GetType() override { return m_emType; }
 
 			virtual void SetPosition(int x, int y) override { m_nPosX = x; m_nPosY = y; UpdateRects(); }

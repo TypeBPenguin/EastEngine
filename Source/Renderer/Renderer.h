@@ -16,20 +16,20 @@ namespace EastEngine
 		public:
 			virtual bool Init(const Math::Viewport& viewport) = 0;
 
-			virtual void AddRender(const RenderSubsetVertex& renderSubset) {}
-			virtual void AddRender(const RenderSubsetLine& renderSubset) {}
-			virtual void AddRender(const RenderSubsetLineSegment& renderSubset) {}
-			virtual void AddRender(const RenderSubsetStatic& renderSubset) {}
-			virtual void AddRender(const RenderSubsetSkinned& renderSubset) {}
-			virtual void AddRender(const RenderSubsetTerrain& renderSubset) {}
-			virtual void AddRender(const RenderSubsetSky& renderSubset) {}
-			virtual void AddRender(const RenderSubsetSkyEffect& renderSubset) {}
-			virtual void AddRender(const RenderSubsetSkyCloud& renderSubset) {}
-			virtual void AddRender(const RenderSubsetParticleEmitter& renderSubset) {}
-			virtual void AddRender(const RenderSubsetParticleDecal& renderSubset) {}
-			virtual void AddRender(const RenderSubsetUIText& renderSubset) {}
-			virtual void AddRender(const RenderSubsetUISprite& renderSubset) {}
-			virtual void AddRender(const RenderSubsetUIPanel& renderSubset) {}
+			virtual void AddRender(const RenderSubsetVertex&) {}
+			virtual void AddRender(const RenderSubsetLine&) {}
+			virtual void AddRender(const RenderSubsetLineSegment&) {}
+			virtual void AddRender(const RenderSubsetStatic&) {}
+			virtual void AddRender(const RenderSubsetSkinned&) {}
+			virtual void AddRender(const RenderSubsetTerrain&) {}
+			virtual void AddRender(const RenderSubsetSky&) {}
+			virtual void AddRender(const RenderSubsetSkyEffect&) {}
+			virtual void AddRender(const RenderSubsetSkyCloud&) {}
+			virtual void AddRender(const RenderSubsetParticleEmitter&) {}
+			virtual void AddRender(const RenderSubsetParticleDecal&) {}
+			virtual void AddRender(const RenderSubsetUIText&) {}
+			virtual void AddRender(const RenderSubsetUISprite&) {}
+			virtual void AddRender(const RenderSubsetUIPanel&) {}
 
 			virtual void Render(uint32_t nRenderGroupFlag) = 0;
 			virtual void Flush() = 0;

@@ -131,7 +131,7 @@ namespace EastEngine
 			float fTotalRate = 0.f;
 			for (uint32_t i = 0; i < m_copyConfig.nLevel; ++i)
 			{
-				fTotalRate += std::pow(fIncreaseRate, i);
+				fTotalRate += static_cast<float>(std::pow(fIncreaseRate, i));
 			}
 
 			assert(Math::IsZero(fTotalRate) == false);
@@ -142,7 +142,7 @@ namespace EastEngine
 			for (uint32_t i = 0; i < m_copyConfig.nLevel; ++i)
 			{
 				float fPrevDistance = fDistance;
-				fDistance += fStandardDistance * std::pow(fIncreaseRate, i);
+				fDistance += fStandardDistance * static_cast<float>(std::pow(fIncreaseRate, i));
 
 				m_f2SplitDepths[i].x = fPrevDistance;
 				m_f2SplitDepths[i].y = fDistance;

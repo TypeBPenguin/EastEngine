@@ -206,7 +206,7 @@ namespace EastEngine
 
 					case VK_TAB:
 					{
-						bool isShiftDown = ((GetKeyState(VK_SHIFT) & 0x8000) != 0);
+						//bool isShiftDown = ((GetKeyState(VK_SHIFT) & 0x8000) != 0);
 						//return onCycleFocus(isShiftDown == false);
 						return true;
 					}

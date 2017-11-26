@@ -33,7 +33,7 @@
 #define SAFE_DELETE_ARRAY(X) {if (X != nullptr) delete[] X; X = nullptr;}
 
 template<class T> CullingThreadpool::StateData<T>::StateData(unsigned int maxJobs) :
-	mCurrentIdx(~0),
+	mCurrentIdx(~0u),
 	mMaxJobs(maxJobs)
 {
 	mData = new T[mMaxJobs];
@@ -124,7 +124,7 @@ inline void CullingThreadpool::RenderJobQueue::AdvanceRenderJob(int binIdx)
 inline unsigned int CullingThreadpool::RenderJobQueue::GetBestGlobalQueue() const
 {
 	// Find least advanced queue
-	unsigned int bestBin = ~0, bestPtr = mWritePtr;
+	unsigned int bestBin = ~0u, bestPtr = mWritePtr;
 	for (unsigned int i = 0; i < mNumBins; ++i)
 	{
 		if (mRenderPtrs[i] < bestPtr && mBinMutexes[i] == 0)
@@ -220,8 +220,8 @@ void CullingThreadpool::RenderJobQueue::Reset()
 
 	for (unsigned int i = 0; i < mMaxJobs; ++i)
 	{
-		mJobs[i].mBinningJobCompletedIdx = -1;
-		mJobs[i].mBinningJobStartedIdx = -1;
+		mJobs[i].mBinningJobCompletedIdx = UINT32_MAX;
+		mJobs[i].mBinningJobStartedIdx = UINT32_MAX;
 	}
 }
 
@@ -300,14 +300,14 @@ void CullingThreadpool::ThreadMain(unsigned int threadIdx)
 			if (mRenderQueue->CanBin())
 			{
 				// If no more rasterization jobs, get next binning job
-				RenderJobQueue::Job *job = mRenderQueue->GetBinningJob();
-				if (job != nullptr)
+				RenderJobQueue::Job *benningJob = mRenderQueue->GetBinningJob();
+				if (benningJob != nullptr)
 				{
-					RenderJobQueue::BinningJob &sjob = job->mBinningJob;
+					RenderJobQueue::BinningJob &sjob = benningJob->mBinningJob;
 					for (unsigned int i = 0; i < mNumBins; ++i)
-						job->mRenderJobs[i].mTriIdx = 0;
-					mMOC->BinTriangles(sjob.mVerts, sjob.mTris, sjob.nTris, job->mRenderJobs, mBinsW, mBinsH, sjob.mMatrix, sjob.mClipPlanes, *sjob.mVtxLayout);
-					mRenderQueue->FinishedBinningJob(job);
+						benningJob->mRenderJobs[i].mTriIdx = 0;
+					mMOC->BinTriangles(sjob.mVerts, sjob.mTris, sjob.nTris, benningJob->mRenderJobs, mBinsW, mBinsH, sjob.mMatrix, sjob.mClipPlanes, *sjob.mVtxLayout);
+					mRenderQueue->FinishedBinningJob(benningJob);
 				}
 				continue;
 			}
@@ -318,11 +318,11 @@ void CullingThreadpool::ThreadMain(unsigned int threadIdx)
 				binIdx = mRenderQueue->GetBestGlobalQueue();
 				if (binIdx < mRenderQueue->mNumBins)
 				{
-					RenderJobQueue::Job *job = mRenderQueue->GetRenderJob(binIdx);
-					if (job != nullptr)
+					RenderJobQueue::Job *benningJob = mRenderQueue->GetRenderJob(binIdx);
+					if (benningJob != nullptr)
 					{
-						if (job->mRenderJobs[binIdx].mTriIdx > 0)
-							mMOC->RenderTrilist(job->mRenderJobs[binIdx], &mRects[binIdx]);
+						if (benningJob->mRenderJobs[binIdx].mTriIdx > 0)
+							mMOC->RenderTrilist(benningJob->mRenderJobs[binIdx], &mRects[binIdx]);
 
 						mRenderQueue->AdvanceRenderJob(binIdx);
 					}

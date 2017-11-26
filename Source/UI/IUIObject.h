@@ -26,8 +26,8 @@ namespace EastEngine
 			virtual bool HandleKeyboard(uint32_t nMsg, WPARAM wParam, LPARAM lParam) = 0;
 			virtual bool HandleMouse(uint32_t nMsg, POINT pt, WPARAM wParam, LPARAM lParam) = 0;
 
-			virtual IUIElement* CreateElement(String::StringID strID, EmUI::ElementType emType) = 0;
-			virtual IUIElement* GetElement(String::StringID strID) = 0;
+			virtual IUIElement* CreateElement(const String::StringID& strID, EmUI::ElementType emType) = 0;
+			virtual IUIElement* GetElement(const String::StringID& strID) = 0;
 
 			virtual void UpdateRects() = 0;
 
@@ -56,29 +56,29 @@ namespace EastEngine
 
 		public:
 			virtual IUIObject* GetParent() = 0;
-			virtual IUIObject* GetChildByID(String::StringID strID) = 0;
-			virtual void AddChild(String::StringID strID, IUIObject* pUIObject) = 0;
+			virtual IUIObject* GetChildByID(const String::StringID& strID) = 0;
+			virtual void AddChild(const String::StringID& strID, IUIObject* pUIObject) = 0;
 
 			virtual IUIObject* GetMouseOverUI() = 0;
 
 		public:
-			virtual void SetEnterSound(String::StringID strSoundName) = 0;
-			virtual void SetLeaveSound(String::StringID strSoundName) = 0;
+			virtual void SetEnterSound(const String::StringID& strSoundName) = 0;
+			virtual void SetLeaveSound(const String::StringID& strSoundName) = 0;
 
-			virtual void SetKeyTypingSound(String::StringID strSoundName) = 0;
+			virtual void SetKeyTypingSound(const String::StringID& strSoundName) = 0;
 
 			virtual void SetEnterAnim() = 0;
 			virtual void SetLeaveAnim() = 0;
 			virtual void SetStayAnim() = 0;
 
-			virtual void SetMouseEnterScript(String::StringID strScpFuncName) = 0;
-			virtual void SetMouseLeaveScript(String::StringID strScpFuncName) = 0;
-			virtual void SetMouseClickScript(Input::EmMouse::Button emMouseButton, String::StringID strScpFuncName) = 0;
-			virtual void SetMouseDoubleClickScript(Input::EmMouse::Button emMouseButton, String::StringID strScpFuncName) = 0;
-			virtual void SetMouseDragScript(Input::EmMouse::Button emMouseButton, String::StringID strScpFuncName) = 0;
+			virtual void SetMouseEnterScript(const String::StringID& strScpFuncName) = 0;
+			virtual void SetMouseLeaveScript(const String::StringID& strScpFuncName) = 0;
+			virtual void SetMouseClickScript(Input::EmMouse::Button emMouseButton, const String::StringID& strScpFuncName) = 0;
+			virtual void SetMouseDoubleClickScript(Input::EmMouse::Button emMouseButton, const String::StringID& strScpFuncName) = 0;
+			virtual void SetMouseDragScript(Input::EmMouse::Button emMouseButton, const String::StringID& strScpFuncName) = 0;
 
 		public:
-			virtual String::StringID GetID() = 0;
+			virtual const String::StringID& GetID() = 0;
 			virtual EmUI::Type GetType() = 0;
 
 			virtual void SetPosition(int x, int y) = 0;

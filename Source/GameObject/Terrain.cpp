@@ -1130,11 +1130,8 @@ namespace EastEngine
 			float mv, rm;
 			float offset = 0, yscale = 0, maxheight = 0, minheight = 0;
 
-			float *height_linear_array;
-			float *patches_rawdata;
-			HRESULT result;
+			float* height_linear_array = nullptr;
 			D3D11_SUBRESOURCE_DATA subresource_data;
-			D3D11_SHADER_RESOURCE_VIEW_DESC textureSRV_desc;
 
 			backterrain = new float[(terrain_gridpoints + 1)*(terrain_gridpoints + 1)];
 			rm = terrain_fractalinitialvalue;
@@ -1501,9 +1498,9 @@ namespace EastEngine
 
 			height_linear_array = new float[terrain_gridpoints*terrain_gridpoints * 4];
 
-			for (int i = 0; i < terrain_gridpoints; i++)
+			for (i = 0; i < terrain_gridpoints; i++)
 			{
-				for (int j = 0; j < terrain_gridpoints; j++)
+				for (j = 0; j < terrain_gridpoints; j++)
 				{
 					height_linear_array[(i + j*terrain_gridpoints) * 4 + 0] = m_normal[i][j].x;
 					height_linear_array[(i + j*terrain_gridpoints) * 4 + 1] = m_normal[i][j].y;
@@ -1596,9 +1593,9 @@ namespace EastEngine
 			vecPatches_rawdata.resize(terrain_numpatches_1d * terrain_numpatches_1d);
 
 			// creating terrain vertex buffer
-			for (int i = 0; i < terrain_numpatches_1d; i++)
+			for (i = 0; i < terrain_numpatches_1d; i++)
 			{
-				for (int j = 0; j < terrain_numpatches_1d; j++)
+				for (j = 0; j < terrain_numpatches_1d; j++)
 				{
 					Graphics::VertexPos4& vertex = vecPatches_rawdata[i + j*terrain_numpatches_1d];
 					vertex.pos.x = i*terrain_geometry_scale*terrain_gridpoints / terrain_numpatches_1d;
@@ -1620,7 +1617,7 @@ namespace EastEngine
 			vecSky_rawData.resize(sky_gridpoints*(sky_gridpoints + 2) * 2);
 
 			int floatnum = 0;
-			for (int j = 0; j < sky_gridpoints; j++)
+			for (j = 0; j < sky_gridpoints; j++)
 			{
 				i = 0;
 				floatnum = (j*(sky_gridpoints + 2) * 2);

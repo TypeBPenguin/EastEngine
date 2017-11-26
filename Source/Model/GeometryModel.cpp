@@ -1384,8 +1384,7 @@ namespace EastEngine
 				}
 
 				uint32_t dwWidth = nBlockCountWidth + 1;
-				uint32_t dwLength = nBlockCountLength + 1;
-				for (uint32_t i = 0, nCnt = 0; i < nBlockCountLength; ++i)
+				for (uint32_t i = 0; i < nBlockCountLength; ++i)
 				{
 					for (uint32_t j = 0; j < nBlockCountWidth; ++j)
 					{
@@ -1445,12 +1444,12 @@ namespace EastEngine
 			{
 				struct Vector3
 				{
-					double x, y, z;
+					float x, y, z;
 				};
 
 				struct vec3f
 				{
-					double x, y, z;
+					float x, y, z;
 
 					inline vec3f(void) {}
 
@@ -1462,7 +1461,7 @@ namespace EastEngine
 						x = a.x; y = a.y; z = a.z;
 					}
 
-					inline vec3f(const double X, const double Y, const double Z)
+					inline vec3f(const float X, const float Y, const float Z)
 					{
 						x = X; y = Y; z = Z;
 					}
@@ -1477,7 +1476,7 @@ namespace EastEngine
 						return vec3f(x + a.x, y + a.y, z + a.z);
 					}
 
-					inline vec3f operator * (const double a) const
+					inline vec3f operator * (const float a) const
 					{
 						return vec3f(x * a, y * a, z * a);
 					}
@@ -1507,12 +1506,12 @@ namespace EastEngine
 						return vec3f(x - a.x, y - a.y, z - a.z);
 					}
 
-					inline vec3f operator / (const double a) const
+					inline vec3f operator / (const float a) const
 					{
 						return vec3f(x / a, y / a, z / a);
 					}
 
-					inline double dot(const vec3f& a) const
+					inline float dot(const vec3f& a) const
 					{
 						return a.x*x + a.y*y + a.z*z;
 					}
@@ -1525,48 +1524,48 @@ namespace EastEngine
 						return *this;
 					}
 
-					inline double angle(const vec3f& v)
+					inline float angle(const vec3f& v)
 					{
 						vec3f a = v, b = *this;
-						double dot = v.x*x + v.y*y + v.z*z;
-						double len = a.length() * b.length();
+						float dot = v.x*x + v.y*y + v.z*z;
+						float len = a.length() * b.length();
 						if (len == 0)len = 0.00001f;
-						double input = dot / len;
+						float input = dot / len;
 						if (input<-1) input = -1;
 						if (input>1) input = 1;
-						return (double)acos(input);
+						return acos(input);
 					}
 
-					inline double angle2(const vec3f& v, const vec3f& w)
+					inline float angle2(const vec3f& v, const vec3f& w)
 					{
 						vec3f a = v, b = *this;
-						double dot = a.x*b.x + a.y*b.y + a.z*b.z;
-						double len = a.length() * b.length();
+						float dot = a.x*b.x + a.y*b.y + a.z*b.z;
+						float len = a.length() * b.length();
 						if (len == 0)len = 1;
 
 						vec3f plane; plane.cross(b, w);
 
 						if (plane.x * a.x + plane.y * a.y + plane.z * a.z > 0)
-							return (double)-acos(dot / len);
+							return -acos(dot / len);
 
-						return (double)acos(dot / len);
+						return acos(dot / len);
 					}
 
-					inline vec3f rot_x(double a)
+					inline vec3f rot_x(float a)
 					{
-						double yy = cos(a) * y + sin(a) * z;
-						double zz = cos(a) * z - sin(a) * y;
+						float yy = cos(a) * y + sin(a) * z;
+						float zz = cos(a) * z - sin(a) * y;
 						y = yy; z = zz;
 						return *this;
 					}
-					inline vec3f rot_y(double a)
+					inline vec3f rot_y(float a)
 					{
-						double xx = cos(-a) * x + sin(-a) * z;
-						double zz = cos(-a) * z - sin(-a) * x;
+						float xx = cos(-a) * x + sin(-a) * z;
+						float zz = cos(-a) * z - sin(-a) * x;
 						x = xx; z = zz;
 						return *this;
 					}
-					inline void clamp(double min, double max)
+					inline void clamp(float min, float max)
 					{
 						if (x<min) x = min;
 						if (y<min) y = min;
@@ -1575,10 +1574,10 @@ namespace EastEngine
 						if (y>max) y = max;
 						if (z>max) z = max;
 					}
-					inline vec3f rot_z(double a)
+					inline vec3f rot_z(float a)
 					{
-						double yy = cos(a) * y + sin(a) * x;
-						double xx = cos(a) * x - sin(a) * y;
+						float yy = cos(a) * y + sin(a) * x;
+						float xx = cos(a) * x - sin(a) * y;
 						y = yy; x = xx;
 						return *this;
 					}
@@ -1589,66 +1588,58 @@ namespace EastEngine
 					inline vec3f frac()
 					{
 						return vec3f(
-							x - double(int(x)),
-							y - double(int(y)),
-							z - double(int(z))
+							x - float(int(x)),
+							y - float(int(y)),
+							z - float(int(z))
 						);
 					}
 
 					inline vec3f integer()
 					{
 						return vec3f(
-							double(int(x)),
-							double(int(y)),
-							double(int(z))
+							float(int(x)),
+							float(int(y)),
+							float(int(z))
 						);
 					}
 
-					inline double length() const
+					inline float length() const
 					{
-						return (double)sqrt(x*x + y*y + z*z);
+						return sqrt(x*x + y*y + z*z);
 					}
 
-					inline vec3f normalize(double desired_length = 1)
+					inline vec3f normalize(float desired_length = 1)
 					{
-						double square = sqrt(x*x + y*y + z*z);
+						float square = sqrt(x*x + y*y + z*z);
 						/*
 						if (square <= 0.00001f )
 						{
 						x=1;y=0;z=0;
 						return *this;
 						}*/
-						//double len = desired_length / square; 
+						//float len = desired_length / square; 
 						x /= square; y /= square; z /= square;
 
 						return *this;
 					}
 				};
 
-			#define loopi(start_l,end_l,step_l) for ( int i=start_l;i<end_l;i+=step_l )
-			#define loopi(start_l,end_l) for ( int i=start_l;i<end_l;++i )
-			#define loopj(start_l,end_l,step_l) for ( int j=start_l;j<end_l;j+=step_l )
-			#define loopj(start_l,end_l) for ( int j=start_l;j<end_l;++j )
-			#define loopk(start_l,end_l,step_l) for ( int k=start_l;k<end_l;k+=step_l )
-			#define loopk(start_l,end_l) for ( int k=start_l;k<end_l;++k )
-			#define loopm(start_l,end_l) for ( int m=start_l;m<end_l;++m )
-			#define loopl(start_l,end_l) for ( int l=start_l;l<end_l;++l )
-			#define loopn(start_l,end_l) for ( int n=start_l;n<end_l;++n )
-			#define loop(var_l,start_l,end_l) for ( int var_l=start_l;var_l<end_l;++var_l )
-			#define loops(a_l,start_l,end_l,step_l) for ( a_l = start_l;a_l<end_l;a_l+=step_l )
-
-				class SymetricMatrix {
-
+				class SymetricMatrix
+				{
 				public:
-
 					// Constructor
+					SymetricMatrix(float c = 0)
+					{
+						for (int i = 0; i < 10; ++i)
+						{
+							m[i] = c;
+						}
+					}
 
-					SymetricMatrix(double c = 0) { loopi(0, 10) m[i] = c; }
-
-					SymetricMatrix(double m11, double m12, double m13, double m14,
-						double m22, double m23, double m24,
-						double m33, double m34,
-						double m44) {
+					SymetricMatrix(float m11, float m12, float m13, float m14,
+						float m22, float m23, float m24,
+						float m33, float m34,
+						float m44) {
 						m[0] = m11;  m[1] = m12;  m[2] = m13;  m[3] = m14;
 						m[4] = m22;  m[5] = m23;  m[6] = m24;
 						m[7] = m33;  m[8] = m34;
@@ -1657,7 +1648,7 @@ namespace EastEngine
 
 					// Make plane
 
-					SymetricMatrix(double a, double b, double c, double d)
+					SymetricMatrix(float a, float b, float c, float d)
 					{
 						m[0] = a*a;  m[1] = a*b;  m[2] = a*c;  m[3] = a*d;
 						m[4] = b*b;  m[5] = b*c;  m[6] = b*d;
@@ -1665,15 +1656,15 @@ namespace EastEngine
 						m[9] = d*d;
 					}
 
-					double operator[](int c) const { return m[c]; }
+					float operator[](int c) const { return m[c]; }
 
 					// Determinant
 
-					double det(int a11, int a12, int a13,
+					float det(int a11, int a12, int a13,
 						int a21, int a22, int a23,
 						int a31, int a32, int a33)
 					{
-						double det = m[a11] * m[a22] * m[a33] + m[a13] * m[a21] * m[a32] + m[a12] * m[a23] * m[a31]
+						float det = m[a11] * m[a22] * m[a33] + m[a13] * m[a21] * m[a32] + m[a12] * m[a23] * m[a31]
 							- m[a13] * m[a22] * m[a31] - m[a11] * m[a23] * m[a32] - m[a12] * m[a21] * m[a33];
 						return det;
 					}
@@ -1694,13 +1685,13 @@ namespace EastEngine
 						return *this;
 					}
 
-					double m[10];
+					float m[10];
 				};
 				/////////////////////////////////////////
 
 				// Global Variables & Strctures
 
-				struct Triangle { int v[3]; double err[4]; int deleted, dirty; vec3f n; };
+				struct Triangle { int v[3]; float err[4]; int deleted, dirty; vec3f n; };
 				struct Vertex { vec3f p; int tstart, tcount; SymetricMatrix q; int border; VertexPosTexNor vertex; };
 				struct Ref { int tid, tvertex; };
 				std::vector<Triangle> triangles;
@@ -1709,10 +1700,10 @@ namespace EastEngine
 
 				// Helper functions
 
-				double vertex_error(SymetricMatrix q, double x, double y, double z);
-				double calculate_error(int id_v1, int id_v2, vec3f& p_result, Math::Vector2* pOut_f2UV, Math::Vector3* pOut_f3Normal);
-				bool flipped(vec3f p, int i0, int i1, Vertex &v0, Vertex &v1, std::vector<int> &deleted);
-				void update_triangles(int i0, Vertex &v, std::vector<int> &deleted, int &deleted_triangles);
+				float vertex_error(SymetricMatrix q, float x, float y, float z);
+				float calculate_error(int id_v1, int id_v2, vec3f& p_result, Math::Vector2* pOut_f2UV, Math::Vector3* pOut_f3Normal);
+				bool flipped(vec3f p, int i0, int i1, Vertex& v0, Vertex& v1, std::vector<int>& deleted);
+				void update_triangles(int i0, Vertex& v, std::vector<int>& deleted, int& deleted_triangles);
 				void update_mesh(int iteration);
 				void compact_mesh();
 
@@ -1724,7 +1715,7 @@ namespace EastEngine
 				//                 5..8 are good numbers
 				//                 more iterations yield higher quality
 				//
-				bool GenerateSimplificationMesh(const std::vector<VertexPosTexNor>& in_vecVertices, const std::vector<uint32_t>& in_vecIndices, std::vector<VertexPosTexNor>& out_vecVertices, std::vector<uint32_t>& out_vecIndices, float fReduceFraction, double dAgressiveness)
+				bool GenerateSimplificationMesh(const std::vector<VertexPosTexNor>& in_vecVertices, const std::vector<uint32_t>& in_vecIndices, std::vector<VertexPosTexNor>& out_vecVertices, std::vector<uint32_t>& out_vecIndices, float fReduceFraction, float dAgressiveness)
 				{
 					if (fReduceFraction <= 0.f)
 						return false;
@@ -1737,7 +1728,7 @@ namespace EastEngine
 						return true;
 					}
 
-					uint32_t target_count = std::round((float)(in_vecIndices.size() / 3) * fReduceFraction);
+					int target_count = static_cast<int>(std::round((float)(in_vecIndices.size() / 3) * fReduceFraction));
 					if (target_count < 4)
 					{
 						PRINT_LOG("Object will not survive such extreme decimation, Triangle : %d, Target : %d, Reduce Fraction : %f", triangles.size(), target_count, fReduceFraction);
@@ -1773,7 +1764,10 @@ namespace EastEngine
 					}
 
 					// init
-					loopi(0, triangles.size()) triangles[i].deleted = 0;
+					for (std::size_t i = 0; i < triangles.size(); ++i)
+					{
+						triangles[i].deleted = 0;
+					}
 
 					// main iteration loop 
 
@@ -1781,11 +1775,12 @@ namespace EastEngine
 					std::vector<int> deleted0, deleted1;
 					int triangle_count = triangles.size();
 
-					loop(iteration, 0, 100)
+					for (int iteration = 0; iteration < 100; ++iteration)
 					{
 						// target number of triangles reached ? Then break
 						//PRINT_LOG("iteration %d - triangles %d\n", iteration, triangle_count - deleted_triangles);
-						if (triangle_count - deleted_triangles <= target_count)break;
+						if (triangle_count - deleted_triangles <= target_count)
+							break;
 
 						// update mesh once in a while
 						if (iteration % 5 == 0)
@@ -1794,7 +1789,10 @@ namespace EastEngine
 						}
 
 						// clear dirty flag
-						loopi(0, triangles.size()) triangles[i].dirty = 0;
+						for (std::size_t i = 0; i < triangles.size(); ++i)
+						{
+							triangles[i].dirty = 0;
+						}
 
 						//
 						// All triangles with edges below the threshold will be removed
@@ -1802,92 +1800,100 @@ namespace EastEngine
 						// The following numbers works well for most models.
 						// If it does not, try to adjust the 3 parameters
 						//
-						double threshold = 0.000000001*pow(double(iteration + 3), dAgressiveness);
+						float threshold = 0.000000001f * pow(float(iteration + 3), dAgressiveness);
 
-						// remove vertices & mark deleted triangles			
-						loopi(0, triangles.size())
+						// remove vertices&  mark deleted triangles		
+						for (std::size_t i = 0; i < triangles.size(); ++i)
 						{
-							Triangle &t = triangles[i];
+							Triangle& t = triangles[i];
 							if (t.err[3]>threshold ||
 								t.deleted ||
 								t.dirty)
 								continue;
 
-							loopj(0, 3)if (t.err[j]<threshold)
+							for (int j = 0; j < 3; ++j)
 							{
-								int i0 = t.v[j];
-								Vertex &v0 = vertices[i0];
-								int i1 = t.v[(j + 1) % 3];
-								Vertex &v1 = vertices[i1];
-
-								// Border check
-								if (v0.border != v1.border)
-									continue;
-
-								// Compute vertex to collapse to
-								vec3f p;
-								Math::Vector2 uv;
-								Math::Vector3 normal;
-								calculate_error(i0, i1, p, &uv, &normal);
-
-								deleted0.resize(v0.tcount); // normals temporarily
-								deleted1.resize(v1.tcount); // normals temporarily
-
-								// dont remove if flipped
-								if (flipped(p, i0, i1, v0, v1, deleted0))
-									continue;
-
-								if (flipped(p, i1, i0, v1, v0, deleted1))
-									continue;
-
-								// not flipped, so remove edge												
-								v0.p = p;
-								v0.vertex.pos = Math::Vector3(p.x, p.y, p.z);
-								v0.vertex.uv = uv;
-								v0.vertex.normal = normal;
-								v0.q = v1.q + v0.q;
-								int tstart = refs.size();
-
-								update_triangles(i0, v0, deleted0, deleted_triangles);
-								update_triangles(i0, v1, deleted1, deleted_triangles);
-
-								int tcount = refs.size() - tstart;
-
-								if (tcount <= v0.tcount)
+								if (t.err[j]<threshold)
 								{
-									// save ram
-									if (tcount)Memory::Copy(&refs[v0.tstart], tcount * sizeof(Ref), &refs[tstart], tcount * sizeof(Ref));
-								}
-								else
-									// append
-									v0.tstart = tstart;
+									int i0 = t.v[j];
+									Vertex& v0 = vertices[i0];
+									int i1 = t.v[(j + 1) % 3];
+									Vertex& v1 = vertices[i1];
 
-								v0.tcount = tcount;
-								break;
+									// Border check
+									if (v0.border != v1.border)
+										continue;
+
+									// Compute vertex to collapse to
+									vec3f p;
+									Math::Vector2 uv;
+									Math::Vector3 normal;
+									calculate_error(i0, i1, p, &uv, &normal);
+
+									deleted0.resize(v0.tcount); // normals temporarily
+									deleted1.resize(v1.tcount); // normals temporarily
+
+																// dont remove if flipped
+									if (flipped(p, i0, i1, v0, v1, deleted0))
+										continue;
+
+									if (flipped(p, i1, i0, v1, v0, deleted1))
+										continue;
+
+									// not flipped, so remove edge												
+									v0.p = p;
+									v0.vertex.pos = Math::Vector3(p.x, p.y, p.z);
+									v0.vertex.uv = uv;
+									v0.vertex.normal = normal;
+									v0.q = v1.q + v0.q;
+									int tstart = refs.size();
+
+									update_triangles(i0, v0, deleted0, deleted_triangles);
+									update_triangles(i0, v1, deleted1, deleted_triangles);
+
+									int tcount = refs.size() - tstart;
+
+									if (tcount <= v0.tcount)
+									{
+										// save ram
+										if (tcount)Memory::Copy(&refs[v0.tstart], tcount * sizeof(Ref), &refs[tstart], tcount * sizeof(Ref));
+									}
+									else
+										// append
+										v0.tstart = tstart;
+
+									v0.tcount = tcount;
+									break;
+								}
 							}
+
 							// done?
-							if (triangle_count - deleted_triangles <= target_count)break;
+							if (triangle_count - deleted_triangles <= target_count)
+								break;
 						}
 					}
 
 					// clean up mesh
 					compact_mesh();
 
-					loopi(0, vertices.size())
+					for (std::size_t i = 0; i < vertices.size(); ++i)
 					{
 						out_vecVertices.emplace_back(Math::Vector3(vertices[i].p.x, vertices[i].p.y, vertices[i].p.z),
 							vertices[i].vertex.uv, vertices[i].vertex.normal);
 					}
 
-					loopi(0, triangles.size()) if (!triangles[i].deleted)
+					for (std::size_t i = 0; i < triangles.size(); ++i)
 					{
-						out_vecVertices[triangles[i].v[0]].normal = Math::Vector3(triangles[i].n.x, triangles[i].n.y, triangles[i].n.z);
-						out_vecVertices[triangles[i].v[1]].normal = Math::Vector3(triangles[i].n.x, triangles[i].n.y, triangles[i].n.z);
-						out_vecVertices[triangles[i].v[2]].normal = Math::Vector3(triangles[i].n.x, triangles[i].n.y, triangles[i].n.z);
+						if (triangles[i].deleted == false)
+						{
+							out_vecVertices[triangles[i].v[0]].normal = Math::Vector3(triangles[i].n.x, triangles[i].n.y, triangles[i].n.z);
+							out_vecVertices[triangles[i].v[1]].normal = Math::Vector3(triangles[i].n.x, triangles[i].n.y, triangles[i].n.z);
+							out_vecVertices[triangles[i].v[2]].normal = Math::Vector3(triangles[i].n.x, triangles[i].n.y, triangles[i].n.z);
 
-						out_vecIndices.emplace_back(triangles[i].v[0]);
-						out_vecIndices.emplace_back(triangles[i].v[1]);
-						out_vecIndices.emplace_back(triangles[i].v[2]);
+							out_vecIndices.emplace_back(triangles[i].v[0]);
+							out_vecIndices.emplace_back(triangles[i].v[1]);
+							out_vecIndices.emplace_back(triangles[i].v[2]);
+						}
 					}
 
 					triangles.resize(0);
@@ -1898,12 +1904,12 @@ namespace EastEngine
 
 				// Check if a triangle flips when this edge is removed
 
-				bool flipped(vec3f p, int i0, int i1, Vertex &v0, Vertex &v1, std::vector<int> &deleted)
+				bool flipped(vec3f p, int i0, int i1, Vertex& v0, Vertex& v1, std::vector<int>& deleted)
 				{
 					int bordercount = 0;
-					loopk(0, v0.tcount)
+					for (int k = 0; k < v0.tcount; ++k)
 					{
-						Triangle &t = triangles[refs[v0.tstart + k].tid];
+						Triangle& t = triangles[refs[v0.tstart + k].tid];
 						if (t.deleted)
 							continue;
 
@@ -1938,13 +1944,13 @@ namespace EastEngine
 
 				// Update triangle connections and edge error after a edge is collapsed
 
-				void update_triangles(int i0, Vertex &v, std::vector<int> &deleted, int &deleted_triangles)
+				void update_triangles(int i0, Vertex& v, std::vector<int>& deleted, int& deleted_triangles)
 				{
 					vec3f p;
-					loopk(0, v.tcount)
+					for (int k = 0; k < v.tcount; ++k)
 					{
-						Ref &r = refs[v.tstart + k];
-						Triangle &t = triangles[r.tid];
+						Ref& r = refs[v.tstart + k];
+						Triangle& t = triangles[r.tid];
 						if (t.deleted)continue;
 						if (deleted[k])
 						{
@@ -1969,11 +1975,13 @@ namespace EastEngine
 					if (iteration > 0) // compact triangles
 					{
 						int dst = 0;
-						loopi(0, triangles.size())
-							if (!triangles[i].deleted)
+						for (std::size_t i = 0; i < triangles.size(); ++i)
+						{
+							if (triangles[i].deleted == false)
 							{
 								triangles[dst++] = triangles[i];
 							}
+						}
 						triangles.resize(dst);
 					}
 					//
@@ -1985,45 +1993,66 @@ namespace EastEngine
 					//
 					if (iteration == 0)
 					{
-						loopi(0, vertices.size())
-							vertices[i].q = SymetricMatrix(0.0);
-
-						loopi(0, triangles.size())
+						for (std::size_t i = 0; i < vertices.size(); ++i)
 						{
-							Triangle &t = triangles[i];
+							vertices[i].q = SymetricMatrix(0.0);
+						}
+
+						for (std::size_t i = 0; i < triangles.size(); ++i)
+						{
+							Triangle& t = triangles[i];
 							vec3f n, p[3];
-							loopj(0, 3) p[j] = vertices[t.v[j]].p;
+
+							for (int j = 0; j < 3; ++j)
+							{
+								p[j] = vertices[t.v[j]].p;
+							}
+
 							n.cross(p[1] - p[0], p[2] - p[0]);
 							n.normalize();
 							t.n = n;
-							loopj(0, 3) vertices[t.v[j]].q =
-								vertices[t.v[j]].q + SymetricMatrix(n.x, n.y, n.z, -n.dot(p[0]));
+
+							for (int j = 0; j < 3; ++j)
+							{
+								vertices[t.v[j]].q =
+									vertices[t.v[j]].q + SymetricMatrix(n.x, n.y, n.z, -n.dot(p[0]));
+							}
 						}
-						loopi(0, triangles.size())
+
+						for (std::size_t i = 0; i < triangles.size(); ++i)
 						{
 							// Calc Edge Error
-							Triangle &t = triangles[i];
+							Triangle& t = triangles[i];
 							vec3f p;
-							loopj(0, 3) t.err[j] = calculate_error(t.v[j], t.v[(j + 1) % 3], p, nullptr, nullptr);
+
+							for (int j = 0; j < 3; ++j)
+							{
+								t.err[j] = calculate_error(t.v[j], t.v[(j + 1) % 3], p, nullptr, nullptr);
+							}
 							t.err[3] = Math::Min(t.err[0], Math::Min(t.err[1], t.err[2]));
 						}
 					}
 
 					// Init Reference ID list	
-					loopi(0, vertices.size())
+					for (std::size_t i = 0; i < vertices.size(); ++i)
 					{
 						vertices[i].tstart = 0;
 						vertices[i].tcount = 0;
 					}
-					loopi(0, triangles.size())
+
+					for (std::size_t i = 0; i < triangles.size(); ++i)
 					{
-						Triangle &t = triangles[i];
-						loopj(0, 3) vertices[t.v[j]].tcount++;
+						Triangle& t = triangles[i];
+						for (int j = 0; j < 3; ++j)
+						{
+							vertices[t.v[j]].tcount++;
+						}
 					}
+
 					int tstart = 0;
-					loopi(0, vertices.size())
+					for (std::size_t i = 0; i < vertices.size(); ++i)
 					{
-						Vertex &v = vertices[i];
+						Vertex& v = vertices[i];
 						v.tstart = tstart;
 						tstart += v.tcount;
 						v.tcount = 0;
@@ -2031,12 +2060,12 @@ namespace EastEngine
 
 					// Write References
 					refs.resize(triangles.size() * 3);
-					loopi(0, triangles.size())
+					for (std::size_t i = 0; i < triangles.size(); ++i)
 					{
-						Triangle &t = triangles[i];
-						loopj(0, 3)
+						Triangle& t = triangles[i];
+						for (int j = 0; j < 3; ++j)
 						{
-							Vertex &v = vertices[t.v[j]];
+							Vertex& v = vertices[t.v[j]];
 							refs[v.tstart + v.tcount].tid = i;
 							refs[v.tstart + v.tcount].tvertex = j;
 							v.tcount++;
@@ -2048,37 +2077,52 @@ namespace EastEngine
 					{
 						std::vector<int> vcount, vids;
 
-						loopi(0, vertices.size())
-							vertices[i].border = 0;
-
-						loopi(0, vertices.size())
+						for (std::size_t i = 0; i < vertices.size(); ++i)
 						{
-							Vertex &v = vertices[i];
+							vertices[i].border = 0;
+						}
+
+						for (std::size_t i = 0; i < vertices.size(); ++i)
+						{
+							Vertex& v = vertices[i];
 							vcount.clear();
 							vids.clear();
-							loopj(0, v.tcount)
+							for (int j = 0; j < v.tcount; ++j)
 							{
-								int k = refs[v.tstart + j].tid;
-								Triangle &t = triangles[k];
-								loopk(0, 3)
+								int index = refs[v.tstart + j].tid;
+								Triangle& t = triangles[index];
+
+								for (int k = 0; k < 3; ++k)
 								{
-									int ofs = 0, id = t.v[k];
+									std::size_t ofs = 0;
+									int id = t.v[k];
 									while (ofs<vcount.size())
 									{
-										if (vids[ofs] == id)break;
+										if (vids[ofs] == id)
+											break;
+
 										ofs++;
 									}
+
 									if (ofs == vcount.size())
 									{
 										vcount.push_back(1);
 										vids.push_back(id);
 									}
 									else
+									{
 										vcount[ofs]++;
+									}
 								}
 							}
-							loopj(0, vcount.size()) if (vcount[j] == 1)
-								vertices[vids[j]].border = 1;
+
+							for (std::size_t j = 0; j < vcount.size(); ++j)
+							{
+								if (vcount[j] == 1)
+								{
+									vertices[vids[j]].border = 1;
+								}
+							}
 						}
 					}
 				}
@@ -2088,20 +2132,29 @@ namespace EastEngine
 				void compact_mesh()
 				{
 					int dst = 0;
-					loopi(0, vertices.size())
+					for (std::size_t i = 0; i < vertices.size(); ++i)
 					{
 						vertices[i].tcount = 0;
 					}
-					loopi(0, triangles.size())
-						if (!triangles[i].deleted)
+
+					for (std::size_t i = 0; i < triangles.size(); ++i)
+					{
+						if (!triangles[i].deleted == false)
 						{
-							Triangle &t = triangles[i];
+							Triangle& t = triangles[i];
 							triangles[dst++] = t;
-							loopj(0, 3)vertices[t.v[j]].tcount = 1;
+
+							for (int j = 0; j < 3; ++j)
+							{
+								vertices[t.v[j]].tcount = 1;
+							}
 						}
+					}
 					triangles.resize(dst);
 					dst = 0;
-					loopi(0, vertices.size())
+
+					for (std::size_t i = 0; i < vertices.size(); ++i)
+					{
 						if (vertices[i].tcount)
 						{
 							vertices[i].tstart = dst;
@@ -2109,17 +2162,22 @@ namespace EastEngine
 							vertices[dst].vertex = vertices[i].vertex;
 							dst++;
 						}
-					loopi(0, triangles.size())
+					}
+
+					for (std::size_t i = 0; i < triangles.size(); ++i)
 					{
-						Triangle &t = triangles[i];
-						loopj(0, 3)t.v[j] = vertices[t.v[j]].tstart;
+						Triangle& t = triangles[i];
+						for (int j = 0; j < 3; ++j)
+						{
+							t.v[j] = vertices[t.v[j]].tstart;
+						}
 					}
 					vertices.resize(dst);
 				}
 
 				// Error between vertex and Quadric
 
-				double vertex_error(SymetricMatrix q, double x, double y, double z)
+				float vertex_error(SymetricMatrix q, float x, float y, float z)
 				{
 					return   q[0] * x*x + 2 * q[1] * x*y + 2 * q[2] * x*z + 2 * q[3] * x + q[4] * y*y
 						+ 2 * q[5] * y*z + 2 * q[6] * y + q[7] * z*z + 2 * q[8] * z + q[9];
@@ -2127,13 +2185,13 @@ namespace EastEngine
 
 				// Error for one edge
 
-				double calculate_error(int id_v1, int id_v2, vec3f& p_result, Math::Vector2* pOut_f2UV, Math::Vector3* pOut_f3Normal)
+				float calculate_error(int id_v1, int id_v2, vec3f& p_result, Math::Vector2* pOut_f2UV, Math::Vector3* pOut_f3Normal)
 				{
 					// compute interpolated vertex 
 					SymetricMatrix q = vertices[id_v1].q + vertices[id_v2].q;
 					bool border = vertices[id_v1].border & vertices[id_v2].border;
-					double error = 0.0;
-					double det = q.det(0, 1, 2, 1, 4, 5, 2, 5, 7);
+					float error = 0.0;
+					float det = q.det(0, 1, 2, 1, 4, 5, 2, 5, 7);
 
 					if (det != 0 && !border)
 					{
@@ -2150,9 +2208,9 @@ namespace EastEngine
 						vec3f p2 = vertices[id_v2].p;
 						vec3f p3 = (p1 + p2) / 2;
 
-						double error1 = vertex_error(q, p1.x, p1.y, p1.z);
-						double error2 = vertex_error(q, p2.x, p2.y, p2.z);
-						double error3 = vertex_error(q, p3.x, p3.y, p3.z);
+						float error1 = vertex_error(q, p1.x, p1.y, p1.z);
+						float error2 = vertex_error(q, p2.x, p2.y, p2.z);
+						float error3 = vertex_error(q, p3.x, p3.y, p3.z);
 
 						error = Math::Min(error1, Math::Min(error2, error3));
 

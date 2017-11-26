@@ -266,77 +266,80 @@ void SceneStudio::Enter()
 	}
 
 	Graphics::IMaterial* pMaterial_override = nullptr;
-	for (int i = 0; i < 50; ++i)
+	for (int j = 0; j < 5; ++j)
 	{
-		/*Graphics::MaterialInfo materialInfo;
-		materialInfo.strName.Format("TestBox%d", (i % 10) + 1);
-		materialInfo.strPath = File::GetPath(File::eTexture);
-
-		materialInfo.strTextureNameArray[Graphics::EmMaterial::eAlbedo].Format("Pattern\\pattern_%02d\\%s", (i % 10) + 1, "diffus.tga");
-		materialInfo.strTextureNameArray[Graphics::EmMaterial::eNormal].Format("Pattern\\pattern_%02d\\%s", (i % 10) + 1, "Normal.tga");
-		materialInfo.strTextureNameArray[Graphics::EmMaterial::eSpecularColor].Format("Pattern\\pattern_%02d\\%s", (i % 10) + 1, "specular.tga");
-*/
-		Graphics::MaterialInfo materialInfo;
-		materialInfo.strName = "TestBox";
-		materialInfo.strPath = File::GetPath(File::eTexture);
-
-		materialInfo.strTextureNameArray[Graphics::EmMaterial::eAlbedo].Format("Pattern\\pattern_01\\%s", "diffus.tga");
-		materialInfo.strTextureNameArray[Graphics::EmMaterial::eNormal].Format("Pattern\\pattern_01\\%s", "Normal.tga");
-		materialInfo.strTextureNameArray[Graphics::EmMaterial::eSpecularColor].Format("Pattern\\pattern_01\\%s", "specular.tga");
-
-		//materialInfo.f4DisRoughMetEmi.y = 0.1f * ((i % 10) + 1);
-		//materialInfo.f4DisRoughMetEmi.z = 1.f - 0.1f * ((i % 10) + 1);
-
-		materialInfo.f4DisRoughMetEmi.y = 0.5f;
-		materialInfo.f4DisRoughMetEmi.z = 0.5f;
-
-		//materialInfo.rasterizerStateDesc = Graphics::GetDevice()->GetRasterizerStateDesc(Graphics::EmRasterizerState::eNone);
-		//materialInfo.colorAlbedo = Math::Color(Math::Random(0.f, 1.f), Math::Random(0.f, 1.f), Math::Random(0.f, 1.f), 1.f);
-
-		auto pActor = GameObject::ActorManager::GetInstance()->CreateActor("TestBox");
-
-		Math::Vector3 f3Pos;
-		f3Pos.x = -4.f + (i % 5) * 2;
-		f3Pos.y = 10.5f;
-		f3Pos.z = -4.f + (i / 5) * 2;
-
-		pActor->SetPosition(f3Pos);
-
-		auto pCompModel = static_cast<GameObject::ComponentModel*>(pActor->CreateComponent(GameObject::EmComponent::eModel));
-
-		Graphics::ModelLoader loader;
-		//loader.InitBox(String::Format("TestBox%d", (i % 10) + 1).c_str(), &materialInfo);
-		loader.InitBox("TestBox", &materialInfo);
-		pCompModel->Init(&loader);
-		auto pModelInst = pCompModel->GetModelInstance();
-
-		if (i % 2 == 0)
+		for (int i = 0; i < 50; ++i)
 		{
-			if (pMaterial_override == nullptr)
+			/*Graphics::MaterialInfo materialInfo;
+			materialInfo.strName.Format("TestBox%d", (i % 10) + 1);
+			materialInfo.strPath = File::GetPath(File::eTexture);
+
+			materialInfo.strTextureNameArray[Graphics::EmMaterial::eAlbedo].Format("Pattern\\pattern_%02d\\%s", (i % 10) + 1, "diffus.tga");
+			materialInfo.strTextureNameArray[Graphics::EmMaterial::eNormal].Format("Pattern\\pattern_%02d\\%s", (i % 10) + 1, "Normal.tga");
+			materialInfo.strTextureNameArray[Graphics::EmMaterial::eSpecularColor].Format("Pattern\\pattern_%02d\\%s", (i % 10) + 1, "specular.tga");
+			*/
+			Graphics::MaterialInfo materialInfo;
+			materialInfo.strName = "TestBox";
+			materialInfo.strPath = File::GetPath(File::eTexture);
+
+			materialInfo.strTextureNameArray[Graphics::EmMaterial::eAlbedo].Format("Pattern\\pattern_01\\%s", "diffus.tga");
+			materialInfo.strTextureNameArray[Graphics::EmMaterial::eNormal].Format("Pattern\\pattern_01\\%s", "Normal.tga");
+			materialInfo.strTextureNameArray[Graphics::EmMaterial::eSpecularColor].Format("Pattern\\pattern_01\\%s", "specular.tga");
+
+			//materialInfo.f4DisRoughMetEmi.y = 0.1f * ((i % 10) + 1);
+			//materialInfo.f4DisRoughMetEmi.z = 1.f - 0.1f * ((i % 10) + 1);
+
+			materialInfo.f4DisRoughMetEmi.y = 0.5f;
+			materialInfo.f4DisRoughMetEmi.z = 0.5f;
+
+			//materialInfo.rasterizerStateDesc = Graphics::GetDevice()->GetRasterizerStateDesc(Graphics::EmRasterizerState::eNone);
+			//materialInfo.colorAlbedo = Math::Color(Math::Random(0.f, 1.f), Math::Random(0.f, 1.f), Math::Random(0.f, 1.f), 1.f);
+
+			auto pActor = GameObject::ActorManager::GetInstance()->CreateActor("TestBox");
+
+			Math::Vector3 f3Pos;
+			f3Pos.x = -4.f + (i % 5) * 2.f;
+			f3Pos.y = 10.5f + (j * 1.5f);
+			f3Pos.z = -4.f + (i / 5) * 2.f;
+
+			pActor->SetPosition(f3Pos);
+
+			auto pCompModel = static_cast<GameObject::ComponentModel*>(pActor->CreateComponent(GameObject::EmComponent::eModel));
+
+			Graphics::ModelLoader loader;
+			//loader.InitBox(String::Format("TestBox%d", (i % 10) + 1).c_str(), &materialInfo);
+			loader.InitBox("TestBox", &materialInfo);
+			pCompModel->Init(&loader);
+			auto pModelInst = pCompModel->GetModelInstance();
+
+			if (i % 2 == 0)
 			{
-				Graphics::MaterialInfo materialInfo2;
-				materialInfo2.strName = "TestBox";
-				materialInfo2.strPath = File::GetPath(File::eTexture);
+				if (pMaterial_override == nullptr)
+				{
+					Graphics::MaterialInfo materialInfo2;
+					materialInfo2.strName = "TestBox";
+					materialInfo2.strPath = File::GetPath(File::eTexture);
 
-				materialInfo2.strTextureNameArray[Graphics::EmMaterial::eAlbedo].Format("Pattern\\pattern_02\\%s", "diffus.tga");
-				materialInfo2.strTextureNameArray[Graphics::EmMaterial::eNormal].Format("Pattern\\pattern_02\\%s", "Normal.tga");
-				materialInfo2.strTextureNameArray[Graphics::EmMaterial::eSpecularColor].Format("Pattern\\pattern_02\\%s", "specular.tga");
+					materialInfo2.strTextureNameArray[Graphics::EmMaterial::eAlbedo].Format("Pattern\\pattern_02\\%s", "diffus.tga");
+					materialInfo2.strTextureNameArray[Graphics::EmMaterial::eNormal].Format("Pattern\\pattern_02\\%s", "Normal.tga");
+					materialInfo2.strTextureNameArray[Graphics::EmMaterial::eSpecularColor].Format("Pattern\\pattern_02\\%s", "specular.tga");
 
-				pMaterial_override = Graphics::IMaterial::Create(&materialInfo2);
+					pMaterial_override = Graphics::IMaterial::Create(&materialInfo2);
+				}
+				pModelInst->ChangeMaterial("EastEngine_Box", 0, pMaterial_override);
 			}
-			pModelInst->ChangeMaterial("EastEngine_Box", 0, pMaterial_override);
+
+			auto pCompPhysics = static_cast<GameObject::ComponentPhysics*>(pActor->CreateComponent(GameObject::EmComponent::ePhysics));
+
+			Physics::RigidBodyProperty prop;
+			prop.fRestitution = 0.5f;
+			prop.strName.Format("TestBox_RigidBody%d", i).c_str();
+			prop.shapeInfo.SetBox(Math::Vector3(0.5f));
+			//prop.shapeInfo.SetCapsule(Math::Random(0.5f, 1.f), Math::Random(1.f, 2.f));
+			prop.nCollisionFlag = Physics::EmCollision::eCharacterObject;
+			prop.f3OriginPos = f3Pos;
+			pCompPhysics->Init(pModelInst, prop);
 		}
-
-		auto pCompPhysics = static_cast<GameObject::ComponentPhysics*>(pActor->CreateComponent(GameObject::EmComponent::ePhysics));
-
-		Physics::RigidBodyProperty prop;
-		prop.fRestitution = 0.5f;
-		prop.strName.Format("TestBox_RigidBody%d", i).c_str();
-		prop.shapeInfo.SetBox(Math::Vector3(0.5f));
-		//prop.shapeInfo.SetCapsule(Math::Random(0.5f, 1.f), Math::Random(1.f, 2.f));
-		prop.nCollisionFlag = Physics::EmCollision::eCharacterObject;
-		prop.f3OriginPos = f3Pos;
-		pCompPhysics->Init(pModelInst, prop);
 	}
 
 	{
@@ -356,7 +359,7 @@ void SceneStudio::Enter()
 			Contents::Sun* pSun = new Contents::Sun;
 
 			Graphics::ShadowConfig shadowConfig;
-			shadowConfig.nBufferSize = 1024.f;
+			shadowConfig.nBufferSize = 1024;
 
 			Graphics::ILight* pSpotLight = Graphics::ILight::CreateSpotLight(strName, f3Position, f3Direction, Math::Random(20.f, 60.f), lightColor, 100.f * (i + 1), 0.1f, 0.2f, &shadowConfig);
 			//Graphics::ILight* pSpotLight = Graphics::ILight::CreateSpotLight(strName, f3Position, f3Direction, 90.f, lightColor, 100.f * (i + 1), 0.1f, 0.2f, &shadowConfig);
@@ -929,14 +932,14 @@ void ShowMaterial(bool& isShowMaterial, Graphics::IMaterial* pMaterial, int nInd
 				bool& isShow = umapIsShowBigTexture[pTexture->GetName()];
 
 				ImTextureID textureID = pTexture->GetShaderResourceView();
-				if (ImGui::ImageButton(textureID, ImVec2(64, 64)) == true)
+				if (ImGui::ImageButton(textureID, ImVec2(64.f, 64.f)) == true)
 				{
 					isShow = !isShow;
 				}
 
 				if (isShow == true)
 				{
-					ImVec2 f2Size(pTexture->GetSize().x, pTexture->GetSize().y);
+					ImVec2 f2Size(static_cast<float>(pTexture->GetSize().x), static_cast<float>(pTexture->GetSize().y));
 					f2Size.x = Math::Min(f2Size.x, 512.f);
 					f2Size.y = Math::Min(f2Size.y, 512.f);
 

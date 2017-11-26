@@ -259,7 +259,7 @@ namespace EastEngine
 			if (pCamera == nullptr)
 				return;
 
-			const Collision::Frustum& frustum = pCamera->GetFrustum();
+			//const Collision::Frustum& frustum = pCamera->GetFrustum();
 			m_nLightCountInView.fill(0);
 
 			std::for_each(m_vecDirectionalLights.begin(), m_vecDirectionalLights.end(), [&](IDirectionalLight* pLight)

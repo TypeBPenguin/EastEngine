@@ -7,7 +7,7 @@ namespace EastEngine
 {
 	namespace UI
 	{
-		CUIObject::CUIObject(IUIPanel* pUIPanel, String::StringID strID, EmUI::Type emType)
+		CUIObject::CUIObject(IUIPanel* pUIPanel, const String::StringID& strID, EmUI::Type emType)
 			: m_pUIPanel(pUIPanel)
 			, m_strID(strID)
 			, m_emType(emType)
@@ -43,7 +43,7 @@ namespace EastEngine
 			m_umapChildUI.clear();
 		}
 
-		IUIElement* CUIObject::CreateElement(String::StringID strID, EmUI::ElementType emType)
+		IUIElement* CUIObject::CreateElement(const String::StringID& strID, EmUI::ElementType emType)
 		{
 			uint32_t nSize = m_vecElements.size();
 			for (uint32_t i = 0; i < nSize; ++i)
@@ -73,7 +73,7 @@ namespace EastEngine
 			return pElement;
 		}
 
-		IUIElement* CUIObject::GetElement(String::StringID strID)
+		IUIElement* CUIObject::GetElement(const String::StringID& strID)
 		{
 			uint32_t nSize = m_vecElements.size();
 			for (uint32_t i = 0; i < nSize; ++i)
@@ -90,14 +90,16 @@ namespace EastEngine
 			m_pUIPanel->Invalidate();
 		}
 
-		IUIObject* CUIObject::GetChildByID(String::StringID strID)
+		IUIObject* CUIObject::GetChildByID(const String::StringID& strID)
 		{
 			auto iter = m_umapChildUI.find(strID);
 			if (iter == m_umapChildUI.end())
 			{
 				for (auto iter_child = m_umapChildUI.begin(); iter_child != m_umapChildUI.end(); ++iter_child)
 				{
-					return iter_child->second->GetChildByID(strID);
+					IUIObject* pFindObj = iter_child->second->GetChildByID(strID);
+					if (pFindObj != nullptr)
+						return pFindObj;
 				}
 			}
 

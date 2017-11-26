@@ -1807,7 +1807,7 @@ public:
 						const iterator return_iterator = end_iterator;
 
 						#ifdef PLF_COLONY_TYPE_TRAITS_SUPPORT
-							if ((!std::is_copy_constructible<element_type>::value || std::is_nothrow_copy_constructible<element_type>::value) && (!std::is_move_constructible<element_type>::value || std::is_nothrow_move_constructible<element_type>::value) && std::is_nothrow_constructible<element_type>::value)
+							if constexpr ((!std::is_copy_constructible<element_type>::value || std::is_nothrow_copy_constructible<element_type>::value) && (!std::is_move_constructible<element_type>::value || std::is_nothrow_move_constructible<element_type>::value) && std::is_nothrow_constructible<element_type>::value)
 							{
 								PLF_COLONY_CONSTRUCT(element_allocator_type, (*this), end_iterator.element_pointer++, std::forward<Arguments>(parameters)...);
 							}
@@ -1842,7 +1842,7 @@ public:
 						}
 
 						#ifdef PLF_COLONY_TYPE_TRAITS_SUPPORT
-							if ((!std::is_copy_constructible<element_type>::value || std::is_nothrow_copy_constructible<element_type>::value) && (!std::is_move_constructible<element_type>::value || std::is_nothrow_move_constructible<element_type>::value) && std::is_nothrow_constructible<element_type>::value)
+							if constexpr ((!std::is_copy_constructible<element_type>::value || std::is_nothrow_copy_constructible<element_type>::value) && (!std::is_move_constructible<element_type>::value || std::is_nothrow_move_constructible<element_type>::value) && std::is_nothrow_constructible<element_type>::value)
 							{
 								PLF_COLONY_CONSTRUCT(element_allocator_type, (*this), next_group->elements, std::forward<Arguments>(parameters) ...);
 							}
@@ -1933,7 +1933,7 @@ public:
 				initialize(min_elements_per_group);
 
 				#ifdef PLF_COLONY_TYPE_TRAITS_SUPPORT
-					if ((!std::is_copy_constructible<element_type>::value || std::is_nothrow_copy_constructible<element_type>::value) && (!std::is_move_constructible<element_type>::value || std::is_nothrow_move_constructible<element_type>::value) && std::is_nothrow_constructible<element_type>::value)
+					if constexpr ((!std::is_copy_constructible<element_type>::value || std::is_nothrow_copy_constructible<element_type>::value) && (!std::is_move_constructible<element_type>::value || std::is_nothrow_move_constructible<element_type>::value) && std::is_nothrow_constructible<element_type>::value)
 					{
 						PLF_COLONY_CONSTRUCT(element_allocator_type, (*this), end_iterator.element_pointer++, std::forward<Arguments>(parameters) ...);
 					}
@@ -2610,7 +2610,7 @@ private:
 				{
 					// Use the fastest method for moving iterators, while perserving values if allocator provides non-trivial pointers - unused if/else branches will be optimised out by any decent compiler:
 					#ifdef PLF_COLONY_TYPE_TRAITS_SUPPORT
-						if (std::is_trivially_copyable<element_pointer_type>::value && std::is_trivially_destructible<element_pointer_type>::value) // Avoid iteration for trivially-destructible iterators ie. all iterators, unless allocator returns non-trivial pointers
+						if constexpr (std::is_trivially_copyable<element_pointer_type>::value && std::is_trivially_destructible<element_pointer_type>::value) // Avoid iteration for trivially-destructible iterators ie. all iterators, unless allocator returns non-trivial pointers
 						{
 							std::memcpy(&*destination_begin, &*(iterator_pointer - number_to_be_copied), number_to_be_copied * sizeof(element_pointer_type)); // &* to avoid problems with non-trivial pointers that are trivially-copyable
 						}
@@ -2676,7 +2676,7 @@ private:
 				{
 					// move remainder:
 					#ifdef PLF_COLONY_TYPE_TRAITS_SUPPORT
-						if (std::is_trivially_copyable<element_pointer_type>::value && std::is_trivially_destructible<element_pointer_type>::value)
+						if constexpr (std::is_trivially_copyable<element_pointer_type>::value && std::is_trivially_destructible<element_pointer_type>::value)
 						{ // Dereferencing here in order to deal with smart pointer situations ie. obtaining the raw pointer from the smart pointer
 							std::memcpy(&*destination_begin, &*(iterator_pointer - number_to_be_copied), number_to_be_copied * sizeof(element_pointer_type));
 						}

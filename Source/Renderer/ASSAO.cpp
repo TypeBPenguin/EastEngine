@@ -1267,6 +1267,7 @@ namespace EastEngine
 			}
 		}
 
+#ifdef _DEBUG
 		static Math::UInt4 GetTextureDimsFromSRV(ID3D11ShaderResourceView* srv)
 		{
 			D3D11_SHADER_RESOURCE_VIEW_DESC desc;
@@ -1289,6 +1290,7 @@ namespace EastEngine
 
 			return Math::UInt4(texDesc.Width, texDesc.Height, texDesc.MipLevels, texDesc.ArraySize);
 		}
+#endif
 
 		void ASSAODX11::UpdateTextures(const ASSAO_InputsDX11* inputs)
 		{

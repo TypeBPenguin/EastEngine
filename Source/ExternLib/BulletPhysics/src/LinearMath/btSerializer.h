@@ -465,10 +465,10 @@ public:
 			int littleEndian= 1;
 			littleEndian= ((char*)&littleEndian)[0];
 
-			if (sizeof(void*)==8)
+			/*if (sizeof(void*)==8)
 			{
 				buffer[7] = '-';
-			} else
+			} else*/
 			{
 				buffer[7] = '_';
 			}
