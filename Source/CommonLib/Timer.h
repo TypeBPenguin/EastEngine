@@ -20,9 +20,9 @@ namespace EastEngine
 			uint32_t nLifeTime = 0;
 			float fIntervalCheckTime = 0.f;
 			float fProcessTime = 0.f;
-			std::function<void(float, float)> funcCallback = nullptr;
+			std::function<void(uint32_t, float, float)> funcCallback = nullptr;
 
-			TimeAction(std::function<void(float, float)> funcCallback, uint32_t nTimerID, uint32_t nInterval, uint32_t nLifeTime);
+			TimeAction(std::function<void(uint32_t, float, float)> funcCallback, uint32_t nTimerID, uint32_t nInterval, uint32_t nLifeTime);
 
 			bool Update(float fElapsedTime);
 		};
@@ -42,7 +42,7 @@ namespace EastEngine
 		float GetDeltaTime() const { return static_cast<float>(m_dDeltaTime); };
 
 	public:
-		void StartTimer(std::function<void(float, float)> funcCallback, uint32_t nTimerID, uint32_t nInterval, uint32_t nLifeTime = TimeAction::eUnlimitedTime)
+		void StartTimer(std::function<void(uint32_t, float, float)> funcCallback, uint32_t nTimerID, uint32_t nInterval, uint32_t nLifeTime = TimeAction::eUnlimitedTime)
 		{
 			m_listTimeActions.emplace_back(funcCallback, nTimerID, nInterval, nLifeTime);
 		}

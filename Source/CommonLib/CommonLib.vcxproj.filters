@@ -70,6 +70,9 @@
     <Filter Include="Colony">
       <UniqueIdentifier>{705dee3a-9830-4b1f-bb69-b621b0a5bd0b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Type">
+      <UniqueIdentifier>{1aeaa061-a01c-4a63-8d63-5d9c65ea1fcd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -145,7 +148,7 @@
       <Filter>Colony</Filter>
     </ClInclude>
     <ClInclude Include="Type.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Type</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -207,7 +210,7 @@
       <Filter>ThreadPool</Filter>
     </ClCompile>
     <ClCompile Include="Type.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Type</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

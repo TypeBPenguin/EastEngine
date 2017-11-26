@@ -18,7 +18,7 @@ namespace EastEngine
 			virtual void Update(float fElapsedTime) override;
 
 		public:
-			void StartTimer(std::function<void(float, float)> funcCallback, uint32_t nTimerID, uint32_t nInterval, uint32_t nLifeTime = Timer::TimeAction::eUnlimitedTime)
+			void StartTimer(std::function<void(uint32_t, float, float)> funcCallback, uint32_t nTimerID, uint32_t nInterval, uint32_t nLifeTime = Timer::TimeAction::eUnlimitedTime)
 			{
 				m_listTimeActions.emplace_back(funcCallback, nTimerID, nInterval, nLifeTime);
 			}

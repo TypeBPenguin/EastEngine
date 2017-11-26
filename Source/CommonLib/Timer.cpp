@@ -3,7 +3,7 @@
 
 namespace EastEngine
 {
-	Timer::TimeAction::TimeAction(std::function<void(float, float)> funcCallback, uint32_t nTimerID, uint32_t nInterval, uint32_t nLifeTime)
+	Timer::TimeAction::TimeAction(std::function<void(uint32_t, float, float)> funcCallback, uint32_t nTimerID, uint32_t nInterval, uint32_t nLifeTime)
 		: funcCallback(funcCallback)
 		, nTimerID(nTimerID)
 		, nInterval(nInterval)
@@ -28,7 +28,7 @@ namespace EastEngine
 		{
 			fIntervalCheckTime -= nInterval * 0.001f;
 
-			funcCallback(fElapsedTime, fProcessTime);
+			funcCallback(nTimerID, fElapsedTime, fProcessTime);
 		}
 
 		return true;
