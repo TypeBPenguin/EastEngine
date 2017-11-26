@@ -47,6 +47,19 @@ namespace EastEngine
 			m_listTimeActions.emplace_back(funcCallback, nTimerID, nInterval, nLifeTime);
 		}
 
+		void EndTimer(uint32_t nTimerID)
+		{
+			auto iter = std::find_if(m_listTimeActions.begin(), m_listTimeActions.end(), [nTimerID](const TimeAction& timeAction)
+			{
+				return timeAction.nTimerID == nTimerID;
+			});
+
+			if (iter != m_listTimeActions.end())
+			{
+				m_listTimeActions.erase(iter);
+			}
+		}
+
 	private:
 		bool m_isStopped;
 		double m_dDeltaTime;
@@ -58,6 +71,6 @@ namespace EastEngine
 
 		std::chrono::milliseconds m_pausedTime;
 
-		std::list<Timer::TimeAction> m_listTimeActions;
+		std::list<TimeAction> m_listTimeActions;
 	};
 }

@@ -23,8 +23,20 @@ namespace EastEngine
 				m_listTimeActions.emplace_back(funcCallback, nTimerID, nInterval, nLifeTime);
 			}
 
+			void EndTimer(uint32_t nTimerID)
+			{
+				auto iter = std::find_if(m_listTimeActions.begin(), m_listTimeActions.end(), [nTimerID](const Timer::TimeAction& timeAction)
+				{
+					return timeAction.nTimerID == nTimerID;
+				});
+
+				if (iter != m_listTimeActions.end())
+				{
+					m_listTimeActions.erase(iter);
+				}
+			}
+
 		private:
-			std::function<void(float, float)> m_funcCallback;
 			std::list<Timer::TimeAction> m_listTimeActions;
 		};
 	}
