@@ -25,12 +25,14 @@ namespace StrID
 
 	RegisterStringID(Deferred_CascadedShadow);
 	RegisterStringID(Deferred_ShadowMap);
+	RegisterStringID(Deferred_ShadowCubeMap);
 
 	RegisterStringID(g_texDepth);
 	RegisterStringID(g_texNormal);
 	RegisterStringID(g_texAlbedoSpecular);
 	RegisterStringID(g_texDisneyBRDF);
 	RegisterStringID(g_texShadowMap);
+	RegisterStringID(g_texShadowCubeMap);
 	RegisterStringID(g_texIBLMap);
 	RegisterStringID(g_texIrradianceMap);
 	RegisterStringID(g_f3CameraPos);
@@ -49,6 +51,7 @@ namespace StrID
 	RegisterStringID(g_samShadow);
 	RegisterStringID(g_cascadeShadow);
 	RegisterStringID(g_shadowMap);
+	RegisterStringID(g_shadowCubeMap);
 }
 
 namespace EastEngine
@@ -161,6 +164,13 @@ namespace EastEngine
 			if (pEffectTech == nullptr)
 			{
 				PRINT_LOG("Not Exist EffectTech !!, %s", StrID::Deferred_ShadowMap.c_str());
+				return false;
+			}
+
+			pEffectTech = m_pEffectShadow->CreateTechnique(StrID::Deferred_ShadowCubeMap, EmVertexFormat::ePos);
+			if (pEffectTech == nullptr)
+			{
+				PRINT_LOG("Not Exist EffectTech !!, %s", StrID::Deferred_ShadowCubeMap.c_str());
 				return false;
 			}
 
@@ -445,6 +455,51 @@ namespace EastEngine
 							break;
 							case EmLight::ePoint:
 							{
+								D3D_PROFILING(Deferred_ShadowCubeMap);
+								pEffectTech = m_pEffectShadow->GetTechnique(StrID::Deferred_ShadowCubeMap);
+								if (pEffectTech == nullptr)
+								{
+									PRINT_LOG("Not Exist EffectTech !! : %s", StrID::Deferred_ShadowCubeMap.c_str());
+									continue;
+								}
+
+								nPassCount = pEffectTech->GetPassCount();
+
+								IPointLight* pPointLight = static_cast<IPointLight*>(pLight);
+
+								struct ShadowCubeMap
+								{
+									Math::Int2 n2PCFBlurSize;
+									Math::Vector2 f2TexelOffset;
+
+									float fDepthBias = 0.f;
+									Math::Vector3 f3LightPos;
+
+									float fLightIntensity;
+									float fFarPlane;
+									Math::Vector2 padding;
+								};
+
+								IShadowCubeMap* pShadowCubeMap = pPointLight->GetShadowCubeMap();
+								if (pShadowCubeMap == nullptr)
+									continue;
+
+								const std::shared_ptr<ITexture>& pTexture = pShadowCubeMap->GetShadowMap();
+
+								ShadowCubeMap shadowCubeMap;
+								shadowCubeMap.n2PCFBlurSize = pShadowCubeMap->GetPCFBlurSize();
+								shadowCubeMap.f2TexelOffset = pShadowCubeMap->GetTexelOffset();
+
+								shadowCubeMap.fDepthBias = pShadowCubeMap->GetDepthBias();
+								shadowCubeMap.f3LightPos = pPointLight->GetPosition();
+
+								shadowCubeMap.fLightIntensity = pPointLight->GetIntensity();
+								shadowCubeMap.fFarPlane = pShadowCubeMap->GetFarPlane();
+
+								m_pEffectShadow->SetTexture(StrID::g_texShadowCubeMap, pTexture);
+								m_pEffectShadow->SetRawValue(StrID::g_shadowCubeMap, &shadowCubeMap, 0, sizeof(ShadowCubeMap));
+								m_pEffectShadow->SetSamplerState(StrID::g_samShadow, pShadowCubeMap->GetSamplerPCF(), 0);
+								m_pEffectShadow->SetSamplerState("g_samShadow2", pShadowCubeMap->GetSamplerPoint(), 0);
 							}
 							break;
 							case EmLight::eSpot:

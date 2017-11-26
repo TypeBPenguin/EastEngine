@@ -10,6 +10,7 @@ namespace EastEngine
 		ShadowMap::ShadowMap()
 			: m_nPCFBlurSize(5)
 			, m_fDepthBias(0.001f)
+			, m_fCalcDepthBias(0.001f)
 			, m_pShadowConfig(nullptr)
 			, m_pLight(nullptr)
 			, m_pShadowMap(nullptr)
@@ -162,7 +163,7 @@ namespace EastEngine
 				DepthStencilDesc depthStencilDesc(format,
 					m_copyConfig.nBufferSize,
 					m_copyConfig.nBufferSize);
-				depthStencilDesc.SetDefaultDesc();
+				depthStencilDesc.Build();
 
 				m_pShadowMap = IDepthStencil::Create(depthStencilDesc);
 				if (m_pShadowMap == nullptr)

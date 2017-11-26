@@ -3,7 +3,8 @@
 
 #define PI 3.14159265359f
 
-Texture2D g_texShadowMap;
+Texture2D g_texShadowMap : register(t1);
+TextureCube g_texShadowCubeMap : register(t2);
 SamplerComparisonState g_samShadow : register(s1);
 SamplerState g_samShadow2 : register(s2);
 
@@ -42,9 +43,23 @@ struct ShadowMap
 	float4x4 matViewProj;
 };
 
+struct ShadowCubeMap
+{
+	int2 n2PCFBlurSize;
+	float2 f2TexelOffset;
+
+	float fDepthBias;
+	float3 f3LightPos;
+
+	float fLightIntensity;
+	float fFarPlane;
+	float2 padding;
+};
+
 cbuffer cbShadowMap
 {
 	ShadowMap g_shadowMap;
+	ShadowCubeMap g_shadowCubeMap;
 };
 
 int ComputeCascadeIndex(in float3 f3PosVS)
@@ -160,6 +175,56 @@ float2 CalculateShadowMap(in float3 f3PositionW)
 		}
 	}
 	
+	return float2(fShadowLighting, fMask);
+}
+
+float GetDepthByLightDir(in float3 positionToLight, in float texSize)
+{
+	float3 absVec = abs(positionToLight);
+	float localZComp = max(absVec.x, max(absVec.y, absVec.z));
+
+	const float f = texSize;
+	const float n = 1.f;
+	float normalZComp = (f + n) / (f - n) - (2.f * f * n) / (f - n) / localZComp;
+	return (normalZComp + 1.f) * 0.5f;
+}
+
+float2 CalculateShadowCubeMap(in float3 f3PositionW)
+{
+	float3 lightDir = f3PositionW - g_shadowCubeMap.f3LightPos;
+	//float fDepth = GetDepthByLightDir(lightDir, g_shadowCubeMap.fFarPlane);
+	float lightDist = length(lightDir);
+	//lightDir /= lightDist;
+	lightDir = normalize(lightDir);
+
+	float fShadowLighting = 0.f;
+	float fMask = 0.f;
+
+	float attenuation = (PI / (lightDist * lightDist)) * g_shadowCubeMap.fLightIntensity;
+	if (attenuation > PI)
+	{
+		// ´õ ±×·²½ÎÇÑ ¹æ¹ý ¾ø´Ì?
+		attenuation -= PI + 1e-5f;
+		attenuation *= 0.1f;
+
+		// Compare the transformed pixel depth to the depth read from the map.
+		//float depthcompare = fDepth - g_shadowCubeMap.fDepthBias;
+		//fShadowLighting = g_texShadowCubeMap.SampleCmpLevelZero(g_samShadow, lightDir, depthcompare);
+		fShadowLighting = g_texShadowCubeMap.Sample(g_samShadow2, lightDir);
+
+		//if (lightDist < fShadowLighting * g_shadowCubeMap.fFarPlane + g_shadowCubeMap.fDepthBias)
+		//{
+		//	fShadowLighting = 1.f;
+		//}
+
+		//fShadowLighting = (1.f - fShadowLighting) * attenuation;
+		fShadowLighting = (1.f - fShadowLighting);
+
+		//fShadowLighting = 1.f - fShadowLighting;
+
+		fMask = 0.01f;
+	}
+
 	return float2(fShadowLighting, fMask);
 }
 

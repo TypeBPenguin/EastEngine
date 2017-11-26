@@ -290,7 +290,7 @@ namespace EastEngine
 				Release();
 				return false;
 			}
-			
+
 			hr = m_pd3dImmediateContext->GetInterface()->QueryInterface(__uuidof(ID3DUserDefinedAnnotation), reinterpret_cast<void**>(&m_pUserDefineAnnotation));
 			if (FAILED(hr))
 			{
@@ -405,7 +405,7 @@ namespace EastEngine
 				if (m_pd3dDevice != nullptr && wParam != SIZE_MINIMIZED)
 				{
 					SafeDelete(m_pMainRenderTarget);
-				
+
 					uint32_t nWidth = LOWORD(lParam);
 					uint32_t nHeight = HIWORD(lParam);
 					HRESULT hr = m_pSwapChain->ResizeBuffers(0, nWidth, nHeight, DXGI_FORMAT_UNKNOWN, 0);
@@ -420,10 +420,10 @@ namespace EastEngine
 
 					DXGI_SWAP_CHAIN_DESC1 desc;
 					m_pSwapChain->GetDesc1(&desc);
-				
+
 					ID3D11Texture2D* pBackBuffer = nullptr;
 					m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&pBackBuffer));
-				
+
 					m_pMainRenderTarget = IRenderTarget::Create(pBackBuffer);
 					if (m_pMainRenderTarget == nullptr)
 					{
@@ -431,14 +431,14 @@ namespace EastEngine
 						Release();
 						return false;
 					}
-				
+
 					m_viewport.x = 0.0f;
 					m_viewport.y = 0.0f;
 					m_viewport.width = static_cast<float>(desc.Width);
 					m_viewport.height = static_cast<float>(desc.Height);
 					m_viewport.minDepth = 0.0f;
 					m_viewport.maxDepth = 1.0f;
-				
+
 					SafeRelease(pBackBuffer);
 				}
 				break;
@@ -689,7 +689,7 @@ namespace EastEngine
 
 			return m_pd3dDevice->CreateDepthStencilState(pDepthStencilDesc, ppDepthStencilState);
 		}
-		
+
 		const SamplerStateDesc& Device::GetSamplerStateDesc(EmSamplerState::Type emSamplerState)
 		{
 			if (IsInit() == false)
@@ -1504,7 +1504,7 @@ namespace EastEngine
 				DXGI_FORMAT_R32_TYPELESS,
 				m_n2ScreenSize.x,
 				m_n2ScreenSize.y);
-			depthStencilDesc.SetDefaultDesc();
+			depthStencilDesc.Build();
 
 			m_pDepthStencil = IDepthStencil::Create(depthStencilDesc);
 			if (m_pDepthStencil == nullptr)

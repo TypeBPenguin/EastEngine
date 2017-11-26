@@ -48,8 +48,8 @@ namespace EastEngine
 			void renderStaticModel(IDevice* pDevice, Camera* pCamera);
 			void renderSkinnedModel(IDevice* pDevice, Camera* pCamera);
 
-			void renderStaticModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, const Math::Matrix& matView, const Math::Matrix& matProj, const Collision::Frustum& frustum);
-			void renderSkinnedModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, const Math::Matrix& matView, const Math::Matrix& matProj, const Collision::Frustum& frustum);
+			void renderStaticModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, const Math::Matrix* pMatView, const Math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap);
+			void renderSkinnedModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, const Math::Matrix* pMatView, const Math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap);
 
 		private:
 			struct StaticSubset

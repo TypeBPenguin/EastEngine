@@ -21,9 +21,9 @@ namespace StrID
 	RegisterStringID(g_Instances);
 	RegisterStringID(g_matViewProj);
 	RegisterStringID(g_matView);
+	RegisterStringID(g_matViewCM);
 	RegisterStringID(g_matProj);
 	RegisterStringID(g_matWorld);
-	RegisterStringID(g_matWorldViewProj);
 	RegisterStringID(g_texVTF);
 	RegisterStringID(g_nVTFID);
 	RegisterStringID(g_fFarClip);
@@ -82,6 +82,7 @@ namespace EastEngine
 				eUseInstancing,
 				eUseSkinning,
 				eUseWriteDepth,
+				eUseCubeMap,
 				eUseTessellation,
 
 				MaskCount,
@@ -110,6 +111,7 @@ namespace EastEngine
 					"USE_INSTANCING",
 					"USE_SKINNING",
 					"USE_WRITEDEPTH",
+					"USE_CUBEMAP",
 					"USE_TESSELLATION"
 				};
 
@@ -214,11 +216,13 @@ namespace EastEngine
 
 		enum EmRenderType
 		{
+			eNone = 0,
 			eStatic = 1 << 0,
 			eSkinned = 1 << 1,
 
 			eInstancing = 1 << 3,
 			eWriteDepth = 1 << 4,
+			eCubeMap = 1 << 5,
 		};
 
 		void ClearEffect(IDeviceContext* pDeviceContext, IEffect* pEffect, IEffectTech* pEffectTech)
@@ -245,9 +249,8 @@ namespace EastEngine
 			pEffect->ClearState(pDeviceContext, pEffectTech);
 		}
 
-		template <uint32_t nRenderType>
-		void RenderModel(IDevice* pDevice, IDeviceContext* pDeviceContext,
-			const Math::Matrix& matView, const Math::Matrix& matProj, const Math::Vector3& f3CameraPos,
+		void RenderModel(uint32_t nRenderType, IDevice* pDevice, IDeviceContext* pDeviceContext,
+			const Math::Matrix* pMatViews, const Math::Matrix& matProj, const Math::Vector3& f3CameraPos,
 			const IVertexBuffer* pVertexBuffer, const IIndexBuffer* pIndexBuffer, const IMaterial* pMaterial,
 			uint32_t nIndexCount, uint32_t nStartIndex,
 			const void* pInstanceData, uint32_t nVTFID = 0)
@@ -255,10 +258,10 @@ namespace EastEngine
 			if (pVertexBuffer == nullptr || pIndexBuffer == nullptr)
 				return;
 
-			bool isSkinnedModel = (nRenderType & EmRenderType::eSkinned) != 0;
-
-			bool isInstancing = (nRenderType & EmRenderType::eInstancing) != 0;
-			bool isWriteDepth = (nRenderType & EmRenderType::eWriteDepth) != 0;
+			const bool isSkinnedModel = (nRenderType & EmRenderType::eSkinned) != 0;
+			const bool isInstancing = (nRenderType & EmRenderType::eInstancing) != 0;
+			const bool isWriteDepth = (nRenderType & EmRenderType::eWriteDepth) != 0;
+			const bool isCubeMap = (nRenderType & EmRenderType::eCubeMap) != 0;
 
 			int64_t nMask = 0;
 			if (isInstancing == true)
@@ -274,6 +277,11 @@ namespace EastEngine
 			if (isWriteDepth == true)
 			{
 				SetBitMask64(nMask, EmModelShader::eUseWriteDepth);
+			}
+
+			if (isCubeMap == true)
+			{
+				SetBitMask64(nMask, EmModelShader::eUseCubeMap);
 			}
 
 			bool isEnableTessellation = false;
@@ -341,9 +349,9 @@ namespace EastEngine
 
 					Math::Vector3 f3CameraFrustum[4];
 
-					Math::Vector3 f3CenterFar = f3CameraPos + matView.Forward() * clipFar;
-					Math::Vector3 f3OffsetH = (clipFar / matProj._11) * matView.Right();
-					Math::Vector3 f3OffsetV = (clipFar / matProj._22) * matView.Up();
+					Math::Vector3 f3CenterFar = f3CameraPos + pMatViews->Forward() * clipFar;
+					Math::Vector3 f3OffsetH = (clipFar / matProj._11) * pMatViews->Right();
+					Math::Vector3 f3OffsetV = (clipFar / matProj._22) * pMatViews->Up();
 					f3CameraFrustum[0] = f3CenterFar - f3OffsetV - f3OffsetH;
 					f3CameraFrustum[1] = f3CenterFar + f3OffsetV - f3OffsetH;
 					f3CameraFrustum[2] = f3CenterFar + f3OffsetV + f3OffsetH;
@@ -352,21 +360,21 @@ namespace EastEngine
 					// left/top planes normals
 					Math::Vector3 f3Normal;
 					Math::Vector3 f3Temp = f3CameraFrustum[1] - f3CameraPos;
-					f3Normal = f3Temp.Cross(matView.Up());
+					f3Normal = f3Temp.Cross(pMatViews->Up());
 					f3Normal.Normalize();
 					f4FrustumNormals[0] = Math::Vector4(f3Normal.x, f3Normal.y, f3Normal.z, 0.f);
 
-					f3Normal = f3Temp.Cross(matView.Right());
+					f3Normal = f3Temp.Cross(pMatViews->Right());
 					f3Normal.Normalize();
 					f4FrustumNormals[1] = Math::Vector4(f3Normal.x, f3Normal.y, f3Normal.z, 0.f);
 
 					// right/bottom planes normals
 					f3Temp = f3CameraFrustum[3] - f3CameraPos;
-					f3Normal = matView.Up().Cross(f3Temp);
+					f3Normal = pMatViews->Up().Cross(f3Temp);
 					f3Normal.Normalize();
 					f4FrustumNormals[2] = Math::Vector4(f3Normal.x, f3Normal.y, f3Normal.z, 0.f);
 
-					f3Normal = matView.Right().Cross(f3Temp);
+					f3Normal = pMatViews->Right().Cross(f3Temp);
 					f3Normal.Normalize();
 					f4FrustumNormals[2] = Math::Vector4(f3Normal.x, f3Normal.y, f3Normal.z, 0.f);
 				}
@@ -392,8 +400,15 @@ namespace EastEngine
 				pEffect->SetTexture(StrID::g_texVTF, VTFManager::GetInstance()->GetTexture());
 			}
 
-			pEffect->SetMatrix(StrID::g_matViewProj, matView * matProj);
-			pEffect->SetMatrix(StrID::g_matView, matView);
+			if (isCubeMap == true)
+			{
+				pEffect->SetMatrixArray(StrID::g_matViewCM, pMatViews, 0, 6);
+			}
+			else
+			{
+				pEffect->SetMatrix(StrID::g_matViewProj, *pMatViews * matProj);
+				pEffect->SetMatrix(StrID::g_matView, *pMatViews);
+			}
 			pEffect->SetMatrix(StrID::g_matProj, matProj);
 
 			if (isWriteDepth == false)
@@ -517,7 +532,6 @@ namespace EastEngine
 			{
 				const Math::Matrix& matWorld = *static_cast<const Math::Matrix*>(pInstanceData);
 				pEffect->SetMatrix(StrID::g_matWorld, matWorld);
-				pEffect->SetMatrix(StrID::g_matWorldViewProj, matWorld * matView * matProj);
 
 				if (isSkinnedModel == true)
 				{
@@ -700,14 +714,40 @@ namespace EastEngine
 
 										const Collision::Frustum& frustum = pCascadedShadows->GetFrustum(nCascadeLevel);
 
-										renderStaticModel_Shadow(pDevice, pDeviceContext, pCamera, matView, matProj, frustum);
-										renderSkinnedModel_Shadow(pDevice, pDeviceContext, pCamera, matView, matProj, frustum);
+										renderStaticModel_Shadow(pDevice, pDeviceContext, pCamera, &matView, matProj, frustum, false);
+										renderSkinnedModel_Shadow(pDevice, pDeviceContext, pCamera, &matView, matProj, frustum, false);
 									}
 								}
 							}
 							break;
 							case EmLight::ePoint:
 							{
+								IPointLight* pPointLight = static_cast<IPointLight*>(pLight);
+
+								IShadowCubeMap* pShadowCubeMap = pPointLight->GetShadowCubeMap();
+								if (pShadowCubeMap != nullptr)
+								{
+									pDeviceContext->ClearDepthStencilView(pShadowCubeMap->GetDepthStencil(), D3D11_CLEAR_DEPTH);
+
+									pDeviceContext->SetRenderTargets(nullptr, EmGBuffer::Count, pShadowCubeMap->GetDepthStencil());
+									pDeviceContext->SetRasterizerState(pShadowCubeMap->GetRasterizerShadow());
+
+									pDeviceContext->SetViewport(pShadowCubeMap->GetViewport());
+
+									std::array<Math::Matrix, IShadowCubeMap::DirectionCount> matViews;
+									for (int k = 0; k < IShadowCubeMap::DirectionCount; ++k)
+									{
+										IShadowCubeMap::EmDirection emDirection = static_cast<IShadowCubeMap::EmDirection>(k);
+										matViews[k] = pShadowCubeMap->GetViewMatrix(emDirection);
+									}
+
+									const Math::Matrix& matProj = pShadowCubeMap->GetProjectionMatrix();
+
+									const Collision::Frustum& frustum = pShadowCubeMap->GetFrustum(IShadowCubeMap::EmDirection::eFront);
+
+									renderStaticModel_Shadow(pDevice, pDeviceContext, pCamera, matViews.data(), matProj, frustum, true);
+									renderSkinnedModel_Shadow(pDevice, pDeviceContext, pCamera, matViews.data(), matProj, frustum, true);
+								}
 							}
 							break;
 							case EmLight::eSpot:
@@ -729,8 +769,8 @@ namespace EastEngine
 
 									const Collision::Frustum& frustum = pShadowMap->GetFrustum();
 
-									renderStaticModel_Shadow(pDevice, pDeviceContext, pCamera, matView, matProj, frustum);
-									renderSkinnedModel_Shadow(pDevice, pDeviceContext, pCamera, matView, matProj, frustum);
+									renderStaticModel_Shadow(pDevice, pDeviceContext, pCamera, &matView, matProj, frustum, false);
+									renderSkinnedModel_Shadow(pDevice, pDeviceContext, pCamera, &matView, matProj, frustum, false);
 								}
 							}
 							break;
@@ -804,8 +844,9 @@ namespace EastEngine
 						else
 						{
 							const RenderSubsetStatic& subset = renderSubsetBatch.pSubset->data;
-							RenderModel<EmRenderType::eStatic | EmRenderType::eInstancing>(pDevice, pDeviceContext,
-								pCamera->GetViewMatrix(), pCamera->GetProjMatrix(), pCamera->GetPosition(),
+							RenderModel(EmRenderType::eStatic | EmRenderType::eInstancing,
+								pDevice, pDeviceContext,
+								&pCamera->GetViewMatrix(), pCamera->GetProjMatrix(), pCamera->GetPosition(),
 								subset.pVertexBuffer, subset.pIndexBuffer, subset.pMaterial, subset.nIndexCount, subset.nStartIndex,
 								&renderSubsetBatch.vecInstData);
 						}
@@ -820,8 +861,9 @@ namespace EastEngine
 					{
 						const RenderSubsetStatic& renderSubset = pSubset->data;
 
-						RenderModel<EmRenderType::eStatic>(pDevice, pDeviceContext,
-							pCamera->GetViewMatrix(), pCamera->GetProjMatrix(), pCamera->GetPosition(),
+						RenderModel(EmRenderType::eStatic,
+							pDevice, pDeviceContext,
+							&pCamera->GetViewMatrix(), pCamera->GetProjMatrix(), pCamera->GetPosition(),
 							renderSubset.pVertexBuffer, renderSubset.pIndexBuffer, renderSubset.pMaterial, renderSubset.nIndexCount, renderSubset.nStartIndex,
 							&pSubset->data.matWorld);
 					}
@@ -875,16 +917,18 @@ namespace EastEngine
 						if (renderSubsetBatch.vecInstData.size() == 1)
 						{
 							const RenderSubsetSkinned& subset = renderSubsetBatch.pSubset->data;
-							RenderModel<EmRenderType::eSkinned>(pDevice, pDeviceContext,
-								pCamera->GetViewMatrix(), pCamera->GetProjMatrix(), pCamera->GetPosition(),
+							RenderModel(EmRenderType::eSkinned,
+								pDevice, pDeviceContext,
+								&pCamera->GetViewMatrix(), pCamera->GetProjMatrix(), pCamera->GetPosition(),
 								subset.pVertexBuffer, subset.pIndexBuffer, subset.pMaterial, subset.nIndexCount, subset.nStartIndex,
 								&subset.matWorld, subset.nVTFID);
 						}
 						else
 						{
 							const RenderSubsetSkinned& subset = renderSubsetBatch.pSubset->data;
-							RenderModel<EmRenderType::eSkinned | EmRenderType::eInstancing>(pDevice, pDeviceContext,
-								pCamera->GetViewMatrix(), pCamera->GetProjMatrix(), pCamera->GetPosition(),
+							RenderModel(EmRenderType::eSkinned | EmRenderType::eInstancing,
+								pDevice, pDeviceContext,
+								&pCamera->GetViewMatrix(), pCamera->GetProjMatrix(), pCamera->GetPosition(),
 								subset.pVertexBuffer, subset.pIndexBuffer, subset.pMaterial, subset.nIndexCount, subset.nStartIndex,
 								&renderSubsetBatch.vecInstData);
 						}
@@ -895,7 +939,7 @@ namespace EastEngine
 			}
 		}
 
-		void ModelRenderer::renderStaticModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, const Math::Matrix& matView, const Math::Matrix& matProj, const Collision::Frustum& frustum)
+		void ModelRenderer::renderStaticModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, const Math::Matrix* pMatView, const Math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap)
 		{
 			D3D_PROFILING(StaticModel_ShadowDepth);
 
@@ -907,8 +951,11 @@ namespace EastEngine
 				if (subset.isCulling == true)
 					continue;
 
-				if (frustum.Contains(subset.data.boundingSphere) == Collision::EmContainment::eDisjoint)
-					continue;
+				if (isRenderCubeMap == false)
+				{
+					if (frustum.Contains(subset.data.boundingSphere) == Collision::EmContainment::eDisjoint)
+						continue;
+				}
 
 				auto iter = mapStatic.find(subset.pairKey);
 				if (iter != mapStatic.end())
@@ -931,16 +978,24 @@ namespace EastEngine
 				if (renderSubsetBatch.vecInstData.size() == 1)
 				{
 					const RenderSubsetStatic& subset = renderSubsetBatch.pSubset->data;
-					RenderModel<EmRenderType::eStatic | EmRenderType::eWriteDepth>(pDevice, pDeviceContext,
-						matView, matProj, pCamera->GetPosition(),
+					uint32_t nRenderType = EmRenderType::eStatic | EmRenderType::eWriteDepth;
+					nRenderType |= isRenderCubeMap == true ? EmRenderType::eCubeMap : EmRenderType::eNone;
+
+					RenderModel(nRenderType,
+						pDevice, pDeviceContext,
+						pMatView, matProj, pCamera->GetPosition(),
 						subset.pVertexBuffer, subset.pIndexBuffer, subset.pMaterial, subset.nIndexCount, subset.nStartIndex,
 						&subset.matWorld);
 				}
 				else
 				{
 					const RenderSubsetStatic& subset = renderSubsetBatch.pSubset->data;
-					RenderModel<EmRenderType::eStatic | EmRenderType::eInstancing | EmRenderType::eWriteDepth>(pDevice, pDeviceContext,
-						matView, matProj, pCamera->GetPosition(),
+					uint32_t nRenderType = EmRenderType::eStatic | EmRenderType::eInstancing | EmRenderType::eWriteDepth;
+					nRenderType |= isRenderCubeMap == true ? EmRenderType::eCubeMap : EmRenderType::eNone;
+
+					RenderModel(nRenderType,
+						pDevice, pDeviceContext,
+						pMatView, matProj, pCamera->GetPosition(),
 						subset.pVertexBuffer, subset.pIndexBuffer, subset.pMaterial, subset.nIndexCount, subset.nStartIndex,
 						&renderSubsetBatch.vecInstData);
 				}
@@ -949,7 +1004,7 @@ namespace EastEngine
 			mapStatic.clear();
 		}
 
-		void ModelRenderer::renderSkinnedModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, const Math::Matrix& matView, const Math::Matrix& matProj, const Collision::Frustum& frustum)
+		void ModelRenderer::renderSkinnedModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, const Math::Matrix* pMatView, const Math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap)
 		{
 			D3D_PROFILING(SkinnedModel_ShadowDepth);
 
@@ -963,10 +1018,13 @@ namespace EastEngine
 					if (subset.isCulling == true)
 						continue;
 
-					//if (renderSubset.pBoundingSphere != nullptr)
+					//if (isRenderCubeMap == false)
 					//{
-					//	if (pCamera->IsFrustumContains(subset.boundingSphere) == Collision::EmContainment::eDisjoint)
-					//		continue;
+					//	if (renderSubset.pBoundingSphere != nullptr)
+					//	{
+					//		if (pCamera->IsFrustumContains(subset.boundingSphere) == Collision::EmContainment::eDisjoint)
+					//			continue;
+					//	}
 					//}
 
 					auto iter = mapSkinned.find(subset.pairKey);
@@ -991,16 +1049,24 @@ namespace EastEngine
 					if (renderSubsetBatch.vecInstData.size() == 1)
 					{
 						const RenderSubsetSkinned& subset = renderSubsetBatch.pSubset->data;
-						RenderModel<EmRenderType::eSkinned | EmRenderType::eWriteDepth>(pDevice, pDeviceContext,
-							matView, matProj, pCamera->GetPosition(),
+						uint32_t nRenderType = EmRenderType::eSkinned | EmRenderType::eWriteDepth;
+						nRenderType |= isRenderCubeMap == true ? EmRenderType::eCubeMap : EmRenderType::eNone;
+
+						RenderModel(EmRenderType::eSkinned | EmRenderType::eWriteDepth,
+							pDevice, pDeviceContext,
+							pMatView, matProj, pCamera->GetPosition(),
 							subset.pVertexBuffer, subset.pIndexBuffer, subset.pMaterial, subset.nIndexCount, subset.nStartIndex,
 							&subset.matWorld, subset.nVTFID);
 					}
 					else
 					{
 						const RenderSubsetSkinned& subset = renderSubsetBatch.pSubset->data;
-						RenderModel<EmRenderType::eSkinned | EmRenderType::eInstancing | EmRenderType::eWriteDepth>(pDevice, pDeviceContext,
-							matView, matProj, pCamera->GetPosition(),
+						uint32_t nRenderType = EmRenderType::eSkinned | EmRenderType::eInstancing | EmRenderType::eWriteDepth;
+						nRenderType |= isRenderCubeMap == true ? EmRenderType::eCubeMap : EmRenderType::eNone;
+
+						RenderModel(nRenderType,
+							pDevice, pDeviceContext,
+							pMatView, matProj, pCamera->GetPosition(),
 							subset.pVertexBuffer, subset.pIndexBuffer, subset.pMaterial, subset.nIndexCount, subset.nStartIndex,
 							&renderSubsetBatch.vecInstData);
 					}

@@ -347,9 +347,6 @@ namespace EastEngine
 		
 		bool TextureManager::LoadFromFIle(const std::shared_ptr<ITexture>& pTexture, const String::StringID& strName, const char* strFilePath)
 		{
-			static std::mutex s_mutex;
-			std::unique_lock<std::mutex> lock(s_mutex);
-
 			HRESULT hr;
 			DirectX::ScratchImage image;
 

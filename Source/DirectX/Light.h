@@ -15,6 +15,7 @@ namespace EastEngine
 		class IPointLight;
 		class ISpotLight;
 		class IShadowMap;
+		class IShadowCubeMap;
 		class ICascadedShadows;
 
 		namespace EmLight
@@ -96,6 +97,8 @@ namespace EastEngine
 			virtual EmLight::Type GetType() const override { return EmLight::Type::ePoint; }
 
 		public:
+			virtual IShadowCubeMap* GetShadowCubeMap() const = 0;
+
 			virtual const Math::Vector3& GetPosition() const = 0;
 			virtual void SetPosition(const Math::Vector3& vPos) = 0;
 		};
@@ -177,12 +180,12 @@ namespace EastEngine
 		public:
 			enum EmDirection
 			{
-				eFront = 0,
-				eBack,
+				eRight = 0,
+				eLeft,
 				eUp,
 				eDown,
-				eLeft,
-				eRight,
+				eFront,
+				eBack,
 
 				DirectionCount,
 			};
@@ -193,9 +196,11 @@ namespace EastEngine
 
 		public:
 			virtual const Math::Matrix& GetViewMatrix(EmDirection emDirection) const = 0;
-			virtual const Math::Matrix& GetProjectionMatrix(EmDirection emDirection) const = 0;
+			virtual const Math::Matrix& GetProjectionMatrix() const = 0;
 			virtual const Math::Viewport& GetViewport() const = 0;
 			virtual const Collision::Frustum& GetFrustum(EmDirection emDirection) const = 0;
+
+			virtual float GetFarPlane() const = 0;
 		};
 
 		struct ShadowConfig

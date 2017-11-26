@@ -15,7 +15,7 @@ namespace EastEngine
 			ShadowCubeMap();
 			virtual ~ShadowCubeMap();
 
-			bool Init(ISpotLight* pLight, const ShadowConfig* pShadowConfig);
+			bool Init(IPointLight* pLight, const ShadowConfig* pShadowConfig);
 			void Release();
 
 		public:
@@ -41,30 +41,33 @@ namespace EastEngine
 			virtual IRasterizerState* GetRasterizerShadow() const override { return m_pRasterizerShadow; }
 
 		public:
-			virtual const Math::Matrix& GetViewMatrix(EmDirection emDirection) const override;
-			virtual const Math::Matrix& GetProjectionMatrix(EmDirection emDirection) const override;
-			virtual const Math::Viewport& GetViewport() const override;
-			virtual const Collision::Frustum& GetFrustum(EmDirection emDirection) const override;
+			virtual const Math::Matrix& GetViewMatrix(EmDirection emDirection) const override { return m_matViews[emDirection]; }
+			virtual const Math::Matrix& GetProjectionMatrix() const override { return m_matProjection; }
+			virtual const Math::Viewport& GetViewport() const override { return m_viewport; }
+			virtual const Collision::Frustum& GetFrustum(EmDirection emDirection) const override { return m_frustums[emDirection]; }
+
+			virtual float GetFarPlane() const override { return m_fFarPlane; }
 
 		private:
 			void RefreshShadowResource();
 
 		private:
 			std::array<Math::Matrix, DirectionCount> m_matViews;
-			std::array<Math::Matrix, DirectionCount> m_matProjections;
+			Math::Matrix m_matProjection;
 
 			Math::Viewport m_viewport;
 
-			std::array<Collision::Frustum, DirectionCount> m_frustum;
+			std::array<Collision::Frustum, DirectionCount> m_frustums;
 
 			int m_nPCFBlurSize;
 			float m_fDepthBias;
 			float m_fCalcDepthBias;
+			float m_fFarPlane;
 
 			ShadowConfig m_copyConfig;
 			const ShadowConfig* m_pShadowConfig;
 
-			ISpotLight* m_pLight;
+			IPointLight* m_pLight;
 
 			IDepthStencil* m_pShadowMap;
 

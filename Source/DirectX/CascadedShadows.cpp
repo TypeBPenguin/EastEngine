@@ -238,7 +238,7 @@ namespace EastEngine
 				DepthStencilDesc depthStencilDesc(format,
 					m_copyConfig.nBufferSize * m_copyConfig.nLevel,
 					m_copyConfig.nBufferSize);
-				depthStencilDesc.SetDefaultDesc();
+				depthStencilDesc.Build();
 
 				m_pCascadedShadowMap = IDepthStencil::Create(depthStencilDesc);
 				if (m_pCascadedShadowMap == nullptr)

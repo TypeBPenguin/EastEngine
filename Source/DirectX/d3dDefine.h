@@ -234,7 +234,7 @@ namespace EastEngine
 				uint32_t miscFlags = 0);
 			TextureDesc1D(const D3D11_TEXTURE1D_DESC& desc);
 
-			virtual void SetDefaultDesc() { SetSRVDesc(); }
+			virtual void Build() { SetSRVDesc(); }
 
 			void SetSRVDesc(uint32_t nMostDetailedMip = 0, // FirstElement for BUFFER
 				uint32_t nFirstArraySlice = 0, // First2DArrayFace for TEXTURECUBEARRAY
@@ -348,9 +348,9 @@ namespace EastEngine
 
 			RenderTargetKey GetKey() const;
 
-			virtual void SetDefaultDesc()
+			virtual void Build()
 			{
-				TextureDesc1D::SetDefaultDesc();
+				TextureDesc1D::Build();
 
 				init();
 			}
@@ -472,7 +472,7 @@ namespace EastEngine
 				uint32_t miscFlags = 0);
 			DepthStencilDesc(const CD3D11_TEXTURE2D_DESC& desc);
 
-			virtual void SetDefaultDesc()
+			virtual void Build()
 			{
 				TextureDesc2D::Build();
 

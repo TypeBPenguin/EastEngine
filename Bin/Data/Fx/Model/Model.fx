@@ -126,9 +126,14 @@ void ComputeSkinned(in float4 position
 
 cbuffer cbMatrix
 {
+	float4x4 g_matProj;
+
+#ifdef USE_CUBEMAP
+	float4x4 g_matViewCM[6];
+#else
 	float4x4 g_matViewProj;
 	float4x4 g_matView;
-	float4x4 g_matProj;
+#endif
 
 #ifndef USE_INSTANCING
 	float4x4 g_matWorld;
@@ -217,6 +222,19 @@ Texture2D g_texClearcoat;
 
 #ifdef USE_TEX_CLEARCOATGLOSS
 Texture2D g_texClearcoatGloss;
+#endif
+
+#ifdef USE_CUBEMAP
+struct GS_CUBEMAP_INPUT
+{
+	float4 pos		: SV_Position;
+};
+
+struct PS_CUBEMAP_INPUT
+{
+	float4 pos : SV_Position;     // Projection coord
+	uint RTIndex : SV_RenderTargetArrayIndex;
+};
 #endif
 
 struct PS_INPUT
@@ -472,7 +490,12 @@ PS_INPUT DS(HS_ConstantOutput input,
 
 #else
 
-PS_INPUT VS(in float4 inPos : POSITION
+#ifndef USE_CUBEMAP
+PS_INPUT VS(
+#else
+GS_CUBEMAP_INPUT VS(
+#endif
+	in float4 inPos : POSITION
 	, in float2 inTex : TEXCOORD
 	, in float3 inNormal : NORMAL
 
@@ -486,7 +509,11 @@ PS_INPUT VS(in float4 inPos : POSITION
 #endif
 )
 {
+#ifndef USE_CUBEMAP
 	PS_INPUT output = (PS_INPUT)0;
+#else
+	GS_CUBEMAP_INPUT output = (GS_CUBEMAP_INPUT)0;
+#endif
 	inPos.w = 1.f;
 
 #ifdef USE_WRITEDEPTH
@@ -549,7 +576,9 @@ PS_INPUT VS(in float4 inPos : POSITION
 #endif
 
 	// 정점 위치
+#ifndef USE_CUBEMAP
 	output.pos = mul(output.pos, g_matViewProj);
+#endif
 
 #ifndef USE_WRITEDEPTH
 	// UV
@@ -558,6 +587,7 @@ PS_INPUT VS(in float4 inPos : POSITION
 	output.tangent = CalcTangent(output.normal);
 	output.binormal = CalcBinormal(output.normal, output.tangent);
 #endif
+
 	return output;
 }
 
@@ -653,6 +683,26 @@ PS_OUTPUT D_PS(PS_INPUT input)
 
 	return output;
 }
+#else
+	#ifdef USE_CUBEMAP
+	[maxvertexcount(18)]
+	void GS_CubeMap(triangle GS_CUBEMAP_INPUT input[3], inout TriangleStream<PS_CUBEMAP_INPUT> CubeMapStream)
+	{
+		for (int f = 0; f < 6; ++f)
+		{
+			// Compute screen coordinates
+			PS_CUBEMAP_INPUT output;
+			output.RTIndex = f;
+			for (int v = 0; v < 3; v++)
+			{
+				output.pos = mul(input[v].pos, g_matViewCM[f]);
+				output.pos = mul(output.pos, g_matProj);
+				CubeMapStream.Append(output);
+			}
+			CubeMapStream.RestartStrip();
+		}
+	}
+	#endif
 #endif
 
 #ifdef USE_TESSELLATION
@@ -691,7 +741,12 @@ PS_OUTPUT D_PS(PS_INPUT input)
 			SetVertexShader(CompileShader(vs_5_0, VS()));
 			SetHullShader(NULL);
 			SetDomainShader(NULL);
+
+	#ifdef USE_CUBEMAP
+			SetGeometryShader(CompileShader(gs_5_0, GS_CubeMap()));
+	#else
 			SetGeometryShader(NULL);
+	#endif
 
 	#ifdef USE_WRITEDEPTH
 			SetPixelShader(NULL);

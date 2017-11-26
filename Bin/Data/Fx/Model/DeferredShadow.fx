@@ -48,25 +48,16 @@ float2 PS_ShadowMap(PS_INPUT input) : SV_Target0
 	float3 posW = CalcWorldSpacePosFromDepth(depth, input.tex, g_matInvView, g_matInvProj);
 
 	return CalculateShadowMap(posW);
-	//float fMask = 0.f;
-	//float fShadow = CalculateShadowMap(posW);
-	////if (fShadow > 0.001f)
-	//{
-	//	fMask = 0.01f;
-	//}
-	//
-	//return float2(fShadow, fMask);
 }
 
-//float PS_ShadowCubeMap(PS_INPUT input) : SV_Target0
-//{
-//	float depth = g_texDepth.Sample(g_samPoint, input.tex);
-//
-//	float4 posWV = 0.f;
-//	float3 posW = CalcWorldSpacePosFromDepth(depth, input.tex, g_matInvView, g_matInvProj, posWV);
-//
-//	return CalculateCascadedShadow(posW, posWV.xyz);
-//}
+float2 PS_ShadowCubeMap(PS_INPUT input) : SV_Target0
+{
+	float depth = g_texDepth.Sample(g_samPoint, input.tex);
+
+	float3 posW = CalcWorldSpacePosFromDepth(depth, input.tex, g_matInvView, g_matInvProj);
+
+	return CalculateShadowCubeMap(posW);
+}
 
 technique11 Deferred_CascadedShadow
 {
@@ -86,13 +77,13 @@ technique11 Deferred_ShadowMap
 	}
 }
 
-//technique11 Deferred_ShadowCubeMap
-//{
-//	pass Pass_0
-//	{
-//		SetVertexShader(CompileShader(vs_5_0, VS()));
-//		SetPixelShader(CompileShader(ps_5_0, PS_ShadowCubeMap()));
-//	}
-//}
+technique11 Deferred_ShadowCubeMap
+{
+	pass Pass_0
+	{
+		SetVertexShader(CompileShader(vs_5_0, VS()));
+		SetPixelShader(CompileShader(ps_5_0, PS_ShadowCubeMap()));
+	}
+}
 
 #endif

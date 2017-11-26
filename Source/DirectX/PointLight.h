@@ -38,6 +38,8 @@ namespace EastEngine
 			virtual void SetEnableShadow(bool isEnableShadow) override { m_isEnableShadow = isEnableShadow; }
 
 		public:
+			virtual IShadowCubeMap* GetShadowCubeMap() const { return m_pShadowCubeMap; }
+
 			virtual const Math::Vector3& GetPosition() const override { return m_f3Pos; }
 			virtual void SetPosition(const Math::Vector3& vPos) override { m_f3Pos = vPos; }
 
@@ -52,6 +54,9 @@ namespace EastEngine
 			float m_fReflectionIntensity;
 
 			Math::Color m_color;
+
+			ShadowConfig m_shadowConfig;
+			IShadowCubeMap* m_pShadowCubeMap;
 		};
 	}
 }
