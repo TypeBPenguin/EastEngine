@@ -1,5 +1,6 @@
 #pragma once
 
+#include "GameObject.h"
 #include "TerrainCells.h"
 
 #define NEW_TERRAIN
@@ -125,12 +126,16 @@ namespace EastEngine
 
 	namespace GameObject
 	{
-		class Terrain
+		class Terrain : public IGameObject
 		{
 		public:
 			Terrain();
-			~Terrain();
+			virtual ~Terrain();
 
+		public:
+			virtual EmObjectType GetType() const override { return EmObjectType::eTerrain; }
+
+		public:
 			void Init();
 
 			void Update(float fElapsedTime);

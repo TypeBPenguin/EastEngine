@@ -21,14 +21,8 @@
     <Filter Include="Component\Physics">
       <UniqueIdentifier>{b60f4e54-122f-44eb-9360-a3221b8f579b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sky">
-      <UniqueIdentifier>{4a491453-6e76-4cf9-b641-dda964d076f1}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Component\Camera">
       <UniqueIdentifier>{b5003bef-f21d-46b7-9010-446bede2b72e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Actor">
-      <UniqueIdentifier>{8176d9a3-b32e-4cee-81f9-5a6a2194e28c}</UniqueIdentifier>
     </Filter>
     <Filter Include="BehaviorTree">
       <UniqueIdentifier>{054468bd-d773-4a88-bf96-4f06c5f91254}</UniqueIdentifier>
@@ -42,24 +36,36 @@
     <Filter Include="Physics\RagDoll">
       <UniqueIdentifier>{87e1c62f-23fc-4904-b1ca-572f5c06db0c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Terrain">
-      <UniqueIdentifier>{1f8a3e54-e40c-418d-8156-b316b20f869a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Terrain\Cells">
-      <UniqueIdentifier>{27328c21-c672-4980-8e49-97ec78cc0d7e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="리소스 파일">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
-    <Filter Include="Cloud">
-      <UniqueIdentifier>{a262fc7a-33ec-420e-bd10-248b0efa51f9}</UniqueIdentifier>
     </Filter>
     <Filter Include="Component\Light">
       <UniqueIdentifier>{56e46121-76d0-445f-ab58-ff9932f4ad87}</UniqueIdentifier>
     </Filter>
     <Filter Include="Component\ActionState">
       <UniqueIdentifier>{4a5a7229-1721-4fc2-a44d-3116a4e0c4e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GameObject">
+      <UniqueIdentifier>{b353f6a5-a395-4189-9de4-36ad806d7bb4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GameObject\Actor">
+      <UniqueIdentifier>{8176d9a3-b32e-4cee-81f9-5a6a2194e28c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GameObject\Terrain">
+      <UniqueIdentifier>{1f8a3e54-e40c-418d-8156-b316b20f869a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GameObject\Terrain\Cells">
+      <UniqueIdentifier>{27328c21-c672-4980-8e49-97ec78cc0d7e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GameObject\Sky">
+      <UniqueIdentifier>{4a491453-6e76-4cf9-b641-dda964d076f1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GameObject\Cloud">
+      <UniqueIdentifier>{a262fc7a-33ec-420e-bd10-248b0efa51f9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GameObject\Interface">
+      <UniqueIdentifier>{1f732d0a-871b-44b8-b275-3bade5307b15}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -82,19 +88,16 @@
       <Filter>Sector</Filter>
     </ClInclude>
     <ClInclude Include="Actor.h">
-      <Filter>Actor</Filter>
+      <Filter>GameObject\Actor</Filter>
     </ClInclude>
     <ClInclude Include="ComponentPhysics.h">
       <Filter>Component\Physics</Filter>
     </ClInclude>
     <ClInclude Include="Terrain.h">
-      <Filter>Terrain</Filter>
-    </ClInclude>
-    <ClInclude Include="SkyDome.h">
-      <Filter>Sky</Filter>
+      <Filter>GameObject\Terrain</Filter>
     </ClInclude>
     <ClInclude Include="TerrainCells.h">
-      <Filter>Terrain\Cells</Filter>
+      <Filter>GameObject\Terrain\Cells</Filter>
     </ClInclude>
     <ClInclude Include="ComponentCamera.h">
       <Filter>Component\Camera</Filter>
@@ -115,13 +118,16 @@
       <Filter>Component\Timer</Filter>
     </ClInclude>
     <ClInclude Include="ActorManager.h">
-      <Filter>Actor</Filter>
+      <Filter>GameObject\Actor</Filter>
     </ClInclude>
     <ClInclude Include="ComponentLight.h">
       <Filter>Component\Light</Filter>
     </ClInclude>
     <ClInclude Include="ActorInterface.h">
-      <Filter>Actor</Filter>
+      <Filter>GameObject\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObject.h">
+      <Filter>GameObject\Interface</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -138,19 +144,16 @@
       <Filter>Sector</Filter>
     </ClCompile>
     <ClCompile Include="Actor.cpp">
-      <Filter>Actor</Filter>
+      <Filter>GameObject\Actor</Filter>
     </ClCompile>
     <ClCompile Include="ComponentPhysics.cpp">
       <Filter>Component\Physics</Filter>
     </ClCompile>
     <ClCompile Include="Terrain.cpp">
-      <Filter>Terrain</Filter>
-    </ClCompile>
-    <ClCompile Include="SkyDome.cpp">
-      <Filter>Sky</Filter>
+      <Filter>GameObject\Terrain</Filter>
     </ClCompile>
     <ClCompile Include="TerrainCells.cpp">
-      <Filter>Terrain\Cells</Filter>
+      <Filter>GameObject\Terrain\Cells</Filter>
     </ClCompile>
     <ClCompile Include="ComponentCamera.cpp">
       <Filter>Component\Camera</Filter>
@@ -171,13 +174,16 @@
       <Filter>Component\Timer</Filter>
     </ClCompile>
     <ClCompile Include="ActorManager.cpp">
-      <Filter>Actor</Filter>
+      <Filter>GameObject\Actor</Filter>
     </ClCompile>
     <ClCompile Include="ComponentLight.cpp">
       <Filter>Component\Light</Filter>
     </ClCompile>
     <ClCompile Include="ActorInterface.cpp">
-      <Filter>Actor</Filter>
+      <Filter>GameObject\Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObject.cpp">
+      <Filter>GameObject\Interface</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -106,6 +106,7 @@
     <ClInclude Include="ComponentTimer.h" />
     <ClInclude Include="ComponentInterface.h" />
     <ClInclude Include="ActorManager.h" />
+    <ClInclude Include="GameObject.h" />
     <ClInclude Include="RagDoll.h" />
     <ClInclude Include="Sector.h" />
     <ClInclude Include="SectorMgr.h" />
@@ -126,6 +127,7 @@
     <ClCompile Include="ComponentTimer.cpp" />
     <ClCompile Include="ComponentInterface.cpp" />
     <ClCompile Include="ActorManager.cpp" />
+    <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="RagDoll.cpp" />
     <ClCompile Include="Sector.cpp" />
     <ClCompile Include="SectorMgr.cpp" />

@@ -1,16 +1,20 @@
 #pragma once
 
+#include "GameObject.h"
 #include "ComponentInterface.h"
 
 namespace EastEngine
 {
 	namespace GameObject
 	{
-		class IActor
+		class IActor : public IGameObject
 		{
 		protected:
 			IActor();
 			virtual ~IActor() = 0;
+
+		public:
+			virtual EmObjectType GetType() const override { return EmObjectType::eActor; }
 
 		public:
 			static IActor* CreateByFile(const char* strFilePath);
