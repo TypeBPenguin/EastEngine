@@ -268,9 +268,6 @@ struct HS_INPUT
 #ifndef USE_WRITEDEPTH
 	float2 tex		: TEXCOORD0;	// UV
 	float3 normal	: NORMAL;		// ³ë¸»
-
-	float3 tangent	: TANGENT;		// ÅºÁ¨Æ®
-	float3 binormal	: BINORMAL;
 #endif
 
 #ifdef USE_INSTANCING
@@ -336,14 +333,8 @@ HS_INPUT VS(in float4 inPos : POSITION
 #endif
 
 #ifndef USE_WRITEDEPTH
-	// Á¤Á¡ À§Ä¡
-	//output.pos = mul(output.pos, g_matViewProj);
-
 	// UV
 	output.tex = inTex;
-
-	output.tangent = CalcTangent(output.normal);
-	output.binormal = CalcBinormal(output.normal, output.tangent);
 #endif
 
 	return output;
@@ -460,20 +451,13 @@ PS_INPUT DS(HS_ConstantOutput input,
 	float3 normal = inputPatch[0].normal * coordinates.z + inputPatch[1].normal * coordinates.x + inputPatch[2].normal * coordinates.y;
 	normal = normalize(normal);
 
-	float3 tangent = inputPatch[0].tangent * coordinates.z + inputPatch[1].tangent * coordinates.x + inputPatch[2].tangent * coordinates.y;
-	tangent = normalize(tangent);
-
-	float3 binormal = inputPatch[0].binormal * coordinates.z + inputPatch[1].binormal * coordinates.x + inputPatch[2].binormal * coordinates.y;
-	binormal = normalize(binormal);
-
 	#ifdef USE_TEX_DISPLACEMENT
 		float offset = g_texDisplaceMap.SampleLevel(g_samplerState, texCoord, 0).x;
 		position += normal * offset;
 	#endif
 
 	#ifdef USE_INSTANCING
-		float4x4 matWorld = ComputeWorldMatrix(g_Instances[InstanceID]);
-		inputPatch[0].instanceID;
+		float4x4 matWorld = ComputeWorldMatrix(g_Instances[inputPatch[0].instanceID]);
 	#else
 		float4x4 matWorld = g_matWorld;
 	#endif
@@ -481,9 +465,10 @@ PS_INPUT DS(HS_ConstantOutput input,
 	float4 pos = mul(float4(position, 1.f), matWorld);
 	output.pos = mul(pos, g_matViewProj);
 	output.tex = texCoord;
-	output.normal = normal;
-	output.tangent = tangent;
-	output.binormal = binormal;
+
+	output.normal = normalize(mul(normal, (float3x3)matWorld));
+	output.tangent = CalcTangent(output.normal);
+	output.binormal = CalcBinormal(output.normal, output.tangent);
 
 	return output;
 }
