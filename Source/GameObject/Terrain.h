@@ -80,43 +80,60 @@ namespace EastEngine
 	}
 #else
 
-#define terrain_gridpoints					512
-#define terrain_numpatches_1d				64
-#define terrain_geometry_scale				1.0f
-#define terrain_maxheight					30.0f 
-#define terrain_minheight					-30.0f 
-#define terrain_fractalfactor				0.68f;
-#define terrain_fractalinitialvalue			100.0f
-#define terrain_smoothfactor1				0.99f
-#define terrain_smoothfactor2				0.10f
-#define terrain_rockfactor					0.95f
-#define terrain_smoothsteps					40
+	struct TerrainProperty
+	{
+		int nGridPoints = 512;
+		int nPatches = 64;
 
-#define terrain_height_underwater_start		-100.0f
-#define terrain_height_underwater_end		-8.0f
-#define terrain_height_sand_start			-30.0f
-#define terrain_height_sand_end				1.7f
-#define terrain_height_grass_start			1.7f
-#define terrain_height_grass_end			30.0f
-#define terrain_height_rocks_start			-2.0f
-#define terrain_height_trees_start			4.0f
-#define terrain_height_trees_end			30.0f
-#define terrain_slope_grass_start			0.96f
-#define terrain_slope_rocks_start			0.85f
+		float fGeometryScale = 1.f;
+		float fMaxHeight = 30.f;
+		float fMinHeight = -30.f;
+		float fFractalFactor = 0.68f;
+		float fFractalInitialValue = 100.f;
+		float fSmoothFactor1 = 0.99f;
+		float fSmoothFactor2 = 0.1f;
+		float fRockfactor = 0.95f;
+		int nSmoothSteps = 40;
 
-#define terrain_far_range terrain_gridpoints*terrain_geometry_scale
+		float fHeightUnderWaterStart = -100.f;
+		float fHeightUnderWaterEnd = -8.f;
 
-#define shadowmap_resource_buffer_size_xy				4096
-#define water_normalmap_resource_buffer_size_xy			2048
-#define terrain_layerdef_map_texture_size				1024
-#define terrain_depth_shadow_map_texture_size			512
+		float fHeightSandStart = -30.f;
+		float fHeightSandEnd = 1.7f;
 
-#define sky_gridpoints						10
-#define sky_texture_angle					0.425f
+		float fHeightGrassStart = 1.7f;
+		float fHeightGrassEnd = 30.f;
 
-#define main_buffer_size_multiplier			1.1f
-#define reflection_buffer_size_multiplier   1.1f
-#define refraction_buffer_size_multiplier   1.1f
+		float fHeightRocksStart = -2.f;
+
+		float fHeightTreesStart = 4.f;
+		float fHeightTressEnd = 30.f;
+
+		float fSlopeGrassStart = 0.96f;
+		float fSlopeRocksStart = 0.85f;
+
+		int nLayerDefMapSize = 1024;
+		int nDepthShadowMapSize = 512;
+
+		int nSkyGridPoints = 10;
+		float fSkyTextureAngle = 0.425f;
+
+		float fHalfSpaceCullHeight = -0.6f;
+		bool isHalfSpaceCullSign = true;
+
+		std::string strTexRockBumpFile;
+		std::string strTexRockMicroFile;
+		std::string strTexRockDiffuseFile;
+
+		std::string strTexSandBumpFile;
+		std::string strTexSandMicroFile;
+		std::string strTexSandDiffuseFile;
+
+		std::string strTexGrassDiffuse;
+		std::string strTexSlopeDiffuse;
+		std::string strTexWaterBump;
+		std::string strTexSky;
+	};
 
 	namespace Graphics
 	{
@@ -136,13 +153,15 @@ namespace EastEngine
 			virtual EmObjectType GetType() const override { return EmObjectType::eTerrain; }
 
 		public:
-			void Init();
+			void Init(TerrainProperty* pTerrainProperty);
 
 			void Update(float fElapsedTime);
 
 		private:
-			float m_height[terrain_gridpoints + 1][terrain_gridpoints + 1];
-			Math::Vector3 m_normal[terrain_gridpoints + 1][terrain_gridpoints + 1];
+			TerrainProperty m_property;
+
+			std::vector<std::vector<float>> m_vecHeights;
+			std::vector<std::vector<Math::Vector3>> m_vecNormals;
 
 			std::shared_ptr<Graphics::ITexture> m_pTexRockBump;
 			std::shared_ptr<Graphics::ITexture> m_pTexRockMicroBump;

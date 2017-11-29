@@ -562,15 +562,15 @@ namespace EastEngine
 					int nIdx = (m_nTerrainWidth * (m_nTerrainHeight - 1 - j)) + i;
 
 					m_vecHeightMap[nIdx].color.w = 1.f;
-					m_vecHeightMap[nIdx].color.z = static_cast<float>(vecBitmapImage[k] / 255.0f);
-					m_vecHeightMap[nIdx].color.y = static_cast<float>(vecBitmapImage[k + 1] / 255.0f);
-					m_vecHeightMap[nIdx].color.x = static_cast<float>(vecBitmapImage[k + 2] / 255.0f);
+					m_vecHeightMap[nIdx].color.z = static_cast<float>(vecBitmapImage[k] / 255.f);
+					m_vecHeightMap[nIdx].color.y = static_cast<float>(vecBitmapImage[k + 1] / 255.f);
+					m_vecHeightMap[nIdx].color.x = static_cast<float>(vecBitmapImage[k + 2] / 255.f);
 
 					k += 3;
 				}
 
 				// Compensate for extra byte at end of each line in non-divide by 2 bitmaps (eg. 257x257).
-				k++;
+				++k;
 			}
 
 			return true;
@@ -726,7 +726,7 @@ namespace EastEngine
 					{
 						nIdx = ((j - 1) * (nWidth - 1)) + (i - 1);
 
-						sum += vecm_normal[nIdx];
+						sum += vecm_vecNormals[nIdx];
 					}
 
 					// Bottom right face.
@@ -734,7 +734,7 @@ namespace EastEngine
 					{
 						nIdx = ((j - 1) * (nWidth - 1)) + i;
 
-						sum += vecm_normal[nIdx];
+						sum += vecm_vecNormals[nIdx];
 					}
 
 					// Upper left face.
@@ -742,7 +742,7 @@ namespace EastEngine
 					{
 						nIdx = (j * (nWidth - 1)) + (i - 1);
 
-						sum += vecm_normal[nIdx];
+						sum += vecm_vecNormals[nIdx];
 					}
 
 					// Upper right face.
@@ -750,7 +750,7 @@ namespace EastEngine
 					{
 						nIdx = (j * (nWidth - 1)) + i;
 
-						sum += vecm_normal[nIdx];
+						sum += vecm_vecNormals[nIdx];
 					}
 
 					// Calculate the length of this normal.
@@ -989,8 +989,8 @@ namespace EastEngine
 
 		//bool Terrain::checkHeightOfTriangle(float x, float z, float& height, Vector3& v0, Vector3& v1, Vector3& v2)
 		//{
-		//	//float vStartVector[3], vDrectionVector[3], vEdge1[3], vEdge2[3], m_normal[3];
-		//	//float Q[3], e1[3], e2[3], e3[3], edgem_normal[3], temp[3];
+		//	//float vStartVector[3], vDrectionVector[3], vEdge1[3], vEdge2[3], m_vecNormals[3];
+		//	//float Q[3], e1[3], e2[3], e3[3], edgem_vecNormals[3], temp[3];
 		//	//float magnitude, D, denominator, numerator, t, determinant;
 
 		//	// Starting position of the ray that is being cast.
@@ -1024,7 +1024,7 @@ namespace EastEngine
 		//		return false;
 
 		//	// Get the numerator of the equation.
-		//	float fNumerator = -1.0f * (((vNormal.x * vvStartVector.x) + (vNormal.y * vvStartVector.y) + (vNormal.z * vvStartVector.z)) + D);
+		//	float fNumerator = -1.f * (((vNormal.x * vvStartVector.x) + (vNormal.y * vvStartVector.y) + (vNormal.z * vvStartVector.z)) + D);
 
 		//	// Calculate where we intersect the triangle.
 		//	float t = fNumerator / fDenominator;
@@ -1112,55 +1112,65 @@ namespace EastEngine
 			SafeDelete(m_pSky);
 		}
 
-		void Terrain::Init()
+		void Terrain::Init(TerrainProperty* pTerrainProperty)
 		{
-			auto gp_wrap = [](int a) -> int
+			if (pTerrainProperty != nullptr)
 			{
-				if (a < 0) return (a + terrain_gridpoints);
-				if (a >= terrain_gridpoints) return (a - terrain_gridpoints);
+				m_property = *pTerrainProperty;
+			}
+
+			auto gp_wrap = [&](int a) -> int
+			{
+				if (a < 0)
+					return (a + m_property.nGridPoints);
+
+				if (a >= m_property.nGridPoints)
+					return (a - m_property.nGridPoints);
+
 				return a;
 			};
 
-			int i, j, k, l;
+			/*int i, j, k, l;
 			float x, z;
 			int ix, iz;
 			float* backterrain = nullptr;
 			Math::Vector3 vec1, vec2, vec3;
-			int currentstep = terrain_gridpoints;
+			int currentstep = m_property.nGridPoints;
 			float mv, rm;
 			float offset = 0, yscale = 0, maxheight = 0, minheight = 0;
 
 			float* height_linear_array = nullptr;
-			D3D11_SUBRESOURCE_DATA subresource_data;
+			D3D11_SUBRESOURCE_DATA subresource_data;*/
 
-			backterrain = new float[(terrain_gridpoints + 1)*(terrain_gridpoints + 1)];
-			rm = terrain_fractalinitialvalue;
-			backterrain[0] = 0;
-			backterrain[0 + terrain_gridpoints*terrain_gridpoints] = 0;
-			backterrain[terrain_gridpoints] = 0;
-			backterrain[terrain_gridpoints + terrain_gridpoints*terrain_gridpoints] = 0;
-			currentstep = terrain_gridpoints;
+			int nGridPointSize = m_property.nGridPoints + 1;
+			m_vecHeights.resize(nGridPointSize * nGridPointSize);
+			m_vecNormals.resize(nGridPointSize * nGridPointSize);
+
+			std::vector<float> backterrain(nGridPointSize * nGridPointSize);
+			float rm = m_property.fFractalInitialValue;
+			backterrain[0] = 0.f;
+			backterrain[0 + m_property.nGridPoints * m_property.nGridPoints] = 0;
+			backterrain[m_property.nGridPoints] = 0.f;
+			backterrain[m_property.nGridPoints + m_property.nGridPoints * m_property.nGridPoints] = 0.f;
+			int currentstep = m_property.nGridPoints;
 
 			// generating fractal terrain using square-diamond method
 			while (currentstep > 1)
 			{
 				//square step;
-				i = 0;
-				j = 0;
-
-
-				while (i < terrain_gridpoints)
+				int i = 0;
+				while (i < m_property.nGridPoints)
 				{
-					j = 0;
-					while (j < terrain_gridpoints)
+					int j = 0;
+					while (j < m_property.nGridPoints)
 					{
+						float mv = backterrain[i + m_property.nGridPoints*j];
+						mv += backterrain[(i + currentstep) + m_property.nGridPoints * j];
+						mv += backterrain[(i + currentstep) + m_property.nGridPoints * (j + currentstep)];
+						mv += backterrain[i + m_property.nGridPoints * (j + currentstep)];
+						mv /= 4.f;
 
-						mv = backterrain[i + terrain_gridpoints*j];
-						mv += backterrain[(i + currentstep) + terrain_gridpoints*j];
-						mv += backterrain[(i + currentstep) + terrain_gridpoints*(j + currentstep)];
-						mv += backterrain[i + terrain_gridpoints*(j + currentstep)];
-						mv /= 4.0;
-						backterrain[i + currentstep / 2 + terrain_gridpoints*(j + currentstep / 2)] = (float)(mv + rm*(Math::Random(0, 1000) / 1000.0f - 0.5f));
+						backterrain[i + currentstep / 2 + m_property.nGridPoints * (j + currentstep / 2)] = mv + rm * (Math::Random(0.f, 1000.f) / 1000.f - 0.5f);
 						j += currentstep;
 					}
 					i += currentstep;
@@ -1168,198 +1178,211 @@ namespace EastEngine
 
 				//diamond step;
 				i = 0;
-				j = 0;
-
-				while (i < terrain_gridpoints)
+				while (i < m_property.nGridPoints)
 				{
-					j = 0;
-					while (j < terrain_gridpoints)
+					int j = 0;
+					while (j < m_property.nGridPoints)
 					{
+						float mv = 0.f;
+						mv = backterrain[i + m_property.nGridPoints * j];
+						mv += backterrain[(i + currentstep) + m_property.nGridPoints * j];
+						mv += backterrain[(i + currentstep / 2) + m_property.nGridPoints * (j + currentstep / 2)];
+						mv += backterrain[i + currentstep / 2 + m_property.nGridPoints * gp_wrap(j - currentstep / 2)];
+						mv /= 4.f;
+						backterrain[i + currentstep / 2 + m_property.nGridPoints * j] = mv + rm * (Math::Random(0.f, 1000.f) / 1000.f - 0.5f);
 
-						mv = 0;
-						mv = backterrain[i + terrain_gridpoints*j];
-						mv += backterrain[(i + currentstep) + terrain_gridpoints*j];
-						mv += backterrain[(i + currentstep / 2) + terrain_gridpoints*(j + currentstep / 2)];
-						mv += backterrain[i + currentstep / 2 + terrain_gridpoints*gp_wrap(j - currentstep / 2)];
-						mv /= 4;
-						backterrain[i + currentstep / 2 + terrain_gridpoints*j] = (float)(mv + rm*(Math::Random(0, 1000) / 1000.0f - 0.5f));
+						mv = 0.f;
+						mv = backterrain[i + m_property.nGridPoints * j];
+						mv += backterrain[i + m_property.nGridPoints * (j + currentstep)];
+						mv += backterrain[(i + currentstep / 2) + m_property.nGridPoints * (j + currentstep / 2)];
+						mv += backterrain[gp_wrap(i - currentstep / 2) + m_property.nGridPoints * (j + currentstep / 2)];
+						mv /= 4.f;
+						backterrain[i + m_property.nGridPoints * (j + currentstep / 2)] = mv + rm * (Math::Random(0.f, 1000.f) / 1000.f - 0.5f);
 
-						mv = 0;
-						mv = backterrain[i + terrain_gridpoints*j];
-						mv += backterrain[i + terrain_gridpoints*(j + currentstep)];
-						mv += backterrain[(i + currentstep / 2) + terrain_gridpoints*(j + currentstep / 2)];
-						mv += backterrain[gp_wrap(i - currentstep / 2) + terrain_gridpoints*(j + currentstep / 2)];
-						mv /= 4;
-						backterrain[i + terrain_gridpoints*(j + currentstep / 2)] = (float)(mv + rm*(Math::Random(0, 1000) / 1000.0f - 0.5f));
+						mv = 0.f;
+						mv = backterrain[i + currentstep + m_property.nGridPoints * j];
+						mv += backterrain[i + currentstep + m_property.nGridPoints * (j + currentstep)];
+						mv += backterrain[(i + currentstep / 2) + m_property.nGridPoints * (j + currentstep / 2)];
+						mv += backterrain[gp_wrap(i + currentstep / 2 + currentstep) + m_property.nGridPoints * (j + currentstep / 2)];
+						mv /= 4.f;
+						backterrain[i + currentstep + m_property.nGridPoints * (j + currentstep / 2)] = mv + rm * (Math::Random(0.f, 1000.f) / 1000.f - 0.5f);
 
-						mv = 0;
-						mv = backterrain[i + currentstep + terrain_gridpoints*j];
-						mv += backterrain[i + currentstep + terrain_gridpoints*(j + currentstep)];
-						mv += backterrain[(i + currentstep / 2) + terrain_gridpoints*(j + currentstep / 2)];
-						mv += backterrain[gp_wrap(i + currentstep / 2 + currentstep) + terrain_gridpoints*(j + currentstep / 2)];
-						mv /= 4;
-						backterrain[i + currentstep + terrain_gridpoints*(j + currentstep / 2)] = (float)(mv + rm*(Math::Random(0, 1000) / 1000.0f - 0.5f));
-
-						mv = 0;
-						mv = backterrain[i + currentstep + terrain_gridpoints*(j + currentstep)];
-						mv += backterrain[i + terrain_gridpoints*(j + currentstep)];
-						mv += backterrain[(i + currentstep / 2) + terrain_gridpoints*(j + currentstep / 2)];
-						mv += backterrain[i + currentstep / 2 + terrain_gridpoints*gp_wrap(j + currentstep / 2 + currentstep)];
-						mv /= 4;
-						backterrain[i + currentstep / 2 + terrain_gridpoints*(j + currentstep)] = (float)(mv + rm*(Math::Random(0, 1000) / 1000.0f - 0.5f));
+						mv = 0.f;
+						mv = backterrain[i + currentstep + m_property.nGridPoints * (j + currentstep)];
+						mv += backterrain[i + m_property.nGridPoints * (j + currentstep)];
+						mv += backterrain[(i + currentstep / 2) + m_property.nGridPoints * (j + currentstep / 2)];
+						mv += backterrain[i + currentstep / 2 + m_property.nGridPoints * gp_wrap(j + currentstep / 2 + currentstep)];
+						mv /= 4.f;
+						backterrain[i + currentstep / 2 + m_property.nGridPoints * (j + currentstep)] = mv + rm * (Math::Random(0.f, 1000.f) / 1000.f - 0.5f);
 						j += currentstep;
 					}
 					i += currentstep;
 				}
 				//changing current step;
 				currentstep /= 2;
-				rm *= terrain_fractalfactor;
+				rm *= m_property.fFractalFactor;
 			}
 
 			// scaling to minheight..maxheight range
-			for (i = 0; i < terrain_gridpoints + 1; i++)
+			for (int i = 0; i < nGridPointSize; ++i)
 			{
-				for (j = 0; j < terrain_gridpoints + 1; j++)
+				for (int j = 0; j < nGridPointSize; ++j)
 				{
-					m_height[i][j] = backterrain[i + terrain_gridpoints*j];
+					m_vecHeights[i][j] = backterrain[i + m_property.nGridPoints*j];
 				}
 			}
 
-			maxheight = m_height[0][0];
-			minheight = m_height[0][0];
-			for (i = 0; i < terrain_gridpoints + 1; i++)
+			float maxHeight = m_vecHeights[0][0];
+			float minHeight = m_vecHeights[0][0];
+			for (int i = 0; i < nGridPointSize; ++i)
 			{
-				for (j = 0; j < terrain_gridpoints + 1; j++)
+				for (int j = 0; j < nGridPointSize; ++j)
 				{
-					if (m_height[i][j] > maxheight) maxheight = m_height[i][j];
-					if (m_height[i][j] < minheight) minheight = m_height[i][j];
+					if (m_vecHeights[i][j] > maxHeight)
+					{
+						maxHeight = m_vecHeights[i][j];
+					}
+
+					if (m_vecHeights[i][j] < minHeight)
+					{
+						minHeight = m_vecHeights[i][j];
+					}
 				}
 			}
-			offset = minheight - terrain_minheight;
-			yscale = (terrain_maxheight - terrain_minheight) / (maxheight - minheight);
 
-			for (i = 0; i < terrain_gridpoints + 1; i++)
+			float yscale = (m_property.fMaxHeight - m_property.fMinHeight) / (maxHeight - minHeight);
+
+			for (int i = 0; i < nGridPointSize; ++i)
 			{
-				for (j = 0; j < terrain_gridpoints + 1; j++)
+				for (int j = 0; j < nGridPointSize; ++j)
 				{
-					m_height[i][j] -= minheight;
-					m_height[i][j] *= yscale;
-					m_height[i][j] += terrain_minheight;
+					m_vecHeights[i][j] -= minHeight;
+					m_vecHeights[i][j] *= yscale;
+					m_vecHeights[i][j] += m_property.fMinHeight;
 				}
 			}
 
 			// moving down edges of heightmap	
-			for (i = 0; i < terrain_gridpoints + 1; i++)
+			for (int i = 0; i < nGridPointSize; ++i)
 			{
-				for (j = 0; j < terrain_gridpoints + 1; j++)
+				for (int j = 0; j < nGridPointSize; ++j)
 				{
-					mv = (float)((i - terrain_gridpoints / 2.0f)*(i - terrain_gridpoints / 2.0f) + (j - terrain_gridpoints / 2.0f)*(j - terrain_gridpoints / 2.0f));
-					rm = (float)((terrain_gridpoints*0.8f)*(terrain_gridpoints*0.8f) / 4.0f);
+					float mv = static_cast<float>((i - m_property.nGridPoints / 2.f) * (i - m_property.nGridPoints / 2.f) + (j - m_property.nGridPoints / 2.f) * (j - m_property.nGridPoints / 2.f));
+					rm = static_cast<float>((m_property.nGridPoints * 0.8f) * (m_property.nGridPoints * 0.8f) / 4.f);
 					if (mv > rm)
 					{
-						m_height[i][j] -= ((mv - rm) / 1000.0f)*terrain_geometry_scale;
+						m_vecHeights[i][j] -= ((mv - rm) / 1000.f) * m_property.fGeometryScale;
 					}
-					if (m_height[i][j] < terrain_minheight)
+
+					if (m_vecHeights[i][j] < m_property.fMinHeight)
 					{
-						m_height[i][j] = terrain_minheight;
+						m_vecHeights[i][j] = m_property.fMinHeight;
 					}
 				}
 			}
 
-
 			// terrain banks
-			for (k = 0; k < 10; k++)
+			for (int k = 0; k < 10; ++k)
 			{
-				for (i = 0; i < terrain_gridpoints + 1; i++)
+				for (int i = 0; i < nGridPointSize; ++i)
 				{
-					for (j = 0; j < terrain_gridpoints + 1; j++)
+					for (int j = 0; j < nGridPointSize; ++j)
 					{
-						mv = m_height[i][j];
+						float mv = m_vecHeights[i][j];
 						if ((mv) > 0.02f)
 						{
 							mv -= 0.02f;
 						}
+
 						if (mv < -0.02f)
 						{
 							mv += 0.02f;
 						}
-						m_height[i][j] = mv;
+						m_vecHeights[i][j] = mv;
 					}
 				}
 			}
 
 			// smoothing 
-			for (k = 0; k < terrain_smoothsteps; k++)
+			for (int k = 0; k < m_property.nSmoothSteps; ++k)
 			{
-				for (i = 0; i < terrain_gridpoints + 1; i++)
-					for (j = 0; j < terrain_gridpoints + 1; j++)
+				for (int i = 0; i < nGridPointSize; ++i)
+				{
+					for (int j = 0; j < nGridPointSize; ++j)
 					{
+						Math::Vector3 vec1, vec2, vec3;
 
-						vec1.x = 2 * terrain_geometry_scale;
-						vec1.y = terrain_geometry_scale*(m_height[gp_wrap(i + 1)][j] - m_height[gp_wrap(i - 1)][j]);
-						vec1.z = 0;
-						vec2.x = 0;
-						vec2.y = -terrain_geometry_scale*(m_height[i][gp_wrap(j + 1)] - m_height[i][gp_wrap(j - 1)]);
-						vec2.z = -2 * terrain_geometry_scale;
+						vec1.x = 2.f * m_property.fGeometryScale;
+						vec1.y = m_property.fGeometryScale * (m_vecHeights[gp_wrap(i + 1)][j] - m_vecHeights[gp_wrap(i - 1)][j]);
+						vec1.z = 0.f;
+
+						vec2.x = 0.f;
+						vec2.y = -m_property.fGeometryScale*(m_vecHeights[i][gp_wrap(j + 1)] - m_vecHeights[i][gp_wrap(j - 1)]);
+						vec2.z = -2.f * m_property.fGeometryScale;
 
 						vec1.Cross(vec2, vec3);
 						vec3.Normalize();
 
-						if (((vec3.y > terrain_rockfactor) || (m_height[i][j] < 1.2f)))
+						if (((vec3.y > m_property.fRockfactor) || (m_vecHeights[i][j] < 1.2f)))
 						{
-							rm = terrain_smoothfactor1;
-							mv = m_height[i][j] * (1.0f - rm) + rm*0.25f*(m_height[gp_wrap(i - 1)][j] + m_height[i][gp_wrap(j - 1)] + m_height[gp_wrap(i + 1)][j] + m_height[i][gp_wrap(j + 1)]);
-							backterrain[i + terrain_gridpoints*j] = mv;
+							rm = m_property.fSmoothFactor1;
+							float mv = m_vecHeights[i][j] * (1.f - rm) + rm * 0.25f * (m_vecHeights[gp_wrap(i - 1)][j] + m_vecHeights[i][gp_wrap(j - 1)] + m_vecHeights[gp_wrap(i + 1)][j] + m_vecHeights[i][gp_wrap(j + 1)]);
+							backterrain[i + m_property.nGridPoints*j] = mv;
 						}
 						else
 						{
-							rm = terrain_smoothfactor2;
-							mv = m_height[i][j] * (1.0f - rm) + rm*0.25f*(m_height[gp_wrap(i - 1)][j] + m_height[i][gp_wrap(j - 1)] + m_height[gp_wrap(i + 1)][j] + m_height[i][gp_wrap(j + 1)]);
-							backterrain[i + terrain_gridpoints*j] = mv;
+							rm = m_property.fSmoothFactor2;
+							float mv = m_vecHeights[i][j] * (1.f - rm) + rm * 0.25f * (m_vecHeights[gp_wrap(i - 1)][j] + m_vecHeights[i][gp_wrap(j - 1)] + m_vecHeights[gp_wrap(i + 1)][j] + m_vecHeights[i][gp_wrap(j + 1)]);
+							backterrain[i + m_property.nGridPoints*j] = mv;
 						}
 
 					}
-				for (i = 0; i < terrain_gridpoints + 1; i++)
+				}
+
+				for (int i = 0; i < nGridPointSize; ++i)
 				{
-					for (j = 0; j < terrain_gridpoints + 1; j++)
+					for (int j = 0; j < nGridPointSize; ++j)
 					{
-						m_height[i][j] = (backterrain[i + terrain_gridpoints*j]);
+						m_vecHeights[i][j] = (backterrain[i + m_property.nGridPoints * j]);
 					}
 				}
 			}
-			for (i = 0; i < terrain_gridpoints + 1; i++)
+
+			for (int i = 0; i < nGridPointSize; ++i)
 			{
-				for (j = 0; j < terrain_gridpoints + 1; j++)
+				for (int j = 0; j < nGridPointSize; ++j)
 				{
 					rm = 0.5f;
-					mv = m_height[i][j] * (1.0f - rm) + rm*0.25f*(m_height[gp_wrap(i - 1)][j] + m_height[i][gp_wrap(j - 1)] + m_height[gp_wrap(i + 1)][j] + m_height[i][gp_wrap(j + 1)]);
-					backterrain[i + terrain_gridpoints*j] = mv;
-				}
-			}
-			for (i = 0; i < terrain_gridpoints + 1; i++)
-			{
-				for (j = 0; j < terrain_gridpoints + 1; j++)
-				{
-					m_height[i][j] = (backterrain[i + terrain_gridpoints*j]);
+					float mv = m_vecHeights[i][j] * (1.f - rm) + rm * 0.25f * (m_vecHeights[gp_wrap(i - 1)][j] + m_vecHeights[i][gp_wrap(j - 1)] + m_vecHeights[gp_wrap(i + 1)][j] + m_vecHeights[i][gp_wrap(j + 1)]);
+					backterrain[i + m_property.nGridPoints * j] = mv;
 				}
 			}
 
-			SafeDelete(backterrain);
+			for (int i = 0; i < nGridPointSize; ++i)
+			{
+				for (int j = 0; j < nGridPointSize; ++j)
+				{
+					m_vecHeights[i][j] = (backterrain[i + m_property.nGridPoints*j]);
+				}
+			}
+			backterrain.resize(0);
 
 			//calculating normals
-			for (i = 0; i < terrain_gridpoints + 1; i++)
+			for (int i = 0; i < nGridPointSize; ++i)
 			{
-				for (j = 0; j < terrain_gridpoints + 1; j++)
+				for (int j = 0; j < nGridPointSize; ++j)
 				{
-					vec1.x = 2 * terrain_geometry_scale;
-					vec1.y = terrain_geometry_scale*(m_height[gp_wrap(i + 1)][j] - m_height[gp_wrap(i - 1)][j]);
-					vec1.z = 0;
-					vec2.x = 0;
-					vec2.y = -terrain_geometry_scale*(m_height[i][gp_wrap(j + 1)] - m_height[i][gp_wrap(j - 1)]);
-					vec2.z = -2 * terrain_geometry_scale;
+					Math::Vector3 vec1, vec2, vec3;
 
-					vec1.Cross(vec2, m_normal[i][j]);
-					m_normal[i][j].Normalize();
+					vec1.x = 2.f * m_property.fGeometryScale;
+					vec1.y = m_property.fGeometryScale * (m_vecHeights[gp_wrap(i + 1)][j] - m_vecHeights[gp_wrap(i - 1)][j]);
+					vec1.z = 0.f;
+					vec2.x = 0.f;
+					vec2.y = -m_property.fGeometryScale * (m_vecHeights[i][gp_wrap(j + 1)] - m_vecHeights[i][gp_wrap(j - 1)]);
+					vec2.z = -2.f * m_property.fGeometryScale;
+
+					vec1.Cross(vec2, m_vecNormals[i][j]);
+					m_vecNormals[i][j].Normalize();
 				}
 			}
 
@@ -1374,113 +1397,116 @@ namespace EastEngine
 			};
 
 			// buiding layerdef 
-			byte* temp_layerdef_map_texture_pixels = new byte[terrain_layerdef_map_texture_size*terrain_layerdef_map_texture_size * 4];
-			byte* layerdef_map_texture_pixels = new byte[terrain_layerdef_map_texture_size*terrain_layerdef_map_texture_size * 4];
-			for (i = 0; i < terrain_layerdef_map_texture_size; i++)
+			std::vector<byte> temp_layerdef_map_texture_pixels(m_property.nLayerDefMapSize * m_property.nLayerDefMapSize * 4);
+			std::vector<byte> layerdef_map_texture_pixels(m_property.nLayerDefMapSize * m_property.nLayerDefMapSize * 4);
+			for (int i = 0; i < m_property.nLayerDefMapSize; ++i)
 			{
-				for (j = 0; j < terrain_layerdef_map_texture_size; j++)
+				for (int j = 0; j < m_property.nLayerDefMapSize; ++j)
 				{
-					x = (float)(terrain_gridpoints)*((float)i / (float)terrain_layerdef_map_texture_size);
-					z = (float)(terrain_gridpoints)*((float)j / (float)terrain_layerdef_map_texture_size);
-					ix = (int)floor(x);
-					iz = (int)floor(z);
-					rm = bilinear_interpolation(x - ix, z - iz, m_height[ix][iz], m_height[ix + 1][iz], m_height[ix + 1][iz + 1], m_height[ix][iz + 1])*terrain_geometry_scale;
+					float x = static_cast<float>(m_property.nGridPoints) * (static_cast<float>(i) / static_cast<float>(m_property.nLayerDefMapSize));
+					float z = static_cast<float>(m_property.nGridPoints) * (static_cast<float>(j) / static_cast<float>(m_property.nLayerDefMapSize));
+					int ix = static_cast<int>(std::floor(x));
+					int iz = static_cast<int>(std::floor(z));
+					rm = bilinear_interpolation(x - ix, z - iz, 
+						m_vecHeights[ix][iz], 
+						m_vecHeights[ix + 1][iz], 
+						m_vecHeights[ix + 1][iz + 1], 
+						m_vecHeights[ix][iz + 1]) * m_property.fGeometryScale;
 
-					temp_layerdef_map_texture_pixels[(j*terrain_layerdef_map_texture_size + i) * 4 + 0] = 0;
-					temp_layerdef_map_texture_pixels[(j*terrain_layerdef_map_texture_size + i) * 4 + 1] = 0;
-					temp_layerdef_map_texture_pixels[(j*terrain_layerdef_map_texture_size + i) * 4 + 2] = 0;
-					temp_layerdef_map_texture_pixels[(j*terrain_layerdef_map_texture_size + i) * 4 + 3] = 0;
+					temp_layerdef_map_texture_pixels[(j * m_property.nLayerDefMapSize + i) * 4 + 0] = 0;
+					temp_layerdef_map_texture_pixels[(j * m_property.nLayerDefMapSize + i) * 4 + 1] = 0;
+					temp_layerdef_map_texture_pixels[(j * m_property.nLayerDefMapSize + i) * 4 + 2] = 0;
+					temp_layerdef_map_texture_pixels[(j * m_property.nLayerDefMapSize + i) * 4 + 3] = 0;
 
-					if ((rm > terrain_height_underwater_start) && (rm <= terrain_height_underwater_end))
+					if ((rm > m_property.fHeightUnderWaterStart) && (rm <= m_property.fHeightUnderWaterEnd))
 					{
-						temp_layerdef_map_texture_pixels[(j*terrain_layerdef_map_texture_size + i) * 4 + 0] = 255;
-						temp_layerdef_map_texture_pixels[(j*terrain_layerdef_map_texture_size + i) * 4 + 1] = 0;
-						temp_layerdef_map_texture_pixels[(j*terrain_layerdef_map_texture_size + i) * 4 + 2] = 0;
-						temp_layerdef_map_texture_pixels[(j*terrain_layerdef_map_texture_size + i) * 4 + 3] = 0;
+						temp_layerdef_map_texture_pixels[(j * m_property.nLayerDefMapSize + i) * 4 + 0] = 255;
+						temp_layerdef_map_texture_pixels[(j * m_property.nLayerDefMapSize + i) * 4 + 1] = 0;
+						temp_layerdef_map_texture_pixels[(j * m_property.nLayerDefMapSize + i) * 4 + 2] = 0;
+						temp_layerdef_map_texture_pixels[(j * m_property.nLayerDefMapSize + i) * 4 + 3] = 0;
 					}
 
-					if ((rm > terrain_height_sand_start) && (rm <= terrain_height_sand_end))
+					if ((rm > m_property.fHeightSandStart) && (rm <= m_property.fHeightSandEnd))
 					{
-						temp_layerdef_map_texture_pixels[(j*terrain_layerdef_map_texture_size + i) * 4 + 0] = 0;
-						temp_layerdef_map_texture_pixels[(j*terrain_layerdef_map_texture_size + i) * 4 + 1] = 255;
-						temp_layerdef_map_texture_pixels[(j*terrain_layerdef_map_texture_size + i) * 4 + 2] = 0;
-						temp_layerdef_map_texture_pixels[(j*terrain_layerdef_map_texture_size + i) * 4 + 3] = 0;
+						temp_layerdef_map_texture_pixels[(j * m_property.nLayerDefMapSize + i) * 4 + 0] = 0;
+						temp_layerdef_map_texture_pixels[(j * m_property.nLayerDefMapSize + i) * 4 + 1] = 255;
+						temp_layerdef_map_texture_pixels[(j * m_property.nLayerDefMapSize + i) * 4 + 2] = 0;
+						temp_layerdef_map_texture_pixels[(j * m_property.nLayerDefMapSize + i) * 4 + 3] = 0;
 					}
 
-					if ((rm > terrain_height_grass_start) && (rm <= terrain_height_grass_end))
+					if ((rm > m_property.fHeightGrassStart) && (rm <= m_property.fHeightGrassEnd))
 					{
-						temp_layerdef_map_texture_pixels[(j*terrain_layerdef_map_texture_size + i) * 4 + 0] = 0;
-						temp_layerdef_map_texture_pixels[(j*terrain_layerdef_map_texture_size + i) * 4 + 1] = 0;
-						temp_layerdef_map_texture_pixels[(j*terrain_layerdef_map_texture_size + i) * 4 + 2] = 255;
-						temp_layerdef_map_texture_pixels[(j*terrain_layerdef_map_texture_size + i) * 4 + 3] = 0;
+						temp_layerdef_map_texture_pixels[(j * m_property.nLayerDefMapSize + i) * 4 + 0] = 0;
+						temp_layerdef_map_texture_pixels[(j * m_property.nLayerDefMapSize + i) * 4 + 1] = 0;
+						temp_layerdef_map_texture_pixels[(j * m_property.nLayerDefMapSize + i) * 4 + 2] = 255;
+						temp_layerdef_map_texture_pixels[(j * m_property.nLayerDefMapSize + i) * 4 + 3] = 0;
 					}
 
-					mv = bilinear_interpolation(x - ix, z - iz, m_normal[ix][iz].y, m_normal[ix + 1][iz].y, m_normal[ix + 1][iz + 1].y, m_normal[ix][iz + 1].y);
+					float mv = bilinear_interpolation(x - ix, z - iz, m_vecNormals[ix][iz].y, m_vecNormals[ix + 1][iz].y, m_vecNormals[ix + 1][iz + 1].y, m_vecNormals[ix][iz + 1].y);
 
-					if ((mv < terrain_slope_grass_start) && (rm > terrain_height_sand_end))
+					if ((mv < m_property.fSlopeGrassStart) && (rm > m_property.fHeightSandEnd))
 					{
-						temp_layerdef_map_texture_pixels[(j*terrain_layerdef_map_texture_size + i) * 4 + 0] = 0;
-						temp_layerdef_map_texture_pixels[(j*terrain_layerdef_map_texture_size + i) * 4 + 1] = 0;
-						temp_layerdef_map_texture_pixels[(j*terrain_layerdef_map_texture_size + i) * 4 + 2] = 0;
-						temp_layerdef_map_texture_pixels[(j*terrain_layerdef_map_texture_size + i) * 4 + 3] = 0;
+						temp_layerdef_map_texture_pixels[(j * m_property.nLayerDefMapSize + i) * 4 + 0] = 0;
+						temp_layerdef_map_texture_pixels[(j * m_property.nLayerDefMapSize + i) * 4 + 1] = 0;
+						temp_layerdef_map_texture_pixels[(j * m_property.nLayerDefMapSize + i) * 4 + 2] = 0;
+						temp_layerdef_map_texture_pixels[(j * m_property.nLayerDefMapSize + i) * 4 + 3] = 0;
 					}
 
-					if ((mv < terrain_slope_rocks_start) && (rm > terrain_height_rocks_start))
+					if ((mv < m_property.fSlopeRocksStart) && (rm > m_property.fHeightRocksStart))
 					{
-						temp_layerdef_map_texture_pixels[(j*terrain_layerdef_map_texture_size + i) * 4 + 0] = 0;
-						temp_layerdef_map_texture_pixels[(j*terrain_layerdef_map_texture_size + i) * 4 + 1] = 0;
-						temp_layerdef_map_texture_pixels[(j*terrain_layerdef_map_texture_size + i) * 4 + 2] = 0;
-						temp_layerdef_map_texture_pixels[(j*terrain_layerdef_map_texture_size + i) * 4 + 3] = 255;
+						temp_layerdef_map_texture_pixels[(j * m_property.nLayerDefMapSize + i) * 4 + 0] = 0;
+						temp_layerdef_map_texture_pixels[(j * m_property.nLayerDefMapSize + i) * 4 + 1] = 0;
+						temp_layerdef_map_texture_pixels[(j * m_property.nLayerDefMapSize + i) * 4 + 2] = 0;
+						temp_layerdef_map_texture_pixels[(j * m_property.nLayerDefMapSize + i) * 4 + 3] = 255;
 					}
-
 				}
 			}
 
-			for (i = 0; i < terrain_layerdef_map_texture_size; i++)
+			for (int i = 0; i < m_property.nLayerDefMapSize; ++i)
 			{
-				for (j = 0; j < terrain_layerdef_map_texture_size; j++)
+				for (int j = 0; j < m_property.nLayerDefMapSize; ++j)
 				{
-					layerdef_map_texture_pixels[(j*terrain_layerdef_map_texture_size + i) * 4 + 0] = temp_layerdef_map_texture_pixels[(j*terrain_layerdef_map_texture_size + i) * 4 + 0];
-					layerdef_map_texture_pixels[(j*terrain_layerdef_map_texture_size + i) * 4 + 1] = temp_layerdef_map_texture_pixels[(j*terrain_layerdef_map_texture_size + i) * 4 + 1];
-					layerdef_map_texture_pixels[(j*terrain_layerdef_map_texture_size + i) * 4 + 2] = temp_layerdef_map_texture_pixels[(j*terrain_layerdef_map_texture_size + i) * 4 + 2];
-					layerdef_map_texture_pixels[(j*terrain_layerdef_map_texture_size + i) * 4 + 3] = temp_layerdef_map_texture_pixels[(j*terrain_layerdef_map_texture_size + i) * 4 + 3];
+					layerdef_map_texture_pixels[(j * m_property.nLayerDefMapSize + i) * 4 + 0] = temp_layerdef_map_texture_pixels[(j * m_property.nLayerDefMapSize + i) * 4 + 0];
+					layerdef_map_texture_pixels[(j * m_property.nLayerDefMapSize + i) * 4 + 1] = temp_layerdef_map_texture_pixels[(j * m_property.nLayerDefMapSize + i) * 4 + 1];
+					layerdef_map_texture_pixels[(j * m_property.nLayerDefMapSize + i) * 4 + 2] = temp_layerdef_map_texture_pixels[(j * m_property.nLayerDefMapSize + i) * 4 + 2];
+					layerdef_map_texture_pixels[(j * m_property.nLayerDefMapSize + i) * 4 + 3] = temp_layerdef_map_texture_pixels[(j * m_property.nLayerDefMapSize + i) * 4 + 3];
 				}
 			}
 
-			for (i = 2; i < terrain_layerdef_map_texture_size - 2; i++)
+			for (int i = 2; i < m_property.nLayerDefMapSize - 2; ++i)
 			{
-				for (j = 2; j < terrain_layerdef_map_texture_size - 2; j++)
+				for (int j = 2; j < m_property.nLayerDefMapSize - 2; ++j)
 				{
 					int n1 = 0;
 					int n2 = 0;
 					int n3 = 0;
 					int n4 = 0;
-					for (k = -2; k < 3; k++)
+					for (int k = -2; k < 3; ++k)
 					{
-						for (l = -2; l < 3; l++)
+						for (int l = -2; l < 3; ++l)
 						{
-							n1 += temp_layerdef_map_texture_pixels[((j + k)*terrain_layerdef_map_texture_size + i + l) * 4 + 0];
-							n2 += temp_layerdef_map_texture_pixels[((j + k)*terrain_layerdef_map_texture_size + i + l) * 4 + 1];
-							n3 += temp_layerdef_map_texture_pixels[((j + k)*terrain_layerdef_map_texture_size + i + l) * 4 + 2];
-							n4 += temp_layerdef_map_texture_pixels[((j + k)*terrain_layerdef_map_texture_size + i + l) * 4 + 3];
+							n1 += temp_layerdef_map_texture_pixels[((j + k) * m_property.nLayerDefMapSize + i + l) * 4 + 0];
+							n2 += temp_layerdef_map_texture_pixels[((j + k) * m_property.nLayerDefMapSize + i + l) * 4 + 1];
+							n3 += temp_layerdef_map_texture_pixels[((j + k) * m_property.nLayerDefMapSize + i + l) * 4 + 2];
+							n4 += temp_layerdef_map_texture_pixels[((j + k) * m_property.nLayerDefMapSize + i + l) * 4 + 3];
 						}
 					}
-					layerdef_map_texture_pixels[(j*terrain_layerdef_map_texture_size + i) * 4 + 0] = (byte)(n1 / 25);
-					layerdef_map_texture_pixels[(j*terrain_layerdef_map_texture_size + i) * 4 + 1] = (byte)(n2 / 25);
-					layerdef_map_texture_pixels[(j*terrain_layerdef_map_texture_size + i) * 4 + 2] = (byte)(n3 / 25);
-					layerdef_map_texture_pixels[(j*terrain_layerdef_map_texture_size + i) * 4 + 3] = (byte)(n4 / 25);
+					layerdef_map_texture_pixels[(j * m_property.nLayerDefMapSize + i) * 4 + 0] = static_cast<byte>(n1 / 25);
+					layerdef_map_texture_pixels[(j * m_property.nLayerDefMapSize + i) * 4 + 1] = static_cast<byte>(n2 / 25);
+					layerdef_map_texture_pixels[(j * m_property.nLayerDefMapSize + i) * 4 + 2] = static_cast<byte>(n3 / 25);
+					layerdef_map_texture_pixels[(j * m_property.nLayerDefMapSize + i) * 4 + 3] = static_cast<byte>(n4 / 25);
 				}
 			}
 
 			// putting the generated data to textures
-
-			subresource_data.pSysMem = layerdef_map_texture_pixels;
-			subresource_data.SysMemPitch = terrain_layerdef_map_texture_size * 4;
+			D3D11_SUBRESOURCE_DATA subresource_data;
+			subresource_data.pSysMem = temp_layerdef_map_texture_pixels.data();
+			subresource_data.SysMemPitch = m_property.nLayerDefMapSize * 4;
 			subresource_data.SysMemSlicePitch = 0;
 
 			Graphics::TextureDesc2D tex_desc;
-			tex_desc.Width = terrain_layerdef_map_texture_size;
-			tex_desc.Height = terrain_layerdef_map_texture_size;
+			tex_desc.Width = m_property.nLayerDefMapSize;
+			tex_desc.Height = m_property.nLayerDefMapSize;
 			tex_desc.MipLevels = 1;
 			tex_desc.ArraySize = 1;
 			tex_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -1493,27 +1519,28 @@ namespace EastEngine
 			tex_desc.Build();
 			m_pTexLayerdef = Graphics::ITexture::Create("TerrainLayerDefMap", tex_desc, &subresource_data);
 
-			SafeDelete(temp_layerdef_map_texture_pixels);
-			SafeDelete(layerdef_map_texture_pixels);
+			temp_layerdef_map_texture_pixels.resize(0);
+			layerdef_map_texture_pixels.resize(0);
 
-			height_linear_array = new float[terrain_gridpoints*terrain_gridpoints * 4];
+			std::vector<float> height_linear_array(m_property.nGridPoints * m_property.nGridPoints * 4);
 
-			for (i = 0; i < terrain_gridpoints; i++)
+			for (int i = 0; i < m_property.nGridPoints; ++i)
 			{
-				for (j = 0; j < terrain_gridpoints; j++)
+				for (int j = 0; j < m_property.nGridPoints; ++j)
 				{
-					height_linear_array[(i + j*terrain_gridpoints) * 4 + 0] = m_normal[i][j].x;
-					height_linear_array[(i + j*terrain_gridpoints) * 4 + 1] = m_normal[i][j].y;
-					height_linear_array[(i + j*terrain_gridpoints) * 4 + 2] = m_normal[i][j].z;
-					height_linear_array[(i + j*terrain_gridpoints) * 4 + 3] = m_height[i][j];
+					height_linear_array[(i + j * m_property.nGridPoints) * 4 + 0] = m_vecNormals[i][j].x;
+					height_linear_array[(i + j * m_property.nGridPoints) * 4 + 1] = m_vecNormals[i][j].y;
+					height_linear_array[(i + j * m_property.nGridPoints) * 4 + 2] = m_vecNormals[i][j].z;
+					height_linear_array[(i + j * m_property.nGridPoints) * 4 + 3] = m_vecHeights[i][j];
 				}
 			}
-			subresource_data.pSysMem = height_linear_array;
-			subresource_data.SysMemPitch = terrain_gridpoints * 4 * sizeof(float);
+
+			subresource_data.pSysMem = height_linear_array.data();
+			subresource_data.SysMemPitch = m_property.nGridPoints * 4 * sizeof(float);
 			subresource_data.SysMemSlicePitch = 0;
 
-			tex_desc.Width = terrain_gridpoints;
-			tex_desc.Height = terrain_gridpoints;
+			tex_desc.Width = m_property.nGridPoints;
+			tex_desc.Height = m_property.nGridPoints;
 			tex_desc.MipLevels = 1;
 			tex_desc.ArraySize = 1;
 			tex_desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
@@ -1526,53 +1553,57 @@ namespace EastEngine
 			tex_desc.Build();
 			m_pTexHeightMap = Graphics::ITexture::Create("TerrainHeightMap", tex_desc, &subresource_data);
 
-			SafeDelete(height_linear_array);
+			height_linear_array.resize(0);
 
 			//building depthmap
-			byte* depth_shadow_map_texture_pixels = new byte[terrain_depth_shadow_map_texture_size*terrain_depth_shadow_map_texture_size * 4];
-			for (i = 0; i < terrain_depth_shadow_map_texture_size; i++)
+			std::vector<byte> depth_shadow_map_texture_pixels(m_property.nDepthShadowMapSize * m_property.nDepthShadowMapSize * 4);
+			for (int i = 0; i < m_property.nDepthShadowMapSize; ++i)
 			{
-				for (j = 0; j < terrain_depth_shadow_map_texture_size; j++)
+				for (int j = 0; j < m_property.nDepthShadowMapSize; ++j)
 				{
-					x = (float)(terrain_gridpoints)*((float)i / (float)terrain_depth_shadow_map_texture_size);
-					z = (float)(terrain_gridpoints)*((float)j / (float)terrain_depth_shadow_map_texture_size);
-					ix = (int)floor(x);
-					iz = (int)floor(z);
-					rm = bilinear_interpolation(x - ix, z - iz, m_height[ix][iz], m_height[ix + 1][iz], m_height[ix + 1][iz + 1], m_height[ix][iz + 1])*terrain_geometry_scale;
+					float x = static_cast<float>(m_property.nGridPoints) * (static_cast<float>(i) / static_cast<float>(m_property.nDepthShadowMapSize));
+					float z = static_cast<float>(m_property.nGridPoints) * (static_cast<float>(j) / static_cast<float>(m_property.nDepthShadowMapSize));
+					int ix = static_cast<int>(std::floor(x));
+					int iz = static_cast<int>(std::floor(z));
+					rm = bilinear_interpolation(x - ix, z - iz, 
+						m_vecHeights[ix][iz], 
+						m_vecHeights[ix + 1][iz], 
+						m_vecHeights[ix + 1][iz + 1], 
+						m_vecHeights[ix][iz + 1]) * m_property.fGeometryScale;
 
 					if (rm > 0)
 					{
-						depth_shadow_map_texture_pixels[(j*terrain_depth_shadow_map_texture_size + i) * 4 + 0] = 0;
-						depth_shadow_map_texture_pixels[(j*terrain_depth_shadow_map_texture_size + i) * 4 + 1] = 0;
-						depth_shadow_map_texture_pixels[(j*terrain_depth_shadow_map_texture_size + i) * 4 + 2] = 0;
+						depth_shadow_map_texture_pixels[(j * m_property.nDepthShadowMapSize + i) * 4 + 0] = 0;
+						depth_shadow_map_texture_pixels[(j * m_property.nDepthShadowMapSize + i) * 4 + 1] = 0;
+						depth_shadow_map_texture_pixels[(j * m_property.nDepthShadowMapSize + i) * 4 + 2] = 0;
 					}
 					else
 					{
-						float no = (1.0f*255.0f*(rm / (terrain_minheight*terrain_geometry_scale))) - 1.0f;
-						if (no > 255) no = 255;
-						if (no < 0) no = 0;
-						depth_shadow_map_texture_pixels[(j*terrain_depth_shadow_map_texture_size + i) * 4 + 0] = (byte)no;
+						float no = (1.f * 255.f * (rm / (m_property.fMinHeight * m_property.fGeometryScale))) - 1.f;
+						no = Math::Clamp(no, 0.f, 255.f);
 
-						no = (10.0f*255.0f*(rm / (terrain_minheight*terrain_geometry_scale))) - 40.0f;
-						if (no > 255) no = 255;
-						if (no < 0) no = 0;
-						depth_shadow_map_texture_pixels[(j*terrain_depth_shadow_map_texture_size + i) * 4 + 1] = (byte)no;
+						depth_shadow_map_texture_pixels[(j * m_property.nDepthShadowMapSize + i) * 4 + 0] = static_cast<byte>(no);
 
-						no = (100.0f*255.0f*(rm / (terrain_minheight*terrain_geometry_scale))) - 300.0f;
-						if (no > 255) no = 255;
-						if (no < 0) no = 0;
-						depth_shadow_map_texture_pixels[(j*terrain_depth_shadow_map_texture_size + i) * 4 + 2] = (byte)no;
+						no = (10.f * 255.f * (rm / (m_property.fMinHeight*m_property.fGeometryScale))) - 40.f;
+						no = Math::Clamp(no, 0.f, 255.f);
+
+						depth_shadow_map_texture_pixels[(j*m_property.nDepthShadowMapSize + i) * 4 + 1] = static_cast<byte>(no);
+
+						no = (100.f * 255.f * (rm / (m_property.fMinHeight*m_property.fGeometryScale))) - 300.f;
+						no = Math::Clamp(no, 0.f, 255.f);
+
+						depth_shadow_map_texture_pixels[(j*m_property.nDepthShadowMapSize + i) * 4 + 2] = static_cast<byte>(no);
 					}
-					depth_shadow_map_texture_pixels[(j*terrain_depth_shadow_map_texture_size + i) * 4 + 3] = 0;
+					depth_shadow_map_texture_pixels[(j*m_property.nDepthShadowMapSize + i) * 4 + 3] = 0;
 				}
 			}
 
-			subresource_data.pSysMem = depth_shadow_map_texture_pixels;
-			subresource_data.SysMemPitch = terrain_depth_shadow_map_texture_size * 4;
+			subresource_data.pSysMem = depth_shadow_map_texture_pixels.data();
+			subresource_data.SysMemPitch = m_property.nDepthShadowMapSize * 4;
 			subresource_data.SysMemSlicePitch = 0;
 
-			tex_desc.Width = terrain_depth_shadow_map_texture_size;
-			tex_desc.Height = terrain_depth_shadow_map_texture_size;
+			tex_desc.Width = m_property.nDepthShadowMapSize;
+			tex_desc.Height = m_property.nDepthShadowMapSize;
 			tex_desc.MipLevels = 1;
 			tex_desc.ArraySize = 1;
 			tex_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -1585,75 +1616,81 @@ namespace EastEngine
 			tex_desc.Build();
 			m_pTexDepthMap = Graphics::ITexture::Create("TerrainDepthMap", tex_desc, &subresource_data);
 
-			SafeDelete(depth_shadow_map_texture_pixels);
-
-			//patches_rawdata = new float[terrain_numpatches_1d*terrain_numpatches_1d * 4];
+			depth_shadow_map_texture_pixels.resize(0);
 
 			std::vector<Graphics::VertexPos4> vecPatches_rawdata;
-			vecPatches_rawdata.resize(terrain_numpatches_1d * terrain_numpatches_1d);
+			vecPatches_rawdata.resize(m_property.nPatches * m_property.nPatches);
 
 			// creating terrain vertex buffer
-			for (i = 0; i < terrain_numpatches_1d; i++)
+			for (int i = 0; i < m_property.nPatches; ++i)
 			{
-				for (j = 0; j < terrain_numpatches_1d; j++)
+				for (int j = 0; j < m_property.nPatches; ++j)
 				{
-					Graphics::VertexPos4& vertex = vecPatches_rawdata[i + j*terrain_numpatches_1d];
-					vertex.pos.x = i*terrain_geometry_scale*terrain_gridpoints / terrain_numpatches_1d;
-					vertex.pos.y = j*terrain_geometry_scale*terrain_gridpoints / terrain_numpatches_1d;
-					vertex.pos.z = terrain_geometry_scale*terrain_gridpoints / terrain_numpatches_1d;
-					vertex.pos.w = terrain_geometry_scale*terrain_gridpoints / terrain_numpatches_1d;
-
-					//patches_rawdata[(i + j*terrain_numpatches_1d) * 4 + 0] = i*terrain_geometry_scale*terrain_gridpoints / terrain_numpatches_1d;
-					//patches_rawdata[(i + j*terrain_numpatches_1d) * 4 + 1] = j*terrain_geometry_scale*terrain_gridpoints / terrain_numpatches_1d;
-					//patches_rawdata[(i + j*terrain_numpatches_1d) * 4 + 2] = terrain_geometry_scale*terrain_gridpoints / terrain_numpatches_1d;
-					//patches_rawdata[(i + j*terrain_numpatches_1d) * 4 + 3] = terrain_geometry_scale*terrain_gridpoints / terrain_numpatches_1d;
+					Graphics::VertexPos4& vertex = vecPatches_rawdata[i + j * m_property.nPatches];
+					vertex.pos.x = i * m_property.fGeometryScale * m_property.nGridPoints / m_property.nPatches;
+					vertex.pos.y = j * m_property.fGeometryScale * m_property.nGridPoints / m_property.nPatches;
+					vertex.pos.z = m_property.fGeometryScale * m_property.nGridPoints / m_property.nPatches;
+					vertex.pos.w = m_property.fGeometryScale * m_property.nGridPoints / m_property.nPatches;
 				}
 			}
 
-			m_pHeightField = Graphics::IVertexBuffer::Create(Graphics::VertexPos4::Format(), vecPatches_rawdata.size(), &vecPatches_rawdata.front(), D3D11_USAGE_DEFAULT);
+			m_pHeightField = Graphics::IVertexBuffer::Create(Graphics::VertexPos4::Format(), vecPatches_rawdata.size(), &vecPatches_rawdata.front(), D3D11_USAGE_IMMUTABLE);
 
 			// creating sky vertex buffer
 			std::vector<Graphics::VertexPosTex> vecSky_rawData;
-			vecSky_rawData.resize(sky_gridpoints*(sky_gridpoints + 2) * 2);
+			vecSky_rawData.resize(m_property.nSkyGridPoints * (m_property.nSkyGridPoints + 2) * 2);
 
 			int floatnum = 0;
-			for (j = 0; j < sky_gridpoints; j++)
+			for (int j = 0; j < m_property.nSkyGridPoints; ++j)
 			{
-				i = 0;
-				floatnum = (j*(sky_gridpoints + 2) * 2);
-				vecSky_rawData[floatnum].pos.x = terrain_gridpoints*terrain_geometry_scale*0.5f + 4000.0f*cos(2.0f*Math::PI*(float)i / (float)sky_gridpoints)*cos(-0.5f*Math::PI + Math::PI*(float)j / (float)sky_gridpoints);;
-				vecSky_rawData[floatnum].pos.y = 4000.0f*sin(-0.5f*Math::PI + Math::PI*(float)(j) / (float)sky_gridpoints);
-				vecSky_rawData[floatnum].pos.z = terrain_gridpoints*terrain_geometry_scale*0.5f + 4000.0f*sin(2.0f*Math::PI*(float)i / (float)sky_gridpoints)*cos(-0.5f*Math::PI + Math::PI*(float)j / (float)sky_gridpoints);
-				vecSky_rawData[floatnum].uv.x = (sky_texture_angle + (float)i / (float)sky_gridpoints);
-				vecSky_rawData[floatnum].uv.y = 2.0f - 2.0f*(float)j / (float)sky_gridpoints;
+				int index = 0;
+				floatnum = (j * (m_property.nSkyGridPoints + 2) * 2);
+				vecSky_rawData[floatnum].pos.x = m_property.nGridPoints * m_property.fGeometryScale * 0.5f + 4000.f * Math::Cos(2.f * Math::PI * static_cast<float>(index) / static_cast<float>(m_property.nSkyGridPoints)) * Math::Cos(-0.5f * Math::PI + Math::PI * static_cast<float>(j) / static_cast<float>(m_property.nSkyGridPoints));
+				vecSky_rawData[floatnum].pos.y = 4000.f * Math::Sin(-0.5f * Math::PI + Math::PI * static_cast<float>(j) / static_cast<float>(m_property.nSkyGridPoints));
+				vecSky_rawData[floatnum].pos.z = m_property.nGridPoints * m_property.fGeometryScale * 0.5f + 4000.f * Math::Sin(2.f * Math::PI * static_cast<float>(index) / static_cast<float>(m_property.nSkyGridPoints)) * Math::Cos(-0.5f * Math::PI + Math::PI * static_cast<float>(j) / static_cast<float>(m_property.nSkyGridPoints));
+				vecSky_rawData[floatnum].uv.x = (m_property.fSkyTextureAngle + static_cast<float>(index) / static_cast<float>(m_property.nSkyGridPoints));
+				vecSky_rawData[floatnum].uv.y = 2.f - 2.f * static_cast<float>(j) / static_cast<float>(m_property.nSkyGridPoints);
 				++floatnum;
-				for (i = 0; i < sky_gridpoints + 1; i++)
+
+				for (int i = 0; i < m_property.nSkyGridPoints + 1; ++i)
 				{
-					vecSky_rawData[floatnum].pos.x = terrain_gridpoints*terrain_geometry_scale*0.5f + 4000.0f*cos(2.0f*Math::PI*(float)i / (float)sky_gridpoints)*cos(-0.5f*Math::PI + Math::PI*(float)j / (float)sky_gridpoints);
-					vecSky_rawData[floatnum].pos.y = 4000.0f*sin(-0.5f*Math::PI + Math::PI*(float)(j) / (float)sky_gridpoints);
-					vecSky_rawData[floatnum].pos.z = terrain_gridpoints*terrain_geometry_scale*0.5f + 4000.0f*sin(2.0f*Math::PI*(float)i / (float)sky_gridpoints)*cos(-0.5f*Math::PI + Math::PI*(float)j / (float)sky_gridpoints);
-					vecSky_rawData[floatnum].uv.x = (sky_texture_angle + (float)i / (float)sky_gridpoints);
-					vecSky_rawData[floatnum].uv.y = 2.0f - 2.0f*(float)j / (float)sky_gridpoints;
+					vecSky_rawData[floatnum].pos.x = m_property.nGridPoints * m_property.fGeometryScale * 0.5f + 4000.f * Math::Cos(2.f * Math::PI * static_cast<float>(i) / static_cast<float>(m_property.nSkyGridPoints)) * Math::Cos(-0.5f * Math::PI + Math::PI * static_cast<float>(j) / static_cast<float>(m_property.nSkyGridPoints));
+					vecSky_rawData[floatnum].pos.y = 4000.f * Math::Sin(-0.5f * Math::PI + Math::PI * static_cast<float>(j) / static_cast<float>(m_property.nSkyGridPoints));
+					vecSky_rawData[floatnum].pos.z = m_property.nGridPoints * m_property.fGeometryScale * 0.5f + 4000.f * Math::Sin(2.f * Math::PI * static_cast<float>(i) / static_cast<float>(m_property.nSkyGridPoints)) * Math::Cos(-0.5f * Math::PI + Math::PI * static_cast<float>(j) / static_cast<float>(m_property.nSkyGridPoints));
+					vecSky_rawData[floatnum].uv.x = (m_property.fSkyTextureAngle + static_cast<float>(i) / static_cast<float>(m_property.nSkyGridPoints));
+					vecSky_rawData[floatnum].uv.y = 2.f - 2.f * static_cast<float>(j) / static_cast<float>(m_property.nSkyGridPoints);
 					++floatnum;
-					vecSky_rawData[floatnum].pos.x = terrain_gridpoints*terrain_geometry_scale*0.5f + 4000.0f*cos(2.0f*Math::PI*(float)i / (float)sky_gridpoints)*cos(-0.5f*Math::PI + Math::PI*(float)(j + 1) / (float)sky_gridpoints);
-					vecSky_rawData[floatnum].pos.y = 4000.0f*sin(-0.5f*Math::PI + Math::PI*(float)(j + 1) / (float)sky_gridpoints);
-					vecSky_rawData[floatnum].pos.z = terrain_gridpoints*terrain_geometry_scale*0.5f + 4000.0f*sin(2.0f*Math::PI*(float)i / (float)sky_gridpoints)*cos(-0.5f*Math::PI + Math::PI*(float)(j + 1) / (float)sky_gridpoints);
-					vecSky_rawData[floatnum].uv.x = (sky_texture_angle + (float)i / (float)sky_gridpoints);
-					vecSky_rawData[floatnum].uv.y = 2.0f - 2.0f*(float)(j + 1) / (float)sky_gridpoints;
+
+					vecSky_rawData[floatnum].pos.x = m_property.nGridPoints * m_property.fGeometryScale * 0.5f + 4000.f * Math::Cos(2.f * Math::PI * static_cast<float>(i) / static_cast<float>(m_property.nSkyGridPoints)) * Math::Cos(-0.5f * Math::PI + Math::PI * static_cast<float>(j + 1) / static_cast<float>(m_property.nSkyGridPoints));
+					vecSky_rawData[floatnum].pos.y = 4000.f * Math::Sin(-0.5f * Math::PI + Math::PI * static_cast<float>(j + 1) / static_cast<float>(m_property.nSkyGridPoints));
+					vecSky_rawData[floatnum].pos.z = m_property.nGridPoints * m_property.fGeometryScale * 0.5f + 4000.f * Math::Sin(2.f * Math::PI * static_cast<float>(i) / static_cast<float>(m_property.nSkyGridPoints)) * Math::Cos(-0.5f * Math::PI + Math::PI * static_cast<float>(j + 1) / static_cast<float>(m_property.nSkyGridPoints));
+					vecSky_rawData[floatnum].uv.x = (m_property.fSkyTextureAngle + static_cast<float>(i) / static_cast<float>(m_property.nSkyGridPoints));
+					vecSky_rawData[floatnum].uv.y = 2.f - 2.f * static_cast<float>(j + 1) / static_cast<float>(m_property.nSkyGridPoints);
 					++floatnum;
 				}
-				i = sky_gridpoints;
-				vecSky_rawData[floatnum].pos.x = terrain_gridpoints*terrain_geometry_scale*0.5f + 4000.0f*cos(2.0f*Math::PI*(float)i / (float)sky_gridpoints)*cos(-0.5f*Math::PI + Math::PI*(float)(j + 1) / (float)sky_gridpoints);
-				vecSky_rawData[floatnum].pos.y = 4000.0f*sin(-0.5f*Math::PI + Math::PI*(float)(j + 1) / (float)sky_gridpoints);
-				vecSky_rawData[floatnum].pos.z = terrain_gridpoints*terrain_geometry_scale*0.5f + 4000.0f*sin(2.0f*Math::PI*(float)i / (float)sky_gridpoints)*cos(-0.5f*Math::PI + Math::PI*(float)(j + 1) / (float)sky_gridpoints);
-				vecSky_rawData[floatnum].uv.x = (sky_texture_angle + (float)i / (float)sky_gridpoints);
-				vecSky_rawData[floatnum].uv.y = 2.0f - 2.0f*(float)(j + 1) / (float)sky_gridpoints;
+				index = m_property.nSkyGridPoints;
+				vecSky_rawData[floatnum].pos.x = m_property.nGridPoints * m_property.fGeometryScale * 0.5f + 4000.f * Math::Cos(2.f * Math::PI * static_cast<float>(index) / static_cast<float>(m_property.nSkyGridPoints)) * Math::Cos(-0.5f * Math::PI + Math::PI * static_cast<float>(j + 1) / static_cast<float>(m_property.nSkyGridPoints));
+				vecSky_rawData[floatnum].pos.y = 4000.f * Math::Sin(-0.5f * Math::PI + Math::PI * static_cast<float>(j + 1) / static_cast<float>(m_property.nSkyGridPoints));
+				vecSky_rawData[floatnum].pos.z = m_property.nGridPoints * m_property.fGeometryScale * 0.5f + 4000.f * Math::Sin(2.f * Math::PI * static_cast<float>(index) / static_cast<float>(m_property.nSkyGridPoints)) * Math::Cos(-0.5f * Math::PI + Math::PI * static_cast<float>(j + 1) / static_cast<float>(m_property.nSkyGridPoints));
+				vecSky_rawData[floatnum].uv.x = (m_property.fSkyTextureAngle + static_cast<float>(index) / static_cast<float>(m_property.nSkyGridPoints));
+				vecSky_rawData[floatnum].uv.y = 2.f - 2.f * static_cast<float>(j + 1) / static_cast<float>(m_property.nSkyGridPoints);
 				++floatnum;
 			}
 
 			m_pSky = Graphics::IVertexBuffer::Create(Graphics::VertexPosTex::Format(), vecSky_rawData.size(), &vecSky_rawData.front(), D3D11_USAGE_DEFAULT);
 
-			std::string strPath = File::GetPath(File::eTexture);
+			m_pTexRockBump = Graphics::ITexture::Create(File::GetFileName(m_property.strTexRockBumpFile).c_str(), m_property.strTexRockBumpFile.c_str());
+			m_pTexRockMicroBump = Graphics::ITexture::Create(File::GetFileName(m_property.strTexRockMicroFile).c_str(), m_property.strTexRockMicroFile.c_str());
+			m_pTexRockDiffuse = Graphics::ITexture::Create(File::GetFileName(m_property.strTexRockDiffuseFile).c_str(), m_property.strTexRockDiffuseFile.c_str());
+
+			m_pTexSandBump = Graphics::ITexture::Create(File::GetFileName(m_property.strTexSandBumpFile).c_str(), m_property.strTexSandBumpFile.c_str());
+			m_pTexSandMicroBump = Graphics::ITexture::Create(File::GetFileName(m_property.strTexSandMicroFile).c_str(), m_property.strTexSandMicroFile.c_str());
+			m_pTexSandDIffuse = Graphics::ITexture::Create(File::GetFileName(m_property.strTexSandDiffuseFile).c_str(), m_property.strTexSandDiffuseFile.c_str());
+			
+			m_pTexGrassDiffuse = Graphics::ITexture::Create(File::GetFileName(m_property.strTexGrassDiffuse).c_str(), m_property.strTexGrassDiffuse.c_str());
+			m_pTexSlopeDiffuse = Graphics::ITexture::Create(File::GetFileName(m_property.strTexSlopeDiffuse).c_str(), m_property.strTexSlopeDiffuse.c_str());
+
+			/*std::string strPath = File::GetPath(File::eTexture);
 			strPath.append("Terrain\\rock_bump6.dds");
 			m_pTexRockBump = Graphics::ITexture::Create(File::GetFileName(strPath).c_str(), strPath.c_str());
 
@@ -1683,7 +1720,7 @@ namespace EastEngine
 
 			strPath = File::GetPath(File::eTexture);
 			strPath.append("Terrain\\terrain_slope.dds");
-			m_pTexSlopeDiffuse = Graphics::ITexture::Create(File::GetFileName(strPath).c_str(), strPath.c_str());
+			m_pTexSlopeDiffuse = Graphics::ITexture::Create(File::GetFileName(strPath).c_str(), strPath.c_str());*/
 		}
 
 		void Terrain::Update(float fElapsedTime)
@@ -1700,10 +1737,10 @@ namespace EastEngine
 			terrain.pTexSandDiffuse = m_pTexSandDIffuse;
 			terrain.pTexGrassDiffuse = m_pTexGrassDiffuse;
 			terrain.pTexSlopeDiffuse = m_pTexSlopeDiffuse;
-			terrain.fHeightFieldSize = terrain_gridpoints*terrain_geometry_scale;
-			terrain.matWorld = Math::Matrix::CreateTranslation(-terrain_gridpoints*terrain_geometry_scale * 0.5f, 0.f, -terrain_gridpoints*terrain_geometry_scale * 0.5f);
-			terrain.fHalfSpaceCullSign = 1.f;
-			terrain.fHalfSpaceCullPosition = -0.6f;
+			terrain.fHeightFieldSize = m_property.nGridPoints * m_property.fGeometryScale;
+			terrain.matWorld = Math::Matrix::CreateTranslation(-m_property.nGridPoints * m_property.fGeometryScale * 0.5f, 0.f, -m_property.nGridPoints * m_property.fGeometryScale * 0.5f);
+			terrain.fHalfSpaceCullSign = m_property.isHalfSpaceCullSign == true ? 1.f : 0.f;
+			terrain.fHalfSpaceCullPosition = m_property.fHalfSpaceCullHeight;
 
 			Graphics::RendererManager::GetInstance()->AddRender(terrain);
 		}
