@@ -379,10 +379,35 @@ void SceneStudio::Enter()
 		}
 	}
 
-	//{
-	//	s_pTerrain = new GameObject::Terrain;
-	//	s_pTerrain->Init();
-	//}
+	{
+		GameObject::TerrainProperty terrain;
+		terrain.strTexRockBumpFile = File::GetPath(File::eTexture);
+		terrain.strTexRockBumpFile.append("Terrain\\rock_bump6.dds");
+
+		terrain.strTexRockMicroFile = File::GetPath(File::eTexture);
+		terrain.strTexRockMicroFile.append("Terrain\\rock_bump4.dds");
+
+		terrain.strTexRockDiffuseFile = File::GetPath(File::eTexture);
+		terrain.strTexRockDiffuseFile.append("Terrain\\terrain_rock4.dds");
+
+		terrain.strTexSandBumpFile = File::GetPath(File::eTexture);
+		terrain.strTexSandBumpFile.append("Terrain\\rock_bump4.dds");
+
+		terrain.strTexSandMicroFile = File::GetPath(File::eTexture);
+		terrain.strTexSandMicroFile.append("Terrain\\lichen1_normal.dds");
+
+		terrain.strTexSandDiffuseFile = File::GetPath(File::eTexture);
+		terrain.strTexSandDiffuseFile.append("Terrain\\sand_diffuse.dds");
+
+		terrain.strTexGrassDiffuse = File::GetPath(File::eTexture);
+		terrain.strTexGrassDiffuse.append("Terrain\\terrain_grass.dds");
+
+		terrain.strTexSlopeDiffuse = File::GetPath(File::eTexture);
+		terrain.strTexSlopeDiffuse.append("Terrain\\terrain_slope.dds");
+
+		s_pTerrain = new GameObject::Terrain;
+		s_pTerrain->Init(&terrain);
+	}
 
 	m_pMaterialNodeManager = new MaterialNodeManager;
 }
@@ -411,7 +436,7 @@ void SceneStudio::Update(float fElapsedTime)
 	{
 		m_pSectorMgr->Update(fElapsedTime);
 	}
-	//s_pTerrain->Update(fElapsedTime);
+	s_pTerrain->Update(fElapsedTime);
 }
 
 void SceneStudio::ProcessInput(float fElapsedTime)

@@ -80,61 +80,6 @@ namespace EastEngine
 	}
 #else
 
-	struct TerrainProperty
-	{
-		int nGridPoints = 512;
-		int nPatches = 64;
-
-		float fGeometryScale = 1.f;
-		float fMaxHeight = 30.f;
-		float fMinHeight = -30.f;
-		float fFractalFactor = 0.68f;
-		float fFractalInitialValue = 100.f;
-		float fSmoothFactor1 = 0.99f;
-		float fSmoothFactor2 = 0.1f;
-		float fRockfactor = 0.95f;
-		int nSmoothSteps = 40;
-
-		float fHeightUnderWaterStart = -100.f;
-		float fHeightUnderWaterEnd = -8.f;
-
-		float fHeightSandStart = -30.f;
-		float fHeightSandEnd = 1.7f;
-
-		float fHeightGrassStart = 1.7f;
-		float fHeightGrassEnd = 30.f;
-
-		float fHeightRocksStart = -2.f;
-
-		float fHeightTreesStart = 4.f;
-		float fHeightTressEnd = 30.f;
-
-		float fSlopeGrassStart = 0.96f;
-		float fSlopeRocksStart = 0.85f;
-
-		int nLayerDefMapSize = 1024;
-		int nDepthShadowMapSize = 512;
-
-		int nSkyGridPoints = 10;
-		float fSkyTextureAngle = 0.425f;
-
-		float fHalfSpaceCullHeight = -0.6f;
-		bool isHalfSpaceCullSign = true;
-
-		std::string strTexRockBumpFile;
-		std::string strTexRockMicroFile;
-		std::string strTexRockDiffuseFile;
-
-		std::string strTexSandBumpFile;
-		std::string strTexSandMicroFile;
-		std::string strTexSandDiffuseFile;
-
-		std::string strTexGrassDiffuse;
-		std::string strTexSlopeDiffuse;
-		std::string strTexWaterBump;
-		std::string strTexSky;
-	};
-
 	namespace Graphics
 	{
 		class ITexture;
@@ -143,6 +88,61 @@ namespace EastEngine
 
 	namespace GameObject
 	{
+		struct TerrainProperty
+		{
+			int nGridPoints = 512;
+			int nPatches = 64;
+
+			float fGeometryScale = 1.f;
+			float fMaxHeight = 30.f;
+			float fMinHeight = -30.f;
+			float fFractalFactor = 0.68f;
+			float fFractalInitialValue = 100.f;
+			float fSmoothFactor1 = 0.99f;
+			float fSmoothFactor2 = 0.1f;
+			float fRockfactor = 0.95f;
+			int nSmoothSteps = 40;
+
+			float fHeightUnderWaterStart = -100.f;
+			float fHeightUnderWaterEnd = -8.f;
+
+			float fHeightSandStart = -30.f;
+			float fHeightSandEnd = 1.7f;
+
+			float fHeightGrassStart = 1.7f;
+			float fHeightGrassEnd = 30.f;
+
+			float fHeightRocksStart = -2.f;
+
+			float fHeightTreesStart = 4.f;
+			float fHeightTressEnd = 30.f;
+
+			float fSlopeGrassStart = 0.96f;
+			float fSlopeRocksStart = 0.85f;
+
+			int nLayerDefMapSize = 1024;
+			int nDepthShadowMapSize = 512;
+
+			int nSkyGridPoints = 10;
+			float fSkyTextureAngle = 0.425f;
+
+			float fHalfSpaceCullHeight = -0.6f;
+			bool isHalfSpaceCullSign = true;
+
+			std::string strTexRockBumpFile;
+			std::string strTexRockMicroFile;
+			std::string strTexRockDiffuseFile;
+
+			std::string strTexSandBumpFile;
+			std::string strTexSandMicroFile;
+			std::string strTexSandDiffuseFile;
+
+			std::string strTexGrassDiffuse;
+			std::string strTexSlopeDiffuse;
+			std::string strTexWaterBump;
+			std::string strTexSky;
+		};
+
 		class Terrain : public IGameObject
 		{
 		public:

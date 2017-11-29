@@ -1102,6 +1102,8 @@ namespace EastEngine
 {
 	namespace GameObject
 	{
+		static uint32_t s_nTerrainIndex = 0;
+
 		Terrain::Terrain()
 		{
 		}
@@ -1114,6 +1116,8 @@ namespace EastEngine
 
 		void Terrain::Init(TerrainProperty* pTerrainProperty)
 		{
+			++s_nTerrainIndex;
+
 			if (pTerrainProperty != nullptr)
 			{
 				m_property = *pTerrainProperty;
@@ -1130,21 +1134,9 @@ namespace EastEngine
 				return a;
 			};
 
-			/*int i, j, k, l;
-			float x, z;
-			int ix, iz;
-			float* backterrain = nullptr;
-			Math::Vector3 vec1, vec2, vec3;
-			int currentstep = m_property.nGridPoints;
-			float mv, rm;
-			float offset = 0, yscale = 0, maxheight = 0, minheight = 0;
-
-			float* height_linear_array = nullptr;
-			D3D11_SUBRESOURCE_DATA subresource_data;*/
-
 			int nGridPointSize = m_property.nGridPoints + 1;
-			m_vecHeights.resize(nGridPointSize * nGridPointSize);
-			m_vecNormals.resize(nGridPointSize * nGridPointSize);
+			m_vecHeights = std::vector<std::vector<float>>(nGridPointSize, std::vector<float>(nGridPointSize));
+			m_vecNormals = std::vector<std::vector<Math::Vector3>>(nGridPointSize, std::vector<Math::Vector3>(nGridPointSize));
 
 			std::vector<float> backterrain(nGridPointSize * nGridPointSize);
 			float rm = m_property.fFractalInitialValue;
@@ -1517,7 +1509,10 @@ namespace EastEngine
 			tex_desc.CPUAccessFlags = 0;
 			tex_desc.MiscFlags = 0;
 			tex_desc.Build();
-			m_pTexLayerdef = Graphics::ITexture::Create("TerrainLayerDefMap", tex_desc, &subresource_data);
+
+			String::StringID strName;
+			strName.Format("TerrainLayerDefMap_%d", s_nTerrainIndex);
+			m_pTexLayerdef = Graphics::ITexture::Create(strName, tex_desc, &subresource_data);
 
 			temp_layerdef_map_texture_pixels.resize(0);
 			layerdef_map_texture_pixels.resize(0);
@@ -1551,7 +1546,9 @@ namespace EastEngine
 			tex_desc.CPUAccessFlags = 0;
 			tex_desc.MiscFlags = 0;
 			tex_desc.Build();
-			m_pTexHeightMap = Graphics::ITexture::Create("TerrainHeightMap", tex_desc, &subresource_data);
+
+			strName.Format("TerrainHeightMap_%d", s_nTerrainIndex);
+			m_pTexHeightMap = Graphics::ITexture::Create(strName, tex_desc, &subresource_data);
 
 			height_linear_array.resize(0);
 
@@ -1614,7 +1611,9 @@ namespace EastEngine
 			tex_desc.CPUAccessFlags = 0;
 			tex_desc.MiscFlags = 0;
 			tex_desc.Build();
-			m_pTexDepthMap = Graphics::ITexture::Create("TerrainDepthMap", tex_desc, &subresource_data);
+
+			strName.Format("TerrainDepthMap_%d", s_nTerrainIndex);
+			m_pTexDepthMap = Graphics::ITexture::Create(strName, tex_desc, &subresource_data);
 
 			depth_shadow_map_texture_pixels.resize(0);
 
@@ -1689,38 +1688,6 @@ namespace EastEngine
 			
 			m_pTexGrassDiffuse = Graphics::ITexture::Create(File::GetFileName(m_property.strTexGrassDiffuse).c_str(), m_property.strTexGrassDiffuse.c_str());
 			m_pTexSlopeDiffuse = Graphics::ITexture::Create(File::GetFileName(m_property.strTexSlopeDiffuse).c_str(), m_property.strTexSlopeDiffuse.c_str());
-
-			/*std::string strPath = File::GetPath(File::eTexture);
-			strPath.append("Terrain\\rock_bump6.dds");
-			m_pTexRockBump = Graphics::ITexture::Create(File::GetFileName(strPath).c_str(), strPath.c_str());
-
-			strPath = File::GetPath(File::eTexture);
-			strPath.append("Terrain\\rock_bump4.dds");
-			m_pTexRockMicroBump = Graphics::ITexture::Create(File::GetFileName(strPath).c_str(), strPath.c_str());
-
-			strPath = File::GetPath(File::eTexture);
-			strPath.append("Terrain\\terrain_rock4.dds");
-			m_pTexRockDiffuse = Graphics::ITexture::Create(File::GetFileName(strPath).c_str(), strPath.c_str());
-
-			strPath = File::GetPath(File::eTexture);
-			strPath.append("Terrain\\rock_bump4.dds");
-			m_pTexSandBump = Graphics::ITexture::Create(File::GetFileName(strPath).c_str(), strPath.c_str());
-
-			strPath = File::GetPath(File::eTexture);
-			strPath.append("Terrain\\lichen1_normal.dds");
-			m_pTexSandMicroBump = Graphics::ITexture::Create(File::GetFileName(strPath).c_str(), strPath.c_str());
-
-			strPath = File::GetPath(File::eTexture);
-			strPath.append("Terrain\\sand_diffuse.dds");
-			m_pTexSandDIffuse = Graphics::ITexture::Create(File::GetFileName(strPath).c_str(), strPath.c_str());
-
-			strPath = File::GetPath(File::eTexture);
-			strPath.append("Terrain\\terrain_grass.dds");
-			m_pTexGrassDiffuse = Graphics::ITexture::Create(File::GetFileName(strPath).c_str(), strPath.c_str());
-
-			strPath = File::GetPath(File::eTexture);
-			strPath.append("Terrain\\terrain_slope.dds");
-			m_pTexSlopeDiffuse = Graphics::ITexture::Create(File::GetFileName(strPath).c_str(), strPath.c_str());*/
 		}
 
 		void Terrain::Update(float fElapsedTime)
