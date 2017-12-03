@@ -4,7 +4,7 @@
 #include "DirectX/Camera.h"
 #include "Input/InputDevice.h"
 
-#include "ActorInterface.h"
+#include "GameObject.h"
 
 namespace EastEngine
 {

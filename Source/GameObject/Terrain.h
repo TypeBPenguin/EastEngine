@@ -1,9 +1,12 @@
 #pragma once
 
-#include "GameObject.h"
-#include "TerrainCells.h"
-
 #define NEW_TERRAIN
+
+#include "GameObject.h"
+
+#ifndef NEW_TERRAIN
+#include "TerrainCells.h"
+#endif
 
 namespace EastEngine
 {
@@ -80,84 +83,73 @@ namespace EastEngine
 	}
 #else
 
-	namespace Graphics
+	namespace Physics
 	{
-		class ITexture;
-		class IVertexBuffer;
+		class RigidBody;
 	}
 
 	namespace GameObject
 	{
-		struct TerrainProperty
-		{
-			int nGridPoints = 512;
-			int nPatches = 64;
-
-			float fGeometryScale = 1.f;
-			float fMaxHeight = 30.f;
-			float fMinHeight = -30.f;
-			float fFractalFactor = 0.68f;
-			float fFractalInitialValue = 100.f;
-			float fSmoothFactor1 = 0.99f;
-			float fSmoothFactor2 = 0.1f;
-			float fRockfactor = 0.95f;
-			int nSmoothSteps = 40;
-
-			float fHeightUnderWaterStart = -100.f;
-			float fHeightUnderWaterEnd = -8.f;
-
-			float fHeightSandStart = -30.f;
-			float fHeightSandEnd = 1.7f;
-
-			float fHeightGrassStart = 1.7f;
-			float fHeightGrassEnd = 30.f;
-
-			float fHeightRocksStart = -2.f;
-
-			float fHeightTreesStart = 4.f;
-			float fHeightTressEnd = 30.f;
-
-			float fSlopeGrassStart = 0.96f;
-			float fSlopeRocksStart = 0.85f;
-
-			int nLayerDefMapSize = 1024;
-			int nDepthShadowMapSize = 512;
-
-			int nSkyGridPoints = 10;
-			float fSkyTextureAngle = 0.425f;
-
-			float fHalfSpaceCullHeight = -0.6f;
-			bool isHalfSpaceCullSign = true;
-
-			std::string strTexRockBumpFile;
-			std::string strTexRockMicroFile;
-			std::string strTexRockDiffuseFile;
-
-			std::string strTexSandBumpFile;
-			std::string strTexSandMicroFile;
-			std::string strTexSandDiffuseFile;
-
-			std::string strTexGrassDiffuse;
-			std::string strTexSlopeDiffuse;
-			std::string strTexWaterBump;
-			std::string strTexSky;
-		};
-
-		class Terrain : public IGameObject
+		class Terrain : public ITerrain
 		{
 		public:
 			Terrain();
 			virtual ~Terrain();
 
 		public:
-			virtual EmObjectType GetType() const override { return EmObjectType::eTerrain; }
+			void Init(const TerrainProperty* pTerrainProperty);
 
 		public:
-			void Init(TerrainProperty* pTerrainProperty);
-
 			void Update(float fElapsedTime);
+			void PhysicsUpdate(float fElapsedTime);
+
+		public:
+			virtual const String::StringID& GetName() const override { return m_strName; }
+			virtual void SetName(const String::StringID& strName) override { m_strName = strName; }
+
+			virtual const Math::Matrix* GetWorldMatrixPtr() const override { return &m_matWorld; }
+			virtual const Math::Matrix& GetWorldMatrix() const override { return m_matWorld; }
+			virtual const Math::Matrix& CalcWorldMatrix() override;
+
+			virtual const Math::Vector3& GetPosition() const override { return m_f3Pos; }
+			virtual void SetPosition(const Math::Vector3& f3Pos) override { m_isDirtyWorldMatrix = true;  m_f3PrevPos = m_f3Pos; m_f3Pos = f3Pos; }
+			virtual const Math::Vector3& GetPrevPosition() const override { return m_f3PrevPos; }
+
+			virtual const Math::Vector3& GetScale() const override { return m_f3Scale; }
+			virtual void SetScale(const Math::Vector3& f3Scale) override { m_isDirtyWorldMatrix = true; m_f3PrevScale = m_f3Scale; m_f3Scale = f3Scale; }
+			virtual const Math::Vector3& GetPrevScale() const override { return m_f3PrevScale; }
+
+			virtual const Math::Quaternion& GetRotation() const override { return m_quatRotation; }
+			virtual void SetRotation(const Math::Quaternion& quat) override { m_isDirtyWorldMatrix = true; m_quatPrevRotation = m_quatRotation; m_quatRotation = quat; }
+			virtual const Math::Quaternion& GetPrevRotation() const override { return m_quatPrevRotation; }
+
+			virtual void SetVisible(bool bVisible) override { m_isVisible = bVisible; }
+			virtual bool IsVisible() const override { return m_isVisible; }
+
+		public:
+			void SetDestroy(bool isDestroy) { m_isDestroy = isDestroy; }
+			bool IsDestroy() const { return m_isDestroy; }
 
 		private:
+			void PhysicsDebugDrawCallback(const Math::Vector3* pTriangles, const uint32_t nCount);
+
+		private:
+			String::StringID m_strName;
+
+			Math::Matrix m_matWorld;
+			Math::Vector3 m_f3Pos;
+			Math::Vector3 m_f3PrevPos;
+			Math::Vector3 m_f3Scale;
+			Math::Vector3 m_f3PrevScale;
+			Math::Quaternion m_quatRotation;
+			Math::Quaternion m_quatPrevRotation;
+
+			Math::Vector3 m_f3Velocity;
+
+			bool m_isDestroy;
+			bool m_isVisible;
+			bool m_isDirtyWorldMatrix;
+
 			TerrainProperty m_property;
 
 			std::vector<std::vector<float>> m_vecHeights;
@@ -182,6 +174,10 @@ namespace EastEngine
 
 			Graphics::IVertexBuffer* m_pHeightField;
 			Graphics::IVertexBuffer* m_pSky;
+
+			Physics::RigidBody* m_pRigidBody;
+			Graphics::IVertexBuffer* m_pDebugTriangles;
+			Graphics::IIndexBuffer* m_pDebugTrianglesIB;
 		};
 #endif
 	}

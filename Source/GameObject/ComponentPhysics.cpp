@@ -8,7 +8,7 @@
 
 #include "RagDoll.h"
 
-#include "ActorInterface.h"
+#include "GameObject.h"
 
 namespace EastEngine
 {
@@ -232,8 +232,12 @@ namespace EastEngine
 			{
 				pRigidBody = Physics::RigidBody::Create(rigidBodyProperty);
 
+				const Physics::Shape::Box* pBox = std::get_if<Physics::Shape::Box>(&rigidBodyProperty.shapeInfo.element);
+				if (pBox == nullptr)
+					return;
+
 				Graphics::ModelLoader modelLoader;
-				modelLoader.InitBox(strID, &materialInfo, rigidBodyProperty.shapeInfo.box.f3Size);
+				modelLoader.InitBox(strID, &materialInfo, pBox->f3Size);
 				pPhysicsModelInst = Graphics::IModel::CreateInstance(modelLoader);
 			}
 				break;
@@ -241,8 +245,12 @@ namespace EastEngine
 			{
 				pRigidBody = Physics::RigidBody::Create(rigidBodyProperty);
 
+				const Physics::Shape::Sphere* pSphere = std::get_if<Physics::Shape::Sphere>(&rigidBodyProperty.shapeInfo.element);
+				if (pSphere == nullptr)
+					return;
+
 				Graphics::ModelLoader modelLoader;
-				modelLoader.InitSphere(strID, &materialInfo, rigidBodyProperty.shapeInfo.sphere.fRadius);
+				modelLoader.InitSphere(strID, &materialInfo, pSphere->fRadius);
 				pPhysicsModelInst = Graphics::IModel::CreateInstance(modelLoader);
 			}
 				break;
@@ -256,8 +264,12 @@ namespace EastEngine
 			{
 				pRigidBody = Physics::RigidBody::Create(rigidBodyProperty);
 
+				const Physics::Shape::Capsule* pCapsule = std::get_if<Physics::Shape::Capsule>(&rigidBodyProperty.shapeInfo.element);
+				if (pCapsule == nullptr)
+					return;
+
 				Graphics::ModelLoader modelLoader;
-				modelLoader.InitCapsule(strID, &materialInfo, rigidBodyProperty.shapeInfo.capsule.fRadius, rigidBodyProperty.shapeInfo.capsule.fHeight);
+				modelLoader.InitCapsule(strID, &materialInfo, pCapsule->fRadius, pCapsule->fHeight);
 				pPhysicsModelInst = Graphics::IModel::CreateInstance(modelLoader);
 			}
 				break;
@@ -269,8 +281,12 @@ namespace EastEngine
 			{
 				pRigidBody = Physics::RigidBody::Create(rigidBodyProperty);
 
+				const Physics::Shape::Cone* pCone = std::get_if<Physics::Shape::Cone>(&rigidBodyProperty.shapeInfo.element);
+				if (pCone == nullptr)
+					return;
+
 				Graphics::ModelLoader modelLoader;
-				modelLoader.InitCone(strID, &materialInfo, rigidBodyProperty.shapeInfo.cone.fRadius, rigidBodyProperty.shapeInfo.cone.fHeight);
+				modelLoader.InitCone(strID, &materialInfo, pCone->fRadius, pCone->fHeight);
 				pPhysicsModelInst = Graphics::IModel::CreateInstance(modelLoader);
 			}
 				break;

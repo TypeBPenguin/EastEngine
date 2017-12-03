@@ -1098,6 +1098,8 @@ namespace EastEngine
 
 #include "CommonLib/FileUtil.h"
 
+#include "Physics/RigidBody.h"
+
 namespace EastEngine
 {
 	namespace GameObject
@@ -1105,16 +1107,31 @@ namespace EastEngine
 		static uint32_t s_nTerrainIndex = 0;
 
 		Terrain::Terrain()
+			: m_f3Scale(Math::Vector3::One)
+			, m_f3PrevScale(Math::Vector3::One)
+			, m_isDestroy(false)
+			, m_isVisible(true)
+			, m_isDirtyWorldMatrix(true)
+			, m_pHeightField(nullptr)
+			, m_pSky(nullptr)
+			, m_pRigidBody(nullptr)
+			, m_pDebugTriangles(nullptr)
+			, m_pDebugTrianglesIB(nullptr)
 		{
 		}
 
 		Terrain::~Terrain()
 		{
+			SafeDelete(m_pRigidBody);
+
 			SafeDelete(m_pHeightField);
 			SafeDelete(m_pSky);
+
+			SafeDelete(m_pDebugTriangles);
+			SafeDelete(m_pDebugTrianglesIB);
 		}
 
-		void Terrain::Init(TerrainProperty* pTerrainProperty)
+		void Terrain::Init(const TerrainProperty* pTerrainProperty)
 		{
 			++s_nTerrainIndex;
 
@@ -1259,12 +1276,12 @@ namespace EastEngine
 			{
 				for (int j = 0; j < nGridPointSize; ++j)
 				{
-					float mv = static_cast<float>((i - m_property.nGridPoints / 2.f) * (i - m_property.nGridPoints / 2.f) + (j - m_property.nGridPoints / 2.f) * (j - m_property.nGridPoints / 2.f));
-					rm = static_cast<float>((m_property.nGridPoints * 0.8f) * (m_property.nGridPoints * 0.8f) / 4.f);
-					if (mv > rm)
-					{
-						m_vecHeights[i][j] -= ((mv - rm) / 1000.f) * m_property.fGeometryScale;
-					}
+					//float mv = static_cast<float>((i - m_property.nGridPoints / 2.f) * (i - m_property.nGridPoints / 2.f) + (j - m_property.nGridPoints / 2.f) * (j - m_property.nGridPoints / 2.f));
+					//rm = static_cast<float>((m_property.nGridPoints * 0.8f) * (m_property.nGridPoints * 0.8f) / 4.f);
+					//if (mv > rm)
+					//{
+					//	m_vecHeights[i][j] -= ((mv - rm) / 1000.f) * m_property.fGeometryScale;
+					//}
 
 					if (m_vecHeights[i][j] < m_property.fMinHeight)
 					{
@@ -1688,10 +1705,43 @@ namespace EastEngine
 			
 			m_pTexGrassDiffuse = Graphics::ITexture::Create(File::GetFileName(m_property.strTexGrassDiffuse).c_str(), m_property.strTexGrassDiffuse.c_str());
 			m_pTexSlopeDiffuse = Graphics::ITexture::Create(File::GetFileName(m_property.strTexSlopeDiffuse).c_str(), m_property.strTexSlopeDiffuse.c_str());
+
+			Physics::RigidBodyProperty physicsProp;
+			physicsProp.fMass = 0.f;
+			physicsProp.fRestitution = 0.5f;
+			physicsProp.fFriction = 0.5f;
+			physicsProp.fLinearDamping = 0.5f;
+			physicsProp.fAngularDamping = 0.5f;
+			
+			physicsProp.strName = "Terrain_Physics";
+			physicsProp.nCollisionFlag = Physics::EmCollision::eStaticObject;
+
+			physicsProp.shapeInfo.SetTerrain({ nGridPointSize ,nGridPointSize }, m_property.fGeometryScale, m_property.fMaxHeight, m_property.fMinHeight, &m_vecHeights[0][0], nGridPointSize * nGridPointSize);
+			physicsProp.funcTriangleDrawCallback = [&](const Math::Vector3* pTriangles, const uint32_t nCount)
+			{
+				PhysicsDebugDrawCallback(pTriangles, nCount);
+			};
+			
+			m_pRigidBody = Physics::RigidBody::Create(physicsProp);
+			m_pRigidBody->SetEnableTriangleDrawCallback(true);
 		}
 
 		void Terrain::Update(float fElapsedTime)
 		{
+			if (m_isDestroy == true)
+				return;
+
+			if (m_isDirtyWorldMatrix == true)
+			{
+				Math::Vector3 f3Pos(m_f3Pos);
+				f3Pos.x -= m_property.nGridPoints * m_property.fGeometryScale * 0.5f;
+				f3Pos.z -= m_property.nGridPoints * m_property.fGeometryScale * 0.5f;
+
+				Math::Matrix::Compose(m_f3Scale, m_quatPrevRotation, f3Pos, m_matWorld);
+
+				m_isDirtyWorldMatrix = false;
+			}
+
 			Graphics::RenderSubsetTerrain terrain;
 			terrain.pVertexBuffer = m_pHeightField;
 			terrain.pTexHeightField = m_pTexHeightMap;
@@ -1705,11 +1755,60 @@ namespace EastEngine
 			terrain.pTexGrassDiffuse = m_pTexGrassDiffuse;
 			terrain.pTexSlopeDiffuse = m_pTexSlopeDiffuse;
 			terrain.fHeightFieldSize = m_property.nGridPoints * m_property.fGeometryScale;
-			terrain.matWorld = Math::Matrix::CreateTranslation(-m_property.nGridPoints * m_property.fGeometryScale * 0.5f, 0.f, -m_property.nGridPoints * m_property.fGeometryScale * 0.5f);
+			terrain.matWorld = m_matWorld;
 			terrain.fHalfSpaceCullSign = m_property.isHalfSpaceCullSign == true ? 1.f : 0.f;
 			terrain.fHalfSpaceCullPosition = m_property.fHalfSpaceCullHeight;
 
 			Graphics::RendererManager::GetInstance()->AddRender(terrain);
+
+			PhysicsUpdate(fElapsedTime);
+		}
+
+		void Terrain::PhysicsUpdate(float fElapsedTime)
+		{
+			//if (m_pRigidBody != nullptr)
+			//{
+			//	m_pRigidBody->Update(fElapsedTime);
+			//
+			//	if (m_pDebugTriangles != nullptr || m_pDebugTrianglesIB != nullptr)
+			//	{
+			//		Graphics::RendererManager::GetInstance()->AddRender({ m_pDebugTriangles, m_pDebugTrianglesIB, &m_matWorld, Math::Color::Red });
+			//	}
+			//}
+		}
+
+		const Math::Matrix& Terrain::CalcWorldMatrix()
+		{
+			m_isDirtyWorldMatrix = false;
+
+			Math::Vector3 f3Pos(m_f3Pos);
+			f3Pos.x -= m_property.nGridPoints * m_property.fGeometryScale * 0.5f;
+			f3Pos.z -= m_property.nGridPoints * m_property.fGeometryScale * 0.5f;
+
+			Math::Matrix::Compose(m_f3Scale, m_quatPrevRotation, f3Pos, m_matWorld);
+
+			return m_matWorld;
+		}
+
+		void Terrain::PhysicsDebugDrawCallback(const Math::Vector3* pTriangles, const uint32_t nCount)
+		{
+			SafeDelete(m_pDebugTriangles);
+			SafeDelete(m_pDebugTrianglesIB);
+
+			m_pDebugTriangles = Graphics::IVertexBuffer::Create(Graphics::VertexPos::Format(), nCount, pTriangles, D3D11_USAGE_IMMUTABLE);
+
+			std::vector<uint32_t> vecIndices(nCount);
+			for (uint32_t i = 0; i < vecIndices.size(); ++i)
+			{
+				vecIndices[i] = i;
+			}
+
+			m_pDebugTrianglesIB = Graphics::IIndexBuffer::Create(nCount, vecIndices.data(), D3D11_USAGE_IMMUTABLE);
+
+			if (m_pDebugTriangles != nullptr || m_pDebugTrianglesIB != nullptr)
+			{
+				m_pRigidBody->SetEnableTriangleDrawCallback(false);
+			}
 		}
 	}
 }

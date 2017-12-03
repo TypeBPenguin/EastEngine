@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ActorInterface.h"
+#include "GameObject.h"
 
 namespace EastEngine
 {

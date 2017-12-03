@@ -23,10 +23,10 @@
 #include "Renderer/DepthOfField.h"
 #include "Renderer/HDRFilter.h"
 
+#include "GameObject/GameObject.h"
 #include "GameObject/ActorManager.h"
 #include "GameObject/ComponentModel.h"
 #include "GameObject/ComponentPhysics.h"
-#include "GameObject/Terrain.h"
 
 #include "Contents/Sun.h"
 
@@ -133,8 +133,6 @@ namespace StrID
 	RegisterStringID(EastEngine_Sun);
 }
 
-GameObject::Terrain* s_pTerrain = nullptr;
-
 SceneStudio::SceneStudio()
 	: SceneInterface(StrID::Studio)
 	, m_pMaterialNodeManager(nullptr)
@@ -208,38 +206,38 @@ void SceneStudio::Enter()
 	pTexture = Graphics::ITexture::Create("Irradiance.dds", strIrradiancePath);
 	pIBL->SetIrradianceMap(pTexture);
 
-	{
-		auto pActor = GameObject::ActorManager::GetInstance()->CreateActor(StrID::Studio_Ground);
-
-		Graphics::MaterialInfo material;
-		material.strName = StrID::Studio_Ground;
-		Graphics::ModelLoader loader;
-		loader.InitPlane(StrID::Studio_Ground, 1.f, 1.f, 100, 100, &material);
-
-		auto pCompModel = static_cast<GameObject::ComponentModel*>(pActor->CreateComponent(GameObject::EmComponent::eModel));
-		pCompModel->Init(&loader);
-
-		auto pModelInst = pCompModel->GetModelInstance();
-
-		auto pCompPhysics = static_cast<GameObject::ComponentPhysics*>(pActor->CreateComponent(GameObject::EmComponent::ePhysics));
-
-		Physics::RigidBodyProperty prop;
-		prop.fRestitution = 0.75f;
-		prop.strName = StrID::Studio_Ground;
-		prop.fMass = 0.f;
-		prop.nCollisionFlag = Physics::EmCollision::eStaticObject;
-		prop.shapeInfo.SetTriangleMesh();
-		pCompPhysics->Init(pModelInst, prop);
-
-		/*GameObject::SectorInitInfo sectorInitInfo;
-		sectorInitInfo.fRadius = 10.f;
-		for (auto& direction : sectorInitInfo.nSectorsCount)
-		{
-			direction = 10;
-		}
-
-		m_pSectorMgr = CreateSectorMgr(sectorInitInfo);*/
-	}
+	//{
+	//	auto pActor = GameObject::ActorManager::GetInstance()->CreateActor(StrID::Studio_Ground);
+	//
+	//	Graphics::MaterialInfo material;
+	//	material.strName = StrID::Studio_Ground;
+	//	Graphics::ModelLoader loader;
+	//	loader.InitPlane(StrID::Studio_Ground, 1.f, 1.f, 100, 100, &material);
+	//
+	//	auto pCompModel = static_cast<GameObject::ComponentModel*>(pActor->CreateComponent(GameObject::EmComponent::eModel));
+	//	pCompModel->Init(&loader);
+	//
+	//	auto pModelInst = pCompModel->GetModelInstance();
+	//
+	//	auto pCompPhysics = static_cast<GameObject::ComponentPhysics*>(pActor->CreateComponent(GameObject::EmComponent::ePhysics));
+	//
+	//	Physics::RigidBodyProperty prop;
+	//	prop.fRestitution = 0.75f;
+	//	prop.strName = StrID::Studio_Ground;
+	//	prop.fMass = 0.f;
+	//	prop.nCollisionFlag = Physics::EmCollision::eStaticObject;
+	//	prop.shapeInfo.SetTriangleMesh();
+	//	pCompPhysics->Init(pModelInst, prop);
+	//
+	//	/*GameObject::SectorInitInfo sectorInitInfo;
+	//	sectorInitInfo.fRadius = 10.f;
+	//	for (auto& direction : sectorInitInfo.nSectorsCount)
+	//	{
+	//		direction = 10;
+	//	}
+	//
+	//	m_pSectorMgr = CreateSectorMgr(sectorInitInfo);*/
+	//}
 
 	{
 		Graphics::MaterialInfo materialInfo;
@@ -405,8 +403,7 @@ void SceneStudio::Enter()
 		terrain.strTexSlopeDiffuse = File::GetPath(File::eTexture);
 		terrain.strTexSlopeDiffuse.append("Terrain\\terrain_slope.dds");
 
-		s_pTerrain = new GameObject::Terrain;
-		s_pTerrain->Init(&terrain);
+		GameObject::ITerrain::Create("BaseTerrain", &terrain);
 	}
 
 	m_pMaterialNodeManager = new MaterialNodeManager;
@@ -418,7 +415,6 @@ void SceneStudio::Exit()
 	m_vecSuns.clear();
 
 	SafeDelete(m_pMaterialNodeManager);
-	SafeDelete(s_pTerrain);
 	
 	ImGui_ImplDX11_Shutdown();
 }
@@ -436,7 +432,6 @@ void SceneStudio::Update(float fElapsedTime)
 	{
 		m_pSectorMgr->Update(fElapsedTime);
 	}
-	s_pTerrain->Update(fElapsedTime);
 }
 
 void SceneStudio::ProcessInput(float fElapsedTime)

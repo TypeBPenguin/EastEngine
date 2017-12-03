@@ -157,6 +157,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Constraint.h" />
+    <ClInclude Include="DebugHelper.h" />
     <ClInclude Include="GhostObject.h" />
     <ClInclude Include="KinematicCharacterController.h" />
     <ClInclude Include="MathConvertor.h" />
@@ -168,6 +169,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Constraint.cpp" />
+    <ClCompile Include="DebugHelper.cpp" />
     <ClCompile Include="GhostObject.cpp" />
     <ClCompile Include="KinematicCharacterController.cpp" />
     <ClCompile Include="MathConvertor.cpp" />

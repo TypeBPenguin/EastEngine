@@ -31,6 +31,9 @@
     <Filter Include="PhysicsSystem\GhostObject">
       <UniqueIdentifier>{bb8c92ac-4362-44f0-8ab5-fcc3f054607a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="PhysicsSystem\DebugHelper">
+      <UniqueIdentifier>{02358179-ccca-4044-bcc8-16e614230efb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -63,6 +66,9 @@
     <ClInclude Include="KinematicCharacterController.h">
       <Filter>PhysicsSystem\ActionController</Filter>
     </ClInclude>
+    <ClInclude Include="DebugHelper.h">
+      <Filter>PhysicsSystem\DebugHelper</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -88,6 +94,9 @@
     </ClCompile>
     <ClCompile Include="KinematicCharacterController.cpp">
       <Filter>PhysicsSystem\ActionController</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugHelper.cpp">
+      <Filter>PhysicsSystem\DebugHelper</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

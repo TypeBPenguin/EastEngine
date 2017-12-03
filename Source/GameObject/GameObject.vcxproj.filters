@@ -123,11 +123,11 @@
     <ClInclude Include="ComponentLight.h">
       <Filter>Component\Light</Filter>
     </ClInclude>
-    <ClInclude Include="ActorInterface.h">
-      <Filter>GameObject\Actor</Filter>
-    </ClInclude>
     <ClInclude Include="GameObject.h">
       <Filter>GameObject\Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainManager.h">
+      <Filter>GameObject\Terrain</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -179,11 +179,11 @@
     <ClCompile Include="ComponentLight.cpp">
       <Filter>Component\Light</Filter>
     </ClCompile>
-    <ClCompile Include="ActorInterface.cpp">
-      <Filter>GameObject\Actor</Filter>
-    </ClCompile>
     <ClCompile Include="GameObject.cpp">
       <Filter>GameObject\Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="TerrainManager.cpp">
+      <Filter>GameObject\Terrain</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

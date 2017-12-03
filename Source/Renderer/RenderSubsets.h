@@ -35,9 +35,10 @@ namespace EastEngine
 		{
 			IVertexBuffer* pVertexBuffer = nullptr;
 			IIndexBuffer* pIndexBuffer = nullptr;
-			Math::Matrix* pWorldMatrix = nullptr;
+			const Math::Matrix* pWorldMatrix = nullptr;
+			Math::Color color = Math::Color::Red;
 
-			RenderSubsetVertex(IVertexBuffer* pIVertexBuffer, IIndexBuffer* pIIndexBuffer, Math::Matrix* pWorldMatrix);
+			RenderSubsetVertex(IVertexBuffer* pIVertexBuffer, IIndexBuffer* pIIndexBuffer, const Math::Matrix* pWorldMatrix, const Math::Color& color);
 		};
 
 		struct RenderSubsetStatic

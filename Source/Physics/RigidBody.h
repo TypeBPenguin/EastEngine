@@ -28,6 +28,8 @@ namespace EastEngine
 		};
 		typedef void(*FuncCollisionCallback)(const std::vector<CollisionResult>&);
 
+		using FuncTriangleDrawCallback = std::function<void(const Math::Vector3* pTriangles, const uint32_t nCount)>;
+
 		struct RigidBodyProperty
 		{
 			float fMass = 1.f;				// ¹«°Ô
@@ -43,6 +45,7 @@ namespace EastEngine
 			short nMask = 0;
 
 			FuncCollisionCallback funcCollisionCallback = nullptr;
+			FuncTriangleDrawCallback funcTriangleDrawCallback = nullptr;
 
 			String::StringID strName;
 
@@ -77,10 +80,9 @@ namespace EastEngine
 				}
 			}
 
-			void ClearCollisionResults()
-			{
-				m_vecCollisionResults.clear();
-			}
+			void ClearCollisionResults() { m_vecCollisionResults.clear(); }
+
+			void SetEnableTriangleDrawCallback(bool isEnableTriangleDrawCallback) { m_isEnableTriangleDrawCallback = isEnableTriangleDrawCallback; }
 
 		public:
 			const RigidBodyProperty& GetRigidBodyProperty() { return m_rigidBodyProperty; }
@@ -118,7 +120,6 @@ namespace EastEngine
 			btCollisionShape* m_pCollisionShape;
 			btTriangleMesh* m_pTriangleMesh;
 			btMotionState* m_pMotionState;
-			EmPhysicsShape::Type m_emType;
 
 			RigidBodyProperty m_rigidBodyProperty;
 
@@ -129,6 +130,7 @@ namespace EastEngine
 			Collision::OBB m_boundingOrientedBox;
 
 			std::vector<CollisionResult> m_vecCollisionResults;
+			bool m_isEnableTriangleDrawCallback;
 		};
 	}
 }

@@ -2,7 +2,7 @@
 #include "SectorMgr.h"
 #include "Sector.h"
 
-#include "ActorInterface.h"
+#include "GameObject.h"
 #include "ComponentModel.h"
 #include "ComponentPhysics.h"
 

@@ -96,7 +96,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor.h" />
-    <ClInclude Include="ActorInterface.h" />
     <ClInclude Include="BehaviorTree.h" />
     <ClInclude Include="ComponentActionState.h" />
     <ClInclude Include="ComponentCamera.h" />
@@ -114,10 +113,10 @@
     <ClInclude Include="targetver.h" />
     <ClInclude Include="Terrain.h" />
     <ClInclude Include="TerrainCells.h" />
+    <ClInclude Include="TerrainManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Actor.cpp" />
-    <ClCompile Include="ActorInterface.cpp" />
     <ClCompile Include="BehaviorTree.cpp" />
     <ClCompile Include="ComponentActionState.cpp" />
     <ClCompile Include="ComponentCamera.cpp" />
@@ -137,6 +136,7 @@
     </ClCompile>
     <ClCompile Include="Terrain.cpp" />
     <ClCompile Include="TerrainCells.cpp" />
+    <ClCompile Include="TerrainManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CommonLib\CommonLib.vcxproj">

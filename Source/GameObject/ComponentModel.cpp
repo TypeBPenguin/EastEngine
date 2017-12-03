@@ -7,7 +7,7 @@
 #include "../Model/MotionManager.h"
 #include "../Model/Model.h"
 
-#include "ActorInterface.h"
+#include "GameObject.h"
 
 namespace EastEngine
 {

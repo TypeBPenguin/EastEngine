@@ -17,33 +17,103 @@ namespace EastEngine
 			case EmPhysicsShape::eEmpty:
 				return nullptr;
 			case EmPhysicsShape::eBox:
-				return new btBoxShape(Math::ConvertToBt(shape.box.f3Size));
+			{
+				const Shape::Box* pBox = std::get_if<Shape::Box>(&shape.element);
+				if (pBox == nullptr)
+					return nullptr;
+
+				return new btBoxShape(Math::ConvertToBt(pBox->f3Size));
+			}
 			case EmPhysicsShape::eSphere:
-				return new btSphereShape(shape.sphere.fRadius);
+			{
+				const Shape::Sphere* pSphere = std::get_if<Shape::Sphere>(&shape.element);
+				if (pSphere == nullptr)
+					return nullptr;
+
+				return new btSphereShape(pSphere->fRadius);
+			}
 			case EmPhysicsShape::eCylinder:
-				return new btCylinderShape(Math::ConvertToBt(shape.cylinder.f3HalfExtents));
+			{
+				const Shape::Cylinder* pCylinder = std::get_if<Shape::Cylinder>(&shape.element);
+				if (pCylinder == nullptr)
+					return nullptr;
+
+				return new btCylinderShape(Math::ConvertToBt(pCylinder->f3HalfExtents));
+			}
 			case EmPhysicsShape::eCylinder_X:
-				return new btCylinderShapeX(Math::ConvertToBt(shape.cylinder.f3HalfExtents));
+			{
+				const Shape::Cylinder* pCylinder = std::get_if<Shape::Cylinder>(&shape.element);
+				if (pCylinder == nullptr)
+					return nullptr;
+
+				return new btCylinderShapeX(Math::ConvertToBt(pCylinder->f3HalfExtents));
+			}
 			case EmPhysicsShape::eCylinder_Z:
-				return new btCylinderShapeZ(Math::ConvertToBt(shape.cylinder.f3HalfExtents));
+			{
+				const Shape::Cylinder* pCylinder = std::get_if<Shape::Cylinder>(&shape.element);
+				if (pCylinder == nullptr)
+					return nullptr;
+
+				return new btCylinderShapeZ(Math::ConvertToBt(pCylinder->f3HalfExtents));
+			}
 			case EmPhysicsShape::eCapsule:
-				return new btCapsuleShape(shape.capsule.fRadius, shape.capsule.fHeight);
+			{
+				const Shape::Capsule* pCapsule = std::get_if<Shape::Capsule>(&shape.element);
+				if (pCapsule == nullptr)
+					return nullptr;
+
+				return new btCapsuleShape(pCapsule->fRadius, pCapsule->fHeight);
+			}
 			case EmPhysicsShape::eCapsule_X:
-				return new btCapsuleShapeX(shape.capsule.fRadius, shape.capsule.fHeight);
+			{
+				const Shape::Capsule* pCapsule = std::get_if<Shape::Capsule>(&shape.element);
+				if (pCapsule == nullptr)
+					return nullptr;
+
+				return new btCapsuleShapeX(pCapsule->fRadius, pCapsule->fHeight);
+			}
 			case EmPhysicsShape::eCapsule_Z:
-				return new btCapsuleShapeZ(shape.capsule.fRadius, shape.capsule.fHeight);
+			{
+				const Shape::Capsule* pCapsule = std::get_if<Shape::Capsule>(&shape.element);
+				if (pCapsule == nullptr)
+					return nullptr;
+
+				return new btCapsuleShapeZ(pCapsule->fRadius, pCapsule->fHeight);
+			}
 			case EmPhysicsShape::eCone:
-				return new btConeShape(shape.cone.fRadius, shape.cone.fHeight);
+			{
+				const Shape::Cone* pCone = std::get_if<Shape::Cone>(&shape.element);
+				if (pCone == nullptr)
+					return nullptr;
+
+				return new btConeShape(pCone->fRadius, pCone->fHeight);
+			}
 			case EmPhysicsShape::eCone_X:
-				return new btConeShapeX(shape.cone.fRadius, shape.cone.fHeight);
+			{
+				const Shape::Cone* pCone = std::get_if<Shape::Cone>(&shape.element);
+				if (pCone == nullptr)
+					return nullptr;
+
+				return new btConeShapeX(pCone->fRadius, pCone->fHeight);
+			}
 			case EmPhysicsShape::eCone_Z:
-				return new btConeShapeZ(shape.cone.fRadius, shape.cone.fHeight);
+			{
+				const Shape::Cone* pCone = std::get_if<Shape::Cone>(&shape.element);
+				if (pCone == nullptr)
+					return nullptr;
+
+				return new btConeShapeZ(pCone->fRadius, pCone->fHeight);
+			}
 			case EmPhysicsShape::eHull:
 			{
-				const Math::Vector3* pVertices = shape.hull.pVertices;
-				uint32_t nVertexCount = shape.hull.nVertexCount;
-				const uint32_t* pIndices = shape.hull.pIndices;
-				uint32_t nIndexCount = shape.hull.nIndexCount;
+				const Shape::Hull* pShapeInfo = std::get_if<Shape::Hull>(&shape.element);
+				if (pShapeInfo == nullptr)
+					return nullptr;
+
+				const Math::Vector3* pVertices = pShapeInfo->pVertices;
+				uint32_t nVertexCount = pShapeInfo->nVertexCount;
+				const uint32_t* pIndices = pShapeInfo->pIndices;
+				uint32_t nIndexCount = pShapeInfo->nIndexCount;
 
 				if (pVertices == nullptr || nVertexCount == 0 || pIndices == nullptr || nIndexCount == 0)
 					return nullptr;
@@ -66,26 +136,12 @@ namespace EastEngine
 				pHullShape->buildHull(currentMargin);
 				btConvexHullShape* pReducedPolygonStaticMesh = new btConvexHullShape;
 
-				/*Graphics::CVertexCollector<Graphics::VertexPos> vecNewVertex;
-				vecNewVertex.reserve(pHullShape->numVertices());
-
-				Graphics::IndexCollector<uint32_t> vecNewIndex;
-				vecNewIndex.reserve(pHullShape->numIndices());*/
-
 				const btVector3* pVertex = pHullShape->getVertexPointer();
 				int nSize = pHullShape->numVertices();
 				for (int i = 0; i < nSize; ++i)
 				{
 					pReducedPolygonStaticMesh->addPoint(pVertex[i], false);
-					//vecNewVertex.push_back(Math::Convert(pVertex[i]));
 				}
-
-				/*const uint32_t* pIndex = pHullShape->getIndexPointer();
-				nSize = pHullShape->numIndices();
-				for (int i = 0; i < nSize; ++i)
-				{
-				vecNewIndex.push_back(pIndex[i]);
-				}*/
 
 				pReducedPolygonStaticMesh->recalcLocalAabb();
 
@@ -97,50 +153,17 @@ namespace EastEngine
 				SafeDelete(pMeshShape);
 
 				return pReducedPolygonStaticMesh;
-
-				//TriMeshData trimeshshape;
-				//btBvhTriangleMeshShape *triangleMeshShape = CreateBvhTriangleMeshShape(pMesh, &trimeshshape);
-
-				//btTriangleMesh* triangleMesh = new btTriangleMesh();
-				//for (DWORD i = 0; i < pMesh->GetNumFaces(); i++)
-				//{
-				//	int index0 = trimeshshape.indices[i * 3];
-				//	int index1 = trimeshshape.indices[i * 3 + 1];
-				//	int index2 = trimeshshape.indices[i * 3 + 2];
-
-				//	btVector3 vertex0(trimeshshape.vertices[index0 * 3], trimeshshape.vertices[index0 * 3 + 1], trimeshshape.vertices[index0 * 3 + 2]);
-				//	btVector3 vertex1(trimeshshape.vertices[index1 * 3], trimeshshape.vertices[index1 * 3 + 1], trimeshshape.vertices[index1 * 3 + 2]);
-				//	btVector3 vertex2(trimeshshape.vertices[index2 * 3], trimeshshape.vertices[index2 * 3 + 1], trimeshshape.vertices[index2 * 3 + 2]);
-
-				//	triangleMesh->addTriangle(vertex0, vertex1, vertex2);
-				//}
-
-				//btConvexShape* tmpConvexShape = new btConvexTriangleMeshShape(triangleMesh);
-
-				//// Create a hull approximation
-				//btShapeHull* hull = new btShapeHull(tmpConvexShape);
-				//btScalar margin = tmpConvexShape->getMargin();
-				//hull->buildHull(margin);
-
-				//btConvexHullShape* simplifiedConvexShape = new btConvexHullShape();
-				//for (int i = 0; i < hull->numVertices(); i++)
-				//{
-				//	simplifiedConvexShape->addPoint(hull->getVertexPointer()[i]);
-				//}
-
-				//delete triangleMeshShape;
-				//delete triangleMesh;
-				//delete tmpConvexShape;
-				//delete hull;
-
-				//return simplifiedConvexShape;
 			}
 			case EmPhysicsShape::eTriangleMesh:
 			{
-				const Math::Vector3* pVertices = shape.triangleMesh.pVertices;
-				uint32_t nVertexCount = shape.triangleMesh.nVertexCount;
-				const uint32_t* pIndices = shape.triangleMesh.pIndices;
-				uint32_t nIndexCount = shape.triangleMesh.nIndexCount;
+				const Shape::TriangleMesh* pShapeInfo = std::get_if<Shape::TriangleMesh>(&shape.element);
+				if (pShapeInfo == nullptr)
+					return nullptr;
+
+				const Math::Vector3* pVertices = pShapeInfo->pVertices;
+				uint32_t nVertexCount = pShapeInfo->nVertexCount;
+				const uint32_t* pIndices = pShapeInfo->pIndices;
+				uint32_t nIndexCount = pShapeInfo->nIndexCount;
 
 				if (pVertices == nullptr || nVertexCount == 0 || pIndices == nullptr || nIndexCount == 0)
 					return false;
@@ -159,55 +182,25 @@ namespace EastEngine
 				btBvhTriangleMeshShape* pTriShape = new btBvhTriangleMeshShape(pTriangleMesh, true);
 
 				return pTriShape;
+			}
+			case EmPhysicsShape::eTerrain:
+			{
+				const Shape::Terrain* pShapeInfo = std::get_if<Shape::Terrain>(&shape.element);
+				if (pShapeInfo == nullptr)
+					return nullptr;
 
-				//DWORD numVertices = pMesh->GetNumVertices();
-				//DWORD numFaces = pMesh->GetNumFaces();
+				float heightScale = pShapeInfo->fHeightMax / 65535.f;
 
-				//Vertex *v = 0;
-				//pMesh->LockVertexBuffer(0, (void**)&v);
+				btHeightfieldTerrainShape* pHeightShape = new btHeightfieldTerrainShape(pShapeInfo->n2Size.x, pShapeInfo->n2Size.y,
+					pShapeInfo->pHeightArray, heightScale, pShapeInfo->fHeightMin, pShapeInfo->fHeightMax,
+					1, PHY_FLOAT, true);
 
-				//// Extract vertices
-				//pData->vertices = new btScalar[numVertices * 3];
+				//btHeightfieldTerrainShape* pHeightShape = new btHeightfieldTerrainShape(pShapeInfo->n2Size.x, pShapeInfo->n2Size.y,
+				//	pShapeInfo->pHeightArray, pShapeInfo->fHeightMax, 1, true, false);
 
-				//for (DWORD i = 0; i < numVertices; i++)
-				//{
-				//	pData->vertices[i * 3 + 0] = v[i].position.x;
-				//	pData->vertices[i * 3 + 1] = v[i].position.y;
-				//	pData->vertices[i * 3 + 2] = v[i].position.z;
-				//}
+				pHeightShape->setUseDiamondSubdivision(true);
 
-				//pMesh->UnlockVertexBuffer();
-
-				//// Extract indices
-				//pData->indices = new int[numFaces * 3];
-				//WORD* ind = 0;
-				//pMesh->LockIndexBuffer(0, (void**)&ind);
-
-				////memcpy( &indices, &ind, sizeof(ind));	
-				//for (DWORD i = 0; i < numFaces; i++)
-				//{
-				//	pData->indices[i * 3 + 0] = ind[i * 3 + 0];
-				//	pData->indices[i * 3 + 1] = ind[i * 3 + 1];
-				//	pData->indices[i * 3 + 2] = ind[i * 3 + 2];
-				//}
-
-				//pMesh->UnlockIndexBuffer();
-
-				//int indexStride = 3 * sizeof(int);
-				//int vertStride = sizeof(btVector3);
-
-				//pData->indexVertexArrays = new btTriangleIndexVertexArray(numFaces, pData->indices, indexStride,
-				//	numVertices, (btScalar*)&pData->vertices[0], sizeof(btScalar) * 3);
-
-				//bool useQuantizedAabbCompression = true;
-				//btBvhTriangleMeshShape *shape = new btBvhTriangleMeshShape(pData->indexVertexArrays, true);
-
-				//// The indices, vertices, and array needs to be manually deleted else Bullet will get a access violation
-				////delete indices;
-				////delete vertices;	
-				////delete indexVertexArrays;	
-
-				//return shape;
+				return pHeightShape;
 			}
 			case EmPhysicsShape::eStaticPlane:
 				return nullptr;

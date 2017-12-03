@@ -14,6 +14,7 @@ namespace StrID
 	RegisterStringID(Vertex);
 
 	RegisterStringID(g_matWVP);
+	RegisterStringID(g_color);
 }
 
 namespace EastEngine
@@ -130,10 +131,10 @@ namespace EastEngine
 			}
 
 			IDeviceContext* pDeviceContext = pDevice->GetImmediateContext();
+			pDeviceContext->ClearState();
+
 			if (pDeviceContext->SetInputLayout(pEffectTech->GetLayoutFormat()) == false)
 				return;
-
-			pDeviceContext->ClearState();
 
 			pDeviceContext->SetDefaultViewport();
 
@@ -142,8 +143,11 @@ namespace EastEngine
 			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOn);
 
 			auto desc = pDevice->GetMainRenderTarget()->GetDesc2D();
-			desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-			desc.Build();
+			if (Config::IsEnableHDRFilter() == true)
+			{
+				desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				desc.Build();
+			}
 
 			IRenderTarget* pRenderTarget = pDevice->GetRenderTarget(desc);
 			pDeviceContext->SetRenderTargets(&pRenderTarget, 1, pDevice->GetMainDepthStencil());
@@ -160,12 +164,21 @@ namespace EastEngine
 				Math::Matrix matWorld = renderSubset.pWorldMatrix != nullptr ? *renderSubset.pWorldMatrix : Math::Matrix::Identity;
 				m_pEffect->SetMatrix(StrID::g_matWVP, matWorld * pCamera->GetViewMatrix() * pCamera->GetProjMatrix());
 
+				m_pEffect->SetVector(StrID::g_color, *reinterpret_cast<Math::Vector4*>(&renderSubset.color));
+
 				uint32_t nPassCount = pEffectTech->GetPassCount();
 				for (uint32_t p = 0; p < nPassCount; ++p)
 				{
 					pEffectTech->PassApply(p, pDeviceContext);
 
-					pDeviceContext->DrawIndexed(renderSubset.pIndexBuffer->GetIndexNum(), 0, 0);
+					if (renderSubset.pIndexBuffer != nullptr)
+					{
+						pDeviceContext->DrawIndexed(renderSubset.pIndexBuffer->GetIndexNum(), 0, 0);
+					}
+					else
+					{
+						pDeviceContext->Draw(renderSubset.pVertexBuffer->GetVertexNum(), 0);
+					}
 				}
 			}
 
@@ -286,8 +299,11 @@ namespace EastEngine
 			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOn);
 
 			auto desc = pDevice->GetMainRenderTarget()->GetDesc2D();
-			desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-			desc.Build();
+			if (Config::IsEnableHDRFilter() == true)
+			{
+				desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				desc.Build();
+			}
 
 			IRenderTarget* pRenderTarget = pDevice->GetRenderTarget(desc);
 			pDeviceContext->SetRenderTargets(&pRenderTarget, 1, pDevice->GetMainDepthStencil());

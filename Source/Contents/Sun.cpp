@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "Sun.h"
 
-#include "GameObject/ActorInterface.h"
+#include "GameObject/GameObject.h"
 #include "GameObject/ComponentModel.h"
 #include "GameObject/ComponentTimer.h"
 

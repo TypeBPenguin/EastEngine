@@ -2,6 +2,7 @@
 #include "RigidBody.h"
 
 #include "PhysicsSystem.h"
+#include "DebugHelper.h"
 #include "MathConvertor.h"
 
 namespace EastEngine
@@ -14,7 +15,7 @@ namespace EastEngine
 			, m_pCollisionShape(nullptr)
 			, m_pTriangleMesh(nullptr)
 			, m_pMotionState(nullptr)
-			, m_emType(EmPhysicsShape::eEmpty)
+			, m_isEnableTriangleDrawCallback(false)
 		{
 		}
 
@@ -57,6 +58,36 @@ namespace EastEngine
 			if (m_rigidBodyProperty.funcCollisionCallback != nullptr && m_vecCollisionResults.empty() == false)
 			{
 				m_rigidBodyProperty.funcCollisionCallback(m_vecCollisionResults);
+			}
+
+			if (m_rigidBodyProperty.funcTriangleDrawCallback != nullptr && m_isEnableTriangleDrawCallback == true)
+			{
+				if (m_rigidBodyProperty.shapeInfo.emPhysicsShapeType == EmPhysicsShape::Type::eTriangleMesh ||
+					m_rigidBodyProperty.shapeInfo.emPhysicsShapeType == EmPhysicsShape::Type::eTerrain)
+				{
+					btConcaveShape* pShape = static_cast<btConcaveShape*>(m_pCollisionShape);
+
+					btVector3 aabbMin(btScalar(-1e30), btScalar(-1e30), btScalar(-1e30));
+					btVector3 aabbMax(btScalar(1e30), btScalar(1e30), btScalar(1e30));
+
+					std::vector<Math::Vector3> triangles;
+					if (m_rigidBodyProperty.shapeInfo.emPhysicsShapeType == EmPhysicsShape::Type::eTriangleMesh)
+					{
+					}
+					else if (m_rigidBodyProperty.shapeInfo.emPhysicsShapeType == EmPhysicsShape::Type::eTerrain)
+					{
+						const Shape::Terrain* pShapeInfo = std::get_if<Shape::Terrain>(&m_rigidBodyProperty.shapeInfo.element);
+						if (pShapeInfo != nullptr)
+						{
+							triangles.reserve(pShapeInfo->nHeightArarySize * 6);
+						}
+					}
+
+					DebugTriangleDrawCallback callback(&triangles);
+					pShape->processAllTriangles(&callback, aabbMin, aabbMax);
+
+					m_rigidBodyProperty.funcTriangleDrawCallback(triangles.data(), triangles.size());
+				}
 			}
 		}
 

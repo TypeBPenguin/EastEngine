@@ -307,7 +307,7 @@ PSIn_Diffuse HeightFieldPatchDS(PatchData input,
 	detail_height = lerp(detail_height, (detail_texvalue.w - 0.5)*RockBumpHeightScale, layerdef.w);
 
 	// moving vertices by detail height along base normal
-	vertexPosition += base_normal*detail_height;
+	vertexPosition += base_normal * detail_height;
 
 	//calculating base normal rotation matrix
 	normal_rotation_matrix[1] = base_normal;
@@ -402,7 +402,7 @@ PS_OUTPUT HeightFieldPatchPS(PSIn_Diffuse input)
 	//color.rgb += (0.0 + 0.2*max(0, (dot(float3(0, 1, 0), microbump_normal))))*float3(0.2, 0.2, 0.3);
 
 	// making all a bit brighter, simultaneously pretending the wet surface is darker than normal;
-	color.rgb *= 0.5 + 0.8*max(0, min(1, input.positionWS.y*0.5 + 0.5));
+	//color.rgb *= 0.5 + 0.8*max(0, min(1, input.positionWS.y*0.5 + 0.5));
 
 
 

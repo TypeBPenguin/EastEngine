@@ -8,7 +8,7 @@ cbuffer cbMatrix
 
 cbuffer cbColor
 {
-	float4 g_Color;
+	float4 g_color;
 };
 
 struct VS_INPUT
@@ -33,7 +33,7 @@ PS_INPUT VS(VS_INPUT input)
 
 float4 PS(PS_INPUT input) : SV_Target
 {
-	return g_Color;
+	return g_color;
 }
 
 struct VS_INPUT_COLOR
@@ -64,7 +64,7 @@ float4 PS_COLOR(PS_INPUT_COLOR input) : SV_Target
 	return input.color;
 }
 
-technique11 Vertex
+technique11 Color
 {
 	pass Pass_0
 	{
@@ -73,7 +73,7 @@ technique11 Vertex
 	}
 }
 
-technique11 Color
+technique11 Vertex
 {
 	pass Pass_0
 	{
