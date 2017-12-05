@@ -70,7 +70,7 @@
     </Link>
     <Lib>
       <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxgi.lib;DirectXTex_D.lib;DirectXTK_D.lib;Effects11d.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\ExternLib\DirectXTex\Bin\Desktop_2015\Win32\Debug;..\ExternLib\DirectXTK\Bin\Desktop_2015\Win32\Debug;..\ExternLib\FX11\Bin\Desktop_2017_Win10\Win32\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\ExternLib\DirectXTex\Bin\Desktop_2017_Win10\Win32\Debug;..\ExternLib\DirectXTK\Bin\Desktop_2017_Win10\Win32\Debug;..\ExternLib\FX11\Bin\Desktop_2017_Win10\Win32\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -98,7 +98,7 @@
     </Link>
     <Lib>
       <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxgi.lib;DirectXTex.lib;DirectXTK.lib;Effects11.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\ExternLib\DirectXTex\Bin\Desktop_2015\Win32\Release;..\ExternLib\DirectXTK\Bin\Desktop_2015\Win32\Release;..\ExternLib\FX11\Bin\Desktop_2017_Win10\Win32\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\ExternLib\DirectXTex\Bin\Desktop_2017_Win10\Win32\Release;..\ExternLib\DirectXTK\Bin\Desktop_2017_Win10\Win32\Release;..\ExternLib\FX11\Bin\Desktop_2017_Win10\Win32\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
