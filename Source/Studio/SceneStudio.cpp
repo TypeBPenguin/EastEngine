@@ -379,6 +379,7 @@ void SceneStudio::Enter()
 
 	{
 		GameObject::TerrainProperty terrain;
+#ifdef NEW_TERRAIN
 		terrain.strTexRockBumpFile = File::GetPath(File::eTexture);
 		terrain.strTexRockBumpFile.append("Terrain\\rock_bump6.dds");
 
@@ -403,6 +404,31 @@ void SceneStudio::Enter()
 		terrain.strTexSlopeDiffuse = File::GetPath(File::eTexture);
 		terrain.strTexSlopeDiffuse.append("Terrain\\terrain_slope.dds");
 
+#else
+		terrain.strTexHeightMap = File::GetPath(File::eTexture);
+		terrain.strTexHeightMap.append("heightmap.r16");
+
+		terrain.strTexColorMap = File::GetPath(File::eTexture);
+		terrain.strTexColorMap.append("ColorMap2.bmp");
+
+		terrain.f3Scaling = { 5.f, 60.f, 5.f };
+
+		terrain.nWidth = 1025;
+		terrain.nHeight = 1025;
+
+		terrain.nCellWidth = 128;
+		terrain.nCellHeight = 128;
+
+		terrain.fHeightMax = 30.f;
+		terrain.fHeightMin = -30.f;
+
+		terrain.rigidBodyProperty.fRestitution = 0.25f;
+		terrain.rigidBodyProperty.fFriction = 0.75f;
+
+		terrain.materialInfo.strPath = File::GetPath(File::eTexture);
+		terrain.materialInfo.strTextureNameArray[Graphics::EmMaterial::eAlbedo] = "dirt01d.dds";
+		terrain.materialInfo.strTextureNameArray[Graphics::EmMaterial::eNormal] = "dirt01n.dds";
+#endif
 		GameObject::ITerrain::Create("BaseTerrain", &terrain);
 	}
 

@@ -402,9 +402,6 @@
     <None Include="..\..\Bin\Data\Fx\Model\BRDF.fx">
       <FileType>Document</FileType>
     </None>
-    <None Include="..\..\Bin\Data\Fx\Model\IShadow.fx">
-      <FileType>Document</FileType>
-    </None>
     <FxCompile Include="..\..\Bin\Data\Fx\Sky\Sky.fx">
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)\Bin\Data\Fx\Sky\%(Filename)_D.cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)\Bin\Data\Fx\Sky\%(Filename).cso</ObjectFileOutput>

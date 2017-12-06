@@ -162,21 +162,39 @@ namespace EastEngine
 
 				const Math::Vector3* pVertices = pShapeInfo->pVertices;
 				uint32_t nVertexCount = pShapeInfo->nVertexCount;
+
 				const uint32_t* pIndices = pShapeInfo->pIndices;
 				uint32_t nIndexCount = pShapeInfo->nIndexCount;
 
-				if (pVertices == nullptr || nVertexCount == 0 || pIndices == nullptr || nIndexCount == 0)
+				if (pVertices == nullptr || nVertexCount == 0)
+					return false;
+
+				if (pIndices != nullptr && nIndexCount == 0)
 					return false;
 
 				btTriangleMesh* pTriangleMesh = new btTriangleMesh;
 
-				for (uint32_t i = 0; i < nIndexCount; i += 3)
+				if (pIndices != nullptr)
 				{
-					const Math::Vector3& v1 = pVertices[pIndices[i]];
-					const Math::Vector3& v2 = pVertices[pIndices[i + 1]];
-					const Math::Vector3& v3 = pVertices[pIndices[i + 2]];
+					for (uint32_t i = 0; i < nIndexCount; i += 3)
+					{
+						const Math::Vector3& v1 = pVertices[pIndices[i]];
+						const Math::Vector3& v2 = pVertices[pIndices[i + 1]];
+						const Math::Vector3& v3 = pVertices[pIndices[i + 2]];
 
-					pTriangleMesh->addTriangle(Math::ConvertToBt(v1), Math::ConvertToBt(v2), Math::ConvertToBt(v3));
+						pTriangleMesh->addTriangle(Math::ConvertToBt(v1), Math::ConvertToBt(v2), Math::ConvertToBt(v3));
+					}
+				}
+				else
+				{
+					for (uint32_t i = 0; i < nVertexCount; i += 3)
+					{
+						const Math::Vector3& v1 = pVertices[i];
+						const Math::Vector3& v2 = pVertices[i + 1];
+						const Math::Vector3& v3 = pVertices[i + 2];
+
+						pTriangleMesh->addTriangle(Math::ConvertToBt(v1), Math::ConvertToBt(v2), Math::ConvertToBt(v3));
+					}
 				}
 
 				btBvhTriangleMeshShape* pTriShape = new btBvhTriangleMeshShape(pTriangleMesh, true);

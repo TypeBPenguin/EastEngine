@@ -18,12 +18,15 @@
 #include <map>
 #include <set>
 #include <variant>
+#include <optional>
+#include <numeric>
 
 #include <chrono>
 
 #include <boost/unordered_map.hpp>
 
 #include <ppl.h>
+#include <ppltasks.h>
 #include <concurrent_queue.h>
 
 inline void SetBitMask(int& nMask, int nBit)

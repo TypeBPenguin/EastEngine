@@ -1,14 +1,9 @@
 #include "stdafx.h"
 #include "ModelNodeSkinned.h"
 
-#include "CommonLib/FileStream.h"
-
-#include "DirectX/CameraManager.h"
 #include "DirectX/VTFMgr.h"
 
 #include "Renderer/RendererManager.h"
-
-#include "Skeleton.h"
 
 namespace EastEngine
 {
@@ -30,7 +25,7 @@ namespace EastEngine
 
 			UpdateBoundingBox();
 
-			//if (m_bVisible == true && isModelVisible == true)
+			if (m_isVisible == true && isModelVisible == true)
 			{
 				uint32_t nVTFID = eInvalidVTFID;
 				Math::Matrix* pMatrixBuffer = nullptr;

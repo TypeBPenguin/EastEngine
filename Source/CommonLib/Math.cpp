@@ -1018,6 +1018,16 @@ namespace EastEngine
 			return R;
 		}
 
+		Vector3 operator/ (const Vector3& V, float S)
+		{
+			using namespace DirectX;
+			XMVECTOR v1 = V;
+			XMVECTOR X = XMVectorScale(v1, 1.f / S);
+			Vector3 R;
+			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&R), X);
+			return R;
+		}
+
 		Vector3 operator* (float S, const Vector3& V)
 		{
 			using namespace DirectX;

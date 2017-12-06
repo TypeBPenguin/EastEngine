@@ -1,11 +1,6 @@
 #include "stdafx.h"
 #include "ModelNodeStatic.h"
 
-#include "CommonLib/FileStream.h"
-
-#include "DirectX/CameraManager.h"
-
-//#include "Renderer/RenderSubsets.h"
 #include "Renderer/RendererManager.h"
 
 namespace EastEngine

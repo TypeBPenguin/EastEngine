@@ -4,7 +4,7 @@
 #ifndef NEW_TERRAIN
 #include "CommonLib/FileStream.h"
 
-#include "DirectX/Device.h"
+#include "DirectX/D3DInterface.h"
 #include "DirectX/CameraManager.h"
 
 namespace StrID
@@ -17,13 +17,14 @@ namespace EastEngine
 	namespace GameObject
 	{
 		Terrain::Terrain()
-			: m_nTerrainWidth(0)
-			, m_nTerrainHeight(0)
-			, m_nCellWidth(0)
-			, m_nCellHeight(0)
+			: m_f3Scale(Math::Vector3::One)
+			, m_f3PrevScale(Math::Vector3::One)
+			, m_isDestroy(false)
+			, m_isVisible(true)
+			, m_isDirtyWorldMatrix(true)
 			, m_nCellCount(0)
 			, m_pPhysics(nullptr)
-			, m_nLastCell(0)
+			, m_nLastCell(std::numeric_limits<uint32_t>::max())
 			, m_isShowCellLine(false)
 			, m_isLoadComplete(false)
 		{
@@ -31,6 +32,15 @@ namespace EastEngine
 
 		Terrain::~Terrain()
 		{
+			if (m_optLoadTask.has_value() == true)
+			{
+				Concurrency::task<bool>& task = m_optLoadTask.value();
+				if (task.is_done() == false)
+				{
+					task.wait();
+				}
+			}
+
 			SafeDelete(m_pPhysics);
 
 			uint32_t nSize = m_veTerrainCells.size();
@@ -43,17 +53,49 @@ namespace EastEngine
 			m_vecHeight.clear();
 			m_vecHeightMap.clear();
 
-			m_vecVertices.clear();
-			m_vecIndices.clear();
+			if (m_optVertices.has_value() == true)
+			{
+				std::vector<Math::Vector3>& vecVertices = m_optVertices.value();
+				vecVertices.clear();
 
-			std::for_each(m_vecMaterial.begin(), m_vecMaterial.end(), DeleteSTLObject());
+				m_optVertices.reset();
+			}
+
+			std::for_each(m_vecMaterial.begin(), m_vecMaterial.end(), [](Graphics::IMaterial* pMaterial)
+			{
+				Graphics::IMaterial::Destroy(&pMaterial);
+			});
 			m_vecMaterial.clear();
 		}
 
-		bool Terrain::Init(const char* strSetupFile)
+		const Math::Matrix& Terrain::CalcWorldMatrix()
 		{
-			std::string strFile = strSetupFile;
-			auto task = Concurrency::create_task(std::bind(&Terrain::initByThread, this, strFile));
+			m_isDirtyWorldMatrix = false;
+/*
+			Math::Vector3 f3Pos(m_f3Pos);
+			f3Pos.x -= m_property.nGridPoints * m_property.fGeometryScale * 0.5f;
+			f3Pos.z -= m_property.nGridPoints * m_property.fGeometryScale * 0.5f;
+
+			Math::Matrix::Compose(m_f3Scale, m_quatPrevRotation, f3Pos, m_matWorld);*/
+
+			return m_matWorld;
+		}
+
+		bool Terrain::Init(const TerrainProperty* pTerrainProperty, bool isEnableThreadLoad)
+		{
+			m_property = *pTerrainProperty;
+
+			if (isEnableThreadLoad == true)
+			{
+				m_optLoadTask = Concurrency::create_task([&]() -> bool
+				{
+					return init();
+				});
+			}
+			else
+			{
+				return init();
+			}
 
 			/*Physics::RigidBodyProperty prop;
 			if (loadSetup(strSetupFile, prop) == false)
@@ -81,34 +123,46 @@ namespace EastEngine
 			return true;
 		}
 
-		bool Terrain::initByThread(std::string strSetupFile)
+		bool Terrain::init()
 		{
-			Physics::RigidBodyProperty prop;
-			if (loadSetup(strSetupFile.c_str(), prop) == false)
+			if (loadRawHeightmap(m_property.strTexHeightMap.c_str()) == false)
+				return false;
+
+			if (loadColorMap(m_property.strTexColorMap.c_str()) == false)
 				return false;
 
 			if (initTerrain() == false)
 				return false;
 
-			prop.fMass = 0.f;
-			prop.strName = StrID::Terrain_Physics;
-			prop.nCollisionFlag = Physics::EmCollision::eStaticObject;
-			prop.shapeInfo.SetTriangleMesh(&m_vecVertices[0].pos, m_vecVertices.size(), &m_vecIndices[0], m_vecIndices.size());
+			m_property.materialInfo.f4DisRoughMetEmi.y = 1.f;
+			m_property.materialInfo.f4DisRoughMetEmi.z = 0.f;
+			m_vecMaterial.emplace_back(Graphics::IMaterial::Create(&m_property.materialInfo));
 
-			m_pPhysics = Physics::RigidBody::Create(prop);
+			//m_property.rigidBodyProperty.fMass = 0.f;
+			//m_property.rigidBodyProperty.strName = StrID::Terrain_Physics;
+			//m_property.rigidBodyProperty.nCollisionFlag = Physics::EmCollision::eStaticObject;
+			//
+			//if (m_optVertices.has_value() == true)
+			//{
+			//	std::vector<Math::Vector3>& vecVertices = m_optVertices.value();
+			//	m_property.rigidBodyProperty.shapeInfo.SetTriangleMesh(vecVertices.data(), vecVertices.size());
+			//}
+			//
+			//m_pPhysics = Physics::RigidBody::Create(m_property.rigidBodyProperty);
 
-			m_vecVertices.clear();
-			m_vecIndices.clear();
+			m_optVertices.reset();
 
 			m_vecHeight.clear();
+			m_vecHeight.resize(0);
 			m_vecHeightMap.clear();
+			m_vecHeightMap.resize(0);
 
 			m_isLoadComplete = true;
 
 			return true;
 		}
 
-		void Terrain::Update(float fElapsedTime, const Math::Vector3* pPlayerPosition)
+		void Terrain::Update(float fElapsedTime)
 		{
 			if (m_isLoadComplete == false)
 				return;
@@ -117,12 +171,12 @@ namespace EastEngine
 			if (pMainCamera == nullptr)
 				return;
 
-			const Math::Vector3& vPos = pPlayerPosition != nullptr ? *pPlayerPosition : pMainCamera->GetPosition();
+			const Math::Vector3& f3Pos = pMainCamera->GetPosition();
 
 			int nCellIdx = -1;
-			m_nLastCell = std::min(m_nLastCell, m_veTerrainCells.size());
+			m_nLastCell = std::min(m_nLastCell, m_veTerrainCells.size() - 1);
 
-			if (m_veTerrainCells[m_nLastCell].IsInsideCell(vPos))
+			if (m_veTerrainCells[m_nLastCell].IsInsideCell(f3Pos) == true)
 			{
 				nCellIdx = m_nLastCell;
 			}
@@ -131,7 +185,7 @@ namespace EastEngine
 				uint32_t nSize = m_veTerrainCells.size();
 				for (uint32_t i = 0; i < nSize; ++i)
 				{
-					if (m_veTerrainCells[i].IsInsideCell(vPos))
+					if (m_veTerrainCells[i].IsInsideCell(f3Pos) == true)
 					{
 						m_nLastCell = nCellIdx = i;
 						break;
@@ -141,15 +195,15 @@ namespace EastEngine
 
 			if (nCellIdx == -1)
 			{
-				float fMinDist = D3D11_FLOAT32_MAX;
+				float fMinDist = std::numeric_limits<float>::max();
 				uint32_t nSize = m_veTerrainCells.size();
 				for (uint32_t i = 0; i < nSize; ++i)
 				{
 					if (pMainCamera->IsFrustumContains(m_veTerrainCells[i].GetBoundingBox()) == Collision::EmContainment::eDisjoint)
 						continue;
 
-					Math::Vector3 vDist = vPos - m_veTerrainCells[i].GetBoundingBox().Center;
-					float fDist = vDist.LengthSquared();
+					Math::Vector3 f3Dist = f3Pos - m_veTerrainCells[i].GetBoundingBox().Center;
+					float fDist = f3Dist.LengthSquared();
 					if (fDist < fMinDist)
 					{
 						nCellIdx = i;
@@ -161,7 +215,7 @@ namespace EastEngine
 			if (nCellIdx >= 0)
 			{
 				const Math::UInt2& n2NodeIdx = m_veTerrainCells[nCellIdx].GetIndex();
-				uint32_t nCellRowCount = (m_nTerrainWidth - 1) / (m_nCellWidth - 1);
+				uint32_t nCellRowCount = (m_property.nWidth - 1) / (m_property.nCellWidth - 1);
 
 				for (int i = 0; i < 9; ++i)
 				{
@@ -190,52 +244,49 @@ namespace EastEngine
 					if (pMainCamera->IsFrustumContains(m_veTerrainCells[i].GetBoundingBox()) == Collision::EmContainment::eDisjoint)
 						continue;
 
-					if (m_veTerrainCells[i].IsInsideCell(vPos) == false)
-						continue;
+					//if (m_veTerrainCells[i].IsInsideCell(f3Pos) == false)
+					//	continue;
 
 					m_veTerrainCells[i].Update(fElapsedTime, m_vecMaterial, m_isShowCellLine);
 				}
 			}
 
-			m_pPhysics->Update(fElapsedTime);
+			if (m_pPhysics != nullptr)
+			{
+				m_pPhysics->Update(fElapsedTime);
+			}
 		}
 
-		float Terrain::GetHeightAtPosition(float fPosX, float fPosZ)
+		float Terrain::GetHeight(float fPosX, float fPosZ) const
 		{
-			int nCellIdx = -1;
-			uint32_t nSize = m_veTerrainCells.size();
-			for (uint32_t i = 0; i < nSize; ++i)
-			{
-				Math::Vector3 vMin;
-				Math::Vector3 vMax;
-				m_veTerrainCells[i].GetCellDimensions(vMin, vMax);
-
-				// Check to see if the positions are in this cell.
-				if ((fPosX < vMax.x) && (fPosX > vMin.x) && (fPosZ < vMax.z) && (fPosZ > vMin.z))
-				{
-					nCellIdx = i;
-					i = nSize;
-				}
-			}
-
-			// If we didn't find a cell then the input position is off the terrain grid.
-			if (nCellIdx == -1)
-				return 0.f;
+			//int nCellIdx = -1;
+			//uint32_t nSize = m_veTerrainCells.size();
+			//for (uint32_t i = 0; i < nSize; ++i)
+			//{
+			//	if (m_veTerrainCells[i].IsInsideDimensions(fPosX, fPosZ) == true)
+			//	{
+			//		nCellIdx = i;
+			//		break;
+			//	}
+			//}
+			//
+			//if (nCellIdx == -1)
+			//	return 0.f;
 
 			// If this is the right cell then check all the triangles in this cell to see what the height of the triangle at this position is.
 			//uint32_t nCount = m_veTerrainCells[nCellIdx].GetVertexCount() / 3;
 			//for (uint32_t i = 0; i < nCount; ++i)
 			//{
 			//	uint32_t nIdx = i * 3;
-
+			//
 			//	Vector3 v0 = m_veTerrainCells[nCellIdx].GetVertex(nIdx);
 			//	nIdx++;
-
+			//
 			//	Vector3 v1 = m_veTerrainCells[nCellIdx].GetVertex(nIdx);
 			//	nIdx++;
-
+			//
 			//	Vector3 v2 = m_veTerrainCells[nCellIdx].GetVertex(nIdx);
-
+			//
 			//	float fHeight = 0.f;
 			//	// Check to see if this is the polygon we are looking for.
 			//	if (checkHeightOfTriangle(fPosX, fPosZ, fHeight, v0, v1, v2))
@@ -245,262 +296,46 @@ namespace EastEngine
 			return 0.f;
 		}
 
-		bool Terrain::loadSetup(const char* strFile, Physics::RigidBodyProperty& physicsProp)
+		bool Terrain::loadHeightMap(const char* strFilePath)
 		{
-			XML::CXmlDoc doc;
-			if (doc.LoadFile(strFile) == false)
-				return false;
-
-			XML::CXmlNode node = doc.GetFirstChild("Class");
-			if (node.IsVaild() == false)
-				return false;
-
-			XML::CXmlElement element = node.GetFirstChildElement("Terrain");
-			if (element.IsVaild() == false)
-				return false;
-
-			m_nTerrainWidth = element.AttributeInt("Width");
-			m_nTerrainHeight = element.AttributeInt("Height");
-
-			m_nCellWidth = element.AttributeInt("CellWidth");
-			m_nCellHeight = element.AttributeInt("CellHeight");
-
-			for (XML::CXmlElement childElement = element.FirstChildElement();
-				childElement.IsVaild() == true; childElement = childElement.NextSibling())
-			{
-				if (String::IsEquals(childElement.GetName(), "HeightMap"))
-				{
-					const char* strHeightMapFile = childElement.Attribute("File");
-					if (strHeightMapFile == nullptr)
-						return false;
-
-					const char* strPath = childElement.Attribute("Path");
-					if (strPath == nullptr)
-						return false;
-
-					std::string strScaling = childElement.Attribute("Scaling");
-					auto slice = String::Tokenizer(strScaling, " ");
-
-					float* fPos = &m_f3Scaling.x;
-					uint32_t nSize = slice.size();
-					for (uint32_t i = 0; i < nSize; ++i)
-					{
-						fPos[i] = (float)(atof(slice[i].c_str()));
-					}
-
-					if (loadHeightMap(strHeightMapFile, strPath) == false)
-					{
-						PRINT_LOG("Can't Load HeightMap : %s", strHeightMapFile);
-						return false;
-					}
-				}
-				else if (String::IsEquals(childElement.GetName(), "ColorMap"))
-				{
-					const char* strColorMapFile = childElement.Attribute("File");
-					if (strColorMapFile == nullptr)
-						return false;
-
-					const char* strPath = childElement.Attribute("Path");
-					if (strPath == nullptr)
-						return false;
-
-					if (loadColorMap(strColorMapFile, strPath) == false)
-					{
-						PRINT_LOG("Can't Load ColorMap : %s", strColorMapFile);
-						return false;
-					}
-				}
-				else if (String::IsEquals(childElement.GetName(), "RawHeightMap"))
-				{
-					const char* strRawHeightMapFile = childElement.Attribute("File");
-					if (strRawHeightMapFile == nullptr)
-						return false;
-
-					const char* strPath = childElement.Attribute("Path");
-					if (strPath == nullptr)
-						return false;
-
-					std::string strScaling = childElement.Attribute("Scaling");
-					auto slice = String::Tokenizer(strScaling, " ");
-
-					float* fPos = &m_f3Scaling.x;
-					uint32_t nSize = slice.size();
-					for (uint32_t i = 0; i < nSize; ++i)
-					{
-						fPos[i] = (float)(atof(slice[i].c_str()));
-					}
-
-					std::string strDefaultPos = childElement.Attribute("DefaultPos");
-					slice = String::Tokenizer(strDefaultPos, " ");
-
-					fPos = &m_f3DefaultPos.x;
-					nSize = slice.size();
-					for (uint32_t i = 0; i < nSize; ++i)
-					{
-						fPos[i] = (float)(atof(slice[i].c_str()));
-					}
-
-					if (loadRawHeightmap(strRawHeightMapFile, strPath) == false)
-					{
-						PRINT_LOG("Can't Load RawHeightMap : %s", strRawHeightMapFile);
-						return false;
-					}
-				}
-				else if (String::IsEquals(childElement.GetName(), "Material"))
-				{
-					std::string strName = childElement.Attribute("Name");
-					//std::string strName = childElement.Attribute("Group");
-
-					Graphics::MaterialInfo info;
-
-					auto vecSlice = String::Tokenizer(childElement.Attribute("AlbedoColor"), " ");
-					if (vecSlice.empty())
-						continue;
-
-					float* pfColor = &info.colorAlbedo.x;
-
-					uint32_t nSize = vecSlice.size();
-					for (uint32_t i = 0; i < nSize; ++i)
-					{
-						if (vecSlice[i].empty())
-							continue;
-
-						pfColor[i] = static_cast<float>(atof(vecSlice[i].c_str()));
-					}
-
-					vecSlice.clear();
-
-					vecSlice = String::Tokenizer(childElement.Attribute("EmissiveColor"), " ");
-					if (vecSlice.empty())
-						continue;
-
-					pfColor = &info.colorEmissive.x;
-
-					nSize = vecSlice.size();
-					for (uint32_t i = 0; i < nSize; ++i)
-					{
-						if (vecSlice[i].empty())
-							continue;
-
-						pfColor[i] = static_cast<float>(atof(vecSlice[i].c_str()));
-					}
-
-					vecSlice.clear();
-
-					info.f4DisRoughMetEmi.x = childElement.AttributeFloat("Displacement");
-					info.f4DisRoughMetEmi.y = childElement.AttributeFloat("Roughness");
-					info.f4DisRoughMetEmi.z = childElement.AttributeFloat("Metalic");
-					info.f4DisRoughMetEmi.w = childElement.AttributeFloat("Emissive");
-
-					info.f4SurSpecTintAniso.x = childElement.AttributeFloat("Surface");
-					info.f4SurSpecTintAniso.y = childElement.AttributeFloat("Specular");
-					info.f4SurSpecTintAniso.z = childElement.AttributeFloat("SpecularTint");
-					info.f4SurSpecTintAniso.w = childElement.AttributeFloat("Anisotropic");
-
-					info.f4SheenTintClearcoatGloss.x = childElement.AttributeFloat("Sheen");
-					info.f4SheenTintClearcoatGloss.y = childElement.AttributeFloat("SheenTint");
-					info.f4SheenTintClearcoatGloss.z = childElement.AttributeFloat("Clearcoat");
-					info.f4SheenTintClearcoatGloss.w = childElement.AttributeFloat("ClearcoatGloss");
-
-					std::string strPath(File::GetDataPath());
-					strPath.append(std::string(childElement.Attribute("Path")));
-
-					info.strPath = strPath;
-
-					info.strTextureNameArray[Graphics::EmMaterial::eAlbedo] = childElement.Attribute("TexAlbedo");
-					info.strTextureNameArray[Graphics::EmMaterial::eNormal] = childElement.Attribute("TexNormal");
-					info.strTextureNameArray[Graphics::EmMaterial::eDisplacement] = childElement.Attribute("TexDisplacement");
-					info.strTextureNameArray[Graphics::EmMaterial::eRoughness] = childElement.Attribute("TexRoughness");
-					info.strTextureNameArray[Graphics::EmMaterial::eMetallic] = childElement.Attribute("TexMetalic");
-					info.strTextureNameArray[Graphics::EmMaterial::eSpecularColor] = childElement.Attribute("TexSpecularColor");
-					info.strTextureNameArray[Graphics::EmMaterial::eEmissive] = childElement.Attribute("TexEmissive");
-					info.strTextureNameArray[Graphics::EmMaterial::eSurface] = childElement.Attribute("TexSurface");
-					info.strTextureNameArray[Graphics::EmMaterial::eSpecular] = childElement.Attribute("TexSpecular");
-					info.strTextureNameArray[Graphics::EmMaterial::eSpecularTint] = childElement.Attribute("TexSpecularTint");
-					info.strTextureNameArray[Graphics::EmMaterial::eAnisotropic] = childElement.Attribute("TexAnisotropic");
-					info.strTextureNameArray[Graphics::EmMaterial::eSheen] = childElement.Attribute("TexSheen");
-					info.strTextureNameArray[Graphics::EmMaterial::eSheenTint] = childElement.Attribute("TexSheenTint");
-					info.strTextureNameArray[Graphics::EmMaterial::eClearcoat] = childElement.Attribute("TexClearcoat");
-					info.strTextureNameArray[Graphics::EmMaterial::eClearcoatGloss] = childElement.Attribute("TexClearcoatGloss");
-
-					// 아래는 나중에 전용 툴을 만들면 그때 쓰자
-					//info.strTexNorDispMap = childElement.Attribute("TexNormalDis");
-					//info.strTexRoughMetEmiMap = childElement.Attribute("TexRoughMetEmiMap");
-					//info.strTexSurSpecTintAnisoMap = childElement.Attribute("TexSurSpecTintAnisoMap");
-					//info.strTexSheenTintClearGlossMap = childElement.Attribute("TexSheenTintClearGlossMap");
-
-					Graphics::IMaterial* pMaterial = Graphics::IMaterial::Create(&info);
-
-					m_vecMaterial.push_back(pMaterial);
-				}
-				else if (String::IsEquals(childElement.GetName(), "Physics"))
-				{
-					physicsProp.fMass = childElement.AttributeFloat("Mass");
-					physicsProp.fRestitution = childElement.AttributeFloat("Restitution");
-					physicsProp.fFriction = childElement.AttributeFloat("Friction");
-					physicsProp.fLinearDamping = childElement.AttributeFloat("LinearDamping");
-					physicsProp.fAngularDamping = childElement.AttributeFloat("AngularDamping");
-				}
-			}
-
-			return true;
-		}
-
-		bool Terrain::loadHeightMap(const char* strHeightMapFile, const char* strPath)
-		{
-			std::string strFilePath = File::GetDataPath();
-			strFilePath.append(strPath);
-			strFilePath.append(strHeightMapFile);
-
-			// Start by creating the array structure to hold the height map data.
-			// Open the bitmap map file in binary.
-
-			FILE* filePtr = nullptr;
-			if (fopen_s(&filePtr, strFilePath.c_str(), "rb") != 0)
+			File::FileStream file;
+			if (file.Open(strFilePath, File::EmState::eBinary | File::EmState::eRead) == false)
 				return false;
 
 			BITMAPFILEHEADER bitmapFileHeader;
-			// Read in the bitmap file header.
-			if (fread(&bitmapFileHeader, sizeof(BITMAPFILEHEADER), 1, filePtr) != 1)
-				return false;
+			file.Read(reinterpret_cast<char*>(&bitmapFileHeader), sizeof(BITMAPFILEHEADER));
 
 			BITMAPINFOHEADER bitmapInfoHeader;
-			// Read in the bitmap info header.
-			if (fread(&bitmapInfoHeader, sizeof(BITMAPINFOHEADER), 1, filePtr) != 1)
-				return false;
+			file.Read(reinterpret_cast<char*>(&bitmapInfoHeader), sizeof(BITMAPINFOHEADER));
 
 			// Calculate the size of the bitmap image data.  
 			// Since we use non-divide by 2 dimensions (eg. 257x257) we need to add an extra byte to each line.
-			uint32_t imageSize = m_nTerrainHeight * ((m_nTerrainWidth * 3) + 1);
+			uint32_t imageSize = m_property.nHeight * ((m_property.nWidth * 3) + 1);
 
 			// Allocate memory for the bitmap image data.
 			std::vector<unsigned char> vecBitmapImage;
 			vecBitmapImage.resize(imageSize);
 
-			// Read in the bitmap image data.
-			if (fread(&vecBitmapImage[0], 1, imageSize, filePtr) != imageSize)
-				return false;
+			file.Read(reinterpret_cast<char*>(vecBitmapImage.data()), imageSize);
 
-			// Close the file.
-			if (fclose(filePtr) != 0)
-				return false;
+			file.Close();
 
 			m_vecHeightMap.clear();
-			m_vecHeightMap.resize(m_nTerrainWidth * m_nTerrainHeight);
+			m_vecHeightMap.resize(m_property.nWidth * m_property.nHeight);
 
 			int k = 0;
 			int nIdx = 0;
-			float fZ = static_cast<float>(m_nTerrainHeight - 1);
-			for (uint32_t i = 0; i < m_nTerrainHeight; ++i)
+			float fZ = static_cast<float>(m_property.nHeight - 1);
+			for (int i = 0; i < m_property.nHeight; ++i)
 			{
-				for (uint32_t j = 0; j < m_nTerrainWidth; ++j)
+				for (int j = 0; j < m_property.nWidth; ++j)
 				{
 					// Set the X and Z coordinates.
-					m_vecHeightMap[nIdx].pos.x = static_cast<float>(j) * m_f3Scaling.x + m_f3DefaultPos.x;
-					m_vecHeightMap[nIdx].pos.z = (-static_cast<float>(i) + fZ) * m_f3Scaling.z + m_f3DefaultPos.z;
+					m_vecHeightMap[nIdx].pos.x = static_cast<float>(j) * m_property.f3Scaling.x + m_f3DefaultPos.x;
+					m_vecHeightMap[nIdx].pos.z = (-static_cast<float>(i) + fZ) * m_property.f3Scaling.z + m_f3DefaultPos.z;
 
-					int nIdx_y = (m_nTerrainWidth * (m_nTerrainHeight - 1 - i)) + j;
-					m_vecHeightMap[nIdx_y].pos.y = static_cast<float>(vecBitmapImage[k]) / m_f3Scaling.y + m_f3DefaultPos.y;
+					int nIdx_y = (m_property.nWidth * (m_property.nHeight - 1 - i)) + j;
+					m_vecHeightMap[nIdx_y].pos.y = static_cast<float>(vecBitmapImage[k]) / m_property.f3Scaling.y + m_f3DefaultPos.y;
 
 					++nIdx;
 
@@ -512,59 +347,106 @@ namespace EastEngine
 
 			vecBitmapImage.clear();
 
+			//// Start by creating the array structure to hold the height map data.
+			//// Open the bitmap map file in binary.
+			//FILE* filePtr = nullptr;
+			//if (fopen_s(&filePtr, strFilePath, "rb") != 0)
+			//	return false;
+			//
+			//BITMAPFILEHEADER bitmapFileHeader;
+			//// Read in the bitmap file header.
+			//if (fread(&bitmapFileHeader, sizeof(BITMAPFILEHEADER), 1, filePtr) != 1)
+			//	return false;
+			//
+			//BITMAPINFOHEADER bitmapInfoHeader;
+			//// Read in the bitmap info header.
+			//if (fread(&bitmapInfoHeader, sizeof(BITMAPINFOHEADER), 1, filePtr) != 1)
+			//	return false;
+			//
+			//// Calculate the size of the bitmap image data.  
+			//// Since we use non-divide by 2 dimensions (eg. 257x257) we need to add an extra byte to each line.
+			//uint32_t imageSize = m_property.nHeight * ((m_property.nWidth * 3) + 1);
+			//
+			//// Allocate memory for the bitmap image data.
+			//std::vector<unsigned char> vecBitmapImage;
+			//vecBitmapImage.resize(imageSize);
+			//
+			//// Read in the bitmap image data.
+			//if (fread(&vecBitmapImage[0], 1, imageSize, filePtr) != imageSize)
+			//	return false;
+			//
+			//// Close the file.
+			//if (fclose(filePtr) != 0)
+			//	return false;
+			//
+			//m_vecHeightMap.clear();
+			//m_vecHeightMap.resize(m_property.nWidth * m_property.nHeight);
+			//
+			//int k = 0;
+			//int nIdx = 0;
+			//float fZ = static_cast<float>(m_property.nHeight - 1);
+			//for (uint32_t i = 0; i < m_property.nHeight; ++i)
+			//{
+			//	for (uint32_t j = 0; j < m_property.nWidth; ++j)
+			//	{
+			//		// Set the X and Z coordinates.
+			//		m_vecHeightMap[nIdx].pos.x = static_cast<float>(j) * m_f3Scaling.x + m_f3DefaultPos.x;
+			//		m_vecHeightMap[nIdx].pos.z = (-static_cast<float>(i) + fZ) * m_f3Scaling.z + m_f3DefaultPos.z;
+			//
+			//		int nIdx_y = (m_property.nWidth * (m_property.nHeight - 1 - i)) + j;
+			//		m_vecHeightMap[nIdx_y].pos.y = static_cast<float>(vecBitmapImage[k]) / m_f3Scaling.y + m_f3DefaultPos.y;
+			//
+			//		++nIdx;
+			//
+			//		k += 3;
+			//	}
+			//
+			//	++k;
+			//}
+			//
+			//vecBitmapImage.clear();
+			
 			return true;
 		}
 
-		bool Terrain::loadColorMap(const char* strColorMapFile, const char* strPath)
+		bool Terrain::loadColorMap(const char* strFilePath)
 		{
-			std::string strFilePath = File::GetDataPath();
-			strFilePath.append(strPath);
-			strFilePath.append(strColorMapFile);
-
-			// Open the color map file in binary.
-			FILE* filePtr = nullptr;
-			if (fopen_s(&filePtr, strFilePath.c_str(), "rb") != 0)
+			File::FileStream file;
+			if (file.Open(strFilePath, File::EmState::eBinary | File::EmState::eRead) == false)
 				return false;
 
-			// Read in the file header.
 			BITMAPFILEHEADER bitmapFileHeader;
-			if (fread(&bitmapFileHeader, sizeof(BITMAPFILEHEADER), 1, filePtr) != 1)
-				return false;
+			file.Read(reinterpret_cast<char*>(&bitmapFileHeader), sizeof(BITMAPFILEHEADER));
 
-			// Read in the bitmap info header.
 			BITMAPINFOHEADER bitmapInfoHeader;
-			if (fread(&bitmapInfoHeader, sizeof(BITMAPINFOHEADER), 1, filePtr) != 1)
-				return false;
+			file.Read(reinterpret_cast<char*>(&bitmapInfoHeader), sizeof(BITMAPINFOHEADER));
 
-			// Calculate the size of the bitmap image data.  Since this is non-divide by 2 dimensions (eg. 257x257) need to add extra byte to each line.
-			uint32_t nImageSize = m_nTerrainHeight * ((m_nTerrainWidth * 3) + 1);
+			// Calculate the size of the bitmap image data.  
+			// Since we use non-divide by 2 dimensions (eg. 257x257) we need to add an extra byte to each line.
+			uint32_t imageSize = m_property.nHeight * ((m_property.nWidth * 3) + 1);
 
 			// Allocate memory for the bitmap image data.
 			std::vector<unsigned char> vecBitmapImage;
-			vecBitmapImage.resize(nImageSize);
+			vecBitmapImage.resize(imageSize);
 
-			// Read in the bitmap image data.
-			if (fread(&vecBitmapImage[0], 1, nImageSize, filePtr) != nImageSize)
-				return false;
+			file.Read(reinterpret_cast<char*>(vecBitmapImage.data()), imageSize);
 
-			// Close the file.
-			if (fclose(filePtr) != 0)
-				return false;
+			file.Close();
 
 			// Initialize the position in the image data buffer.
 			int k = 0;
 			// Read the image data into the color map portion of the height map structure.
-			for (uint32_t j = 0; j < m_nTerrainHeight; ++j)
+			for (int j = 0; j < m_property.nHeight; ++j)
 			{
-				for (uint32_t i = 0; i < m_nTerrainWidth; ++i)
+				for (int i = 0; i < m_property.nWidth; ++i)
 				{
 					// Bitmaps are upside down so load bottom to top into the array.
-					int nIdx = (m_nTerrainWidth * (m_nTerrainHeight - 1 - j)) + i;
+					int nIdx = (m_property.nWidth * (m_property.nHeight - 1 - j)) + i;
 
-					m_vecHeightMap[nIdx].color.w = 1.f;
-					m_vecHeightMap[nIdx].color.z = static_cast<float>(vecBitmapImage[k] / 255.f);
-					m_vecHeightMap[nIdx].color.y = static_cast<float>(vecBitmapImage[k + 1] / 255.f);
-					m_vecHeightMap[nIdx].color.x = static_cast<float>(vecBitmapImage[k + 2] / 255.f);
+					m_vecHeightMap[nIdx].color.a = 1.f;
+					m_vecHeightMap[nIdx].color.b = static_cast<float>(vecBitmapImage[k] / 255.f);
+					m_vecHeightMap[nIdx].color.g = static_cast<float>(vecBitmapImage[k + 1] / 255.f);
+					m_vecHeightMap[nIdx].color.r = static_cast<float>(vecBitmapImage[k + 2] / 255.f);
 
 					k += 3;
 				}
@@ -573,25 +455,77 @@ namespace EastEngine
 				++k;
 			}
 
+
+			//// Open the color map file in binary.
+			//FILE* filePtr = nullptr;
+			//if (fopen_s(&filePtr, strFilePath, "rb") != 0)
+			//	return false;
+			//
+			//// Read in the file header.
+			//BITMAPFILEHEADER bitmapFileHeader;
+			//if (fread(&bitmapFileHeader, sizeof(BITMAPFILEHEADER), 1, filePtr) != 1)
+			//	return false;
+			//
+			//// Read in the bitmap info header.
+			//BITMAPINFOHEADER bitmapInfoHeader;
+			//if (fread(&bitmapInfoHeader, sizeof(BITMAPINFOHEADER), 1, filePtr) != 1)
+			//	return false;
+			//
+			//// Calculate the size of the bitmap image data.  Since this is non-divide by 2 dimensions (eg. 257x257) need to add extra byte to each line.
+			//uint32_t nImageSize = m_property.nHeight * ((m_property.nWidth * 3) + 1);
+			//
+			//// Allocate memory for the bitmap image data.
+			//std::vector<unsigned char> vecBitmapImage;
+			//vecBitmapImage.resize(nImageSize);
+			//
+			//// Read in the bitmap image data.
+			//if (fread(&vecBitmapImage[0], 1, nImageSize, filePtr) != nImageSize)
+			//	return false;
+			//
+			//// Close the file.
+			//if (fclose(filePtr) != 0)
+			//	return false;
+			//
+			//// Initialize the position in the image data buffer.
+			//int k = 0;
+			//// Read the image data into the color map portion of the height map structure.
+			//for (uint32_t j = 0; j < m_property.nHeight; ++j)
+			//{
+			//	for (uint32_t i = 0; i < m_property.nWidth; ++i)
+			//	{
+			//		// Bitmaps are upside down so load bottom to top into the array.
+			//		int nIdx = (m_property.nWidth * (m_property.nHeight - 1 - j)) + i;
+			//
+			//		m_vecHeightMap[nIdx].color.w = 1.f;
+			//		m_vecHeightMap[nIdx].color.z = static_cast<float>(vecBitmapImage[k] / 255.f);
+			//		m_vecHeightMap[nIdx].color.y = static_cast<float>(vecBitmapImage[k + 1] / 255.f);
+			//		m_vecHeightMap[nIdx].color.x = static_cast<float>(vecBitmapImage[k + 2] / 255.f);
+			//
+			//		k += 3;
+			//	}
+			//
+			//	// Compensate for extra byte at end of each line in non-divide by 2 bitmaps (eg. 257x257).
+			//	++k;
+			//}
+
 			return true;
 		}
 
-		bool Terrain::loadRawHeightmap(const char* strRawHeightMapFile, const char* strPath)
+		bool Terrain::loadRawHeightmap(const char* strFilePath)
 		{
-			std::string strFilePath = File::GetDataPath();
-			strFilePath.append(strPath);
-			strFilePath.append(strRawHeightMapFile);
+			File::FileStream file;
+			if (file.Open(strFilePath, File::EmState::eBinary | File::EmState::eRead) == false)
+				return false;
 
 			// Start by creating the array structure to hold the height map data.
 			// Open the bitmap map file in binary.
-
-			FILE* filePtr = nullptr;
-			if (fopen_s(&filePtr, strFilePath.c_str(), "rb") != 0)
-				return false;
+			//FILE* filePtr = nullptr;
+			//if (fopen_s(&filePtr, strFilePath, "rb") != 0)
+			//	return false;
 
 			// Calculate the size of the bitmap image data.  
 			// Since we use non-divide by 2 dimensions (eg. 257x257) we need to add an extra byte to each line.
-			uint32_t imageSize = m_nTerrainHeight * m_nTerrainWidth;
+			uint32_t imageSize = m_property.nHeight * m_property.nWidth;
 
 			m_vecHeightMap.clear();
 			m_vecHeightMap.reserve(imageSize);
@@ -602,54 +536,48 @@ namespace EastEngine
 			std::vector<uint16_t> vecRawData;
 			vecRawData.resize(imageSize);
 
-			if (fread(&vecRawData[0], sizeof(uint16_t), imageSize, filePtr) != imageSize)
-				return false;
+			file.Read(reinterpret_cast<char*>(vecRawData.data()), imageSize * 2);
 
-			if (fclose(filePtr) != 0)
-				return false;
+			//if (fread(&vecRawData[0], sizeof(uint16_t), imageSize, filePtr) != imageSize)
+			//	return false;
+			//
+			//if (fclose(filePtr) != 0)
+			//	return false;
 
-			float fZ = static_cast<float>(m_nTerrainHeight - 1);
+			float fZ = static_cast<float>(m_property.nHeight - 1);
 
 			std::deque<float> dequeHeight;
 
 			uint32_t nIdx = 0;
-			for (uint32_t i = 0; i < m_nTerrainHeight; ++i)
+			for (int i = 0; i < m_property.nHeight; ++i)
 			{
-				std::vector<float> vecHeight;
-				vecHeight.reserve(m_nTerrainWidth);
-
-				for (uint32_t j = 0; j < m_nTerrainWidth; ++j)
+				for (int j = 0; j < m_property.nWidth; ++j)
 				{
 					HeightMapVertex vertex;
 
 					// Set the X and Z coordinates.
-					vertex.pos.x = static_cast<float>(j) * m_f3Scaling.x + m_f3DefaultPos.x;
-					vertex.pos.z = (-static_cast<float>(i) + fZ) * m_f3Scaling.z + m_f3DefaultPos.z;
+					vertex.pos.x = static_cast<float>(j) * m_property.f3Scaling.x + m_f3DefaultPos.x;
+					vertex.pos.z = (-static_cast<float>(i) + fZ) * m_property.f3Scaling.z + m_f3DefaultPos.z;
 
 					// Scale the height.
-					vertex.pos.y = static_cast<float>(vecRawData[nIdx]) / m_f3Scaling.y + m_f3DefaultPos.y;
+					vertex.pos.y = static_cast<float>(vecRawData[nIdx]) / m_property.f3Scaling.y + m_f3DefaultPos.y;
 
-					if (m_f2MinMaxHeight.x > vertex.pos.y)
+					if (m_property.fHeightMax > vertex.pos.y)
 					{
-						m_f2MinMaxHeight.x = vertex.pos.y;
+						m_property.fHeightMax = vertex.pos.y;
 					}
 
-					if (m_f2MinMaxHeight.y < vertex.pos.y)
+					if (m_property.fHeightMin < vertex.pos.y)
 					{
-						m_f2MinMaxHeight.y = vertex.pos.y;
+						m_property.fHeightMin = vertex.pos.y;
 					}
 
-					vecHeight.emplace_back(vertex.pos.y);
-					//m_vecHeight.emplace_back(vertex.pos.y);
+					m_vecHeight.emplace_back(vertex.pos.y);
 					m_vecHeightMap.emplace_back(vertex);
 
 					++nIdx;
 				}
-
-				std::copy(vecHeight.begin(), vecHeight.end(), std::front_inserter(dequeHeight));
 			}
-
-			std::copy(dequeHeight.begin(), dequeHeight.end(), std::back_inserter(m_vecHeight));
 
 			vecRawData.clear();
 
@@ -658,25 +586,27 @@ namespace EastEngine
 
 		bool Terrain::initTerrain()
 		{
-			uint32_t nVertexCount = (m_nTerrainHeight - 1) * (m_nTerrainWidth - 1) * 6;
+			uint32_t nVertexCount = (m_property.nHeight - 1) * (m_property.nWidth - 1) * 6;
+
 			std::vector<Graphics::VertexPosTexNorCol> vecVertex;
 			vecVertex.reserve(nVertexCount);
 
-			m_vecVertices.reserve(nVertexCount);
-			m_vecIndices.reserve(nVertexCount);
+			m_optVertices.reset();
+			std::vector<Math::Vector3>& vecVertices = m_optVertices.emplace();
+			vecVertices.reserve(nVertexCount);
 
 			std::vector<Math::Vector3> vecNormal;
-			vecNormal.reserve((m_nTerrainHeight - 1) * (m_nTerrainWidth - 1));
+			vecNormal.reserve((m_property.nHeight - 1) * (m_property.nWidth - 1));
 
-			int nHeight = (int)(m_nTerrainHeight - 1);
-			int nWidth = (int)(m_nTerrainWidth - 1);
+			int nHeight = m_property.nHeight - 1;
+			int nWidth = m_property.nWidth - 1;
 			for (int j = 0; j < nHeight; ++j)
 			{
 				for (int i = 0; i < nWidth; ++i)
 				{
-					int nIdx1 = ((j + 1) * m_nTerrainWidth) + i;		// Bottom left vertex.
-					int nIdx2 = ((j + 1) * m_nTerrainWidth) + (i + 1);	// Bottom right vertex.
-					int nIdx3 = (j * m_nTerrainWidth) + i;				// Upper left vertex.
+					int nIdx1 = ((j + 1) * m_property.nWidth) + i;		// Bottom left vertex.
+					int nIdx2 = ((j + 1) * m_property.nWidth) + (i + 1);	// Bottom right vertex.
+					int nIdx3 = (j * m_property.nWidth) + i;				// Upper left vertex.
 
 					// Get three vertices from the face.
 					Math::Vector3 v1 = m_vecHeightMap[nIdx1].pos;
@@ -711,8 +641,8 @@ namespace EastEngine
 			}
 
 			// Now go through all the vertices and take a sum of the face normals that touch this vertex.
-			nHeight = m_nTerrainHeight;
-			nWidth = m_nTerrainWidth;
+			nHeight = m_property.nHeight;
+			nWidth = m_property.nWidth;
 			for (int j = 0; j < nHeight; ++j)
 			{
 				for (int i = 0; i < nWidth; ++i)
@@ -726,7 +656,7 @@ namespace EastEngine
 					{
 						nIdx = ((j - 1) * (nWidth - 1)) + (i - 1);
 
-						sum += vecm_vecNormals[nIdx];
+						sum += vecNormal[nIdx];
 					}
 
 					// Bottom right face.
@@ -734,7 +664,7 @@ namespace EastEngine
 					{
 						nIdx = ((j - 1) * (nWidth - 1)) + i;
 
-						sum += vecm_vecNormals[nIdx];
+						sum += vecNormal[nIdx];
 					}
 
 					// Upper left face.
@@ -742,7 +672,7 @@ namespace EastEngine
 					{
 						nIdx = (j * (nWidth - 1)) + (i - 1);
 
-						sum += vecm_vecNormals[nIdx];
+						sum += vecNormal[nIdx];
 					}
 
 					// Upper right face.
@@ -750,7 +680,7 @@ namespace EastEngine
 					{
 						nIdx = (j * (nWidth - 1)) + i;
 
-						sum += vecm_vecNormals[nIdx];
+						sum += vecNormal[nIdx];
 					}
 
 					// Calculate the length of this normal.
@@ -766,20 +696,19 @@ namespace EastEngine
 
 			vecNormal.clear();
 
-			int nIdx = 0;
 			// Load the 3D terrain model with the height map terrain data.
 			// We will be creating 2 triangles for each of the four points in a quad.
-			nHeight = (int)(m_nTerrainHeight - 1);
-			nWidth = (int)(m_nTerrainWidth - 1);
+			nHeight = m_property.nHeight - 1;
+			nWidth = m_property.nWidth - 1;
 			for (int i = 0; i < nHeight; ++i)
 			{
 				for (int j = 0; j < nWidth; ++j)
 				{
 					// Get the indexes to the four points of the quad.
-					int nIdx1 = (m_nTerrainWidth * i) + j;				// Upper left.
-					int nIdx2 = (m_nTerrainWidth * i) + (j + 1);		// Upper right.
-					int nIdx3 = (m_nTerrainWidth * (i + 1)) + j;		// Bottom left.
-					int nIdx4 = (m_nTerrainWidth * (i + 1)) + (j + 1);	// Bottom right.
+					uint32_t nIdx1 = (m_property.nWidth * i) + j;				// Upper left.
+					uint32_t nIdx2 = (m_property.nWidth * i) + (j + 1);			// Upper right.
+					uint32_t nIdx3 = (m_property.nWidth * (i + 1)) + j;			// Bottom left.
+					uint32_t nIdx4 = (m_property.nWidth * (i + 1)) + (j + 1);	// Bottom right.
 
 					// Now create two triangles for that quad.
 					// Triangle 1 - Upper left.
@@ -789,9 +718,7 @@ namespace EastEngine
 						m_vecHeightMap[nIdx1].normal,
 						m_vecHeightMap[nIdx1].color
 					});
-					m_vecVertices.push_back(m_vecHeightMap[nIdx1].pos);
-					m_vecIndices.push_back(nIdx);
-					nIdx++;
+					vecVertices.push_back(m_vecHeightMap[nIdx1].pos);
 
 					// Triangle 1 - Upper right.
 					vecVertex.push_back({
@@ -800,9 +727,7 @@ namespace EastEngine
 						m_vecHeightMap[nIdx2].normal,
 						m_vecHeightMap[nIdx2].color
 					});
-					m_vecVertices.push_back(m_vecHeightMap[nIdx2].pos);
-					m_vecIndices.push_back(nIdx);
-					nIdx++;
+					vecVertices.push_back(m_vecHeightMap[nIdx2].pos);
 
 					// Triangle 1 - Bottom left.
 					vecVertex.push_back({
@@ -811,9 +736,7 @@ namespace EastEngine
 						m_vecHeightMap[nIdx3].normal,
 						m_vecHeightMap[nIdx3].color
 					});
-					m_vecVertices.push_back(m_vecHeightMap[nIdx3].pos);
-					m_vecIndices.push_back(nIdx);
-					nIdx++;
+					vecVertices.push_back(m_vecHeightMap[nIdx3].pos);
 
 					// Triangle 2 - Bottom left.
 					vecVertex.push_back({
@@ -822,9 +745,7 @@ namespace EastEngine
 						m_vecHeightMap[nIdx3].normal,
 						m_vecHeightMap[nIdx3].color
 					});
-					m_vecVertices.push_back(m_vecHeightMap[nIdx3].pos);
-					m_vecIndices.push_back(nIdx);
-					nIdx++;
+					vecVertices.push_back(m_vecHeightMap[nIdx3].pos);
 
 					// Triangle 2 - Upper right.
 					vecVertex.push_back({
@@ -833,9 +754,7 @@ namespace EastEngine
 						m_vecHeightMap[nIdx2].normal,
 						m_vecHeightMap[nIdx2].color
 					});
-					m_vecVertices.push_back(m_vecHeightMap[nIdx2].pos);
-					m_vecIndices.push_back(nIdx);
-					nIdx++;
+					vecVertices.push_back(m_vecHeightMap[nIdx2].pos);
 
 					// Triangle 2 - Bottom right.
 					vecVertex.push_back({
@@ -844,18 +763,16 @@ namespace EastEngine
 						m_vecHeightMap[nIdx4].normal,
 						m_vecHeightMap[nIdx4].color
 					});
-					m_vecVertices.push_back(m_vecHeightMap[nIdx4].pos);
-					m_vecIndices.push_back(nIdx);
-					nIdx++;
+					vecVertices.push_back(m_vecHeightMap[nIdx4].pos);
 				}
 			}
 
 			return initTerrainCell(vecVertex);
 		}
 
-		bool Terrain::initTerrainCell(std::vector<Graphics::VertexPosTexNorCol>& vecModel)
+		bool Terrain::initTerrainCell(const std::vector<Graphics::VertexPosTexNorCol>& vecModel)
 		{
-			int nCellRowCount = (m_nTerrainWidth - 1) / (m_nCellWidth - 1);
+			int nCellRowCount = (m_property.nWidth - 1) / (m_property.nCellWidth - 1);
 			m_nCellCount = nCellRowCount * nCellRowCount;
 
 			m_veTerrainCells.resize(m_nCellCount);
@@ -865,7 +782,7 @@ namespace EastEngine
 				int i = n / nCellRowCount;
 				int j = n % nCellRowCount;
 
-				m_veTerrainCells[n].Init(vecModel, j, i, m_nCellWidth, m_nCellHeight, m_nTerrainWidth);
+				m_veTerrainCells[n].Init(vecModel, j, i, m_property.nCellWidth, m_property.nCellHeight, m_property.nWidth);
 			});
 
 			//int nIdx = 0;
@@ -886,25 +803,25 @@ namespace EastEngine
 			return true;
 		}
 
-		bool Terrain::checkHeightOfTriangle(float x, float z, float& height, Math::Vector3& v0, Math::Vector3& v1, Math::Vector3& v2)
+		std::optional<float> Terrain::checkHeightOfTriangle(float x, float z, const Math::Vector3& v0, const Math::Vector3& v1, const Math::Vector3& v2)
 		{
 			// Starting position of the ray that is being cast.
-			Math::Vector3 vStartVector(x, 0.f, z);
+			Math::Vector3 f3StartVector(x, 0.f, z);
 
 			// The direction the ray is being cast.
-			Math::Vector3 vDrectionVector(0.f, -1.f, 0.f);
+			const Math::Vector3 f3DrectionVector(0.f, -1.f, 0.f);
 
 			// Calculate the two edges from the three points given.
-			Math::Vector3 vEdge1(v1.x - v0.x, v1.y - v0.y, v1.z - v0.z);
+			const Math::Vector3 vEdge1(v1.x - v0.x, v1.y - v0.y, v1.z - v0.z);
 
-			Math::Vector3 vEdge2(v2.x - v0.x, v2.y - v0.y, v2.z - v0.z);
+			const Math::Vector3 vEdge2(v2.x - v0.x, v2.y - v0.y, v2.z - v0.z);
 
 			// Calculate the normal of the triangle from the two edges.
 			Math::Vector3 vNormal((vEdge1.y * vEdge2.z) - (vEdge1.z * vEdge2.y),
 				(vEdge1.z * vEdge2.x) - (vEdge1.x * vEdge2.z),
 				(vEdge1.x * vEdge2.y) - (vEdge1.y * vEdge2.x));
 
-			float fMagnitude = sqrtf((vNormal.x * vNormal.x) + (vNormal.y * vNormal.y) + (vNormal.z * vNormal.z));
+			float fMagnitude = std::sqrt((vNormal.x * vNormal.x) + (vNormal.y * vNormal.y) + (vNormal.z * vNormal.z));
 			vNormal.x = vNormal.x / fMagnitude;
 			vNormal.y = vNormal.y / fMagnitude;
 			vNormal.z = vNormal.z / fMagnitude;
@@ -913,22 +830,22 @@ namespace EastEngine
 			float D = ((-vNormal.x * v0.x) + (-vNormal.y * v0.y) + (-vNormal.z * v0.z));
 
 			// Get the denominator of the equation.
-			float fDenominator = ((vNormal.x * vDrectionVector.x) + (vNormal.y * vDrectionVector.y) + (vNormal.z * vDrectionVector.z));
+			float fDenominator = ((vNormal.x * f3DrectionVector.x) + (vNormal.y * f3DrectionVector.y) + (vNormal.z * f3DrectionVector.z));
 
 			// Make sure the result doesn't get too close to zero to prevent divide by zero.
-			if (fabs(fDenominator) < 0.0001f)
-				return false;
+			if (std::abs(fDenominator) < 0.0001f)
+				return {};
 
 			// Get the numerator of the equation.
-			float fNumerator = -1.f * (((vNormal.x * vStartVector.x) + (vNormal.y * vStartVector.y) + (vNormal.z * vStartVector.z)) + D);
+			float fNumerator = -1.f * (((vNormal.x * f3StartVector.x) + (vNormal.y * f3StartVector.y) + (vNormal.z * f3StartVector.z)) + D);
 
 			// Calculate where we intersect the triangle.
 			float t = fNumerator / fDenominator;
 
 			// Find the intersection vector.
-			Math::Vector3 Q(vStartVector.x + (vDrectionVector.x * t),
-				vStartVector.y + (vDrectionVector.y * t),
-				vStartVector.z + (vDrectionVector.z * t));
+			Math::Vector3 Q(f3StartVector.x + (f3DrectionVector.x * t),
+				f3StartVector.y + (f3DrectionVector.y * t),
+				f3StartVector.z + (f3DrectionVector.z * t));
 
 			// Find the three edges of the triangle.
 			Math::Vector3 e1(v1.x - v0.x, v1.y - v0.y, v1.z - v0.z);
@@ -947,7 +864,7 @@ namespace EastEngine
 
 			// Check if it is outside.
 			if (fDeterminant > 0.001f)
-				return false;
+				return {};
 
 			// Calculate the normal for the second edge.
 			edgeNormal.x = (e2.y * vNormal.z) - (e2.z * vNormal.y);
@@ -963,7 +880,7 @@ namespace EastEngine
 
 			// Check if it is outside.
 			if (fDeterminant > 0.001f)
-				return false;
+				return {};
 
 			// Calculate the normal for the third edge.
 			edgeNormal.x = (e3.y * vNormal.z) - (e3.z * vNormal.y);
@@ -979,17 +896,14 @@ namespace EastEngine
 
 			// Check if it is outside.
 			if (fDeterminant > 0.001f)
-				return false;
+				return {};
 
-			// Now we have our height.
-			height = Q.y;
-
-			return true;
+			return Q.y;
 		}
 
 		//bool Terrain::checkHeightOfTriangle(float x, float z, float& height, Vector3& v0, Vector3& v1, Vector3& v2)
 		//{
-		//	//float vStartVector[3], vDrectionVector[3], vEdge1[3], vEdge2[3], m_vecNormals[3];
+		//	//float f3StartVector[3], f3DrectionVector[3], vEdge1[3], vEdge2[3], m_vecNormals[3];
 		//	//float Q[3], e1[3], e2[3], e3[3], edgem_vecNormals[3], temp[3];
 		//	//float magnitude, D, denominator, numerator, t, determinant;
 

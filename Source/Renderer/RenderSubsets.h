@@ -77,6 +77,24 @@ namespace EastEngine
 				, float fDepth);
 		};
 
+		struct RenderSubsetHeightField
+		{
+			void* pKey = nullptr;
+			IVertexBuffer* pVertexBuffer = nullptr;
+			IIndexBuffer* pIndexBuffer = nullptr;
+			IMaterial* pMaterial = nullptr;
+			Math::Matrix matWorld;
+			uint32_t nStartIndex = 0;
+			uint32_t nIndexCount = 0;
+			float fDepth = 0.f;
+			Collision::Sphere boundingSphere;
+
+			RenderSubsetHeightField();
+			RenderSubsetHeightField(void* pKey, IVertexBuffer* pIVertexBuffer, IIndexBuffer* pIIndexBuffer, IMaterial* pMaterial
+				, const Math::Matrix& matWorld, uint32_t nStartIndex, uint32_t nIndexCount
+				, float fDepth, const Collision::Sphere& boundingSphere);
+		};
+
 		struct RenderSubsetTerrain
 		{
 			IVertexBuffer* pVertexBuffer = nullptr;

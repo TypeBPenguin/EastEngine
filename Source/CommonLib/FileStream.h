@@ -33,7 +33,6 @@ namespace EastEngine
 			void Seekg(std::streampos pos, uint32_t state) { m_file.seekg(pos, state); }
 			std::streampos Tellg() { m_file.tellg(); }
 
-			void Read(void* buffer, uint32_t nLength) { m_file.read(static_cast<char*>(buffer), nLength); }
 			void GetLine(std::string& str) { std::getline(m_file, str); }
 
 			uint32_t GetDataSize() { return m_nDataSize; }
@@ -59,11 +58,21 @@ namespace EastEngine
 			FileStream& operator << (wchar_t* value);
 
 		public:
-			template <typename T>
-			FileStream& Write(const T* pValue, uint32_t nCount);
+			FileStream& FileStream::Write(const float* pValue, uint32_t nCount);
+			FileStream& FileStream::Write(const double* pValue, uint32_t nCount);
+			FileStream& FileStream::Write(const int* pValue, uint32_t nCount);
+			FileStream& FileStream::Write(const uint32_t* pValue, uint32_t nCount);
+			FileStream& FileStream::Write(const uint64_t* pValue, uint32_t nCount);
 
-			template <typename T>
-			FileStream& Read(T* pValue, uint32_t nCount);
+			FileStream& FileStream::Write(const char* pValue, uint32_t nLength);
+
+			FileStream& FileStream::Read(float* pBuffer, uint32_t nCount);
+			FileStream& FileStream::Read(double* pBuffer, uint32_t nCount);
+			FileStream& FileStream::Read(int* pBuffer, uint32_t nCount);
+			FileStream& FileStream::Read(uint32_t* pBuffer, uint32_t nCount);
+			FileStream& FileStream::Read(uint64_t* pBuffer, uint32_t nCount);
+
+			FileStream& FileStream::Read(char* pBuffer, uint32_t nLength);
 
 		public:
 			const std::string& GetPath() { return m_strPath; }

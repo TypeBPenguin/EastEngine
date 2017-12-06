@@ -41,15 +41,28 @@ namespace EastEngine
 				++m_nSkinnedIndex;
 			}
 
+			virtual void AddRender(const RenderSubsetHeightField& renderSubset) override
+			{
+				if (m_nHeightFieldIndex >= m_vecHeightFieldSubsets.size())
+				{
+					m_vecHeightFieldSubsets.resize(m_vecHeightFieldSubsets.size() * 2);
+				}
+
+				m_vecHeightFieldSubsets[m_nHeightFieldIndex].Set(renderSubset);
+				++m_nHeightFieldIndex;
+			}
+
 			virtual void Render(uint32_t nRenderGroupFlag) override;
 			virtual void Flush() override;
 
 		private:
 			void renderStaticModel(IDevice* pDevice, Camera* pCamera);
 			void renderSkinnedModel(IDevice* pDevice, Camera* pCamera);
+			void renderHeightField(IDevice* pDevice, Camera* pCamera);
 
 			void renderStaticModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, const Math::Matrix* pMatView, const Math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap);
 			void renderSkinnedModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, const Math::Matrix* pMatView, const Math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap);
+			void renderHeightField_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, const Math::Matrix* pMatView, const Math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap);
 
 		private:
 			struct StaticSubset
@@ -104,6 +117,34 @@ namespace EastEngine
 					: pSubset(pSubset)
 				{
 					vecInstData.emplace_back(matWorld, nVTFID);
+				}
+			};
+
+			struct HeightFieldSubset
+			{
+				std::pair<void*, IMaterial*> pairKey;
+				RenderSubsetHeightField data;
+				bool isCulling = false;
+
+				void Set(const RenderSubsetHeightField& source)
+				{
+					pairKey = std::make_pair(source.pKey, source.pMaterial);
+					data = source;
+					isCulling = false;
+				}
+			};
+			std::vector<HeightFieldSubset> m_vecHeightFieldSubsets;
+			uint32_t m_nHeightFieldIndex;
+
+			struct RenderSubsetHeightFieldBatch
+			{
+				const HeightFieldSubset* pSubset = nullptr;
+				std::vector<InstStaticData> vecInstData;
+
+				RenderSubsetHeightFieldBatch(const HeightFieldSubset* pSubset, const Math::Matrix& matWorld)
+					: pSubset(pSubset)
+				{
+					vecInstData.emplace_back(matWorld);
 				}
 			};
 		};

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Physics/RigidBody.h"
 #include "ComponentInterface.h"
 
 namespace EastEngine
@@ -85,6 +86,24 @@ namespace EastEngine
 
 		struct TerrainProperty
 		{
+#ifndef NEW_TERRAIN
+			int nWidth = 512;
+			int nHeight = 512;
+
+			int nCellWidth = 64;
+			int nCellHeight = 64;
+
+			float fHeightMin = -30.f;
+			float fHeightMax = 30.f;
+
+			Math::Vector3 f3Scaling = Math::Vector3::One;
+
+			std::string strTexHeightMap;
+			std::string strTexColorMap;
+
+			Graphics::MaterialInfo materialInfo;
+			Physics::RigidBodyProperty rigidBodyProperty;
+#else
 			int nGridPoints = 512;
 			int nPatches = 64;
 
@@ -136,6 +155,7 @@ namespace EastEngine
 			std::string strTexSlopeDiffuse;
 			std::string strTexWaterBump;
 			std::string strTexSky;
+#endif
 		};
 
 		class ITerrain : public IGameObject

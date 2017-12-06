@@ -15,7 +15,7 @@ namespace EastEngine
 			, m_pIndexBuffer(nullptr)
 			, m_pLineVertexBuffer(nullptr)
 			, m_pLineIndexBuffer(nullptr)
-			, m_bCulling(false)
+			, m_isCulling(false)
 		{
 		}
 
@@ -24,7 +24,7 @@ namespace EastEngine
 			Release();
 		}
 
-		bool TerrainCells::Init(std::vector<Graphics::VertexPosTexNorCol>& vecModel, int nNodeIdxX, int nNodeIdxY, int nCellWidth, int nCellHeight, int nTerrainWidth)
+		bool TerrainCells::Init(const std::vector<Graphics::VertexPosTexNorCol>& vecModel, int nNodeIdxX, int nNodeIdxY, int nCellWidth, int nCellHeight, int nTerrainWidth)
 		{
 			m_n2NodeIdx = Math::UInt2(nNodeIdxX, nNodeIdxY);
 
@@ -45,23 +45,21 @@ namespace EastEngine
 			m_pLineIndexBuffer = nullptr;
 		}
 
-		void TerrainCells::Update(float fElapsedTime, std::vector<Graphics::IMaterial*>& vecMaterial, bool bShowCellLine)
+		void TerrainCells::Update(float fElapsedTime, std::vector<Graphics::IMaterial*>& vecMaterial, bool isEnableShowCellLine)
 		{
-			m_matWorld = Math::Matrix::Identity;
+			Graphics::RenderSubsetHeightField subset(this, m_pVertexBuffer, m_pIndexBuffer, vecMaterial[0], m_matWorld, 0, m_pIndexBuffer->GetIndexNum(), 0.f, m_boundingSphere);
+			Graphics::RendererManager::GetInstance()->AddRender(subset);
 
-			//Graphics::RenderSubsetTerrain renderSubset(this, m_pVertexBuffer, m_pIndexBuffer, vecMaterial[m_modelPiece.nMaterialID], m_matWorld, m_modelPiece.nStartIndex, m_modelPiece.nIndexCount);
-			//Graphics::RendererManager::GetInstance()->AddRender(renderSubset);
-
-			if (bShowCellLine == false)
+			if (isEnableShowCellLine == false)
 				return;
 
-			Math::Matrix matWorld(Math::Matrix::Compose((m_vMaxSize - m_vMinSize), Math::Quaternion::Identity, m_vPos));
+			m_matWorld = Math::Matrix::Compose((m_f3MaxSize - m_f3MinSize), Math::Quaternion::Identity, m_f3Pos);
 
-			Graphics::RenderSubsetLine renderSubsetLine(m_pLineVertexBuffer, m_pLineIndexBuffer, matWorld);
+			Graphics::RenderSubsetLine renderSubsetLine(m_pLineVertexBuffer, m_pLineIndexBuffer, m_matWorld);
 			Graphics::RendererManager::GetInstance()->AddRender(renderSubsetLine);
 		}
 
-		bool TerrainCells::buildCell(std::vector<Graphics::VertexPosTexNorCol>& vecModel, int nNodeIdxX, int nNodeIdxY, int nCellWidth, int nCellHeight, int nTerrainWidth)
+		bool TerrainCells::buildCell(const std::vector<Graphics::VertexPosTexNorCol>& vecModel, int nNodeIdxX, int nNodeIdxY, int nCellWidth, int nCellHeight, int nTerrainWidth)
 		{
 			uint32_t nVertexCount = (nCellHeight - 1) * (nCellWidth - 1) * 6;
 			uint32_t nIndexCount = nVertexCount;
@@ -98,10 +96,6 @@ namespace EastEngine
 				return false;
 			}
 
-			m_modelPiece.nMaterialID = 0;
-			m_modelPiece.nStartIndex = 0;
-			m_modelPiece.nIndexCount = nVertexCount;
-
 			calcCellDimensions(vecVertices);
 
 			return true;
@@ -115,64 +109,39 @@ namespace EastEngine
 			return true;
 		}
 
-		void TerrainCells::calcCellDimensions(std::vector<Graphics::VertexPosTexNorCol>& vecVertexPos)
+		void TerrainCells::calcCellDimensions(const std::vector<Graphics::VertexPosTexNorCol>& vecVertexPos)
 		{
-			m_vMaxSize.x = (float)(-INT32_MAX);
-			m_vMaxSize.y = (float)(-INT32_MAX);
-			m_vMaxSize.z = (float)(-INT32_MAX);
+			m_f3MaxSize.x = std::numeric_limits<float>::min();
+			m_f3MaxSize.y = std::numeric_limits<float>::min();
+			m_f3MaxSize.z = std::numeric_limits<float>::min();
 
-			m_vMinSize.x = (float)(INT32_MAX);
-			m_vMinSize.y = (float)(INT32_MAX);
-			m_vMinSize.z = (float)(INT32_MAX);
+			m_f3MinSize.x = std::numeric_limits<float>::max();
+			m_f3MinSize.y = std::numeric_limits<float>::max();
+			m_f3MinSize.z = std::numeric_limits<float>::max();
 
-			uint32_t nVertexCount = m_pVertexBuffer->GetVertexNum();
+			const uint32_t nVertexCount = m_pVertexBuffer->GetVertexNum();
 			for (uint32_t i = 0; i < nVertexCount; ++i)
 			{
-				Math::Vector3& vSize = vecVertexPos[i].pos;
+				const Math::Vector3& f3Size = vecVertexPos[i].pos;
 
 				// Check if the width exceeds the minimum or maximum.
-				if (vSize.x > m_vMaxSize.x)
-				{
-					m_vMaxSize.x = vSize.x;
-				}
-				if (vSize.x < m_vMinSize.x)
-				{
-					m_vMinSize.x = vSize.x;
-				}
-
-				// Check if the height exceeds the minimum or maximum.
-				if (vSize.y > m_vMaxSize.y)
-				{
-					m_vMaxSize.y = vSize.y;
-				}
-				if (vSize.y < m_vMinSize.y)
-				{
-					m_vMinSize.y = vSize.y;
-				}
-
-				// Check if the depth exceeds the minimum or maximum.
-				if (vSize.z > m_vMaxSize.z)
-				{
-					m_vMaxSize.z = vSize.z;
-				}
-				if (vSize.z < m_vMinSize.z)
-				{
-					m_vMinSize.z = vSize.z;
-				}
+				m_f3MaxSize = Math::Vector3::Max(m_f3MaxSize, f3Size);
+				m_f3MinSize = Math::Vector3::Min(m_f3MinSize, f3Size);
 			}
 
 			// Calculate the center position of this cell.
-			m_vPos.x = ((m_vMaxSize.x - m_vMinSize.x) * 0.5f) + m_vMinSize.x;
-			m_vPos.y = ((m_vMaxSize.y - m_vMinSize.y) * 0.5f) + m_vMinSize.y;
-			m_vPos.z = ((m_vMaxSize.z - m_vMinSize.z) * 0.5f) + m_vMinSize.z;
+			m_f3Pos.x = ((m_f3MaxSize.x - m_f3MinSize.x) * 0.5f) + m_f3MinSize.x;
+			m_f3Pos.y = ((m_f3MaxSize.y - m_f3MinSize.y) * 0.5f) + m_f3MinSize.y;
+			m_f3Pos.z = ((m_f3MaxSize.z - m_f3MinSize.z) * 0.5f) + m_f3MinSize.z;
 
 			Math::Vector3 vExtents;
 
-			vExtents.x = (m_vMaxSize.x - m_vMinSize.x) * 0.5f;
-			vExtents.y = (m_vMaxSize.y - m_vMinSize.y) * 0.5f;
-			vExtents.z = (m_vMaxSize.z - m_vMinSize.z) * 0.5f;
+			vExtents.x = (m_f3MaxSize.x - m_f3MinSize.x) * 0.5f;
+			vExtents.y = (m_f3MaxSize.y - m_f3MinSize.y) * 0.5f;
+			vExtents.z = (m_f3MaxSize.z - m_f3MinSize.z) * 0.5f;
 
-			m_boundingBox = Collision::AABB(m_vPos, vExtents);
+			m_boundingBox = Collision::AABB(m_f3Pos, vExtents);
+			m_boundingSphere.Transform(m_boundingSphere, m_matWorld);
 		}
 	}
 }

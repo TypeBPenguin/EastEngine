@@ -253,6 +253,17 @@ namespace EastEngine
 				emPhysicsShapeType = Physics::EmPhysicsShape::eTriangleMesh;
 			}
 
+			void SetTriangleMesh(const Math::Vector3* pVertices, uint32_t nVertexCount)
+			{
+				TriangleMesh& triangleMesh = element.emplace<TriangleMesh>();
+
+				triangleMesh.pVertices = pVertices;
+				triangleMesh.nVertexCount = nVertexCount;
+				triangleMesh.pIndices = nullptr;
+				triangleMesh.nIndexCount = 0;
+				emPhysicsShapeType = Physics::EmPhysicsShape::eTriangleMesh;
+			}
+
 			void SetTriangleMesh(const Math::Vector3* pVertices, uint32_t nVertexCount, const uint32_t* pIndices, uint32_t nIndexCount)
 			{
 				TriangleMesh& triangleMesh = element.emplace<TriangleMesh>();

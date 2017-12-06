@@ -50,6 +50,7 @@ namespace EastEngine
 
 			void AddRender(const RenderSubsetStatic& renderSubset) { m_pRenderer[EmRenderer::eModel]->AddRender(renderSubset); }
 			void AddRender(const RenderSubsetSkinned& renderSubset) { m_pRenderer[EmRenderer::eModel]->AddRender(renderSubset); }
+			void AddRender(const RenderSubsetHeightField& renderSubset) { m_pRenderer[EmRenderer::eModel]->AddRender(renderSubset); }
 			void AddRender(const RenderSubsetTerrain& renderSubset) { m_pRenderer[EmRenderer::eTerrain]->AddRender(renderSubset); }
 
 			void AddRender(const RenderSubsetSky& renderSubset) { m_pRenderer[EmRenderer::eSky]->AddRender(renderSubset); }

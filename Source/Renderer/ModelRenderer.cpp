@@ -14,9 +14,11 @@ namespace StrID
 {
 	RegisterStringID(ModelStatic);
 	RegisterStringID(ModelSkinned);
+	RegisterStringID(ModelTerrain);
 
 	RegisterStringID(ModelStatic_Tessellation);
 	RegisterStringID(ModelSkinned_Tessellation);
+	RegisterStringID(ModelTerrain_Tessellation);
 
 	RegisterStringID(g_Instances);
 	RegisterStringID(g_matViewProj);
@@ -65,27 +67,28 @@ namespace EastEngine
 			{
 				eUseTexAlbedo = 0,
 				eUseTexMask,
-				eUseTexNormal,
-				eUseTexDisplacement,
-				eUseTexSpecularColor,
-				eUseTexRoughness,
-				eUseTexMetallic,
-				eUseTexEmissive,
-				eUseTexSurface,
-				eUseTexSpecular,
-				eUseTexSpecularTint,
-				eUseTexAnisotropic,
-				eUseTexSheen,
-				eUseTexSheenTint,
-				eUseTexClearcoat,
-				eUseTexClearcoatGloss,
-				eUseInstancing,
-				eUseSkinning,
-				eUseWriteDepth,
-				eUseCubeMap,
-				eUseTessellation,
+eUseTexNormal,
+eUseTexDisplacement,
+eUseTexSpecularColor,
+eUseTexRoughness,
+eUseTexMetallic,
+eUseTexEmissive,
+eUseTexSurface,
+eUseTexSpecular,
+eUseTexSpecularTint,
+eUseTexAnisotropic,
+eUseTexSheen,
+eUseTexSheenTint,
+eUseTexClearcoat,
+eUseTexClearcoatGloss,
+eUseInstancing,
+eUseSkinning,
+eUseWriteDepth,
+eUseCubeMap,
+eUseTessellation,
+eUseTerrain,
 
-				MaskCount,
+MaskCount,
 			};
 
 			const char* GetMaskName(uint64_t nMask)
@@ -112,7 +115,8 @@ namespace EastEngine
 					"USE_SKINNING",
 					"USE_WRITEDEPTH",
 					"USE_CUBEMAP",
-					"USE_TESSELLATION"
+					"USE_TESSELLATION",
+					"USE_TERRAIN"
 				};
 
 				return s_strMaskName[nMask].c_str();
@@ -125,8 +129,10 @@ namespace EastEngine
 			{
 				eModelStatic = 0,
 				eModelSkinned,
+				eModelTerrain,
 				eModelStatic_Tessellation,
 				eModelSkinned_Tessellation,
+				eModelTerrain_Tessellation,
 			};
 
 			String::StringID strName;
@@ -158,6 +164,17 @@ namespace EastEngine
 					emTechType = eModelSkinned;
 				}
 			}
+			else if (GetBitMask64(nMask, EmModelShader::eUseTerrain))
+			{
+				if (GetBitMask64(nMask, EmModelShader::eUseTessellation))
+				{
+					emTechType = eModelTerrain_Tessellation;
+				}
+				else
+				{
+					emTechType = eModelTerrain;
+				}
+			}
 			else
 			{
 				if (GetBitMask64(nMask, EmModelShader::eUseTessellation))
@@ -185,11 +202,17 @@ namespace EastEngine
 			case eModelSkinned:
 				pEffect->CreateTechnique(StrID::ModelSkinned, EmVertexFormat::ePosTexNorBleIdx);
 				break;
+			case eModelTerrain:
+				pEffect->CreateTechnique(StrID::ModelTerrain, EmVertexFormat::ePosTexNorCol);
+				break;
 			case eModelStatic_Tessellation:
 				pEffect->CreateTechnique(StrID::ModelStatic_Tessellation, EmVertexFormat::ePosTexNor);
 				break;
 			case eModelSkinned_Tessellation:
 				pEffect->CreateTechnique(StrID::ModelSkinned_Tessellation, EmVertexFormat::ePosTexNorBleIdx);
+				break;
+			case eModelTerrain_Tessellation:
+				pEffect->CreateTechnique(StrID::ModelTerrain_Tessellation, EmVertexFormat::ePosTexNorCol);
 				break;
 			}
 
@@ -199,6 +222,7 @@ namespace EastEngine
 		ModelRenderer::ModelRenderer()
 			: m_nStaticIndex(0)
 			, m_nSkinnedIndex(0)
+			, m_nHeightFieldIndex(0)
 		{
 		}
 
@@ -210,6 +234,7 @@ namespace EastEngine
 		{
 			m_vecStaticSubsets.resize(512);
 			m_vecSkinnedSubsets.resize(128);
+			m_vecHeightFieldSubsets.resize(64);
 
 			return true;
 		}
@@ -223,6 +248,7 @@ namespace EastEngine
 			eInstancing = 1 << 3,
 			eWriteDepth = 1 << 4,
 			eCubeMap = 1 << 5,
+			eTerrain = 1 << 6,
 		};
 
 		void ClearEffect(IDeviceContext* pDeviceContext, IEffect* pEffect, IEffectTech* pEffectTech)
@@ -262,6 +288,7 @@ namespace EastEngine
 			const bool isInstancing = (nRenderType & EmRenderType::eInstancing) != 0;
 			const bool isWriteDepth = (nRenderType & EmRenderType::eWriteDepth) != 0;
 			const bool isCubeMap = (nRenderType & EmRenderType::eCubeMap) != 0;
+			const bool isTerrain = (nRenderType & EmRenderType::eTerrain) != 0;
 
 			int64_t nMask = 0;
 			if (isInstancing == true)
@@ -282,6 +309,11 @@ namespace EastEngine
 			if (isCubeMap == true)
 			{
 				SetBitMask64(nMask, EmModelShader::eUseCubeMap);
+			}
+
+			if (isTerrain == true)
+			{
+				SetBitMask64(nMask, EmModelShader::eUseTerrain);
 			}
 
 			bool isEnableTessellation = false;
@@ -325,10 +357,18 @@ namespace EastEngine
 			if (pEffect == nullptr)
 				return;
 
-			String::StringID strTechName(isEnableTessellation == true ? StrID::ModelStatic_Tessellation : StrID::ModelStatic);
+			String::StringID strTechName = StrID::ModelStatic;
 			if (isSkinnedModel == true)
 			{
 				strTechName = isEnableTessellation == true ? StrID::ModelSkinned_Tessellation : StrID::ModelSkinned;
+			}
+			else if (isTerrain == true)
+			{
+				strTechName = isEnableTessellation == true ? StrID::ModelTerrain_Tessellation : StrID::ModelTerrain;
+			}
+			else
+			{
+				strTechName = isEnableTessellation == true ? StrID::ModelStatic_Tessellation : StrID::ModelStatic;
 			}
 
 			IEffectTech* pEffectTech = pEffect->GetTechnique(strTechName);
@@ -499,7 +539,14 @@ namespace EastEngine
 						{
 							pEffectTech->PassApply(p, pDeviceContext);
 
-							pDeviceContext->DrawIndexedInstanced(nIndexCount, nNum, nStartIndex, 0, 0);
+							if (pIndexBuffer != nullptr)
+							{
+								pDeviceContext->DrawIndexedInstanced(nIndexCount, nNum, nStartIndex, 0, 0);
+							}
+							else
+							{
+								pDeviceContext->DrawInstanced(pVertexBuffer->GetVertexNum(), nNum, 0, 0);
+							}
 						}
 					}
 				}
@@ -523,7 +570,14 @@ namespace EastEngine
 						{
 							pEffectTech->PassApply(p, pDeviceContext);
 
-							pDeviceContext->DrawIndexedInstanced(nIndexCount, nNum, nStartIndex, 0, 0);
+							if (pIndexBuffer != nullptr)
+							{
+								pDeviceContext->DrawIndexedInstanced(nIndexCount, nNum, nStartIndex, 0, 0);
+							}
+							else
+							{
+								pDeviceContext->DrawInstanced(pVertexBuffer->GetVertexNum(), nNum, 0, 0);
+							}
 						}
 					}
 				}
@@ -543,7 +597,14 @@ namespace EastEngine
 				{
 					pEffectTech->PassApply(p, pDeviceContext);
 
-					pDeviceContext->DrawIndexed(nIndexCount, nStartIndex, 0);
+					if (pIndexBuffer != nullptr)
+					{
+						pDeviceContext->DrawIndexed(nIndexCount, nStartIndex, 0);
+					}
+					else
+					{
+						pDeviceContext->Draw(pVertexBuffer->GetVertexNum(), 0);
+					}
 				}
 			}
 
@@ -679,6 +740,7 @@ namespace EastEngine
 
 			renderStaticModel(pDevice, pCamera);
 			renderSkinnedModel(pDevice, pCamera);
+			renderHeightField(pDevice, pCamera);
 
 			if (Config::IsEnableShadow() == true)
 			{
@@ -790,6 +852,7 @@ namespace EastEngine
 		{
 			m_nStaticIndex = 0;
 			m_nSkinnedIndex = 0;
+			m_nHeightFieldIndex = 0;
 		}
 
 		void ModelRenderer::renderStaticModel(IDevice* pDevice, Camera* pCamera)
@@ -798,9 +861,7 @@ namespace EastEngine
 
 			D3D_PROFILING(StaticModel);
 			{
-				auto& frustum = pCamera->GetFrustum();
-
-				Math::Matrix matInvView = pCamera->GetViewMatrix().Invert();
+				const Collision::Frustum& frustum = pCamera->GetFrustum();
 
 				std::map<std::pair<void*, IMaterial*>, RenderSubsetStaticBatch> mapStatic;
 				{
@@ -936,6 +997,85 @@ namespace EastEngine
 				}
 
 				mapSkinned.clear();
+			}
+		}
+
+		void ModelRenderer::renderHeightField(IDevice* pDevice, Camera* pCamera)
+		{
+			IDeviceContext* pDeviceContext = GetDeviceContext();
+
+			D3D_PROFILING(StaticModel);
+			{
+				const Collision::Frustum& frustum = pCamera->GetFrustum();
+
+				std::map<std::pair<void*, IMaterial*>, RenderSubsetHeightFieldBatch> mapHeightField;
+				{
+					D3D_PROFILING(Ready);
+
+					for (uint32_t i = 0; i < m_nHeightFieldIndex; ++i)
+					{
+						HeightFieldSubset& subset = m_vecHeightFieldSubsets[i];
+
+						if (subset.isCulling == true)
+							continue;
+
+						//if (frustum.Contains(subset.data.boundingSphere) == Collision::EmContainment::eDisjoint)
+						//	continue;
+
+						auto iter = mapHeightField.find(subset.pairKey);
+						if (iter != mapHeightField.end())
+						{
+							iter->second.vecInstData.emplace_back(subset.data.matWorld);
+						}
+						else
+						{
+							mapHeightField.emplace(subset.pairKey, RenderSubsetHeightFieldBatch(&subset, subset.data.matWorld));
+						}
+					}
+				}
+
+				std::vector<const HeightFieldSubset*> vecSubsetHeightField;
+				vecSubsetHeightField.reserve(m_nStaticIndex);
+				{
+					D3D_PROFILING(Render);
+
+					for (auto& iter : mapHeightField)
+					{
+						RenderSubsetHeightFieldBatch& renderSubsetBatch = iter.second;
+
+						if (renderSubsetBatch.vecInstData.size() == 1)
+						{
+							vecSubsetHeightField.emplace_back(renderSubsetBatch.pSubset);
+						}
+						else
+						{
+							const RenderSubsetHeightField& subset = renderSubsetBatch.pSubset->data;
+							RenderModel(EmRenderType::eTerrain | EmRenderType::eInstancing,
+								pDevice, pDeviceContext,
+								&pCamera->GetViewMatrix(), pCamera->GetProjMatrix(), pCamera->GetPosition(),
+								subset.pVertexBuffer, subset.pIndexBuffer, subset.pMaterial, subset.nIndexCount, subset.nStartIndex,
+								&renderSubsetBatch.vecInstData);
+						}
+					}
+
+					std::sort(vecSubsetHeightField.begin(), vecSubsetHeightField.end(), [](const HeightFieldSubset* a, const HeightFieldSubset* b) -> bool
+					{
+						return a->data.fDepth < b->data.fDepth;
+					});
+
+					for (auto& pSubset : vecSubsetHeightField)
+					{
+						const RenderSubsetHeightField& renderSubset = pSubset->data;
+
+						RenderModel(EmRenderType::eTerrain,
+							pDevice, pDeviceContext,
+							&pCamera->GetViewMatrix(), pCamera->GetProjMatrix(), pCamera->GetPosition(),
+							renderSubset.pVertexBuffer, renderSubset.pIndexBuffer, renderSubset.pMaterial, renderSubset.nIndexCount, renderSubset.nStartIndex,
+							&pSubset->data.matWorld);
+					}
+				}
+
+				mapHeightField.clear();
 			}
 		}
 

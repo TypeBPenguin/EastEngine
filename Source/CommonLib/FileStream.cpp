@@ -263,7 +263,6 @@ namespace EastEngine
 			return *this;
 		}
 
-		template <>
 		FileStream& FileStream::Write(const float* pValue, uint32_t nCount)
 		{
 			for (uint32_t i = 0; i < nCount; ++i)
@@ -274,18 +273,6 @@ namespace EastEngine
 			return *this;
 		}
 
-		template <>
-		FileStream& FileStream::Read(float* pValue, uint32_t nCount)
-		{
-			for (uint32_t i = 0; i < nCount; ++i)
-			{
-				*this >> pValue[i];
-			}
-
-			return *this;
-		}
-
-		template <>
 		FileStream& FileStream::Write(const double* pValue, uint32_t nCount)
 		{
 			for (uint32_t i = 0; i < nCount; ++i)
@@ -296,18 +283,6 @@ namespace EastEngine
 			return *this;
 		}
 
-		template <>
-		FileStream& FileStream::Read(double* pValue, uint32_t nCount)
-		{
-			for (uint32_t i = 0; i < nCount; ++i)
-			{
-				*this >> pValue[i];
-			}
-
-			return *this;
-		}
-
-		template <>
 		FileStream& FileStream::Write(const int* pValue, uint32_t nCount)
 		{
 			for (uint32_t i = 0; i < nCount; ++i)
@@ -318,18 +293,6 @@ namespace EastEngine
 			return *this;
 		}
 
-		template <>
-		FileStream& FileStream::Read(int* pValue, uint32_t nCount)
-		{
-			for (uint32_t i = 0; i < nCount; ++i)
-			{
-				*this >> pValue[i];
-			}
-
-			return *this;
-		}
-
-		template <>
 		FileStream& FileStream::Write(const uint32_t* pValue, uint32_t nCount)
 		{
 			for (uint32_t i = 0; i < nCount; ++i)
@@ -340,13 +303,69 @@ namespace EastEngine
 			return *this;
 		}
 
-		template <>
-		FileStream& FileStream::Read(uint32_t* pValue, uint32_t nCount)
+		FileStream& FileStream::Write(const char* pValue, uint32_t nLength)
+		{
+			if (m_nFlag == EmState::eNone)
+			{
+				m_file << pValue;
+			}
+			else
+			{
+				if (pValue == nullptr)
+				{
+					return *this << "";
+				}
+
+				*this << nLength;
+				m_file.write(pValue, nLength);
+			}
+
+			return *this;
+		}
+
+		FileStream& FileStream::Read(float* pBuffer, uint32_t nCount)
 		{
 			for (uint32_t i = 0; i < nCount; ++i)
 			{
-				*this >> pValue[i];
+				*this >> pBuffer[i];
 			}
+
+			return *this;
+		}
+
+		FileStream& FileStream::Read(double* pBuffer, uint32_t nCount)
+		{
+			for (uint32_t i = 0; i < nCount; ++i)
+			{
+				*this >> pBuffer[i];
+			}
+
+			return *this;
+		}
+
+		FileStream& FileStream::Read(int* pBuffer, uint32_t nCount)
+		{
+			for (uint32_t i = 0; i < nCount; ++i)
+			{
+				*this >> pBuffer[i];
+			}
+
+			return *this;
+		}
+
+		FileStream& FileStream::Read(uint32_t* pBuffer, uint32_t nCount)
+		{
+			for (uint32_t i = 0; i < nCount; ++i)
+			{
+				*this >> pBuffer[i];
+			}
+
+			return *this;
+		}
+
+		FileStream& FileStream::Read(char* pBuffer, uint32_t nLength)
+		{
+			m_file.read(pBuffer, nLength);
 
 			return *this;
 		}

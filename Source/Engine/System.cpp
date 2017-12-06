@@ -297,13 +297,13 @@ namespace EastEngine
 		//	[&] { s_pPhysicsSystem->Update(fElapsedTime); }
 		//);
 
+		s_pSceneMgr->Update(fElapsedTime);
+
 		s_pTerrainManager->Update(fElapsedTime);
 		s_pActorMgr->Update(fElapsedTime);
 
 		s_pGraphicsSystem->Update(fElapsedTime);
 		s_pUIMgr->Update(fElapsedTime);
-
-		s_pSceneMgr->Update(fElapsedTime);
 	}
 
 	void MainSystem::render()
