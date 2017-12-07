@@ -119,7 +119,7 @@ namespace EastEngine
 			String::StringID strFile;
 
 			std::shared_ptr<Graphics::ITexture> pTexture = nullptr;
-			boost::unordered_map<String::StringID, Math::Rect> umapRect;
+			std::unordered_map<String::StringID, Math::Rect> umapRect;
 
 			Math::Rect* GetRect(String::StringID strID)
 			{

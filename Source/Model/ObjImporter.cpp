@@ -12,6 +12,8 @@
 
 #include "MtlImporter.h"
 
+#include <boost/functional/hash.hpp>
+
 namespace EastEngine
 {
 	namespace Graphics
@@ -360,12 +362,20 @@ namespace EastEngine
 
 					std::vector<VertexPosTexNor> vecVertexIn;
 					std::vector<uint32_t> vecIndexIn;
-					boost::unordered_map<std::tuple<uint32_t, uint32_t, uint32_t>, uint32_t> umap;
+
+					auto GetKey = [](uint32_t vIdx, uint32_t tIdx, uint32_t nIdx)
+					{
+						std::tuple<uint32_t, uint32_t, uint32_t> key(vIdx, tIdx, nIdx);
+
+						return boost::hash<std::tuple<uint32_t, uint32_t, uint32_t>>{}(key);
+					};
+
+					std::unordered_map<std::size_t, uint32_t> umap;
 
 					auto func = [&](uint32_t vIdx, uint32_t tIdx, uint32_t nIdx) -> uint32_t
 					{
 						uint32_t ret = ((uint32_t) - 1);
-						auto key = std::make_tuple(vIdx, tIdx, nIdx);
+						auto key = GetKey(vIdx, tIdx, nIdx);
 						auto iter = umap.find(key);
 						if (iter == umap.end())
 						{
@@ -380,7 +390,7 @@ namespace EastEngine
 								v.normal = m_objData.vecNormal[nIdx];
 							}
 
-							umap.insert(std::make_pair(key, vecVertexIn.size()));
+							umap.emplace(key, vecVertexIn.size());
 
 							ret = vecVertexIn.size();
 							vecVertexIn.push_back(v);

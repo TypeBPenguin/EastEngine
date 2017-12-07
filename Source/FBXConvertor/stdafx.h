@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include "CommonLib/ErrorDefine.h"
+
 #include "targetver.h"
 
 #include "CommonLib/CommonLib.h"

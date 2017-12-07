@@ -53,7 +53,7 @@ namespace EastEngine
 			void createSkeleton(fbxsdk::FbxNode* pNode, IModel* pModel, class ISkeleton* pSkeleton, const String::StringID& strParentName = "");
 
 			void loadGeometry(fbxsdk::FbxNode* pNode, std::vector<VertexPosTexNor>& vecVertices, std::vector<uint32_t>& vecIndicecs,
-				std::vector<int>& vecAttributeList, boost::unordered_map<int, std::vector<int>>* pUmapControlPointVertex = nullptr);
+				std::vector<int>& vecAttributeList, std::unordered_map<int, std::vector<int>>* pUmapControlPointVertex = nullptr);
 
 			void loadMaterial(fbxsdk::FbxNode* pNode, std::vector<IMaterial*>& vecMaterial);
 
@@ -71,8 +71,8 @@ namespace EastEngine
 
 			float m_fScaleFactor;
 
-			boost::unordered_map<String::StringID, Math::Matrix> m_umapOffsetMatrix;
-			boost::unordered_map<String::StringID, Math::Matrix> m_umapTransform;
+			std::unordered_map<String::StringID, Math::Matrix> m_umapOffsetMatrix;
+			std::unordered_map<String::StringID, Math::Matrix> m_umapTransform;
 		};
 	}
 }

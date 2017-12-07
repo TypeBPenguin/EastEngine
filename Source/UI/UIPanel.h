@@ -129,7 +129,7 @@ namespace EastEngine
 			Math::Rect m_sourceRect;
 			Graphics::IRenderTarget* m_pRenderTarget;
 
-			boost::unordered_map<String::StringID, IUIObject*> m_umapUIObject;
+			std::unordered_map<String::StringID, IUIObject*> m_umapUIObject;
 			IUIObject* m_pUIObjectFocus;
 			IUIObject* m_pUIObjectPressed;
 			IUIObject* m_pUIObjectMouseOver;

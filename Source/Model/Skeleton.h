@@ -172,9 +172,9 @@ namespace EastEngine
 			RootBone* m_pRootBone;
 
 			std::vector<BoneInstance*> m_vecBones;
-			boost::unordered_map<String::StringID, BoneInstance*> m_umapBone;
+			std::unordered_map<String::StringID, BoneInstance*> m_umapBone;
 
-			boost::unordered_map<String::StringID, std::vector<const Math::Matrix*>> m_umapSkinnendData;
+			std::unordered_map<String::StringID, std::vector<const Math::Matrix*>> m_umapSkinnendData;
 		};
 	}
 }

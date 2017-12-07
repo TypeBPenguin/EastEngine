@@ -120,7 +120,7 @@ namespace EastEngine
 			std::vector<IUIElement*> m_vecElements;
 
 			IUIObject* m_pParent;
-			boost::unordered_map<String::StringID, IUIObject*> m_umapChildUI;
+			std::unordered_map<String::StringID, IUIObject*> m_umapChildUI;
 
 		protected:
 			String::StringID m_strEnterSound;

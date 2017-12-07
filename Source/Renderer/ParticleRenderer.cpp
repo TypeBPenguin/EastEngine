@@ -185,7 +185,7 @@ namespace EastEngine
 				std::vector<std::pair<VertexPosTexCol*, uint32_t>> vecVerticesPtr;
 			};
 
-			boost::unordered_map<IBlendState*, ParticleVertex> mapVertex;
+			std::unordered_map<IBlendState*, ParticleVertex> mapVertex;
 		};
 
 		struct ClassifyDecal

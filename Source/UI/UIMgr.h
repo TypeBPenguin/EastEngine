@@ -55,7 +55,7 @@ namespace EastEngine
 		private:
 			HWND m_hWnd;
 
-			boost::unordered_map<String::StringID, IUIPanel*> m_umapPanel;
+			std::unordered_map<String::StringID, IUIPanel*> m_umapPanel;
 
 			std::vector<UIFontNode*> m_vecFontNode;
 			std::vector<UITextureNode*> m_vecTextureNode;

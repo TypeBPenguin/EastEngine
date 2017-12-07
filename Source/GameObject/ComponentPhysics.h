@@ -76,7 +76,7 @@ namespace EastEngine
 			void initPhysics(Graphics::IModelNode* pModelNode, const String::StringID& strID, const Graphics::IVertexBuffer* pVertexBuffer, const Graphics::IIndexBuffer* pIndexBuffer, const Math::Matrix* pMatWorld, Physics::RigidBodyProperty& rigidBodyProperty);
 
 		private:
-			boost::unordered_map<String::StringID, PhysicsNode> m_umapPhysicsNode;
+			std::unordered_map<String::StringID, PhysicsNode> m_umapPhysicsNode;
 
 			enum Type
 			{

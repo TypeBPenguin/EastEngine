@@ -29,12 +29,12 @@ namespace EastEngine
 			bool AddMotion(const String::StringID& strMotionName, IMotion* pModel);
 			IMotion* GetMotion(const String::StringID& strName);
 
-			const boost::unordered_map<String::StringID, IMotion*>& GetMotions() { return m_umapMotion; }
+			const std::unordered_map<String::StringID, IMotion*>& GetMotions() { return m_umapMotion; }
 
 		private:
 			bool m_isInit;
 
-			boost::unordered_map<String::StringID, IMotion*> m_umapMotion;
+			std::unordered_map<String::StringID, IMotion*> m_umapMotion;
 		};
 	}
 }

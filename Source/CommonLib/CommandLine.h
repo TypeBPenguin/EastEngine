@@ -21,7 +21,7 @@ namespace EastEngine
 
 		private:
 			bool m_bInit;
-			boost::unordered_map<std::wstring, std::wstring> m_umapCommandLine;
+			std::unordered_map<std::wstring, std::wstring> m_umapCommandLine;
 		};
 	}
 }

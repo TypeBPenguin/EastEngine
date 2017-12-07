@@ -973,7 +973,7 @@ void ShowMaterial(bool& isShowMaterial, Graphics::IMaterial* pMaterial, int nInd
 			ImGui::SameLine();
 			if (pTexture->GetLoadState() == Graphics::EmLoadState::eComplete)
 			{
-				static boost::unordered_map<String::StringID, bool> umapIsShowBigTexture;
+				static std::unordered_map<String::StringID, bool> umapIsShowBigTexture;
 
 				bool& isShow = umapIsShowBigTexture[pTexture->GetName()];
 
@@ -1381,7 +1381,7 @@ void SceneStudio::RenderUI()
 					pActor->SetPosition(f3Pos);
 				}
 
-				static boost::unordered_map<GameObject::IActor*, Math::Vector3> umapActorRotation;
+				static std::unordered_map<GameObject::IActor*, Math::Vector3> umapActorRotation;
 				Math::Vector3& f3Rotation = umapActorRotation[pActor];
 
 				if (ImGui::DragFloat3("Rotation", reinterpret_cast<float*>(&f3Rotation.x), 0.1f, -360.f, 360.f) == true)
@@ -1524,7 +1524,7 @@ void SceneStudio::RenderUI()
 									pModel->SetLocalPosition(f3Pos);
 								}
 
-								static boost::unordered_map<Graphics::IModel*, Math::Vector3> umapMotionRotation;
+								static std::unordered_map<Graphics::IModel*, Math::Vector3> umapMotionRotation;
 								Math::Vector3& f3Rotation = umapMotionRotation[pModel];
 								if (ImGui::DragFloat3("Local Rotation", reinterpret_cast<float*>(&f3Rotation), 0.1f, -360.f, 360.f) == true)
 								{
@@ -1648,7 +1648,7 @@ void SceneStudio::RenderUI()
 
 												std::string strMtrlName = String::Format("%d. %s", nMaterialIndex, pMaterial->GetName().c_str());
 
-												static boost::unordered_map<std::string, bool> umapIsShowMaterial;
+												static std::unordered_map<std::string, bool> umapIsShowMaterial;
 												bool& isShow = umapIsShowMaterial[strMtrlName];
 
 												if (ImGui::Button(strMtrlName.c_str()) == true)

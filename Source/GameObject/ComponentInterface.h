@@ -53,7 +53,7 @@ namespace EastEngine
 		protected:
 			IActor* m_pOwner;
 
-			boost::unordered_map<EmComponent::Type, IComponent*> m_umapChild;
+			std::unordered_map<EmComponent::Type, IComponent*> m_umapChild;
 
 		private:
 			EmComponent::Type m_emCompType;

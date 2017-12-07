@@ -156,19 +156,19 @@ namespace EastEngine
 
 			std::array<ID3D11InputLayout*, EmVertexFormat::eCount> m_pInputLayout;
 
-			boost::unordered_multimap<RenderTargetKey, std::pair<IRenderTarget*, bool>> m_ummapRenderTarget;
+			std::unordered_multimap<RenderTargetKey, std::pair<IRenderTarget*, bool>> m_ummapRenderTarget;
 
-			boost::unordered_map<SamplerStateKey, ISamplerState*> m_umapSamplerState;
-			boost::unordered_map<EmSamplerState::Type, SamplerStateKey> m_umapSamplerStateKey;
+			std::unordered_map<SamplerStateKey, ISamplerState*> m_umapSamplerState;
+			std::unordered_map<EmSamplerState::Type, SamplerStateKey> m_umapSamplerStateKey;
 
-			boost::unordered_map<BlendStateKey, IBlendState*> m_umapBlendState;
-			boost::unordered_map<EmBlendState::Type, BlendStateKey> m_umapBlendStateKey;
+			std::unordered_map<BlendStateKey, IBlendState*> m_umapBlendState;
+			std::unordered_map<EmBlendState::Type, BlendStateKey> m_umapBlendStateKey;
 
-			boost::unordered_map<RasterizerStateKey, IRasterizerState*> m_umapRasterizerState;
-			boost::unordered_map<EmRasterizerState::Type, RasterizerStateKey> m_umapRasterizerStateKey;
+			std::unordered_map<RasterizerStateKey, IRasterizerState*> m_umapRasterizerState;
+			std::unordered_map<EmRasterizerState::Type, RasterizerStateKey> m_umapRasterizerStateKey;
 
-			boost::unordered_map<DepthStencilStateKey, IDepthStencilState*> m_umapDepthStencilState;
-			boost::unordered_map<EmDepthStencilState::Type, DepthStencilStateKey> m_umapDepthStencilStateKey;
+			std::unordered_map<DepthStencilStateKey, IDepthStencilState*> m_umapDepthStencilState;
+			std::unordered_map<EmDepthStencilState::Type, DepthStencilStateKey> m_umapDepthStencilStateKey;
 
 			IGBuffers* m_pGBuffers;
 			IImageBasedLight* m_pImageBasedLight;

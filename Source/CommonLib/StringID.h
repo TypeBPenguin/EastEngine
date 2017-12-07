@@ -88,24 +88,3 @@ namespace std
 		}
 	};
 }
-
-namespace boost
-{
-	template <>
-	struct hash<EastEngine::String::StringKey>
-	{
-		std::size_t operator()(const EastEngine::String::StringKey& key) const
-		{
-			return key.value;
-		}
-	};
-
-	template <>
-	struct hash<EastEngine::String::StringID>
-	{
-		std::size_t operator()(const EastEngine::String::StringID& key) const
-		{
-			return key.Key().value;
-		}
-	};
-}

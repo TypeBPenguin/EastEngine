@@ -297,7 +297,7 @@ namespace EastEngine
 				// Key: an edge
 				// Value: the index of the vertex which lies midway between the two vertices pointed to by the key value
 				// This map is used to avoid duplicating vertices when subdividing triangles along edges.
-				typedef boost::unordered_map<UndirectedEdge, uint32_t> EdgeSubdivisionMap;
+				typedef std::map<UndirectedEdge, uint32_t> EdgeSubdivisionMap;
 
 
 				const Math::Vector3 OctahedronVertices[] =

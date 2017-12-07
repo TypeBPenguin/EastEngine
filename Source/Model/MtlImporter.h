@@ -25,7 +25,7 @@ namespace EastEngine
 			}
 
 		private:
-			boost::unordered_map<String::StringID, IMaterial*> m_umapNewMtrl;
+			std::unordered_map<String::StringID, IMaterial*> m_umapNewMtrl;
 		};
 	}
 }

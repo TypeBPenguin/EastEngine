@@ -116,7 +116,7 @@ namespace EastEngine
 
 			float m_fUpdateTime;
 
-			boost::unordered_map<String::StringID, ActionStateInterface*> m_umapActionStateNode;
+			std::unordered_map<String::StringID, ActionStateInterface*> m_umapActionStateNode;
 		};
 	}
 }

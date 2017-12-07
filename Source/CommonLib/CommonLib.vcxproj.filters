@@ -150,6 +150,9 @@
     <ClInclude Include="Type.h">
       <Filter>Type</Filter>
     </ClInclude>
+    <ClInclude Include="ErrorDefine.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

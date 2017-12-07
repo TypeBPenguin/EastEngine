@@ -28,7 +28,7 @@ namespace EastEngine
 
 		private:
 			bool m_isInit;
-			boost::unordered_map<String::StringID, IEffect*> m_umapEffects;
+			std::unordered_map<String::StringID, IEffect*> m_umapEffects;
 		};
 	}
 }

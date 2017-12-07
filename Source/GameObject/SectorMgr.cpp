@@ -96,7 +96,9 @@ namespace EastEngine
 							f3SectorAreas[i + 1],
 							fDist))
 						{
-							auto iter = m_umapSector.find(std::pair<int, int>(x, y));
+							SectorKey key(x, y);
+
+							auto iter = m_umapSector.find(key);
 							if (iter != m_umapSector.end())
 								break;
 
@@ -113,7 +115,7 @@ namespace EastEngine
 								pAroundSector->SetNearSector(emDirReverse[j], pNewSector);
 							}
 
-							m_umapSector.emplace(std::pair<int, int>(x, y), pNewSector);
+							m_umapSector.emplace(key, pNewSector);
 							break;
 						}
 					}
@@ -167,7 +169,8 @@ namespace EastEngine
 
 		Sector* SectorMgr::GetSector(int nCoordinateX, int nCoordinateY)
 		{
-			auto iter = m_umapSector.find(std::pair<int, int>(nCoordinateX, nCoordinateY));
+			SectorKey key(nCoordinateX, nCoordinateY);
+			auto iter = m_umapSector.find(key);
 			if (iter == m_umapSector.end())
 				return nullptr;
 

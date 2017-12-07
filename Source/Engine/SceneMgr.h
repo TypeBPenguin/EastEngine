@@ -29,7 +29,7 @@ namespace EastEngine
 		SceneInterface* GetScene(String::StringID strSceneName);
 
 	private:
-		boost::unordered_map<String::StringID, SceneInterface*> m_umapScene;
+		std::unordered_map<String::StringID, SceneInterface*> m_umapScene;
 		SceneInterface* m_pCurScene;
 		SceneInterface* m_pChangeScene;
 

@@ -109,8 +109,8 @@ namespace EastEngine
 
 			bool m_isOptimized;
 
-			boost::unordered_map<String::StringID, IEffectTech*> m_umapEffectTech;
-			boost::unordered_map<String::StringID, EffectHandle*> m_umapEffectHandle;
+			std::unordered_map<String::StringID, IEffectTech*> m_umapEffectTech;
+			std::unordered_map<String::StringID, EffectHandle*> m_umapEffectHandle;
 		};
 
 		struct EffectVariable

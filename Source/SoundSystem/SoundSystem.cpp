@@ -32,8 +32,7 @@ namespace EastEngine
 				return true;
 
 			// 사운드 시스템 생성
-			FMOD_RESULT fm_result;
-			fm_result = FMOD::System_Create(&m_pSystem);
+			FMOD_RESULT fm_result = FMOD::System_Create(&m_pSystem);
 			if (fm_result != FMOD_OK)
 			{
 				PRINT_LOG("fmod system create failed, %s", FMOD_ErrorString(fm_result));

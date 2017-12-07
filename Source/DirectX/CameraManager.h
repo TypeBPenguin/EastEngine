@@ -59,7 +59,7 @@ namespace EastEngine
 
 			Camera* m_pMainCamera;
 
-			boost::unordered_map<String::StringID, Camera*> m_umapCamera;
+			std::unordered_map<String::StringID, Camera*> m_umapCamera;
 
 			bool m_isInit;
 		};

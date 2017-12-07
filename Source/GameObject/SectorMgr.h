@@ -10,12 +10,15 @@ namespace EastEngine
 		{
 			union
 			{
-				int nUp;
-				int nRightUp;
-				int nRightDown;
-				int nDown;
-				int nLeftDown;
-				int nLeftUp;
+				struct
+				{
+					int nUp;
+					int nRightUp;
+					int nRightDown;
+					int nDown;
+					int nLeftDown;
+					int nLeftUp;
+				};
 
 				int nSectorsCount[6];
 			};
@@ -56,7 +59,7 @@ namespace EastEngine
 			Sector* GetSector(int nCoordinateX, int nCoordinateY);
 
 		private:
-			boost::unordered_map<std::pair<int, int>, Sector*> m_umapSector;
+			std::unordered_map<SectorKey, Sector*> m_umapSector;
 			std::list<EnterLeaveSectorInfo>	m_listEnterLeaveSectorActor;
 
 			bool m_isInit;

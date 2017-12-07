@@ -92,7 +92,7 @@ namespace EastEngine
 			FMOD::System* m_pSystem;
 			const Math::Vector3* m_pf3ListenerPos;
 
-			boost::unordered_map<String::StringID, SoundInstance*> m_umapSoundInst;
+			std::unordered_map<String::StringID, SoundInstance*> m_umapSoundInst;
 			std::list<String::StringID> m_listReqStopSound;
 		};
 	}

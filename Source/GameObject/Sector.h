@@ -22,6 +22,28 @@ namespace EastEngine
 			};
 		}
 
+		struct SectorKey
+		{
+			const int x = 0;
+			const int y = 0;
+
+			SectorKey(int x, int y)
+				: x(x)
+				, y(y)
+			{
+			}
+
+			bool operator == (const SectorKey& source) const
+			{
+				return x == source.x && y == source.y;
+			}
+
+			bool operator != (const SectorKey& source) const
+			{
+				return x != source.x || y != source.y;
+			}
+		};
+
 		class Sector
 		{
 		public:
@@ -53,9 +75,21 @@ namespace EastEngine
 			Math::Int2 m_n2Coordinate;
 
 			std::vector<Sector*> m_vecNearSector;
-			boost::unordered_map<uint32_t, IActor*> m_umapActor;
+			std::unordered_map<uint32_t, IActor*> m_umapActor;
 
 			bool m_isVisibleTile;
 		};
 	}
+}
+
+namespace std
+{
+	template <>
+	struct hash<EastEngine::GameObject::SectorKey>
+	{
+		std::size_t operator()(const EastEngine::GameObject::SectorKey& key) const
+		{
+			return std::hash<uint64_t>{}((static_cast<uint64_t>(key.x) << 32) | key.y);
+		}
+	};
 }

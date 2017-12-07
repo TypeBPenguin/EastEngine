@@ -43,9 +43,6 @@
     <Filter Include="DirectX\Shader\Fx\Model\Deferred">
       <UniqueIdentifier>{4c9520e1-d887-4e8a-899a-af79f1f33a11}</UniqueIdentifier>
     </Filter>
-    <Filter Include="DirectX\Shader\Fx\Model\Interface">
-      <UniqueIdentifier>{1662dbf7-9cd5-4c25-8dc0-36607214c1d3}</UniqueIdentifier>
-    </Filter>
     <Filter Include="DirectX\Shader\Fx\UI">
       <UniqueIdentifier>{7a77d272-ce3a-4f42-aef2-1290cc7da810}</UniqueIdentifier>
     </Filter>
@@ -532,12 +529,6 @@
     <FxCompile Include="..\..\Bin\Data\Fx\PostProcessing\HDR\HDR.fx">
       <Filter>DirectX\Shader\Fx\PostProcess\HDRFilter</Filter>
     </FxCompile>
-    <FxCompile Include="..\..\Bin\Data\Fx\Model\Model.fx">
-      <Filter>DirectX\Shader\Fx\Model</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\Bin\Data\Fx\PostProcessing\ASSAO\ASSAO.fx">
-      <Filter>DirectX\Shader\Fx\PostProcess\ASSAO</Filter>
-    </FxCompile>
     <FxCompile Include="..\..\Bin\Data\Fx\PostProcessing\SSAO\SSAO.fx">
       <Filter>DirectX\Shader\Fx\PostProcess\SSAO</Filter>
     </FxCompile>
@@ -567,9 +558,6 @@
     <None Include="..\..\Bin\Data\Fx\Converter.fx">
       <Filter>DirectX\Shader\Fx</Filter>
     </None>
-    <None Include="..\..\Bin\Data\Fx\Model\IShadow.fx">
-      <Filter>DirectX\Shader\Fx\Model\Interface</Filter>
-    </None>
     <None Include="MaskedOcclusionCullingCommon.inl">
       <Filter>PreProcessing\MaskedOcclusionCulling\Library</Filter>
     </None>
@@ -582,5 +570,9 @@
     <None Include="..\..\Bin\Data\Fx\Model\Shadow.fx">
       <Filter>DirectX\Shader\Fx\Model\Deferred\Shadow</Filter>
     </None>
+    <None Include="..\..\Bin\Data\Fx\Model\Model.fx">
+      <Filter>DirectX\Shader\Fx\Model</Filter>
+    </None>
+    <None Include="..\..\Bin\Data\Fx\PostProcessing\ASSAO\ASSAO.fx" />
   </ItemGroup>
 </Project>

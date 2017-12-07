@@ -649,7 +649,7 @@ namespace EastEngine
 			std::vector<VertexPosTexNor> vecVertices;
 			std::vector<uint32_t> vecIndicecs;
 			std::vector<int> vecAttributeList;
-			boost::unordered_map<int, std::vector<int>> umapControlPointVertex;
+			std::unordered_map<int, std::vector<int>> umapControlPointVertex;
 			std::vector<IMaterial*> vecMaterial;
 
 			// За·Д
@@ -658,7 +658,7 @@ namespace EastEngine
 			FbxUtil::ConvertMatrix(matTransformation, LocalTransform);
 
 			std::vector<String::StringID> vecBoneName;
-			std::vector<boost::unordered_multimap<float, int>> vecWeightBone;
+			std::vector<std::unordered_multimap<float, int>> vecWeightBone;
 
 			bool bVisible = pNode->GetVisibility();
 			if (bVisible == true)
@@ -735,7 +735,7 @@ namespace EastEngine
 
 				int nCnt = 0;
 				float* pBlend = reinterpret_cast<float*>(&vecSkinnedVertices[i].blend);
-				boost::unordered_multimap<float, int>& umapWeight = vecWeightBone[i];
+				std::unordered_multimap<float, int>& umapWeight = vecWeightBone[i];
 				for (const auto& iter : umapWeight)
 				{
 					if (Math::IsZero(iter.first))
@@ -866,7 +866,7 @@ namespace EastEngine
 		}
 
 		void SFbxImporter::loadGeometry(fbxsdk::FbxNode* pNode, std::vector<VertexPosTexNor>& vecVertices, std::vector<uint32_t>& vecIndicecs,
-			std::vector<int>& vecAttributeList, boost::unordered_map<int, std::vector<int>>* pUmapControlPointVertex)
+			std::vector<int>& vecAttributeList, std::unordered_map<int, std::vector<int>>* pUmapControlPointVertex)
 		{
 			FbxMesh* pFbxMesh = pNode->GetMesh();
 

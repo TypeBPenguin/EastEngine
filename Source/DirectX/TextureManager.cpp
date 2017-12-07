@@ -284,7 +284,7 @@ namespace EastEngine
 					continue;
 				}
 
-				if (pTexture.unique() == false)
+				if (pTexture.use_count() == false)
 				{
 					pTexture->SetAlive(true);
 					++iter;

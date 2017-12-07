@@ -11,7 +11,7 @@ namespace EastEngine
 	{
 		struct StringTable
 		{
-			boost::unordered_map<StringKey, std::unique_ptr<char[]>> umapStringTable;
+			std::unordered_map<StringKey, std::unique_ptr<char[]>> umapStringTable;
 			int nRegisteredKeyCount = 0;
 
 			std::mutex mutex;

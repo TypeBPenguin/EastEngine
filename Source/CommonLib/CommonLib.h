@@ -20,10 +20,10 @@
 #include <variant>
 #include <optional>
 #include <numeric>
+#include <array>
+#include <string>
 
 #include <chrono>
-
-#include <boost/unordered_map.hpp>
 
 #include <ppl.h>
 #include <ppltasks.h>
@@ -108,7 +108,7 @@ struct ReleaseSTLObject
 struct DeleteSTLMapObject
 {
 	template<typename Key, typename Pointer>
-	void operator() (std::pair<Key, Pointer> MapPair) const
+	void operator() (std::pair<const Key, Pointer>& MapPair) const
 	{
 		SafeDelete(MapPair.second);
 	}
@@ -117,7 +117,7 @@ struct DeleteSTLMapObject
 struct ReleaseDeleteSTLMapObject
 {
 	template<typename Key, typename Pointer>
-	void operator() (std::pair<Key, Pointer> MapPair) const
+	void operator() (std::pair<const Key, Pointer>& MapPair) const
 	{
 		SafeReleaseDelete(MapPair.second);
 	}
@@ -126,7 +126,7 @@ struct ReleaseDeleteSTLMapObject
 struct ReleaseSTLMapObject
 {
 	template<typename Key, typename Pointer>
-	void operator() (std::pair<Key, Pointer> MapPair) const
+	void operator() (std::pair<const Key, Pointer>& MapPair) const
 	{
 		SafeRelease(MapPair.second);
 	}

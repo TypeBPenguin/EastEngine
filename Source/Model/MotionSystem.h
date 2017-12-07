@@ -46,8 +46,8 @@ namespace EastEngine
 				int operator = (int source) { index = source; return index; }
 				operator int() const { return index; }
 			};
-			boost::unordered_map<String::StringID, KeyframeCaching> m_umapKeyframeIndexCaching;
-			boost::unordered_map<String::StringID, IMotion::Keyframe> m_umapKeyframe;
+			std::unordered_map<String::StringID, KeyframeCaching> m_umapKeyframeIndexCaching;
+			std::unordered_map<String::StringID, IMotion::Keyframe> m_umapKeyframe;
 		};
 
 		class MotionSystem : public IMotionSystem

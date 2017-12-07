@@ -32,7 +32,7 @@ namespace EastEngine
 
 			std::vector<std::shared_ptr<LuaThread>> m_vecLuaThread;
 
-			boost::unordered_map<String::StringID, std::string> m_umapCompiledLua;
+			std::unordered_map<String::StringID, std::string> m_umapCompiledLua;
 
 			uint32_t m_nIdx;
 

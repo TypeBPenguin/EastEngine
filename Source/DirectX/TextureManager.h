@@ -115,7 +115,7 @@ namespace EastEngine
 
 			Concurrency::concurrent_queue<RequestLoadTextureInfo> m_conQueueRequestLoadTexture;
 			Concurrency::concurrent_queue<ResultLoadTextureInfo> m_conQueueCompleteTexture;
-			boost::unordered_map<String::StringID, std::shared_ptr<ITexture>> m_umapTexture;
+			std::unordered_map<String::StringID, std::shared_ptr<ITexture>> m_umapTexture;
 
 			bool m_isInit;
 			bool m_isLoading;

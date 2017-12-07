@@ -84,7 +84,7 @@ namespace EastEngine
 			std::string m_strFilePath;
 
 			std::vector<Bone*> m_vecBones;
-			boost::unordered_map<String::StringID, Bone*> m_umapBones;
+			std::unordered_map<String::StringID, Bone*> m_umapBones;
 
 			float m_fStartTime;
 			float m_fEndTime;
