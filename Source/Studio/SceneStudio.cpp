@@ -18,7 +18,7 @@
 
 #include "Windows/Windows.h"
 
-#include "Input/Mouse.h"
+#include "Input/InputDevice.h"
 
 #include "Renderer/DepthOfField.h"
 #include "Renderer/HDRFilter.h"
@@ -468,7 +468,6 @@ void SceneStudio::ProcessInput(float fElapsedTime)
 
 	const Math::Vector3& f3Eye = pCamera->GetPosition();
 	const Math::Vector3& f3Lookat = pCamera->GetLookat();
-	Math::Vector3 f3Dir = f3Lookat - f3Eye;
 
 	Input::Mouse* pMouse = Input::Mouse::GetInstance();
 	float dx = static_cast<float>(pMouse->GetMoveX());
@@ -518,6 +517,37 @@ void SceneStudio::ProcessInput(float fElapsedTime)
 	if (dz != 0.f)
 	{
 		pCamera->MoveForward(dz * 0.01f);
+	}
+
+	Input::Keyboard* pKeyboard = Input::Keyboard::GetInstance();
+	if (pKeyboard->IsKeyPress(Input::EmKeyboard::eW))
+	{
+		pCamera->MoveForward(1.f);
+	}
+
+	if (pKeyboard->IsKeyPress(Input::EmKeyboard::eS))
+	{
+		pCamera->MoveForward(-1.f);
+	}
+
+	if (pKeyboard->IsKeyPress(Input::EmKeyboard::eA))
+	{
+		pCamera->MoveSideward(-1.f);
+	}
+
+	if (pKeyboard->IsKeyPress(Input::EmKeyboard::eD))
+	{
+		pCamera->MoveSideward(1.f);
+	}
+
+	if (pKeyboard->IsKeyPress(Input::EmKeyboard::eE))
+	{
+		pCamera->MoveUpward(1.f);
+	}
+
+	if (pKeyboard->IsKeyPress(Input::EmKeyboard::eQ))
+	{
+		pCamera->MoveUpward(-1.f);
 	}
 }
 

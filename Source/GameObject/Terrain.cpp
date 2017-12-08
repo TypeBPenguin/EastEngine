@@ -244,8 +244,8 @@ namespace EastEngine
 					if (pMainCamera->IsFrustumContains(m_veTerrainCells[i].GetBoundingBox()) == Collision::EmContainment::eDisjoint)
 						continue;
 
-					//if (m_veTerrainCells[i].IsInsideCell(f3Pos) == false)
-					//	continue;
+					if (m_veTerrainCells[i].IsInsideCell(f3Pos) == false)
+						continue;
 
 					m_veTerrainCells[i].Update(fElapsedTime, m_vecMaterial, m_isShowCellLine);
 				}
