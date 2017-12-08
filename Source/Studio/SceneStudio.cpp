@@ -466,9 +466,6 @@ void SceneStudio::ProcessInput(float fElapsedTime)
 	if (pCamera == nullptr)
 		return;
 
-	const Math::Vector3& f3Eye = pCamera->GetPosition();
-	const Math::Vector3& f3Lookat = pCamera->GetLookat();
-
 	Input::Mouse* pMouse = Input::Mouse::GetInstance();
 	float dx = static_cast<float>(pMouse->GetMoveX());
 	float dy = static_cast<float>(pMouse->GetMoveY());

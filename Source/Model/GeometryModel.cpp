@@ -285,7 +285,7 @@ namespace EastEngine
 			{
 				// An undirected edge between two vertices, represented by a pair of indexes into a vertex array.
 				// Becuse this edge is undirected, (a,b) is the same as (b,a).
-				typedef std::pair<uint32_t, uint32_t> UndirectedEdge;
+				using UndirectedEdge = std::pair<uint32_t, uint32_t>;
 
 				// Makes an undirected edge. Rather than overloading comparison operators to give us the (a,b)==(b,a) property,
 				// we'll just ensure that the larger of the two goes first. This'll simplify things greatly.

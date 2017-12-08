@@ -77,9 +77,9 @@ namespace EastEngine
 			if (m_pHDRFilter->Init() == false)
 				return false;
 
-			//m_pASSAO = ASSAO::GetInstance();
-			//if (m_pASSAO->Init(viewport) == false)
-			//	return false;
+			m_pASSAO = ASSAO::GetInstance();
+			if (m_pASSAO->Init(viewport) == false)
+				return false;
 
 			return true;
 		}
