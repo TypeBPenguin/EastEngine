@@ -3,6 +3,7 @@
 
 #include "CommonLib/FileStream.h"
 #include "CommonLib/FileUtil.h"
+#include "CommonLib/ThreadPool.h"
 
 #include "DirectX/D3DInterface.h"
 #include "DirectX/CameraManager.h"
@@ -31,15 +32,6 @@ namespace EastEngine
 
 		Terrain::~Terrain()
 		{
-			if (m_optLoadTask.has_value() == true)
-			{
-				Concurrency::task<bool>& task = m_optLoadTask.value();
-				if (task.is_done() == false)
-				{
-					task.wait();
-				}
-			}
-
 			SafeDelete(m_pPhysics);
 
 			m_vecHeightMap.clear();
@@ -59,7 +51,7 @@ namespace EastEngine
 
 			if (isEnableThreadLoad == true)
 			{
-				m_optLoadTask = Concurrency::create_task([&]() -> bool
+				Thread::CreateTask([&]() -> bool
 				{
 					return init();
 				});

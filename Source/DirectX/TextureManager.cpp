@@ -2,10 +2,9 @@
 #include "TextureManager.h"
 
 #include "CommonLib/FileUtil.h"
+#include "CommonLib/ThreadPool.h"
 
 #include "Texture.h"
-
-#include <ppltasks.h>
 
 namespace EastEngine
 {
@@ -199,7 +198,8 @@ namespace EastEngine
 					{
 						m_isLoading = true;
 						loader.pTexture_out->SetLoadState(EmLoadState::eLoading);
-						Concurrency::create_task([this, loader]() { this->ProcessRequestTexture(loader); });
+
+						Thread::CreateTask([this, loader]() { this->ProcessRequestTexture(loader); });
 					}
 				}
 			}

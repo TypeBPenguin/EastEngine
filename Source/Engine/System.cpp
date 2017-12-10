@@ -6,6 +6,7 @@
 
 #include "CommonLib/CommandLine.h"
 #include "CommonLib/DirectoryMonitor.h"
+#include "CommonLib/ThreadPool.h"
 #include "CommonLib/Timer.h"
 
 #include "CommonLib/PipeStream.h"
@@ -74,6 +75,8 @@ namespace EastEngine
 			Release();
 			return false;
 		}
+
+		Thread::ThreadPool::GetInstance()->Init(std::thread::hardware_concurrency() - 1);
 
 		s_pTimer = Timer::GetInstance();
 
@@ -171,6 +174,9 @@ namespace EastEngine
 	{
 		if (m_isInit == false)
 			return;
+
+		Thread::ThreadPool::GetInstance()->Release();
+		Thread::ThreadPool::DestroyInstance();
 
 		SafeDelete(m_pFpsChecker);
 

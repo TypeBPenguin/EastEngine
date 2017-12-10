@@ -128,7 +128,7 @@
     <ClInclude Include="StringTable.h" />
     <ClInclude Include="StringUtil.h" />
     <ClInclude Include="targetver.h" />
-    <ClInclude Include="ThreadPoolMgr.h">
+    <ClInclude Include="ThreadPool.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="Timer.h" />
@@ -159,7 +159,7 @@
     <ClCompile Include="StringID.cpp" />
     <ClCompile Include="StringTable.cpp" />
     <ClCompile Include="StringUtil.cpp" />
-    <ClCompile Include="ThreadPoolMgr.cpp" />
+    <ClCompile Include="ThreadPool.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="Type.cpp" />
   </ItemGroup>

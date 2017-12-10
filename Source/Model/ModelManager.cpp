@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "ModelManager.h"
 
+#include "CommonLib/ThreadPool.h"
+
 #include "Model.h"
 #include "ModelInstance.h"
 #include "ModelInterface.h"
@@ -94,7 +96,8 @@ namespace EastEngine
 					{
 						m_isLoading = true;
 						loader.pModel_out->SetLoadState(EmLoadState::eLoading);
-						Concurrency::create_task([this, loader]() { this->ProcessRequestModelLoader(loader); });
+
+						Thread::CreateTask([this, loader]() { this->ProcessRequestModelLoader(loader); });
 					}
 				}
 			}

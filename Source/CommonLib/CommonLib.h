@@ -26,7 +26,6 @@
 #include <chrono>
 
 #include <ppl.h>
-#include <ppltasks.h>
 #include <concurrent_queue.h>
 
 inline void SetBitMask(int& nMask, int nBit)

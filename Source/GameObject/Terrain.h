@@ -4,6 +4,11 @@
 
 namespace EastEngine
 {
+	namespace Thread
+	{
+		class Thread;
+	}
+
 	namespace GameObject
 	{
 		class Terrain : public ITerrain
@@ -93,7 +98,6 @@ namespace EastEngine
 			Physics::RigidBody* m_pPhysics;
 
 			std::optional<std::vector<Math::Vector3>> m_optVertices;
-			std::optional<Concurrency::task<bool>> m_optLoadTask;
 		};
 	}
 }

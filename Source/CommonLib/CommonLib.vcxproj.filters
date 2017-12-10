@@ -111,9 +111,6 @@
     <ClInclude Include="Collision.h">
       <Filter>Collision</Filter>
     </ClInclude>
-    <ClInclude Include="ThreadPoolMgr.h">
-      <Filter>ThreadPool</Filter>
-    </ClInclude>
     <ClInclude Include="PipeStream.h">
       <Filter>PipeStream</Filter>
     </ClInclude>
@@ -152,6 +149,9 @@
     </ClInclude>
     <ClInclude Include="ErrorDefine.h">
       <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ThreadPool.h">
+      <Filter>ThreadPool</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -209,11 +209,11 @@
     <ClCompile Include="Memory.cpp">
       <Filter>Memory</Filter>
     </ClCompile>
-    <ClCompile Include="ThreadPoolMgr.cpp">
-      <Filter>ThreadPool</Filter>
-    </ClCompile>
     <ClCompile Include="Type.cpp">
       <Filter>Type</Filter>
+    </ClCompile>
+    <ClCompile Include="ThreadPool.cpp">
+      <Filter>ThreadPool</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
