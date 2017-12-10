@@ -55,9 +55,6 @@
     <Filter Include="GameObject\Terrain">
       <UniqueIdentifier>{1f8a3e54-e40c-418d-8156-b316b20f869a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="GameObject\Terrain\Cells">
-      <UniqueIdentifier>{27328c21-c672-4980-8e49-97ec78cc0d7e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="GameObject\Sky">
       <UniqueIdentifier>{4a491453-6e76-4cf9-b641-dda964d076f1}</UniqueIdentifier>
     </Filter>
@@ -95,9 +92,6 @@
     </ClInclude>
     <ClInclude Include="Terrain.h">
       <Filter>GameObject\Terrain</Filter>
-    </ClInclude>
-    <ClInclude Include="TerrainCells.h">
-      <Filter>GameObject\Terrain\Cells</Filter>
     </ClInclude>
     <ClInclude Include="ComponentCamera.h">
       <Filter>Component\Camera</Filter>
@@ -151,9 +145,6 @@
     </ClCompile>
     <ClCompile Include="Terrain.cpp">
       <Filter>GameObject\Terrain</Filter>
-    </ClCompile>
-    <ClCompile Include="TerrainCells.cpp">
-      <Filter>GameObject\Terrain\Cells</Filter>
     </ClCompile>
     <ClCompile Include="ComponentCamera.cpp">
       <Filter>Component\Camera</Filter>

@@ -77,45 +77,26 @@ namespace EastEngine
 				, float fDepth);
 		};
 
-		struct RenderSubsetHeightField
-		{
-			void* pKey = nullptr;
-			IVertexBuffer* pVertexBuffer = nullptr;
-			IIndexBuffer* pIndexBuffer = nullptr;
-			IMaterial* pMaterial = nullptr;
-			Math::Matrix matWorld;
-			uint32_t nStartIndex = 0;
-			uint32_t nIndexCount = 0;
-			float fDepth = 0.f;
-			Collision::Sphere boundingSphere;
-
-			RenderSubsetHeightField();
-			RenderSubsetHeightField(void* pKey, IVertexBuffer* pIVertexBuffer, IIndexBuffer* pIIndexBuffer, IMaterial* pMaterial
-				, const Math::Matrix& matWorld, uint32_t nStartIndex, uint32_t nIndexCount
-				, float fDepth, const Collision::Sphere& boundingSphere);
-		};
-
 		struct RenderSubsetTerrain
 		{
 			IVertexBuffer* pVertexBuffer = nullptr;
 
-			std::shared_ptr<ITexture> pTexHeightField;
-			std::shared_ptr<ITexture> pTexLayerdef;
-			std::shared_ptr<ITexture> pTexRockBump;
-			std::shared_ptr<ITexture> pTexRockMicroBump;
-			std::shared_ptr<ITexture> pTexRockDiffuse;
-			std::shared_ptr<ITexture> pTexSandBump;
-			std::shared_ptr<ITexture> pTexSandMicroBump;
-			std::shared_ptr<ITexture> pTexSandDiffuse;
-			std::shared_ptr<ITexture> pTexGrassDiffuse;
-			std::shared_ptr<ITexture> pTexSlopeDiffuse;
-			//std::shared_ptr<ITexture> pTexDepthMap;
+			Math::Vector2 f2PatchSize;
+			Math::Vector2 f2HeightFieldSize;
 
-			float fHeightFieldSize = 0.f;
+			bool isEnableDynamicLOD = true;
+			bool isEnableFrustumCullInHS = true;
+
+			float fDynamicTessFactor = 50.f;
+			float fStaticTessFactor = 12.f;
 
 			Math::Matrix matWorld;
-			float fHalfSpaceCullSign = 0.f;
-			float fHalfSpaceCullPosition = 0.f;
+
+			std::shared_ptr<ITexture> pTexHeightField;
+			std::shared_ptr<ITexture> pTexColorMap;
+
+			std::shared_ptr<ITexture> pTexDetailMap;
+			std::shared_ptr<ITexture> pTexDetailNormalMap;
 		};
 
 		struct RenderSubsetSky

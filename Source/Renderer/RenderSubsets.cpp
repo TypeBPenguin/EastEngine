@@ -48,19 +48,6 @@ namespace EastEngine
 		{
 		}
 
-		RenderSubsetHeightField::RenderSubsetHeightField()
-		{
-		}
-
-		RenderSubsetHeightField::RenderSubsetHeightField(void* pKey, IVertexBuffer* pVertexBuffer, IIndexBuffer* pIndexBuffer, IMaterial* pMaterial
-			, const Math::Matrix& matWorld, uint32_t nStartIndex, uint32_t nIndexCount
-			, float fDepth, const Collision::Sphere& boundingSphere)
-			: pKey(pKey), pVertexBuffer(pVertexBuffer), pIndexBuffer(pIndexBuffer), pMaterial(pMaterial)
-			, matWorld(matWorld), nStartIndex(nStartIndex), nIndexCount(nIndexCount)
-			, fDepth(fDepth), boundingSphere(boundingSphere)
-		{
-		}
-
 		RenderSubsetSky::RenderSubsetSky()
 		{
 		}

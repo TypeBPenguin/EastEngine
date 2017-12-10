@@ -10,35 +10,25 @@ namespace StrID
 {
 	RegisterStringID(EffectTerrain);
 	RegisterStringID(RenderHeightfield);
-	
-	RegisterStringID(g_RenderCaustics);
+
+	RegisterStringID(g_texHeightField);
+	RegisterStringID(g_texColor);
+
+	RegisterStringID(g_texDetail);
+	RegisterStringID(g_texDetailNormal);
+
 	RegisterStringID(g_UseDynamicLOD);
 	RegisterStringID(g_FrustumCullInHS);
 	RegisterStringID(g_DynamicTessFactor);
 	RegisterStringID(g_StaticTessFactor);
-	RegisterStringID(g_TerrainBeingRendered);
-	RegisterStringID(g_HalfSpaceCullSign);
-	RegisterStringID(g_HalfSpaceCullPosition);
-	RegisterStringID(g_SkipCausticsCalculation);
-	RegisterStringID(g_matView);
+
 	RegisterStringID(g_ModelViewProjectionMatrix);
-	RegisterStringID(g_LightModelViewProjectionMatrix);
+
 	RegisterStringID(g_CameraPosition);
 	RegisterStringID(g_CameraDirection);
-	RegisterStringID(g_LightPosition);
-	RegisterStringID(g_HeightFieldSize);
-	RegisterStringID(g_HeightfieldTexture);
-	RegisterStringID(g_LayerdefTexture);
-	RegisterStringID(g_RockBumpTexture);
-	RegisterStringID(g_RockMicroBumpTexture);
-	RegisterStringID(g_RockDiffuseTexture);
-	RegisterStringID(g_SandBumpTexture);
-	RegisterStringID(g_SandMicroBumpTexture);
-	RegisterStringID(g_SandDiffuseTexture);
-	RegisterStringID(g_GrassDiffuseTexture);
-	RegisterStringID(g_SlopeDiffuseTexture);
-	RegisterStringID(g_WaterBumpTexture);
-	RegisterStringID(g_DepthTexture);
+
+	RegisterStringID(g_f2PatchSize);
+	RegisterStringID(g_f2HeightFieldSize);
 }
 
 namespace EastEngine
@@ -99,19 +89,10 @@ namespace EastEngine
 
 			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOn);
 			pDeviceContext->SetBlendState(EmBlendState::eOff);
-			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 			Math::Matrix matViewProj = pCamera->GetViewMatrix() * pCamera->GetProjMatrix();
 			m_pEffect->SetVector(StrID::g_CameraPosition, pCamera->GetPosition());
 			m_pEffect->SetVector(StrID::g_CameraDirection, pCamera->GetDir());
-
-			m_pEffect->SetFloat(StrID::g_RenderCaustics, 1.f);
-			m_pEffect->SetFloat(StrID::g_UseDynamicLOD, 1.f);
-			m_pEffect->SetFloat(StrID::g_FrustumCullInHS, 0.f);
-			m_pEffect->SetFloat(StrID::g_DynamicTessFactor, 50.f);
-			m_pEffect->SetFloat(StrID::g_StaticTessFactor, 12.f);
-			m_pEffect->SetFloat(StrID::g_TerrainBeingRendered, 1.f);
-			m_pEffect->SetFloat(StrID::g_SkipCausticsCalculation, 0.f);
 
 			if (Config::IsEnableWireframe() == true)
 			{
@@ -124,22 +105,21 @@ namespace EastEngine
 
 			for (auto& renderSubset : m_vecTerrain)
 			{
-				m_pEffect->SetTexture(StrID::g_HeightfieldTexture, renderSubset.pTexHeightField);
-				m_pEffect->SetTexture(StrID::g_LayerdefTexture, renderSubset.pTexLayerdef);
-				m_pEffect->SetTexture(StrID::g_RockBumpTexture, renderSubset.pTexRockBump);
-				m_pEffect->SetTexture(StrID::g_RockMicroBumpTexture, renderSubset.pTexRockMicroBump);
-				m_pEffect->SetTexture(StrID::g_RockDiffuseTexture, renderSubset.pTexRockDiffuse);
-				m_pEffect->SetTexture(StrID::g_SandBumpTexture, renderSubset.pTexSandBump);
-				m_pEffect->SetTexture(StrID::g_SandMicroBumpTexture, renderSubset.pTexSandMicroBump);
-				m_pEffect->SetTexture(StrID::g_SandDiffuseTexture, renderSubset.pTexSandDiffuse);
-				m_pEffect->SetTexture(StrID::g_GrassDiffuseTexture, renderSubset.pTexGrassDiffuse);
-				m_pEffect->SetTexture(StrID::g_SlopeDiffuseTexture, renderSubset.pTexSlopeDiffuse);
+				m_pEffect->SetVector(StrID::g_f2PatchSize, renderSubset.f2PatchSize);
+				m_pEffect->SetVector(StrID::g_f2HeightFieldSize, renderSubset.f2HeightFieldSize);
 
-				m_pEffect->SetFloat(StrID::g_HeightFieldSize, renderSubset.fHeightFieldSize);
-				m_pEffect->SetFloat(StrID::g_HalfSpaceCullSign, renderSubset.fHalfSpaceCullSign);
-				m_pEffect->SetFloat(StrID::g_HalfSpaceCullPosition, renderSubset.fHalfSpaceCullPosition);
+				m_pEffect->SetFloat(StrID::g_UseDynamicLOD, renderSubset.isEnableDynamicLOD == true ? 1.f : 0.f);
+				m_pEffect->SetFloat(StrID::g_FrustumCullInHS, renderSubset.isEnableFrustumCullInHS == true ? 1.f : 0.f);
 
-				m_pEffect->SetMatrix(StrID::g_matView, renderSubset.matWorld * pCamera->GetViewMatrix());
+				m_pEffect->SetFloat(StrID::g_DynamicTessFactor, renderSubset.fDynamicTessFactor);
+				m_pEffect->SetFloat(StrID::g_StaticTessFactor, renderSubset.fStaticTessFactor);
+
+				m_pEffect->SetTexture(StrID::g_texHeightField, renderSubset.pTexHeightField);
+				m_pEffect->SetTexture(StrID::g_texColor, renderSubset.pTexColorMap);
+
+				m_pEffect->SetTexture(StrID::g_texDetail, renderSubset.pTexDetailMap);
+				m_pEffect->SetTexture(StrID::g_texDetailNormal, renderSubset.pTexDetailNormalMap);
+
 				m_pEffect->SetMatrix(StrID::g_ModelViewProjectionMatrix, renderSubset.matWorld * matViewProj);
 
 				IEffectTech* pEffectTech = m_pEffect->GetTechnique(StrID::RenderHeightfield);
@@ -164,17 +144,11 @@ namespace EastEngine
 
 		void TerrainRenderer::ClearEffect(IDeviceContext* pd3dDeviceContext, IEffectTech* pTech)
 		{
-			m_pEffect->SetTexture(StrID::g_HeightfieldTexture, nullptr);
-			m_pEffect->SetTexture(StrID::g_LayerdefTexture, nullptr);
-			m_pEffect->SetTexture(StrID::g_RockBumpTexture, nullptr);
-			m_pEffect->SetTexture(StrID::g_RockMicroBumpTexture, nullptr);
-			m_pEffect->SetTexture(StrID::g_RockDiffuseTexture, nullptr);
-			m_pEffect->SetTexture(StrID::g_SandBumpTexture, nullptr);
-			m_pEffect->SetTexture(StrID::g_SandMicroBumpTexture, nullptr);
-			m_pEffect->SetTexture(StrID::g_SandDiffuseTexture, nullptr);
-			m_pEffect->SetTexture(StrID::g_GrassDiffuseTexture, nullptr);
-			m_pEffect->SetTexture(StrID::g_SlopeDiffuseTexture, nullptr);
-			m_pEffect->SetTexture(StrID::g_DepthTexture, nullptr);
+			m_pEffect->SetTexture(StrID::g_texHeightField, nullptr);
+			m_pEffect->SetTexture(StrID::g_texColor, nullptr);
+
+			m_pEffect->SetTexture(StrID::g_texDetail, nullptr);
+			m_pEffect->SetTexture(StrID::g_texDetailNormal, nullptr);
 
 			m_pEffect->ClearState(pd3dDeviceContext, pTech);
 		}

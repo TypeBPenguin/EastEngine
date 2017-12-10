@@ -86,76 +86,23 @@ namespace EastEngine
 
 		struct TerrainProperty
 		{
-#ifndef NEW_TERRAIN
-			int nWidth = 512;
-			int nHeight = 512;
+			Math::Int2 n2Size = Math::Int2(1024, 1024);
 
-			int nCellWidth = 64;
-			int nCellHeight = 64;
+			Math::Int2 n2Patches = Math::Int2(64, 64);
 
-			float fHeightMin = -30.f;
-			float fHeightMax = 30.f;
-
-			Math::Vector3 f3Scaling = Math::Vector3::One;
+			float fHeightScale = 300.f;
 
 			std::string strTexHeightMap;
 			std::string strTexColorMap;
 
-			Graphics::MaterialInfo materialInfo;
+			// 터레인 디테일맵 여러개 사용할 수 있는 구조로 바꿔야함
+			std::string strTexDetailMap;
+			std::string strTexDetailNormalMap;
+
+			float fRoughness = 1.f;
+			float fMetallic = 0.f;
+
 			Physics::RigidBodyProperty rigidBodyProperty;
-#else
-			int nGridPoints = 512;
-			int nPatches = 64;
-
-			float fGeometryScale = 1.f;
-			float fMaxHeight = 30.f;
-			float fMinHeight = -30.f;
-			float fFractalFactor = 0.68f;
-			float fFractalInitialValue = 100.f;
-			float fSmoothFactor1 = 0.99f;
-			float fSmoothFactor2 = 0.1f;
-			float fRockfactor = 0.95f;
-			int nSmoothSteps = 40;
-
-			float fHeightUnderWaterStart = -100.f;
-			float fHeightUnderWaterEnd = -8.f;
-
-			float fHeightSandStart = -30.f;
-			float fHeightSandEnd = 1.7f;
-
-			float fHeightGrassStart = 1.7f;
-			float fHeightGrassEnd = 30.f;
-
-			float fHeightRocksStart = -2.f;
-
-			float fHeightTreesStart = 4.f;
-			float fHeightTressEnd = 30.f;
-
-			float fSlopeGrassStart = 0.96f;
-			float fSlopeRocksStart = 0.85f;
-
-			int nLayerDefMapSize = 1024;
-			int nDepthShadowMapSize = 512;
-
-			int nSkyGridPoints = 10;
-			float fSkyTextureAngle = 0.425f;
-
-			float fHalfSpaceCullHeight = -0.6f;
-			bool isHalfSpaceCullSign = true;
-
-			std::string strTexRockBumpFile;
-			std::string strTexRockMicroFile;
-			std::string strTexRockDiffuseFile;
-
-			std::string strTexSandBumpFile;
-			std::string strTexSandMicroFile;
-			std::string strTexSandDiffuseFile;
-
-			std::string strTexGrassDiffuse;
-			std::string strTexSlopeDiffuse;
-			std::string strTexWaterBump;
-			std::string strTexSky;
-#endif
 		};
 
 		class ITerrain : public IGameObject

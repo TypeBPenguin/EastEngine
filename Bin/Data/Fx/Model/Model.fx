@@ -247,10 +247,6 @@ struct PS_INPUT
 
 	float3 tangent	: TANGENT;		// ÅºÁ¨Æ®
 	float3 binormal	: BINORMAL;
-
-#ifdef USE_TERRAIN
-	float4 color	: TEXCOORD1;
-#endif
 #endif
 };
 
@@ -487,9 +483,6 @@ GS_CUBEMAP_INPUT VS(
 	in float4 inPos : POSITION
 	, in float2 inTex : TEXCOORD
 	, in float3 inNormal : NORMAL
-#ifdef USE_TERRAIN
-	, in float4 inColor : COLOR
-#endif
 #ifdef USE_SKINNING
 	, in float4 inBlendWeight : BLENDWEIGHT
 	, in uint4 inBlendIndices : BLENDINDICES
@@ -578,9 +571,6 @@ GS_CUBEMAP_INPUT VS(
 	output.tangent = CalcTangent(output.normal);
 	output.binormal = CalcBinormal(output.normal, output.tangent);
 
-#ifdef USE_TERRAIN
-	output.color = inColor;
-#endif
 #endif
 
 	return output;
@@ -597,10 +587,6 @@ PS_OUTPUT D_PS(PS_INPUT input)
 	float4 albedo = saturate(g_f4AlbedoColor * pow(abs(g_texAlbedo.Sample(g_samplerState, input.tex)), 2.2f) * 2.f);
 #else
 	float4 albedo = g_f4AlbedoColor;
-#endif
-
-#ifdef USE_TERRAIN
-	albedo = saturate(albedo * input.color * 2.f) ;
 #endif
 
 #ifdef USE_TEX_MASK
@@ -707,8 +693,6 @@ PS_OUTPUT D_PS(PS_INPUT input)
 #ifdef USE_TESSELLATION
 	#ifdef USE_SKINNING
 	technique11 ModelSkinned_Tessellation
-	#elif USE_TERRAIN
-	technique11 ModelTerrain_Tessellation
 	#else
 	technique11 ModelStatic_Tessellation
 	#endif
@@ -733,8 +717,6 @@ PS_OUTPUT D_PS(PS_INPUT input)
 #else
 	#ifdef USE_SKINNING
 	technique11 ModelSkinned
-	#elif USE_TERRAIN
-	technique11 ModelTerrain
 	#else
 	technique11 ModelStatic
 	#endif

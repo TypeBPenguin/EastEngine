@@ -1077,7 +1077,7 @@ namespace EastEngine
 			if (IsValid() == false)
 				return;
 
-			if (pTexture != nullptr)
+			if (pTexture != nullptr && pTexture->GetLoadState() == EmLoadState::eComplete)
 			{
 				pShaderResource->SetResource(pTexture->GetShaderResourceView());
 			}
@@ -1095,14 +1095,17 @@ namespace EastEngine
 			if (*pTextures != nullptr)
 			{
 				std::vector<ID3D11ShaderResourceView*> vecResources;
-				vecResources.resize(nCount);
+				vecResources.reserve(nCount);
 
 				for (uint32_t i = 0; i < nCount; ++i)
 				{
-					vecResources[i] = pTextures[i]->GetShaderResourceView();
+					if (pTextures[i] != nullptr && pTextures[i]->GetLoadState() == EmLoadState::eComplete)
+					{
+						vecResources.emplace_back(pTextures[i]->GetShaderResourceView());
+					}
 				}
 
-				pShaderResource->SetResourceArray(&vecResources.front(), nOffset, nCount);
+				pShaderResource->SetResourceArray(&vecResources.front(), nOffset, vecResources.size());
 			}
 			else
 			{

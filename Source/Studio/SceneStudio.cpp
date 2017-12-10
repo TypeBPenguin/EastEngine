@@ -379,56 +379,26 @@ void SceneStudio::Enter()
 
 	{
 		GameObject::TerrainProperty terrain;
-#ifdef NEW_TERRAIN
-		terrain.strTexRockBumpFile = File::GetPath(File::eTexture);
-		terrain.strTexRockBumpFile.append("Terrain\\rock_bump6.dds");
 
-		terrain.strTexRockMicroFile = File::GetPath(File::eTexture);
-		terrain.strTexRockMicroFile.append("Terrain\\rock_bump4.dds");
-
-		terrain.strTexRockDiffuseFile = File::GetPath(File::eTexture);
-		terrain.strTexRockDiffuseFile.append("Terrain\\terrain_rock4.dds");
-
-		terrain.strTexSandBumpFile = File::GetPath(File::eTexture);
-		terrain.strTexSandBumpFile.append("Terrain\\rock_bump4.dds");
-
-		terrain.strTexSandMicroFile = File::GetPath(File::eTexture);
-		terrain.strTexSandMicroFile.append("Terrain\\lichen1_normal.dds");
-
-		terrain.strTexSandDiffuseFile = File::GetPath(File::eTexture);
-		terrain.strTexSandDiffuseFile.append("Terrain\\sand_diffuse.dds");
-
-		terrain.strTexGrassDiffuse = File::GetPath(File::eTexture);
-		terrain.strTexGrassDiffuse.append("Terrain\\terrain_grass.dds");
-
-		terrain.strTexSlopeDiffuse = File::GetPath(File::eTexture);
-		terrain.strTexSlopeDiffuse.append("Terrain\\terrain_slope.dds");
-
-#else
 		terrain.strTexHeightMap = File::GetPath(File::eTexture);
 		terrain.strTexHeightMap.append("heightmap.r16");
 
 		terrain.strTexColorMap = File::GetPath(File::eTexture);
 		terrain.strTexColorMap.append("ColorMap2.bmp");
 
-		terrain.f3Scaling = { 5.f, 60.f, 5.f };
+		terrain.fHeightScale = 300.f;
 
-		terrain.nWidth = 1025;
-		terrain.nHeight = 1025;
-
-		terrain.nCellWidth = 128;
-		terrain.nCellHeight = 128;
-
-		terrain.fHeightMax = 30.f;
-		terrain.fHeightMin = -30.f;
+		terrain.n2Size = Math::Int2(1025, 1025);
 
 		terrain.rigidBodyProperty.fRestitution = 0.25f;
 		terrain.rigidBodyProperty.fFriction = 0.75f;
 
-		terrain.materialInfo.strPath = File::GetPath(File::eTexture);
-		terrain.materialInfo.strTextureNameArray[Graphics::EmMaterial::eAlbedo] = "dirt01d.dds";
-		terrain.materialInfo.strTextureNameArray[Graphics::EmMaterial::eNormal] = "dirt01n.dds";
-#endif
+		terrain.strTexDetailMap = File::GetPath(File::eTexture);
+		terrain.strTexDetailMap.append("dirt01d.tga");
+
+		terrain.strTexDetailNormalMap = File::GetPath(File::eTexture);
+		terrain.strTexDetailNormalMap.append("dirt01n.tga");
+
 		GameObject::ITerrain::Create("BaseTerrain", &terrain);
 	}
 
