@@ -26,12 +26,14 @@ namespace EastEngine
 			, m_isVisible(true)
 			, m_isDirtyWorldMatrix(true)
 			, m_isBuildComplete(false)
+			, m_pHeightField(nullptr)
 			, m_pPhysics(nullptr)
 		{
 		}
 
 		Terrain::~Terrain()
 		{
+			SafeDelete(m_pHeightField);
 			SafeDelete(m_pPhysics);
 
 			m_vecHeightMap.clear();
