@@ -28,6 +28,8 @@ namespace EastEngine
 			, m_isBuildComplete(false)
 			, m_pHeightField(nullptr)
 			, m_pPhysics(nullptr)
+			, m_fHeightMax(std::numeric_limits<float>::max())
+			, m_fHeightMin(std::numeric_limits<float>::min())
 		{
 		}
 
@@ -106,6 +108,13 @@ namespace EastEngine
 			if (m_isBuildComplete == false)
 				return;
 
+			if (m_isDirtyWorldMatrix == true)
+			{
+				Math::Matrix::Compose(m_f3Scale, m_quatPrevRotation, m_f3Pos, m_matWorld);
+
+				m_isDirtyWorldMatrix = false;
+			}
+
 			if (IsVisible() == true)
 			{
 				if (m_pTexHeightMap->GetLoadState() == Graphics::EmLoadState::eComplete &&
@@ -128,6 +137,16 @@ namespace EastEngine
 					subset.pTexDetailMap = m_pTexDetailMap;
 					subset.pTexDetailNormalMap = m_pTexDetailNormalMap;
 
+					subset.matWorld = m_matWorld;
+
+					// 컬링 방식, 그리려고하는 패치의 중점을 계산한뒤, World * View * Proj 를 곱해서 프로젝션 영역안에 있는지 판별하는 방식
+					// 근데, 패치의 중점만 있는지 없는지 판단하기 때문에 패치의 꼭지점이 프로젝션 영역 안에 있어도 컬링되고맘
+					// 모든 꼭지점을 컬링할까 했지만 성능 문제로 패스
+					// 얼마나 느려지는지 확인해보려했으나 전부 안나옴 흐흐
+					// 나중에 심심할때 다시 테스트 해보자
+					// 컬링 하냐마냐의 차이는 1025 x 1025 사이즈 터레인에서 0.03 ms 정도
+					subset.isEnableFrustumCullInHS = false;
+
 					Graphics::RendererManager::GetInstance()->AddRender(subset);
 				}
 			}
@@ -140,6 +159,60 @@ namespace EastEngine
 
 		float Terrain::GetHeight(float fPosX, float fPosZ) const
 		{
+			if (m_pPhysics != nullptr)
+			{
+				// 하늘에서 레이를 슝 쏘는 방식으로 잘 만들쟈
+				return 0.f;
+			}
+			else
+			{
+				Math::Matrix matInvWorld = m_matWorld.Invert();
+
+				Math::Vector3 f3Pos(fPosX, 0.f, fPosZ);
+				f3Pos = Math::Vector3::Transform(f3Pos, matInvWorld);
+
+				int i = static_cast<int>(f3Pos.x);
+				int j = static_cast<int>(f3Pos.z);
+
+				if (i < 0 || i >= m_property.n2Size.x ||
+					j < 0 || j >= m_property.n2Size.y)
+					return 0.f;
+
+				// Get the indexes to the four points of the quad.
+				uint32_t nIdx1 = (m_property.n2Size.x * i) + j;				// Upper left.
+				uint32_t nIdx2 = (m_property.n2Size.x * i) + (j + 1);			// Upper right.
+				uint32_t nIdx3 = (m_property.n2Size.x * (i + 1)) + j;			// Bottom left.
+				uint32_t nIdx4 = (m_property.n2Size.x * (i + 1)) + (j + 1);	// Bottom right.
+
+				// Triangle 1 - Upper left.
+				const Math::Vector3& p0 = m_vecHeightMap[nIdx1].pos;
+
+				// Triangle 1 - Upper right.
+				const Math::Vector3& p1 = m_vecHeightMap[nIdx2].pos;
+
+				// Triangle 1 - Bottom left.
+				const Math::Vector3& p2 = m_vecHeightMap[nIdx3].pos;
+
+				// Triangle 2 - Bottom left.
+				//vecVertices.push_back(m_vecHeightMap[nIdx3].pos);
+
+				// Triangle 2 - Upper right.
+				//vecVertices.push_back(m_vecHeightMap[nIdx2].pos);
+
+				// Triangle 2 - Bottom right.
+				const Math::Vector3& p3 = m_vecHeightMap[nIdx4].pos;
+
+				std::optional<float> optHeight = CheckHeightOfTriangle(fPosX, fPosZ, p0, p1, p2);
+				if (optHeight.has_value())
+					return optHeight.value();
+
+				optHeight = CheckHeightOfTriangle(fPosX, fPosZ, p2, p1, p3);
+				if (optHeight.has_value())
+					return optHeight.value();
+
+				return 0.f;
+			}
+
 			//int nCellIdx = -1;
 			//uint32_t nSize = m_veTerrainCells.size();
 			//for (uint32_t i = 0; i < nSize; ++i)
@@ -305,33 +378,62 @@ namespace EastEngine
 			{
 				for (int i = 0; i < nWidth; ++i)
 				{
-					int nIdx1 = ((j + 1) * m_property.n2Size.x) + i;		// Bottom left vertex.
-					int nIdx2 = ((j + 1) * m_property.n2Size.x) + (i + 1);	// Bottom right vertex.
-					int nIdx3 = (j * m_property.n2Size.x) + i;				// Upper left vertex.
+					{
+						int nIdx1 = ((j + 1) * m_property.n2Size.x) + i;		// Bottom left vertex.
+						int nIdx2 = ((j + 1) * m_property.n2Size.x) + (i + 1);	// Bottom right vertex.
+						int nIdx3 = (j * m_property.n2Size.x) + i;				// Upper left vertex.
 
-					// Get three vertices from the face.
-					Math::Vector3 v1 = m_vecHeightMap[nIdx1].pos;
-					Math::Vector3 v2 = m_vecHeightMap[nIdx2].pos;
-					Math::Vector3 v3 = m_vecHeightMap[nIdx3].pos;
+						// Get three vertices from the face.
+						Math::Vector3 v1 = m_vecHeightMap[nIdx1].pos;
+						Math::Vector3 v2 = m_vecHeightMap[nIdx2].pos;
+						Math::Vector3 v3 = m_vecHeightMap[nIdx3].pos;
 
-					// Calculate the two vectors for this face.
-					v1.x = v1.x - v3.x;
-					v1.y = v1.y - v3.y;
-					v1.z = v1.z - v3.z;
-					v2.x = v3.x - v2.x;
-					v2.y = v3.y - v2.y;
-					v2.z = v3.z - v2.z;
+						// Calculate the two vectors for this face.
+						v1.x = v1.x - v3.x;
+						v1.y = v1.y - v3.y;
+						v1.z = v1.z - v3.z;
+						v2.x = v3.x - v2.x;
+						v2.y = v3.y - v2.y;
+						v2.z = v3.z - v2.z;
 
-					// Calculate the cross product of those two vectors to get the un-normalized value for this face normal.
-					Math::Vector3 vNormal(
-						(v1.y * v2.z) - (v1.z * v2.y),
-						(v1.z * v2.x) - (v1.x * v2.z),
-						(v1.x * v2.y) - (v1.y * v2.x)
-					);
+						// Calculate the cross product of those two vectors to get the un-normalized value for this face normal.
+						Math::Vector3 vNormal(
+							(v1.y * v2.z) - (v1.z * v2.y),
+							(v1.z * v2.x) - (v1.x * v2.z),
+							(v1.x * v2.y) - (v1.y * v2.x)
+						);
 
-					vNormal.Normalize();
+						vNormal.Normalize();
 
-					vecNormal.emplace_back(vNormal);
+						vecNormal.emplace_back(vNormal);
+					}
+
+					{
+						// Get the indexes to the four points of the quad.
+						uint32_t nIdx1 = (m_property.n2Size.x * i) + j;				// Upper left.
+						uint32_t nIdx2 = (m_property.n2Size.x * i) + (j + 1);			// Upper right.
+						uint32_t nIdx3 = (m_property.n2Size.x * (i + 1)) + j;			// Bottom left.
+						uint32_t nIdx4 = (m_property.n2Size.x * (i + 1)) + (j + 1);	// Bottom right.
+
+						// Now create two triangles for that quad.
+						// Triangle 1 - Upper left.
+						vecVertices.push_back(m_vecHeightMap[nIdx1].pos);
+
+						// Triangle 1 - Upper right.
+						vecVertices.push_back(m_vecHeightMap[nIdx2].pos);
+
+						// Triangle 1 - Bottom left.
+						vecVertices.push_back(m_vecHeightMap[nIdx3].pos);
+
+						// Triangle 2 - Bottom left.
+						vecVertices.push_back(m_vecHeightMap[nIdx3].pos);
+
+						// Triangle 2 - Upper right.
+						vecVertices.push_back(m_vecHeightMap[nIdx2].pos);
+
+						// Triangle 2 - Bottom right.
+						vecVertices.push_back(m_vecHeightMap[nIdx4].pos);
+					}
 				}
 			}
 
@@ -391,42 +493,10 @@ namespace EastEngine
 
 			vecNormal.clear();
 
-			// Load the 3D terrain model with the height map terrain data.
-			// We will be creating 2 triangles for each of the four points in a quad.
-			nHeight = m_property.n2Size.y - 1;
-			nWidth = m_property.n2Size.x - 1;
-			for (int i = 0; i < nHeight; ++i)
-			{
-				for (int j = 0; j < nWidth; ++j)
-				{
-					// Get the indexes to the four points of the quad.
-					uint32_t nIdx1 = (m_property.n2Size.x * i) + j;				// Upper left.
-					uint32_t nIdx2 = (m_property.n2Size.x * i) + (j + 1);			// Upper right.
-					uint32_t nIdx3 = (m_property.n2Size.x * (i + 1)) + j;			// Bottom left.
-					uint32_t nIdx4 = (m_property.n2Size.x * (i + 1)) + (j + 1);	// Bottom right.
-
-					// Now create two triangles for that quad.
-					// Triangle 1 - Upper left.
-					vecVertices.push_back(m_vecHeightMap[nIdx1].pos);
-
-					// Triangle 1 - Upper right.
-					vecVertices.push_back(m_vecHeightMap[nIdx2].pos);
-
-					// Triangle 1 - Bottom left.
-					vecVertices.push_back(m_vecHeightMap[nIdx3].pos);
-
-					// Triangle 2 - Bottom left.
-					vecVertices.push_back(m_vecHeightMap[nIdx3].pos);
-
-					// Triangle 2 - Upper right.
-					vecVertices.push_back(m_vecHeightMap[nIdx2].pos);
-
-					// Triangle 2 - Bottom right.
-					vecVertices.push_back(m_vecHeightMap[nIdx4].pos);
-				}
-			}
-
 			std::vector<Math::Vector4> vecHeightLinear(m_property.n2Size.x * m_property.n2Size.y);
+
+			m_fHeightMax = std::numeric_limits<float>::min();
+			m_fHeightMin = std::numeric_limits<float>::max();
 
 			for (int i = 0; i < m_property.n2Size.x; ++i)
 			{
@@ -434,6 +504,9 @@ namespace EastEngine
 				{
 					const HeightMapVertex& vertex = m_vecHeightMap[i + j * m_property.n2Size.y];
 					vecHeightLinear[i + j * m_property.n2Size.y] = Math::Vector4(vertex.normal.x, vertex.normal.y, vertex.normal.z, vertex.pos.y);
+
+					m_fHeightMax = Math::Max(m_fHeightMax, vertex.pos.y);
+					m_fHeightMin = Math::Min(m_fHeightMin, vertex.pos.y);
 				}
 			}
 
@@ -480,7 +553,7 @@ namespace EastEngine
 			return true;
 		}
 
-		std::optional<float> Terrain::checkHeightOfTriangle(float x, float z, const Math::Vector3& v0, const Math::Vector3& v1, const Math::Vector3& v2)
+		std::optional<float> Terrain::CheckHeightOfTriangle(float x, float z, const Math::Vector3& v0, const Math::Vector3& v1, const Math::Vector3& v2) const
 		{
 			// Starting position of the ray that is being cast.
 			Math::Vector3 f3StartVector(x, 0.f, z);

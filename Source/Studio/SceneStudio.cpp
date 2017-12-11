@@ -361,7 +361,7 @@ void SceneStudio::Enter()
 
 			Graphics::ILight* pSpotLight = Graphics::ILight::CreateSpotLight(strName, f3Position, f3Direction, Math::Random(20.f, 60.f), lightColor, 100.f * (i + 1), 0.1f, 0.2f, &shadowConfig);
 			//Graphics::ILight* pSpotLight = Graphics::ILight::CreateSpotLight(strName, f3Position, f3Direction, 90.f, lightColor, 100.f * (i + 1), 0.1f, 0.2f, &shadowConfig);
-			//pSpotLight->SetEnableShadow(false);
+			pSpotLight->SetEnableShadow(false);
 
 			//Graphics::ILight* pPointLight = Graphics::ILight::CreatePointLight(strName, f3Position, lightColor, 100.f * (i + 1), 0.1f, 0.2f, &shadowConfig);
 
@@ -388,7 +388,8 @@ void SceneStudio::Enter()
 
 		terrain.fHeightScale = 300.f;
 
-		terrain.n2Size = Math::Int2(1025, 1025);
+		terrain.n2Size = { 1025, 1025 };
+		terrain.n2Patches = { 32, 32 };
 
 		terrain.rigidBodyProperty.fRestitution = 0.25f;
 		terrain.rigidBodyProperty.fFriction = 0.75f;
@@ -399,7 +400,8 @@ void SceneStudio::Enter()
 		terrain.strTexDetailNormalMap = File::GetPath(File::eTexture);
 		terrain.strTexDetailNormalMap.append("dirt01n.tga");
 
-		GameObject::ITerrain::Create("BaseTerrain", &terrain);
+		GameObject::ITerrain* pTerrain = GameObject::ITerrain::Create("BaseTerrain", &terrain);
+		pTerrain->SetPosition({ -500.f, -(pTerrain->GetHeightMax() + pTerrain->GetHeightMin()) * 0.5f, -500.f });
 	}
 
 	m_pMaterialNodeManager = new MaterialNodeManager;

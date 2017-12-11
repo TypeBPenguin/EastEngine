@@ -201,13 +201,11 @@ namespace EastEngine
 				m_f3RotationOffset.z = 0.f;
 			}
 
-			{
-				float fDist = Math::Vector3::Distance(m_f3Lookat, m_f3Eye);
-				Math::Matrix matRot = Math::Matrix::CreateFromYawPitchRoll(Math::ToRadians(m_f3Rotation.y), Math::ToRadians(m_f3Rotation.x), Math::ToRadians(m_f3Rotation.z));
+			float fDist = Math::Vector3::Distance(m_f3Lookat, m_f3Eye);
+			Math::Matrix matRot = Math::Matrix::CreateFromYawPitchRoll(Math::ToRadians(m_f3Rotation.y), Math::ToRadians(m_f3Rotation.x), Math::ToRadians(m_f3Rotation.z));
 
-				m_f3Lookat = (Math::Vector3::Transform(Math::Vector3::Forward, matRot) * fDist) + m_f3Eye;
-				m_f3Up = Math::Vector3::Transform(Math::Vector3::Up, matRot);
-			}
+			m_f3Lookat = (Math::Vector3::Transform(Math::Vector3::Forward, matRot) * fDist) + m_f3Eye;
+			m_f3Up = Math::Vector3::Transform(Math::Vector3::Up, matRot);
 
 			UpdateView();
 

@@ -73,6 +73,7 @@ cbuffer cbContents
 	float g_StaticTessFactor;
 
 	float4x4 g_ModelViewProjectionMatrix;
+	float4x4 g_matWorld;
 
 	float3 g_CameraPosition;
 	float3 g_CameraDirection;
@@ -138,35 +139,47 @@ PatchData PatchConstantHS(InputPatch<HSIn_Heightfield, 1> inputPatch)
 	float2 texcoord0to1 = (inputPatch[0].origin + g_f2PatchSize / 2.0) / g_f2HeightFieldSize;
 	texcoord0to1.y = 1 - texcoord0to1.y;
 
-	// conservative frustum culling
-	float3 patch_center = 0.f;
-	patch_center.x = inputPatch[0].origin.x + g_f2PatchSize.x * 0.5f;
-	patch_center.y = g_texHeightField.SampleLevel(SamplerLinearBorder, texcoord0to1, 0).w;
-	patch_center.z = inputPatch[0].origin.y + g_f2PatchSize.y * 0.5f;
-
-	float3 camera_to_patch_vector = patch_center - g_CameraPosition;
-	float3 patch_to_camera_direction_vector = g_CameraDirection * dot(camera_to_patch_vector, g_CameraDirection) - camera_to_patch_vector;
-	float3 patch_center_realigned = patch_center + normalize(patch_to_camera_direction_vector) * min(2 * g_f2PatchSize.x, length(patch_to_camera_direction_vector));
-	float4 patch_screenspace_center = mul(float4(patch_center_realigned, 1.0), g_ModelViewProjectionMatrix);
-
-	float in_frustum = 0;
-	if (((patch_screenspace_center.x / patch_screenspace_center.w>-1.0) && (patch_screenspace_center.x / patch_screenspace_center.w<1.0)
-		&& (patch_screenspace_center.y / patch_screenspace_center.w>-1.0) && (patch_screenspace_center.y / patch_screenspace_center.w<1.0)
-		&& (patch_screenspace_center.w>0)) || (length(patch_center - g_CameraPosition)<2 * g_f2PatchSize.x))
+	float height = 0.f;
+	bool in_frustum = false;
+	if (g_FrustumCullInHS == 1)
 	{
-		in_frustum = 1;
+		height = g_texHeightField.SampleLevel(SamplerLinearBorder, texcoord0to1, 0).w;
+
+		// conservative frustum culling
+		float3 patch_center = 0.f;
+		patch_center.x = inputPatch[0].origin.x + g_f2PatchSize.x * 0.5f;
+		patch_center.y = height;
+		patch_center.z = inputPatch[0].origin.y + g_f2PatchSize.y * 0.5f;
+
+		float3 camera_to_patch_vector = patch_center - g_CameraPosition;
+		float3 patch_to_camera_direction_vector = g_CameraDirection * dot(camera_to_patch_vector, g_CameraDirection) - camera_to_patch_vector;
+		float3 patch_center_realigned = patch_center + normalize(patch_to_camera_direction_vector) * min(2 * g_f2PatchSize.x, length(patch_to_camera_direction_vector));
+		float4 patch_screenspace_center = mul(float4(patch_center_realigned, 1.0), g_ModelViewProjectionMatrix);
+
+		if (((patch_screenspace_center.x / patch_screenspace_center.w > -1.f) && (patch_screenspace_center.x / patch_screenspace_center.w < 1.f)
+			&& (patch_screenspace_center.z / patch_screenspace_center.w > -1.f) && (patch_screenspace_center.z / patch_screenspace_center.w < 1.f)
+			&& (patch_screenspace_center.w >= 0.f)) || (length(patch_center - g_CameraPosition) < 2.f * g_f2PatchSize.x))
+		{
+			in_frustum = true;
+		}
+	}
+	else
+	{
+		in_frustum = true;
 	}
 
-	if ((in_frustum) || (g_FrustumCullInHS == 0))
+	if (in_frustum == true)
 	{
 		float inside_tessellation_factor = 0.f;
 
 		float3 pos;
 		pos.x = inputPatch[0].origin.x;
-		pos.y = patch_center.y;
+		pos.y = height;
 		pos.z = inputPatch[0].origin.y + g_f2PatchSize.y * 0.5f;
 
-		float distance_to_camera = length(g_CameraPosition - pos);
+		float3 posW = mul(float4(pos, 1.f), g_matWorld).xyz;
+
+		float distance_to_camera = length(g_CameraPosition - posW);
 		float tesselation_factor = CalculateTessellationFactor(distance_to_camera);
 		output.Edges[0] = tesselation_factor;
 		inside_tessellation_factor += tesselation_factor;
@@ -174,7 +187,9 @@ PatchData PatchConstantHS(InputPatch<HSIn_Heightfield, 1> inputPatch)
 		pos.x = inputPatch[0].origin.x + g_f2PatchSize.x * 0.5f;
 		pos.z = inputPatch[0].origin.y;
 
-		distance_to_camera = length(g_CameraPosition - pos);
+		posW = mul(float4(pos, 1.f), g_matWorld).xyz;
+
+		distance_to_camera = length(g_CameraPosition - posW);
 		tesselation_factor = CalculateTessellationFactor(distance_to_camera);
 		output.Edges[1] = tesselation_factor;
 		inside_tessellation_factor += tesselation_factor;
@@ -182,7 +197,9 @@ PatchData PatchConstantHS(InputPatch<HSIn_Heightfield, 1> inputPatch)
 		pos.x = inputPatch[0].origin.x + g_f2PatchSize.x;
 		pos.z = inputPatch[0].origin.y + g_f2PatchSize.y * 0.5f;
 
-		distance_to_camera = length(g_CameraPosition - pos);
+		posW = mul(float4(pos, 1.f), g_matWorld).xyz;
+
+		distance_to_camera = length(g_CameraPosition - posW);
 		tesselation_factor = CalculateTessellationFactor(distance_to_camera);
 		output.Edges[2] = tesselation_factor;
 		inside_tessellation_factor += tesselation_factor;
@@ -190,7 +207,9 @@ PatchData PatchConstantHS(InputPatch<HSIn_Heightfield, 1> inputPatch)
 		pos.x = inputPatch[0].origin.x + g_f2PatchSize.x * 0.5f;
 		pos.z = inputPatch[0].origin.y + g_f2PatchSize.y;
 
-		distance_to_camera = length(g_CameraPosition - pos);
+		posW = mul(float4(pos, 1.f), g_matWorld).xyz;
+
+		distance_to_camera = length(g_CameraPosition - posW);
 		tesselation_factor = CalculateTessellationFactor(distance_to_camera);
 		output.Edges[3] = tesselation_factor;
 		inside_tessellation_factor += tesselation_factor;

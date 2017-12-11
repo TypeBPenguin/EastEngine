@@ -143,6 +143,13 @@ namespace EastEngine
 
 			virtual void SetVisible(bool bVisible) = 0;
 			virtual bool IsVisible() const = 0;
+
+		public:
+			virtual float GetHeight(float fPosX, float fPosZ) const = 0;
+			virtual float GetHeightMin() const = 0;
+			virtual float GetHeightMax() const = 0;
+
+			virtual bool IsBuildComplete() const = 0;
 		};
 	}
 }

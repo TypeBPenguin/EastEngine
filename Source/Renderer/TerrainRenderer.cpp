@@ -23,6 +23,7 @@ namespace StrID
 	RegisterStringID(g_StaticTessFactor);
 
 	RegisterStringID(g_ModelViewProjectionMatrix);
+	RegisterStringID(g_matWorld);
 
 	RegisterStringID(g_CameraPosition);
 	RegisterStringID(g_CameraDirection);
@@ -121,6 +122,7 @@ namespace EastEngine
 				m_pEffect->SetTexture(StrID::g_texDetailNormal, renderSubset.pTexDetailNormalMap);
 
 				m_pEffect->SetMatrix(StrID::g_ModelViewProjectionMatrix, renderSubset.matWorld * matViewProj);
+				m_pEffect->SetMatrix(StrID::g_matWorld, renderSubset.matWorld);
 
 				IEffectTech* pEffectTech = m_pEffect->GetTechnique(StrID::RenderHeightfield);
 				if (pEffectTech == nullptr)
