@@ -23,6 +23,7 @@ namespace EastEngine
 			virtual void AddRender(const RenderSubsetSkinned&) {}
 			virtual void AddRender(const RenderSubsetTerrain&) {}
 			virtual void AddRender(const RenderSubsetSky&) {}
+			virtual void AddRender(const RenderSubsetSkybox&) {}
 			virtual void AddRender(const RenderSubsetSkyEffect&) {}
 			virtual void AddRender(const RenderSubsetSkyCloud&) {}
 			virtual void AddRender(const RenderSubsetParticleEmitter&) {}

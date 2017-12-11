@@ -53,6 +53,7 @@ namespace EastEngine
 			void AddRender(const RenderSubsetTerrain& renderSubset) { m_pRenderer[EmRenderer::eTerrain]->AddRender(renderSubset); }
 
 			void AddRender(const RenderSubsetSky& renderSubset) { m_pRenderer[EmRenderer::eSky]->AddRender(renderSubset); }
+			void AddRender(const RenderSubsetSkybox& renderSubset) { m_pRenderer[EmRenderer::eSky]->AddRender(renderSubset); }
 			void AddRender(const RenderSubsetSkyEffect& renderSubset) { m_pRenderer[EmRenderer::eSky]->AddRender(renderSubset); }
 			void AddRender(const RenderSubsetSkyCloud& renderSubset) { m_pRenderer[EmRenderer::eSky]->AddRender(renderSubset); }
 

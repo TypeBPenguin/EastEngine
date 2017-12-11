@@ -14,6 +14,8 @@ cbuffer cbColor
 	float g_fBlend;
 };
 
+TextureCube g_texSkyCubemap;
+
 Texture2D g_texEffect;
 Texture2D g_texCloud;
 Texture2D g_texCloudBlend;
@@ -24,6 +26,13 @@ struct VS_INPUT
 {
 	float4 pos : POSITION;
 	float2 tex : TEXCOORD0;
+};
+
+struct VS_INPUT_SKYBOX
+{
+	float4 pos : POSITION;
+	float2 tex : TEXCOORD0;
+	float3 normal : NORMAL;
 };
 
 struct PS_INPUT
@@ -47,11 +56,30 @@ PS_INPUT VS(VS_INPUT input)
 	return output;
 }
 
+PS_INPUT VS_Skybox(VS_INPUT_SKYBOX input)
+{
+	PS_INPUT output;
+	input.pos.w = 1.f;
+
+	output.pos = mul(input.pos, g_matWVP);
+
+	output.tex = input.tex;
+
+	output.posWVP = input.pos;
+
+	return output;
+}
+
 float4 PS(PS_INPUT input) : SV_Target
 {
 	float fHeight = max(input.posWVP.y, 0.f) * 0.0025f;
 
 	return lerp(g_colorCenter, g_colorApex, fHeight);
+}
+
+float4 PS_Skybox(PS_INPUT input) : SV_Target
+{
+	return g_texSkyCubemap.Sample(g_samLinearWrap, input.posWVP.xyz);
 }
 
 float4 PS_Effect(PS_INPUT input) : SV_Target
@@ -77,6 +105,15 @@ technique11 Sky
 	{
 		SetVertexShader(CompileShader(vs_5_0, VS()));
 		SetPixelShader(CompileShader(ps_5_0, PS()));
+	}
+}
+
+technique11 Skybox
+{
+	pass Pass_0
+	{
+		SetVertexShader(CompileShader(vs_5_0, VS_Skybox()));
+		SetPixelShader(CompileShader(ps_5_0, PS_Skybox()));
 	}
 }
 

@@ -176,8 +176,6 @@ namespace EastEngine
 				std::vector<VertexPosTexNor> vecVertices;
 				std::vector<uint32_t> vecIndices;
 
-				const Math::Vector3 tsize(0.5f, 0.5f, 0.5f);
-
 				// Create each face in turn.
 				for (int i = 0; i < FaceCount; ++i)
 				{
@@ -200,10 +198,10 @@ namespace EastEngine
 					vecIndices.push_back(vbase + 3);
 
 					// Four vertices per face.
-					vecVertices.push_back(VertexPosTexNor((normal - side1 - side2) * tsize, textureCoordinates[0], normal));
-					vecVertices.push_back(VertexPosTexNor((normal - side1 + side2) * tsize, textureCoordinates[1], normal));
-					vecVertices.push_back(VertexPosTexNor((normal + side1 + side2) * tsize, textureCoordinates[2], normal));
-					vecVertices.push_back(VertexPosTexNor((normal + side1 - side2) * tsize, textureCoordinates[3], normal));
+					vecVertices.push_back(VertexPosTexNor((normal - side1 - side2) * size, textureCoordinates[0], normal));
+					vecVertices.push_back(VertexPosTexNor((normal - side1 + side2) * size, textureCoordinates[1], normal));
+					vecVertices.push_back(VertexPosTexNor((normal + side1 + side2) * size, textureCoordinates[2], normal));
+					vecVertices.push_back(VertexPosTexNor((normal + side1 - side2) * size, textureCoordinates[3], normal));
 				}
 
 				return InitBuffer(ppVertexBuffer, ppIndexBuffer, vecVertices, vecIndices, rhcoords, invertn);

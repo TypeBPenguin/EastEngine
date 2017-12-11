@@ -209,6 +209,11 @@ namespace EastEngine
 
 			UpdateView();
 
+			UpdateFrustum();
+		}
+
+		void Camera::UpdateFrustum()
+		{
 			Collision::Frustum::CreateFromMatrix(m_frustum, m_matProj);
 			m_frustum.Transform(m_matView.Invert());
 		}

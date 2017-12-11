@@ -11,6 +11,7 @@ namespace StrID
 	RegisterStringID(EffectSky);
 
 	RegisterStringID(Sky);
+	RegisterStringID(Skybox);
 	RegisterStringID(SkyEffect);
 	RegisterStringID(SkyCloud);
 
@@ -18,6 +19,7 @@ namespace StrID
 	RegisterStringID(g_colorApex);
 	RegisterStringID(g_colorCenter);
 	RegisterStringID(g_fBlend);
+	RegisterStringID(g_texSkyCubemap);
 	RegisterStringID(g_texEffect);
 	RegisterStringID(g_texCloud);
 	RegisterStringID(g_texCloudBlend);
@@ -53,6 +55,8 @@ namespace EastEngine
 				return false;
 
 			m_pEffect->CreateTechnique(StrID::Sky, EmVertexFormat::ePosTex);
+
+			m_pEffect->CreateTechnique(StrID::Skybox, EmVertexFormat::ePosTexNor);
 			m_pEffect->CreateTechnique(StrID::SkyEffect, EmVertexFormat::ePosTex);
 			m_pEffect->CreateTechnique(StrID::SkyCloud, EmVertexFormat::ePosTex);
 
@@ -62,10 +66,8 @@ namespace EastEngine
 		void SkyRenderer::Render(uint32_t nRenderGroupFlag)
 		{
 			D3D_PROFILING(SkyRenderer);
-			if (m_vecRPSky.empty())
-				return;
 
-			IEffectTech* pEffectTech = m_pEffect->GetTechnique(StrID::Sky);
+			IEffectTech* pEffectTech = m_pEffect->GetTechnique(StrID::Skybox);
 			if (pEffectTech == nullptr)
 			{
 				PRINT_LOG("Not Exist EffectTech !!");
@@ -87,7 +89,7 @@ namespace EastEngine
 			pDeviceContext->ClearState();
 			pDeviceContext->SetDefaultViewport();
 
-			pDeviceContext->SetRasterizerState(EmRasterizerState::eCCW);
+			pDeviceContext->SetRasterizerState(EmRasterizerState::eCW);
 			pDeviceContext->SetBlendState(EmBlendState::eOff);
 			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOn);
 
@@ -112,10 +114,33 @@ namespace EastEngine
 			pDeviceContext->SetRenderTargets(&pRenderTarget, 1, pDevice->GetMainDepthStencil());
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-			uint32_t nSize = m_vecRPSky.size();
+			uint32_t nSize = m_vecRenderSubsetSkybox.size();
 			for (uint32_t i = 0; i < nSize; ++i)
 			{
-				RenderSubsetSky& renderSubset = m_vecRPSky[i];
+				RenderSubsetSkybox& renderSubset = m_vecRenderSubsetSkybox[i];
+
+				pDeviceContext->SetVertexBuffers(renderSubset.pVertexBuffer, renderSubset.pVertexBuffer->GetFormatSize(), 0);
+				pDeviceContext->SetIndexBuffer(renderSubset.pIndexBuffer, 0);
+
+				m_pEffect->SetMatrix(StrID::g_matWVP, renderSubset.matWorld * pCamera->GetViewMatrix() * pCamera->GetProjMatrix());
+
+				m_pEffect->SetTexture(StrID::g_texSkyCubemap, renderSubset.pTexSkyCubemap);
+
+				uint32_t nPassCount = pEffectTech->GetPassCount();
+				for (uint32_t p = 0; p < nPassCount; ++p)
+				{
+					pEffectTech->PassApply(p, pDeviceContext);
+
+					pDeviceContext->DrawIndexed(renderSubset.pIndexBuffer->GetIndexNum(), 0, 0);
+				}
+			}
+
+			ClearEffect(pDeviceContext, pEffectTech);
+
+			/*uint32_t nSize = m_vecRenderSubsetSky.size();
+			for (uint32_t i = 0; i < nSize; ++i)
+			{
+				RenderSubsetSky& renderSubset = m_vecRenderSubsetSky[i];
 
 				pDeviceContext->SetVertexBuffers(renderSubset.pVertexBuffer, renderSubset.pVertexBuffer->GetFormatSize(), 0);
 				pDeviceContext->SetIndexBuffer(renderSubset.pIndexBuffer, 0);
@@ -145,10 +170,10 @@ namespace EastEngine
 
 			pDeviceContext->SetBlendState(EmBlendState::eAdditive);
 
-			nSize = m_vecRPSkyEffect.size();
+			nSize = m_vecRenderSubsetSkyEffect.size();
 			for (uint32_t i = 0; i < nSize; ++i)
 			{
-				RenderSubsetSkyEffect& renderSubset = m_vecRPSkyEffect[i];
+				RenderSubsetSkyEffect& renderSubset = m_vecRenderSubsetSkyEffect[i];
 
 				pDeviceContext->SetVertexBuffers(renderSubset.pVertexBuffer, renderSubset.pVertexBuffer->GetFormatSize(), 0);
 				pDeviceContext->SetIndexBuffer(renderSubset.pIndexBuffer, 0);
@@ -177,10 +202,10 @@ namespace EastEngine
 				return;
 			}
 
-			nSize = m_vecRPSkyCloud.size();
+			nSize = m_vecRenderSubsetSkyCloud.size();
 			for (uint32_t i = 0; i < nSize; ++i)
 			{
-				RenderSubsetSkyCloud& renderSubset = m_vecRPSkyCloud[i];
+				RenderSubsetSkyCloud& renderSubset = m_vecRenderSubsetSkyCloud[i];
 
 				pDeviceContext->SetVertexBuffers(renderSubset.pVertexBuffer, renderSubset.pVertexBuffer->GetFormatSize(), 0);
 				pDeviceContext->SetIndexBuffer(renderSubset.pIndexBuffer, 0);
@@ -203,7 +228,7 @@ namespace EastEngine
 				}
 			}
 
-			ClearEffect(pDeviceContext, pEffectTech);
+			ClearEffect(pDeviceContext, pEffectTech);*/
 
 			pDevice->ReleaseRenderTargets(&pRenderTarget, 1);
 		}

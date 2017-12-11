@@ -21,7 +21,7 @@ namespace EastEngine
 			IIndexBuffer* pIndexBuffer = nullptr;
 			Math::Matrix matWorld;
 
-			RenderSubsetLine(IVertexBuffer* pIVertexBuffer, IIndexBuffer* pIIndexBuffer, const Math::Matrix& matWorld);
+			RenderSubsetLine(IVertexBuffer* pVertexBuffer, IIndexBuffer* pIndexBuffer, const Math::Matrix& matWorld);
 		};
 
 		struct RenderSubsetLineSegment
@@ -38,7 +38,7 @@ namespace EastEngine
 			const Math::Matrix* pWorldMatrix = nullptr;
 			Math::Color color = Math::Color::Red;
 
-			RenderSubsetVertex(IVertexBuffer* pIVertexBuffer, IIndexBuffer* pIIndexBuffer, const Math::Matrix* pWorldMatrix, const Math::Color& color);
+			RenderSubsetVertex(IVertexBuffer* pVertexBuffer, IIndexBuffer* pIndexBuffer, const Math::Matrix* pWorldMatrix, const Math::Color& color);
 		};
 
 		struct RenderSubsetStatic
@@ -54,7 +54,7 @@ namespace EastEngine
 			Collision::Sphere boundingSphere;
 
 			RenderSubsetStatic();
-			RenderSubsetStatic(void* pKey, IVertexBuffer* pIVertexBuffer, IIndexBuffer* pIIndexBuffer, IMaterial* pMaterial
+			RenderSubsetStatic(void* pKey, IVertexBuffer* pVertexBuffer, IIndexBuffer* pIndexBuffer, IMaterial* pMaterial
 				, const Math::Matrix& matWorld, uint32_t nStartIndex, uint32_t nIndexCount
 				, float fDepth, const Collision::Sphere& boundingSphere);
 		};
@@ -72,7 +72,7 @@ namespace EastEngine
 			float fDepth = 0.f;
 
 			RenderSubsetSkinned();
-			RenderSubsetSkinned(void* pKey, IVertexBuffer* pIVertexBuffer, IIndexBuffer* pIIndexBuffer, IMaterial* pMaterial
+			RenderSubsetSkinned(void* pKey, IVertexBuffer* pVertexBuffer, IIndexBuffer* pIndexBuffer, IMaterial* pMaterial
 				, const Math::Matrix& matWorld, uint32_t nStartIndex, uint32_t nIndexCount, uint32_t nVTFID
 				, float fDepth);
 		};
@@ -108,7 +108,18 @@ namespace EastEngine
 			Math::Color* pColorCenter = nullptr;
 
 			RenderSubsetSky();
-			RenderSubsetSky(IVertexBuffer* pIVertexBuffer, IIndexBuffer* pIIndexBuffer, Math::Matrix* pMatrix, Math::Color* pColorApex, Math::Color* pColorCenter);
+			RenderSubsetSky(IVertexBuffer* pVertexBuffer, IIndexBuffer* pIndexBuffer, Math::Matrix* pMatrix, Math::Color* pColorApex, Math::Color* pColorCenter);
+		};
+
+		struct RenderSubsetSkybox
+		{
+			IVertexBuffer* pVertexBuffer = nullptr;
+			IIndexBuffer* pIndexBuffer = nullptr;
+			std::shared_ptr<ITexture> pTexSkyCubemap;
+			Math::Matrix matWorld;
+
+			RenderSubsetSkybox();
+			RenderSubsetSkybox(IVertexBuffer* pVertexBuffer, IIndexBuffer* pIndexBuffer, std::shared_ptr<ITexture> pTexSkyCubemap, Math::Matrix matWorld);
 		};
 
 		struct RenderSubsetSkyEffect
@@ -119,7 +130,7 @@ namespace EastEngine
 			std::shared_ptr<ITexture> pTexEffect;
 
 			RenderSubsetSkyEffect();
-			RenderSubsetSkyEffect(IVertexBuffer* pIVertexBuffer, IIndexBuffer* pIIndexBuffer, Math::Matrix* pMatrix, const std::shared_ptr<ITexture>& pTexEffect);
+			RenderSubsetSkyEffect(IVertexBuffer* pVertexBuffer, IIndexBuffer* pIndexBuffer, Math::Matrix* pMatrix, const std::shared_ptr<ITexture>& pTexEffect);
 		};
 
 		struct RenderSubsetSkyCloud
@@ -132,7 +143,7 @@ namespace EastEngine
 			float fBlend = 0.f;
 
 			RenderSubsetSkyCloud();
-			RenderSubsetSkyCloud(IVertexBuffer* pIVertexBuffer, IIndexBuffer* pIIndexBuffer, Math::Matrix* pMatrix, const std::shared_ptr<ITexture>& pTexCloud, const std::shared_ptr<ITexture>& pTexCloudBlend, float fBlend);
+			RenderSubsetSkyCloud(IVertexBuffer* pVertexBuffer, IIndexBuffer* pIndexBuffer, Math::Matrix* pMatrix, const std::shared_ptr<ITexture>& pTexCloud, const std::shared_ptr<ITexture>& pTexCloudBlend, float fBlend);
 		};
 
 		struct RenderSubsetParticleEmitter

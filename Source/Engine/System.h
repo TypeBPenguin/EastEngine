@@ -55,6 +55,7 @@ namespace EastEngine
 	{
 		class ActorManager;
 		class TerrainManager;
+		class SkyManager;
 	}
 
 	class FpsChecker;
@@ -109,6 +110,7 @@ namespace EastEngine
 		UI::UIManager* s_pUIMgr;
 		GameObject::ActorManager* s_pActorMgr;
 		GameObject::TerrainManager* s_pTerrainManager;
+		GameObject::SkyManager* m_pSkyManager;
 
 		String::StringID m_strApplicationName;
 		Math::Int2 m_n2ScreenSize;

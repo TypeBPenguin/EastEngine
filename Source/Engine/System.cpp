@@ -18,6 +18,7 @@
 #include "SoundSystem/SoundSystem.h"
 #include "GameObject/ActorManager.h"
 #include "GameObject/TerrainManager.h"
+#include "GameObject/SkyManager.h"
 #include "UI/UIMgr.h"
 
 #include "GameObject/ComponentModel.h"
@@ -33,6 +34,8 @@ namespace EastEngine
 		, s_pLuaSystem(nullptr)
 		, s_pSceneMgr(nullptr)
 		, s_pActorMgr(nullptr)
+		, s_pTerrainManager(nullptr)
+		, m_pSkyManager(nullptr)
 		, s_pWindows(nullptr)
 		, s_pGraphicsSystem(nullptr)
 		, s_pInputDevice(nullptr)
@@ -164,6 +167,7 @@ namespace EastEngine
 
 		s_pActorMgr = GameObject::ActorManager::GetInstance();
 		s_pTerrainManager = GameObject::TerrainManager::GetInstance();
+		m_pSkyManager = GameObject::SkyManager::GetInstance();
 
 		m_pFpsChecker = new FpsChecker;
 		
@@ -188,6 +192,9 @@ namespace EastEngine
 
 		SafeRelease(s_pTerrainManager);
 		GameObject::TerrainManager::DestroyInstance();
+
+		SafeRelease(m_pSkyManager);
+		GameObject::SkyManager::DestroyInstance();
 
 		SafeRelease(s_pUIMgr);
 		UI::UIManager::DestroyInstance();
@@ -306,6 +313,7 @@ namespace EastEngine
 		s_pSceneMgr->Update(fElapsedTime);
 
 		s_pTerrainManager->Update(fElapsedTime);
+		m_pSkyManager->Update(fElapsedTime);
 		s_pActorMgr->Update(fElapsedTime);
 
 		s_pGraphicsSystem->Update(fElapsedTime);

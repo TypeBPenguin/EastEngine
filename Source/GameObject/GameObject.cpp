@@ -5,6 +5,7 @@
 
 #include "ActorManager.h"
 #include "TerrainManager.h"
+#include "SkyManager.h"
 
 namespace EastEngine
 {
@@ -100,14 +101,14 @@ namespace EastEngine
 			return true;
 		}
 
-		ITerrain* ITerrain::Create(const String::StringID& strName, const TerrainProperty* pTerrainProperty)
+		ITerrain* ITerrain::Create(const String::StringID& strName, const TerrainProperty& terrainProperty)
 		{
-			return TerrainManager::GetInstance()->CreateTerrain(strName, pTerrainProperty);
+			return TerrainManager::GetInstance()->CreateTerrain(strName, terrainProperty);
 		}
 
-		ITerrain* ITerrain::CreateAsync(const String::StringID& strName, const TerrainProperty* pTerrainProperty)
+		ITerrain* ITerrain::CreateAsync(const String::StringID& strName, const TerrainProperty& terrainProperty)
 		{
-			return TerrainManager::GetInstance()->CreateTerrainAsync(strName, pTerrainProperty);
+			return TerrainManager::GetInstance()->CreateTerrainAsync(strName, terrainProperty);
 		}
 
 		void ITerrain::Destroy(ITerrain** ppTerrain)
@@ -119,6 +120,22 @@ namespace EastEngine
 			pTerrain->SetDestroy(true);
 
 			*ppTerrain = nullptr;
+		}
+
+		ISkybox* ISkybox::Create(const String::StringID& strName, const SkyboxProperty& property)
+		{
+			return SkyManager::GetInstance()->CreateSkybox(strName, property);
+		}
+
+		void ISkybox::Destroy(ISkybox** ppSkybox)
+		{
+			if (ppSkybox == nullptr || *ppSkybox == nullptr)
+				return;
+
+			Skybox* pSkybox = static_cast<Skybox*>(*ppSkybox);
+			pSkybox->SetDestroy(true);
+
+			*ppSkybox = nullptr;
 		}
 	}
 }

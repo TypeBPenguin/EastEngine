@@ -5,7 +5,6 @@
 #include "CommonLib/FileUtil.h"
 #include "CommonLib/ThreadPool.h"
 
-#include "DirectX/D3DInterface.h"
 #include "DirectX/CameraManager.h"
 
 namespace StrID
@@ -22,7 +21,6 @@ namespace EastEngine
 		Terrain::Terrain()
 			: m_isDestroy(false)
 			, m_isVisible(true)
-			, m_isDirtyWorldMatrix(true)
 			, m_isBuildComplete(false)
 			, m_pHeightField(nullptr)
 			, m_pPhysics(nullptr)
@@ -47,9 +45,9 @@ namespace EastEngine
 			}
 		}
 
-		bool Terrain::Init(const TerrainProperty* pTerrainProperty, bool isEnableThreadLoad)
+		bool Terrain::Init(const TerrainProperty& terrainProperty, bool isEnableThreadLoad)
 		{
-			m_property = *pTerrainProperty;
+			m_property = terrainProperty;
 
 			if (isEnableThreadLoad == true)
 			{

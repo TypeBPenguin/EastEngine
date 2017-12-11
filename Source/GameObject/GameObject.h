@@ -116,8 +116,8 @@ namespace EastEngine
 			virtual ~ITerrain() = default;
 
 		public:
-			static ITerrain* Create(const String::StringID& strName, const TerrainProperty* pTerrainProperty);
-			static ITerrain* CreateAsync(const String::StringID& strName, const TerrainProperty* pTerrainProperty);
+			static ITerrain* Create(const String::StringID& strName, const TerrainProperty& terrainProperty);
+			static ITerrain* CreateAsync(const String::StringID& strName, const TerrainProperty& terrainProperty);
 			static void Destroy(ITerrain** ppTerrain);
 
 		public:
@@ -139,6 +139,37 @@ namespace EastEngine
 			virtual float GetHeightMax() const = 0;
 
 			virtual bool IsBuildComplete() const = 0;
+		};
+
+		struct SkyboxProperty
+		{
+			std::string strTexSky;
+
+			float fBoxSize = 1000.f;
+		};
+
+		class ISkybox : public IGameObject
+		{
+		protected:
+			ISkybox() = default;
+			virtual ~ISkybox() = default;
+
+		public:
+			static ISkybox* Create(const String::StringID& strName, const SkyboxProperty& property);
+			static void Destroy(ISkybox** ppSkybox);
+
+		public:
+			virtual EmObjectType GetType() const override { return EmObjectType::eSky; }
+
+		public:
+			virtual void Update(float fElapsedTime) = 0;
+
+		public:
+			virtual const String::StringID& GetName() const = 0;
+			virtual void SetName(const String::StringID& strActorName) = 0;
+
+			virtual void SetVisible(bool bVisible) = 0;
+			virtual bool IsVisible() const = 0;
 		};
 	}
 }

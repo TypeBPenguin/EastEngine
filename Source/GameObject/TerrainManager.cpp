@@ -40,19 +40,19 @@ namespace EastEngine
 			}
 		}
 
-		ITerrain* TerrainManager::CreateTerrain(const String::StringID& strTerrainName, const TerrainProperty* pTerrainProperty)
+		ITerrain* TerrainManager::CreateTerrain(const String::StringID& strTerrainName, const TerrainProperty& terrainProperty)
 		{
 			auto iter = m_colonyTerrain.emplace();
-			iter->Init(pTerrainProperty, false);
+			iter->Init(terrainProperty, false);
 			iter->SetName(strTerrainName);
 
 			return &(*iter);
 		}
 
-		ITerrain* TerrainManager::CreateTerrainAsync(const String::StringID& strTerrainName, const TerrainProperty* pTerrainProperty)
+		ITerrain* TerrainManager::CreateTerrainAsync(const String::StringID& strTerrainName, const TerrainProperty& terrainProperty)
 		{
 			auto iter = m_colonyTerrain.emplace();
-			iter->Init(pTerrainProperty, true);
+			iter->Init(terrainProperty, true);
 			iter->SetName(strTerrainName);
 
 			return &(*iter);

@@ -21,8 +21,9 @@ namespace EastEngine
 
 			void Update(float fElapsedTime);
 
-			ITerrain* CreateTerrain(const String::StringID& strTerrainName, const TerrainProperty* pTerrainProperty);
-			ITerrain* CreateTerrainAsync(const String::StringID& strTerrainName, const TerrainProperty* pTerrainProperty);
+		public:
+			ITerrain* CreateTerrain(const String::StringID& strTerrainName, const TerrainProperty& terrainProperty);
+			ITerrain* CreateTerrainAsync(const String::StringID& strTerrainName, const TerrainProperty& terrainProperty);
 
 			ITerrain* GetTerrain(uint32_t nIndex);
 			uint32_t GetTerrainCount() const { return m_colonyTerrain.size(); }

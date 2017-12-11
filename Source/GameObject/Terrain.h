@@ -4,11 +4,6 @@
 
 namespace EastEngine
 {
-	namespace Thread
-	{
-		class Thread;
-	}
-
 	namespace GameObject
 	{
 		class Terrain : public ITerrain
@@ -32,7 +27,7 @@ namespace EastEngine
 			bool IsDestroy() const { return m_isDestroy; }
 
 		public:
-			bool Init(const TerrainProperty* pTerrainProperty, bool isEnableThreadLoad);
+			bool Init(const TerrainProperty& terrainProperty, bool isEnableThreadLoad);
 
 		public:
 			virtual float GetHeight(float fPosX, float fPosZ) const override;
@@ -57,7 +52,6 @@ namespace EastEngine
 
 			bool m_isDestroy;
 			bool m_isVisible;
-			bool m_isDirtyWorldMatrix;
 			bool m_isBuildComplete;
 
 			TerrainProperty m_property;

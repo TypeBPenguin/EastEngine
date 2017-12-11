@@ -296,9 +296,9 @@ void SceneStudio::Enter()
 			GameObject::IActor* pActor = GameObject::ActorManager::GetInstance()->CreateActor("TestBox");
 
 			Math::Vector3 f3Pos;
-			f3Pos.x = -4.f + (i % 5) * 2.f;
-			f3Pos.y = 100.5f + (j * 1.5f);
-			f3Pos.z = -4.f + (i / 5) * 2.f;
+			f3Pos.x = -4.f + (i % 5) * 3.f;
+			f3Pos.y = 100.5f + (j * 3.f);
+			f3Pos.z = -4.f + (i / 5) * 3.f;
 
 			pActor->SetPosition(f3Pos);
 
@@ -332,7 +332,8 @@ void SceneStudio::Enter()
 			Physics::RigidBodyProperty prop;
 			prop.fRestitution = 0.5f;
 			prop.strName.Format("TestBox_RigidBody%d", i).c_str();
-			prop.shapeInfo.SetBox(Math::Vector3(0.5f));
+
+			prop.shapeInfo.SetBox(Math::Vector3(1.f));
 			//prop.shapeInfo.SetCapsule(Math::Random(0.5f, 1.f), Math::Random(1.f, 2.f));
 			prop.nCollisionFlag = Physics::EmCollision::eCharacterObject;
 			prop.f3OriginPos = f3Pos;
@@ -390,7 +391,7 @@ void SceneStudio::Enter()
 		terrain.fHeightScale = 300.f;
 
 		terrain.n2Size = { 1025, 1025 };
-		terrain.n2Patches = { 32, 32 };
+		terrain.n2Patches = { 64, 64 };
 
 		terrain.rigidBodyProperty.fRestitution = 0.25f;
 		terrain.rigidBodyProperty.fFriction = 0.75f;
@@ -403,10 +404,21 @@ void SceneStudio::Enter()
 
 		terrain.f3Position = { -500.f, 0.f, -500.f };
 
-		GameObject::ITerrain::Create("BaseTerrain", &terrain);
+		GameObject::ITerrain::Create("BaseTerrain", terrain);
 
 		// 백그라운드 로딩은 이렇게 쓰면됨
-		//GameObject::ITerrain::CreateAsync("BaseTerrain", &terrain);
+		//GameObject::ITerrain::CreateAsync("BaseTerrain", terrain);
+	}
+
+	{
+		GameObject::SkyboxProperty sky;
+
+		sky.strTexSky = File::GetPath(File::eTexture);
+		sky.strTexSky.append("grasscube1024.dds");
+
+		sky.fBoxSize = 5000.f;
+
+		GameObject::ISkybox::Create("BaseSkybox", sky);
 	}
 
 	m_pMaterialNodeManager = new MaterialNodeManager;

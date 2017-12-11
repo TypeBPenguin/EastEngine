@@ -55,14 +55,14 @@
     <Filter Include="GameObject\Terrain">
       <UniqueIdentifier>{1f8a3e54-e40c-418d-8156-b316b20f869a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="GameObject\Sky">
-      <UniqueIdentifier>{4a491453-6e76-4cf9-b641-dda964d076f1}</UniqueIdentifier>
-    </Filter>
     <Filter Include="GameObject\Cloud">
       <UniqueIdentifier>{a262fc7a-33ec-420e-bd10-248b0efa51f9}</UniqueIdentifier>
     </Filter>
     <Filter Include="GameObject\Interface">
       <UniqueIdentifier>{1f732d0a-871b-44b8-b275-3bade5307b15}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GameObject\Sky">
+      <UniqueIdentifier>{4acaefaf-c7ca-4009-84f1-f814244625f9}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -123,6 +123,12 @@
     <ClInclude Include="TerrainManager.h">
       <Filter>GameObject\Terrain</Filter>
     </ClInclude>
+    <ClInclude Include="Skybox.h">
+      <Filter>GameObject\Sky</Filter>
+    </ClInclude>
+    <ClInclude Include="SkyManager.h">
+      <Filter>GameObject\Sky</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -176,5 +182,16 @@
     <ClCompile Include="TerrainManager.cpp">
       <Filter>GameObject\Terrain</Filter>
     </ClCompile>
+    <ClCompile Include="Skybox.cpp">
+      <Filter>GameObject\Sky</Filter>
+    </ClCompile>
+    <ClCompile Include="SkyManager.cpp">
+      <Filter>GameObject\Sky</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Skydome.inc">
+      <Filter>GameObject\Sky</Filter>
+    </None>
   </ItemGroup>
 </Project>

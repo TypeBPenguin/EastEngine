@@ -237,9 +237,6 @@
     <ClInclude Include="LightMgr.h">
       <Filter>Light</Filter>
     </ClInclude>
-    <ClInclude Include="d3dDefine.h">
-      <Filter>DirectX\D3D</Filter>
-    </ClInclude>
     <ClInclude Include="Camera.h">
       <Filter>Camera</Filter>
     </ClInclude>
@@ -347,6 +344,9 @@
     </ClInclude>
     <ClInclude Include="ShadowCube.h">
       <Filter>Shadow</Filter>
+    </ClInclude>
+    <ClInclude Include="d3dDefine.h">
+      <Filter>DirectX\D3D</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

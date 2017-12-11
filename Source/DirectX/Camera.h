@@ -21,6 +21,8 @@ namespace EastEngine
 			void UpdateProjection() { m_matProj = Math::Matrix::CreatePerspectiveFieldOfView(m_fFov, (float)m_nWidth / (float)m_nHeight, m_fNear, m_fFar); }
 			void UpdateOrtho() { m_matOrtho = Math::Matrix::CreateOrthographic((float)m_nWidth, (float)m_nHeight, m_fNear, m_fFar); }
 
+			void UpdateFrustum();
+
 			void MoveFront(float fDist) { m_fMoveFront += fDist; m_fMoveFront = Math::Min(s_fMaxMoveSpeed, m_fMoveFront); m_fMoveFront = Math::Max(-s_fMaxMoveSpeed, m_fMoveFront); }
 			void MoveForward(float fDist) { m_fMoveForward += fDist; m_fMoveForward = Math::Min(s_fMaxMoveSpeed, m_fMoveForward); m_fMoveForward = Math::Max(-s_fMaxMoveSpeed, m_fMoveForward); }
 			void MoveSideward(float fDist) { m_fMoveSideward += fDist; m_fMoveSideward = Math::Min(s_fMaxMoveSpeed, m_fMoveSideward); m_fMoveSideward = Math::Max(-s_fMaxMoveSpeed, m_fMoveSideward); }

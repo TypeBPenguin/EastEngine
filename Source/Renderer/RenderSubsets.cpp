@@ -57,6 +57,18 @@ namespace EastEngine
 		{
 		}
 
+		RenderSubsetSkybox::RenderSubsetSkybox()
+		{
+		}
+
+		RenderSubsetSkybox::RenderSubsetSkybox(IVertexBuffer* pVertexBuffer, IIndexBuffer* pIndexBuffer, std::shared_ptr<ITexture> pTexSkyCubemap, Math::Matrix matWorld)
+			: pVertexBuffer(pVertexBuffer)
+			, pIndexBuffer(pIndexBuffer)
+			, pTexSkyCubemap(pTexSkyCubemap)
+			, matWorld(matWorld)
+		{
+		}
+
 		RenderSubsetSkyEffect::RenderSubsetSkyEffect()
 		{
 		}

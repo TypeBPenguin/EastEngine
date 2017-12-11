@@ -75,6 +75,7 @@ namespace EastEngine
 			pCamera->InitView(f3Pos, f3Lookat, vUp);
 			pCamera->InitProjection(nScreenWidth, nScreenHeight, fFov, fNear, fFar);
 			pCamera->UpdateOrtho();
+			pCamera->UpdateFrustum();
 
 			m_umapCamera.emplace(strName, pCamera);
 
