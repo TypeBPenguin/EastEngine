@@ -86,7 +86,7 @@ namespace EastEngine
 
 			static ConstraintInterface* Create(const ConstraintProperty& constraintProperty);
 
-			virtual btTypedConstraint* GetInsterFace() = 0;
+			virtual btTypedConstraint* GetInterface() = 0;
 
 		protected:
 			EmConstraint::Type m_emConstraintType;
@@ -103,7 +103,7 @@ namespace EastEngine
 
 			static Generic6DofConstraint* Create(const ConstraintProperty& constraintProperty);
 
-			virtual btTypedConstraint* GetInsterFace() override;
+			virtual btTypedConstraint* GetInterface() override;
 			
 		public:
 			void CalculateTransforms(const Math::Matrix& transA, const Math::Matrix& transB);

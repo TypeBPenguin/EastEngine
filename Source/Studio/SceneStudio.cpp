@@ -164,7 +164,7 @@ void SceneStudio::Enter()
 	ImGuiIO& io = ImGui::GetIO();
 	io.Fonts->AddFontFromFileTTF(strFontPath.c_str(), 16.f, nullptr, io.Fonts->GetGlyphRangesKorean());
 
-	Graphics::CameraManager::GetInstance()->CreateCamera("MainCamera", Math::Vector3(0.f, 0.f, -10.f), Math::Vector3(0.f, 0.f, 0.f), Math::Vector3(0.f, 1.f, 0.f));
+	Graphics::CameraManager::GetInstance()->CreateCamera("MainCamera", Math::Vector3(0.f, 50.f, -100.f), Math::Vector3(0.f, 50.f, 0.f), Math::Vector3(0.f, 1.f, 0.f));
 
 	{
 		Math::Vector3 f3LightPosition(0.f, 500.f, -500.f);
@@ -293,16 +293,16 @@ void SceneStudio::Enter()
 			//materialInfo.rasterizerStateDesc = Graphics::GetDevice()->GetRasterizerStateDesc(Graphics::EmRasterizerState::eNone);
 			//materialInfo.colorAlbedo = Math::Color(Math::Random(0.f, 1.f), Math::Random(0.f, 1.f), Math::Random(0.f, 1.f), 1.f);
 
-			auto pActor = GameObject::ActorManager::GetInstance()->CreateActor("TestBox");
+			GameObject::IActor* pActor = GameObject::ActorManager::GetInstance()->CreateActor("TestBox");
 
 			Math::Vector3 f3Pos;
 			f3Pos.x = -4.f + (i % 5) * 2.f;
-			f3Pos.y = 10.5f + (j * 1.5f);
+			f3Pos.y = 100.5f + (j * 1.5f);
 			f3Pos.z = -4.f + (i / 5) * 2.f;
 
 			pActor->SetPosition(f3Pos);
 
-			auto pCompModel = static_cast<GameObject::ComponentModel*>(pActor->CreateComponent(GameObject::EmComponent::eModel));
+			GameObject::ComponentModel* pCompModel = static_cast<GameObject::ComponentModel*>(pActor->CreateComponent(GameObject::EmComponent::eModel));
 
 			Graphics::ModelLoader loader;
 			//loader.InitBox(String::Format("TestBox%d", (i % 10) + 1).c_str(), &materialInfo);
@@ -327,7 +327,7 @@ void SceneStudio::Enter()
 				pModelInst->ChangeMaterial("EastEngine_Box", 0, pMaterial_override);
 			}
 
-			auto pCompPhysics = static_cast<GameObject::ComponentPhysics*>(pActor->CreateComponent(GameObject::EmComponent::ePhysics));
+			GameObject::ComponentPhysics* pCompPhysics = static_cast<GameObject::ComponentPhysics*>(pActor->CreateComponent(GameObject::EmComponent::ePhysics));
 
 			Physics::RigidBodyProperty prop;
 			prop.fRestitution = 0.5f;
@@ -340,6 +340,7 @@ void SceneStudio::Enter()
 		}
 	}
 
+	if (false)
 	{
 		for (int i = 0; i < 10; ++i)
 		{
@@ -400,8 +401,12 @@ void SceneStudio::Enter()
 		terrain.strTexDetailNormalMap = File::GetPath(File::eTexture);
 		terrain.strTexDetailNormalMap.append("dirt01n.tga");
 
-		GameObject::ITerrain* pTerrain = GameObject::ITerrain::Create("BaseTerrain", &terrain);
-		pTerrain->SetPosition({ -500.f, -(pTerrain->GetHeightMax() + pTerrain->GetHeightMin()) * 0.5f, -500.f });
+		terrain.f3Position = { -500.f, 0.f, -500.f };
+
+		GameObject::ITerrain::Create("BaseTerrain", &terrain);
+
+		// 백그라운드 로딩은 이렇게 쓰면됨
+		//GameObject::ITerrain::CreateAsync("BaseTerrain", &terrain);
 	}
 
 	m_pMaterialNodeManager = new MaterialNodeManager;

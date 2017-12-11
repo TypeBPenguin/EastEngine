@@ -100,7 +100,7 @@ namespace EastEngine
 			return pGeneric6DofConstraint;
 		}
 
-		btTypedConstraint* Generic6DofConstraint::GetInsterFace()
+		btTypedConstraint* Generic6DofConstraint::GetInterface()
 		{
 			return m_pGeneric6DofConstraint;
 		}

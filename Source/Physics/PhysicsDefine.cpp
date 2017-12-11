@@ -120,7 +120,7 @@ namespace EastEngine
 
 				btIndexedMesh pIndexedMesh;
 				pIndexedMesh.m_indexType = PHY_ScalarType::PHY_INTEGER;
-				pIndexedMesh.m_numTriangles = nIndexCount;
+				pIndexedMesh.m_numTriangles = nIndexCount / 3;
 				pIndexedMesh.m_numVertices = nVertexCount;
 				pIndexedMesh.m_triangleIndexStride = 3 * sizeof(uint32_t);
 				pIndexedMesh.m_vertexStride = sizeof(float) * 3;
@@ -172,37 +172,48 @@ namespace EastEngine
 				if (pIndices != nullptr && nIndexCount == 0)
 					return false;
 
-				btTriangleMesh* pTriangleMesh = new btTriangleMesh;
+				btStridingMeshInterface* pMeshInterface = nullptr;
 
 				if (pIndices != nullptr)
 				{
-					for (uint32_t i = 0; i < nIndexCount; i += 3)
-					{
-						const Math::Vector3& v1 = pVertices[pIndices[i]];
-						const Math::Vector3& v2 = pVertices[pIndices[i + 1]];
-						const Math::Vector3& v3 = pVertices[pIndices[i + 2]];
+					btTriangleIndexVertexArray* pTriangle = new btTriangleIndexVertexArray;
 
-						pTriangleMesh->addTriangle(Math::ConvertToBt(v1), Math::ConvertToBt(v2), Math::ConvertToBt(v3));
-					}
+					btIndexedMesh pIndexedMesh;
+					pIndexedMesh.m_indexType = PHY_ScalarType::PHY_INTEGER;
+					pIndexedMesh.m_numTriangles = nIndexCount / 3;
+					pIndexedMesh.m_numVertices = nVertexCount;
+					pIndexedMesh.m_triangleIndexStride = 3 * sizeof(uint32_t);
+					pIndexedMesh.m_vertexStride = sizeof(float) * 3;
+					pIndexedMesh.m_vertexType = PHY_ScalarType::PHY_FLOAT;
+					pIndexedMesh.m_triangleIndexBase = reinterpret_cast<const unsigned char*>(pIndices);
+					pIndexedMesh.m_vertexBase = reinterpret_cast<const unsigned char*>(pVertices);
+
+					pTriangle->addIndexedMesh(pIndexedMesh, PHY_ScalarType::PHY_INTEGER);
+
+					pMeshInterface = pTriangle;
 				}
 				else
 				{
+					btTriangleMesh* pTriangle = new btTriangleMesh;
 					for (uint32_t i = 0; i < nVertexCount; i += 3)
 					{
 						const Math::Vector3& v1 = pVertices[i];
 						const Math::Vector3& v2 = pVertices[i + 1];
 						const Math::Vector3& v3 = pVertices[i + 2];
 
-						pTriangleMesh->addTriangle(Math::ConvertToBt(v1), Math::ConvertToBt(v2), Math::ConvertToBt(v3));
+						pTriangle->addTriangle(Math::ConvertToBt(v1), Math::ConvertToBt(v2), Math::ConvertToBt(v3));
 					}
+
+					pMeshInterface = pTriangle;
 				}
 
-				btBvhTriangleMeshShape* pTriShape = new btBvhTriangleMeshShape(pTriangleMesh, true);
+				btBvhTriangleMeshShape* pTriShape = new btBvhTriangleMeshShape(pMeshInterface, true);
 
 				return pTriShape;
 			}
 			case EmPhysicsShape::eTerrain:
 			{
+				// 이거 누가.. 사용 방법좀 연구해주셈;;
 				const Shape::Terrain* pShapeInfo = std::get_if<Shape::Terrain>(&shape.element);
 				if (pShapeInfo == nullptr)
 					return nullptr;
@@ -212,9 +223,6 @@ namespace EastEngine
 				btHeightfieldTerrainShape* pHeightShape = new btHeightfieldTerrainShape(pShapeInfo->n2Size.x, pShapeInfo->n2Size.y,
 					pShapeInfo->pHeightArray, heightScale, pShapeInfo->fHeightMin, pShapeInfo->fHeightMax,
 					1, PHY_FLOAT, true);
-
-				//btHeightfieldTerrainShape* pHeightShape = new btHeightfieldTerrainShape(pShapeInfo->n2Size.x, pShapeInfo->n2Size.y,
-				//	pShapeInfo->pHeightArray, pShapeInfo->fHeightMax, 1, true, false);
 
 				pHeightShape->setUseDiamondSubdivision(true);
 

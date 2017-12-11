@@ -20,9 +20,7 @@ namespace EastEngine
 		static uint32_t s_nTerrainIndex = 0;
 
 		Terrain::Terrain()
-			: m_f3Scale(Math::Vector3::One)
-			, m_f3PrevScale(Math::Vector3::One)
-			, m_isDestroy(false)
+			: m_isDestroy(false)
 			, m_isVisible(true)
 			, m_isDirtyWorldMatrix(true)
 			, m_isBuildComplete(false)
@@ -55,9 +53,9 @@ namespace EastEngine
 
 			if (isEnableThreadLoad == true)
 			{
-				Thread::CreateTask([&]() -> bool
+				Thread::CreateTask([&]()
 				{
-					return init();
+					init();
 				});
 			}
 			else
@@ -82,19 +80,35 @@ namespace EastEngine
 			m_pTexDetailMap = Graphics::ITexture::Create(File::GetFileName(m_property.strTexDetailMap).c_str(), m_property.strTexDetailMap, true);
 			m_pTexDetailNormalMap = Graphics::ITexture::Create(File::GetFileName(m_property.strTexDetailNormalMap).c_str(), m_property.strTexDetailNormalMap, true);
 
-			//m_property.rigidBodyProperty.fMass = 0.f;
-			//m_property.rigidBodyProperty.strName = StrID::Terrain_Physics;
-			//m_property.rigidBodyProperty.nCollisionFlag = Physics::EmCollision::eStaticObject;
-			//
-			//if (m_optVertices.has_value() == true)
-			//{
-			//	std::vector<Math::Vector3>& vecVertices = m_optVertices.value();
-			//	m_property.rigidBodyProperty.shapeInfo.SetTriangleMesh(vecVertices.data(), vecVertices.size());
-			//}
-			//
-			//m_pPhysics = Physics::RigidBody::Create(m_property.rigidBodyProperty);
+			m_property.rigidBodyProperty.fMass = 0.f;
+			m_property.rigidBodyProperty.strName = StrID::Terrain_Physics;
+
+			m_property.rigidBodyProperty.nCollisionFlag = Physics::EmCollision::eStaticObject;
+
+			m_matWorld = Math::Matrix::Compose(m_property.f3Scale, m_property.quatRotation, m_property.f3Position);
+			m_property.rigidBodyProperty.matOffset = m_matWorld;
+
+			if (m_optVertices.has_value() == true && m_optIndices.has_value() == true)
+			{
+				std::vector<Math::Vector3>& vecVertices = m_optVertices.value();
+				std::vector<uint32_t>& vecIndices = m_optIndices.value();
+				m_property.rigidBodyProperty.shapeInfo.SetTriangleMesh(vecVertices.data(), vecVertices.size(), vecIndices.data(), vecIndices.size());
+
+				m_pPhysics = Physics::RigidBody::Create(m_property.rigidBodyProperty);
+
+				vecVertices.resize(0);
+				vecIndices.resize(0);
+			}
+			else if (m_optVertices.has_value() == true)
+			{
+				std::vector<Math::Vector3>& vecVertices = m_optVertices.value();
+				m_property.rigidBodyProperty.shapeInfo.SetTriangleMesh(vecVertices.data(), vecVertices.size());
+
+				m_pPhysics = Physics::RigidBody::Create(m_property.rigidBodyProperty);
+			}
 
 			m_optVertices.reset();
+			m_optIndices.reset();
 
 			m_vecHeightMap.resize(0);
 
@@ -107,13 +121,6 @@ namespace EastEngine
 		{
 			if (m_isBuildComplete == false)
 				return;
-
-			if (m_isDirtyWorldMatrix == true)
-			{
-				Math::Matrix::Compose(m_f3Scale, m_quatPrevRotation, m_f3Pos, m_matWorld);
-
-				m_isDirtyWorldMatrix = false;
-			}
 
 			if (IsVisible() == true)
 			{
@@ -192,12 +199,6 @@ namespace EastEngine
 
 				// Triangle 1 - Bottom left.
 				const Math::Vector3& p2 = m_vecHeightMap[nIdx3].pos;
-
-				// Triangle 2 - Bottom left.
-				//vecVertices.push_back(m_vecHeightMap[nIdx3].pos);
-
-				// Triangle 2 - Upper right.
-				//vecVertices.push_back(m_vecHeightMap[nIdx2].pos);
 
 				// Triangle 2 - Bottom right.
 				const Math::Vector3& p3 = m_vecHeightMap[nIdx4].pos;
@@ -347,7 +348,8 @@ namespace EastEngine
 					// Scale the height.
 					vertex.pos.y = static_cast<float>(vecRawData[nIdx]) / m_property.fHeightScale;
 
-					m_vecHeightMap.emplace_back(vertex);
+					int nIndex = j + (((m_property.n2Size.y - 1) - i) * m_property.n2Size.y);
+					m_vecHeightMap.emplace_back(std::move(vertex));
 
 					++nIdx;
 				}
@@ -360,7 +362,8 @@ namespace EastEngine
 
 		bool Terrain::initTerrain()
 		{
-			uint32_t nVertexCount = (m_property.n2Size.y - 1) * (m_property.n2Size.x - 1) * 6;
+			uint32_t nVertexCount = (m_property.n2Size.y - 1) * (m_property.n2Size.x - 1) * 4;
+			uint32_t nIndexCount = (m_property.n2Size.y - 1) * (m_property.n2Size.x - 1) * 6;
 
 			std::vector<Graphics::VertexPosTexNorCol> vecVertex;
 			vecVertex.reserve(nVertexCount);
@@ -369,8 +372,14 @@ namespace EastEngine
 			std::vector<Math::Vector3>& vecVertices = m_optVertices.emplace();
 			vecVertices.reserve(nVertexCount);
 
+			m_optIndices.reset();
+			std::vector<uint32_t>& vecIndices = m_optIndices.emplace();
+			vecIndices.reserve(nIndexCount);
+
 			std::vector<Math::Vector3> vecNormal;
 			vecNormal.reserve((m_property.n2Size.y - 1) * (m_property.n2Size.x - 1));
+
+			int nIndex = 0;
 
 			int nHeight = m_property.n2Size.y - 1;
 			int nWidth = m_property.n2Size.x - 1;
@@ -425,14 +434,23 @@ namespace EastEngine
 						// Triangle 1 - Bottom left.
 						vecVertices.push_back(m_vecHeightMap[nIdx3].pos);
 
-						// Triangle 2 - Bottom left.
-						vecVertices.push_back(m_vecHeightMap[nIdx3].pos);
-
-						// Triangle 2 - Upper right.
-						vecVertices.push_back(m_vecHeightMap[nIdx2].pos);
+						//// Triangle 2 - Bottom left.
+						//vecVertices.push_back(m_vecHeightMap[nIdx3].pos);
+						//
+						//// Triangle 2 - Upper right.
+						//vecVertices.push_back(m_vecHeightMap[nIdx2].pos);
 
 						// Triangle 2 - Bottom right.
 						vecVertices.push_back(m_vecHeightMap[nIdx4].pos);
+
+						vecIndices.emplace_back(nIndex + 0);
+						vecIndices.emplace_back(nIndex + 1);
+						vecIndices.emplace_back(nIndex + 2);
+						vecIndices.emplace_back(nIndex + 2);
+						vecIndices.emplace_back(nIndex + 1);
+						vecIndices.emplace_back(nIndex + 3);
+
+						nIndex += 4;
 					}
 				}
 			}

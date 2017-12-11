@@ -92,6 +92,10 @@ namespace EastEngine
 
 			float fHeightScale = 300.f;
 
+			Math::Vector3 f3Position;
+			Math::Quaternion quatRotation;
+			Math::Vector3 f3Scale = Math::Vector3::One;
+
 			std::string strTexHeightMap;
 			std::string strTexColorMap;
 
@@ -113,6 +117,7 @@ namespace EastEngine
 
 		public:
 			static ITerrain* Create(const String::StringID& strName, const TerrainProperty* pTerrainProperty);
+			static ITerrain* CreateAsync(const String::StringID& strName, const TerrainProperty* pTerrainProperty);
 			static void Destroy(ITerrain** ppTerrain);
 
 		public:
@@ -124,22 +129,6 @@ namespace EastEngine
 		public:
 			virtual const String::StringID& GetName() const = 0;
 			virtual void SetName(const String::StringID& strActorName) = 0;
-
-			virtual const Math::Matrix* GetWorldMatrixPtr() const = 0;
-			virtual const Math::Matrix& GetWorldMatrix() const = 0;
-			virtual const Math::Matrix& CalcWorldMatrix() = 0;
-
-			virtual const Math::Vector3& GetPosition() const = 0;
-			virtual void SetPosition(const Math::Vector3& f3Pos) = 0;
-			virtual const Math::Vector3& GetPrevPosition() const = 0;
-
-			virtual const Math::Vector3& GetScale() const = 0;
-			virtual void SetScale(const Math::Vector3& f3Scale) = 0;
-			virtual const Math::Vector3& GetPrevScale() const = 0;
-
-			virtual const Math::Quaternion& GetRotation() const = 0;
-			virtual void SetRotation(const Math::Quaternion& quat) = 0;
-			virtual const Math::Quaternion& GetPrevRotation() const = 0;
 
 			virtual void SetVisible(bool bVisible) = 0;
 			virtual bool IsVisible() const = 0;

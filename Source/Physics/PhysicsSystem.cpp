@@ -45,7 +45,6 @@ namespace EastEngine
 			//gContactProcessedCallback = PhysicsSystem::contactProcessedCallback;
 			//gContactDestroyedCallback = PhysicsSystem::contactDestroyedCallback;
 
-
 			return true;
 		}
 
@@ -83,6 +82,8 @@ namespace EastEngine
 
 		void PhysicsSystem::Update(float fElapsedtime)
 		{
+			ProcessAddWaitObject();
+
 			btCollisionObjectArray& objectArray = m_pDynamicsWorld->getCollisionObjectArray();
 			for (int i = 0; i < objectArray.size(); ++i)
 			{
@@ -93,15 +94,66 @@ namespace EastEngine
 
 				pRigidBody->ClearCollisionResults();
 			}
-
+			
 			m_pDynamicsWorld->stepSimulation(fElapsedtime);
+		}
+
+		void PhysicsSystem::AddRigidBody(RigidBody* pRigidBody)
+		{
+			AddWaitRigidBody job;
+			AddWaitRigidBody::Default& defaultJob = job.rigidBody.emplace<AddWaitRigidBody::Default>();
+			defaultJob.pRigidBody = pRigidBody;
+
+			m_conQueueAddWaitRigidBody.push(job);
+		}
+
+		void PhysicsSystem::AddRigidBody(RigidBody* pRigidBody, short group, short mask)
+		{
+			AddWaitRigidBody job;
+			AddWaitRigidBody::Group& groupJob = job.rigidBody.emplace<AddWaitRigidBody::Group>();
+			groupJob.pRigidBody = pRigidBody;
+			groupJob.group = group;
+			groupJob.mask = mask;
+
+			m_conQueueAddWaitRigidBody.push(job);
 		}
 
 		void PhysicsSystem::AddConstraint(ConstraintInterface* pConstraint, bool isEanbleCollisionBetweenLinkedBodies)
 		{
-			m_pDynamicsWorld->addConstraint(pConstraint->GetInsterFace(), isEanbleCollisionBetweenLinkedBodies == false);
+			m_conQueueAddWaitConstraintInterface.push({ pConstraint, isEanbleCollisionBetweenLinkedBodies });
 		}
 		
+		void PhysicsSystem::ProcessAddWaitObject()
+		{
+			while (m_conQueueAddWaitRigidBody.empty() == false)
+			{
+				AddWaitRigidBody job;
+				if (m_conQueueAddWaitRigidBody.try_pop(job) == true)
+				{
+					AddWaitRigidBody::Default* p0 = std::get_if<AddWaitRigidBody::Default>(&job.rigidBody);
+					if (p0 != nullptr)
+					{
+						m_pDynamicsWorld->addRigidBody(p0->pRigidBody->GetInterface());
+					}
+
+					AddWaitRigidBody::Group* p1 = std::get_if<AddWaitRigidBody::Group>(&job.rigidBody);
+					if (p1 != nullptr)
+					{
+						m_pDynamicsWorld->addRigidBody(p1->pRigidBody->GetInterface(), p1->group, p1->mask);
+					}
+				}
+			}
+
+			while (m_conQueueAddWaitConstraintInterface.empty() == false)
+			{
+				AddWaitConstraintInterface job;
+				if (m_conQueueAddWaitConstraintInterface.try_pop(job) == true)
+				{
+					m_pDynamicsWorld->addConstraint(job.pConstraint->GetInterface(), job.isEanbleCollisionBetweenLinkedBodies);
+				}
+			}
+		}
+
 		void PhysicsSystem::tickCallback(btDynamicsWorld* pDynamicsWorld, float fTimeStep)
 		{
 			PhysicsSystem* pPhysicsSystem = reinterpret_cast<PhysicsSystem*>(pDynamicsWorld->getWorldUserInfo());

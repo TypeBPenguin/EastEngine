@@ -275,18 +275,20 @@ namespace EastEngine
 				emPhysicsShapeType = Physics::EmPhysicsShape::eTriangleMesh;
 			}
 
-			void SetTerrain(const Math::Int2& n2Size, const float fHeightScale, const float fHeightMax, const float fHeightMin, const float* pHeightArray, uint32_t nHeightArarySize)
-			{
-				Terrain& terrain = element.emplace<Terrain>();
-
-				terrain.n2Size = n2Size;
-				terrain.fHeightScale = fHeightScale;
-				terrain.fHeightMax = fHeightMax;
-				terrain.fHeightMin = fHeightMin;
-				terrain.pHeightArray = pHeightArray;
-				terrain.nHeightArarySize = nHeightArarySize;
-				emPhysicsShapeType = Physics::EmPhysicsShape::eTerrain;
-			}
+			// 이거 누가.. 사용 방법 좀 연구해주셈;;
+			// btHeightfieldTerrainShape
+			//void SetTerrain(const Math::Int2& n2Size, const float fHeightScale, const float fHeightMax, const float fHeightMin, const float* pHeightArray, uint32_t nHeightArarySize)
+			//{
+			//	Terrain& terrain = element.emplace<Terrain>();
+			//
+			//	terrain.n2Size = n2Size;
+			//	terrain.fHeightScale = fHeightScale;
+			//	terrain.fHeightMax = fHeightMax;
+			//	terrain.fHeightMin = fHeightMin;
+			//	terrain.pHeightArray = pHeightArray;
+			//	terrain.nHeightArarySize = nHeightArarySize;
+			//	emPhysicsShapeType = Physics::EmPhysicsShape::eTerrain;
+			//}
 		};
 
 		btCollisionShape* CreateShape(const Shape& shape);

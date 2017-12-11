@@ -105,6 +105,11 @@ namespace EastEngine
 			return TerrainManager::GetInstance()->CreateTerrain(strName, pTerrainProperty);
 		}
 
+		ITerrain* ITerrain::CreateAsync(const String::StringID& strName, const TerrainProperty* pTerrainProperty)
+		{
+			return TerrainManager::GetInstance()->CreateTerrainAsync(strName, pTerrainProperty);
+		}
+
 		void ITerrain::Destroy(ITerrain** ppTerrain)
 		{
 			if (ppTerrain == nullptr || *ppTerrain == nullptr)

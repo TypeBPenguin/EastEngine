@@ -119,6 +119,8 @@ namespace EastEngine
 
 			bool m_isInit;
 			bool m_isLoading;
+
+			std::mutex m_mutex;
 		};
 	}
 }

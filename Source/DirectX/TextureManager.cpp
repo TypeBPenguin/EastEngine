@@ -326,6 +326,8 @@ namespace EastEngine
 			if (GetTexture(strFileName) != nullptr)
 				return false;
 
+			std::lock_guard<std::mutex> lock(m_mutex);
+
 			auto iter_result = m_umapTexture.insert(std::make_pair(strFileName, pTexture));
 			if (iter_result.second == true)
 				return true;
@@ -354,15 +356,15 @@ namespace EastEngine
 
 			if (String::IsEqualsNoCase(strFileExtension.c_str(), "dds"))
 			{
-				hr = LoadFromDDSFile(String::MultiToWide(strFilePath).c_str(), DirectX::DDS_FLAGS_NONE, nullptr, image);
+				hr = DirectX::LoadFromDDSFile(String::MultiToWide(strFilePath).c_str(), DirectX::DDS_FLAGS_NONE, nullptr, image);
 			}
 			else if (String::IsEqualsNoCase(strFileExtension.c_str(), "tga"))
 			{
-				hr = LoadFromTGAFile(String::MultiToWide(strFilePath).c_str(), nullptr, image);
+				hr = DirectX::LoadFromTGAFile(String::MultiToWide(strFilePath).c_str(), nullptr, image);
 			}
 			else
 			{
-				hr = LoadFromWICFile(String::MultiToWide(strFilePath).c_str(), DirectX::WIC_FLAGS_NONE, nullptr, image);
+				hr = DirectX::LoadFromWICFile(String::MultiToWide(strFilePath).c_str(), DirectX::WIC_FLAGS_NONE, nullptr, image);
 			}
 
 			if (FAILED(hr))
@@ -376,13 +378,13 @@ namespace EastEngine
 			if (image.GetMetadata().mipLevels == 1)
 			{
 				DirectX::ScratchImage mipChain;
-				if (FAILED(GenerateMipMaps(image.GetImages(), image.GetImageCount(), image.GetMetadata(), DirectX::TEX_FILTER_DEFAULT, 0, mipChain)))
+				if (FAILED(DirectX::GenerateMipMaps(image.GetImages(), image.GetImageCount(), image.GetMetadata(), DirectX::TEX_FILTER_DEFAULT, 0, mipChain)))
 				{
 					PRINT_LOG("Can't GenerateMipMaps : %s", strFilePath);
 					return false;
 				}
 
-				if (FAILED(CreateTexture(GetDevice()->GetInterface(), mipChain.GetImages(), mipChain.GetImageCount(), mipChain.GetMetadata(), reinterpret_cast<ID3D11Resource**>(&pTexture2D))))
+				if (FAILED(DirectX::CreateTexture(GetDevice()->GetInterface(), mipChain.GetImages(), mipChain.GetImageCount(), mipChain.GetMetadata(), reinterpret_cast<ID3D11Resource**>(&pTexture2D))))
 				{
 					PRINT_LOG("Can't CreateTexture : %s", strFilePath);
 					return false;
@@ -392,7 +394,7 @@ namespace EastEngine
 			}
 			else
 			{
-				if (FAILED(CreateTexture(GetDevice()->GetInterface(), image.GetImages(), image.GetImageCount(), image.GetMetadata(), reinterpret_cast<ID3D11Resource**>(&pTexture2D))))
+				if (FAILED(DirectX::CreateTexture(GetDevice()->GetInterface(), image.GetImages(), image.GetImageCount(), image.GetMetadata(), reinterpret_cast<ID3D11Resource**>(&pTexture2D))))
 				{
 					PRINT_LOG("Can't CreateTexture : %s", strFilePath);
 					return false;

@@ -19,6 +19,7 @@ namespace EastEngine
 {
 	namespace Physics
 	{
+		class RigidBody;
 		class ConstraintInterface;
 
 		class PhysicsSystem : public Singleton<PhysicsSystem>
@@ -35,9 +36,14 @@ namespace EastEngine
 			void Update(float fElapsedtime);
 
 		public:
+			void AddRigidBody(RigidBody* pRigidBody);
+			void AddRigidBody(RigidBody* pRigidBody, short group, short mask);
 			void AddConstraint(ConstraintInterface* pConstraint, bool isEanbleCollisionBetweenLinkedBodies = true);
 			btDiscreteDynamicsWorld* GetDynamicsWorld() { return m_pDynamicsWorld; }
 			btBroadphaseInterface* GetBoradphaseInterface() { return m_pOverlappingPairCache; }
+
+		private:
+			void ProcessAddWaitObject();
 
 		private:
 			static void tickCallback(btDynamicsWorld* pDynamicsWorld, float fTimeStep);
@@ -60,6 +66,31 @@ namespace EastEngine
 			btDiscreteDynamicsWorld* m_pDynamicsWorld;
 
 			bool m_isInit;
+
+			struct AddWaitRigidBody
+			{
+				struct Default
+				{
+					RigidBody* pRigidBody = nullptr;
+				};
+
+				struct Group
+				{
+					RigidBody* pRigidBody = nullptr;
+					short group = 0;
+					short mask = 0;
+				};
+
+				std::variant<Default, Group> rigidBody;
+			};
+			Concurrency::concurrent_queue<AddWaitRigidBody> m_conQueueAddWaitRigidBody;
+
+			struct AddWaitConstraintInterface
+			{
+				ConstraintInterface* pConstraint = nullptr;
+				bool isEanbleCollisionBetweenLinkedBodies = true;
+			};
+			Concurrency::concurrent_queue<AddWaitConstraintInterface> m_conQueueAddWaitConstraintInterface;
 		};
 	}
 }

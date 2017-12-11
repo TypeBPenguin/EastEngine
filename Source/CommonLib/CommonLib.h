@@ -22,6 +22,7 @@
 #include <numeric>
 #include <array>
 #include <string>
+#include <future>
 
 #include <chrono>
 
