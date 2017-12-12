@@ -33,16 +33,6 @@ namespace EastEngine
 		{
 			SafeDelete(m_pHeightField);
 			SafeDelete(m_pPhysics);
-
-			m_vecHeightMap.clear();
-
-			if (m_optVertices.has_value() == true)
-			{
-				std::vector<Math::Vector3>& vecVertices = m_optVertices.value();
-				vecVertices.clear();
-
-				m_optVertices.reset();
-			}
 		}
 
 		bool Terrain::Init(const TerrainProperty& terrainProperty, bool isEnableThreadLoad)
@@ -86,29 +76,18 @@ namespace EastEngine
 			m_matWorld = Math::Matrix::Compose(m_property.f3Scale, m_property.quatRotation, m_property.f3Position);
 			m_property.rigidBodyProperty.matOffset = m_matWorld;
 
-			if (m_optVertices.has_value() == true && m_optIndices.has_value() == true)
+			if (m_rigidBodyData.vecVertices.empty() == false && m_rigidBodyData.vecIndices.empty() == false)
 			{
-				std::vector<Math::Vector3>& vecVertices = m_optVertices.value();
-				std::vector<uint32_t>& vecIndices = m_optIndices.value();
-				m_property.rigidBodyProperty.shapeInfo.SetTriangleMesh(vecVertices.data(), vecVertices.size(), vecIndices.data(), vecIndices.size());
-
-				m_pPhysics = Physics::RigidBody::Create(m_property.rigidBodyProperty);
-
-				vecVertices.resize(0);
-				vecIndices.resize(0);
-			}
-			else if (m_optVertices.has_value() == true)
-			{
-				std::vector<Math::Vector3>& vecVertices = m_optVertices.value();
-				m_property.rigidBodyProperty.shapeInfo.SetTriangleMesh(vecVertices.data(), vecVertices.size());
+				m_property.rigidBodyProperty.shapeInfo.SetTriangleMesh(m_rigidBodyData.vecVertices.data(), m_rigidBodyData.vecVertices.size(), m_rigidBodyData.vecIndices.data(), m_rigidBodyData.vecIndices.size());
 
 				m_pPhysics = Physics::RigidBody::Create(m_property.rigidBodyProperty);
 			}
+			else if (m_rigidBodyData.vecVertices.empty() == false)
+			{
+				m_property.rigidBodyProperty.shapeInfo.SetTriangleMesh(m_rigidBodyData.vecVertices.data(), m_rigidBodyData.vecVertices.size());
 
-			m_optVertices.reset();
-			m_optIndices.reset();
-
-			m_vecHeightMap.resize(0);
+				m_pPhysics = Physics::RigidBody::Create(m_property.rigidBodyProperty);
+			}
 
 			m_isBuildComplete = true;
 
@@ -366,13 +345,8 @@ namespace EastEngine
 			std::vector<Graphics::VertexPosTexNorCol> vecVertex;
 			vecVertex.reserve(nVertexCount);
 
-			m_optVertices.reset();
-			std::vector<Math::Vector3>& vecVertices = m_optVertices.emplace();
-			vecVertices.reserve(nVertexCount);
-
-			m_optIndices.reset();
-			std::vector<uint32_t>& vecIndices = m_optIndices.emplace();
-			vecIndices.reserve(nIndexCount);
+			m_rigidBodyData.vecVertices.reserve(nVertexCount);
+			m_rigidBodyData.vecIndices.reserve(nIndexCount);
 
 			std::vector<Math::Vector3> vecNormal;
 			vecNormal.reserve((m_property.n2Size.y - 1) * (m_property.n2Size.x - 1));
@@ -424,29 +398,23 @@ namespace EastEngine
 
 						// Now create two triangles for that quad.
 						// Triangle 1 - Upper left.
-						vecVertices.push_back(m_vecHeightMap[nIdx1].pos);
+						m_rigidBodyData.vecVertices.push_back(m_vecHeightMap[nIdx1].pos);
 
 						// Triangle 1 - Upper right.
-						vecVertices.push_back(m_vecHeightMap[nIdx2].pos);
+						m_rigidBodyData.vecVertices.push_back(m_vecHeightMap[nIdx2].pos);
 
 						// Triangle 1 - Bottom left.
-						vecVertices.push_back(m_vecHeightMap[nIdx3].pos);
-
-						//// Triangle 2 - Bottom left.
-						//vecVertices.push_back(m_vecHeightMap[nIdx3].pos);
-						//
-						//// Triangle 2 - Upper right.
-						//vecVertices.push_back(m_vecHeightMap[nIdx2].pos);
+						m_rigidBodyData.vecVertices.push_back(m_vecHeightMap[nIdx3].pos);
 
 						// Triangle 2 - Bottom right.
-						vecVertices.push_back(m_vecHeightMap[nIdx4].pos);
+						m_rigidBodyData.vecVertices.push_back(m_vecHeightMap[nIdx4].pos);
 
-						vecIndices.emplace_back(nIndex + 0);
-						vecIndices.emplace_back(nIndex + 1);
-						vecIndices.emplace_back(nIndex + 2);
-						vecIndices.emplace_back(nIndex + 2);
-						vecIndices.emplace_back(nIndex + 1);
-						vecIndices.emplace_back(nIndex + 3);
+						m_rigidBodyData.vecIndices.emplace_back(nIndex + 0);
+						m_rigidBodyData.vecIndices.emplace_back(nIndex + 1);
+						m_rigidBodyData.vecIndices.emplace_back(nIndex + 2);
+						m_rigidBodyData.vecIndices.emplace_back(nIndex + 2);
+						m_rigidBodyData.vecIndices.emplace_back(nIndex + 1);
+						m_rigidBodyData.vecIndices.emplace_back(nIndex + 3);
 
 						nIndex += 4;
 					}

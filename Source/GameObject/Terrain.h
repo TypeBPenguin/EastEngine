@@ -70,10 +70,18 @@ namespace EastEngine
 			std::shared_ptr<Graphics::ITexture> m_pTexDetailMap;
 			std::shared_ptr<Graphics::ITexture> m_pTexDetailNormalMap;
 
+			// 아래의 정점 정보는 RigidBody가 삭제되기 전까지 내용을 유지해야함
+			// 아니면 댕글링 빠바방
+			// RigidBody 내부에서 복사해서 사용하지 않는 이유는 동일한 정점 정보로
+			// 여러 RigidBody를 만들어 사용하는 경우가 있기 때문에
+			struct RigidBodyData
+			{
+				std::vector<Math::Vector3> vecVertices;
+				std::vector<uint32_t> vecIndices;
+			};
+			RigidBodyData m_rigidBodyData;
 			Physics::RigidBody* m_pPhysics;
 
-			std::optional<std::vector<Math::Vector3>> m_optVertices;
-			std::optional<std::vector<uint32_t>> m_optIndices;
 			float m_fHeightMax;
 			float m_fHeightMin;
 		};

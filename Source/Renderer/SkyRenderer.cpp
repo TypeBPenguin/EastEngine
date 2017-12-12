@@ -83,10 +83,12 @@ namespace EastEngine
 
 			IDevice* pDevice = GetDevice();
 			IDeviceContext* pDeviceContext = GetDeviceContext();
+
+			pDeviceContext->ClearState();
+
 			if (pDeviceContext->SetInputLayout(pEffectTech->GetLayoutFormat()) == false)
 				return;
 
-			pDeviceContext->ClearState();
 			pDeviceContext->SetDefaultViewport();
 
 			pDeviceContext->SetRasterizerState(EmRasterizerState::eCW);

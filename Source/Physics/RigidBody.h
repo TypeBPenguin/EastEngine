@@ -6,6 +6,7 @@ class btDiscreteDynamicsWorld;
 class btCollisionShape;
 class btRigidBody;
 class btTriangleMesh;
+class btTriangleIndexVertexArray;
 class btMotionState;
 
 namespace EastEngine
@@ -118,7 +119,7 @@ namespace EastEngine
 			btDiscreteDynamicsWorld* m_pDynamicsWorld;
 			btRigidBody* m_pRigidBody;
 			btCollisionShape* m_pCollisionShape;
-			btTriangleMesh* m_pTriangleMesh;
+			std::variant<btTriangleMesh*, btTriangleIndexVertexArray*> m_varTriangleMesh;
 			btMotionState* m_pMotionState;
 
 			RigidBodyProperty m_rigidBodyProperty;

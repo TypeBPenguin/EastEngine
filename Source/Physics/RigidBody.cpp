@@ -13,7 +13,7 @@ namespace EastEngine
 			: m_pDynamicsWorld(nullptr)
 			, m_pRigidBody(nullptr)
 			, m_pCollisionShape(nullptr)
-			, m_pTriangleMesh(nullptr)
+			//, m_pTriangleMesh(nullptr)
 			, m_pMotionState(nullptr)
 			, m_isEnableTriangleDrawCallback(false)
 		{
@@ -27,7 +27,20 @@ namespace EastEngine
 				m_pDynamicsWorld = nullptr;
 			}
 
-			SafeDelete(m_pTriangleMesh);
+			//SafeDelete(m_pTriangleMesh);
+
+			btTriangleMesh** pp1 = std::get_if<btTriangleMesh*>(&m_varTriangleMesh);
+			if (pp1 != nullptr)
+			{
+				SafeDelete(*pp1);
+			}
+
+			btTriangleIndexVertexArray** pp2 = std::get_if<btTriangleIndexVertexArray*>(&m_varTriangleMesh);
+			if (pp2 != nullptr)
+			{
+				SafeDelete(*pp2);
+			}
+
 			SafeDelete(m_pCollisionShape);
 			SafeDelete(m_pMotionState);
 			SafeDelete(m_pRigidBody);
@@ -219,11 +232,24 @@ namespace EastEngine
 
 			if (rigidBodyProperty.GetShapeType() == EmPhysicsShape::eTriangleMesh)
 			{
-				btBvhTriangleMeshShape* pTriangleMeshShape = static_cast<btBvhTriangleMeshShape*>(m_pCollisionShape);
-				m_pTriangleMesh = static_cast<btTriangleMesh*>(pTriangleMeshShape->getMeshInterface());
-
-				if (m_pTriangleMesh == nullptr)
+				const Shape::TriangleMesh* pShapeInfo = std::get_if<Shape::TriangleMesh>(&rigidBodyProperty.shapeInfo.element);
+				if (pShapeInfo == nullptr)
 					return false;
+
+				if (pShapeInfo->pVertices != nullptr && pShapeInfo->pIndices != nullptr)
+				{
+					btBvhTriangleMeshShape* pTriangleMeshShape = static_cast<btBvhTriangleMeshShape*>(m_pCollisionShape);
+					btTriangleIndexVertexArray* p1 = static_cast<btTriangleIndexVertexArray*>(pTriangleMeshShape->getMeshInterface());
+
+					m_varTriangleMesh.emplace<btTriangleIndexVertexArray*>(p1);
+				}
+				else if (pShapeInfo->pVertices != nullptr)
+				{
+					btBvhTriangleMeshShape* pTriangleMeshShape = static_cast<btBvhTriangleMeshShape*>(m_pCollisionShape);
+					btTriangleMesh* p1 = static_cast<btTriangleMesh*>(pTriangleMeshShape->getMeshInterface());
+
+					m_varTriangleMesh.emplace<btTriangleMesh*>(p1);
+				}
 			}
 
 			m_pDynamicsWorld = PhysicsSystem::GetInstance()->GetDynamicsWorld();
