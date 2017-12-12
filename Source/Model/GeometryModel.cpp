@@ -1894,8 +1894,8 @@ namespace EastEngine
 						}
 					}
 
-					triangles.resize(0);
-					vertices.resize(0);
+					triangles.shrink_to_fit();
+					vertices.shrink_to_fit();
 
 					return true;
 				}
