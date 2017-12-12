@@ -256,8 +256,7 @@ namespace EastEngine
 			m_pRigidBody->setUserPointer(this);
 			m_pRigidBody->setCollisionFlags(rigidBodyProperty.nCollisionFlag);
 
-			m_pDynamicsWorld->addRigidBody(m_pRigidBody);
-			//PhysicsSystem::GetInstance()->AddRigidBody(this);
+			PhysicsSystem::GetInstance()->AddRigidBody(this);
 
 			SetName(rigidBodyProperty.strName);
 

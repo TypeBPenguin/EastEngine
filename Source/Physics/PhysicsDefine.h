@@ -63,55 +63,55 @@ namespace EastEngine
 		{
 			struct Box
 			{
-				Math::Vector3 f3Size;
+				Math::Vector3 f3Size = Math::Vector3::One;
 			};
 
 			struct Sphere
 			{
-				float fRadius;
+				float fRadius = 1.f;
 			};
 
 			struct Cylinder
 			{
-				Math::Vector3 f3HalfExtents;
+				Math::Vector3 f3HalfExtents = Math::Vector3::One;
 			};
 
 			struct Capsule
 			{
-				float fRadius;
-				float fHeight;
+				float fRadius = 1.f;
+				float fHeight = 1.f;
 			};
 
 			struct Cone
 			{
-				float fRadius;
-				float fHeight;
+				float fRadius = 1.f;
+				float fHeight = 1.f;
 			};
 
 			struct Hull
 			{
-				const Math::Vector3* pVertices;
-				uint32_t nVertexCount;
-				const uint32_t* pIndices;
-				uint32_t nIndexCount;
+				const Math::Vector3* pVertices = nullptr;
+				uint32_t nVertexCount = 0;
+				const uint32_t* pIndices = nullptr;
+				uint32_t nIndexCount = 0;
 			};
 
 			struct TriangleMesh
 			{
-				const Math::Vector3* pVertices;
-				uint32_t nVertexCount;
-				const uint32_t* pIndices;
-				uint32_t nIndexCount;
+				const Math::Vector3* pVertices = nullptr;
+				uint32_t nVertexCount = 0;
+				const uint32_t* pIndices = nullptr;
+				uint32_t nIndexCount = 0;
 			};
 
 			struct Terrain
 			{
-				Math::Int2 n2Size;
-				float fHeightScale;
-				float fHeightMax;
-				float fHeightMin;
-				const float* pHeightArray;
-				uint32_t nHeightArarySize;
+				Math::Int2 n2Size = Math::Int2::One;
+				float fHeightScale = 1.f;
+				float fHeightMax = 1.f;
+				float fHeightMin = 1.f;
+				const float* pHeightArray = nullptr;
+				uint32_t nHeightArarySize = 0;
 			};
 
 			std::variant<Box,
@@ -234,6 +234,8 @@ namespace EastEngine
 
 			void SetHull()
 			{
+				element.emplace<Hull>();
+
 				emPhysicsShapeType = Physics::EmPhysicsShape::eHull;
 			}
 
@@ -250,6 +252,8 @@ namespace EastEngine
 
 			void SetTriangleMesh()
 			{
+				element.emplace<TriangleMesh>();
+
 				emPhysicsShapeType = Physics::EmPhysicsShape::eTriangleMesh;
 			}
 
