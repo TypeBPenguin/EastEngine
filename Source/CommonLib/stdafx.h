@@ -25,6 +25,7 @@
 #include <vector>
 #include <list>
 #include <queue>
+#include <variant>
 
 #include <ppl.h>
 #include <concurrent_queue.h>

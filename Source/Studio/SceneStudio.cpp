@@ -421,6 +421,21 @@ void SceneStudio::Enter()
 		GameObject::ISkybox::Create("BaseSkybox", sky);
 	}
 
+	{
+		GameObject::IActor* pActor = GameObject::IActor::Create("UnityChan");
+
+		pActor->SetPosition({ 0.f, 100.f, 0.f });
+
+		std::string strPath(File::GetDataPath());
+		strPath.append("Actor\\UnityChan\\Models\\unitychan.fbx");
+
+		Graphics::ModelLoader loader;
+		loader.InitFBX("UnityChan", strPath.c_str(), 0.01f);
+
+		GameObject::ComponentModel* pModel = static_cast<GameObject::ComponentModel*>(pActor->CreateComponent(GameObject::EmComponent::eModel));
+		pModel->Init(&loader);
+	}
+
 	m_pMaterialNodeManager = new MaterialNodeManager;
 }
 
@@ -550,10 +565,10 @@ void ShowConfig()
 		{
 			ImGui::PushID("Shadow");
 
-			bool isApplyFXAA = Config::IsEnableFXAA();
+			bool isApplyFXAA = Config::IsEnable("FXAA"_s);
 			if (ImGui::Checkbox("Apply", &isApplyFXAA) == true)
 			{
-				Config::EnableFXAA(isApplyFXAA);
+				Config::SetEnable("FXAA"_s, isApplyFXAA);
 			}
 
 			ImGui::PopID();
@@ -570,10 +585,10 @@ void ShowConfig()
 		{
 			ImGui::PushID("Shadow");
 
-			bool isApplyShadow = Config::IsEnableShadow();
+			bool isApplyShadow = Config::IsEnable("Shadow"_s);
 			if (ImGui::Checkbox("Apply", &isApplyShadow) == true)
 			{
-				Config::EnableShadow(isApplyShadow);
+				Config::SetEnable("Shadow"_s, isApplyShadow);
 			}
 
 			ImGui::PopID();
@@ -585,10 +600,10 @@ void ShowConfig()
 		{
 			ImGui::PushID("ASSAO");
 
-			bool isApplyASSAO = Config::IsEnableSSAO();
+			bool isApplyASSAO = Config::IsEnable("SSAO"_s);
 			if (ImGui::Checkbox("Apply", &isApplyASSAO) == true)
 			{
-				Config::EnableSSAO(isApplyASSAO);
+				Config::SetEnable("SSAO"_s, isApplyASSAO);
 			}
 
 			ImGui::PushItemWidth(100);
@@ -619,10 +634,10 @@ void ShowConfig()
 		if (ImGui::TreeNode("DepthOfField"))
 		{
 			ImGui::PushID("DepthOfField");
-			bool isApplyDepthOfField = Config::IsEnableDepthOfField();
+			bool isApplyDepthOfField = Config::IsEnable("DepthOfField"_s);
 			if (ImGui::Checkbox("Apply", &isApplyDepthOfField) == true)
 			{
-				Config::EnableDepthOfField(isApplyDepthOfField);
+				Config::SetEnable("DepthOfField"_s, isApplyDepthOfField);
 			}
 
 			float fNear = Graphics::CameraManager::GetInstance()->GetNear();
@@ -645,10 +660,10 @@ void ShowConfig()
 		{
 			ImGui::PushID("HDRFilter");
 
-			bool isApplyHDRFilter = Config::IsEnableHDRFilter();
+			bool isApplyHDRFilter = Config::IsEnable("HDRFilter"_s);
 			if (ImGui::Checkbox("Apply", &isApplyHDRFilter) == true)
 			{
-				Config::EnableHDRFilter(isApplyHDRFilter);
+				Config::SetEnable("HDRFilter"_s, isApplyHDRFilter);
 			}
 
 			Graphics::HDRFilter* pHDRFilter = Graphics::HDRFilter::GetInstance();
@@ -697,14 +712,22 @@ void ShowConfig()
 			ImGui::TreePop();
 		}
 
+		switch ("asdb"_s)
+		{
+		case "assdb"_s:
+			break;
+		case "bbbd"_s:
+			break;
+		}
+
 		if (ImGui::TreeNode("Tessellation"))
 		{
 			ImGui::PushID("Tessellation");
 
-			bool isApplyTessellation = Config::IsEnableTessellation();
+			bool isApplyTessellation = Config::IsEnable("Tessellation"_s);
 			if (ImGui::Checkbox("Apply", &isApplyTessellation) == true)
 			{
-				Config::EnableTessellation(isApplyTessellation);
+				Config::SetEnable("Tessellation"_s, isApplyTessellation);
 			}
 
 			ImGui::PopID();
@@ -716,10 +739,10 @@ void ShowConfig()
 		{
 			ImGui::PushID("Wireframe");
 
-			bool isApplyWireframe = Config::IsEnableWireframe();
+			bool isApplyWireframe = Config::IsEnable("Wireframe"_s);
 			if (ImGui::Checkbox("Apply", &isApplyWireframe) == true)
 			{
-				Config::EnableWireframe(isApplyWireframe);
+				Config::SetEnable("Wireframe"_s, isApplyWireframe);
 			}
 
 			ImGui::PopID();

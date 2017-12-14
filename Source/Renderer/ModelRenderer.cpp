@@ -314,7 +314,7 @@ namespace EastEngine
 				SetBitMask64(nMask, IsValidTexture(EmMaterial::eClearcoat) == true ? EmModelShader::eUseTexClearcoat : -1);
 				SetBitMask64(nMask, IsValidTexture(EmMaterial::eClearcoatGloss) == true ? EmModelShader::eUseTexClearcoatGloss : -1);
 
-				if (Config::IsEnableTessellation() == true && Math::IsZero(pMaterial->GetTessellationFactor() - 1.f) == false)
+				if (Config::IsEnable("Tessellation"_s) == true && Math::IsZero(pMaterial->GetTessellationFactor() - 1.f) == false)
 				{
 					SetBitMask64(nMask, EmModelShader::eUseTessellation);
 					isEnableTessellation = true;
@@ -451,7 +451,7 @@ namespace EastEngine
 					{
 						pDeviceContext->SetDepthStencilState(pMaterial->GetDepthStencilState());
 
-						if (Config::IsEnableWireframe() == true)
+						if (Config::IsEnable("Wireframe"_s) == true)
 						{
 							pDeviceContext->SetRasterizerState(EmRasterizerState::eWireFrame);
 						}
@@ -619,7 +619,7 @@ namespace EastEngine
 			//	{
 			//		D3D_PROFILING(OcclusionCulling_Render);
 
-			//		if (Config::IsEnableOcclusionCulling() == true)
+			//		if (Config::IsEnable(String::StringKey("OcclusionCulling"_s)) == true)
 			//		{
 			//			SOcclusionCulling::GetInstance()->Start();
 			//			std::for_each(m_vecStaticSubsets.begin(), m_vecStaticSubsets.end(), [&](StaticSubset& subset)
@@ -657,7 +657,7 @@ namespace EastEngine
 			//	{
 			//		D3D_PROFILING(OcclusionCulling_Test);
 
-			//		if (Config::IsEnableOcclusionCulling() == true)
+			//		if (Config::IsEnable(String::StringKey("OcclusionCulling"_s)) == true)
 			//		{
 			//			//Concurrency::parallel_for_each(m_vecStaticSubsets.begin(), m_vecStaticSubsets.end(), [&](RenderSubset& subset)
 			//			std::for_each(m_vecStaticSubsets.begin(), m_vecStaticSubsets.end(), [&](StaticSubset& subset)
@@ -705,7 +705,7 @@ namespace EastEngine
 			renderStaticModel(pDevice, pCamera);
 			renderSkinnedModel(pDevice, pCamera);
 
-			if (Config::IsEnableShadow() == true)
+			if (Config::IsEnable("Shadow"_s) == true)
 			{
 				for (int i = 0; i < EmLight::eCount; ++i)
 				{

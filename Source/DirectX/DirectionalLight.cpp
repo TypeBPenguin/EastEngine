@@ -77,7 +77,7 @@ namespace EastEngine
 
 		void DirectionalLight::Update(float fElapsedTime)
 		{
-			if (Config::IsEnableShadow() == true && IsEnableShadow() == true && m_pCascadedShadows != nullptr)
+			if (Config::IsEnable("Shadow"_s) == true && IsEnableShadow() == true && m_pCascadedShadows != nullptr)
 			{
 				m_pCascadedShadows->Update();
 			}

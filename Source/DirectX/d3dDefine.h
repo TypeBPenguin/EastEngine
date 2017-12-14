@@ -520,7 +520,7 @@ namespace std
 	template <>
 	struct hash<EastEngine::Graphics::SamplerStateKey>
 	{
-		std::size_t operator()(const EastEngine::Graphics::SamplerStateKey& key) const
+		std::uint64_t operator()(const EastEngine::Graphics::SamplerStateKey& key) const
 		{
 			return key.value.value;
 		}
@@ -529,7 +529,7 @@ namespace std
 	template <>
 	struct hash<EastEngine::Graphics::BlendStateKey>
 	{
-		std::size_t operator()(const EastEngine::Graphics::BlendStateKey& key) const
+		std::uint64_t operator()(const EastEngine::Graphics::BlendStateKey& key) const
 		{
 			return key.value.value;
 		}
@@ -538,7 +538,7 @@ namespace std
 	template <>
 	struct hash<EastEngine::Graphics::DepthStencilStateKey>
 	{
-		std::size_t operator()(const EastEngine::Graphics::DepthStencilStateKey& key) const
+		std::uint64_t operator()(const EastEngine::Graphics::DepthStencilStateKey& key) const
 		{
 			return key.value.value;
 		}
@@ -547,7 +547,7 @@ namespace std
 	template <>
 	struct hash<EastEngine::Graphics::RasterizerStateKey>
 	{
-		std::size_t operator()(const EastEngine::Graphics::RasterizerStateKey& key) const
+		std::uint64_t operator()(const EastEngine::Graphics::RasterizerStateKey& key) const
 		{
 			return key.value.value;
 		}
@@ -556,7 +556,7 @@ namespace std
 	template <>
 	struct hash<EastEngine::Graphics::RenderTargetKey>
 	{
-		std::size_t operator()(const EastEngine::Graphics::RenderTargetKey& key) const
+		std::uint64_t operator()(const EastEngine::Graphics::RenderTargetKey& key) const
 		{
 			return key.value.value;
 		}

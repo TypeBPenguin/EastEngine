@@ -19,7 +19,7 @@ namespace EastEngine
 		{
 		}
 
-		StringID::StringID(StringKey key)
+		StringID::StringID(const StringKey& key)
 			: m_nStringKey(key)
 			, m_strPtr(String::GetString(m_nStringKey))
 		{

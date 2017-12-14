@@ -70,7 +70,7 @@ namespace EastEngine
 
 		void PointLight::Update(float fElapsedTime)
 		{
-			if (Config::IsEnableShadow() == true && IsEnableShadow() == true && m_pShadowCubeMap != nullptr)
+			if (Config::IsEnable("Shadow"_s) == true && IsEnableShadow() == true && m_pShadowCubeMap != nullptr)
 			{
 				m_pShadowCubeMap->Update();
 			}

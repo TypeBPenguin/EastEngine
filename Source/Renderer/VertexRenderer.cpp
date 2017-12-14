@@ -143,7 +143,7 @@ namespace EastEngine
 			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOn);
 
 			auto desc = pDevice->GetMainRenderTarget()->GetDesc2D();
-			if (Config::IsEnableHDRFilter() == true)
+			if (Config::IsEnable("HDRFilter"_s) == true)
 			{
 				desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 				desc.Build();
@@ -221,14 +221,11 @@ namespace EastEngine
 			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOn);
 
 			IRenderTarget* pRenderTarget = nullptr;
-			if (Config::IsEnableHDRFilter() == true)
+			if (Config::IsEnable("HDRFilter"_s) == true)
 			{
 				auto desc = pDevice->GetMainRenderTarget()->GetDesc2D();
-				if (Config::IsEnableHDRFilter() == true)
-				{
-					desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-					desc.Build();
-				}
+				desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				desc.Build();
 
 				pRenderTarget = pDevice->GetRenderTarget(desc);
 			}
@@ -299,7 +296,7 @@ namespace EastEngine
 			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOn);
 
 			auto desc = pDevice->GetMainRenderTarget()->GetDesc2D();
-			if (Config::IsEnableHDRFilter() == true)
+			if (Config::IsEnable("HDRFilter"_s) == true)
 			{
 				desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 				desc.Build();

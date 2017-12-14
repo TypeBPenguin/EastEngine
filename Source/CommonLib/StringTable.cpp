@@ -38,19 +38,8 @@ namespace EastEngine
 		// 총 2번 초기화 하는 현상이 발생하게 되어, 메모리릭이 생기게 됨
 		static StringTable* s_pStringTable = nullptr;
 
-		inline StringKey Hash(const char* pString)
-		{
-			std::size_t v = 1;
-			while (char c = *pString++)
-			{
-				v = (v << 6) + (v << 16) - v + c;
-			}
-
-			return StringKey(v);
-		}
-
-		inline char* GetStringPtr(StringKey key) { return s_pStringTable->umapStringTable[key].get(); }
-		inline void SetStringPtr(StringKey key, std::unique_ptr<char[]> str) { s_pStringTable->umapStringTable[key] = std::move(str); }
+		inline char* GetStringPtr(const StringKey& key) { return s_pStringTable->umapStringTable[key].get(); }
+		inline void SetStringPtr(const StringKey& key, std::unique_ptr<char[]> str) { s_pStringTable->umapStringTable[key] = std::move(str); }
 
 		bool Init()
 		{ 
@@ -88,7 +77,7 @@ namespace EastEngine
 			if (str == nullptr)
 				return UnregisteredKey;
 
-			StringKey hashKey = Hash(str);
+			StringKey hashKey(Hash(str));
 
 			if (hashKey == UnregisteredKey)
 				return UnregisteredKey;
@@ -117,9 +106,13 @@ namespace EastEngine
 			return hashKey;
 		}
 
-		const char* GetString(StringKey key)
+		const char* GetString(const StringKey& key)
 		{
-			return GetStringPtr(key);
+			const char* str = GetStringPtr(key);
+			if (str != nullptr)
+				return str;
+
+			return StrID::Unregistered.c_str();
 		}
 
 		StringKey GetKey(const char* str)
