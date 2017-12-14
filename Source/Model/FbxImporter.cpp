@@ -1125,6 +1125,9 @@ namespace EastEngine
 				for (int nMaterialIndex = 0; nMaterialIndex < nMaterialNum; nMaterialIndex++)
 				{
 					FbxSurfaceMaterial* pFbxMaterial = pNode->GetMaterial(nMaterialIndex);
+					if (pFbxMaterial == nullptr)
+						continue;
+
 					String::StringID strName = pFbxMaterial->GetName();
 					if (strName.empty())
 					{
@@ -1136,9 +1139,6 @@ namespace EastEngine
 						return;
 
 					vecMaterial.push_back(pMaterial);
-
-					if (pFbxMaterial == nullptr)
-						continue;
 
 					FbxUtil::ConvertMaterial(pMaterial, pFbxMaterial);
 

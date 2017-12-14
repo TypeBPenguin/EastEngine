@@ -108,7 +108,11 @@ namespace EastEngine
 
 		const char* GetString(const StringKey& key)
 		{
-			return GetStringPtr(key);
+			const char* str = GetStringPtr(key);
+			if (str != nullptr)
+				return str;
+
+			return StrID::Unregistered.c_str();
 		}
 
 		StringKey GetKey(const char* str)
