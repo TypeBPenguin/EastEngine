@@ -191,7 +191,7 @@ namespace EastEngine
 
 			int nEnableShadowCount = 0;
 			IRenderTarget* pRenderTargetShadow = nullptr;
-			if (Config::IsEnableShadow() == true)
+			if (Config::IsEnable("Shadow"_s) == true)
 			{
 				auto desc = pDevice->GetMainRenderTarget()->GetDesc2D();
 				desc.Format = DXGI_FORMAT_R16G16_FLOAT;
@@ -243,10 +243,10 @@ namespace EastEngine
 				}
 
 				IRenderTarget* pRenderTarget = nullptr;
-				if (Config::IsEnableHDRFilter() == true)
+				if (Config::IsEnable("HDRFilter"_s) == true)
 				{
 					auto desc = pDevice->GetMainRenderTarget()->GetDesc2D();
-					if (Config::IsEnableHDRFilter() == true)
+					if (Config::IsEnable("HDRFilter"_s) == true)
 					{
 						desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 						desc.Build();

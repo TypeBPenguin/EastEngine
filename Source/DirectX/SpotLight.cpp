@@ -69,7 +69,7 @@ namespace EastEngine
 
 		void SpotLight::Update(float fElapsedTime)
 		{
-			if (Config::IsEnableShadow() == true && IsEnableShadow() == true && m_pShadowMap != nullptr)
+			if (Config::IsEnable("Shadow"_s) == true && IsEnableShadow() == true && m_pShadowMap != nullptr)
 			{
 				m_pShadowMap->Update();
 			}

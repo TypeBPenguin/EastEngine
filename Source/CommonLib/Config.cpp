@@ -1,35 +1,98 @@
 #include "stdafx.h"
 #include "Config.h"
 
-#define ImplConfigVarBool(name, defaultValue)							\
-	static bool g_isEnable##name = defaultValue;						\
-	void Enable##name(bool isEnable) { g_isEnable##name = isEnable; }	\
-	bool IsEnable##name() { return g_isEnable##name; }					\
-
-#define ImplConfigVarScalar(name, defaultValue)							\
-	static float g_fScalar##name = defaultValue;						\
-	void SetScalar##name(float fValue) { g_fScalar##name = fValue; }	\
-	float GetScalar##name() { return g_fScalar##name; }					\
-
-#define ImplConfigVarString(name, defaultValue)												\
-	static String::StringID g_str##name = defaultValue;										\
-	void SetString##name(const String::StringID& strOption) { g_str##name = strOption; }	\
-	const String::StringID& GetString##name() { return g_str##name; }						\
+#include "StringID.h"
 
 namespace EastEngine
 {
 	namespace Config
 	{
-		ImplConfigVarBool(ShowBoundingBox, false);
-		ImplConfigVarBool(OcclusionCulling, false);
-		ImplConfigVarBool(SSAO, false);
-		ImplConfigVarBool(Shadow, false);
-		ImplConfigVarBool(FXAA, false);
+		struct ConfigValue
+		{
+			enum Type
+			{
+				eBool = 0,
+				eScalar,
+				eString,
+			};
 
-		ImplConfigVarBool(DepthOfField, false);
+			Type emType;
+			std::variant<bool, float, String::StringID> element;
+		};
+		static std::unordered_map<std::uint64_t, ConfigValue> s_umapConfigValue;
 
-		ImplConfigVarBool(HDRFilter, false);
-		ImplConfigVarBool(Tessellation, false);
-		ImplConfigVarBool(Wireframe, false);
+		template <ConfigValue::Type ConfigValueType, typename T>
+		bool SetValue(const std::uint64_t nConfigKey, T value)
+		{
+			auto iter = s_umapConfigValue.find(nConfigKey);
+			if (iter != s_umapConfigValue.end())
+			{
+				ConfigValue& configValue = iter->second;
+				if (configValue.emType != ConfigValueType)
+					return false;
+
+				T& elementValue = std::get<T>(configValue.element);
+				elementValue = value;
+			}
+			else
+			{
+				ConfigValue configValue;
+				configValue.emType = ConfigValueType;
+				configValue.element.emplace<T>(value);
+
+				s_umapConfigValue.emplace(nConfigKey, configValue);
+			}
+
+			return true;
+		}
+
+		template <ConfigValue::Type ConfigValueType, typename T>
+		T GetValue(const std::uint64_t nConfigKey, T defaultValue)
+		{
+			auto iter = s_umapConfigValue.find(nConfigKey);
+			if (iter != s_umapConfigValue.end())
+			{
+				ConfigValue& configValue = iter->second;
+				if (configValue.emType != ConfigValueType)
+					return defaultValue;
+
+				T& value = std::get<T>(configValue.element);
+				return value;
+			}
+
+			return defaultValue;
+		}
+		
+		bool SetEnable(const std::uint64_t nConfigKey, bool isEnable)
+		{
+			return SetValue<ConfigValue::Type::eBool>(nConfigKey, isEnable);
+		}
+
+		bool IsEnable(const std::uint64_t nConfigKey)
+		{
+			return GetValue<ConfigValue::Type::eBool>(nConfigKey, false);
+		}
+
+		bool SetScalar(const std::uint64_t nConfigKey, float fScalar)
+		{
+			return SetValue<ConfigValue::Type::eScalar>(nConfigKey, fScalar);
+		}
+
+		float GetScalar(const std::uint64_t nConfigKey)
+		{
+			return GetValue<ConfigValue::Type::eScalar>(nConfigKey, false);
+		}
+
+		bool SetString(const std::uint64_t nConfigKey, const char* strConfigValue)
+		{
+			return SetValue<ConfigValue::Type::eString>(nConfigKey, String::StringID(strConfigValue));
+		}
+
+		const  char* GetString(const std::uint64_t nConfigKey)
+		{
+			const String::StringID defaultValue(String::UnregisteredKey);
+
+			return GetValue<ConfigValue::Type::eString>(nConfigKey, defaultValue).c_str();
+		}
 	}
 }

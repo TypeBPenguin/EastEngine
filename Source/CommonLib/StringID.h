@@ -11,16 +11,27 @@ namespace EastEngine
 	namespace String
 	{
 		struct stringKeyT {};
-		using StringKey = Type<stringKeyT, std::size_t>;
+		using StringKey = Type<stringKeyT, std::uint64_t>;
 		
 		static const StringKey UnregisteredKey(1);	// '\0'
+
+		constexpr std::uint64_t Hash(const char* pString)
+		{
+			std::uint64_t v = 1;
+			while (char c = *pString++)
+			{
+				v = (v << 6) + (v << 16) - v + c;
+			}
+
+			return v;
+		}
 
 		class StringID
 		{
 		public:
 			StringID();
 			StringID(const char* str);
-			StringID(StringKey key);
+			StringID(const StringKey& key);
 			StringID(const StringID& source);
 			~StringID();
 
@@ -63,6 +74,11 @@ namespace EastEngine
 	#define RegisterStringID(name)	static const EastEngine::String::StringID name(#name);
 }
 
+constexpr std::uint64_t operator "" _s(const char* str, std::size_t)
+{
+	return EastEngine::String::Hash(str);
+}
+
 namespace StrID
 {
 	static const EastEngine::String::StringID Unregistered("");
@@ -73,7 +89,7 @@ namespace std
 	template <>
 	struct hash<EastEngine::String::StringKey>
 	{
-		std::size_t operator()(const EastEngine::String::StringKey& key) const
+		std::uint64_t operator()(const EastEngine::String::StringKey& key) const
 		{
 			return key.value;
 		}
@@ -82,7 +98,7 @@ namespace std
 	template <>
 	struct hash<EastEngine::String::StringID>
 	{
-		std::size_t operator()(const EastEngine::String::StringID& key) const
+		std::uint64_t operator()(const EastEngine::String::StringID& key) const
 		{
 			return key.Key().value;
 		}

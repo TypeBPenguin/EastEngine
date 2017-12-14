@@ -90,7 +90,7 @@ namespace EastEngine
 
 			IDevice* pDevice = GetDevice();
 
-			if (Config::IsEnableSSAO() == true)
+			if (Config::IsEnable("SSAO"_s) == true)
 			{
 				IRenderTarget* pRenderTarget = pDevice->GetRenderTarget(pDevice->GetLastUseRenderTarget()->GetDesc2D());
 				m_pASSAO->Apply(pRenderTarget);
@@ -98,7 +98,7 @@ namespace EastEngine
 				pDevice->ReleaseRenderTargets(&pRenderTarget);
 			}
 
-			if (Config::IsEnableHDRFilter() == true)
+			if (Config::IsEnable("HDRFilter"_s) == true)
 			{
 				float fElapsedTime = Timer::GetInstance()->GetDeltaTime();
 				IRenderTarget* pHDR = pDevice->GetRenderTarget(pDevice->GetLastUseRenderTarget()->GetDesc2D(), false);
@@ -108,7 +108,7 @@ namespace EastEngine
 				pDevice->ReleaseRenderTargets(&pHDR);
 			}
 
-			if (Config::IsEnableDepthOfField() == true)
+			if (Config::IsEnable("DepthOfField"_s) == true)
 			{
 				IRenderTarget* pDepthOfField = pDevice->GetRenderTarget(pDevice->GetMainRenderTarget()->GetDesc2D(), false);
 				IRenderTarget* pSource = pDevice->GetLastUseRenderTarget();
@@ -118,7 +118,7 @@ namespace EastEngine
 				pDevice->ReleaseRenderTargets(&pDepthOfField);
 			}
 
-			if (Config::IsEnableFXAA() == true)
+			if (Config::IsEnable("FXAA"_s) == true)
 			{
 				IRenderTarget* pFxaa = pDevice->GetRenderTarget(pDevice->GetMainRenderTarget()->GetDesc2D(), false);
 				IRenderTarget* pSource = pDevice->GetLastUseRenderTarget();

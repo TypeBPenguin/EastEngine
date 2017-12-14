@@ -95,7 +95,7 @@ namespace EastEngine
 			m_pEffect->SetVector(StrID::g_CameraPosition, pCamera->GetPosition());
 			m_pEffect->SetVector(StrID::g_CameraDirection, pCamera->GetDir());
 
-			if (Config::IsEnableWireframe() == true)
+			if (Config::IsEnable("Wireframe"_s) == true)
 			{
 				pDeviceContext->SetRasterizerState(EmRasterizerState::eWireFrame);
 			}
