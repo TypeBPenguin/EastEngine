@@ -147,6 +147,57 @@ namespace EastEngine
 
 			return result.isCollision;
 		}
+
+		bool RigidBody::RayTest(const Math::Vector3& f3From, const Math::Vector3& f3To, Math::Vector3* pHitPoint_out, Math::Vector3* pHitNormal_out)
+		{
+			btVector3 rayFromWorld = Math::ConvertToBt(f3From);
+			btVector3 rayToWorld = Math::ConvertToBt(f3To);
+
+			btTransform	rayFromTrans;
+			rayFromTrans.setIdentity();
+			rayFromTrans.setOrigin(rayFromWorld);
+
+			btTransform	rayToTrans;
+			rayToTrans.setIdentity();
+			rayToTrans.setOrigin(rayToWorld);
+
+			btCollisionWorld::ClosestRayResultCallback resultCallback(rayFromWorld, rayToWorld);
+			
+			m_pDynamicsWorld->rayTestSingle(rayFromTrans, rayToTrans,
+				m_pRigidBody,
+				m_pCollisionShape,
+				m_pRigidBody->getWorldTransform(),
+				resultCallback);
+
+			if (resultCallback.hasHit() == true)
+			{
+				if (pHitPoint_out != nullptr)
+				{
+					*pHitPoint_out = Math::Convert(resultCallback.m_hitPointWorld);
+				}
+
+				if (pHitNormal_out != nullptr)
+				{
+					*pHitNormal_out = Math::Convert(resultCallback.m_hitNormalWorld);
+				}
+
+				return true;
+			}
+			else
+			{
+				if (pHitPoint_out != nullptr)
+				{
+					*pHitPoint_out = Math::Vector3::Zero;
+				}
+
+				if (pHitNormal_out != nullptr)
+				{
+					*pHitNormal_out = Math::Vector3::Zero;
+				}
+
+				return false;
+			}
+		}
 		
 		void RigidBody::SetWorldMatrix(const Math::Matrix& mat)
 		{

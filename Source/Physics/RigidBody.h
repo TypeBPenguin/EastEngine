@@ -73,6 +73,8 @@ namespace EastEngine
 			void UpdateBoundingBox(const Math::Matrix& matWorld);
 
 			bool IsCollision(const RigidBody* pRigidBody);
+			bool RayTest(const Math::Vector3& f3From, const Math::Vector3& f3To, Math::Vector3* pHitPoint_out = nullptr, Math::Vector3* pHitNormal_out = nullptr);
+
 			void AddCollisionResult(const RigidBody* pRigidBody, const Math::Vector3& f3OpponentPoint, const Math::Vector3& f3MyPoint)
 			{
 				if (m_rigidBodyProperty.funcCollisionCallback != nullptr)

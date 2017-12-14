@@ -109,11 +109,11 @@ namespace EastEngine
 					Graphics::RenderSubsetTerrain subset;
 					subset.pVertexBuffer = m_pHeightField;
 
-					subset.f2PatchSize.x = m_property.n2Size.x / m_property.n2Patches.x;
-					subset.f2PatchSize.y = m_property.n2Size.y / m_property.n2Patches.y;
+					subset.f2PatchSize.x = static_cast<float>(m_property.n2Size.x) / static_cast<float>(m_property.n2Patches.x);
+					subset.f2PatchSize.y = static_cast<float>(m_property.n2Size.y) / static_cast<float>(m_property.n2Patches.y);
 
-					subset.f2HeightFieldSize.x = m_property.n2Size.x;
-					subset.f2HeightFieldSize.y = m_property.n2Size.y;
+					subset.f2HeightFieldSize.x = static_cast<float>(m_property.n2Size.x);
+					subset.f2HeightFieldSize.y = static_cast<float>(m_property.n2Size.y);
 
 					subset.pTexHeightField = m_pTexHeightMap;
 					subset.pTexColorMap = m_pTexColorMap;
@@ -143,9 +143,19 @@ namespace EastEngine
 
 		float Terrain::GetHeight(float fPosX, float fPosZ) const
 		{
+			if (m_isBuildComplete == false)
+				return 0.f;
+
 			if (m_pPhysics != nullptr)
 			{
-				// ÇÏ´Ã¿¡¼­ ·¹ÀÌ¸¦ ½¹ ½î´Â ¹æ½ÄÀ¸·Î Àß ¸¸µéÀð
+				const float fOffset = 100.f;
+				Math::Vector3 f3From(fPosX, m_property.f3Position.y + m_fHeightMax + fOffset, fPosZ);
+				Math::Vector3 f3To(fPosX, m_property.f3Position.y + m_fHeightMin - fOffset, fPosZ);
+
+				Math::Vector3 f3HitPoint;
+				if (m_pPhysics->RayTest(f3From, f3To, &f3HitPoint) == true)
+					return f3HitPoint.y;
+
 				return 0.f;
 			}
 			else
@@ -190,40 +200,6 @@ namespace EastEngine
 
 				return 0.f;
 			}
-
-			//int nCellIdx = -1;
-			//uint32_t nSize = m_veTerrainCells.size();
-			//for (uint32_t i = 0; i < nSize; ++i)
-			//{
-			//	if (m_veTerrainCells[i].IsInsideDimensions(fPosX, fPosZ) == true)
-			//	{
-			//		nCellIdx = i;
-			//		break;
-			//	}
-			//}
-			//
-			//if (nCellIdx == -1)
-			//	return 0.f;
-
-			// If this is the right cell then check all the triangles in this cell to see what the height of the triangle at this position is.
-			//uint32_t nCount = m_veTerrainCells[nCellIdx].GetVertexCount() / 3;
-			//for (uint32_t i = 0; i < nCount; ++i)
-			//{
-			//	uint32_t nIdx = i * 3;
-			//
-			//	Vector3 v0 = m_veTerrainCells[nCellIdx].GetVertex(nIdx);
-			//	nIdx++;
-			//
-			//	Vector3 v1 = m_veTerrainCells[nCellIdx].GetVertex(nIdx);
-			//	nIdx++;
-			//
-			//	Vector3 v2 = m_veTerrainCells[nCellIdx].GetVertex(nIdx);
-			//
-			//	float fHeight = 0.f;
-			//	// Check to see if this is the polygon we are looking for.
-			//	if (checkHeightOfTriangle(fPosX, fPosZ, fHeight, v0, v1, v2))
-			//		return fHeight;
-			//}
 
 			return 0.f;
 		}
@@ -325,7 +301,6 @@ namespace EastEngine
 					// Scale the height.
 					vertex.pos.y = static_cast<float>(vecRawData[nIdx]) / m_property.fHeightScale;
 
-					int nIndex = j + (((m_property.n2Size.y - 1) - i) * m_property.n2Size.y);
 					m_vecHeightMap.emplace_back(std::move(vertex));
 
 					++nIdx;
@@ -527,8 +502,8 @@ namespace EastEngine
 				for (int j = 0; j < m_property.n2Patches.y; ++j)
 				{
 					Graphics::VertexPos4& vertex = vecPatches_rawdata[i + j * m_property.n2Patches.y];
-					vertex.pos.x = i * m_property.n2Size.x / m_property.n2Patches.x;
-					vertex.pos.y = j * m_property.n2Size.y / m_property.n2Patches.y;
+					vertex.pos.x = i * static_cast<float>(m_property.n2Size.x) / static_cast<float>(m_property.n2Patches.x);
+					vertex.pos.y = j * static_cast<float>(m_property.n2Size.y) / static_cast<float>(m_property.n2Patches.y);
 				}
 			}
 
