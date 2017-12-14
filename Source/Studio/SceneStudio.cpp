@@ -422,18 +422,24 @@ void SceneStudio::Enter()
 	}
 
 	{
-		GameObject::IActor* pActor = GameObject::IActor::Create("UnityChan");
-
-		pActor->SetPosition({ 0.f, 100.f, 0.f });
-
 		std::string strPath(File::GetDataPath());
-		strPath.append("Actor\\UnityChan\\Models\\unitychan.fbx");
+		strPath.append("Actor\\UnityChan\\UnityChan.eact");
 
-		Graphics::ModelLoader loader;
-		loader.InitFBX("UnityChan", strPath.c_str(), 0.01f);
-
-		GameObject::ComponentModel* pModel = static_cast<GameObject::ComponentModel*>(pActor->CreateComponent(GameObject::EmComponent::eModel));
-		pModel->Init(&loader);
+		GameObject::IActor* pActor = GameObject::IActor::CreateByFile(strPath.c_str());
+		pActor->SetPosition({ 0.f, 60.f, 0.f });
+		
+		//GameObject::IActor* pActor = GameObject::IActor::Create("UnityChan");
+		//
+		//pActor->SetPosition({ 0.f, 100.f, 0.f });
+		//
+		//std::string strPath(File::GetDataPath());
+		//strPath.append("Actor\\UnityChan\\Models\\unitychan.fbx");
+		//
+		//Graphics::ModelLoader loader;
+		//loader.InitFBX("UnityChan", strPath.c_str(), 0.01f);
+		//
+		//GameObject::ComponentModel* pModel = static_cast<GameObject::ComponentModel*>(pActor->CreateComponent(GameObject::EmComponent::eModel));
+		//pModel->Init(&loader);
 	}
 
 	m_pMaterialNodeManager = new MaterialNodeManager;

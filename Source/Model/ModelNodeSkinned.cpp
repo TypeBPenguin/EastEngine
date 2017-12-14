@@ -25,7 +25,7 @@ namespace EastEngine
 
 			UpdateBoundingBox();
 
-			if (m_isVisible == true && isModelVisible == true)
+			//if (m_isVisible == true && isModelVisible == true)
 			{
 				uint32_t nVTFID = eInvalidVTFID;
 				Math::Matrix* pMatrixBuffer = nullptr;
