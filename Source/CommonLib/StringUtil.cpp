@@ -146,8 +146,7 @@ namespace EastEngine
 
 		std::string WideToMulti(const wchar_t* strWide, DWORD dwCodePage)
 		{
-			std::string result = CW2A(strWide, dwCodePage);
-			return result;
+			return { CW2A(strWide, dwCodePage).m_psz };
 		}
 
 		std::string WideToMulti(const std::wstring& strWide, DWORD dwCodePage)
@@ -157,8 +156,7 @@ namespace EastEngine
 
 		std::wstring MultiToWide(const char* strMulti, DWORD dwCodePage)
 		{
-			std::wstring result = CA2W(strMulti, dwCodePage);
-			return result;
+			return { CA2W(strMulti, dwCodePage).m_psz };
 		}
 
 		std::wstring MultiToWide(const std::string& strMulti, DWORD dwCodePage)
@@ -168,8 +166,7 @@ namespace EastEngine
 
 		std::string Utf8ToMulti(const wchar_t* strWide, DWORD dwCodePage)
 		{
-			std::string result = CW2A(strWide, dwCodePage);
-			return result;
+			return { CW2A(strWide, dwCodePage).m_psz };
 		}
 
 		std::string Utf8ToMulti(const std::wstring& strWide, DWORD dwCodePage)
@@ -179,8 +176,7 @@ namespace EastEngine
 
 		std::wstring MultiToUtf8(const char* strMulti, DWORD dwCodePage)
 		{
-			std::wstring result = CA2W(strMulti, dwCodePage);
-			return result;
+			return { CA2W(strMulti, dwCodePage).m_psz };
 		}
 
 		std::wstring MultiToUtf8(const std::string& strMulti, DWORD dwCodePage)
