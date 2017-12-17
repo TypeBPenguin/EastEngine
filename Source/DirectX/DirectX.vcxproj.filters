@@ -573,6 +573,8 @@
     <None Include="..\..\Bin\Data\Fx\Model\Model.fx">
       <Filter>DirectX\Shader\Fx\Model</Filter>
     </None>
-    <None Include="..\..\Bin\Data\Fx\PostProcessing\ASSAO\ASSAO.fx" />
+    <None Include="..\..\Bin\Data\Fx\PostProcessing\ASSAO\ASSAO.fx">
+      <Filter>DirectX\Shader\Fx\PostProcess\ASSAO</Filter>
+    </None>
   </ItemGroup>
 </Project>

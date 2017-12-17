@@ -14,7 +14,7 @@ namespace EastEngine
 
 		public:
 			virtual void Begin(EmSprite::SortMode emSortMode = EmSprite::eDeferred, IBlendState* pBlendState = nullptr, ISamplerState* pSamplerState = nullptr, IDepthStencilState* pDepthStencilState = nullptr, IRasterizerState* pRasterizerState = nullptr,
-				std::function<void DIRECTX_STD_CALLCONV()> setCustomShaders = nullptr, const Math::Matrix& matTransformMatrix = Math::Matrix::Identity) override;
+				std::function<void()> setCustomShaders = nullptr, const Math::Matrix& matTransformMatrix = Math::Matrix::Identity) override;
 			virtual void __cdecl End() override;
 
 			virtual void Draw(const std::shared_ptr<ITexture>& pTexture, const Math::Vector2& f2Position, const Math::Color& color = Math::Color::White) override;

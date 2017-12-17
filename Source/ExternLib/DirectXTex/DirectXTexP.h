@@ -15,19 +15,70 @@
 
 #pragma once
 
-#if !defined(WIN32_LEAN_AND_MEAN)
-#define WIN32_LEAN_AND_MEAN
-#endif
+// VS 2013 related Off by default warnings
+#pragma warning(disable : 4619 4616 4350 4351 4472 4640)
+// C4619/4616 #pragma warning warnings
+// C4350 behavior change
+// C4351 behavior change; warning removed in later versions
+// C4472 'X' is a native enum: add an access specifier (private/public) to declare a WinRT enum
+// C4640 construction of local static object is not thread-safe
 
-#if !defined(NOMINMAX)
+// Off by default warnings
+#pragma warning(disable : 4061 4265 4365 4571 4623 4625 4626 4668 4710 4711 4746 4774 4820 4987 5026 5027 5031 5032 5039)
+// C4061 enumerator 'X' in switch of enum 'X' is not explicitly handled by a case label
+// C4265 class has virtual functions, but destructor is not virtual
+// C4365 signed/unsigned mismatch
+// C4571 behavior change
+// C4623 default constructor was implicitly defined as deleted
+// C4625 copy constructor was implicitly defined as deleted
+// C4626 assignment operator was implicitly defined as deleted
+// C4668 not defined as a preprocessor macro
+// C4710 function not inlined
+// C4711 selected for automatic inline expansion
+// C4746 volatile access of '<expression>' is subject to /volatile:<iso|ms> setting
+// C4774 format string expected in argument 3 is not a string literal
+// C4820 padding added after data member
+// C4987 nonstandard extension used
+// C5026 move constructor was implicitly defined as deleted
+// C5027 move assignment operator was implicitly defined as deleted
+// C5031/5032 push/pop mismatches in windows headers
+// C5039 pointer or reference to potentially throwing function passed to extern C function under - EHc
+
+// Windows 8.1 SDK related Off by default warnings
+#pragma warning(disable : 4471 4917 4986 5029)
+// C4471 forward declaration of an unscoped enumeration must have an underlying type
+// C4917 a GUID can only be associated with a class, interface or namespace
+// C4986 exception specification does not match previous declaration
+// C5029 nonstandard extension used
+
+#pragma warning(push)
+#pragma warning(disable : 4005)
+#define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
-#endif
+#define NODRAWTEXT
+#define NOGDI
+#define NOBITMAP
+#define NOMCX
+#define NOSERVICE
+#define NOHELP
+#pragma warning(pop)
 
 #ifndef _WIN32_WINNT_WIN10
 #define _WIN32_WINNT_WIN10 0x0A00
 #endif
 
 #include <windows.h>
+
+#if defined(_XBOX_ONE) && defined(_TITLE)
+#include <d3d12_x.h>
+#include <d3d11_x.h>
+#elif (_WIN32_WINNT >= _WIN32_WINNT_WIN10)
+#include <d3d12.h>
+#include <d3d11_4.h>
+#else
+#include <d3d11_1.h>
+#endif
+
 #include <directxmath.h>
 #include <directxpackedvector.h>
 #include <assert.h>
@@ -44,12 +95,7 @@
 
 #include "directxtex.h"
 
-// VS 2010's stdint.h conflicts with intsafe.h
-#pragma warning(push)
-#pragma warning(disable : 4005)
 #include <wincodec.h>
-#include <intsafe.h>
-#pragma warning(pop)
 
 #include <wrl\client.h>
 
@@ -73,6 +119,11 @@
 
 #define XBOX_DXGI_FORMAT_R4G4_UNORM DXGI_FORMAT(190)
 
+#if !defined(DIRECTX_NOEXCEPT) && defined(_MSC_VER) && (_MSC_VER < 1900)
+#define DIRECTX_NOEXCEPT
+#else
+#define DIRECTX_NOEXCEPT noexcept
+#endif
 
 namespace DirectX
 {
@@ -87,8 +138,8 @@ namespace DirectX
     {
         static_assert( TEX_FILTER_DITHER == 0x10000, "TEX_FILTER_DITHER* flag values don't match mask" );
 
-        static_assert( TEX_FILTER_DITHER == WIC_FLAGS_DITHER, "TEX_FILTER_DITHER* should match WIC_FLAGS_DITHER*" );
-        static_assert( TEX_FILTER_DITHER_DIFFUSION == WIC_FLAGS_DITHER_DIFFUSION, "TEX_FILTER_DITHER* should match WIC_FLAGS_DITHER*" );
+        static_assert(static_cast<int>(TEX_FILTER_DITHER) == static_cast<int>(WIC_FLAGS_DITHER), "TEX_FILTER_DITHER* should match WIC_FLAGS_DITHER*");
+        static_assert(static_cast<int>(TEX_FILTER_DITHER_DIFFUSION) == static_cast<int>(WIC_FLAGS_DITHER_DIFFUSION), "TEX_FILTER_DITHER* should match WIC_FLAGS_DITHER*");
 
         switch( flags & 0xF0000 )
         {
@@ -107,10 +158,10 @@ namespace DirectX
     {
         static_assert( TEX_FILTER_POINT == 0x100000, "TEX_FILTER_ flag values don't match TEX_FILTER_MASK" );
 
-        static_assert( TEX_FILTER_POINT == WIC_FLAGS_FILTER_POINT, "TEX_FILTER_* flags should match WIC_FLAGS_FILTER_*" );
-        static_assert( TEX_FILTER_LINEAR == WIC_FLAGS_FILTER_LINEAR, "TEX_FILTER_* flags should match WIC_FLAGS_FILTER_*"  );
-        static_assert( TEX_FILTER_CUBIC == WIC_FLAGS_FILTER_CUBIC, "TEX_FILTER_* flags should match WIC_FLAGS_FILTER_*"  );
-        static_assert( TEX_FILTER_FANT == WIC_FLAGS_FILTER_FANT, "TEX_FILTER_* flags should match WIC_FLAGS_FILTER_*"  );
+        static_assert(static_cast<int>(TEX_FILTER_POINT) == static_cast<int>(WIC_FLAGS_FILTER_POINT), "TEX_FILTER_* flags should match WIC_FLAGS_FILTER_*");
+        static_assert(static_cast<int>(TEX_FILTER_LINEAR) == static_cast<int>(WIC_FLAGS_FILTER_LINEAR), "TEX_FILTER_* flags should match WIC_FLAGS_FILTER_*");
+        static_assert(static_cast<int>(TEX_FILTER_CUBIC) == static_cast<int>(WIC_FLAGS_FILTER_CUBIC), "TEX_FILTER_* flags should match WIC_FLAGS_FILTER_*");
+        static_assert(static_cast<int>(TEX_FILTER_FANT) == static_cast<int>(WIC_FLAGS_FILTER_FANT), "TEX_FILTER_* flags should match WIC_FLAGS_FILTER_*");
 
         switch( flags & TEX_FILTER_MASK )
         {
@@ -164,6 +215,7 @@ namespace DirectX
         CONVF_PACKED    = 0x400,
         CONVF_BC        = 0x800,
         CONVF_YUV       = 0x1000,
+        CONVF_POS_ONLY  = 0x2000,
         CONVF_R         = 0x10000,
         CONVF_G         = 0x20000,
         CONVF_B         = 0x40000,
@@ -176,40 +228,40 @@ namespace DirectX
 
     void __cdecl _CopyScanline( _When_(pDestination == pSource, _Inout_updates_bytes_(outSize))
                                 _When_(pDestination != pSource, _Out_writes_bytes_(outSize))
-                                LPVOID pDestination, _In_ size_t outSize, 
-                                _In_reads_bytes_(inSize) LPCVOID pSource, _In_ size_t inSize,
+                                    void* pDestination, _In_ size_t outSize,
+                                _In_reads_bytes_(inSize) const void* pSource, _In_ size_t inSize,
                                 _In_ DXGI_FORMAT format, _In_ DWORD flags );
 
     void __cdecl _SwizzleScanline( _When_(pDestination == pSource, _In_)
                                    _When_(pDestination != pSource, _Out_writes_bytes_(outSize))
-                                   LPVOID pDestination, _In_ size_t outSize, 
-                                   _In_reads_bytes_(inSize) LPCVOID pSource, _In_ size_t inSize,
+                                        void* pDestination, _In_ size_t outSize,
+                                   _In_reads_bytes_(inSize) const void* pSource, _In_ size_t inSize,
                                    _In_ DXGI_FORMAT format, _In_ DWORD flags );
  
     _Success_(return != false)
-    bool __cdecl _ExpandScanline( _Out_writes_bytes_(outSize) LPVOID pDestination, _In_ size_t outSize,
+    bool __cdecl _ExpandScanline( _Out_writes_bytes_(outSize) void* pDestination, _In_ size_t outSize,
                                   _In_ DXGI_FORMAT outFormat, 
-                                  _In_reads_bytes_(inSize) LPCVOID pSource, _In_ size_t inSize,
+                                  _In_reads_bytes_(inSize) const void* pSource, _In_ size_t inSize,
                                   _In_ DXGI_FORMAT inFormat, _In_ DWORD flags );
 
     _Success_(return != false)
     bool __cdecl _LoadScanline( _Out_writes_(count) XMVECTOR* pDestination, _In_ size_t count,
-                                _In_reads_bytes_(size) LPCVOID pSource, _In_ size_t size, _In_ DXGI_FORMAT format );
+                                _In_reads_bytes_(size) const void* pSource, _In_ size_t size, _In_ DXGI_FORMAT format );
 
     _Success_(return != false)
     bool __cdecl _LoadScanlineLinear( _Out_writes_(count) XMVECTOR* pDestination, _In_ size_t count,
-                                      _In_reads_bytes_(size) LPCVOID pSource, _In_ size_t size, _In_ DXGI_FORMAT format, _In_ DWORD flags  );
+                                      _In_reads_bytes_(size) const void* pSource, _In_ size_t size, _In_ DXGI_FORMAT format, _In_ DWORD flags  );
 
     _Success_(return != false)
-    bool __cdecl _StoreScanline( LPVOID pDestination, _In_ size_t size, _In_ DXGI_FORMAT format,
+    bool __cdecl _StoreScanline( _Out_writes_bytes_(size) void* pDestination, _In_ size_t size, _In_ DXGI_FORMAT format,
                                  _In_reads_(count) const XMVECTOR* pSource, _In_ size_t count, _In_ float threshold = 0 );
 
     _Success_(return != false)
-    bool __cdecl _StoreScanlineLinear( LPVOID pDestination, _In_ size_t size, _In_ DXGI_FORMAT format,
+    bool __cdecl _StoreScanlineLinear( _Out_writes_bytes_(size) void* pDestination, _In_ size_t size, _In_ DXGI_FORMAT format,
                                        _Inout_updates_all_(count) XMVECTOR* pSource, _In_ size_t count, _In_ DWORD flags, _In_ float threshold = 0 );
 
     _Success_(return != false)
-    bool __cdecl _StoreScanlineDither( LPVOID pDestination, _In_ size_t size, _In_ DXGI_FORMAT format,
+    bool __cdecl _StoreScanlineDither( _Out_writes_bytes_(size) void* pDestination, _In_ size_t size, _In_ DXGI_FORMAT format,
                                        _Inout_updates_all_(count) XMVECTOR* pSource, _In_ size_t count, _In_ float threshold, size_t y, size_t z,
                                        _Inout_updates_all_opt_(count+2) XMVECTOR* pDiffusionErrors );
 
@@ -226,6 +278,6 @@ namespace DirectX
     //---------------------------------------------------------------------------------
     // DDS helper functions
     HRESULT __cdecl _EncodeDDSHeader( _In_ const TexMetadata& metadata, DWORD flags,
-                                      _Out_writes_bytes_to_opt_(maxsize, required) LPVOID pDestination, _In_ size_t maxsize, _Out_ size_t& required );
+                                      _Out_writes_bytes_to_opt_(maxsize, required) void* pDestination, _In_ size_t maxsize, _Out_ size_t& required );
 
 }; // namespace
