@@ -39,6 +39,9 @@
     <CLInclude Include="scoped.h">
       <Filter>Source Files</Filter>
     </CLInclude>
+    <ClInclude Include="DirectXTexEXR.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BC.cpp">
@@ -95,6 +98,9 @@
     <ClCompile Include="DirectXTexWIC.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DirectXTexEXR.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CLInclude Include="BC.h">
@@ -132,5 +138,6 @@
     <None Include="Shaders\Compiled\BC7Encode_TryMode456CS.inc">
       <Filter>Source Files\Shaders\Compiled</Filter>
     </None>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

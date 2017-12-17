@@ -652,3 +652,5 @@ namespace DirectX
 #include "DirectXTex.inl"
 
 }; // namespace
+
+#include "DirectXTexEXR.h"

@@ -41,7 +41,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|X64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
     <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -51,7 +51,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|X64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
     <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'" Label="Configuration">
@@ -95,7 +95,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|X64'">
     <OutDir>Bin\Desktop_2015_Win10\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>Bin\Desktop_2015_Win10\$(Platform)\$(Configuration)\</IntDir>
-    <TargetName>DirectXTex</TargetName>
+    <TargetName>DirectXTex_D</TargetName>
     <LinkIncremental>true</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
   </PropertyGroup>
@@ -380,6 +380,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <None Include="packages.config" />
     <None Include="Shaders\BC6HEncode.hlsl">
       <FileType>Document</FileType>
     </None>
@@ -394,6 +395,7 @@
     <ClCompile Include="BC6HBC7.cpp" />
     <ClInclude Include="BCDirectCompute.h" />
     <CLInclude Include="DDS.h" />
+    <ClInclude Include="DirectXTexEXR.h" />
     <ClInclude Include="filters.h" />
     <CLInclude Include="scoped.h" />
     <CLInclude Include="DirectXTex.h" />
@@ -405,6 +407,7 @@
     <ClCompile Include="DirectXTexConvert.cpp" />
     <ClCompile Include="DirectXTexD3D11.cpp" />
     <ClCompile Include="DirectXTexDDS.cpp" />
+    <ClCompile Include="DirectXTexEXR.cpp" />
     <ClCompile Include="DirectXTexFlipRotate.cpp" />
     <ClCompile Include="DirectXTexImage.cpp" />
     <ClCompile Include="DirectXTexMipMaps.cpp" />
@@ -440,5 +443,15 @@
   <ItemGroup>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="packages\openexr-msvc-x64.2.2.0.8787\build\native\OpenEXR-msvc-x64.targets" Condition="Exists('packages\openexr-msvc-x64.2.2.0.8787\build\native\OpenEXR-msvc-x64.targets')" />
+    <Import Project="packages\openexr-msvc-x86.2.2.0.8787\build\native\OpenEXR-msvc-x86.targets" Condition="Exists('packages\openexr-msvc-x86.2.2.0.8787\build\native\OpenEXR-msvc-x86.targets')" />
+  </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>이 프로젝트는 이 컴퓨터에 없는 NuGet 패키지를 참조합니다. 해당 패키지를 다운로드하려면 NuGet 패키지 복원을 사용하십시오. 자세한 내용은 http://go.microsoft.com/fwlink/?LinkID=322105를 참조하십시오. 누락된 파일은 {0}입니다.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('packages\openexr-msvc-x64.2.2.0.8787\build\native\OpenEXR-msvc-x64.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\openexr-msvc-x64.2.2.0.8787\build\native\OpenEXR-msvc-x64.targets'))" />
+    <Error Condition="!Exists('packages\openexr-msvc-x86.2.2.0.8787\build\native\OpenEXR-msvc-x86.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\openexr-msvc-x86.2.2.0.8787\build\native\OpenEXR-msvc-x86.targets'))" />
+  </Target>
 </Project>
