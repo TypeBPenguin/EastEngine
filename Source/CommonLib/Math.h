@@ -132,6 +132,31 @@ namespace EastEngine
 		Vector3 CalcTangent(const Vector3& f3Normal);
 		Vector3 CalcBinormal(const Vector3& f3Normal, const Vector3& f3Tangent);
 
+		struct UByte4
+		{
+			union
+			{
+				struct
+				{
+					uint8_t x;
+					uint8_t y;
+					uint8_t z;
+					uint8_t w;
+				};
+				uint32_t v;
+			};
+
+			UByte4();
+			constexpr UByte4(uint8_t _x, uint8_t _y, uint8_t _z, uint8_t _w);
+			explicit constexpr UByte4(uint32_t Packed);
+			explicit UByte4(_In_reads_(4) const uint8_t *pArray);
+			UByte4(float _x, float _y, float _z, float _w);
+			explicit UByte4(_In_reads_(4) const float *pArray);
+
+			UByte4& operator= (const UByte4& UByte4) { x = UByte4.x; y = UByte4.y; z = UByte4.z; w = UByte4.w; return *this; }
+			UByte4& operator= (uint32_t Packed) { v = Packed; return *this; }
+		};
+
 		struct Int2
 		{
 			int32_t x;
@@ -939,6 +964,7 @@ namespace EastEngine
 		Quaternion operator- (const Quaternion& Q1, const Quaternion& Q2);
 		Quaternion operator* (const Quaternion& Q1, const Quaternion& Q2);
 		Quaternion operator* (const Quaternion& Q, float S);
+		Quaternion operator/ (const Quaternion& Q, float S);
 		Quaternion operator/ (const Quaternion& Q1, const Quaternion& Q2);
 		Quaternion operator* (float S, const Quaternion& Q);
 

@@ -11,7 +11,7 @@ namespace EastEngine
 
 		StringKey Register(const char* str);
 
-		const char* GetString(const StringKey& key);
+		const char* GetString(const StringKey& key, std::size_t& nLength_out);
 		StringKey GetKey(const char* str);
 
 		uint32_t GetRegisteredStringCount();

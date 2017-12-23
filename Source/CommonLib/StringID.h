@@ -57,6 +57,8 @@ namespace EastEngine
 				return m_strPtr;
 			}
 
+			std::size_t GetLength() const { return m_nLength; }
+
 			StringKey const Key() const { return m_nStringKey; }
 
 			bool empty() const { return m_nStringKey == UnregisteredKey; }
@@ -66,8 +68,9 @@ namespace EastEngine
 			StringID& Format(const char* format, ...);
 
 		private:
-			StringKey m_nStringKey;
 			const char* m_strPtr;
+			std::size_t m_nLength;
+			StringKey m_nStringKey;
 		};
 	}
 

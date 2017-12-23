@@ -9,25 +9,26 @@ namespace EastEngine
 	{
 		StringID::StringID()
 			: m_nStringKey(UnregisteredKey)
-			, m_strPtr(String::GetString(m_nStringKey))
 		{
+			m_strPtr = String::GetString(m_nStringKey, m_nLength);
 		}
 
 		StringID::StringID(const char* str)
 			: m_nStringKey(String::Register(str))
-			, m_strPtr(String::GetString(m_nStringKey))
 		{
+			m_strPtr = String::GetString(m_nStringKey, m_nLength);
 		}
 
 		StringID::StringID(const StringKey& key)
 			: m_nStringKey(key)
-			, m_strPtr(String::GetString(m_nStringKey))
 		{
+			m_strPtr = String::GetString(m_nStringKey, m_nLength);
 		}
 
 		StringID::StringID(const StringID& source)
 			: m_nStringKey(source.m_nStringKey)
 			, m_strPtr(source.m_strPtr)
+			, m_nLength(source.m_nLength)
 		{
 		}
 
@@ -48,7 +49,7 @@ namespace EastEngine
 			va_end(args);
 
 			m_nStringKey = String::GetKey(buf.get());
-			m_strPtr = String::GetString(m_nStringKey);
+			m_strPtr = String::GetString(m_nStringKey, m_nLength);
 
 			return *this;
 		}

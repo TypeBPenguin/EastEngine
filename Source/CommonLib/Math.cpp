@@ -184,6 +184,21 @@ namespace EastEngine
 			return binormal;
 		}
 
+		UByte4::UByte4() : v(0) {}
+		constexpr UByte4::UByte4(uint8_t _x, uint8_t _y, uint8_t _z, uint8_t _w) : x(_x), y(_y), z(_z), w(_w) {}
+		constexpr UByte4::UByte4(uint32_t Packed) : v(Packed) {}
+		UByte4::UByte4(_In_reads_(4) const uint8_t *pArray) : x(pArray[0]), y(pArray[1]), z(pArray[2]), w(pArray[3]) {}
+		UByte4::UByte4(float _x, float _y, float _z, float _w)
+		{
+			using namespace DirectX;
+			PackedVector::XMStoreUByte4(reinterpret_cast<PackedVector::XMUBYTE4*>(this), XMVectorSet(_x, _y, _z, _w));
+		}
+		UByte4::UByte4(_In_reads_(4) const float *pArray)
+		{
+			using namespace DirectX;
+			PackedVector::XMStoreUByte4(reinterpret_cast<PackedVector::XMUBYTE4*>(this), XMLoadFloat4(reinterpret_cast<const XMFLOAT4*>(pArray)));
+		}
+
 		Int2::Int2() : x(0), y(0) {}
 		Int2::Int2(int x) : x(x), y(x) {}
 		Int2::Int2(int x, int y) : x(x), y(y) {}
@@ -3241,6 +3256,17 @@ namespace EastEngine
 
 			Quaternion R;
 			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&R), XMVectorScale(q, S));
+			return R;
+		}
+
+		Quaternion operator/ (const Quaternion& Q, float S)
+		{
+			using namespace DirectX;
+			XMVECTOR v1 = Q;
+			XMVECTOR X = XMVectorScale(v1, 1.f / S);
+
+			Quaternion R;
+			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&R), X);
 			return R;
 		}
 
