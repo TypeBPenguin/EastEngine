@@ -57,7 +57,7 @@ namespace EastEngine
 				return m_strPtr;
 			}
 
-			std::size_t GetLength() const { return m_nLength; }
+			std::size_t length() const { return m_nLength; }
 
 			StringKey const Key() const { return m_nStringKey; }
 
