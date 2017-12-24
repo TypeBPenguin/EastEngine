@@ -101,10 +101,6 @@ namespace EastEngine
 				}
 			}
 
-			OutputDebugStringA(String::Format("[%d] ", vecVertices.size()).c_str());
-			OutputDebugStringA(String::ToString(nMax).c_str());
-			OutputDebugStringA(", ");
-
 			return IVertexBuffer::Create(T::Format(), vecVertices.size(), vecVertices.data(), D3D11_USAGE::D3D11_USAGE_DYNAMIC);
 		}
 
@@ -252,16 +248,10 @@ namespace EastEngine
 						ModelNodeSkinned* pSkinnedNode = new ModelNodeSkinned;
 						pModelNode = pSkinnedNode;
 
-						OutputDebugStringA("\nCreateSkinned : ");
-						OutputDebugStringA(pMesh->GetName().SafeString());
-						OutputDebugStringA(" = ");
-
 						pVertexBuffer = WriteVertexBuffer<VertexPosTexNorWeiIdx>(pMesh->GetVB(), &pMesh->GetVertexDeclElement(0), pMesh->GetVertexDeclElementCount());
 						pIndexBuffer = WriteIndexBuffer(pMesh->GetIB());
 
 						const size_t nInfluenceCount = pMesh->GetInfluenceCount();
-						OutputDebugStringA(String::ToString(nInfluenceCount).c_str());
-						OutputDebugStringA("\n");
 						std::vector<String::StringID> vecBoneNames;
 						vecBoneNames.resize(nInfluenceCount);
 
