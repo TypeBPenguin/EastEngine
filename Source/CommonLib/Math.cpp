@@ -184,10 +184,6 @@ namespace EastEngine
 			return binormal;
 		}
 
-		UByte4::UByte4() : v(0) {}
-		constexpr UByte4::UByte4(uint8_t _x, uint8_t _y, uint8_t _z, uint8_t _w) : x(_x), y(_y), z(_z), w(_w) {}
-		constexpr UByte4::UByte4(uint32_t Packed) : v(Packed) {}
-		UByte4::UByte4(_In_reads_(4) const uint8_t *pArray) : x(pArray[0]), y(pArray[1]), z(pArray[2]), w(pArray[3]) {}
 		UByte4::UByte4(float _x, float _y, float _z, float _w)
 		{
 			using namespace DirectX;

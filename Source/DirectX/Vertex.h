@@ -9,15 +9,15 @@ namespace EastEngine
 			enum Type
 			{
 				eUnknown = 0,
-				ePos,
-				ePos4,
-				ePosCol,
-				ePosTex,
-				ePosTexCol,
-				ePosTexNor,
-				ePosTexNorCol,
-				ePosTexNorTanBin,
-				ePosTexNorBleIdx,
+				ePos,					// Position(float3)
+				ePos4,					// Position(float4)
+				ePosCol,				// Position(float3), Color(float4)
+				ePosTex,				// Position(float3), UV(float2)
+				ePosTexCol,				// Position(float3), UV(float2), Color(float4)
+				ePosTexNor,				// Position(float3), UV(float2), Normal(float3)
+				ePosTexNorCol,			// Position(float3), UV(float2), Normal(float3), Color(float4)
+				ePosTexNorTanBin,		// Position(float3), UV(float2), Normal(float3), Tangent(float3), Binormal(float3)
+				ePosTexNorWeiIdx,		// Position(float3), UV(float2), Normal(float3), BoneWeight(float3), BoneIndices(uint)
 				eUI,
 
 				eCount,
@@ -141,18 +141,18 @@ namespace EastEngine
 			void SetVertex(const Math::Vector3& f3Pos, const Math::Vector2& f2UV, const Math::Vector3& f3Normal, const Math::Vector3& f3Tangent, const Math::Vector3& f3Binormal) { pos = f3Pos; uv = f2UV; normal = f3Normal; tangent = f3Tangent; binormal = f3Binormal; }
 		};
 
-		struct VertexPosTexNorBleIdx
+		struct VertexPosTexNorWeiIdx
 		{
-			static EmVertexFormat::Type Format() { return EmVertexFormat::ePosTexNorBleIdx; }
+			static EmVertexFormat::Type Format() { return EmVertexFormat::ePosTexNorWeiIdx; }
 
 			Math::Vector3 pos;
 			Math::Vector2 uv;
 			Math::Vector3 normal;
-			Math::Vector3 blend;
-			uint32_t idx;
+			Math::Vector3 boneWeight;
+			Math::UByte4 boneIndices;
 
-			VertexPosTexNorBleIdx();
-			VertexPosTexNorBleIdx(const Math::Vector3& f3Pos, const Math::Vector2& f2UV, const Math::Vector3& f3Normal, const Math::Vector3& vBlend, uint32_t nIdx);
+			VertexPosTexNorWeiIdx();
+			VertexPosTexNorWeiIdx(const Math::Vector3& f3Pos, const Math::Vector2& f2UV, const Math::Vector3& f3Normal, const Math::Vector3& f3Weight, const Math::UByte4& indices);
 
 			void operator = (const VertexPosTexNor& vertex)
 			{
@@ -161,7 +161,7 @@ namespace EastEngine
 				normal = vertex.normal;
 			}
 
-			void SetVertex(const Math::Vector3& f3Pos, const Math::Vector2& f2UV, const Math::Vector3& f3Normal, const Math::Vector3& vBlend, uint32_t nIdx) { pos = f3Pos; uv = f2UV; normal = f3Normal; blend = vBlend; idx = nIdx; }
+			void SetVertex(const Math::Vector3& f3Pos, const Math::Vector2& f2UV, const Math::Vector3& f3Normal, const Math::Vector3& f3Weight, const Math::UByte4& indices) { pos = f3Pos; uv = f2UV; normal = f3Normal; boneWeight = f3Weight; boneIndices = indices; }
 		};
 
 		struct VertexUI

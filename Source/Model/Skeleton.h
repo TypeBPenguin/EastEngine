@@ -14,30 +14,27 @@ namespace EastEngine
 			class Bone : public ISkeleton::IBone
 			{
 			public:
-				Bone(Bone* pParentBone, const Math::Matrix& matOffset, const Math::Matrix& matTransformation);
+				Bone(const String::StringID& strBoneName, const Math::Matrix& matMotionOffset, Bone* pParentBone);
 				virtual ~Bone();
 
 			public:
-				virtual const String::StringID& GetName() override { return m_strBoneName; }
-				virtual const Math::Matrix& GetMotionOffsetMatrix() override { return m_matOffset; }
-				virtual const Math::Matrix& GetTransformation() override { return m_matTransformation; }
+				virtual const String::StringID& GetName() const override { return m_strBoneName; }
+				virtual const Math::Matrix& GetMotionOffsetMatrix() const override { return m_matMotionOffset; }
 
-				virtual IBone* GetParent() override { return m_pParentBone; }
+				virtual IBone* GetParent() const override { return m_pParentBone; }
 
-				virtual uint32_t GetChildBoneCount() override { return m_vecChildBone.size(); }
-				virtual IBone* GetChildBone(uint32_t nIndex) override { return m_vecChildBone[nIndex]; }
-				virtual IBone* GetChildBone(const String::StringID& strBoneName, bool isFindInAllDepth = false) override;
+				virtual uint32_t GetChildBoneCount() const override { return m_vecChildBone.size(); }
+				virtual IBone* GetChildBone(uint32_t nIndex) const override { return m_vecChildBone[nIndex]; }
+				virtual IBone* GetChildBone(const String::StringID& strBoneName, bool isFindInAllDepth = false) const override;
 
-				virtual bool IsRootBone() override { return false; }
+				virtual bool IsRootBone() const override { return false; }
 
 			public:
-				Bone* AddChildBone(const String::StringID& strBoneName, const Math::Matrix& matOffset, const Math::Matrix& matTransformation);
+				Bone* AddChildBone(const String::StringID& strBoneName, const Math::Matrix& matMotionOffset);
 
 			private:
 				String::StringID m_strBoneName;
-
-				Math::Matrix m_matOffset;
-				Math::Matrix m_matTransformation;
+				Math::Matrix m_matMotionOffset;
 
 				Bone* m_pParentBone;
 				std::vector<Bone*> m_vecChildBone;
@@ -47,13 +44,10 @@ namespace EastEngine
 			class RootBone : public Bone
 			{
 			public:
-				RootBone()
-					: Bone(nullptr, Math::Matrix::Identity, Math::Matrix::Identity)
-				{
-				}
-				virtual ~RootBone() {}
+				RootBone();
+				virtual ~RootBone() = default;
 
-				virtual bool IsRootBone() override { return true; }
+				virtual bool IsRootBone() const override { return true; }
 			};
 
 		public:
@@ -75,13 +69,13 @@ namespace EastEngine
 			virtual void GetSkinnedList(uint32_t nIndex, String::StringID& strSkinnedName_out, const String::StringID** ppBoneNames_out, uint32_t& nElementCount_out) override;
 
 		public:
-			Bone* CreateBone(const String::StringID& strBoneName, const Math::Matrix& matOffset, const Math::Matrix& matTransformation);
-			Bone* CreateBone(const String::StringID& strParentBoneName, const String::StringID& strBoneName, const Math::Matrix& matOffset, const Math::Matrix& matTransformation);
+			Bone* CreateBone(const String::StringID& strBoneName, const Math::Matrix& matMotionOffset);
+			Bone* CreateBone(const String::StringID& strParentBoneName, const String::StringID& strBoneName, const Math::Matrix& matMotionOffset);
 
 			void SetSkinnedList(const String::StringID& strSkinnedName, const String::StringID* pBoneNames, uint32_t nNameCount);
 
 		private:
-			Bone* CreateChildBone(Bone* pParentBone, const String::StringID& strBoneName, const Math::Matrix& matOffset, const Math::Matrix& matTransformation);
+			Bone* CreateChildBone(Bone* pParentBone, const String::StringID& strBoneName, const Math::Matrix& matMotionOffset);
 
 		private:
 			Bone* m_pRootBone;
@@ -123,6 +117,7 @@ namespace EastEngine
 
 				virtual const Math::Matrix& GetTransform() override { return m_matTransform; }
 				virtual void SetMotionMatrix(const Math::Matrix& matrix) override { m_matMotionData = matrix; }
+				virtual void ClearMotionMatrix() override { m_matMotionData = Math::Matrix::Identity; }
 
 			public:
 				SkeletonInstance::BoneInstance* AddChildBone(Skeleton::IBone* pBoneHierarchy);
@@ -161,12 +156,15 @@ namespace EastEngine
 			virtual IBone* GetBone(const String::StringID& strBoneName) const override;
 
 			virtual void GetSkinnedData(const String::StringID& strSkinnedName, const Math::Matrix*** pppMatrixList_out, uint32_t& nElementCount_out) override;
+			virtual void SetIdentity() override;
+			virtual void SetDirty() override { m_isDirty = true; }
 
 		private:
 			void CreateBone(Skeleton::IBone* pBoneHierarchy, BoneInstance* pParentBone);
 			void CreateSkinnedData(ISkeleton* pSkeleton);
 
 		private:
+			bool m_isDirty;
 			ISkeleton* m_pSkeleton;
 
 			RootBone* m_pRootBone;

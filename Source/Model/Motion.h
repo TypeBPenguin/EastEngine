@@ -23,7 +23,7 @@ namespace EastEngine
 					if (m_vecKeyframes.empty())
 						return 0.f;
 
-					return m_vecKeyframes.front().fTimePos;
+					return m_vecKeyframes.front().fTime;
 				}
 
 				virtual float GetEndTime() const override
@@ -31,7 +31,7 @@ namespace EastEngine
 					if (m_vecKeyframes.empty())
 						return 0.f;
 
-					return m_vecKeyframes.back().fTimePos;
+					return m_vecKeyframes.back().fTime;
 				}
 
 				virtual void Update(IMotionPlayer* pPlayInfo) override;
@@ -75,7 +75,7 @@ namespace EastEngine
 
 		public:
 			void AddBoneKeyframes(const String::StringID& strBoneName, const std::vector<Keyframe>& vecKeyframes);
-			void CalcClipTime();
+			void SetInfo(float fStartTime, float fEndTime, float fFrameInterval, float fSamplingInterval);
 
 		private:
 			int m_nReferenceCount;
@@ -88,6 +88,8 @@ namespace EastEngine
 
 			float m_fStartTime;
 			float m_fEndTime;
+			float m_fFrameInterval;
+			float m_fSamplingInterval;
 		};
 	}
 }

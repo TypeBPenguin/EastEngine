@@ -36,7 +36,7 @@ namespace EastEngine
 			float fPlayTime = pPlayInfo->GetPlayTime();
 			Keyframe keyframe;
 
-			if (fPlayTime < m_vecKeyframes.front().fTimePos)
+			if (fPlayTime < m_vecKeyframes.front().fTime)
 			{
 				keyframe = m_vecKeyframes.front();
 
@@ -49,7 +49,7 @@ namespace EastEngine
 					pPlayInfo->SetCaching(m_strBoneName, 0);
 				}
 			}
-			else if (fPlayTime > m_vecKeyframes.back().fTimePos)
+			else if (fPlayTime > m_vecKeyframes.back().fTime)
 			{
 				keyframe = m_vecKeyframes.back();
 
@@ -77,9 +77,9 @@ namespace EastEngine
 						const Keyframe& keyframe1 = m_vecKeyframes[i - 1];
 						const Keyframe& keyframe2 = m_vecKeyframes[i];
 
-						if (keyframe1.fTimePos <= fPlayTime && fPlayTime <= keyframe2.fTimePos)
+						if (keyframe1.fTime <= fPlayTime && fPlayTime <= keyframe2.fTime)
 						{
-							float lerpPercent = (fPlayTime - fPlayTime) / (keyframe2.fTimePos - keyframe1.fTimePos);
+							float lerpPercent = (fPlayTime - fPlayTime) / (keyframe2.fTime - keyframe1.fTime);
 
 							Math::Vector3::Lerp(keyframe1.f3Pos, keyframe2.f3Pos, lerpPercent, keyframe.f3Pos);
 							Math::Vector3::Lerp(keyframe1.f3Scale, keyframe2.f3Scale, lerpPercent, keyframe.f3Scale);
@@ -105,9 +105,9 @@ namespace EastEngine
 						const Keyframe& keyframe1 = m_vecKeyframes[i];
 						const Keyframe& keyframe2 = m_vecKeyframes[i + 1];
 
-						if (keyframe1.fTimePos <= fPlayTime && fPlayTime <= keyframe2.fTimePos)
+						if (keyframe1.fTime <= fPlayTime && fPlayTime <= keyframe2.fTime)
 						{
-							float lerpPercent = (fPlayTime - keyframe1.fTimePos) / (keyframe2.fTimePos - keyframe1.fTimePos);
+							float lerpPercent = (fPlayTime - keyframe1.fTime) / (keyframe2.fTime - keyframe1.fTime);
 
 							Math::Vector3::Lerp(keyframe1.f3Pos, keyframe2.f3Pos, lerpPercent, keyframe.f3Pos);
 							Math::Vector3::Lerp(keyframe1.f3Scale, keyframe2.f3Scale, lerpPercent, keyframe.f3Scale);
@@ -130,6 +130,8 @@ namespace EastEngine
 			, m_strFilePath(strFilePath)
 			, m_fStartTime(0.f)
 			, m_fEndTime(0.f)
+			, m_fFrameInterval(0.f)
+			, m_fSamplingInterval(0.f)
 		{
 		}
 
@@ -145,10 +147,10 @@ namespace EastEngine
 
 		void Motion::Update(IMotionPlayer* pPlayInfo)
 		{
-			for (auto& iter : m_umapBones)
+			std::for_each(m_umapBones.begin(), m_umapBones.end(), [pPlayInfo](std::pair<const String::StringID, Bone*>& iter)
 			{
 				iter.second->Update(pPlayInfo);
-			}
+			});
 		}
 
 		const IMotion::IBone* Motion::GetBone(const String::StringID& strBoneName) const
@@ -167,18 +169,12 @@ namespace EastEngine
 			m_umapBones.emplace(strBoneName, pBone);
 		}
 
-		void Motion::CalcClipTime()
+		void Motion::SetInfo(float fStartTime, float fEndTime, float fFrameInterval, float fSamplingInterval)
 		{
-			float fStartTime = D3D11_FLOAT32_MAX;
-			float fEndTime = 0.f;
-			for (const auto& pBone : m_vecBones)
-			{
-				fStartTime = Math::Min(fStartTime, pBone->GetStartTime());
-				fEndTime = Math::Max(fEndTime, pBone->GetEndTime());
-			}
-
 			m_fStartTime = fStartTime;
 			m_fEndTime = fEndTime;
+			m_fFrameInterval = fFrameInterval;
+			m_fSamplingInterval = fSamplingInterval;
 		}
 	}
 }

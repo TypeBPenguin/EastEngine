@@ -165,6 +165,5 @@
     <None Include="Shaders\Compiled\BC7Encode_TryMode456CS.pdb">
       <Filter>Source Files\Shaders\Symbols</Filter>
     </None>
-    <None Include="packages.config" />
   </ItemGroup>
 </Project>

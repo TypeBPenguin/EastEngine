@@ -27,8 +27,8 @@ namespace EastEngine
 				return sizeof(VertexPosTexNorCol);
 			case EmVertexFormat::ePosTexNorTanBin:
 				return sizeof(VertexPosTexNorTanBin);
-			case EmVertexFormat::ePosTexNorBleIdx:
-				return sizeof(VertexPosTexNorBleIdx);
+			case EmVertexFormat::ePosTexNorWeiIdx:
+				return sizeof(VertexPosTexNorWeiIdx);
 			case EmVertexFormat::eUI:
 				return sizeof(VertexUI);
 			}
@@ -127,17 +127,17 @@ namespace EastEngine
 		{
 		}
 
-		VertexPosTexNorBleIdx::VertexPosTexNorBleIdx()
-			: idx(0)
+		VertexPosTexNorWeiIdx::VertexPosTexNorWeiIdx()
+			: boneIndices(0u)
 		{
 		}
 
-		VertexPosTexNorBleIdx::VertexPosTexNorBleIdx(const Math::Vector3& f3Pos, const Math::Vector2& f2UV, const Math::Vector3& f3Normal, const Math::Vector3& vBlend, uint32_t nIdx)
+		VertexPosTexNorWeiIdx::VertexPosTexNorWeiIdx(const Math::Vector3& f3Pos, const Math::Vector2& f2UV, const Math::Vector3& f3Normal, const Math::Vector3& f3Weight, const Math::UByte4& indices)
 			: pos(f3Pos)
 			, uv(f2UV)
 			, normal(f3Normal)
-			, blend(vBlend)
-			, idx(nIdx)
+			, boneWeight(f3Weight)
+			, boneIndices(boneIndices)
 		{
 		}
 

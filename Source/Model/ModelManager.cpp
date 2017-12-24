@@ -74,8 +74,8 @@ namespace EastEngine
 			if (m_isInit == false)
 				return;
 
-			SFbxImporter::GetInstance()->Release();
-			SFbxImporter::DestroyInstance();
+			FBXImport::GetInstance()->Release();
+			FBXImport::DestroyInstance();
 
 			SObjImporter::GetInstance()->ClearData();
 			SObjImporter::DestroyInstance();

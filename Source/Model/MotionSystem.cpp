@@ -97,8 +97,14 @@ namespace EastEngine
 
 		void MotionSystem::Update(float fElapsedTime, ISkeletonInstance* pSkeletonInst)
 		{
-			if (m_pMotion == nullptr)
+			if (pSkeletonInst == nullptr)
 				return;
+
+			if (m_pMotion == nullptr)
+			{
+				//pSkeletonInst->SetIdentity();
+				return;
+			}
 
 			bool isPlay = true;
 			if (m_isStop == true)
@@ -144,9 +150,11 @@ namespace EastEngine
 						}
 					}
 
-					uint32_t nBoneCount = pSkeletonInst->GetBoneCount();
+					const uint32_t nBoneCount = pSkeletonInst->GetBoneCount();
 					if (nBoneCount > 0)
 					{
+						pSkeletonInst->SetDirty();
+
 						m_motionPlayer.SetPlayTime(fPlayTime);
 
 						m_pMotion->Update(&m_motionPlayer);
@@ -157,7 +165,7 @@ namespace EastEngine
 
 							m_pMotionSub->Update(&m_motionPlayerSub);
 
-							float fBlendWeight = 1.f - (1.f / m_motionPlayer.GetBlendWeight() * m_fBlemdTime);
+							const float fBlendWeight = 1.f - (1.f / m_motionPlayer.GetBlendWeight() * m_fBlemdTime);
 
 							for (uint32_t i = 0; i < nBoneCount; ++i)
 							{
@@ -227,6 +235,8 @@ namespace EastEngine
 				{
 					if (m_motionPlayer.IsLoop() == false)
 					{
+						pSkeletonInst->SetIdentity();
+
 						m_pMotion->DecreaseReference();
 						m_pMotion = nullptr;
 

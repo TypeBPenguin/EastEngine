@@ -21,7 +21,18 @@ namespace EastEngine
 
 		void ModelNodeSkinned::Update(float fElapsedTime, const Math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance, bool isModelVisible)
 		{
-			m_matWorld = matParent;
+			Math::Matrix matTransformation = matParent;
+			if (m_strAttachedBoneName.empty() == false && pSkeletonInstance != nullptr)
+			{
+				ISkeletonInstance::IBone* pBone = pSkeletonInstance->GetBone(m_strAttachedBoneName);
+				if (pBone != nullptr)
+				{
+					const Math::Matrix& matBoneTransform = pBone->GetTransform();
+					matTransformation = matBoneTransform * matParent;
+				}
+			}
+
+			m_matWorld = matTransformation;
 
 			UpdateBoundingBox();
 

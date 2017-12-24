@@ -120,14 +120,13 @@ namespace EastEngine
 
 		bool RigidBody::IsCollision(const RigidBody* pRigidBody)
 		{
-			if (m_vecCollisionResults.empty() == false)
+			auto iter = std::find_if(m_vecCollisionResults.begin(), m_vecCollisionResults.end(), [pRigidBody](const CollisionResult& result)
 			{
-				for (auto& result : m_vecCollisionResults)
-				{
-					if (result.pOpponentObject == pRigidBody)
-						return true;
-				}
-			}
+				return result.pOpponentObject == pRigidBody;
+			});
+
+			if (iter != m_vecCollisionResults.end())
+				return true;
 
 			struct CustomResultCallBack : public btCollisionWorld::ContactResultCallback
 			{

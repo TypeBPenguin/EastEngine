@@ -146,10 +146,10 @@ namespace EastEngine
 				uint32_t v;
 			};
 
-			UByte4();
-			constexpr UByte4(uint8_t _x, uint8_t _y, uint8_t _z, uint8_t _w);
-			explicit constexpr UByte4(uint32_t Packed);
-			explicit UByte4(_In_reads_(4) const uint8_t *pArray);
+			UByte4() = default;
+			constexpr UByte4(uint8_t _x, uint8_t _y, uint8_t _z, uint8_t _w) : x(_x), y(_y), z(_z), w(_w) {}
+			explicit constexpr UByte4(uint32_t Packed) : v(Packed) {}
+			explicit UByte4(_In_reads_(4) const uint8_t *pArray) : x(pArray[0]), y(pArray[1]), z(pArray[2]), w(pArray[3]) {}
 			UByte4(float _x, float _y, float _z, float _w);
 			explicit UByte4(_In_reads_(4) const float *pArray);
 

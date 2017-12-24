@@ -183,13 +183,13 @@ namespace EastEngine
 				pEffect->CreateTechnique(StrID::ModelStatic, EmVertexFormat::ePosTexNor);
 				break;
 			case eModelSkinned:
-				pEffect->CreateTechnique(StrID::ModelSkinned, EmVertexFormat::ePosTexNorBleIdx);
+				pEffect->CreateTechnique(StrID::ModelSkinned, EmVertexFormat::ePosTexNorWeiIdx);
 				break;
 			case eModelStatic_Tessellation:
 				pEffect->CreateTechnique(StrID::ModelStatic_Tessellation, EmVertexFormat::ePosTexNor);
 				break;
 			case eModelSkinned_Tessellation:
-				pEffect->CreateTechnique(StrID::ModelSkinned_Tessellation, EmVertexFormat::ePosTexNorBleIdx);
+				pEffect->CreateTechnique(StrID::ModelSkinned_Tessellation, EmVertexFormat::ePosTexNorWeiIdx);
 				break;
 			}
 

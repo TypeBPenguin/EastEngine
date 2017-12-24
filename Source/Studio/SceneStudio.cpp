@@ -404,7 +404,7 @@ void SceneStudio::Enter()
 
 		terrain.f3Position = { -500.f, 0.f, -500.f };
 
-		GameObject::ITerrain::Create("BaseTerrain", terrain);
+		//GameObject::ITerrain::Create("BaseTerrain", terrain);
 
 		// 백그라운드 로딩은 이렇게 쓰면됨
 		//GameObject::ITerrain::CreateAsync("BaseTerrain", terrain);
@@ -422,24 +422,39 @@ void SceneStudio::Enter()
 	}
 
 	{
-		std::string strPath(File::GetDataPath());
-		strPath.append("Actor\\UnityChan\\UnityChan.eact");
-
-		GameObject::IActor* pActor = GameObject::IActor::CreateByFile(strPath.c_str());
-		pActor->SetPosition({ 0.f, 60.f, 0.f });
-		
-		//GameObject::IActor* pActor = GameObject::IActor::Create("UnityChan");
-		//
-		//pActor->SetPosition({ 0.f, 100.f, 0.f });
-		//
 		//std::string strPath(File::GetDataPath());
-		//strPath.append("Actor\\UnityChan\\Models\\unitychan.fbx");
+		//strPath.append("Actor\\UnityChan\\UnityChan.eact");
 		//
-		//Graphics::ModelLoader loader;
-		//loader.InitFBX("UnityChan", strPath.c_str(), 0.01f);
-		//
-		//GameObject::ComponentModel* pModel = static_cast<GameObject::ComponentModel*>(pActor->CreateComponent(GameObject::EmComponent::eModel));
-		//pModel->Init(&loader);
+		//GameObject::IActor* pActor = GameObject::IActor::CreateByFile(strPath.c_str());
+		//pActor->SetPosition({ 0.f, 60.f, 0.f });
+		
+		GameObject::IActor* pActor = GameObject::IActor::Create("UnityChan");
+		
+		pActor->SetPosition({ 0.f, 50.f, -90.f });
+		
+		strPath = File::GetDataPath();
+		strPath.append("Actor\\UnityChan\\Models\\unitychan.fbx");
+		
+		Graphics::ModelLoader loader;
+		loader.InitFBX("UnityChan", strPath.c_str(), 0.01f);
+		loader.SetEnableThreadLoad(false);
+		
+		GameObject::ComponentModel* pModel = static_cast<GameObject::ComponentModel*>(pActor->CreateComponent(GameObject::EmComponent::eModel));
+		pModel->Init(&loader);
+
+		std::string strPathMotion(File::GetDataPath());
+		strPathMotion.append("Actor\\UnityChan\\Animations\\unitychan_ARpose1.fbx");
+
+		Graphics::MotionLoader motionLoader;
+		motionLoader.InitFBX(File::GetFileName(strPathMotion).c_str(), strPathMotion.c_str(), 0.01f);
+		Graphics::IMotion* pMotion = Graphics::IMotion::Create(motionLoader);
+
+		Graphics::IModelInstance* pModelInstance = pModel->GetModelInstance();
+
+		Graphics::MotionState motionState;
+		motionState.fSpeed = 0.075f;
+		motionState.isLoop = false;
+		pModelInstance->PlayMotion(pMotion, &motionState);
 	}
 
 	m_pMaterialNodeManager = new MaterialNodeManager;

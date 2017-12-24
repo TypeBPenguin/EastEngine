@@ -71,7 +71,10 @@ namespace EastEngine
 			void SetName(const String::StringID& strModelName) { m_strModelName = strModelName; }
 			void SetFilePath(const std::string& strFilePath) { m_strFilePath = strFilePath; }
 
-		protected:
+		private:
+			bool LoadFbxModel(const ModelLoader& loader);
+
+		private:
 			bool m_isVisible;
 			bool m_isDirtyLocalMatrix;
 

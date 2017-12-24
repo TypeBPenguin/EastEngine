@@ -21,6 +21,8 @@
 #ifndef PLF_COLONY_H
 #define PLF_COLONY_H
 
+#pragma warning(push)
+#pragma warning( disable : 4127 )
 
 // Compiler-specific defines used by colony:
 
@@ -4440,5 +4442,6 @@ inline void swap (colony<element_type, element_allocator_type, element_skipfield
 #undef PLF_COLONY_ALLOCATE_INITIALIZATION
 #undef PLF_COLONY_DEALLOCATE
 
+#pragma warning(pop)
 
 #endif // PLF_COLONY_H

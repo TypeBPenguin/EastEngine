@@ -116,7 +116,7 @@ namespace EastEngine
 		{
 			m_strModelName = strModelName;
 			m_strFilePath = strFilePath;
-			m_fScaleFactor = 1.f / fScaleFactor;
+			m_fScaleFactor = fScaleFactor;
 
 			m_nLodMax = nLodMax;
 			m_lodReductionRate = reductionRate;

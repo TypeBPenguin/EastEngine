@@ -200,8 +200,6 @@ namespace EastEngine
 
 				return 0.f;
 			}
-
-			return 0.f;
 		}
 
 		bool Terrain::loadHeightMap(const char* strFilePath)

@@ -59,13 +59,11 @@ namespace EastEngine
 
 				Motion* pMotion = s_poolMotion.construct(strMotionName, loader.GetFilePath().c_str());
 
-				if (SFbxImporter::GetInstance()->LoadMotion(pMotion, loader.GetFilePath().c_str(), loader.GetScaleFactor()) == false)
+				if (FBXImport::GetInstance()->LoadMotion(pMotion, loader.GetFilePath().c_str(), loader.GetScaleFactor()) == false)
 				{
 					pMotion->SetLoadState(EmLoadState::eInvalid);
 					return nullptr;
 				}
-
-				pMotion->CalcClipTime();
 
 				pMotion->SetLoadState(EmLoadState::eComplete);
 
@@ -103,7 +101,7 @@ namespace EastEngine
 
 					for (uint32_t j = 0; j < nKeyframe; ++j)
 					{
-						file >> vecKeyframes[j].fTimePos;
+						file >> vecKeyframes[j].fTime;
 						file.Read(&vecKeyframes[j].f3Pos.x, 3);
 						file.Read(&vecKeyframes[j].f3Scale.x, 3);
 						file.Read(&vecKeyframes[j].quatRotation.x, 4);
@@ -111,8 +109,6 @@ namespace EastEngine
 
 					pMotion->AddBoneKeyframes(strBuf.c_str(), vecKeyframes);
 				}
-
-				pMotion->CalcClipTime();
 
 				pMotion->SetLoadState(EmLoadState::eComplete);
 
@@ -167,7 +163,7 @@ namespace EastEngine
 				{
 					const Keyframe* pKeyframe = pBone->GetKeyframe(j);
 
-					file << pKeyframe->fTimePos;
+					file << pKeyframe->fTime;
 					file.Write(&pKeyframe->f3Pos.x, 3);
 					file.Write(&pKeyframe->f3Scale.x, 3);
 					file.Write(&pKeyframe->quatRotation.x, 4);
@@ -321,9 +317,9 @@ namespace EastEngine
 
 				file << pNode->IsVisible();
 
-				file.Write(&pNode->GetTransformationMatrix()._11, 16);
-
+				// 필요없는 데이터
 				Math::Matrix mat;
+				file.Write(&mat._11, 16);
 				file.Write(&mat._11, 16);
 
 				uint32_t nSubsetCount = pNode->GetModelSubsetCount();
@@ -361,14 +357,14 @@ namespace EastEngine
 				}
 				else if (pNode->GetType() == EmModelNode::eSkinned)
 				{
-					VertexPosTexNorBleIdx* pVertices = reinterpret_cast<VertexPosTexNorBleIdx*>(pData);
+					VertexPosTexNorWeiIdx* pVertices = reinterpret_cast<VertexPosTexNorWeiIdx*>(pData);
 					for (uint32_t j = 0; j < nVertexCount; ++j)
 					{
 						file.Write(&pVertices[j].pos.x, 3);
 						file.Write(&pVertices[j].uv.x, 2);
 						file.Write(&pVertices[j].normal.x, 3);
-						file.Write(&pVertices[j].blend.x, 3);
-						file << pVertices[j].idx;
+						file.Write(&pVertices[j].boneWeight.x, 3);
+						file << pVertices[j].boneIndices.v;
 					}
 				}
 
@@ -442,8 +438,9 @@ namespace EastEngine
 						file << "NoParent";
 					}
 
-					file.Write(&pBone->GetTransformation()._11, 16);
-					file.Write(&pBone->GetMotionOffsetMatrix()._11, 16);
+					Math::Matrix matrix;
+					file.Write(&matrix._11, 16);
+					file.Write(&matrix._11, 16);
 
 					uint32_t nChildBoneCount = pBone->GetChildBoneCount();
 					for (uint32_t i = 0; i < nChildBoneCount; ++i)

@@ -19,7 +19,7 @@ namespace EastEngine
 		{
 			m_strMotionName = strMotionName;
 			m_strFilePath = strFilePath;
-			m_fScaleFactor = 1.f / fScaleFactor;
+			m_fScaleFactor = fScaleFactor;
 
 			m_emLoadMotionType = EmMotionLoader::eFbx;
 		}

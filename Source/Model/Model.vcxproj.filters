@@ -117,6 +117,9 @@
     <ClInclude Include="ModelInterface.h">
       <Filter>Interface</Filter>
     </ClInclude>
+    <ClInclude Include="FbxWriter.h">
+      <Filter>Model\Importer\FBX</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -172,6 +175,9 @@
     </ClCompile>
     <ClCompile Include="ModelInterface.cpp">
       <Filter>Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="FbxWriter.cpp">
+      <Filter>Model\Importer\FBX</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

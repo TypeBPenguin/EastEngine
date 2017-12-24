@@ -19,7 +19,18 @@ namespace EastEngine
 
 		void ModelNodeStatic::Update(float fElapsedTime, const Math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance, bool isModelVisible)
 		{
-			m_matWorld = m_matTransformation * matParent;
+			Math::Matrix matTransformation = matParent;
+			if (m_strAttachedBoneName.empty() == false && pSkeletonInstance != nullptr)
+			{
+				ISkeletonInstance::IBone* pBone = pSkeletonInstance->GetBone(m_strAttachedBoneName);
+				if (pBone != nullptr)
+				{
+					const Math::Matrix& matBoneTransform = pBone->GetTransform();
+					matTransformation = matBoneTransform * matParent;
+				}
+			}
+
+			m_matWorld = matTransformation;
 
 			UpdateBoundingBox();
 

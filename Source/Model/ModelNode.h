@@ -30,13 +30,12 @@ namespace EastEngine
 			virtual void SetDistanceFromCamera(float fDist) override { m_fDistanceFromCamera = fDist; }
 
 			virtual const String::StringID& GetName() const override { return m_strNodeName; }
+			virtual const String::StringID& GetAttachedBoneName() const override { return m_strAttachedBoneName; }
 
 			virtual IModelNode* GetParentNode() override { return m_pParentNode; }
 
 			virtual IVertexBuffer* GetVertexBuffer(uint32_t nLod = 0) override;
 			virtual IIndexBuffer* GetIndexBuffer(uint32_t nLod = 0) override;
-
-			virtual const Math::Matrix& GetTransformationMatrix() override { return m_matTransformation; }
 
 			virtual const Math::Matrix& GetWorldMatrix() override { return m_matWorld; }
 			virtual const Math::Matrix* GetWorldMatrixPtr() override { return &m_matWorld; }
@@ -61,13 +60,13 @@ namespace EastEngine
 			virtual void SetLOD(uint32_t nLod) override { m_nLod = nLod; }
 
 			void SetNodeName(const String::StringID& strNodeName) { m_strNodeName = strNodeName; }
+			void SetAttachedBoneName(const String::StringID& strNodeName) { m_strAttachedBoneName = strNodeName; }
+
 			void SetParentNode(IModelNode* pModelNode) { m_pParentNode = pModelNode; }
 			void AddChildNode(IModelNode* pChildNode) { m_vecChildModelNode.push_back(pChildNode); }
 
 			void SetVertexBuffer(IVertexBuffer* pVertexBuffer, uint32_t nLod = 0);
 			void SetIndexBuffer(IIndexBuffer* pIndexBuffer, uint32_t nLod = 0);
-
-			void SetTransformationMatrix(const Math::Matrix& matTransformation) { m_matTransformation = matTransformation; }
 
 			void AddMaterial(IMaterial* pMaterial);
 			void AddMaterialArray(IMaterial** ppMaterials, uint32_t nCount);
@@ -75,13 +74,13 @@ namespace EastEngine
 			void AddModelSubsets(const std::vector<ModelSubset>& vecModelSubsets, uint32_t nLod = 0);
 
 		protected:
-			String::StringID m_strNodeName;
 			bool m_isVisible;
+			String::StringID m_strNodeName;
+			String::StringID m_strAttachedBoneName;
 
 			IModelNode* m_pParentNode;
 			std::vector<IModelNode*> m_vecChildModelNode;
 
-			Math::Matrix m_matTransformation;
 			Math::Matrix m_matWorld;
 
 			std::vector<IMaterial*> m_vecMaterial;

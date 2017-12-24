@@ -217,7 +217,9 @@ namespace EastEngine
 				//static std::mutex mutex;
 				//std::unique_lock<std::mutex> lock(mutex);
 
-				isSuccess = SFbxImporter::GetInstance()->LoadModel(this, loader.GetFilePath().c_str(), loader.GetScaleFactor());
+				isSuccess = LoadFbxModel(loader);
+
+				//isSuccess = SFbxImporter::GetInstance()->LoadModel(this, loader.GetFilePath().c_str(), loader.GetScaleFactor());
 				if (isSuccess == false)
 				{
 					PRINT_LOG("Can't load Model[FBX] : %s", loader.GetFilePath().c_str());
@@ -520,9 +522,8 @@ namespace EastEngine
 
 				pNode->SetVisible(isVisible);
 
+				// 쓸모없는 데이터들
 				file.Read(&matBuf._11, 16);
-				pNode->SetTransformationMatrix(matBuf);
-
 				file.Read(&matBuf._11, 16);
 
 				uint32_t nSubsetCount = 0;
@@ -565,21 +566,21 @@ namespace EastEngine
 				}
 				else if (nType == EmModelNode::eSkinned)
 				{
-					std::vector<VertexPosTexNorBleIdx> vecVertices;
+					std::vector<VertexPosTexNorWeiIdx> vecVertices;
 					vecVertices.resize(nVertexCount);
 
 					for (int j = 0; j < nVertexCount; ++j)
 					{
-						VertexPosTexNorBleIdx& vertex = vecVertices[j];
+						VertexPosTexNorWeiIdx& vertex = vecVertices[j];
 						file.Read(&vertex.pos.x, 3);
 						file.Read(&vertex.uv.x, 2);
 						file.Read(&vertex.normal.x, 3);
-						file.Read(&vertex.blend.x, 3);
+						file.Read(&vertex.boneWeight.x, 3);
 
-						file >> vertex.idx;
+						file >> vertex.boneIndices.v;
 					}
 
-					pVertexBuffer = IVertexBuffer::Create(VertexPosTexNorBleIdx::Format(), vecVertices.size(), &vecVertices.front(), D3D11_USAGE_DYNAMIC, IVertexBuffer::eSaveVertexPos);
+					pVertexBuffer = IVertexBuffer::Create(VertexPosTexNorWeiIdx::Format(), vecVertices.size(), &vecVertices.front(), D3D11_USAGE_DYNAMIC, IVertexBuffer::eSaveVertexPos);
 					if (pVertexBuffer == nullptr)
 					{
 						PRINT_LOG("버텍스 버퍼 생성 실패했슴돠");
@@ -670,11 +671,11 @@ namespace EastEngine
 
 					if (strParentName == "NoParent")
 					{
-						pSkeleton->CreateBone(strName.c_str(), matMotionOffset, matTransformation);
+						pSkeleton->CreateBone(strName.c_str(), matMotionOffset);
 					}
 					else
 					{
-						pSkeleton->CreateBone(strParentName.c_str(), strName.c_str(), matMotionOffset, matTransformation);
+						pSkeleton->CreateBone(strParentName.c_str(), strName.c_str(), matMotionOffset);
 					}
 				}
 			}
@@ -708,6 +709,15 @@ namespace EastEngine
 					pSkeleton->SetSkinnedList(pNodeSkinned->GetName(), &vecBoneNames.front(), vecBoneNames.size());
 				}
 			}
+
+			return true;
+		}
+
+		bool Model::LoadFbxModel(const ModelLoader& loader)
+		{
+			bool isSuccess = FBXImport::GetInstance()->LoadModel(this, loader.GetFilePath().c_str(), loader.GetScaleFactor());
+			if (isSuccess == false)
+				return false;
 
 			return true;
 		}
