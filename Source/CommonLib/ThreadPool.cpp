@@ -20,6 +20,31 @@ namespace EastEngine
 			}
 		}
 
+		void Task::Wait()
+		{
+			std::unique_lock<std::mutex> lock(m_mutex);
+
+			m_condition.wait(lock, [&]()
+			{
+				return m_emState.load() == EmState::eIdle;
+			});
+		}
+
+		Task::EmState Task::GetState()
+		{
+			return m_emState.load();
+		}
+
+		void Task::SetState(EmState emState)
+		{
+			m_emState.store(emState);
+
+			if (m_emState == EmState::eIdle)
+			{
+				m_condition.notify_all();
+			}
+		}
+
 		ThreadPool::RequestTask::RequestTask(FuncTask funcTask)
 			: funcTask(funcTask)
 		{
@@ -42,6 +67,7 @@ namespace EastEngine
 				return true;
 
 			m_isInit = true;
+
 			m_isStop = false;
 
 			m_vecTaskWorkers.resize(nThreadCount);
@@ -73,8 +99,12 @@ namespace EastEngine
 							m_queueTasks.pop();
 						}
 
+						SetTaskState(pWorker, Task::EmState::eProcessing);
+
 						task.promiseThread.set_value(pWorker);
 						task.funcTask();
+
+						SetTaskState(pWorker, Task::EmState::eIdle);
 					}
 				}, promiseThread.get_future());
 
@@ -82,7 +112,7 @@ namespace EastEngine
 				Task* pTask = new Task(thread);
 				promiseThread.set_value(pTask);
 
-				m_vecTaskWorkers.emplace_back(pTask);
+				m_vecTaskWorkers[i] = pTask;
 			}
 
 			return true;
@@ -93,15 +123,14 @@ namespace EastEngine
 			if (m_isInit == false)
 				return;
 
-			{
-				std::lock_guard<std::mutex> lock(m_mutex);
-				m_isStop = true;
-			}
+			m_isStop.store(true);
 
 			m_condition.notify_all();
 
 			for (Task* pTask : m_vecTaskWorkers)
 			{
+				pTask->Wait();
+
 				delete pTask;
 			}
 			m_vecTaskWorkers.clear();
