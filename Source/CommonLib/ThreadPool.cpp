@@ -8,6 +8,7 @@ namespace EastEngine
 	namespace Thread
 	{
 		Task::Task(std::thread& thread)
+			: m_emState(EmState::eIdle)
 		{
 			m_thread.swap(thread);
 		}
