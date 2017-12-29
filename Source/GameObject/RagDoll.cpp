@@ -71,7 +71,7 @@ namespace EastEngine
 				Graphics::MaterialInfo materialInfo;
 				materialInfo.strName = strName;
 				materialInfo.colorAlbedo = Math::Color::Red;
-				materialInfo.pRasterizerState = Graphics::GetDevice()->GetRasterizerState(Graphics::EmRasterizerState::eWireFrame);
+				materialInfo.pRasterizerState = Graphics::GetDevice()->GetRasterizerState(Graphics::EmRasterizerState::eWireframeCullNone);
 
 				Graphics::ModelLoader modelLoader;
 				modelLoader.InitCapsule(strName, &materialInfo, fRadius, fHeight);

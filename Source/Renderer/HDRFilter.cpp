@@ -80,13 +80,13 @@ namespace EastEngine
 			if (m_pEffect == nullptr)
 				return false;
 
-			m_pEffect->CreateTechnique(StrID::Luminance, EmVertexFormat::ePos);
-			m_pEffect->CreateTechnique(StrID::CalcAdaptedLuminance, EmVertexFormat::ePos);
-			m_pEffect->CreateTechnique(StrID::ToneMap, EmVertexFormat::ePos);
-			m_pEffect->CreateTechnique(StrID::Threshold, EmVertexFormat::ePos);
-			m_pEffect->CreateTechnique(StrID::LensFlareFirstPass, EmVertexFormat::ePos);
-			m_pEffect->CreateTechnique(StrID::LensFlareSecondPass, EmVertexFormat::ePos);
-			m_pEffect->CreateTechnique(StrID::Combine, EmVertexFormat::ePos);
+			m_pEffect->CreateTechnique(StrID::Luminance, EmVertexFormat::eUnknown);
+			m_pEffect->CreateTechnique(StrID::CalcAdaptedLuminance, EmVertexFormat::eUnknown);
+			m_pEffect->CreateTechnique(StrID::ToneMap, EmVertexFormat::eUnknown);
+			m_pEffect->CreateTechnique(StrID::Threshold, EmVertexFormat::eUnknown);
+			m_pEffect->CreateTechnique(StrID::LensFlareFirstPass, EmVertexFormat::eUnknown);
+			m_pEffect->CreateTechnique(StrID::LensFlareSecondPass, EmVertexFormat::eUnknown);
+			m_pEffect->CreateTechnique(StrID::Combine, EmVertexFormat::eUnknown);
 
 			SamplerStateDesc desc;
 			desc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
@@ -183,9 +183,7 @@ namespace EastEngine
 
 			IDevice* pDevice = GetDevice();
 			IDeviceContext* pDeviceContext = GetDeviceContext();
-			if (pDeviceContext->SetInputLayout(EmVertexFormat::ePos) == false)
-				return false;
-
+			
 			{
 				D3D_PROFILING(ResetD3D);
 
@@ -193,7 +191,7 @@ namespace EastEngine
 				pDeviceContext->SetDefaultViewport();
 			}
 
-			pDeviceContext->SetRasterizerState(EmRasterizerState::eCCW);
+			pDeviceContext->SetRasterizerState(EmRasterizerState::eSolidCCW);
 			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOff);
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 

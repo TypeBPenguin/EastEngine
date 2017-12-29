@@ -5,19 +5,6 @@ namespace EastEngine
 {
 	namespace Graphics
 	{
-		static boost::object_pool<Motion> s_poolMotion;
-		static boost::object_pool<Motion::Bone> g_poolMotionBone;
-
-		void MotionDestroyer(Motion* pMotion)
-		{
-			s_poolMotion.destroy(pMotion);
-		}
-
-		std::shared_ptr<Motion> AllocateMotion(const String::StringID& strName, const char* strFilePath)
-		{
-			return std::shared_ptr<Motion>(s_poolMotion.construct(strName, strFilePath), MotionDestroyer);
-		}
-
 		Motion::Bone::Bone(const String::StringID& strBoneName, const std::vector<Keyframe>& _vecKeyframes)
 			: m_strBoneName(strBoneName)
 		{
@@ -137,19 +124,16 @@ namespace EastEngine
 
 		Motion::~Motion()
 		{
-			std::for_each(m_vecBones.begin(), m_vecBones.end(), [](Bone* pBone)
-			{
-				g_poolMotionBone.destroy(pBone);
-			});
-			m_vecBones.clear();
+			m_vecBonesIndexing.clear();
 			m_umapBones.clear();
+			m_clnBones.clear();
 		}
 
 		void Motion::Update(IMotionPlayer* pPlayInfo)
 		{
-			std::for_each(m_umapBones.begin(), m_umapBones.end(), [pPlayInfo](std::pair<const String::StringID, Bone*>& iter)
+			std::for_each(m_clnBones.begin(), m_clnBones.end(), [&pPlayInfo](Bone& bone)
 			{
-				iter.second->Update(pPlayInfo);
+				bone.Update(pPlayInfo);
 			});
 		}
 
@@ -164,8 +148,9 @@ namespace EastEngine
 
 		void Motion::AddBoneKeyframes(const String::StringID& strBoneName, const std::vector<Keyframe>& vecKeyframes)
 		{
-			Bone* pBone = g_poolMotionBone.construct(strBoneName, vecKeyframes);
-			m_vecBones.emplace_back(pBone);
+			auto iter_result = m_clnBones.emplace(strBoneName, vecKeyframes);
+			Bone* pBone = &(*iter_result);
+			m_vecBonesIndexing.emplace_back(pBone);
 			m_umapBones.emplace(strBoneName, pBone);
 		}
 

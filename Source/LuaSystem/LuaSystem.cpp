@@ -77,11 +77,11 @@ namespace EastEngine
 
 			//luaL_dofile(m_pLuaState, strFile);
 
-			/*StringID strFIleName = AloFile::GetFileName(strFile);
-			auto iter = m_umapCompiledLua.find(strFIleName);
+			/*StringID strFileName = AloFile::GetFileName(strFile);
+			auto iter = m_umapCompiledLua.find(strFileName);
 			if (iter != m_umapCompiledLua.end())
 			{
-				PRINT_LOG("Already compiled file : %s", strFIleName.c_str());
+				PRINT_LOG("Already compiled file : %s", strFileName.c_str());
 				return false;
 			}
 
@@ -109,7 +109,7 @@ namespace EastEngine
 			strCompile = std::string(lua_tostring(m_pLuaState, -1), lua_strlen(m_pLuaState, -1));
 			lua_settop(m_pLuaState, nTop);
 
-			m_umapCompiledLua.insert(std::make_pair(StringID(strFIleName.c_str()), strCompile));*/
+			m_umapCompiledLua.insert(std::make_pair(StringID(strFileName.c_str()), strCompile));*/
 
 			return true;
 		}

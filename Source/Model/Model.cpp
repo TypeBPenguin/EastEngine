@@ -43,8 +43,6 @@ namespace EastEngine
 {
 	namespace Graphics
 	{
-		//static boost::object_pool<ModelInstance> s_poolModelInstance;
-
 		const String::StringID& GetGeometryTypeName(EmModelLoader::GeometryType emGeometryType)
 		{
 			static String::StringID strGeometryType[] =

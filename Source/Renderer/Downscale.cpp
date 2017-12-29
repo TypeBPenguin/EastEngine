@@ -51,9 +51,9 @@ namespace EastEngine
 			if (m_pEffect == nullptr)
 				return false;
 
-			m_pEffect->CreateTechnique(StrID::Downscale4, EmVertexFormat::ePos);
-			m_pEffect->CreateTechnique(StrID::Downscale4Luminance, EmVertexFormat::ePos);
-			m_pEffect->CreateTechnique(StrID::DownscaleHW, EmVertexFormat::ePos);
+			m_pEffect->CreateTechnique(StrID::Downscale4, EmVertexFormat::eUnknown);
+			m_pEffect->CreateTechnique(StrID::Downscale4Luminance, EmVertexFormat::eUnknown);
+			m_pEffect->CreateTechnique(StrID::DownscaleHW, EmVertexFormat::eUnknown);
 
 			SamplerStateDesc desc;
 			desc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
@@ -115,12 +115,9 @@ namespace EastEngine
 			D3D_PROFILING(Downscale);
 
 			IDeviceContext* pDeviceContext = GetDeviceContext();
-			if (pDeviceContext->SetInputLayout(EmVertexFormat::ePos) == false)
-				return false;
-
 			pDeviceContext->ClearState();
 			pDeviceContext->SetDefaultViewport();
-			pDeviceContext->SetRasterizerState(EmRasterizerState::eCCW);
+			pDeviceContext->SetRasterizerState(EmRasterizerState::eSolidCCW);
 			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOff);
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
@@ -152,12 +149,9 @@ namespace EastEngine
 
 			IDevice* pd3d = GetDevice();
 			IDeviceContext* pDeviceContext = GetDeviceContext();
-			if (pDeviceContext->SetInputLayout(EmVertexFormat::ePos) == false)
-				return false;
-
 			pDeviceContext->ClearState();
 			pDeviceContext->SetDefaultViewport();
-			pDeviceContext->SetRasterizerState(EmRasterizerState::eCCW);
+			pDeviceContext->SetRasterizerState(EmRasterizerState::eSolidCCW);
 			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOff);
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
@@ -202,12 +196,9 @@ namespace EastEngine
 			D3D_PROFILING(Downscale);
 
 			IDeviceContext* pDeviceContext = GetDeviceContext();
-			if (pDeviceContext->SetInputLayout(EmVertexFormat::ePos) == false)
-				return false;
-
 			pDeviceContext->ClearState();
 			pDeviceContext->SetDefaultViewport();
-			pDeviceContext->SetRasterizerState(EmRasterizerState::eCCW);
+			pDeviceContext->SetRasterizerState(EmRasterizerState::eSolidCCW);
 			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOff);
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
@@ -236,12 +227,9 @@ namespace EastEngine
 
 			IDevice* pd3d = GetDevice();
 			IDeviceContext* pDeviceContext = GetDeviceContext();
-			if (pDeviceContext->SetInputLayout(EmVertexFormat::ePos) == false)
-				return false;
-
 			pDeviceContext->ClearState();
 			pDeviceContext->SetDefaultViewport();
-			pDeviceContext->SetRasterizerState(EmRasterizerState::eCCW);
+			pDeviceContext->SetRasterizerState(EmRasterizerState::eSolidCCW);
 			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOff);
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 

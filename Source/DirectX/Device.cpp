@@ -260,7 +260,7 @@ namespace EastEngine
 				Release();
 				return false;
 			}
-			m_pd3dImmediateContext->SetRasterizerState(EmRasterizerState::eCCW);
+			m_pd3dImmediateContext->SetRasterizerState(EmRasterizerState::eSolidCCW);
 
 			if (FAILED(createBlendState()))
 			{
@@ -1188,7 +1188,7 @@ namespace EastEngine
 
 			switch (emRasterizerState)
 			{
-			case EmRasterizerState::eCCW:
+			case EmRasterizerState::eSolidCCW:
 				rasterizerStateDesc.AntialiasedLineEnable = false;
 				rasterizerStateDesc.FillMode = D3D11_FILL_SOLID;
 				rasterizerStateDesc.CullMode = D3D11_CULL_BACK;
@@ -1200,7 +1200,7 @@ namespace EastEngine
 				rasterizerStateDesc.ScissorEnable = false;
 				rasterizerStateDesc.SlopeScaledDepthBias = 0.f;
 				break;
-			case EmRasterizerState::eCW:
+			case EmRasterizerState::eSolidCW:
 				rasterizerStateDesc.AntialiasedLineEnable = false;
 				rasterizerStateDesc.FillMode = D3D11_FILL_SOLID;
 				rasterizerStateDesc.CullMode = D3D11_CULL_FRONT;
@@ -1212,19 +1212,19 @@ namespace EastEngine
 				rasterizerStateDesc.ScissorEnable = false;
 				rasterizerStateDesc.SlopeScaledDepthBias = 0.f;
 				break;
-			case EmRasterizerState::eScissorRects:
+			case EmRasterizerState::eSolidCullNone:
 				rasterizerStateDesc.AntialiasedLineEnable = false;
 				rasterizerStateDesc.FillMode = D3D11_FILL_SOLID;
-				rasterizerStateDesc.CullMode = D3D11_CULL_BACK;
+				rasterizerStateDesc.CullMode = D3D11_CULL_NONE;
 				rasterizerStateDesc.DepthBias = 0;
 				rasterizerStateDesc.DepthBiasClamp = 0.f;
 				rasterizerStateDesc.DepthClipEnable = true;
 				rasterizerStateDesc.FrontCounterClockwise = false;
 				rasterizerStateDesc.MultisampleEnable = false;
-				rasterizerStateDesc.ScissorEnable = true;
+				rasterizerStateDesc.ScissorEnable = false;
 				rasterizerStateDesc.SlopeScaledDepthBias = 0.f;
 				break;
-			case EmRasterizerState::eWireFrame:
+			case EmRasterizerState::eWireframeCCW:
 				rasterizerStateDesc.AntialiasedLineEnable = false;
 				rasterizerStateDesc.FillMode = D3D11_FILL_WIREFRAME;
 				rasterizerStateDesc.CullMode = D3D11_CULL_BACK;
@@ -1236,9 +1236,21 @@ namespace EastEngine
 				rasterizerStateDesc.ScissorEnable = false;
 				rasterizerStateDesc.SlopeScaledDepthBias = 0.f;
 				break;
-			case EmRasterizerState::eNone:
+			case EmRasterizerState::eWireframeCW:
 				rasterizerStateDesc.AntialiasedLineEnable = false;
-				rasterizerStateDesc.FillMode = D3D11_FILL_SOLID;
+				rasterizerStateDesc.FillMode = D3D11_FILL_WIREFRAME;
+				rasterizerStateDesc.CullMode = D3D11_CULL_FRONT;
+				rasterizerStateDesc.DepthBias = 0;
+				rasterizerStateDesc.DepthBiasClamp = 0.f;
+				rasterizerStateDesc.DepthClipEnable = true;
+				rasterizerStateDesc.FrontCounterClockwise = false;
+				rasterizerStateDesc.MultisampleEnable = false;
+				rasterizerStateDesc.ScissorEnable = false;
+				rasterizerStateDesc.SlopeScaledDepthBias = 0.f;
+				break;
+			case EmRasterizerState::eWireframeCullNone:
+				rasterizerStateDesc.AntialiasedLineEnable = false;
+				rasterizerStateDesc.FillMode = D3D11_FILL_WIREFRAME;
 				rasterizerStateDesc.CullMode = D3D11_CULL_NONE;
 				rasterizerStateDesc.DepthBias = 0;
 				rasterizerStateDesc.DepthBiasClamp = 0.f;

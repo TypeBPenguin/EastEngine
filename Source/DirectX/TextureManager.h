@@ -59,7 +59,7 @@ namespace EastEngine
 				{
 				}
 
-				RequestLoadTextureInfo(String::StringID strName, const std::string& strFilePath, const std::shared_ptr<ITexture>& pTexture_out)
+				RequestLoadTextureInfo(const String::StringID& strName, const std::string& strFilePath, const std::shared_ptr<ITexture>& pTexture_out)
 					: strName(strName)
 					, strFilePath(strFilePath)
 					, pTexture_out(pTexture_out)
@@ -98,7 +98,7 @@ namespace EastEngine
 
 			//void WriteTextureAtlas(const std::shared_ptr<ITexture>& pTexture) { m_conQueueTextureAtlas.push(pTexture); }
 
-			bool LoadFromFIle(const std::shared_ptr<ITexture>& pTexture, const String::StringID& strName, const char* strFilePath);
+			bool LoadFromFile(const std::shared_ptr<ITexture>& pTexture, const String::StringID& strName, const char* strFilePath);
 
 		//private:
 		//	bool initAtlasPool();
@@ -118,7 +118,8 @@ namespace EastEngine
 			std::unordered_map<String::StringID, std::shared_ptr<ITexture>> m_umapTexture;
 
 			bool m_isInit;
-			bool m_isLoading;
+
+			std::atomic<bool> m_isLoading;
 
 			std::mutex m_mutex;
 		};

@@ -439,7 +439,7 @@ namespace EastEngine
 
 				pDeviceContext->SetRenderTargets(&pRenderTarget, 1, nullptr);
 				pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-				pDeviceContext->SetRasterizerState(EmRasterizerState::eCCW);
+				pDeviceContext->SetRasterizerState(EmRasterizerState::eSolidCCW);
 				pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOff);
 
 				pDeviceContext->SetVertexBuffers(m_pEmitterVB, m_pEmitterVB->GetFormatSize(), 0);
@@ -655,7 +655,7 @@ namespace EastEngine
 
 						pDeviceContext->SetBlendState(pDevice->GetBlendState(EmBlendState::eOff));
 						pDeviceContext->SetDepthStencilState(pDevice->GetDepthStencilState(EmDepthStencilState::eOn));
-						pDeviceContext->SetRasterizerState(pDevice->GetRasterizerState(EmRasterizerState::eCCW));
+						pDeviceContext->SetRasterizerState(pDevice->GetRasterizerState(EmRasterizerState::eSolidCCW));
 					}
 
 					uint32_t nInstanceSize = iter.second.nCopyCount;

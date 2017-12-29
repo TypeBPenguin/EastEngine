@@ -91,7 +91,7 @@ namespace EastEngine
 
 			pDeviceContext->SetDefaultViewport();
 
-			pDeviceContext->SetRasterizerState(EmRasterizerState::eCW);
+			pDeviceContext->SetRasterizerState(EmRasterizerState::eSolidCW);
 			pDeviceContext->SetBlendState(EmBlendState::eOff);
 			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOn);
 

@@ -16,6 +16,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pScmdLine,
 	//_CrtSetBreakAlloc(1654);
 #endif
 
+	PRINT_LOG("Studio Start..");
+
 	if (EastEngine::MainSystem::GetInstance()->Init(StrID::EastEngine, 1600, 900, false, false) == true)
 	{
 		EastEngine::SSceneMgr::GetInstance()->AddScene(new SceneStudio);

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "CommonLib/plf_colony.h"
+
 #include "ModelInterface.h"
 
 namespace EastEngine
@@ -23,8 +25,8 @@ namespace EastEngine
 
 				virtual IBone* GetParent() const override { return m_pParentBone; }
 
-				virtual uint32_t GetChildBoneCount() const override { return m_vecChildBone.size(); }
-				virtual IBone* GetChildBone(uint32_t nIndex) const override { return m_vecChildBone[nIndex]; }
+				virtual uint32_t GetChildBoneCount() const override { return m_clnChildBones.size(); }
+				virtual IBone* GetChildBone(uint32_t nIndex) const override { return m_vecChildBonesIndexing[nIndex]; }
 				virtual IBone* GetChildBone(const String::StringID& strBoneName, bool isFindInAllDepth = false) const override;
 
 				virtual bool IsRootBone() const override { return false; }
@@ -37,7 +39,8 @@ namespace EastEngine
 				Math::Matrix m_matMotionOffset;
 
 				Bone* m_pParentBone;
-				std::vector<Bone*> m_vecChildBone;
+				plf::colony<Bone> m_clnChildBones;
+				std::vector<Bone*> m_vecChildBonesIndexing;
 			};
 
 		private:
@@ -91,7 +94,7 @@ namespace EastEngine
 			};
 			std::vector<SkinnedData> m_vecSkinnedList;
 
-			std::set<SkeletonInstance*> m_setSkeletonInstance;
+			plf::colony<SkeletonInstance> m_clnSkeletonInstance;
 		};
 
 		class SkeletonInstance : public ISkeletonInstance
@@ -111,8 +114,8 @@ namespace EastEngine
 
 				virtual IBone* GetParent() override { return m_pParentBone; }
 
-				virtual uint32_t GetChildBoneCount() override { return m_vecChildBone.size(); }
-				virtual IBone* GetChildBone(uint32_t nIndex) override { return m_vecChildBone[nIndex]; }
+				virtual uint32_t GetChildBoneCount() override { return m_vecChildBonesIndexing.size(); }
+				virtual IBone* GetChildBone(uint32_t nIndex) override { return m_vecChildBonesIndexing[nIndex]; }
 				virtual IBone* GetChildBone(const String::StringID& strBoneName, bool isFindInAllDepth = false) override;
 
 				virtual const Math::Matrix& GetTransform() override { return m_matTransform; }
@@ -127,7 +130,8 @@ namespace EastEngine
 				Math::Matrix m_matTransform;
 
 				BoneInstance* m_pParentBone;
-				std::vector<BoneInstance*> m_vecChildBone;
+				plf::colony<BoneInstance> m_clnChildBones;
+				std::vector<BoneInstance*> m_vecChildBonesIndexing;
 
 				Skeleton::IBone* m_pBoneHierarchy;
 			};

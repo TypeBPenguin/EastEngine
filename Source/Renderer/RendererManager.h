@@ -44,6 +44,7 @@ namespace EastEngine
 			void Render();
 			void Flush();
 
+		public:
 			void AddRender(const RenderSubsetVertex& renderSubset) { m_pRenderer[EmRenderer::eVertex]->AddRender(renderSubset); }
 			void AddRender(const RenderSubsetLine& renderSubset) { m_pRenderer[EmRenderer::eVertex]->AddRender(renderSubset); }
 			void AddRender(const RenderSubsetLineSegment& renderSubset) { m_pRenderer[EmRenderer::eVertex]->AddRender(renderSubset); }

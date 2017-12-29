@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "TextureManager.h"
 
+#include "CommonLib/Timer.h"
 #include "CommonLib/FileUtil.h"
 #include "CommonLib/ThreadPool.h"
 
@@ -189,14 +190,15 @@ namespace EastEngine
 
 		void TextureManager::Update(float fElapsedTime)
 		{
-			if (m_conQueueRequestLoadTexture.empty() == false && m_isLoading == false)
+			bool isLoading = m_isLoading.load();
+			if (m_conQueueRequestLoadTexture.empty() == false && isLoading == false)
 			{
 				RequestLoadTextureInfo loader;
 				if (m_conQueueRequestLoadTexture.try_pop(loader) == true)
 				{
 					if (loader.pTexture_out != nullptr)
 					{
-						m_isLoading = true;
+						m_isLoading.store(true);
 						loader.pTexture_out->SetLoadState(EmLoadState::eLoading);
 
 						Thread::CreateTask([this, loader]() { this->ProcessRequestTexture(loader); });
@@ -284,7 +286,7 @@ namespace EastEngine
 					continue;
 				}
 
-				if (pTexture.use_count() == false)
+				if (pTexture.use_count() > 0)
 				{
 					pTexture->SetAlive(true);
 					++iter;
@@ -294,7 +296,10 @@ namespace EastEngine
 				if (pTexture->IsAlive() == false || isForceFlush == true)
 				{
 					pTexture.reset();
+
+					std::lock_guard<std::mutex> lock(m_mutex);
 					iter = m_umapTexture.erase(iter);
+
 					continue;
 				}
 
@@ -307,11 +312,11 @@ namespace EastEngine
 		{
 			ResultLoadTextureInfo result;
 			result.pTexture_out = loader.pTexture_out;
-			result.isSuccess = LoadFromFIle(loader.pTexture_out, loader.strName, loader.strFilePath.c_str());
+			result.isSuccess = LoadFromFile(loader.pTexture_out, loader.strName, loader.strFilePath.c_str());
 
 			m_conQueueCompleteTexture.push(result);
 
-			m_isLoading = false;
+			m_isLoading.store(false);
 		}
 		
 		void TextureManager::LoadTextureSync(const std::shared_ptr<ITexture>& pTexture, const String::StringID& strName, const std::string& strFilePath)
@@ -328,7 +333,7 @@ namespace EastEngine
 
 			std::lock_guard<std::mutex> lock(m_mutex);
 
-			auto iter_result = m_umapTexture.insert(std::make_pair(strFileName, pTexture));
+			auto iter_result = m_umapTexture.emplace(strFileName, pTexture);
 			if (iter_result.second == true)
 				return true;
 
@@ -347,10 +352,12 @@ namespace EastEngine
 			return iter->second;
 		}
 		
-		bool TextureManager::LoadFromFIle(const std::shared_ptr<ITexture>& pTexture, const String::StringID& strName, const char* strFilePath)
+		bool TextureManager::LoadFromFile(const std::shared_ptr<ITexture>& pTexture, const String::StringID& strName, const char* strFilePath)
 		{
 			HRESULT hr;
 			DirectX::ScratchImage image;
+
+			double dStartTime = Timer::GetInstance()->GetGameTime();
 
 			std::string strFileExtension(File::GetFileExtension(strFilePath));
 
@@ -475,6 +482,10 @@ namespace EastEngine
 			//{
 			//	WriteTextureAtlas(pTexture);	
 			//}
+
+			double dEndTime = Timer::GetInstance()->GetGameTime();
+
+			PRINT_LOG("Loading Time[%s] : %lf", strFilePath, dEndTime - dStartTime);
 
 			Texture* pRealTexture = static_cast<Texture*>(pTexture.get());
 			return pRealTexture->Load(pTexture2D, pShaderResourceView);

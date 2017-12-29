@@ -15,6 +15,217 @@ namespace EastEngine
 			const float SQRT3 = 1.73205080756887729352f;
 			const float SQRT6 = 2.44948974278317809820f;
 
+			class DebugModel
+			{
+			public:
+				DebugModel()
+				{
+					m_pVertexBuffer.fill(nullptr);
+					m_pIndexBuffer.fill(nullptr);
+				}
+
+				~DebugModel()
+				{
+					Release();
+				}
+
+			public:
+				bool Initialize()
+				{
+					bool isSuccess = false;
+
+					isSuccess = CreateBox();
+					assert(isSuccess);
+
+					isSuccess = CreateSphere(8);
+					assert(isSuccess);
+
+					if (isSuccess == false)
+					{
+						Release();
+						return false;
+					}
+
+					return true;
+				}
+
+				void Release()
+				{
+					std::for_each(m_pVertexBuffer.begin(), m_pVertexBuffer.end(), DeleteSTLObject());
+					m_pVertexBuffer.fill(nullptr);
+
+					std::for_each(m_pIndexBuffer.begin(), m_pIndexBuffer.end(), DeleteSTLObject());
+					m_pIndexBuffer.fill(nullptr);
+				}
+
+				void Get(EmDebugModel emDebugModel, IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer)
+				{
+					*ppVertexBuffer = m_pVertexBuffer[emDebugModel];
+					*ppIndexBuffer = m_pIndexBuffer[emDebugModel];
+				}
+
+			private:
+				bool CreateBox()
+				{
+					// A box has six faces, each one pointing in a different direction.
+					const int FaceCount = 6;
+
+					static const Math::Vector3 faceNormals[FaceCount] =
+					{
+						{ 0, 0, 1 },
+						{ 0, 0, -1 },
+						{ 1, 0, 0 },
+						{ -1, 0, 0 },
+						{ 0, 1, 0 },
+						{ 0, -1, 0 },
+					};
+
+					std::vector<VertexPos> vecVertices;
+					std::vector<uint32_t> vecIndices;
+
+					// Create each face in turn.
+					for (int i = 0; i < FaceCount; ++i)
+					{
+						Math::Vector3 normal = faceNormals[i];
+
+						// Get two vectors perpendicular both to the face normal and to each other.
+						Math::Vector3 basis = (i >= 4) ? Math::Vector3(0.f, 0.f, 1.f) : Math::Vector3(0.f, 1.f, 0.f);
+
+						Math::Vector3 side1 = normal.Cross(basis);
+						Math::Vector3 side2 = normal.Cross(side1);
+
+						// Six indices (two triangles) per face.
+						uint32_t vbase = vecVertices.size();
+						vecIndices.emplace_back(vbase + 0);
+						vecIndices.emplace_back(vbase + 1);
+						vecIndices.emplace_back(vbase + 2);
+
+						vecIndices.emplace_back(vbase + 0);
+						vecIndices.emplace_back(vbase + 2);
+						vecIndices.emplace_back(vbase + 3);
+
+						// Four vertices per face.
+						vecVertices.emplace_back(normal - side1 - side2);
+						vecVertices.emplace_back(normal - side1 + side2);
+						vecVertices.emplace_back(normal + side1 + side2);
+						vecVertices.emplace_back(normal + side1 - side2);
+					}
+
+					for (auto it = vecIndices.begin(); it != vecIndices.end(); it += 3)
+					{
+						std::swap(*it, *(it + 2));
+					}
+
+					m_pVertexBuffer[EmDebugModel::eBox] = IVertexBuffer::Create(VertexPos::Format(), vecVertices.size(), &vecVertices.front(), D3D11_USAGE_IMMUTABLE);
+					m_pIndexBuffer[EmDebugModel::eBox] = IIndexBuffer::Create(vecIndices.size(), &vecIndices.front(), D3D11_USAGE_IMMUTABLE);
+
+					return true;
+				}
+
+				bool CreateSphere(uint32_t tessellation = 16)
+				{
+					std::vector<VertexPos> vecVertices;
+					std::vector<uint32_t> vecIndices;
+
+					if (tessellation < 3)
+						return false;
+
+					uint32_t verticalSegments = tessellation;
+					uint32_t horizontalSegments = tessellation * 2;
+
+					float radius = 0.5f;
+
+					// Create rings of vertices at progressively higher latitudes.
+					for (uint32_t i = 0; i <= verticalSegments; ++i)
+					{
+						float latitude = (i * Math::PI / verticalSegments) - Math::PIDIV2;
+						float dy, dxz;
+
+						Math::SinCos(&dy, &dxz, latitude);
+
+						// Create a single ring of vertices at this latitude.
+						for (uint32_t j = 0; j <= horizontalSegments; ++j)
+						{
+							float longitude = j * Math::PI2 / horizontalSegments;
+							float dx, dz;
+
+							Math::SinCos(&dx, &dz, longitude);
+
+							dx *= dxz;
+							dz *= dxz;
+
+							Math::Vector3 normal(dx, dy, dz);
+
+							vecVertices.emplace_back(normal * radius);
+						}
+					}
+
+					// Fill the index buffer with triangles joining each pair of latitude rings.
+					uint32_t stride = horizontalSegments + 1;
+
+					for (uint32_t i = 0; i < verticalSegments; ++i)
+					{
+						for (uint32_t j = 0; j <= horizontalSegments; ++j)
+						{
+							uint32_t nextI = i + 1;
+							uint32_t nextJ = (j + 1) % stride;
+
+							vecIndices.push_back(i * stride + j);
+							vecIndices.push_back(nextI * stride + j);
+							vecIndices.push_back(i * stride + nextJ);
+
+							vecIndices.push_back(i * stride + nextJ);
+							vecIndices.push_back(nextI * stride + j);
+							vecIndices.push_back(nextI * stride + nextJ);
+						}
+					}
+
+					for (auto it = vecIndices.begin(); it != vecIndices.end(); it += 3)
+					{
+						std::swap(*it, *(it + 2));
+					}
+
+					m_pVertexBuffer[EmDebugModel::eSphere] = IVertexBuffer::Create(VertexPos::Format(), vecVertices.size(), &vecVertices.front(), D3D11_USAGE_IMMUTABLE);
+					m_pIndexBuffer[EmDebugModel::eSphere] = IIndexBuffer::Create(vecIndices.size(), &vecIndices.front(), D3D11_USAGE_IMMUTABLE);
+
+					return true;
+				}
+
+			private:
+				std::array<IVertexBuffer*, EmDebugModel::eCount> m_pVertexBuffer;
+				std::array<IIndexBuffer*, EmDebugModel::eCount> m_pIndexBuffer;
+			};
+
+			DebugModel* s_pDebugModel = nullptr;
+
+			bool Initialize()
+			{
+				if (s_pDebugModel != nullptr)
+					return true;
+
+				s_pDebugModel = new DebugModel;
+				if (s_pDebugModel->Initialize() == false)
+				{
+					Release();
+					return false;
+				}
+
+				return true;
+			}
+
+			void Release()
+			{
+				if (s_pDebugModel == nullptr)
+					return;
+
+				SafeDelete(s_pDebugModel);
+			}
+
+			void GetDebugModel(EmDebugModel emDebugModel, IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer)
+			{
+				s_pDebugModel->Get(emDebugModel, ppVertexBuffer, ppIndexBuffer);
+			}
+
 			void CalculateTangentBinormal(const VertexPosTex& vertex1, const VertexPosTex& vertex2, const VertexPosTex& vertex3,
 				Math::Vector3& tangent, Math::Vector3& binormal)
 			{

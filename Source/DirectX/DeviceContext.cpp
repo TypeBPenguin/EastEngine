@@ -18,29 +18,6 @@ namespace EastEngine
 		void DeviceContext::ClearState()
 		{
 			m_pDeviceContext->ClearState();
-
-			/*m_pDeviceContext->CSSetShader(nullptr, nullptr, 0);
-			m_pDeviceContext->VSSetShader(nullptr, nullptr, 0);
-			m_pDeviceContext->HSSetShader(nullptr, nullptr, 0);
-			m_pDeviceContext->DSSetShader(nullptr, nullptr, 0);
-			m_pDeviceContext->GSSetShader(nullptr, nullptr, 0);
-			m_pDeviceContext->PSSetShader(nullptr, nullptr, 0);
-
-			for (int i = 0; i < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; ++i)
-			{
-				ID3D11Buffer* pBuffer = nullptr;
-				ID3D11SamplerState* pSampler = nullptr;
-				m_pDeviceContext->VSSetConstantBuffers(i, 1, &pBuffer);
-				m_pDeviceContext->PSSetConstantBuffers(i, 1, &pBuffer);
-				m_pDeviceContext->PSSetSamplers(i, 1, &pSampler);
-			}
-
-			SetRasterizerState(EmRasterizerState::eCCW);
-			SetBlendState(EmBlendState::eOff);
-			SetDepthStencilState(EmDepthStencilState::eOn);
-
-			SetVertexBuffers(nullptr, 0, 0, 0, 0);
-			SetIndexBuffer(nullptr, 0);*/
 		}
 
 		void DeviceContext::ClearRenderTargetView(IRenderTarget* pRenderTarget, const Math::Color& color)

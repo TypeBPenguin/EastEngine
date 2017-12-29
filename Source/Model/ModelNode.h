@@ -86,8 +86,8 @@ namespace EastEngine
 			std::vector<IMaterial*> m_vecMaterial;
 			std::vector<ModelSubset> m_vecModelSubsets[eMaxLod];
 
-			IVertexBuffer* m_pVertexBuffer[eMaxLod];
-			IIndexBuffer* m_pIndexBuffer[eMaxLod];
+			std::array<IVertexBuffer*, eMaxLod> m_pVertexBuffer;
+			std::array<IIndexBuffer*, eMaxLod> m_pIndexBuffer;
 
 			uint32_t m_nLod;
 			uint32_t m_nLodMax;

@@ -198,7 +198,7 @@ namespace EastEngine
 			}
 			else
 			{
-				bool isLoaded = TextureManager::GetInstance()->LoadFromFIle(pTexture, strName, strFilePath.c_str());
+				bool isLoaded = TextureManager::GetInstance()->LoadFromFile(pTexture, strName, strFilePath.c_str());
 
 				if (isLoaded == true)
 				{
@@ -405,7 +405,7 @@ namespace EastEngine
 			
 			pSamplerState = GetDevice()->GetSamplerState(EmSamplerState::eMinMagMipLinearClamp);
 			pBlendState = GetDevice()->GetBlendState(EmBlendState::eOff);
-			pRasterizerState = GetDevice()->GetRasterizerState(EmRasterizerState::eCCW);
+			pRasterizerState = GetDevice()->GetRasterizerState(EmRasterizerState::eSolidCCW);
 			pDepthStencilState = GetDevice()->GetDepthStencilState(EmDepthStencilState::eOn);
 		}
 

@@ -131,7 +131,7 @@ namespace EastEngine
 				return false;
 			}
 
-			IEffectTech* pEffectTech = m_pEffect->CreateTechnique(StrID::Deferred, EmVertexFormat::ePos);
+			IEffectTech* pEffectTech = m_pEffect->CreateTechnique(StrID::Deferred, EmVertexFormat::eUnknown);
 			if (pEffectTech == nullptr)
 			{
 				PRINT_LOG("Not Exist EffectTech !!, %s", StrID::Deferred.c_str());
@@ -153,21 +153,21 @@ namespace EastEngine
 				return false;
 			}
 
-			pEffectTech = m_pEffectShadow->CreateTechnique(StrID::Deferred_CascadedShadow, EmVertexFormat::ePos);
+			pEffectTech = m_pEffectShadow->CreateTechnique(StrID::Deferred_CascadedShadow, EmVertexFormat::eUnknown);
 			if (pEffectTech == nullptr)
 			{
 				PRINT_LOG("Not Exist EffectTech !!, %s", StrID::Deferred_CascadedShadow.c_str());
 				return false;
 			}
 
-			pEffectTech = m_pEffectShadow->CreateTechnique(StrID::Deferred_ShadowMap, EmVertexFormat::ePos);
+			pEffectTech = m_pEffectShadow->CreateTechnique(StrID::Deferred_ShadowMap, EmVertexFormat::eUnknown);
 			if (pEffectTech == nullptr)
 			{
 				PRINT_LOG("Not Exist EffectTech !!, %s", StrID::Deferred_ShadowMap.c_str());
 				return false;
 			}
 
-			pEffectTech = m_pEffectShadow->CreateTechnique(StrID::Deferred_ShadowCubeMap, EmVertexFormat::ePos);
+			pEffectTech = m_pEffectShadow->CreateTechnique(StrID::Deferred_ShadowCubeMap, EmVertexFormat::eUnknown);
 			if (pEffectTech == nullptr)
 			{
 				PRINT_LOG("Not Exist EffectTech !!, %s", StrID::Deferred_ShadowCubeMap.c_str());
@@ -214,12 +214,6 @@ namespace EastEngine
 				}*/
 			}
 
-			if (pDeviceContext->SetInputLayout(EmVertexFormat::ePos) == false)
-			{
-				pDevice->ReleaseRenderTargets(&pRenderTargetShadow, 1, false);
-				return;
-			}
-
 			IGBuffers* pGBuffers = GetGBuffers();
 			IImageBasedLight* pIBL = GetImageBasedLight();
 
@@ -227,7 +221,7 @@ namespace EastEngine
 
 			pDeviceContext->SetDefaultViewport();
 			pDeviceContext->SetBlendState(EmBlendState::eOff);
-			pDeviceContext->SetRasterizerState(EmRasterizerState::eCCW);
+			pDeviceContext->SetRasterizerState(EmRasterizerState::eSolidCCW);
 			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOff);
 
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
@@ -351,15 +345,12 @@ namespace EastEngine
 				return 0;
 			}
 
-			if (pDeviceContext->SetInputLayout(EmVertexFormat::ePos) == false)
-				return 0;
-
 			pDeviceContext->ClearState();
 
 			pDeviceContext->SetDefaultViewport();
 			pDeviceContext->SetBlendState(m_pBlendStateAdditive);
 			//pDeviceContext->SetBlendState(EmBlendState::eMultiplicative);
-			pDeviceContext->SetRasterizerState(EmRasterizerState::eCCW);
+			pDeviceContext->SetRasterizerState(EmRasterizerState::eSolidCCW);
 			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOff);
 
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);

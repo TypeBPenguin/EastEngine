@@ -282,7 +282,7 @@ namespace EastEngine
 
 			pDeviceContext->SetDefaultViewport();
 			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOn);
-			pDeviceContext->SetRasterizerState(EmRasterizerState::eNone);
+			pDeviceContext->SetRasterizerState(EmRasterizerState::eWireframeCullNone);
 			pDeviceContext->SetBlendState(EmBlendState::eLinear);
 
 			// Textures

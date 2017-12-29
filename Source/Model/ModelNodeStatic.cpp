@@ -1,6 +1,10 @@
 #include "stdafx.h"
 #include "ModelNodeStatic.h"
 
+#include "GeometryModel.h"
+
+#include "CommonLib/Config.h"
+
 #include "Renderer/RendererManager.h"
 
 namespace EastEngine
@@ -65,6 +69,21 @@ namespace EastEngine
 
 						RenderSubsetStatic subset(&modelSubset, m_pVertexBuffer[nLevel], m_pIndexBuffer[nLevel], pMaterial, m_matWorld, modelSubset.nStartIndex, modelSubset.nIndexCount, m_fDistanceFromCamera, m_boundingSphere);
 						RendererManager::GetInstance()->AddRender(subset);
+					}
+
+					//if (Config::IsEnable())
+					{
+						RenderSubsetVertex aabb;
+						aabb.matWorld = m_matWorld;
+						aabb.isWireframe = true;
+						GeometryModel::GetDebugModel(GeometryModel::EmDebugModel::eBox, &aabb.pVertexBuffer, &aabb.pIndexBuffer);
+						RendererManager::GetInstance()->AddRender(aabb);
+
+						RenderSubsetVertex sphere;
+						sphere.matWorld = m_matWorld;
+						sphere.isWireframe = true;
+						GeometryModel::GetDebugModel(GeometryModel::EmDebugModel::eSphere, &sphere.pVertexBuffer, &sphere.pIndexBuffer);
+						RendererManager::GetInstance()->AddRender(sphere);
 					}
 				}
 			}

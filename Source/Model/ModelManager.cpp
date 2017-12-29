@@ -49,7 +49,6 @@ namespace EastEngine
 			: m_isInit(false)
 			, m_isLoading(false)
 		{
-			m_clnModel.reserve(128);
 		}
 
 		ModelManager::~ModelManager()
@@ -63,6 +62,14 @@ namespace EastEngine
 				return true;
 
 			m_isInit = true;
+
+			m_clnModel.reserve(128);
+
+			if (GeometryModel::Initialize() == false)
+			{
+				Release();
+				return false;
+			}
 
 			SObjImporter::GetInstance();
 
@@ -81,6 +88,8 @@ namespace EastEngine
 			SObjImporter::DestroyInstance();
 
 			m_clnModel.clear();
+
+			GeometryModel::Release();
 
 			m_isInit = false;
 		}

@@ -19,6 +19,10 @@ namespace EastEngine
 		public:
 			virtual bool Init(const Math::Viewport& viewport) override;
 
+			virtual void Render(uint32_t nRenderGroupFlag) override;
+			virtual void Flush() override;
+
+		public:
 			virtual void AddRender(const RenderSubsetStatic& renderSubset) override
 			{
 				if (m_nStaticIndex >= m_vecStaticSubsets.size())
@@ -40,10 +44,6 @@ namespace EastEngine
 				m_vecSkinnedSubsets[m_nSkinnedIndex].Set(renderSubset);
 				++m_nSkinnedIndex;
 			}
-
-			virtual void Render(uint32_t nRenderGroupFlag) override;
-			virtual void Flush() override;
-
 		private:
 			void renderStaticModel(IDevice* pDevice, Camera* pCamera);
 			void renderSkinnedModel(IDevice* pDevice, Camera* pCamera);

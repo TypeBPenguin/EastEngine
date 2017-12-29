@@ -1,5 +1,7 @@
 #pragma once
 
+#include "CommonLib/plf_colony.h"
+
 #include "ModelInterface.h"
 
 namespace EastEngine
@@ -58,8 +60,8 @@ namespace EastEngine
 		public:
 			virtual const String::StringID& GetName() override { return m_strName; }
 
-			virtual uint32_t GetBoneCount() override { return m_vecBones.size(); }
-			virtual const IBone* GetBone(uint32_t nIndex) const override { return m_vecBones[nIndex]; }
+			virtual uint32_t GetBoneCount() override { return m_clnBones.size(); }
+			virtual const IBone* GetBone(uint32_t nIndex) const override { return m_vecBonesIndexing[nIndex]; }
 			virtual const IBone* GetBone(const String::StringID& strBoneName) const override;
 
 		public:
@@ -83,7 +85,8 @@ namespace EastEngine
 			String::StringID m_strName;
 			std::string m_strFilePath;
 
-			std::vector<Bone*> m_vecBones;
+			plf::colony<Bone> m_clnBones;
+			std::vector<Bone*> m_vecBonesIndexing;
 			std::unordered_map<String::StringID, Bone*> m_umapBones;
 
 			float m_fStartTime;

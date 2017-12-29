@@ -13,12 +13,6 @@ namespace EastEngine
 {
 	namespace Graphics
 	{
-
-		static boost::object_pool<Skeleton::Bone> s_poolBone;
-
-		static boost::object_pool<SkeletonInstance> s_poolSkeletonInstance;
-		static boost::object_pool<SkeletonInstance::BoneInstance> s_poolBoneInstance;
-
 		Skeleton::SkinnedData::SkinnedData(const String::StringID& strName)
 			: strName(strName)
 		{
@@ -29,15 +23,14 @@ namespace EastEngine
 			, m_matMotionOffset(matMotionOffset)
 			, m_pParentBone(pParentBone)
 		{
+			m_clnChildBones.reserve(32);
+			m_vecChildBonesIndexing.reserve(32);
 		}
 
 		Skeleton::Bone::~Bone()
 		{
-			std::for_each(m_vecChildBone.begin(), m_vecChildBone.end(), [](Bone* pBone)
-			{
-				s_poolBone.destroy(pBone);
-			});
-			m_vecChildBone.clear();
+			m_vecChildBonesIndexing.clear();
+			m_clnChildBones.clear();
 
 			m_pParentBone = nullptr;
 		}
@@ -46,20 +39,22 @@ namespace EastEngine
 		{
 			if (isFindInAllDepth == true)
 			{
-				for (auto& pChildBone : m_vecChildBone)
+				auto iter = std::find_if(m_clnChildBones.begin(), m_clnChildBones.end(), [&strBoneName](const Bone& bone)
 				{
-					if (pChildBone->GetName() == strBoneName)
-						return pChildBone;
-				}
+					return bone.GetName() == strBoneName;
+				});
+
+				if (iter != m_clnChildBones.end())
+					return &(*iter);
 			}
 			else
 			{
-				for (auto& pChildBone : m_vecChildBone)
+				for (auto& childBone : m_clnChildBones)
 				{
-					if (pChildBone->GetName() == strBoneName)
-						return pChildBone;
+					if (childBone.GetName() == strBoneName)
+						return &childBone;
 
-					ISkeleton::IBone* pBone = pChildBone->GetChildBone(strBoneName, isFindInAllDepth);
+					ISkeleton::IBone* pBone = childBone.GetChildBone(strBoneName, isFindInAllDepth);
 					if (pBone != nullptr)
 						return pBone;
 				}
@@ -70,9 +65,10 @@ namespace EastEngine
 
 		Skeleton::Bone* Skeleton::Bone::AddChildBone(const String::StringID& strBoneName, const Math::Matrix& matMotionOffset)
 		{
-			Bone* pNewBone = s_poolBone.construct(strBoneName, matMotionOffset, this);
+			auto iter_result = m_clnChildBones.emplace(strBoneName, matMotionOffset, this);
+			Bone* pNewBone = &(*iter_result);
 
-			m_vecChildBone.emplace_back(pNewBone);
+			m_vecChildBonesIndexing.emplace_back(pNewBone);
 
 			return pNewBone;
 		}
@@ -89,11 +85,7 @@ namespace EastEngine
 
 		Skeleton::~Skeleton()
 		{
-			for (auto pSkeletonInstance : m_setSkeletonInstance)
-			{
-				s_poolSkeletonInstance.destroy(pSkeletonInstance);
-			}
-			m_setSkeletonInstance.clear();
+			m_clnSkeletonInstance.clear();
 
 			SafeDelete(m_pRootBone);
 			m_vecBones.clear();
@@ -102,11 +94,9 @@ namespace EastEngine
 
 		ISkeletonInstance* Skeleton::CreateInstance()
 		{
-			auto iter_result = m_setSkeletonInstance.emplace(s_poolSkeletonInstance.construct(this));
-			if (iter_result.second == false)
-				return nullptr;
+			auto iter_result = m_clnSkeletonInstance.emplace(this);
 
-			return *iter_result.first;
+			return &(*iter_result);
 		}
 
 		void Skeleton::DestroyInstance(ISkeletonInstance** ppSkeletonInstance)
@@ -116,15 +106,16 @@ namespace EastEngine
 
 			SkeletonInstance* pInstance = static_cast<SkeletonInstance*>(*ppSkeletonInstance);
 
-			auto iter = m_setSkeletonInstance.find(pInstance);
-			if (iter == m_setSkeletonInstance.end())
+			auto iter = std::find_if(m_clnSkeletonInstance.begin(), m_clnSkeletonInstance.end(), [&pInstance](const SkeletonInstance& instance)
+			{
+				return &instance == pInstance;
+			});
+
+			if (iter == m_clnSkeletonInstance.end())
 				return;
 
-			s_poolSkeletonInstance.destroy(pInstance);
-
+			m_clnSkeletonInstance.erase(iter);
 			*ppSkeletonInstance = nullptr;
-
-			m_setSkeletonInstance.erase(iter);
 		}
 
 		ISkeleton::IBone* Skeleton::GetBone(const String::StringID& strBoneName) const
@@ -228,11 +219,8 @@ namespace EastEngine
 
 		SkeletonInstance::BoneInstance::~BoneInstance()
 		{
-			std::for_each(m_vecChildBone.begin(), m_vecChildBone.end(), [](BoneInstance* pBone)
-			{
-				s_poolBoneInstance.destroy(pBone);
-			});
-			m_vecChildBone.clear();
+			m_vecChildBonesIndexing.clear();
+			m_clnChildBones.clear();
 
 			m_pParentBone = nullptr;
 			m_pBoneHierarchy = nullptr;
@@ -252,7 +240,7 @@ namespace EastEngine
 				m_matTransform = matBoneTransforms;
 			}
 
-			std::for_each(m_vecChildBone.begin(), m_vecChildBone.end(), [&](BoneInstance* pChildBone)
+			std::for_each(m_vecChildBonesIndexing.begin(), m_vecChildBonesIndexing.end(), [&](BoneInstance* pChildBone)
 			{
 				pChildBone->Update(matBoneTransforms, isPlayingMotion);
 			});
@@ -260,12 +248,12 @@ namespace EastEngine
 
 		SkeletonInstance::IBone* SkeletonInstance::BoneInstance::GetChildBone(const String::StringID& strBoneName, bool isFindInAllDepth)
 		{
-			auto iter = std::find_if(m_vecChildBone.begin(), m_vecChildBone.end(), [&](BoneInstance* pBone)
+			auto iter = std::find_if(m_vecChildBonesIndexing.begin(), m_vecChildBonesIndexing.end(), [&](BoneInstance* pBone)
 			{
 				return pBone->GetName() == strBoneName;
 			});
 
-			if (iter != m_vecChildBone.end())
+			if (iter != m_vecChildBonesIndexing.end())
 				return *iter;
 
 			return nullptr;
@@ -273,9 +261,10 @@ namespace EastEngine
 
 		SkeletonInstance::BoneInstance* SkeletonInstance::BoneInstance::AddChildBone(Skeleton::IBone* pBoneHierarchy)
 		{
-			BoneInstance* pNewBone = s_poolBoneInstance.construct(pBoneHierarchy, this);
+			auto iter_result = m_clnChildBones.emplace(pBoneHierarchy, this);
+			BoneInstance* pNewBone = &(*iter_result);
 
-			m_vecChildBone.emplace_back(pNewBone);
+			m_vecChildBonesIndexing.emplace_back(pNewBone);
 
 			return pNewBone;
 		}
@@ -291,7 +280,7 @@ namespace EastEngine
 
 		void SkeletonInstance::RootBone::Update(const Math::Matrix& matParent, bool isPlayingMotion)
 		{
-			std::for_each(m_vecChildBone.begin(), m_vecChildBone.end(), [&](BoneInstance* pBoneInstance)
+			std::for_each(m_vecChildBonesIndexing.begin(), m_vecChildBonesIndexing.end(), [&](BoneInstance* pBoneInstance)
 			{
 				pBoneInstance->Update(matParent, isPlayingMotion);
 			});
@@ -324,7 +313,7 @@ namespace EastEngine
 		
 		void SkeletonInstance::Update(bool isPlayingMotion)
 		{
-			if (m_umapBone.empty() == false)
+			if (m_vecBones.empty() == false)
 			{
 				m_pRootBone->Update(Math::Matrix::Identity, isPlayingMotion);
 			}

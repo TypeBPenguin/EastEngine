@@ -8,11 +8,12 @@ namespace EastEngine
 		{
 			enum Type
 			{
-				eCCW = 0,
-				eCW,
-				eWireFrame,
-				eScissorRects,
-				eNone,
+				eSolidCCW = 0,
+				eSolidCW,
+				eSolidCullNone,
+				eWireframeCCW,
+				eWireframeCW,
+				eWireframeCullNone,
 
 				eCount,
 			};

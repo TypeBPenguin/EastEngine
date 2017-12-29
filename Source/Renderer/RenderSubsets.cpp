@@ -16,8 +16,12 @@ namespace EastEngine
 			vertexLineSegment[1] = VertexPosCol(f3EndPoint, colorEndPoint);
 		}
 
-		RenderSubsetVertex::RenderSubsetVertex(IVertexBuffer* pVertexBuffer, IIndexBuffer* pIndexBuffer, const Math::Matrix* pWorldMatrix, const Math::Color& color)
-			: pVertexBuffer(pVertexBuffer), pIndexBuffer(pIndexBuffer), pWorldMatrix(pWorldMatrix), color(color)
+		RenderSubsetVertex::RenderSubsetVertex()
+		{
+		}
+
+		RenderSubsetVertex::RenderSubsetVertex(IVertexBuffer* pVertexBuffer, IIndexBuffer* pIndexBuffer, const Math::Matrix& matWorld, const Math::Color& color, bool isWireframe)
+			: pVertexBuffer(pVertexBuffer), pIndexBuffer(pIndexBuffer), matWorld(matWorld), color(color), isWireframe(isWireframe)
 		{
 		}
 

@@ -97,11 +97,11 @@ namespace EastEngine
 
 			if (Config::IsEnable("Wireframe"_s) == true)
 			{
-				pDeviceContext->SetRasterizerState(EmRasterizerState::eWireFrame);
+				pDeviceContext->SetRasterizerState(EmRasterizerState::eWireframeCullNone);
 			}
 			else
 			{
-				pDeviceContext->SetRasterizerState(EmRasterizerState::eCCW);
+				pDeviceContext->SetRasterizerState(EmRasterizerState::eSolidCCW);
 			}
 
 			for (auto& renderSubset : m_vecTerrain)

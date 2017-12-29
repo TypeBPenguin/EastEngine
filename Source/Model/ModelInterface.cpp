@@ -24,7 +24,6 @@ namespace EastEngine
 		static boost::object_pool<Motion> s_poolMotion;
 		static boost::object_pool<MotionSystem> s_poolMotionSystem;
 
-		//static boost::object_pool<Model> s_poolModel;
 		static boost::object_pool<Skeleton> s_poolSkeleton;
 
 		LODReductionRate::LODReductionRate()

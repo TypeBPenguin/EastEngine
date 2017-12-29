@@ -91,7 +91,7 @@ namespace EastEngine
 			pDeviceContext->SetViewport(viewport);
 			pDeviceContext->SetRenderTargets(&pResult, 1);
 
-			pDeviceContext->SetRasterizerState(EmRasterizerState::eCCW);
+			pDeviceContext->SetRasterizerState(EmRasterizerState::eSolidCCW);
 			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOff);
 
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);

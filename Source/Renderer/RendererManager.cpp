@@ -57,7 +57,7 @@ namespace EastEngine
 			if (m_pEffect == nullptr)
 				return false;
 
-			m_pEffect->CreateTechnique(StrID::Copy, EmVertexFormat::ePos);
+			m_pEffect->CreateTechnique(StrID::Copy, EmVertexFormat::eUnknown);
 
 			m_pRenderer[EmRenderer::eParticle] = new ParticleRenderer;
 			if (m_pRenderer[EmRenderer::eParticle]->Init(viewport) == false)

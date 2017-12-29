@@ -29,12 +29,12 @@ namespace EastEngine
 			virtual void Flush() override;
 
 		private:
-			void ClearEffect(IDeviceContext* pd3dDeviceContext, IEffectTech* pTech);
+			void SetRenderState(IDevice* pDevice, IDeviceContext* pDeviceContext);
+			void ClearEffect(IDeviceContext* pDeviceContext, IEffectTech* pTech);
 
-		private:
-			void renderVertex(IDevice* pDevice);
-			void renderLine(IDevice* pDevice);
-			void renderLineSegment(IDevice* pDevice);
+			void RenderVertex(IDevice* pDevice, IDeviceContext* pDeviceContext);
+			void RenderLine(IDevice* pDevice, IDeviceContext* pDeviceContext);
+			void RenderLineSegment(IDevice* pDevice, IDeviceContext* pDeviceContext);
 
 		private:
 			IEffect* m_pEffect;

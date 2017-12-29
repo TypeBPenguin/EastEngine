@@ -57,7 +57,7 @@ namespace EastEngine
 			if (m_pEffect == nullptr)
 				return false;
 
-			m_pEffect->CreateTechnique(StrID::DOFDiscBlur, EmVertexFormat::ePos);
+			m_pEffect->CreateTechnique(StrID::DOFDiscBlur, EmVertexFormat::eUnknown);
 
 			m_pSamplerPoint = GetDevice()->GetSamplerState(EmSamplerState::eMinMagMipPointClamp);
 			m_pSamplerLinear = GetDevice()->GetSamplerState(EmSamplerState::eMinMagMipLinearClamp);
@@ -93,12 +93,9 @@ namespace EastEngine
 				return false;
 			
 			IDeviceContext* pDeviceContext = GetDeviceContext();
-			if (pDeviceContext->SetInputLayout(EmVertexFormat::ePos) == false)
-				return false;
-
 			pDeviceContext->ClearState();
 
-			pDeviceContext->SetRasterizerState(EmRasterizerState::eCCW);
+			pDeviceContext->SetRasterizerState(EmRasterizerState::eSolidCCW);
 			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOff);
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 

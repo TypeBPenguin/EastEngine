@@ -471,7 +471,7 @@ namespace EastEngine
 			g_pScene->Settings().bExportMeshes = true;
 			g_pScene->Settings().bExportScene = true;
 			g_pScene->Settings().bForceIndex32Format = true;
-			//g_pScene->Settings().bOptimizeVCache = true;
+			g_pScene->Settings().bOptimizeVCache = true;
 		}
 
 		void FBXImport::MotionSettings()
@@ -491,7 +491,7 @@ namespace EastEngine
 			g_pScene->Settings().bExportScene = false;
 			g_pScene->Settings().iMaxUVSetCount = 0;
 			g_pScene->Settings().bRenameAnimationsToFileName = true;
-			//g_pScene->Settings().bOptimizeAnimations = true;
+			g_pScene->Settings().bOptimizeAnimations = true;
 		}
 
 		bool FBXImport::ImportFile(const char* strFileName)

@@ -76,7 +76,7 @@ namespace EastEngine
 				vecIndices.push_back(nIdx);
 				++nIdx;
 
-				m_pLineSegmentVertexBuffer = IVertexBuffer::Create(VertexPosCol::Format(), vecVertices.size(), &vecVertices.front(), D3D11_USAGE_IMMUTABLE);
+				m_pLineSegmentVertexBuffer = IVertexBuffer::Create(VertexPosCol::Format(), vecVertices.size(), &vecVertices.front(), D3D11_USAGE_DYNAMIC);
 				m_pLineSegmentIndexBuffer = IIndexBuffer::Create(vecIndices.size(), &vecIndices.front(), D3D11_USAGE_IMMUTABLE);
 
 				if (m_pLineSegmentVertexBuffer == nullptr || m_pLineSegmentIndexBuffer == nullptr)
@@ -91,55 +91,13 @@ namespace EastEngine
 			D3D_PROFILING(VertexRenderer);
 
 			IDevice* pDevice = GetDevice();
-
-			renderVertex(pDevice);
-			renderLine(pDevice);
-			renderLineSegment(pDevice);
-		}
-
-		void VertexRenderer::Flush()
-		{
-			m_vecVertexSubset.clear();
-			m_vecLineSubset.clear();
-			m_vecLineSegmentSubset.clear();
-		}
-
-		void VertexRenderer::ClearEffect(IDeviceContext* pd3dDeviceContext, IEffectTech* pTech)
-		{
-			m_pEffect->ClearState(pd3dDeviceContext, pTech);
-		}
-
-		void VertexRenderer::renderVertex(IDevice* pDevice)
-		{
-			D3D_PROFILING(Vertex);
-
-			if (m_vecVertexSubset.empty())
-				return;
-
-			IEffectTech* pEffectTech = m_pEffect->GetTechnique(StrID::Vertex);
-			if (pEffectTech == nullptr)
-			{
-				PRINT_LOG("Not Exist EffectTech !!");
-				return;
-			}
-
-			Camera* pCamera = CameraManager::GetInstance()->GetMainCamera();
-			if (pCamera == nullptr)
-			{
-				PRINT_LOG("Not Exist Main Camera !!");
-				return;
-			}
-
 			IDeviceContext* pDeviceContext = pDevice->GetImmediateContext();
-			pDeviceContext->ClearState();
 
-			if (pDeviceContext->SetInputLayout(pEffectTech->GetLayoutFormat()) == false)
-				return;
+			pDeviceContext->ClearState();
 
 			pDeviceContext->SetDefaultViewport();
 
 			pDeviceContext->SetBlendState(EmBlendState::eOff);
-			pDeviceContext->SetRasterizerState(EmRasterizerState::eCCW);
 			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOn);
 
 			auto desc = pDevice->GetMainRenderTarget()->GetDesc2D();
@@ -151,18 +109,74 @@ namespace EastEngine
 
 			IRenderTarget* pRenderTarget = pDevice->GetRenderTarget(desc);
 			pDeviceContext->SetRenderTargets(&pRenderTarget, 1, pDevice->GetMainDepthStencil());
+
+			RenderVertex(pDevice, pDeviceContext);
+			RenderLine(pDevice, pDeviceContext);
+			RenderLineSegment(pDevice, pDeviceContext);
+
+			pDevice->ReleaseRenderTargets(&pRenderTarget);
+		}
+
+		void VertexRenderer::Flush()
+		{
+			m_vecVertexSubset.clear();
+			m_vecLineSubset.clear();
+			m_vecLineSegmentSubset.clear();
+		}
+
+		void VertexRenderer::SetRenderState(IDevice* pDevice, IDeviceContext* pDeviceContext)
+		{
+		}
+
+		void VertexRenderer::ClearEffect(IDeviceContext* pDeviceContext, IEffectTech* pTech)
+		{
+			m_pEffect->ClearState(pDeviceContext, pTech);
+		}
+
+		void VertexRenderer::RenderVertex(IDevice* pDevice, IDeviceContext* pDeviceContext)
+		{
+			D3D_PROFILING(Vertex);
+
+			if (m_vecVertexSubset.empty())
+				return;
+
+			Camera* pCamera = CameraManager::GetInstance()->GetMainCamera();
+			if (pCamera == nullptr)
+			{
+				PRINT_LOG("Not Exist Main Camera !!");
+				return;
+			}
+
+			IEffectTech* pEffectTech = m_pEffect->GetTechnique(StrID::Vertex);
+			if (pEffectTech == nullptr)
+			{
+				PRINT_LOG("Not Exist EffectTech !!");
+				return;
+			}
+
+			if (pDeviceContext->SetInputLayout(pEffectTech->GetLayoutFormat()) == false)
+				return;
+
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-			uint32_t nSize = m_vecVertexSubset.size();
-			for (uint32_t i = 0; i < nSize; ++i)
+			size_t nSize = m_vecVertexSubset.size();
+			for (size_t i= 0; i < nSize; ++i)
 			{
 				RenderSubsetVertex& renderSubset = m_vecVertexSubset[i];
+
+				if (renderSubset.isWireframe == true)
+				{
+					pDeviceContext->SetRasterizerState(EmRasterizerState::eWireframeCullNone);
+				}
+				else
+				{
+					pDeviceContext->SetRasterizerState(EmRasterizerState::eSolidCCW);
+				}
 
 				pDeviceContext->SetVertexBuffers(renderSubset.pVertexBuffer, renderSubset.pVertexBuffer->GetFormatSize(), 0);
 				pDeviceContext->SetIndexBuffer(renderSubset.pIndexBuffer, 0);
 
-				Math::Matrix matWorld = renderSubset.pWorldMatrix != nullptr ? *renderSubset.pWorldMatrix : Math::Matrix::Identity;
-				m_pEffect->SetMatrix(StrID::g_matWVP, matWorld * pCamera->GetViewMatrix() * pCamera->GetProjMatrix());
+				m_pEffect->SetMatrix(StrID::g_matWVP, renderSubset.matWorld * pCamera->GetViewMatrix() * pCamera->GetProjMatrix());
 
 				m_pEffect->SetVector(StrID::g_color, *reinterpret_cast<Math::Vector4*>(&renderSubset.color));
 
@@ -183,11 +197,9 @@ namespace EastEngine
 			}
 
 			ClearEffect(pDeviceContext, pEffectTech);
-
-			pDevice->ReleaseRenderTargets(&pRenderTarget);
 		}
 
-		void VertexRenderer::renderLine(IDevice* pDevice)
+		void VertexRenderer::RenderLine(IDevice* pDevice, IDeviceContext* pDeviceContext)
 		{
 			D3D_PROFILING(Line);
 
@@ -208,38 +220,13 @@ namespace EastEngine
 				return;
 			}
 
-			IDeviceContext* pDeviceContext = pDevice->GetImmediateContext();
 			if (pDeviceContext->SetInputLayout(pEffectTech->GetLayoutFormat()) == false)
 				return;
 
-			pDeviceContext->ClearState();
-
-			pDeviceContext->SetDefaultViewport();
-
-			pDeviceContext->SetBlendState(EmBlendState::eOff);
-			pDeviceContext->SetRasterizerState(EmRasterizerState::eCCW);
-			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOn);
-
-			IRenderTarget* pRenderTarget = nullptr;
-			if (Config::IsEnable("HDRFilter"_s) == true)
-			{
-				auto desc = pDevice->GetMainRenderTarget()->GetDesc2D();
-				desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				desc.Build();
-
-				pRenderTarget = pDevice->GetRenderTarget(desc);
-			}
-			else
-			{
-				auto& desc = pDevice->GetMainRenderTarget()->GetDesc2D();
-				pRenderTarget = pDevice->GetRenderTarget(desc);
-			}
-
-			pDeviceContext->SetRenderTargets(&pRenderTarget, 1, pDevice->GetMainDepthStencil());
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 
-			uint32_t nSize = m_vecLineSubset.size();
-			for (uint32_t i = 0; i < nSize; ++i)
+			size_t nSize = m_vecLineSubset.size();
+			for (size_t i= 0; i < nSize; ++i)
 			{
 				RenderSubsetLine& renderSubset = m_vecLineSubset[i];
 
@@ -258,11 +245,9 @@ namespace EastEngine
 			}
 
 			ClearEffect(pDeviceContext, pEffectTech);
-
-			pDevice->ReleaseRenderTargets(&pRenderTarget);
 		}
 
-		void VertexRenderer::renderLineSegment(IDevice* pDevice)
+		void VertexRenderer::RenderLineSegment(IDevice* pDevice, IDeviceContext* pDeviceContext)
 		{
 			D3D_PROFILING(LineSegment);
 
@@ -283,31 +268,10 @@ namespace EastEngine
 				return;
 			}
 
-			IDeviceContext* pDeviceContext = pDevice->GetImmediateContext();
-			if (pDeviceContext->SetInputLayout(pEffectTech->GetLayoutFormat()) == false)
-				return;
-
-			pDeviceContext->ClearState();
-
-			pDeviceContext->SetDefaultViewport();
-
-			pDeviceContext->SetBlendState(EmBlendState::eOff);
-			pDeviceContext->SetRasterizerState(EmRasterizerState::eCCW);
-			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOn);
-
-			auto desc = pDevice->GetMainRenderTarget()->GetDesc2D();
-			if (Config::IsEnable("HDRFilter"_s) == true)
-			{
-				desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				desc.Build();
-			}
-
-			IRenderTarget* pRenderTarget = pDevice->GetRenderTarget(desc);
-			pDeviceContext->SetRenderTargets(&pRenderTarget, 1, pDevice->GetMainDepthStencil());
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 
-			uint32_t nSize = m_vecLineSegmentSubset.size();
-			for (uint32_t i = 0; i < nSize; ++i)
+			size_t nSize = m_vecLineSegmentSubset.size();
+			for (size_t i= 0; i < nSize; ++i)
 			{
 				RenderSubsetLineSegment& renderSubset = m_vecLineSegmentSubset[i];
 
@@ -335,8 +299,6 @@ namespace EastEngine
 			}
 
 			ClearEffect(pDeviceContext, pEffectTech);
-
-			pDevice->ReleaseRenderTargets(&pRenderTarget);
 		}
 	}
 }
