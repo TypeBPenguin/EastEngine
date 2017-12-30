@@ -269,7 +269,7 @@ namespace EastEngine
 			virtual ModelSubset* GetModelSubset(uint32_t nIndex, uint32_t nLOD = 0) = 0;
 
 			virtual void BuildBoundingBox(const Collision::AABB& aabb) = 0;
-			virtual void UpdateBoundingBox() = 0;
+			virtual void UpdateBoundingBox(const Math::Matrix& matWorld) = 0;
 
 			virtual const Collision::AABB& GetAABB() = 0;
 			virtual const Collision::OBB& GetOBB() = 0;
@@ -338,6 +338,8 @@ namespace EastEngine
 			virtual void Update(float fElapsedTime, const Math::Matrix& matParent) = 0;
 
 			virtual bool Attachment(IModelInstance* pInstance, const String::StringID& strNodeName) = 0;
+			virtual IModelInstance* GetAttachment(size_t nIndex) const = 0;
+			virtual size_t GetAttachmentCount() const = 0;
 
 			virtual void PlayMotion(IMotion* pMotion, const MotionState* pMotionState = nullptr) = 0;
 			virtual void StopMotion(float fStopTime) = 0;
@@ -371,6 +373,7 @@ namespace EastEngine
 			public:
 				virtual const String::StringID& GetName() const = 0;
 				virtual const Math::Matrix& GetMotionOffsetMatrix() const = 0;
+				virtual const Math::Matrix& GetDefaultMotionData() const = 0;
 
 				virtual IBone* GetParent() const = 0;
 
@@ -413,20 +416,22 @@ namespace EastEngine
 				virtual ~IBone() = default;
 
 			public:
-				virtual void Update(const Math::Matrix& matParent, bool isPlayingMotion) = 0;
+				virtual void Update(const Math::Matrix& matParent) = 0;
 
 			public:
-				virtual const String::StringID& GetName() = 0;
+				virtual const String::StringID& GetName() const = 0;
 
-				virtual IBone* GetParent() = 0;
+				virtual IBone* GetParent() const = 0;
 
-				virtual uint32_t GetChildBoneCount() = 0;
-				virtual IBone* GetChildBone(uint32_t nIndex) = 0;
-				virtual IBone* GetChildBone(const String::StringID& strBoneName, bool isFindInAllDepth = false) = 0;
+				virtual uint32_t GetChildBoneCount() const = 0;
+				virtual IBone* GetChildBone(uint32_t nIndex) const = 0;
+				virtual IBone* GetChildBone(const String::StringID& strBoneName, bool isFindInAllDepth = false) const = 0;
 
-				virtual const Math::Matrix& GetTransform() = 0;
-				virtual void SetMotionMatrix(const Math::Matrix& matrix) = 0;
-				virtual void ClearMotionMatrix() = 0;
+				virtual const Math::Matrix& GetMotionTransform() const = 0;
+				virtual void SetMotionData(const Math::Matrix& matrix) = 0;
+				virtual void ClearMotionData() = 0;
+
+				virtual const Math::Matrix& GetTransform() const = 0;
 			};
 
 		protected:
@@ -434,7 +439,7 @@ namespace EastEngine
 			virtual ~ISkeletonInstance() = default;
 
 		public:
-			virtual void Update(bool isPlayingMotion) = 0;
+			virtual void Update() = 0;
 
 			virtual ISkeleton* GetSkeleton() = 0;
 

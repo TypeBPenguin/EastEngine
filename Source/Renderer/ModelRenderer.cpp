@@ -829,7 +829,7 @@ namespace EastEngine
 				{
 					D3D_PROFILING(Ready);
 
-					for (uint32_t i = 0; i < m_nStaticIndex; ++i)
+					for (size_t i = 0; i < m_nStaticIndex; ++i)
 					{
 						auto& subset = m_vecStaticSubsets[i];
 
@@ -966,7 +966,7 @@ namespace EastEngine
 			D3D_PROFILING(StaticModel_ShadowDepth);
 
 			std::map<std::pair<void*, IMaterial*>, RenderSubsetStaticBatch> mapStatic;
-			for (uint32_t i = 0; i < m_nStaticIndex; ++i)
+			for (size_t i = 0; i < m_nStaticIndex; ++i)
 			{
 				auto& subset = m_vecStaticSubsets[i];
 

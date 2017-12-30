@@ -12,8 +12,11 @@ namespace StrID
 
 	RegisterStringID(Color);
 	RegisterStringID(Vertex);
+	RegisterStringID(VertexInstancing);
 
+	RegisterStringID(g_Instances);
 	RegisterStringID(g_matWVP);
+	RegisterStringID(g_matViewProjection);
 	RegisterStringID(g_color);
 }
 
@@ -23,6 +26,8 @@ namespace EastEngine
 	{
 		VertexRenderer::VertexRenderer()
 			: m_pEffect(nullptr)
+			, m_pLineSegmentVertexBuffer(nullptr)
+			, m_pLineSegmentIndexBuffer(nullptr)
 		{
 		}
 
@@ -53,6 +58,7 @@ namespace EastEngine
 				return false;
 
 			m_pEffect->CreateTechnique(StrID::Vertex, EmVertexFormat::ePos);
+			m_pEffect->CreateTechnique(StrID::VertexInstancing, EmVertexFormat::ePos);
 			m_pEffect->CreateTechnique(StrID::Color, EmVertexFormat::ePosCol);
 
 			{
@@ -147,24 +153,16 @@ namespace EastEngine
 				return;
 			}
 
-			IEffectTech* pEffectTech = m_pEffect->GetTechnique(StrID::Vertex);
-			if (pEffectTech == nullptr)
-			{
-				PRINT_LOG("Not Exist EffectTech !!");
-				return;
-			}
-
-			if (pDeviceContext->SetInputLayout(pEffectTech->GetLayoutFormat()) == false)
-				return;
+			IEffectTech* pEffectTech = nullptr;
 
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-			size_t nSize = m_vecVertexSubset.size();
-			for (size_t i= 0; i < nSize; ++i)
+			/*size_t nSize = m_vecVertexSubset.size();
+			for (size_t i = 0; i < nSize; ++i)
 			{
-				RenderSubsetVertex& renderSubset = m_vecVertexSubset[i];
+				const RenderSubsetVertex* pRenderSubset = &m_vecVertexSubset[i];
 
-				if (renderSubset.isWireframe == true)
+				if (pRenderSubset->isWireframe == true)
 				{
 					pDeviceContext->SetRasterizerState(EmRasterizerState::eWireframeCullNone);
 				}
@@ -173,25 +171,150 @@ namespace EastEngine
 					pDeviceContext->SetRasterizerState(EmRasterizerState::eSolidCCW);
 				}
 
-				pDeviceContext->SetVertexBuffers(renderSubset.pVertexBuffer, renderSubset.pVertexBuffer->GetFormatSize(), 0);
-				pDeviceContext->SetIndexBuffer(renderSubset.pIndexBuffer, 0);
+				pDeviceContext->SetVertexBuffers(pRenderSubset->pVertexBuffer, pRenderSubset->pVertexBuffer->GetFormatSize(), 0);
+				pDeviceContext->SetIndexBuffer(pRenderSubset->pIndexBuffer, 0);
 
-				m_pEffect->SetMatrix(StrID::g_matWVP, renderSubset.matWorld * pCamera->GetViewMatrix() * pCamera->GetProjMatrix());
+				pEffectTech = m_pEffect->GetTechnique(StrID::Vertex);
+				if (pEffectTech == nullptr)
+				{
+					PRINT_LOG("Not Exist EffectTech !!");
+					continue;
+				}
 
-				m_pEffect->SetVector(StrID::g_color, *reinterpret_cast<Math::Vector4*>(&renderSubset.color));
+				if (pDeviceContext->SetInputLayout(pEffectTech->GetLayoutFormat()) == false)
+					continue;
+
+				m_pEffect->SetMatrix(StrID::g_matWVP, pRenderSubset->matWorld * pCamera->GetViewMatrix() * pCamera->GetProjMatrix());
+				m_pEffect->SetVector(StrID::g_color, *reinterpret_cast<const Math::Vector4*>(&pRenderSubset->color));
 
 				uint32_t nPassCount = pEffectTech->GetPassCount();
 				for (uint32_t p = 0; p < nPassCount; ++p)
 				{
 					pEffectTech->PassApply(p, pDeviceContext);
 
-					if (renderSubset.pIndexBuffer != nullptr)
+					if (pRenderSubset->pIndexBuffer != nullptr)
 					{
-						pDeviceContext->DrawIndexed(renderSubset.pIndexBuffer->GetIndexNum(), 0, 0);
+						pDeviceContext->DrawIndexed(pRenderSubset->pIndexBuffer->GetIndexNum(), 0, 0);
 					}
 					else
 					{
-						pDeviceContext->Draw(renderSubset.pVertexBuffer->GetVertexNum(), 0);
+						pDeviceContext->Draw(pRenderSubset->pVertexBuffer->GetVertexNum(), 0);
+					}
+				}
+			}*/
+
+			const Math::Matrix matViewProjection = pCamera->GetViewMatrix() * pCamera->GetProjMatrix();
+
+			std::map<std::tuple<IVertexBuffer*, IIndexBuffer*, bool>, RenderSubsetVertexBatch> mapVertex;
+			{
+				size_t nSize = m_vecVertexSubset.size();
+				for (size_t i = 0; i < nSize; ++i)
+				{
+					RenderSubsetVertex& renderSubset = m_vecVertexSubset[i];
+
+					std::tuple<IVertexBuffer*, IIndexBuffer*, bool> key = std::make_tuple(renderSubset.pVertexBuffer, renderSubset.pIndexBuffer, renderSubset.isWireframe);
+					auto iter = mapVertex.find(key);
+					if (iter != mapVertex.end())
+					{
+						iter->second.vecInstData.emplace_back(renderSubset.matWorld, renderSubset.color);
+					}
+					else
+					{
+						mapVertex.emplace(key, RenderSubsetVertexBatch(&renderSubset, renderSubset.matWorld, renderSubset.color));
+					}
+				}
+			}
+
+			{
+				for (auto& iter : mapVertex)
+				{
+					RenderSubsetVertexBatch& renderSubsetBatch = iter.second;
+					const RenderSubsetVertex* pRenderSubset = renderSubsetBatch.pSubset;
+
+					if (pRenderSubset->isWireframe == true)
+					{
+						pDeviceContext->SetRasterizerState(EmRasterizerState::eWireframeCullNone);
+					}
+					else
+					{
+						pDeviceContext->SetRasterizerState(EmRasterizerState::eSolidCCW);
+					}
+
+					pDeviceContext->SetVertexBuffers(pRenderSubset->pVertexBuffer, pRenderSubset->pVertexBuffer->GetFormatSize(), 0);
+					pDeviceContext->SetIndexBuffer(pRenderSubset->pIndexBuffer, 0);
+
+					if (renderSubsetBatch.vecInstData.size() == 1)
+					{
+						pEffectTech = m_pEffect->GetTechnique(StrID::Vertex);
+						if (pEffectTech == nullptr)
+						{
+							PRINT_LOG("Not Exist EffectTech !!");
+							continue;
+						}
+
+						if (pDeviceContext->SetInputLayout(pEffectTech->GetLayoutFormat()) == false)
+							continue;
+
+						m_pEffect->SetMatrix(StrID::g_matWVP, pRenderSubset->matWorld * pCamera->GetViewMatrix() * pCamera->GetProjMatrix());
+						m_pEffect->SetVector(StrID::g_color, *reinterpret_cast<const Math::Vector4*>(&pRenderSubset->color));
+
+						uint32_t nPassCount = pEffectTech->GetPassCount();
+						for (uint32_t p = 0; p < nPassCount; ++p)
+						{
+							pEffectTech->PassApply(p, pDeviceContext);
+
+							if (pRenderSubset->pIndexBuffer != nullptr)
+							{
+								pDeviceContext->DrawIndexed(pRenderSubset->pIndexBuffer->GetIndexNum(), 0, 0);
+							}
+							else
+							{
+								pDeviceContext->Draw(pRenderSubset->pVertexBuffer->GetVertexNum(), 0);
+							}
+						}
+					}
+					else
+					{
+						pEffectTech = m_pEffect->GetTechnique(StrID::VertexInstancing);
+						if (pEffectTech == nullptr)
+						{
+							PRINT_LOG("Not Exist EffectTech !!");
+							continue;
+						}
+
+						if (pDeviceContext->SetInputLayout(pEffectTech->GetLayoutFormat()) == false)
+							continue;
+
+						m_pEffect->SetMatrix(StrID::g_matViewProjection, matViewProjection);
+
+						const std::vector<RenderSubsetVertexBatch::InstVertexData>& vecInstData = renderSubsetBatch.vecInstData;
+						size_t nInstanceSize = vecInstData.size();
+						size_t nLoopCount = nInstanceSize / MAX_INSTANCE_NUM + 1;
+						for (size_t j = 0; j < nLoopCount; ++j)
+						{
+							int nMax = std::min(MAX_INSTANCE_NUM * (j + 1), nInstanceSize);
+							int nNum = nMax - j * MAX_INSTANCE_NUM;
+
+							if (nNum <= 0)
+								break;
+
+							m_pEffect->SetRawValue(StrID::g_Instances, &vecInstData[j * MAX_INSTANCE_NUM], 0, nNum * sizeof(RenderSubsetVertexBatch::InstVertexData));
+
+							uint32_t nPassCount = pEffectTech->GetPassCount();
+							for (uint32_t p = 0; p < nPassCount; ++p)
+							{
+								pEffectTech->PassApply(p, pDeviceContext);
+
+								if (pRenderSubset->pIndexBuffer != nullptr)
+								{
+									pDeviceContext->DrawIndexedInstanced(pRenderSubset->pIndexBuffer->GetIndexNum(), nNum, 0, 0, 0);
+								}
+								else
+								{
+									pDeviceContext->DrawInstanced(pRenderSubset->pVertexBuffer->GetVertexNum(), nNum, 0, 0);
+								}
+							}
+						}
 					}
 				}
 			}

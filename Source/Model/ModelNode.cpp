@@ -115,13 +115,13 @@ namespace EastEngine
 			Collision::OBB::CreateFromAABB(m_boundingOBB, m_originAABB);
 		}
 
-		void ModelNode::UpdateBoundingBox()
+		void ModelNode::UpdateBoundingBox(const Math::Matrix& matWorld)
 		{
 			BuildBoundingBox(m_originAABB);
 
-			m_boundingAABB.Transform(m_boundingAABB, m_matWorld);
-			m_boundingOBB.Transform(m_boundingOBB, m_matWorld);
-			m_boundingSphere.Transform(m_boundingSphere, m_matWorld);
+			m_boundingAABB.Transform(m_boundingAABB, matWorld);
+			m_boundingOBB.Transform(m_boundingOBB, matWorld);
+			m_boundingSphere.Transform(m_boundingSphere, matWorld);
 		}
 	}
 }

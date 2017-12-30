@@ -82,17 +82,14 @@ namespace EastEngine
 			if (IsLoadComplete() == false)
 				return;
 
-			bool isPlayingMotion = false;
 			if (m_pMotionSystem != nullptr)
 			{
 				m_pMotionSystem->Update(m_fUpdateTimeData, m_pSkeletonInstance);
-
-				isPlayingMotion = m_pMotionSystem->IsPlayingMotion();
 			}
 
 			if (m_pSkeletonInstance != nullptr)
 			{
-				m_pSkeletonInstance->Update(isPlayingMotion);
+				m_pSkeletonInstance->Update();
 			}
 
 			m_pModel->Update(m_fUpdateTimeData, m_matUpdateData, m_pSkeletonInstance, m_pMaterialInstance);
@@ -101,19 +98,29 @@ namespace EastEngine
 			{
 				if (node.pTargetMatrix != nullptr)
 				{
-					node.pInstance->Update(m_fUpdateTimeData, *node.pTargetMatrix);
+					node.pInstance->Update(m_fUpdateTimeData, *node.pTargetMatrix * m_matUpdateData);
 				}
 			}
 		}
 
 		bool ModelInstance::Attachment(IModelInstance* pInstance, const String::StringID& strNodeName)
 		{
-			if (IsLoadComplete() == true)
+			if (IsLoadComplete() == false)
 			{
 				m_listRequestAttachmentNode.emplace_back(pInstance, strNodeName);
 			}
 			else
 			{
+				if (m_pSkeletonInstance != nullptr)
+				{
+					ISkeletonInstance::IBone* pBone =  m_pSkeletonInstance->GetBone(strNodeName);
+					if (pBone != nullptr)
+					{
+						m_vecAttachmentNode.emplace_back(pInstance, &pBone->GetTransform());
+						return true;
+					}
+				}
+
 				IModelNode* pNode = m_pModel->GetNode(strNodeName);
 				if (pNode == nullptr)
 					return false;

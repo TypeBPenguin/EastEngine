@@ -4,7 +4,6 @@
 #include "GeometryModel.h"
 
 #include "CommonLib/Config.h"
-
 #include "Renderer/RendererManager.h"
 
 namespace EastEngine
@@ -29,14 +28,14 @@ namespace EastEngine
 				ISkeletonInstance::IBone* pBone = pSkeletonInstance->GetBone(m_strAttachedBoneName);
 				if (pBone != nullptr)
 				{
-					const Math::Matrix& matBoneTransform = pBone->GetTransform();
-					matTransformation = matBoneTransform * matParent;
+					const Math::Matrix& matMotionTransform = pBone->GetMotionTransform();
+					matTransformation = matMotionTransform * matParent;
 				}
 			}
 
 			m_matWorld = matTransformation;
 
-			UpdateBoundingBox();
+			UpdateBoundingBox(m_matWorld);
 
 			if (m_isVisible == true && isModelVisible == true)
 			{
@@ -70,22 +69,26 @@ namespace EastEngine
 						RenderSubsetStatic subset(&modelSubset, m_pVertexBuffer[nLevel], m_pIndexBuffer[nLevel], pMaterial, m_matWorld, modelSubset.nStartIndex, modelSubset.nIndexCount, m_fDistanceFromCamera, m_boundingSphere);
 						RendererManager::GetInstance()->AddRender(subset);
 					}
-
-					//if (Config::IsEnable())
-					{
-						RenderSubsetVertex aabb;
-						aabb.matWorld = m_matWorld;
-						aabb.isWireframe = true;
-						GeometryModel::GetDebugModel(GeometryModel::EmDebugModel::eBox, &aabb.pVertexBuffer, &aabb.pIndexBuffer);
-						RendererManager::GetInstance()->AddRender(aabb);
-
-						RenderSubsetVertex sphere;
-						sphere.matWorld = m_matWorld;
-						sphere.isWireframe = true;
-						GeometryModel::GetDebugModel(GeometryModel::EmDebugModel::eSphere, &sphere.pVertexBuffer, &sphere.pIndexBuffer);
-						RendererManager::GetInstance()->AddRender(sphere);
-					}
 				}
+			}
+
+			if (Config::IsEnable("VisibleCollisionMesh"_s))
+			{
+				Math::Matrix matAABB = Math::Matrix::Compose(m_boundingAABB.Extents, Math::Quaternion::Identity, m_boundingAABB.Center);
+
+				RenderSubsetVertex aabb;
+				aabb.matWorld = matAABB;
+				aabb.isWireframe = true;
+				GeometryModel::GetDebugModel(GeometryModel::EmDebugModel::eBox, &aabb.pVertexBuffer, &aabb.pIndexBuffer);
+				RendererManager::GetInstance()->AddRender(aabb);
+
+				Math::Matrix matSphere = Math::Matrix::Compose(Math::Vector3(m_boundingSphere.Radius), Math::Quaternion::Identity, m_boundingSphere.Center);
+
+				RenderSubsetVertex sphere;
+				sphere.matWorld = matSphere;
+				sphere.isWireframe = true;
+				GeometryModel::GetDebugModel(GeometryModel::EmDebugModel::eSphere, &sphere.pVertexBuffer, &sphere.pIndexBuffer);
+				RendererManager::GetInstance()->AddRender(sphere);
 			}
 
 			size_t nSize = m_vecChildModelNode.size();

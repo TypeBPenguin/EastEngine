@@ -37,7 +37,7 @@ namespace EastEngine
 					isSuccess = CreateBox();
 					assert(isSuccess);
 
-					isSuccess = CreateSphere(8);
+					isSuccess = CreateSphere(6);
 					assert(isSuccess);
 
 					if (isSuccess == false)
@@ -105,10 +105,10 @@ namespace EastEngine
 						vecIndices.emplace_back(vbase + 3);
 
 						// Four vertices per face.
-						vecVertices.emplace_back(normal - side1 - side2);
-						vecVertices.emplace_back(normal - side1 + side2);
-						vecVertices.emplace_back(normal + side1 + side2);
-						vecVertices.emplace_back(normal + side1 - side2);
+						vecVertices.emplace_back((normal - side1 - side2) * 0.5f);
+						vecVertices.emplace_back((normal - side1 + side2) * 0.5f);
+						vecVertices.emplace_back((normal + side1 + side2) * 0.5f);
+						vecVertices.emplace_back((normal + side1 - side2) * 0.5f);
 					}
 
 					for (auto it = vecIndices.begin(); it != vecIndices.end(); it += 3)

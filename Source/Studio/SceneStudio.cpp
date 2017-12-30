@@ -27,6 +27,7 @@
 #include "GameObject/ActorManager.h"
 #include "GameObject/ComponentModel.h"
 #include "GameObject/ComponentPhysics.h"
+#include "GameObject/ComponentTimer.h"
 
 #include "Contents/Sun.h"
 
@@ -176,7 +177,7 @@ void SceneStudio::Enter()
 		config.nBufferSize = 2048;
 		config.fCascadeDistance = 256.f;
 
-		Graphics::ILight* pLight = Graphics::ILight::CreateDirectionalLight("MainLight", f3LightDirection, Math::Color::White, 10000.f, 0.5f, 0.25f, &config);
+		Graphics::ILight* pLight = Graphics::ILight::CreateDirectionalLight("MainLight", f3LightDirection, Math::Color::White, 20000.f, 0.5f, 0.25f, &config);
 		pLight->SetEnableShadow(false);
 	}
 	//{
@@ -455,6 +456,18 @@ void SceneStudio::Enter()
 		motionState.fSpeed = 0.075f;
 		motionState.isLoop = false;
 		pModelInstance->PlayMotion(pMotion, &motionState);
+
+		{
+			Graphics::IModelInstance* pModelInstance_Attach = nullptr;
+			Graphics::MaterialInfo material;
+			material.colorAlbedo = Math::Color::Red;
+			Graphics::ModelLoader loader;
+			loader.InitBox("TestAttachment", &material, Math::Vector3(0.05f));
+
+			pModelInstance_Attach = Graphics::IModel::CreateInstance(loader, false);
+
+			pModelInstance->Attachment(pModelInstance_Attach, "Character1_LeftHand");
+		}
 	}
 
 	m_pMaterialNodeManager = new MaterialNodeManager;
@@ -580,11 +593,29 @@ void ShowConfig()
 	ImGui::SetNextWindowSize(ImVec2(400, 800), ImGuiSetCond_FirstUseEver);
 	ImGui::Begin("Config", &isShowMainMenu);
 
+	if (ImGui::CollapsingHeader("Debug") == true)
+	{
+		if (ImGui::TreeNode("CollisionMesh"))
+		{
+			ImGui::PushID("CollisionMesh");
+
+			bool isApplyVisibleCollisionMesh = Config::IsEnable("VisibleCollisionMesh"_s);
+			if (ImGui::Checkbox("Visible", &isApplyVisibleCollisionMesh) == true)
+			{
+				Config::SetEnable("VisibleCollisionMesh"_s, isApplyVisibleCollisionMesh);
+			}
+
+			ImGui::PopID();
+
+			ImGui::TreePop();
+		}
+	}
+
 	if (ImGui::CollapsingHeader("Graphics") == true)
 	{
 		if (ImGui::TreeNode("FXAA"))
 		{
-			ImGui::PushID("Shadow");
+			ImGui::PushID("FXAA");
 
 			bool isApplyFXAA = Config::IsEnable("FXAA"_s);
 			if (ImGui::Checkbox("Apply", &isApplyFXAA) == true)
@@ -731,14 +762,6 @@ void ShowConfig()
 			ImGui::PopID();
 
 			ImGui::TreePop();
-		}
-
-		switch ("asdb"_s)
-		{
-		case "assdb"_s:
-			break;
-		case "bbbd"_s:
-			break;
 		}
 
 		if (ImGui::TreeNode("Tessellation"))

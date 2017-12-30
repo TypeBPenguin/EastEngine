@@ -250,11 +250,14 @@ namespace EastEngine
 				IVertexBuffer* pVertexBuffer = nullptr;
 				IIndexBuffer* pIndexBuffer = nullptr;
 
-				auto SetModelNode = [&](const String::StringID& strNodeName)
+				Collision::AABB aabb;
+
+				auto SetModelNode = [&](const String::StringID& strNodeName, const Collision::AABB& aabb)
 				{
 					ModelNodeStatic* pModelStatic = new ModelNodeStatic;
 					pModelStatic->SetVertexBuffer(pVertexBuffer);
 					pModelStatic->SetIndexBuffer(pIndexBuffer);
+					pModelStatic->BuildBoundingBox(aabb);
 
 					IMaterial* pMaterial = IMaterial::Create(&loader.GetMaterial());
 					pModelStatic->AddMaterial(pMaterial);
@@ -276,6 +279,8 @@ namespace EastEngine
 					if (pLoadInfo != nullptr)
 					{
 						isSuccess = GeometryModel::CreateCube(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fSize, loader.IsRightHandCoords());
+
+						aabb.Extents = Math::Vector3(pLoadInfo->fSize);
 					}
 				}
 				break;
@@ -285,6 +290,8 @@ namespace EastEngine
 					if (pLoadInfo != nullptr)
 					{
 						isSuccess = GeometryModel::CreateBox(&pVertexBuffer, &pIndexBuffer, pLoadInfo->f3Size, loader.IsRightHandCoords(), loader.IsInvertNormal());
+
+						aabb.Extents = pLoadInfo->f3Size;
 					}
 				}
 				break;
@@ -294,6 +301,8 @@ namespace EastEngine
 					if (pLoadInfo != nullptr)
 					{
 						isSuccess = GeometryModel::CreateSphere(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fDiameter, pLoadInfo->nTessellation, loader.IsRightHandCoords(), loader.IsInvertNormal());
+
+						aabb.Extents = Math::Vector3(pLoadInfo->fDiameter * 0.5f);
 					}
 				}
 				break;
@@ -303,6 +312,8 @@ namespace EastEngine
 					if (pLoadInfo != nullptr)
 					{
 						isSuccess = GeometryModel::CreateGeoSphere(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fDiameter, pLoadInfo->nTessellation, loader.IsRightHandCoords());
+
+						aabb.Extents = Math::Vector3(pLoadInfo->fDiameter * 0.5f);
 					}
 				}
 				break;
@@ -312,6 +323,8 @@ namespace EastEngine
 					if (pLoadInfo != nullptr)
 					{
 						isSuccess = GeometryModel::CreateCylinder(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fHeight, pLoadInfo->fDiameter, pLoadInfo->nTessellation, loader.IsRightHandCoords());
+
+						aabb.Extents = Math::Vector3(pLoadInfo->fDiameter * 0.5f, pLoadInfo->fHeight, pLoadInfo->fDiameter * 0.5f);
 					}
 				}
 				break;
@@ -321,6 +334,8 @@ namespace EastEngine
 					if (pLoadInfo != nullptr)
 					{
 						isSuccess = GeometryModel::CreateCone(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fDiameter, pLoadInfo->fHeight, pLoadInfo->nTessellation, loader.IsRightHandCoords());
+
+						aabb.Extents = Math::Vector3(pLoadInfo->fDiameter * 0.5f, pLoadInfo->fHeight, pLoadInfo->fDiameter * 0.5f);
 					}
 				}
 				break;
@@ -330,6 +345,8 @@ namespace EastEngine
 					if (pLoadInfo != nullptr)
 					{
 						isSuccess = GeometryModel::CreateTorus(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fDiameter, pLoadInfo->fThickness, pLoadInfo->nTessellation, loader.IsRightHandCoords());
+
+						aabb.Extents = Math::Vector3(pLoadInfo->fDiameter * 0.5f, pLoadInfo->fThickness, pLoadInfo->fDiameter * 0.5f);
 					}
 				}
 				break;
@@ -339,6 +356,8 @@ namespace EastEngine
 					if (pLoadInfo != nullptr)
 					{
 						isSuccess = GeometryModel::CreateTetrahedron(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fSize, loader.IsRightHandCoords());
+
+						aabb.Extents = Math::Vector3(pLoadInfo->fSize);
 					}
 				}
 				break;
@@ -348,6 +367,8 @@ namespace EastEngine
 					if (pLoadInfo != nullptr)
 					{
 						isSuccess = GeometryModel::CreateOctahedron(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fSize, loader.IsRightHandCoords());
+
+						aabb.Extents = Math::Vector3(pLoadInfo->fSize);
 					}
 				}
 				break;
@@ -357,6 +378,8 @@ namespace EastEngine
 					if (pLoadInfo != nullptr)
 					{
 						isSuccess = GeometryModel::CreateDodecahedron(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fSize, loader.IsRightHandCoords());
+
+						aabb.Extents = Math::Vector3(pLoadInfo->fSize);
 					}
 				}
 				break;
@@ -366,6 +389,8 @@ namespace EastEngine
 					if (pLoadInfo != nullptr)
 					{
 						isSuccess = GeometryModel::CreateIcosahedron(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fSize, loader.IsRightHandCoords());
+
+						aabb.Extents = Math::Vector3(pLoadInfo->fSize);
 					}
 				}
 				break;
@@ -375,6 +400,8 @@ namespace EastEngine
 					if (pLoadInfo != nullptr)
 					{
 						isSuccess = GeometryModel::CreateTeapot(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fSize, pLoadInfo->nTessellation, loader.IsRightHandCoords());
+
+						aabb.Extents = Math::Vector3(pLoadInfo->fSize);
 					}
 				}
 				break;
@@ -384,6 +411,8 @@ namespace EastEngine
 					if (pLoadInfo != nullptr)
 					{
 						isSuccess = GeometryModel::CreateHexagon(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fRadius, loader.IsRightHandCoords());
+
+						aabb.Extents = Math::Vector3(pLoadInfo->fRadius);
 					}
 				}
 				break;
@@ -393,6 +422,8 @@ namespace EastEngine
 					if (pLoadInfo != nullptr)
 					{
 						isSuccess = GeometryModel::CreateCapsule(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fRadius, pLoadInfo->fHeight, pLoadInfo->nSubdivisionHeight, pLoadInfo->nSegments);
+
+						aabb.Extents = Math::Vector3(pLoadInfo->fRadius, pLoadInfo->fHeight, pLoadInfo->fRadius);
 					}
 				}
 				break;
@@ -402,6 +433,8 @@ namespace EastEngine
 					if (pLoadInfo != nullptr)
 					{
 						isSuccess = GeometryModel::CreateGrid(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fGridSizeX, pLoadInfo->fGridSizeZ, pLoadInfo->nBlockCountWidth, pLoadInfo->nBlockCountLength);
+
+						aabb.Extents = Math::Vector3(pLoadInfo->fGridSizeX * 0.5f, 0.1f, pLoadInfo->fGridSizeZ * 0.5f);
 					}
 				}
 				break;
@@ -411,6 +444,8 @@ namespace EastEngine
 					if (pLoadInfo != nullptr)
 					{
 						isSuccess = GeometryModel::CreatePlane(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fEachLengthX, pLoadInfo->fEachLengthZ, pLoadInfo->nTotalCountX, pLoadInfo->nTotalCountZ);
+
+						aabb.Extents = Math::Vector3(pLoadInfo->fEachLengthX * pLoadInfo->nTotalCountX * 0.5f, 0.1f, pLoadInfo->fEachLengthZ * pLoadInfo->nTotalCountZ * 0.5f);
 					}
 				}
 				break;
@@ -420,7 +455,7 @@ namespace EastEngine
 
 				if (isSuccess == true)
 				{
-					SetModelNode(GetGeometryTypeName(loader.GetLoadGeometryType()));
+					SetModelNode(GetGeometryTypeName(loader.GetLoadGeometryType()), aabb);
 				}
 				else
 				{
@@ -669,11 +704,11 @@ namespace EastEngine
 
 					if (strParentName == "NoParent")
 					{
-						pSkeleton->CreateBone(strName.c_str(), matMotionOffset);
+						pSkeleton->CreateBone(strName.c_str(), matMotionOffset, matTransformation);
 					}
 					else
 					{
-						pSkeleton->CreateBone(strParentName.c_str(), strName.c_str(), matMotionOffset);
+						pSkeleton->CreateBone(strParentName.c_str(), strName.c_str(), matMotionOffset, matTransformation);
 					}
 				}
 			}

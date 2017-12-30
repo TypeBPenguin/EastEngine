@@ -45,6 +45,30 @@ namespace EastEngine
 
 			IVertexBuffer* m_pLineSegmentVertexBuffer;
 			IIndexBuffer* m_pLineSegmentIndexBuffer;
+
+			struct RenderSubsetVertexBatch
+			{
+				struct InstVertexData
+				{
+					InstStaticData worldData;
+					Math::Color colorData;
+
+					InstVertexData(const Math::Matrix& matWorld, const Math::Color& color)
+						: worldData(matWorld)
+						, colorData(color)
+					{
+					}
+				};
+
+				const RenderSubsetVertex* pSubset = nullptr;
+				std::vector<InstVertexData> vecInstData;
+
+				RenderSubsetVertexBatch(const RenderSubsetVertex* pSubset, const Math::Matrix& matWorld, const Math::Color& color)
+					: pSubset(pSubset)
+				{
+					vecInstData.emplace_back(matWorld, color);
+				}
+			};
 		};
 	}
 }

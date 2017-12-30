@@ -50,7 +50,7 @@ namespace EastEngine
 			virtual ModelSubset* GetModelSubset(size_t nIndex, uint32_t nLod = 0) override { return &m_vecModelSubsets[nLod][nIndex]; }
 
 			virtual void BuildBoundingBox(const Collision::AABB& aabb) override;
-			virtual void UpdateBoundingBox() override;
+			virtual void UpdateBoundingBox(const Math::Matrix& matWorld) override;
 
 			virtual const Collision::AABB& GetAABB() override { return m_boundingAABB; }
 			virtual const Collision::OBB& GetOBB() override { return m_boundingOBB; }

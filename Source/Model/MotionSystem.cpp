@@ -194,7 +194,7 @@ namespace EastEngine
 									matMotion = Math::Matrix::Identity;
 								}
 
-								pBone->SetMotionMatrix(matMotion);
+								pBone->SetMotionData(matMotion);
 							}
 						}
 						else
@@ -211,11 +211,11 @@ namespace EastEngine
 								{
 									Math::Matrix matMotion;
 									Math::Matrix::Compose(pKeyframe1->f3Scale, pKeyframe1->quatRotation, pKeyframe1->f3Pos, matMotion);
-									pBone->SetMotionMatrix(matMotion);
+									pBone->SetMotionData(matMotion);
 								}
 								else
 								{
-									pBone->SetMotionMatrix(Math::Matrix::Identity);
+									pBone->SetMotionData(Math::Matrix::Identity);
 								}
 							}
 						}

@@ -1,8 +1,10 @@
 #include "stdafx.h"
 #include "ModelNodeSkinned.h"
 
-#include "DirectX/VTFMgr.h"
+#include "GeometryModel.h"
 
+#include "CommonLib/Config.h"
+#include "DirectX/VTFMgr.h"
 #include "Renderer/RendererManager.h"
 
 namespace EastEngine
@@ -27,16 +29,26 @@ namespace EastEngine
 				ISkeletonInstance::IBone* pBone = pSkeletonInstance->GetBone(m_strAttachedBoneName);
 				if (pBone != nullptr)
 				{
-					const Math::Matrix& matBoneTransform = pBone->GetTransform();
-					matTransformation = matBoneTransform * matParent;
+					const Math::Matrix& matMotionTransform = pBone->GetMotionTransform();
+					matTransformation = matMotionTransform * matParent;
 				}
 			}
 
 			m_matWorld = matTransformation;
 
-			UpdateBoundingBox();
+			Math::Matrix matBoneTransformation;
+			if (pSkeletonInstance != nullptr)
+			{
+				ISkeletonInstance::IBone* pBone = pSkeletonInstance->GetBone(m_vecBoneName[0]);
+				if (pBone != nullptr)
+				{
+					matBoneTransformation = pBone->GetMotionTransform();
+				}
+			}
 
-			//if (m_isVisible == true && isModelVisible == true)
+			UpdateBoundingBox(matBoneTransformation * m_matWorld);
+
+			if (m_isVisible == true && isModelVisible == true)
 			{
 				size_t nVTFID = eInvalidVTFID;
 				Math::Matrix* pMatrixBuffer = nullptr;
@@ -111,6 +123,25 @@ namespace EastEngine
 						}
 					}
 				}
+			}
+
+			if (Config::IsEnable("VisibleCollisionMesh"_s))
+			{
+				Math::Matrix matAABB = Math::Matrix::Compose(m_boundingAABB.Extents, Math::Quaternion::Identity, m_boundingAABB.Center);
+
+				RenderSubsetVertex aabb;
+				aabb.matWorld = matAABB;
+				aabb.isWireframe = true;
+				GeometryModel::GetDebugModel(GeometryModel::EmDebugModel::eBox, &aabb.pVertexBuffer, &aabb.pIndexBuffer);
+				RendererManager::GetInstance()->AddRender(aabb);
+
+				Math::Matrix matSphere = Math::Matrix::Compose(Math::Vector3(m_boundingSphere.Radius), Math::Quaternion::Identity, m_boundingSphere.Center);
+
+				RenderSubsetVertex sphere;
+				sphere.matWorld = matSphere;
+				sphere.isWireframe = true;
+				GeometryModel::GetDebugModel(GeometryModel::EmDebugModel::eSphere, &sphere.pVertexBuffer, &sphere.pIndexBuffer);
+				RendererManager::GetInstance()->AddRender(sphere);
 			}
 
 			size_t nSize = m_vecChildModelNode.size();

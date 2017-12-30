@@ -11,7 +11,6 @@ namespace EastEngine
 			Math::Vector4 f4World1;
 			Math::Vector4 f4World2;
 			Math::Vector4 f4World3;
-			Math::Vector4 f4Padding;
 
 			InstStaticData();
 			InstStaticData(const Math::Matrix& f4x4World);

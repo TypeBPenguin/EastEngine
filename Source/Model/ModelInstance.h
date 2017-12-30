@@ -65,6 +65,8 @@ namespace EastEngine
 			}
 
 			virtual bool Attachment(IModelInstance* pInstance, const String::StringID& strNodeName) override;
+			virtual IModelInstance* GetAttachment(size_t nIndex) const override { return m_vecAttachmentNode[nIndex].pInstance; }
+			virtual size_t GetAttachmentCount() const override { return m_vecAttachmentNode.size(); }
 
 			virtual void PlayMotion(IMotion* pMotion, const MotionState* pMotionState = nullptr) override;
 			virtual void StopMotion(float fStopTime) override;

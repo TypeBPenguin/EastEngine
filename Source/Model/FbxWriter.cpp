@@ -199,26 +199,17 @@ namespace EastEngine
 			if (pMesh == nullptr)
 				return nullptr;
 
-			Collision::Sphere sphere;
 			Collision::AABB aabb;
 
 			switch (pMesh->GetSmallestBound())
 			{
 			case ExportMeshBase::SphereBound:
-			{
-				sphere.Center = *reinterpret_cast<Math::Vector3*>(&pMesh->GetBoundingSphere().Center);
-				sphere.Radius = pMesh->GetBoundingSphere().Radius;
-
 				aabb.Center = *reinterpret_cast<Math::Vector3*>(&pMesh->GetBoundingSphere().Center);
 				aabb.Extents = Math::Vector3(pMesh->GetBoundingSphere().Radius);
 				break;
-			}
 			case ExportMeshBase::AxisAlignedBoxBound:
 				aabb.Center = *reinterpret_cast<Math::Vector3*>(&pMesh->GetBoundingAABB().Center);
 				aabb.Extents = *reinterpret_cast<Math::Vector3*>(&pMesh->GetBoundingAABB().Extents);
-
-				Collision::Sphere::CreateFromAABB(sphere, aabb);
-
 				break;
 			}
 
@@ -373,8 +364,8 @@ namespace EastEngine
 			}
 			else if (pFrame->GetName() != nullptr)
 			{
-				const Math::Matrix& matTransformation = *reinterpret_cast<const Math::Matrix*>(&pFrame->Transform().Matrix());
-				if (matTransformation != Math::Matrix::Identity)
+				const Math::Matrix& matTransform = *reinterpret_cast<const Math::Matrix*>(&pFrame->Transform().Matrix());
+				if (matTransform != Math::Matrix::Identity)
 				{
 					strBoneName = pFrame->GetName().SafeString();
 				}
@@ -401,16 +392,17 @@ namespace EastEngine
 				if (iter != umapMotionOffset.end())
 				{
 					const Math::Matrix& matMotionOffset = iter->second;
+					const Math::Matrix& matDefaultMotionData = *reinterpret_cast<const Math::Matrix*>(&pFrame->Transform().Matrix());
 
 					strBoneName = pFrame->GetName().SafeString();
 
 					if (strParentName.empty() == true)
 					{
-						pSkeleton->CreateBone(strBoneName, matMotionOffset);
+						pSkeleton->CreateBone(strBoneName, matMotionOffset, matDefaultMotionData);
 					}
 					else
 					{
-						pSkeleton->CreateBone(strParentName, strBoneName, matMotionOffset);
+						pSkeleton->CreateBone(strParentName, strBoneName, matMotionOffset, matDefaultMotionData);
 					}
 				}
 			}

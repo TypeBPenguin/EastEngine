@@ -278,9 +278,9 @@ namespace EastEngine
 						/*Math::Vector3 f3Scale;
 						Math::Vector3 f3Pos;
 						Math::Quaternion quat;
-						pParentBone->GetTransform().Invert().Decompose(f3Scale, quat, f3Pos);
+						pParentBone->GetMotionTransform().Invert().Decompose(f3Scale, quat, f3Pos);
 						matInvParent = Math::Matrix::Compose(Math::Vector3::One, quat, f3Pos);*/
-						matInvParent = pParentBone->GetTransform().Invert();
+						matInvParent = pParentBone->GetMotionTransform().Invert();
 					}
 					
 					Math::Matrix matWorldMatrix = bodyPart.pRigidBody->GetWorldMatrix();
@@ -377,7 +377,7 @@ namespace EastEngine
 				Graphics::ISkeletonInstance::IBone* pPrarentBone = bodyPart.pBone->GetParent();
 				if (pPrarentBone != nullptr)
 				{
-					matParentTransform = pPrarentBone->GetTransform();
+					matParentTransform = pPrarentBone->GetMotionTransform();
 				}
 
 				Math::Vector3 f3Scale;
@@ -403,7 +403,7 @@ namespace EastEngine
 				matTransform.Decompose(f3Scale, quat, f3Pos);
 
 				//quat *= (bodyPart.pBone->GetRotation() * bodyPart.quatBoneOrigin.Inverse());
-				//f3Pos = (bodyPart.pBone->GetTransform;
+				//f3Pos = (bodyPart.pBone->GetMotionTransform;
 			}
 		}
 	}

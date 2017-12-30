@@ -97,7 +97,7 @@ namespace EastEngine
 
 			struct RenderSubsetSkinnedBatch
 			{
-				const SkinnedSubset* pSubset;
+				const SkinnedSubset* pSubset = nullptr;
 				std::vector<InstSkinnedData> vecInstData;
 
 				RenderSubsetSkinnedBatch(const SkinnedSubset* pSubset, const Math::Matrix& matWorld, uint32_t nVTFID)
