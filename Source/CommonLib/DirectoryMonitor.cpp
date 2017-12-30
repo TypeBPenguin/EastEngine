@@ -44,8 +44,8 @@ namespace EastEngine
 			if (m_isInit == false)
 				return;
 
-			uint32_t nSize = m_vecHDirMonitor.size();
-			for (uint32_t i = 0; i < nSize; ++i)
+			size_t nSize = m_vecHDirMonitor.size();
+			for (size_t i = 0; i < nSize; ++i)
 			{
 				HDirMonitor* pMonitor = m_vecHDirMonitor[i];
 				if (pMonitor == nullptr)
@@ -67,8 +67,8 @@ namespace EastEngine
 
 		void DirectoryMonitor::Update()
 		{
-			uint32_t nSize = m_vecHDirMonitor.size();
-			for (uint32_t i = 0; i < nSize; ++i)
+			size_t nSize = m_vecHDirMonitor.size();
+			for (size_t i = 0; i < nSize; ++i)
 			{
 				HDirMonitor* pMonitor = m_vecHDirMonitor[i];
 				if (pMonitor == nullptr)

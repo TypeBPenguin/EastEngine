@@ -173,8 +173,14 @@ namespace EastEngine
 			virtual ~IMotionPlayer() = default;
 
 		public:
-			virtual void SetCaching(const String::StringID& strBoneName, int nIndex) = 0;
-			virtual int GetCaching(const String::StringID& strBoneName) = 0;
+			enum : size_t
+			{
+				eInvalidCachingIndex = std::numeric_limits<size_t>::max()
+			};
+
+		public:
+			virtual void SetCaching(const String::StringID& strBoneName, size_t nIndex) = 0;
+			virtual size_t GetCaching(const String::StringID& strBoneName) = 0;
 
 			virtual void SetKeyframe(const String::StringID& strBoneName, const IMotion::Keyframe& keyframe) = 0;
 			virtual const IMotion::Keyframe* GetKeyframe(const String::StringID& strBoneName) = 0;

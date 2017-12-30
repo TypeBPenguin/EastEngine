@@ -321,8 +321,8 @@ namespace EastEngine
 			m_pEffect->SetFloat(StrID::g_Shineness, m_fShineness);
 
 			// We assume the center of the ocean surface at (0, 0, 0).
-			uint32_t nSize = m_vecRenderNode.size();
-			for (uint32_t i = 0; i < nSize; ++i)
+			size_t nSize = m_vecRenderNode.size();
+			for (size_t i = 0; i < nSize; ++i)
 			{
 				QuadNode& node = m_vecRenderNode[i];
 
@@ -433,7 +433,7 @@ namespace EastEngine
 			quad_node.lod = std::min(lod, m_nLods - 2);
 
 			// Insert into the list
-			int position = (int)m_vecRenderNode.size();
+			int position = static_cast<int>(m_vecRenderNode.size());
 			m_vecRenderNode.push_back(quad_node);
 
 			return position;
@@ -565,7 +565,7 @@ namespace EastEngine
 		{
 			int index = -1;
 
-			int size = (int)node_list.size();
+			size_t size = node_list.size();
 			QuadNode node = node_list[size - 1];
 
 			while (isLeaf(node) == false)

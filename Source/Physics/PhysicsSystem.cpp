@@ -85,7 +85,8 @@ namespace EastEngine
 			ProcessAddWaitObject();
 
 			btCollisionObjectArray& objectArray = m_pDynamicsWorld->getCollisionObjectArray();
-			for (int i = 0; i < objectArray.size(); ++i)
+			int nSize = objectArray.size();
+			for (int i = 0; i < nSize; ++i)
 			{
 				btCollisionObject* pObject = objectArray[i];
 				RigidBody* pRigidBody = reinterpret_cast<RigidBody*>(pObject->getUserPointer());

@@ -245,13 +245,13 @@ namespace EastEngine
 
 			if (nVertexCount > 0)
 			{
-				uint32_t nCopySize = sizeof(VertexPosTexCol) * 4;
-				uint32_t nIndex = 0;
+				size_t nCopySize = sizeof(VertexPosTexCol) * 4;
+				size_t nIndex = 0;
 				while (m_queueParticle.empty() == false)
 				{
 					auto& particle = m_queueParticle.top();
 
-					uint32_t nDestSize = sizeof(VertexPosTexCol) * (m_vecVertices.size() - nIndex);
+					size_t nDestSize = sizeof(VertexPosTexCol) * (m_vecVertices.size() - nIndex);
 					Memory::Copy(&m_vecVertices[nIndex], nDestSize, &particle.vertex, nCopySize);
 
 					nIndex += 4;

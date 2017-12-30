@@ -5,7 +5,7 @@ namespace EastEngine
 {
 	namespace Graphics
 	{
-		uint32_t GetVertexFormatSize(EmVertexFormat::Type emFormat)
+		size_t GetVertexFormatSize(EmVertexFormat::Type emFormat)
 		{
 			switch (emFormat)
 			{

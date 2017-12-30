@@ -211,8 +211,8 @@ namespace EastEngine
 							// Multiple selection
 
 							// Clear all selection
-							uint32_t nSize = m_vecItems.size();
-							for (uint32_t i = 0; i < nSize; ++i)
+							size_t nSize = m_vecItems.size();
+							for (size_t i = 0; i < nSize; ++i)
 							{
 								UIListBoxItem& item = m_vecItems[i];
 								item.bSelected = false;
@@ -342,8 +342,8 @@ namespace EastEngine
 									item.bSelected = false;
 								}
 
-								uint32_t nSize = m_vecItems.size();
-								for (uint32_t i = nEnd + 1; i < nSize; ++i)
+								size_t nSize = m_vecItems.size();
+								for (size_t i = nEnd + 1; i < nSize; ++i)
 								{
 									UIListBoxItem& item = m_vecItems[i];
 									item.bSelected = false;
@@ -388,8 +388,8 @@ namespace EastEngine
 								// Simple click.  Clear all items and select the clicked
 								// item.
 
-								uint32_t nSize = m_vecItems.size();
-								for (uint32_t i = 0; i < nSize; ++i)
+								size_t nSize = m_vecItems.size();
+								for (size_t i = 0; i < nSize; ++i)
 								{
 									UIListBoxItem& item = m_vecItems[i];
 									item.bSelected = false;
@@ -587,8 +587,8 @@ namespace EastEngine
 			if (m_emStyle == EmListBox::eMultiSelection)
 			{
 				// Multiple selection enabled. Search for the next item with the selected flag.
-				uint32_t nSize = m_vecItems.size();
-				for (uint32_t i = nPreviousSelected + 1; i < nSize; ++i)
+				size_t nSize = m_vecItems.size();
+				for (size_t i = nPreviousSelected + 1; i < nSize; ++i)
 				{
 					UIListBoxItem& item = m_vecItems[i];
 

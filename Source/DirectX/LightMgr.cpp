@@ -142,7 +142,7 @@ namespace EastEngine
 			}
 		}
 
-		void LightManager::Remove(EmLight::Type emType, uint32_t nIndex)
+		void LightManager::Remove(EmLight::Type emType, size_t nIndex)
 		{
 			switch (emType)
 			{
@@ -238,7 +238,7 @@ namespace EastEngine
 			}
 		}
 
-		uint32_t LightManager::GetLightCount(EmLight::Type emType)
+		size_t LightManager::GetLightCount(EmLight::Type emType)
 		{
 			switch (emType)
 			{

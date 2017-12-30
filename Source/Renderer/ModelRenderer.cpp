@@ -486,9 +486,9 @@ namespace EastEngine
 				if (isSkinnedModel == true)
 				{
 					const std::vector<InstSkinnedData>& vecInstData = *static_cast<const std::vector<InstSkinnedData>*>(pInstanceData);
-					uint32_t nInstanceSize = vecInstData.size();
-					uint32_t nLoopCount = nInstanceSize / MAX_INSTANCE_NUM + 1;
-					for (uint32_t j = 0; j < nLoopCount; ++j)
+					size_t nInstanceSize = vecInstData.size();
+					size_t nLoopCount = nInstanceSize / MAX_INSTANCE_NUM + 1;
+					for (size_t j = 0; j < nLoopCount; ++j)
 					{
 						int nMax = std::min(MAX_INSTANCE_NUM * (j + 1), nInstanceSize);
 						int nNum = nMax - j * MAX_INSTANCE_NUM;
@@ -517,9 +517,9 @@ namespace EastEngine
 				else
 				{
 					const std::vector<InstStaticData>& vecInstData = *static_cast<const std::vector<InstStaticData>*>(pInstanceData);
-					uint32_t nInstanceSize = vecInstData.size();
-					uint32_t nLoopCount = nInstanceSize / MAX_INSTANCE_NUM + 1;
-					for (uint32_t j = 0; j < nLoopCount; ++j)
+					size_t nInstanceSize = vecInstData.size();
+					size_t nLoopCount = nInstanceSize / MAX_INSTANCE_NUM + 1;
+					for (size_t j = 0; j < nLoopCount; ++j)
 					{
 						int nMax = std::min(MAX_INSTANCE_NUM * (j + 1), nInstanceSize);
 						int nNum = nMax - j * MAX_INSTANCE_NUM;

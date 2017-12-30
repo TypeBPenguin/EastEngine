@@ -38,19 +38,19 @@ namespace EastEngine
 
 			//if (m_isVisible == true && isModelVisible == true)
 			{
-				uint32_t nVTFID = eInvalidVTFID;
+				size_t nVTFID = eInvalidVTFID;
 				Math::Matrix* pMatrixBuffer = nullptr;
 				if (pSkeletonInstance != nullptr && VTFManager::GetInstance()->Allocate(m_vecBoneName.size(), &pMatrixBuffer, nVTFID) == true)
 				{
 					if (nVTFID != eInvalidVTFID)
 					{
 						const Math::Matrix** ppSkinnedMatrix = nullptr;
-						uint32_t nElementCount = 0;
+						size_t nElementCount = 0;
 						pSkeletonInstance->GetSkinnedData(GetName(), &ppSkinnedMatrix, nElementCount);
 
 						if (ppSkinnedMatrix != nullptr && nElementCount > 0)
 						{
-							for (uint32_t i = 0; i < nElementCount; ++i)
+							for (size_t i = 0; i < nElementCount; ++i)
 							{
 								Math::Matrix& matBone = pMatrixBuffer[i];
 
@@ -113,8 +113,8 @@ namespace EastEngine
 				}
 			}
 
-			uint32_t nSize = m_vecChildModelNode.size();
-			for (uint32_t i = 0; i < nSize; ++i)
+			size_t nSize = m_vecChildModelNode.size();
+			for (size_t i = 0; i < nSize; ++i)
 			{
 				m_vecChildModelNode[i]->Update(fElapsedTime, m_matWorld, pSkeletonInstance, pMaterialInstance, isModelVisible);
 			}

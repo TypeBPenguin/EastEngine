@@ -25,8 +25,8 @@ namespace EastEngine
 			ITerrain* CreateTerrain(const String::StringID& strTerrainName, const TerrainProperty& terrainProperty);
 			ITerrain* CreateTerrainAsync(const String::StringID& strTerrainName, const TerrainProperty& terrainProperty);
 
-			ITerrain* GetTerrain(uint32_t nIndex);
-			uint32_t GetTerrainCount() const { return m_colonyTerrain.size(); }
+			ITerrain* GetTerrain(size_t nIndex);
+			size_t GetTerrainCount() const { return m_colonyTerrain.size(); }
 
 		private:
 			plf::colony<Terrain> m_colonyTerrain;

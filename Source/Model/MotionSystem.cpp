@@ -15,12 +15,12 @@ namespace EastEngine
 			m_umapKeyframeIndexCaching.clear();
 		}
 
-		void MotionPlayer::SetCaching(const String::StringID& strBoneName, int nIndex)
+		void MotionPlayer::SetCaching(const String::StringID& strBoneName, size_t nIndex)
 		{
 			auto iter = m_umapKeyframeIndexCaching.find(strBoneName);
 			if (iter != m_umapKeyframeIndexCaching.end())
 			{
-				iter->second = nIndex;
+				iter->second.value = nIndex;
 			}
 			else
 			{
@@ -28,13 +28,13 @@ namespace EastEngine
 			}
 		}
 
-		int MotionPlayer::GetCaching(const String::StringID& strBoneName)
+		size_t MotionPlayer::GetCaching(const String::StringID& strBoneName)
 		{
 			auto iter = m_umapKeyframeIndexCaching.find(strBoneName);
 			if (iter != m_umapKeyframeIndexCaching.end())
-				return iter->second;
+				return iter->second.value;
 
-			return -1;
+			return eInvalidCachingIndex;
 		}
 
 		void MotionPlayer::SetKeyframe(const String::StringID& strBoneName, const IMotion::Keyframe& keyframe)
@@ -67,13 +67,8 @@ namespace EastEngine
 
 			for (auto& iter : m_umapKeyframeIndexCaching)
 			{
-				iter.second = -1;
+				iter.second.value = eInvalidCachingIndex;
 			}
-		}
-
-		MotionPlayer::KeyframeCaching::KeyframeCaching(int nIndex)
-			: index(nIndex)
-		{
 		}
 
 		MotionSystem::MotionSystem(IModel* pModel)
@@ -101,10 +96,7 @@ namespace EastEngine
 				return;
 
 			if (m_pMotion == nullptr)
-			{
-				//pSkeletonInst->SetIdentity();
 				return;
-			}
 
 			bool isPlay = true;
 			if (m_isStop == true)

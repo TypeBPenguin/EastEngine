@@ -53,7 +53,7 @@ namespace EastEngine
 			return &(*iter);
 		}
 
-		IActor* ActorManager::GetActor(uint32_t nIndex)
+		IActor* ActorManager::GetActor(size_t nIndex)
 		{
 			auto iter = m_colonyActor.begin();
 			m_colonyActor.advance(iter, nIndex);

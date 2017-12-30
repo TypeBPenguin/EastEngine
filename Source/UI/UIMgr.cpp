@@ -229,8 +229,8 @@ namespace EastEngine
 
 		UIFontNode* UIManager::GetFontNode(String::StringID strNodeName)
 		{
-			uint32_t nSize = m_vecFontNode.size();
-			for (uint32_t i = 0; i < nSize; ++i)
+			size_t nSize = m_vecFontNode.size();
+			for (size_t i = 0; i < nSize; ++i)
 			{
 				if (m_vecFontNode[i]->strClassName == strNodeName)
 					return m_vecFontNode[i];
@@ -241,8 +241,8 @@ namespace EastEngine
 
 		UITextureNode* UIManager::GetTextureNode(String::StringID strNodeName)
 		{
-			uint32_t nSize = m_vecTextureNode.size();
-			for (uint32_t i = 0; i < nSize; ++i)
+			size_t nSize = m_vecTextureNode.size();
+			for (size_t i = 0; i < nSize; ++i)
 			{
 				if (m_vecTextureNode[i]->strClassName == strNodeName)
 					return m_vecTextureNode[i];
@@ -354,8 +354,8 @@ namespace EastEngine
 					Math::Rect rect;
 					long* pRect = &rect.left;
 
-					uint32_t nSize = vecSlice.size();
-					for (uint32_t i = 0; i < nSize; ++i)
+					size_t nSize = vecSlice.size();
+					for (size_t i = 0; i < nSize; ++i)
 					{
 						if (vecSlice[i].empty())
 							continue;

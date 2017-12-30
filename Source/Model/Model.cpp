@@ -84,14 +84,14 @@ namespace EastEngine
 			m_clnModelInstance.clear();
 			ISkeleton::Destroy(&m_pSkeleton);
 
-			std::for_each(m_vecHierarchyModelNode.begin(), m_vecHierarchyModelNode.end(), [](IModelNode* pNode)
+			std::for_each(m_vecHierarchyModelNodes.begin(), m_vecHierarchyModelNodes.end(), [](IModelNode* pNode)
 			{
 				ModelNode* pModelNode = static_cast<ModelNode*>(pNode);
 				SafeDelete(pModelNode);
 			});
-			m_vecHierarchyModelNode.clear();
+			m_vecHierarchyModelNodes.clear();
 
-			m_vecAllModelNode.clear();
+			m_vecModelNodes.clear();
 		}
 
 		IModelInstance* Model::CreateInstance()
@@ -152,7 +152,7 @@ namespace EastEngine
 
 			Math::Matrix matModel = m_matLocal * matParent;
 
-			std::for_each(m_vecHierarchyModelNode.begin(), m_vecHierarchyModelNode.end(), [&](IModelNode* pModelNode)
+			std::for_each(m_vecHierarchyModelNodes.begin(), m_vecHierarchyModelNodes.end(), [&](IModelNode* pModelNode)
 			{
 				pModelNode->Update(fElapsedTime, matModel, pSkeletonInstance, pMaterialInstance, m_isVisible);
 			});
@@ -160,12 +160,12 @@ namespace EastEngine
 
 		IModelNode* Model::GetNode(const String::StringID& strName)
 		{
-			auto iter = std::find_if(m_vecAllModelNode.begin(), m_vecAllModelNode.end(), [&](IModelNode* pNode)
+			auto iter = std::find_if(m_vecModelNodes.begin(), m_vecModelNodes.end(), [&](IModelNode* pNode)
 			{
 				return pNode->GetName() == strName;
 			});
 
-			if (iter != m_vecAllModelNode.end())
+			if (iter != m_vecModelNodes.end())
 				return *iter;
 
 			return nullptr;
@@ -195,12 +195,12 @@ namespace EastEngine
 			{
 				ModelNode* pModelNode = static_cast<ModelNode*>(pNode);
 				pModelNode->SetNodeName(strNodeName);
-				m_vecHierarchyModelNode.emplace_back(pNode);
+				m_vecHierarchyModelNodes.emplace_back(pNode);
 			}
 
 			if (GetNode(strNodeName) == nullptr)
 			{
-				m_vecAllModelNode.emplace_back(pNode);
+				m_vecModelNodes.emplace_back(pNode);
 			}
 		}
 
@@ -678,7 +678,7 @@ namespace EastEngine
 				}
 			}
 
-			for (const auto& pNode : m_vecAllModelNode)
+			for (const auto& pNode : m_vecModelNodes)
 			{
 				uint32_t nMaterialCount = pNode->GetMaterialCount();
 				for (uint32_t i = 0; i < nMaterialCount; ++i)

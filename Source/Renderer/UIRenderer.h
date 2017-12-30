@@ -32,7 +32,7 @@ namespace EastEngine
 		private:
 			ISpriteBatch* m_pSpriteBatch;
 
-			uint32_t m_nPanelIndex;
+			size_t m_nPanelIndex;
 
 			std::vector<RenderGroupUI>		m_vecRenderGroup;
 			std::vector<RenderSubsetUIPanel>	m_vecRPUIPanel;

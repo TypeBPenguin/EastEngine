@@ -8,9 +8,9 @@ namespace EastEngine
 	{
 		class ITexture;
 
-		enum : uint32_t
+		enum : size_t
 		{
-			eInvalidVTFID = UINT32_MAX
+			eInvalidVTFID = std::numeric_limits<size_t>::max()
 		};
 
 		class VTFManager : public Singleton<VTFManager>
@@ -33,7 +33,7 @@ namespace EastEngine
 
 			bool Process();
 
-			bool Allocate(uint32_t nMatrixCount, Math::Matrix** ppDest_Out, uint32_t& nVTFID_Out)
+			bool Allocate(size_t nMatrixCount, Math::Matrix** ppDest_Out, size_t& nVTFID_Out)
 			{
 				if (m_nAllocatedCount + nMatrixCount >= eBufferCapacity)
 				{
@@ -57,7 +57,7 @@ namespace EastEngine
 		private:
 			bool m_bInit;
 
-			uint32_t m_nAllocatedCount;
+			size_t m_nAllocatedCount;
 
 			std::shared_ptr<ITexture> m_pVTF;
 			Math::Matrix* m_pVTFBuffer;

@@ -121,8 +121,8 @@ namespace EastEngine
 			Physics::RigidBody* pRightUpperArm = CreateBodyPart("Bip001-R-UpperArm001", StrID::RightUpperArm, fScale * 0.05f, fScale * 0.33f, Math::Vector3(fScale * 0.35f, fScale * 1.45f, 0.f), Math::Quaternion::CreateFromYawPitchRoll(0.f, 0.f, -Math::PIDIV2));
 			Physics::RigidBody* pRightLowerArm = CreateBodyPart("Bip001-R-Forearm001", StrID::RightLowerArm, fScale * 0.04f, fScale * 0.25f, Math::Vector3(fScale * 0.7f, fScale * 1.45f, 0.f), Math::Quaternion::CreateFromYawPitchRoll(0.f, 0.f, -Math::PIDIV2));
 
-			uint32_t nBodyCount = m_vecBodyParts.size();
-			for (uint32_t i = 0; i < nBodyCount; ++i)
+			size_t nBodyCount = m_vecBodyParts.size();
+			for (size_t i = 0; i < nBodyCount; ++i)
 			{
 				m_vecBodyParts[i].pRigidBody->SetDeactivationTime(0.8f);
 				m_vecBodyParts[i].pRigidBody->SetSleepingThresholds(1.6f, 2.5f);

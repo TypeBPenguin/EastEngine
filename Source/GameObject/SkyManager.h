@@ -24,8 +24,8 @@ namespace EastEngine
 		public:
 			ISkybox* CreateSkybox(const String::StringID& strName, const SkyboxProperty& proprety);
 
-			ISkybox* GetSkybox(uint32_t nIndex);
-			uint32_t GetSkyboxCount() const { return m_colonySkybox.size(); }
+			ISkybox* GetSkybox(size_t nIndex);
+			size_t GetSkyboxCount() const { return m_colonySkybox.size(); }
 
 		private:
 			plf::colony<Skybox> m_colonySkybox;

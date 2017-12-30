@@ -39,8 +39,8 @@ namespace EastEngine
 				virtual void Update(IMotionPlayer* pPlayInfo) override;
 
 			public:
-				virtual uint32_t GetKeyframeCount() const override { return m_vecKeyframes.size(); }
-				virtual const Keyframe* GetKeyframe(uint32_t nIndex) const override { return &m_vecKeyframes[nIndex]; }
+				virtual size_t GetKeyframeCount() const override { return m_vecKeyframes.size(); }
+				virtual const Keyframe* GetKeyframe(size_t nIndex) const override { return &m_vecKeyframes[nIndex]; }
 
 			private:
 				String::StringID m_strBoneName;
@@ -60,8 +60,8 @@ namespace EastEngine
 		public:
 			virtual const String::StringID& GetName() override { return m_strName; }
 
-			virtual uint32_t GetBoneCount() override { return m_clnBones.size(); }
-			virtual const IBone* GetBone(uint32_t nIndex) const override { return m_vecBonesIndexing[nIndex]; }
+			virtual size_t GetBoneCount() override { return m_clnBones.size(); }
+			virtual const IBone* GetBone(size_t nIndex) const override { return m_vecBonesIndexing[nIndex]; }
 			virtual const IBone* GetBone(const String::StringID& strBoneName) const override;
 
 		public:

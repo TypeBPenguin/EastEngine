@@ -66,7 +66,7 @@ namespace EastEngine
 				}
 			};
 			std::vector<StaticSubset> m_vecStaticSubsets;
-			uint32_t m_nStaticIndex;
+			size_t m_nStaticIndex;
 
 			struct SkinnedSubset
 			{
@@ -81,7 +81,7 @@ namespace EastEngine
 				}
 			};
 			std::vector<SkinnedSubset> m_vecSkinnedSubsets;
-			uint32_t m_nSkinnedIndex;
+			size_t m_nSkinnedIndex;
 
 			struct RenderSubsetStaticBatch
 			{

@@ -274,13 +274,13 @@ namespace EastEngine
 			IVertexBuffer() = default;
 			virtual ~IVertexBuffer() = default;
 
-			static IVertexBuffer* Create(EmVertexFormat::Type emVertexFormat, uint32_t nElementCount, const void* pData, D3D11_USAGE emUsage = D3D11_USAGE_DEFAULT, uint32_t nOptions = IVertexBuffer::Option::eNone);
+			static IVertexBuffer* Create(EmVertexFormat::Type emVertexFormat, size_t nElementCount, const void* pData, D3D11_USAGE emUsage = D3D11_USAGE_DEFAULT, uint32_t nOptions = IVertexBuffer::Option::eNone);
 
 		public:
 			virtual ID3D11Buffer* const* GetBufferPtr() const = 0;
-			virtual uint32_t GetFormatSize() const = 0;
+			virtual size_t GetFormatSize() const = 0;
 			virtual EmVertexFormat::Type GetFormat() const = 0;
-			virtual uint32_t GetVertexNum() const = 0;
+			virtual size_t GetVertexNum() const = 0;
 
 			virtual bool Map(uint32_t Subresource, D3D11_MAP emMap, void** ppData) const = 0;
 			virtual void Unmap(uint32_t Subresource) const = 0;
@@ -302,13 +302,13 @@ namespace EastEngine
 			IIndexBuffer() = default;
 			virtual ~IIndexBuffer() = default;
 
-			static IIndexBuffer* Create(uint32_t nElementCount, const uint32_t* pData, D3D11_USAGE emUsage = D3D11_USAGE_DEFAULT, uint32_t nOptions = IIndexBuffer::Option::eNone);
+			static IIndexBuffer* Create(size_t nElementCount, const uint32_t* pData, D3D11_USAGE emUsage = D3D11_USAGE_DEFAULT, uint32_t nOptions = IIndexBuffer::Option::eNone);
 
 		public:
 			virtual ID3D11Buffer* GetBuffer() const = 0;
-			virtual uint32_t GetFormatSize() const = 0;
-			virtual uint32_t GetFormat() const = 0;
-			virtual uint32_t GetIndexNum() const = 0;
+			virtual size_t GetFormatSize() const = 0;
+			virtual size_t GetFormat() const = 0;
+			virtual size_t GetIndexNum() const = 0;
 
 			virtual bool Map(uint32_t Subresource, D3D11_MAP emMap, void** ppData) const = 0;
 			virtual void Unmap(uint32_t Subresource) const = 0;
@@ -322,7 +322,7 @@ namespace EastEngine
 			IStructuredBuffer() = default;
 			virtual ~IStructuredBuffer() = default;
 
-			static IStructuredBuffer* Create(void* pData, uint32_t nNumElements, uint32_t nByteStride, bool isEnableCpuWrite = false, bool isEnableGpuWrite = true);
+			static IStructuredBuffer* Create(void* pData, size_t nNumElements, size_t nByteStride, bool isEnableCpuWrite = false, bool isEnableGpuWrite = true);
 
 		public:
 			virtual void UpdateSubresource(uint32_t DstSubresource, const void* pSrcData, uint32_t SrcRowPitch) = 0;

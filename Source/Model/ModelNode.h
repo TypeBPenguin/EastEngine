@@ -40,14 +40,14 @@ namespace EastEngine
 			virtual const Math::Matrix& GetWorldMatrix() override { return m_matWorld; }
 			virtual const Math::Matrix* GetWorldMatrixPtr() override { return &m_matWorld; }
 
-			virtual uint32_t GetChildNodeCount() const override { return m_vecChildModelNode.size(); }
-			virtual IModelNode* GetChildNode(uint32_t nIndex) override { return m_vecChildModelNode[nIndex]; }
+			virtual size_t GetChildNodeCount() const override { return m_vecChildModelNode.size(); }
+			virtual IModelNode* GetChildNode(size_t nIndex) override { return m_vecChildModelNode[nIndex]; }
 
-			virtual uint32_t GetMaterialCount() const override { return m_vecMaterial.size(); }
-			virtual IMaterial* GetMaterial(uint32_t nIndex) override { return m_vecMaterial[nIndex]; }
+			virtual size_t GetMaterialCount() const override { return m_vecMaterial.size(); }
+			virtual IMaterial* GetMaterial(size_t nIndex) override { return m_vecMaterial[nIndex]; }
 
-			virtual uint32_t GetModelSubsetCount(uint32_t nLod = 0) const override { return m_vecModelSubsets[nLod].size(); }
-			virtual ModelSubset* GetModelSubset(uint32_t nIndex, uint32_t nLod = 0) override { return &m_vecModelSubsets[nLod][nIndex]; }
+			virtual size_t GetModelSubsetCount(uint32_t nLod = 0) const override { return m_vecModelSubsets[nLod].size(); }
+			virtual ModelSubset* GetModelSubset(size_t nIndex, uint32_t nLod = 0) override { return &m_vecModelSubsets[nLod][nIndex]; }
 
 			virtual void BuildBoundingBox(const Collision::AABB& aabb) override;
 			virtual void UpdateBoundingBox() override;

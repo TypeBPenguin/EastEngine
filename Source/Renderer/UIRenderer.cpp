@@ -35,8 +35,8 @@ namespace EastEngine
 
 		void UIRenderer::AddRender(const RenderSubsetUIText& renderSubset)
 		{
-			uint32_t nSize = m_vecRenderGroup.size();
-			for (uint32_t i = 0; i < nSize; ++i)
+			size_t nSize = m_vecRenderGroup.size();
+			for (size_t i = 0; i < nSize; ++i)
 			{
 				if (m_vecRenderGroup[i].pRenderTargetView == renderSubset.pRenderTargetView)
 				{
@@ -55,8 +55,8 @@ namespace EastEngine
 
 		void UIRenderer::AddRender(const RenderSubsetUISprite& renderSubset)
 		{
-			uint32_t nSize = m_vecRenderGroup.size();
-			for (uint32_t i = 0; i < nSize; ++i)
+			size_t nSize = m_vecRenderGroup.size();
+			for (size_t i = 0; i < nSize; ++i)
 			{
 				if (m_vecRenderGroup[i].pRenderTargetView == renderSubset.pRenderTargetView)
 				{
@@ -143,8 +143,8 @@ namespace EastEngine
 			if (vecRenderSubsetSprite.empty())
 				return;
 
-			uint32_t nSize = vecRenderSubsetSprite.size();
-			for (uint32_t i = 0; i < nSize; ++i)
+			size_t nSize = vecRenderSubsetSprite.size();
+			for (size_t i = 0; i < nSize; ++i)
 			{
 				RenderSubsetUISprite& renderSubset = vecRenderSubsetSprite[i];
 
@@ -170,8 +170,8 @@ namespace EastEngine
 			if (vecRenderSubsetText.empty())
 				return;
 
-			uint32_t nSize = vecRenderSubsetText.size();
-			for (uint32_t i = 0; i < nSize; ++i)
+			size_t nSize = vecRenderSubsetText.size();
+			for (size_t i = 0; i < nSize; ++i)
 			{
 				RenderSubsetUIText& renderSubset = vecRenderSubsetText[i];
 
@@ -195,8 +195,8 @@ namespace EastEngine
 			if (m_vecRPUIPanel.empty())
 				return;
 
-			uint32_t nSize = m_vecRPUIPanel.size();
-			for (uint32_t i = 0; i < nSize; ++i)
+			size_t nSize = m_vecRPUIPanel.size();
+			for (size_t i = 0; i < nSize; ++i)
 			{
 				RenderSubsetUIPanel& renderSubset = m_vecRPUIPanel[i];
 

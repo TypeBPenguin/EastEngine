@@ -10,7 +10,7 @@ namespace EastEngine
 		LuaSystem::LuaSystem()
 			: m_pLuaState(nullptr)
 			, m_isInit(false)
-			, m_nIdx(0)
+			, m_nIndex(0)
 		{
 		}
 
@@ -116,20 +116,20 @@ namespace EastEngine
 
 		std::shared_ptr<LuaThread> LuaSystem::GetThread()
 		{
-			uint32_t nSize = m_vecLuaThread.size();
-			uint32_t nUseCount = 0;
+			size_t nSize = m_vecLuaThread.size();
+			size_t nUseCount = 0;
 			while (m_vecLuaThread.empty() == false)
 			{
-				std::shared_ptr<LuaThread> pThread = m_vecLuaThread[m_nIdx];
+				std::shared_ptr<LuaThread> pThread = m_vecLuaThread[m_nIndex];
 
 				if (pThread->IsIdle() == true)
 				{
 					pThread->SetIdle(false);
-					return m_vecLuaThread[m_nIdx++];
+					return m_vecLuaThread[m_nIndex++];
 				}
 
 				++nUseCount;
-				m_nIdx = ++m_nIdx % nSize;
+				m_nIndex = ++m_nIndex % nSize;
 
 				if (nUseCount >= m_vecLuaThread.size())
 					break;

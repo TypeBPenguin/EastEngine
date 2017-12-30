@@ -131,7 +131,7 @@ namespace EastEngine
 			return nullptr;
 		}
 
-		void Skeleton::GetSkinnedList(uint32_t nIndex, String::StringID& strSkinnedName_out, const String::StringID** pBoneNames_out, uint32_t& nElementCount_out)
+		void Skeleton::GetSkinnedList(size_t nIndex, String::StringID& strSkinnedName_out, const String::StringID** pBoneNames_out, size_t& nElementCount_out)
 		{
 			if (nIndex >= m_vecSkinnedList.size())
 			{
@@ -176,7 +176,7 @@ namespace EastEngine
 			return CreateChildBone(pParentBone, strBoneName, matMotionOffset);
 		}
 
-		void Skeleton::SetSkinnedList(const String::StringID& strSkinnedName, const String::StringID* pBoneNames, uint32_t nNameCount)
+		void Skeleton::SetSkinnedList(const String::StringID& strSkinnedName, const String::StringID* pBoneNames, size_t nNameCount)
 		{
 			if (strSkinnedName.empty() == true || pBoneNames == nullptr || nNameCount == 0)
 				return;
@@ -328,7 +328,7 @@ namespace EastEngine
 			return nullptr;
 		}
 
-		void SkeletonInstance::GetSkinnedData(const String::StringID& strSkinnedName, const Math::Matrix*** pppMatrixList_out, uint32_t& nElementCount_out)
+		void SkeletonInstance::GetSkinnedData(const String::StringID& strSkinnedName, const Math::Matrix*** pppMatrixList_out, size_t& nElementCount_out)
 		{
 			auto iter = m_umapSkinnendData.find(strSkinnedName);
 			if (iter == m_umapSkinnendData.end())

@@ -45,8 +45,8 @@ namespace EastEngine
 
 		IUIElement* CUIObject::CreateElement(const String::StringID& strID, EmUI::ElementType emType)
 		{
-			uint32_t nSize = m_vecElements.size();
-			for (uint32_t i = 0; i < nSize; ++i)
+			size_t nSize = m_vecElements.size();
+			for (size_t i = 0; i < nSize; ++i)
 			{
 				if (strID == m_vecElements[i]->GetID())
 					return m_vecElements[i];
@@ -75,8 +75,8 @@ namespace EastEngine
 
 		IUIElement* CUIObject::GetElement(const String::StringID& strID)
 		{
-			uint32_t nSize = m_vecElements.size();
-			for (uint32_t i = 0; i < nSize; ++i)
+			size_t nSize = m_vecElements.size();
+			for (size_t i = 0; i < nSize; ++i)
 			{
 				if (strID == m_vecElements[i]->GetID())
 					return m_vecElements[i];

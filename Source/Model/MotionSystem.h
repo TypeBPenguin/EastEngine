@@ -12,8 +12,9 @@ namespace EastEngine
 			MotionPlayer();
 			virtual ~MotionPlayer();
 
-			virtual void SetCaching(const String::StringID& strBoneName, int nIndex) override;
-			virtual int GetCaching(const String::StringID& strBoneName) override;
+		public:
+			virtual void SetCaching(const String::StringID& strBoneName, size_t nIndex) override;
+			virtual size_t GetCaching(const String::StringID& strBoneName) override;
 
 			virtual void SetKeyframe(const String::StringID& strBoneName, const IMotion::Keyframe& keyframe);
 			virtual const IMotion::Keyframe* GetKeyframe(const String::StringID& strBoneName);
@@ -37,15 +38,9 @@ namespace EastEngine
 
 			MotionState m_motionState;
 
-			struct KeyframeCaching
-			{
-				int index = -1;
+			struct keyframeCachingT {};
+			using KeyframeCaching = Type<keyframeCachingT, size_t>;
 
-				KeyframeCaching(int nIndex);
-
-				int operator = (int source) { index = source; return index; }
-				operator int() const { return index; }
-			};
 			std::unordered_map<String::StringID, KeyframeCaching> m_umapKeyframeIndexCaching;
 			std::unordered_map<String::StringID, IMotion::Keyframe> m_umapKeyframe;
 		};

@@ -34,7 +34,7 @@ namespace EastEngine
 
 			std::unordered_map<String::StringID, std::string> m_umapCompiledLua;
 
-			uint32_t m_nIdx;
+			size_t m_nIndex;
 
 			bool m_isInit;
 		};

@@ -116,8 +116,8 @@ namespace EastEngine
 			pDeviceContext->SetRenderTargets(&pRenderTarget, 1, pDevice->GetMainDepthStencil());
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-			uint32_t nSize = m_vecRenderSubsetSkybox.size();
-			for (uint32_t i = 0; i < nSize; ++i)
+			size_t nSize = m_vecRenderSubsetSkybox.size();
+			for (size_t i = 0; i < nSize; ++i)
 			{
 				RenderSubsetSkybox& renderSubset = m_vecRenderSubsetSkybox[i];
 

@@ -215,7 +215,7 @@ namespace EastEngine
 			return pTexture;
 		}
 		
-		IVertexBuffer* IVertexBuffer::Create(EmVertexFormat::Type emVertexFormat, uint32_t nElementCount, const void* pData, D3D11_USAGE emUsage, uint32_t nOptions)
+		IVertexBuffer* IVertexBuffer::Create(EmVertexFormat::Type emVertexFormat, size_t nElementCount, const void* pData, D3D11_USAGE emUsage, uint32_t nOptions)
 		{
 			VertexBuffer* pVertexBuffer = new VertexBuffer;
 			if (pVertexBuffer->Init(emVertexFormat, nElementCount, pData, emUsage, nOptions) == false)
@@ -227,7 +227,7 @@ namespace EastEngine
 			return pVertexBuffer;
 		}
 
-		IIndexBuffer* IIndexBuffer::Create(uint32_t nElementCount, const uint32_t* pData, D3D11_USAGE emUsage, uint32_t nOptions)
+		IIndexBuffer* IIndexBuffer::Create(size_t nElementCount, const uint32_t* pData, D3D11_USAGE emUsage, size_t nOptions)
 		{
 			IndexBuffer* pIndexBuffer = new IndexBuffer;
 			if (pIndexBuffer->Init(nElementCount, pData, emUsage, nOptions) == false)
@@ -239,7 +239,7 @@ namespace EastEngine
 			return pIndexBuffer;
 		}
 
-		IStructuredBuffer* IStructuredBuffer::Create(void* pData, uint32_t nNumElements, uint32_t nByteStride, bool isEnableCpuWrite, bool isEnableGpuWrite)
+		IStructuredBuffer* IStructuredBuffer::Create(void* pData, size_t nNumElements, size_t nByteStride, bool isEnableCpuWrite, bool isEnableGpuWrite)
 		{
 			StructuredBuffer* pDataBuffer = new StructuredBuffer;
 			if (pDataBuffer->Init(pData, nNumElements, nByteStride, isEnableCpuWrite, isEnableGpuWrite) == false)

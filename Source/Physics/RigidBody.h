@@ -29,7 +29,7 @@ namespace EastEngine
 		};
 		typedef void(*FuncCollisionCallback)(const std::vector<CollisionResult>&);
 
-		using FuncTriangleDrawCallback = std::function<void(const Math::Vector3* pTriangles, const uint32_t nCount)>;
+		using FuncTriangleDrawCallback = std::function<void(const Math::Vector3* pTriangles, const size_t nCount)>;
 
 		struct RigidBodyProperty
 		{

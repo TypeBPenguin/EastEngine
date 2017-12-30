@@ -95,7 +95,7 @@ namespace EastEngine
 						Math::Vector3 side2 = normal.Cross(side1);
 
 						// Six indices (two triangles) per face.
-						uint32_t vbase = vecVertices.size();
+						size_t vbase = vecVertices.size();
 						vecIndices.emplace_back(vbase + 0);
 						vecIndices.emplace_back(vbase + 1);
 						vecIndices.emplace_back(vbase + 2);
@@ -320,10 +320,10 @@ namespace EastEngine
 					}
 				}
 
-				if (invertn)
+				if (invertn == true)
 				{
-					uint32_t nSize = vecVertices.size();
-					for (uint32_t i = 0; i < nSize; ++i)
+					size_t nSize = vecVertices.size();
+					for (size_t i = 0; i < nSize; ++i)
 					{
 						vecVertices[i].normal.x = -vecVertices[i].normal.x;
 						vecVertices[i].normal.y = -vecVertices[i].normal.y;
@@ -399,7 +399,7 @@ namespace EastEngine
 					Math::Vector3 side2 = normal.Cross(side1);
 
 					// Six indices (two triangles) per face.
-					uint32_t vbase = vecVertices.size();
+					size_t vbase = vecVertices.size();
 					vecIndices.push_back(vbase + 0);
 					vecIndices.push_back(vbase + 1);
 					vecIndices.push_back(vbase + 2);
@@ -557,16 +557,16 @@ namespace EastEngine
 					// The new index collection after subdivision.
 					std::vector<uint32_t> newIndices;
 
-					const uint32_t triangleCount = vecIndices.size()  / 3;
-					for (uint32_t iTriangle = 0; iTriangle < triangleCount; ++iTriangle)
+					const size_t triangleCount = vecIndices.size()  / 3;
+					for (size_t nTriangle = 0; nTriangle < triangleCount; ++nTriangle)
 					{
 						// For each edge on this triangle, create a new vertex in the middle of that edge.
 						// The winding order of the triangles we output are the same as the winding order of the inputs.
 
 						// Indices of the vertices making up this triangle
-						uint32_t iv0 = vecIndices[iTriangle * 3 + 0];
-						uint32_t iv1 = vecIndices[iTriangle * 3 + 1];
-						uint32_t iv2 = vecIndices[iTriangle * 3 + 2];
+						uint32_t iv0 = vecIndices[nTriangle * 3 + 0];
+						uint32_t iv1 = vecIndices[nTriangle * 3 + 1];
+						uint32_t iv2 = vecIndices[nTriangle * 3 + 2];
 
 						// Get the new vertices
 						Math::Vector3 v01; // vertex on the midpoint of v0 and v1
@@ -663,15 +663,15 @@ namespace EastEngine
 				// completed sphere. If you imagine the vertices along that edge, they circumscribe a semicircular arc starting at
 				// y=1 and ending at y=-1, and sweeping across the range of z=0 to z=1. x stays zero. It's along this edge that we
 				// need to duplicate our vertices - and provide the correct texture coordinates.
-				uint32_t preFixupVertexCount = vecVertices.size();
-				for (uint32_t i = 0; i < preFixupVertexCount; ++i)
+				size_t preFixupVertexCount = vecVertices.size();
+				for (size_t i = 0; i < preFixupVertexCount; ++i)
 				{
 					// This vertex is on the prime meridian if position.x and texcoord.u are both zero (allowing for small epsilon).
 					bool isOnPrimeMeridian = Math::IsZero(vecVertices[i].pos.x) && Math::IsZero(vecVertices[i].uv.x);
 
 					if (isOnPrimeMeridian)
 					{
-						uint32_t newIndex = vecVertices.size(); // the index of this vertex that we're about to add
+						size_t newIndex = vecVertices.size(); // the index of this vertex that we're about to add
 
 						// copy this vertex, correct the texture coordinate, and add the vertex
 						VertexPosTexNor v = vecVertices[i];
@@ -679,8 +679,8 @@ namespace EastEngine
 						vecVertices.push_back(v);
 
 						// Now find all the triangles which contain this vertex and update them if necessary
-						uint32_t nIndexCount = vecIndices.size();
-						for (uint32_t j = 0; j < nIndexCount; j += 3)
+						size_t nIndexCount = vecIndices.size();
+						for (size_t j = 0; j < nIndexCount; j += 3)
 						{
 							uint32_t* triIndex0 = &vecIndices[j + 0];
 							uint32_t* triIndex1 = &vecIndices[j + 1];
@@ -734,15 +734,15 @@ namespace EastEngine
 					auto poleVertex = vecVertices[poleIndex];
 					bool overwrittenPoleVertex = false; // overwriting the original pole vertex saves us one vertex
 
-					uint32_t nIndexCount = vecIndices.size();
-					for (uint32_t i = 0; i < nIndexCount; i += 3)
+					size_t nIndexCount = vecIndices.size();
+					for (size_t i = 0; i < nIndexCount; i += 3)
 					{
 						// These pointers point to the three indices which make up this triangle. pPoleIndex is the pointer to the
 						// entry in the index array which represents the pole index, and the other two pointers point to the other
 						// two indices making up this triangle.
-						uint32_t* pPoleIndex;
-						uint32_t* pOtherIndex0;
-						uint32_t* pOtherIndex1;
+						uint32_t* pPoleIndex = nullptr;
+						uint32_t* pOtherIndex0 = nullptr;
+						uint32_t* pOtherIndex1 = nullptr;
 						if (vecIndices[i + 0] == poleIndex)
 						{
 							pPoleIndex = &vecIndices[i + 0];
@@ -774,7 +774,7 @@ namespace EastEngine
 						newPoleVertex.uv.x = (otherVertex0.uv.x + otherVertex1.uv.x) * 0.5f;;
 						newPoleVertex.uv.y = poleVertex.uv.y;
 
-						if (!overwrittenPoleVertex)
+						if (overwrittenPoleVertex == false)
 						{
 							vecVertices[poleIndex] = newPoleVertex;
 							overwrittenPoleVertex = true;
@@ -818,7 +818,7 @@ namespace EastEngine
 							std::swap(i1, i2);
 						}
 
-						uint32_t vbase = vertices.size();
+						size_t vbase = vertices.size();
 						indices.push_back(vbase);
 						indices.push_back(vbase + i1);
 						indices.push_back(vbase + i2);
@@ -925,7 +925,7 @@ namespace EastEngine
 							std::swap(i1, i2);
 						}
 
-						uint32_t vbase = vertices.size();
+						size_t vbase = vertices.size();
 						indices.push_back(vbase);
 						indices.push_back(vbase + i1);
 						indices.push_back(vbase + i2);
@@ -1087,7 +1087,7 @@ namespace EastEngine
 					Math::Vector3 normal = (verts[v1] - verts[v0]).Cross(verts[v2] - verts[v0]);
 					normal.Normalize();
 
-					uint32_t base = vecVertices.size();
+					size_t base = vecVertices.size();
 					vecIndices.push_back(base);
 					vecIndices.push_back(base + 1);
 					vecIndices.push_back(base + 2);
@@ -1950,8 +1950,8 @@ namespace EastEngine
 					vertices.resize(in_vecVertices.size());
 
 					{
-						uint32_t nSize = in_vecVertices.size();
-						for (uint32_t i = 0; i < nSize; ++i)
+						size_t nSize = in_vecVertices.size();
+						for (size_t i = 0; i < nSize; ++i)
 						{
 							vertices[i].p = vec3f(in_vecVertices[i].pos.x, in_vecVertices[i].pos.y, in_vecVertices[i].pos.z);
 							vertices[i].vertex.SetVertex(in_vecVertices[i].pos, in_vecVertices[i].uv, in_vecVertices[i].normal);
@@ -1959,7 +1959,7 @@ namespace EastEngine
 
 						uint32_t nIdx = 0;
 						nSize = in_vecIndices.size();
-						for (uint32_t i = 0; i < nSize; i += 3)
+						for (size_t i = 0; i < nSize; i += 3)
 						{
 							uint32_t v0 = in_vecIndices[i + 0];
 							uint32_t v1 = in_vecIndices[i + 1];
@@ -1973,7 +1973,8 @@ namespace EastEngine
 					}
 
 					// init
-					for (std::size_t i = 0; i < triangles.size(); ++i)
+					size_t nSize = triangles.size();
+					for (size_t i = 0; i < nSize; ++i)
 					{
 						triangles[i].deleted = 0;
 					}
@@ -1998,7 +1999,7 @@ namespace EastEngine
 						}
 
 						// clear dirty flag
-						for (std::size_t i = 0; i < triangles.size(); ++i)
+						for (size_t i = 0; i < triangles.size(); ++i)
 						{
 							triangles[i].dirty = 0;
 						}
@@ -2012,7 +2013,7 @@ namespace EastEngine
 						float threshold = 0.000000001f * pow(float(iteration + 3), dAgressiveness);
 
 						// remove vertices&  mark deleted triangles		
-						for (std::size_t i = 0; i < triangles.size(); ++i)
+						for (size_t i = 0; i < triangles.size(); ++i)
 						{
 							Triangle& t = triangles[i];
 							if (t.err[3]>threshold ||
@@ -2085,13 +2086,13 @@ namespace EastEngine
 					// clean up mesh
 					compact_mesh();
 
-					for (std::size_t i = 0; i < vertices.size(); ++i)
+					for (size_t i = 0; i < vertices.size(); ++i)
 					{
 						out_vecVertices.emplace_back(Math::Vector3(vertices[i].p.x, vertices[i].p.y, vertices[i].p.z),
 							vertices[i].vertex.uv, vertices[i].vertex.normal);
 					}
 
-					for (std::size_t i = 0; i < triangles.size(); ++i)
+					for (size_t i = 0; i < triangles.size(); ++i)
 					{
 						if (triangles[i].deleted == false)
 						{
@@ -2184,7 +2185,7 @@ namespace EastEngine
 					if (iteration > 0) // compact triangles
 					{
 						int dst = 0;
-						for (std::size_t i = 0; i < triangles.size(); ++i)
+						for (size_t i = 0; i < triangles.size(); ++i)
 						{
 							if (triangles[i].deleted == false)
 							{
@@ -2202,12 +2203,12 @@ namespace EastEngine
 					//
 					if (iteration == 0)
 					{
-						for (std::size_t i = 0; i < vertices.size(); ++i)
+						for (size_t i = 0; i < vertices.size(); ++i)
 						{
 							vertices[i].q = SymetricMatrix(0.0);
 						}
 
-						for (std::size_t i = 0; i < triangles.size(); ++i)
+						for (size_t i = 0; i < triangles.size(); ++i)
 						{
 							Triangle& t = triangles[i];
 							vec3f n, p[3];
@@ -2228,7 +2229,7 @@ namespace EastEngine
 							}
 						}
 
-						for (std::size_t i = 0; i < triangles.size(); ++i)
+						for (size_t i = 0; i < triangles.size(); ++i)
 						{
 							// Calc Edge Error
 							Triangle& t = triangles[i];
@@ -2243,13 +2244,13 @@ namespace EastEngine
 					}
 
 					// Init Reference ID list	
-					for (std::size_t i = 0; i < vertices.size(); ++i)
+					for (size_t i = 0; i < vertices.size(); ++i)
 					{
 						vertices[i].tstart = 0;
 						vertices[i].tcount = 0;
 					}
 
-					for (std::size_t i = 0; i < triangles.size(); ++i)
+					for (size_t i = 0; i < triangles.size(); ++i)
 					{
 						Triangle& t = triangles[i];
 						for (int j = 0; j < 3; ++j)
@@ -2259,7 +2260,7 @@ namespace EastEngine
 					}
 
 					int tstart = 0;
-					for (std::size_t i = 0; i < vertices.size(); ++i)
+					for (size_t i = 0; i < vertices.size(); ++i)
 					{
 						Vertex& v = vertices[i];
 						v.tstart = tstart;
@@ -2269,7 +2270,7 @@ namespace EastEngine
 
 					// Write References
 					refs.resize(triangles.size() * 3);
-					for (std::size_t i = 0; i < triangles.size(); ++i)
+					for (size_t i = 0; i < triangles.size(); ++i)
 					{
 						Triangle& t = triangles[i];
 						for (int j = 0; j < 3; ++j)
@@ -2286,12 +2287,12 @@ namespace EastEngine
 					{
 						std::vector<int> vcount, vids;
 
-						for (std::size_t i = 0; i < vertices.size(); ++i)
+						for (size_t i = 0; i < vertices.size(); ++i)
 						{
 							vertices[i].border = 0;
 						}
 
-						for (std::size_t i = 0; i < vertices.size(); ++i)
+						for (size_t i = 0; i < vertices.size(); ++i)
 						{
 							Vertex& v = vertices[i];
 							vcount.clear();
@@ -2303,7 +2304,7 @@ namespace EastEngine
 
 								for (int k = 0; k < 3; ++k)
 								{
-									std::size_t ofs = 0;
+									size_t ofs = 0;
 									int id = t.v[k];
 									while (ofs<vcount.size())
 									{
@@ -2325,7 +2326,7 @@ namespace EastEngine
 								}
 							}
 
-							for (std::size_t j = 0; j < vcount.size(); ++j)
+							for (size_t j = 0; j < vcount.size(); ++j)
 							{
 								if (vcount[j] == 1)
 								{
@@ -2341,12 +2342,12 @@ namespace EastEngine
 				void compact_mesh()
 				{
 					int dst = 0;
-					for (std::size_t i = 0; i < vertices.size(); ++i)
+					for (size_t i = 0; i < vertices.size(); ++i)
 					{
 						vertices[i].tcount = 0;
 					}
 
-					for (std::size_t i = 0; i < triangles.size(); ++i)
+					for (size_t i = 0; i < triangles.size(); ++i)
 					{
 						if (!triangles[i].deleted == false)
 						{
@@ -2362,7 +2363,7 @@ namespace EastEngine
 					triangles.resize(dst);
 					dst = 0;
 
-					for (std::size_t i = 0; i < vertices.size(); ++i)
+					for (size_t i = 0; i < vertices.size(); ++i)
 					{
 						if (vertices[i].tcount)
 						{
@@ -2373,7 +2374,7 @@ namespace EastEngine
 						}
 					}
 
-					for (std::size_t i = 0; i < triangles.size(); ++i)
+					for (size_t i = 0; i < triangles.size(); ++i)
 					{
 						Triangle& t = triangles[i];
 						for (int j = 0; j < 3; ++j)

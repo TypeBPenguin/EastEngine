@@ -28,8 +28,8 @@ namespace EastEngine
 			bool IsRunning() { return m_bStop == false; }
 
 		private:
-			bool write(uint32_t& nBytesWritten, const void* pWriteData, const uint32_t nWriteDataSize);
-			bool read(uint32_t& nBytesRead, void* pReadBuffer, const uint32_t nReadBufferSize);
+			bool write(size_t& nBytesWritten, const void* pWriteData, const size_t nWriteDataSize);
+			bool read(size_t& nBytesRead, void* pReadBuffer, const size_t nReadBufferSize);
 
 		private:
 			void disconnect();

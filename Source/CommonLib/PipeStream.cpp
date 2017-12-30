@@ -153,7 +153,7 @@ namespace EastEngine
 
 			pipeData.Packing();
 
-			uint32_t nSize = 0;
+			size_t nSize = 0;
 			std::vector<char> vecFinBuffer;
 			vecFinBuffer.resize(pipeData.GetDataSize() + sizeof(PipeDataHeader));
 			CopyMemory(&vecFinBuffer[0], &pipeData.GetHeader(), sizeof(PipeDataHeader));
@@ -175,7 +175,7 @@ namespace EastEngine
 			return m_conQueueReceiveMsg.try_pop(pipeData);
 		}
 
-		bool SPipeStream::write(uint32_t& nBytesWritten, const void* pWriteData, const uint32_t nWriteDataSize)
+		bool SPipeStream::write(size_t& nBytesWritten, const void* pWriteData, const size_t nWriteDataSize)
 		{
 			if (m_hPipeClient == INVALID_HANDLE_VALUE)
 				return false;
@@ -189,7 +189,7 @@ namespace EastEngine
 			return true;
 		}
 
-		bool SPipeStream::read(uint32_t& nBytesRead, void* pReadBuffer, const uint32_t nReadBufferSize)
+		bool SPipeStream::read(size_t& nBytesRead, void* pReadBuffer, const size_t nReadBufferSize)
 		{
 			if (m_hPipeServer == INVALID_HANDLE_VALUE)
 				return false;

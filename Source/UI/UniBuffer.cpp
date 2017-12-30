@@ -186,8 +186,8 @@ namespace EastEngine
 		int CUniBuffer::GetIndexByPosX(int nX)
 		{
 			float fPosX = 0.f;
-			uint32_t nSize = m_wstrBuffer.size();
-			uint32_t nIdx = 0;
+			size_t nSize = m_wstrBuffer.size();
+			size_t nIdx = 0;
 			for (; nIdx < nSize; ++nIdx)
 			{
 				auto glyph = m_pFont->pSpriteFont->FindGlyph(m_wstrBuffer[nIdx]);

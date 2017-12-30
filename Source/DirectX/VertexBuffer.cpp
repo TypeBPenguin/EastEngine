@@ -20,7 +20,7 @@ namespace EastEngine
 			SafeRelease(m_pVertexBuffer);
 		}
 
-		bool VertexBuffer::Init(EmVertexFormat::Type emVertexFormat, uint32_t nElementCount, const void* pData, D3D11_USAGE emUsage, uint32_t nOptions)
+		bool VertexBuffer::Init(EmVertexFormat::Type emVertexFormat, size_t nElementCount, const void* pData, D3D11_USAGE emUsage, uint32_t nOptions)
 		{
 			uint32_t nAccessFlag = 0;
 			if (emUsage == D3D11_USAGE_DYNAMIC)
@@ -28,8 +28,8 @@ namespace EastEngine
 				nAccessFlag = D3D11_CPU_ACCESS_WRITE;
 			}
 
-			uint32_t nFormatSize = GetVertexFormatSize(emVertexFormat);
-			uint32_t nDataSize = nFormatSize * nElementCount;
+			size_t nFormatSize = GetVertexFormatSize(emVertexFormat);
+			size_t nDataSize = nFormatSize * nElementCount;
 
 			D3D11_BUFFER_DESC bufferDesc;
 			Memory::Clear(&bufferDesc, sizeof(D3D11_BUFFER_DESC));

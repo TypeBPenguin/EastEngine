@@ -274,7 +274,7 @@ namespace EastEngine
 					Math::Vector3 side2 = normal.Cross(side1);
 
 					// Six indices (two triangles) per face.
-					uint32_t vbase = vecVertices.size();
+					size_t vbase = vecVertices.size();
 					vecIndices.push_back(vbase + 0);
 					vecIndices.push_back(vbase + 1);
 					vecIndices.push_back(vbase + 2);

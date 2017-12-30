@@ -46,7 +46,7 @@ namespace EastEngine
 			return &(*iter);
 		}
 
-		ISkybox* SkyManager::GetSkybox(uint32_t nIndex)
+		ISkybox* SkyManager::GetSkybox(size_t nIndex)
 		{
 			auto iter = m_colonySkybox.begin();
 			m_colonySkybox.advance(iter, nIndex);

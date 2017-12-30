@@ -88,8 +88,8 @@ namespace EastEngine
 				}
 			}
 
-			uint32_t nSize = m_vecChildModelNode.size();
-			for (uint32_t i = 0; i < nSize; ++i)
+			size_t nSize = m_vecChildModelNode.size();
+			for (size_t i = 0; i < nSize; ++i)
 			{
 				m_vecChildModelNode[i]->Update(fElapsedTime, m_matWorld, pSkeletonInstance, pMaterialInstance, isModelVisible);
 			}

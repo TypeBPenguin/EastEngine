@@ -190,7 +190,7 @@ namespace EastEngine
 							indexArray.fill(0);
 							int nPrevPos = 0;
 							int nIndex = 0;
-							for (uint32_t i = 0; i < str.size(); ++i)
+							for (size_t i = 0; i < str.size(); ++i)
 							{
 								if (str[i] == '/')
 								{
@@ -372,9 +372,9 @@ namespace EastEngine
 
 					std::unordered_map<std::size_t, uint32_t> umap;
 
-					auto func = [&](uint32_t vIdx, uint32_t tIdx, uint32_t nIdx) -> uint32_t
+					auto func = [&](uint32_t vIdx, uint32_t tIdx, uint32_t nIdx) -> size_t
 					{
-						uint32_t ret = ((uint32_t) - 1);
+						size_t ret = ((size_t) - 1);
 						auto key = GetKey(vIdx, tIdx, nIdx);
 						auto iter = umap.find(key);
 						if (iter == umap.end())
@@ -403,8 +403,8 @@ namespace EastEngine
 						return ret;
 					};
 
-					uint32_t nSize = iter_sub.vecFaceType.size();
-					for (uint32_t i = 0; i < nSize; ++i)
+					size_t nSize = iter_sub.vecFaceType.size();
+					for (size_t i = 0; i < nSize; ++i)
 					{
 						uint32_t vIdx = iter_sub.vecFaceType[i].vIdx.x - 1;
 						uint32_t tIdx = iter_sub.vecFaceType[i].tIdx.x - 1;
@@ -432,7 +432,7 @@ namespace EastEngine
 					}
 
 					nSize = nLod + 1;
-					for (uint32_t i = 0; i < nSize; ++i)
+					for (size_t i = 0; i < nSize; ++i)
 					{
 						std::vector<VertexPosTexNor> vecVertexOut;
 						std::vector<uint32_t> vecIndexOut;
@@ -442,7 +442,7 @@ namespace EastEngine
 							continue;
 
 						std::copy(vecVertexOut.begin(), vecVertexOut.end(), std::back_inserter(vecVertices[i]));
-						for (uint32_t j = 0; j < vecIndexOut.size(); ++j)
+						for (size_t j = 0; j < vecIndexOut.size(); ++j)
 						{
 							vecIndices[i].push_back(vecIndexOut[j] + nStartVertex[i]);
 						}

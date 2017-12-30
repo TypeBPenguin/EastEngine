@@ -23,8 +23,8 @@ namespace EastEngine
 
 			IActor* CreateActor(const String::StringID& strActorName);
 
-			IActor* GetActor(uint32_t nIndex);
-			uint32_t GetActorCount() const { return m_colonyActor.size(); }
+			IActor* GetActor(size_t nIndex);
+			size_t GetActorCount() const { return m_colonyActor.size(); }
 
 		private:
 			plf::colony<Actor> m_colonyActor;

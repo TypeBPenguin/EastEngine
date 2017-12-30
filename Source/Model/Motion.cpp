@@ -53,13 +53,13 @@ namespace EastEngine
 			{
 				if (pPlayInfo->IsInverse() == true)
 				{
-					int nKeyframeIndex = pPlayInfo->GetCaching(m_strBoneName);
-					if (nKeyframeIndex == -1 || nKeyframeIndex >= static_cast<int>(m_vecKeyframes.size()))
+					size_t nKeyframeIndex = pPlayInfo->GetCaching(m_strBoneName);
+					if (nKeyframeIndex == IMotionPlayer::eInvalidCachingIndex || nKeyframeIndex >= m_vecKeyframes.size())
 					{
 						nKeyframeIndex = m_vecKeyframes.size() - 1;
 					}
 					
-					for (int i = nKeyframeIndex; i >= 1; --i)
+					for (size_t i = nKeyframeIndex; i >= 1; --i)
 					{
 						const Keyframe& keyframe1 = m_vecKeyframes[i - 1];
 						const Keyframe& keyframe2 = m_vecKeyframes[i];
@@ -80,14 +80,14 @@ namespace EastEngine
 				}
 				else
 				{
-					int nKeyframeIndex = pPlayInfo->GetCaching(m_strBoneName);
-					if (nKeyframeIndex == -1)
+					size_t nKeyframeIndex = pPlayInfo->GetCaching(m_strBoneName);
+					if (nKeyframeIndex == IMotionPlayer::eInvalidCachingIndex)
 					{
 						nKeyframeIndex = 0;
 					}
 
-					uint32_t nSize = m_vecKeyframes.size() - 1;
-					for (uint32_t i = nKeyframeIndex; i < nSize; ++i)
+					size_t nSize = m_vecKeyframes.size() - 1;
+					for (size_t i = nKeyframeIndex; i < nSize; ++i)
 					{
 						const Keyframe& keyframe1 = m_vecKeyframes[i];
 						const Keyframe& keyframe2 = m_vecKeyframes[i + 1];

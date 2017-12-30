@@ -40,8 +40,8 @@ namespace EastEngine
 			virtual const String::StringID& GetName() override { return m_strModelName; }
 			virtual const std::string& GetFilePath() override { return m_strFilePath; }
 
-			virtual uint32_t GetNodeCount() override { return m_vecAllModelNode.size(); }
-			virtual IModelNode* GetNode(uint32_t nIndex) override { return m_vecAllModelNode[nIndex]; }
+			virtual size_t GetNodeCount() override { return m_vecModelNodes.size(); }
+			virtual IModelNode* GetNode(size_t nIndex) override { return m_vecModelNodes[nIndex]; }
 			virtual IModelNode* GetNode(const String::StringID& strName) override;
 
 			virtual bool IsVisible() override { return m_isVisible; }
@@ -91,8 +91,8 @@ namespace EastEngine
 			String::StringID m_strModelName;
 			std::string	m_strFilePath;
 
-			std::vector<IModelNode*> m_vecHierarchyModelNode;	// 계층 구조 노드
-			std::vector<IModelNode*> m_vecAllModelNode;			// 모든 노드
+			std::vector<IModelNode*> m_vecHierarchyModelNodes;	// 계층 구조 노드
+			std::vector<IModelNode*> m_vecModelNodes;			// 모든 노드
 
 			plf::colony<ModelInstance> m_clnModelInstance;
 		};

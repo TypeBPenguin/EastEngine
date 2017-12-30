@@ -26,11 +26,12 @@ namespace EastEngine
 
 		struct VertexPosTexNor;
 
-		uint32_t GetVertexFormatSize(EmVertexFormat::Type emFormat);
+		size_t GetVertexFormatSize(EmVertexFormat::Type emFormat);
 
 		struct VertexPos
 		{
-			static EmVertexFormat::Type Format() { return EmVertexFormat::ePos; }
+			static constexpr EmVertexFormat::Type Format() { return EmVertexFormat::ePos; }
+			static constexpr size_t Size() { return sizeof(VertexPos); }
 
 			Math::Vector3 pos;
 
@@ -42,7 +43,8 @@ namespace EastEngine
 
 		struct VertexPos4
 		{
-			static EmVertexFormat::Type Format() { return EmVertexFormat::ePos4; }
+			static constexpr EmVertexFormat::Type Format() { return EmVertexFormat::ePos4; }
+			static constexpr size_t Size() { return sizeof(VertexPos4); }
 
 			Math::Vector4 pos;
 
@@ -54,7 +56,8 @@ namespace EastEngine
 
 		struct VertexPosCol
 		{
-			static EmVertexFormat::Type Format() { return EmVertexFormat::ePosCol; }
+			static constexpr EmVertexFormat::Type Format() { return EmVertexFormat::ePosCol; }
+			static constexpr size_t Size() { return sizeof(VertexPosCol); }
 
 			Math::Vector3 pos;
 			Math::Color color;
@@ -68,7 +71,8 @@ namespace EastEngine
 
 		struct VertexPosTex
 		{
-			static EmVertexFormat::Type Format() { return EmVertexFormat::ePosTex; }
+			static constexpr EmVertexFormat::Type Format() { return EmVertexFormat::ePosTex; }
+			static constexpr size_t Size() { return sizeof(VertexPosTex); }
 
 			Math::Vector3 pos;
 			Math::Vector2 uv;
@@ -81,7 +85,8 @@ namespace EastEngine
 
 		struct VertexPosTexCol
 		{
-			static EmVertexFormat::Type Format() { return EmVertexFormat::ePosTexCol; }
+			static constexpr EmVertexFormat::Type Format() { return EmVertexFormat::ePosTexCol; }
+			static constexpr size_t Size() { return sizeof(VertexPosTexCol); }
 
 			Math::Vector3 pos;
 			Math::Vector2 uv;
@@ -95,7 +100,8 @@ namespace EastEngine
 
 		struct VertexPosTexNor
 		{
-			static EmVertexFormat::Type Format() { return EmVertexFormat::ePosTexNor; }
+			static constexpr EmVertexFormat::Type Format() { return EmVertexFormat::ePosTexNor; }
+			static constexpr size_t Size() { return sizeof(VertexPosTexNor); }
 
 			Math::Vector3 pos;
 			Math::Vector2 uv;
@@ -109,7 +115,8 @@ namespace EastEngine
 
 		struct VertexPosTexNorCol
 		{
-			static EmVertexFormat::Type Format() { return EmVertexFormat::ePosTexNorCol; }
+			static constexpr EmVertexFormat::Type Format() { return EmVertexFormat::ePosTexNorCol; }
+			static constexpr size_t Size() { return sizeof(VertexPosTexNorCol); }
 
 			Math::Vector3 pos;
 			Math::Vector2 uv;
@@ -125,7 +132,8 @@ namespace EastEngine
 
 		struct VertexPosTexNorTanBin
 		{
-			static EmVertexFormat::Type Format() { return EmVertexFormat::ePosTexNorTanBin; }
+			static constexpr EmVertexFormat::Type Format() { return EmVertexFormat::ePosTexNorTanBin; }
+			static constexpr size_t Size() { return sizeof(VertexPosTexNorTanBin); }
 
 			Math::Vector3 pos;
 			Math::Vector2 uv;
@@ -143,7 +151,8 @@ namespace EastEngine
 
 		struct VertexPosTexNorWeiIdx
 		{
-			static EmVertexFormat::Type Format() { return EmVertexFormat::ePosTexNorWeiIdx; }
+			static constexpr EmVertexFormat::Type Format() { return EmVertexFormat::ePosTexNorWeiIdx; }
+			static constexpr size_t Size() { return sizeof(VertexPosTexNorWeiIdx); }
 
 			Math::Vector3 pos;
 			Math::Vector2 uv;
@@ -166,7 +175,8 @@ namespace EastEngine
 
 		struct VertexUI
 		{
-			static EmVertexFormat::Type Format() { return EmVertexFormat::eUI; }
+			static constexpr EmVertexFormat::Type Format() { return EmVertexFormat::eUI; }
+			static constexpr size_t Size() { return sizeof(VertexUI); }
 
 			Math::Vector2 pos;
 			int vertexIdx;

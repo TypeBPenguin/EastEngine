@@ -99,8 +99,8 @@ public:
 	int GetID() const { return m_nID; }
 	const char* GetName() const { return m_strName.c_str(); }
 
-	uint32_t GetInputSlotCount() const { return m_vecInputSlot.size(); }
-	uint32_t GetOutputSlotCount() const { return m_vecOutputSlot.size(); }
+	size_t GetInputSlotCount() const { return m_vecInputSlot.size(); }
+	size_t GetOutputSlotCount() const { return m_vecOutputSlot.size(); }
 
 	const InOutSlot* GetInputSlot(int nSlotIndex) const
 	{

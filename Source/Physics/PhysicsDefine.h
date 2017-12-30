@@ -91,17 +91,17 @@ namespace EastEngine
 			struct Hull
 			{
 				const Math::Vector3* pVertices = nullptr;
-				uint32_t nVertexCount = 0;
+				size_t nVertexCount = 0;
 				const uint32_t* pIndices = nullptr;
-				uint32_t nIndexCount = 0;
+				size_t nIndexCount = 0;
 			};
 
 			struct TriangleMesh
 			{
 				const Math::Vector3* pVertices = nullptr;
-				uint32_t nVertexCount = 0;
+				size_t nVertexCount = 0;
 				const uint32_t* pIndices = nullptr;
-				uint32_t nIndexCount = 0;
+				size_t nIndexCount = 0;
 			};
 
 			struct Terrain
@@ -239,7 +239,7 @@ namespace EastEngine
 				emPhysicsShapeType = Physics::EmPhysicsShape::eHull;
 			}
 
-			void SetHull(const Math::Vector3* pVertices, uint32_t nVertexCount, const uint32_t* pIndices, uint32_t nIndexCount)
+			void SetHull(const Math::Vector3* pVertices, size_t nVertexCount, const uint32_t* pIndices, size_t nIndexCount)
 			{
 				Hull& hull = element.emplace<Hull>();
 
@@ -257,7 +257,7 @@ namespace EastEngine
 				emPhysicsShapeType = Physics::EmPhysicsShape::eTriangleMesh;
 			}
 
-			void SetTriangleMesh(const Math::Vector3* pVertices, uint32_t nVertexCount)
+			void SetTriangleMesh(const Math::Vector3* pVertices, size_t nVertexCount)
 			{
 				TriangleMesh& triangleMesh = element.emplace<TriangleMesh>();
 
@@ -268,7 +268,7 @@ namespace EastEngine
 				emPhysicsShapeType = Physics::EmPhysicsShape::eTriangleMesh;
 			}
 
-			void SetTriangleMesh(const Math::Vector3* pVertices, uint32_t nVertexCount, const uint32_t* pIndices, uint32_t nIndexCount)
+			void SetTriangleMesh(const Math::Vector3* pVertices, size_t nVertexCount, const uint32_t* pIndices, size_t nIndexCount)
 			{
 				TriangleMesh& triangleMesh = element.emplace<TriangleMesh>();
 

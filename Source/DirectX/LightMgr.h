@@ -25,10 +25,10 @@ namespace EastEngine
 
 			bool AddLight(ILight* pLight);
 			void Remove(ILight* pLight);
-			void Remove(EmLight::Type emType, uint32_t nIndex);
+			void Remove(EmLight::Type emType, size_t nIndex);
 			void RemoveAll();
-			ILight* GetLight(EmLight::Type emType, uint32_t nIndex);
-			uint32_t GetLightCount(EmLight::Type emType);
+			ILight* GetLight(EmLight::Type emType, size_t nIndex);
+			size_t GetLightCount(EmLight::Type emType);
 
 		public:
 			IStructuredBuffer* GetLightBuffer(EmLight::Type emType) { return m_pLightBuffers[emType]; }

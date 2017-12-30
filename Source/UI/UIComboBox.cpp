@@ -103,8 +103,8 @@ namespace EastEngine
 			IUIElement* pElement_SelectionSprite = m_vecElements[5];
 			pElement_SelectionSprite->SetColorCurrent(pElement_DropdownSpirte->GetColor());
 
-			uint32_t nSize = m_vecItems.size();
-			for (uint32_t i = m_pScrollBar->GetTrackPos(); i < nSize; ++i)
+			size_t nSize = m_vecItems.size();
+			for (size_t i = m_pScrollBar->GetTrackPos(); i < nSize; ++i)
 			{
 				UIComboBoxItem& item = m_vecItems[i];
 
@@ -303,8 +303,8 @@ namespace EastEngine
 				if (m_bOpened && PtInRect(&m_rcDropdown, pt))
 				{
 					// Determine which item has been selected
-					uint32_t nSize = m_vecItems.size();
-					for (uint32_t i = 0; i < nSize; ++i)
+					size_t nSize = m_vecItems.size();
+					for (size_t i = 0; i < nSize; ++i)
 					{
 						UIComboBoxItem& item = m_vecItems[i];
 
@@ -361,8 +361,8 @@ namespace EastEngine
 				if (m_bOpened && PtInRect(&m_rcDropdown, pt))
 				{
 					// Determine which item has been selected
-					uint32_t nSize = m_vecItems.size();
-					for (uint32_t i = m_pScrollBar->GetTrackPos(); i < nSize; ++i)
+					size_t nSize = m_vecItems.size();
+					for (size_t i = m_pScrollBar->GetTrackPos(); i < nSize; ++i)
 					{
 						UIComboBoxItem& item = m_vecItems[i];
 						if (item.bVisible && PtInRect(&item.rcActive, pt))
@@ -516,7 +516,7 @@ namespace EastEngine
 			m_nFocused = m_nSelected = -1;
 		}
 
-		void CUIComboBox::RemoveItem(uint32_t nIdx)
+		void CUIComboBox::RemoveItem(size_t nIdx)
 		{
 			if (nIdx >= m_vecItems.size())
 				return;
@@ -531,7 +531,7 @@ namespace EastEngine
 			}
 		}
 
-		int CUIComboBox::FindItem(const char* strText, uint32_t nStart)
+		int CUIComboBox::FindItem(const char* strText, size_t nStart)
 		{
 			if (nStart >= m_vecItems.size())
 				return -1;
@@ -539,7 +539,7 @@ namespace EastEngine
 			if (strText == nullptr)
 				return -1;
 
-			uint32_t nSize = m_vecItems.size();
+			size_t nSize = m_vecItems.size();
 			for (; nStart < nSize; ++nStart)
 			{
 				if (m_vecItems[nStart].strText == strText)
@@ -579,7 +579,7 @@ namespace EastEngine
 			return &m_vecItems[m_nSelected];
 		}
 
-		void CUIComboBox::SetSelectedByIndex(uint32_t nIdx)
+		void CUIComboBox::SetSelectedByIndex(size_t nIdx)
 		{
 			if (nIdx >= m_vecItems.size())
 				return;
@@ -598,8 +598,8 @@ namespace EastEngine
 
 		void CUIComboBox::SetSelectedByData(void* pData)
 		{
-			uint32_t nSize = m_vecItems.size();
-			for (uint32_t i = 0; i < nSize; ++i)
+			size_t nSize = m_vecItems.size();
+			for (size_t i = 0; i < nSize; ++i)
 			{
 				UIComboBoxItem& item = m_vecItems[i];
 

@@ -39,11 +39,11 @@ namespace EastEngine
 		public:
 			bool AddItem(const char* strText, void* pData);
 			void RemoveAllItems();
-			void RemoveItem(uint32_t nIdx);
+			void RemoveItem(size_t nIdx);
 
-			bool ContainsItem(const char* strText, uint32_t nStart = 0) { return (-1 != FindItem(strText, nStart)); }
+			bool ContainsItem(const char* strText, size_t nStart = 0) { return (-1 != FindItem(strText, nStart)); }
 
-			int FindItem(const char* strText, uint32_t nStart = 0);
+			int FindItem(const char* strText, size_t nStart = 0);
 
 			void* GetItemData(const char* strText);
 			void* GetItemData(int nIdx);
@@ -57,10 +57,10 @@ namespace EastEngine
 			void* GetSelectedData();
 			UIComboBoxItem* GetSelectedItem();
 
-			uint32_t GetNumItems() { return m_vecItems.size(); }
-			UIComboBoxItem* GetItem(uint32_t nIdx) { return &m_vecItems[nIdx]; }
+			size_t GetNumItems() { return m_vecItems.size(); }
+			UIComboBoxItem* GetItem(size_t nIdx) { return &m_vecItems[nIdx]; }
 
-			void SetSelectedByIndex(uint32_t nIdx);
+			void SetSelectedByIndex(size_t nIdx);
 			void SetSelectedByText(const char* strText);
 			void SetSelectedByData(void* pData);
 

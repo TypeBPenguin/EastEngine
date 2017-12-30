@@ -226,7 +226,8 @@ namespace EastEngine
 				ClearEffect(pDeviceContext, pTech);
 
 				// Repeatedly downscale
-				for (uint32_t i = 1; i < m_vecLuminanceChain.size(); ++i)
+				size_t nSize = m_vecLuminanceChain.size();
+				for (size_t i = 1; i < nSize; ++i)
 				{
 					Downscale::GetInstance()->Apply4SW(m_vecLuminanceChain[i], m_vecLuminanceChain[i - 1]);
 				}

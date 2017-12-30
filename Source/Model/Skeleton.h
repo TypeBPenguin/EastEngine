@@ -25,8 +25,8 @@ namespace EastEngine
 
 				virtual IBone* GetParent() const override { return m_pParentBone; }
 
-				virtual uint32_t GetChildBoneCount() const override { return m_clnChildBones.size(); }
-				virtual IBone* GetChildBone(uint32_t nIndex) const override { return m_vecChildBonesIndexing[nIndex]; }
+				virtual size_t GetChildBoneCount() const override { return m_clnChildBones.size(); }
+				virtual IBone* GetChildBone(size_t nIndex) const override { return m_vecChildBonesIndexing[nIndex]; }
 				virtual IBone* GetChildBone(const String::StringID& strBoneName, bool isFindInAllDepth = false) const override;
 
 				virtual bool IsRootBone() const override { return false; }
@@ -64,18 +64,18 @@ namespace EastEngine
 		public:
 			virtual IBone* GetRootBone() const override { return m_pRootBone; }
 
-			virtual uint32_t GetBoneCount() const override { return m_vecBones.size(); }
-			virtual IBone* GetBone(uint32_t nIndex) const override { return m_vecBones[nIndex]; }
+			virtual size_t GetBoneCount() const override { return m_vecBones.size(); }
+			virtual IBone* GetBone(size_t nIndex) const override { return m_vecBones[nIndex]; }
 			virtual IBone* GetBone(const String::StringID& strBoneName) const override;
 
-			virtual uint32_t GetSkinnedListCount() const override { return m_vecSkinnedList.size(); }
-			virtual void GetSkinnedList(uint32_t nIndex, String::StringID& strSkinnedName_out, const String::StringID** ppBoneNames_out, uint32_t& nElementCount_out) override;
+			virtual size_t GetSkinnedListCount() const override { return m_vecSkinnedList.size(); }
+			virtual void GetSkinnedList(size_t nIndex, String::StringID& strSkinnedName_out, const String::StringID** ppBoneNames_out, size_t& nElementCount_out) override;
 
 		public:
 			Bone* CreateBone(const String::StringID& strBoneName, const Math::Matrix& matMotionOffset);
 			Bone* CreateBone(const String::StringID& strParentBoneName, const String::StringID& strBoneName, const Math::Matrix& matMotionOffset);
 
-			void SetSkinnedList(const String::StringID& strSkinnedName, const String::StringID* pBoneNames, uint32_t nNameCount);
+			void SetSkinnedList(const String::StringID& strSkinnedName, const String::StringID* pBoneNames, size_t nNameCount);
 
 		private:
 			Bone* CreateChildBone(Bone* pParentBone, const String::StringID& strBoneName, const Math::Matrix& matMotionOffset);
@@ -114,8 +114,8 @@ namespace EastEngine
 
 				virtual IBone* GetParent() override { return m_pParentBone; }
 
-				virtual uint32_t GetChildBoneCount() override { return m_vecChildBonesIndexing.size(); }
-				virtual IBone* GetChildBone(uint32_t nIndex) override { return m_vecChildBonesIndexing[nIndex]; }
+				virtual size_t GetChildBoneCount() override { return m_vecChildBonesIndexing.size(); }
+				virtual IBone* GetChildBone(size_t nIndex) override { return m_vecChildBonesIndexing[nIndex]; }
 				virtual IBone* GetChildBone(const String::StringID& strBoneName, bool isFindInAllDepth = false) override;
 
 				virtual const Math::Matrix& GetTransform() override { return m_matTransform; }
@@ -155,11 +155,11 @@ namespace EastEngine
 
 			virtual ISkeleton* GetSkeleton() override { return m_pSkeleton; }
 
-			virtual uint32_t GetBoneCount() const override { return m_vecBones.size(); }
-			virtual IBone* GetBone(uint32_t nIndex) const override { return m_vecBones[nIndex]; }
+			virtual size_t GetBoneCount() const override { return m_vecBones.size(); }
+			virtual IBone* GetBone(size_t nIndex) const override { return m_vecBones[nIndex]; }
 			virtual IBone* GetBone(const String::StringID& strBoneName) const override;
 
-			virtual void GetSkinnedData(const String::StringID& strSkinnedName, const Math::Matrix*** pppMatrixList_out, uint32_t& nElementCount_out) override;
+			virtual void GetSkinnedData(const String::StringID& strSkinnedName, const Math::Matrix*** pppMatrixList_out, size_t& nElementCount_out) override;
 			virtual void SetIdentity() override;
 			virtual void SetDirty() override { m_isDirty = true; }
 

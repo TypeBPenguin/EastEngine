@@ -144,13 +144,13 @@ namespace EastEngine
 			if (m_vecFuncMessageHandler.empty() || m_queueMessageData.empty())
 				return;
 
-			uint32_t nSize = m_vecFuncMessageHandler.size();
+			size_t nSize = m_vecFuncMessageHandler.size();
 
 			while (m_queueMessageData.empty() == false)
 			{
 				MessageData& messageData = m_queueMessageData.front();
 
-				for (uint32_t i = 0; i < nSize; ++i)
+				for (size_t i = 0; i < nSize; ++i)
 				{
 					m_vecFuncMessageHandler[i](messageData.hWnd, messageData.nMsg, messageData.wParam, messageData.lParam);
 				}

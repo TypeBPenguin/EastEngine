@@ -58,7 +58,7 @@ namespace EastEngine
 			return &(*iter);
 		}
 
-		ITerrain* TerrainManager::GetTerrain(uint32_t nIndex)
+		ITerrain* TerrainManager::GetTerrain(size_t nIndex)
 		{
 			auto iter = m_colonyTerrain.begin();
 			m_colonyTerrain.advance(iter, nIndex);
