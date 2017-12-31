@@ -165,7 +165,8 @@ void SceneStudio::Enter()
 	ImGuiIO& io = ImGui::GetIO();
 	io.Fonts->AddFontFromFileTTF(strFontPath.c_str(), 16.f, nullptr, io.Fonts->GetGlyphRangesKorean());
 
-	Graphics::CameraManager::GetInstance()->CreateCamera("MainCamera", Math::Vector3(0.f, 50.f, -100.f), Math::Vector3(0.f, 50.f, 0.f), Math::Vector3(0.f, 1.f, 0.f));
+	//Graphics::CameraManager::GetInstance()->CreateCamera("MainCamera", Math::Vector3(0.f, 50.f, -100.f), Math::Vector3(0.f, 50.f, 0.f), Math::Vector3(0.f, 1.f, 0.f));
+	Graphics::CameraManager::GetInstance()->CreateCamera("MainCamera", Math::Vector3(0.f, 1.f, -10.f), Math::Vector3(0.f, 50.f, 0.f), Math::Vector3(0.f, 1.f, 0.f));
 
 	{
 		Math::Vector3 f3LightPosition(0.f, 500.f, -500.f);
@@ -207,38 +208,38 @@ void SceneStudio::Enter()
 	pTexture = Graphics::ITexture::Create("Irradiance.dds", strIrradiancePath);
 	pIBL->SetIrradianceMap(pTexture);
 
-	//{
-	//	auto pActor = GameObject::ActorManager::GetInstance()->CreateActor(StrID::Studio_Ground);
-	//
-	//	Graphics::MaterialInfo material;
-	//	material.strName = StrID::Studio_Ground;
-	//	Graphics::ModelLoader loader;
-	//	loader.InitPlane(StrID::Studio_Ground, 1.f, 1.f, 100, 100, &material);
-	//
-	//	auto pCompModel = static_cast<GameObject::ComponentModel*>(pActor->CreateComponent(GameObject::EmComponent::eModel));
-	//	pCompModel->Init(&loader);
-	//
-	//	auto pModelInst = pCompModel->GetModelInstance();
-	//
-	//	auto pCompPhysics = static_cast<GameObject::ComponentPhysics*>(pActor->CreateComponent(GameObject::EmComponent::ePhysics));
-	//
-	//	Physics::RigidBodyProperty prop;
-	//	prop.fRestitution = 0.75f;
-	//	prop.strName = StrID::Studio_Ground;
-	//	prop.fMass = 0.f;
-	//	prop.nCollisionFlag = Physics::EmCollision::eStaticObject;
-	//	prop.shapeInfo.SetTriangleMesh();
-	//	pCompPhysics->Init(pModelInst, prop);
-	//
-	//	/*GameObject::SectorInitInfo sectorInitInfo;
-	//	sectorInitInfo.fRadius = 10.f;
-	//	for (auto& direction : sectorInitInfo.nSectorsCount)
-	//	{
-	//		direction = 10;
-	//	}
-	//
-	//	m_pSectorMgr = CreateSectorMgr(sectorInitInfo);*/
-	//}
+	{
+		auto pActor = GameObject::ActorManager::GetInstance()->CreateActor(StrID::Studio_Ground);
+	
+		Graphics::MaterialInfo material;
+		material.strName = StrID::Studio_Ground;
+		Graphics::ModelLoader loader;
+		loader.InitPlane(StrID::Studio_Ground, 1.f, 1.f, 100, 100, &material);
+	
+		auto pCompModel = static_cast<GameObject::ComponentModel*>(pActor->CreateComponent(GameObject::EmComponent::eModel));
+		pCompModel->Init(&loader);
+	
+		auto pModelInst = pCompModel->GetModelInstance();
+	
+		auto pCompPhysics = static_cast<GameObject::ComponentPhysics*>(pActor->CreateComponent(GameObject::EmComponent::ePhysics));
+	
+		Physics::RigidBodyProperty prop;
+		prop.fRestitution = 0.75f;
+		prop.strName = StrID::Studio_Ground;
+		prop.fMass = 0.f;
+		prop.nCollisionFlag = Physics::EmCollision::eStaticObject;
+		prop.shapeInfo.SetTriangleMesh();
+		pCompPhysics->Init(pModelInst, prop);
+	
+		/*GameObject::SectorInitInfo sectorInitInfo;
+		sectorInitInfo.fRadius = 10.f;
+		for (auto& direction : sectorInitInfo.nSectorsCount)
+		{
+			direction = 10;
+		}
+	
+		m_pSectorMgr = CreateSectorMgr(sectorInitInfo);*/
+	}
 
 	{
 		Graphics::MaterialInfo materialInfo;
@@ -431,7 +432,8 @@ void SceneStudio::Enter()
 		
 		GameObject::IActor* pActor = GameObject::IActor::Create("UnityChan");
 		
-		pActor->SetPosition({ 0.f, 50.f, -90.f });
+		//pActor->SetPosition({ 0.f, 50.f, -90.f });
+		pActor->SetPosition({ 0.f, 1.5f, 0.f });
 		
 		strPath = File::GetDataPath();
 		strPath.append("Actor\\UnityChan\\Models\\unitychan.fbx");
@@ -446,16 +448,21 @@ void SceneStudio::Enter()
 		std::string strPathMotion(File::GetDataPath());
 		strPathMotion.append("Actor\\UnityChan\\Animations\\unitychan_ARpose1.fbx");
 
-		Graphics::MotionLoader motionLoader;
-		motionLoader.InitFBX(File::GetFileName(strPathMotion).c_str(), strPathMotion.c_str(), 0.01f);
-		Graphics::IMotion* pMotion = Graphics::IMotion::Create(motionLoader);
+		//Graphics::MotionLoader motionLoader;
+		//motionLoader.InitFBX(File::GetFileName(strPathMotion).c_str(), strPathMotion.c_str(), 0.01f);
+		//Graphics::IMotion* pMotion = Graphics::IMotion::Create(motionLoader);
 
 		Graphics::IModelInstance* pModelInstance = pModel->GetModelInstance();
 
-		Graphics::MotionState motionState;
-		motionState.fSpeed = 0.075f;
-		motionState.isLoop = false;
-		pModelInstance->PlayMotion(pMotion, &motionState);
+		//Graphics::MotionState motionState;
+		//motionState.fSpeed = 0.075f;
+		//motionState.isLoop = false;
+		//pModelInstance->PlayMotion(pMotion, &motionState);
+
+		//GameObject::ComponentPhysics* pCompPhysics = static_cast<GameObject::ComponentPhysics*>(pActor->CreateComponent(GameObject::EmComponent::ePhysics));
+
+		//pCompPhysics->m_pRagDoll->BuildDefaultHumanRagDoll(pModelInstance->GetSkeleton(), pActor->GetPosition(), Math::Quaternion::Identity, 1.f);
+		//pCompPhysics->m_pRagDoll->Start();
 
 		{
 			Graphics::IModelInstance* pModelInstance_Attach = nullptr;
@@ -603,6 +610,21 @@ void ShowConfig()
 			if (ImGui::Checkbox("Visible", &isApplyVisibleCollisionMesh) == true)
 			{
 				Config::SetEnable("VisibleCollisionMesh"_s, isApplyVisibleCollisionMesh);
+			}
+
+			ImGui::PopID();
+
+			ImGui::TreePop();
+		}
+
+		if (ImGui::TreeNode("Skeleton"))
+		{
+			ImGui::PushID("Skeleton");
+
+			bool isApplyVisibleCollisionMesh = Config::IsEnable("VisibleSkeleton"_s);
+			if (ImGui::Checkbox("Visible", &isApplyVisibleCollisionMesh) == true)
+			{
+				Config::SetEnable("VisibleSkeleton"_s, isApplyVisibleCollisionMesh);
 			}
 
 			ImGui::PopID();

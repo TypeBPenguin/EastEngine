@@ -47,18 +47,20 @@ namespace EastEngine
 		{
 		}
 
-		ModelInstance::RequestAttachmentNode::RequestAttachmentNode(IModelInstance* pInstance, const String::StringID& strNodeName)
+		ModelInstance::RequestAttachmentNode::RequestAttachmentNode(ModelInstance* pInstance, const String::StringID& strNodeName)
 			: pInstance(pInstance), strNodeName(strNodeName)
 		{
 		}
 
-		ModelInstance::AttachmentNode::AttachmentNode(IModelInstance* pInstance, const Math::Matrix* pTargetMatrix)
+		ModelInstance::AttachmentNode::AttachmentNode(ModelInstance* pInstance, const Math::Matrix* pTargetMatrix)
 			: pInstance(pInstance), pTargetMatrix(pTargetMatrix)
 		{
 		}
 
 		ModelInstance::ModelInstance(IModel* pModel)
 			: m_isVisible(true)
+			, m_isAttachment(false)
+			, m_fElapsedTime(0.f)
 			, m_pModel(pModel)
 			, m_pMotionSystem(nullptr)
 			, m_pSkeletonInstance(nullptr)
@@ -84,30 +86,40 @@ namespace EastEngine
 
 			if (m_pMotionSystem != nullptr)
 			{
-				m_pMotionSystem->Update(m_fUpdateTimeData, m_pSkeletonInstance);
+				m_pMotionSystem->Update(m_fElapsedTime, m_pSkeletonInstance);
 			}
 
 			if (m_pSkeletonInstance != nullptr)
 			{
-				m_pSkeletonInstance->Update();
+				m_pSkeletonInstance->Update(m_matParent);
 			}
 
-			m_pModel->Update(m_fUpdateTimeData, m_matUpdateData, m_pSkeletonInstance, m_pMaterialInstance);
+			m_pModel->Update(m_fElapsedTime, m_matParent, m_pSkeletonInstance, m_pMaterialInstance);
 
 			for (const auto& node : m_vecAttachmentNode)
 			{
 				if (node.pTargetMatrix != nullptr)
 				{
-					node.pInstance->Update(m_fUpdateTimeData, *node.pTargetMatrix * m_matUpdateData);
+					node.pInstance->Update(m_fElapsedTime, *node.pTargetMatrix);
+					node.pInstance->Process();
 				}
 			}
+		}
+
+		void ModelInstance::Update(float fElapsedTime, const Math::Matrix& matParent)
+		{
+			m_fElapsedTime = fElapsedTime;
+			m_matParent = matParent;
 		}
 
 		bool ModelInstance::Attachment(IModelInstance* pInstance, const String::StringID& strNodeName)
 		{
 			if (IsLoadComplete() == false)
 			{
-				m_listRequestAttachmentNode.emplace_back(pInstance, strNodeName);
+				ModelInstance* pModelInstance = static_cast<ModelInstance*>(pInstance);
+				m_listRequestAttachmentNode.emplace_back(pModelInstance, strNodeName);
+
+				return true;
 			}
 			else
 			{
@@ -116,7 +128,8 @@ namespace EastEngine
 					ISkeletonInstance::IBone* pBone =  m_pSkeletonInstance->GetBone(strNodeName);
 					if (pBone != nullptr)
 					{
-						m_vecAttachmentNode.emplace_back(pInstance, &pBone->GetTransform());
+						ModelInstance* pModelInstance = static_cast<ModelInstance*>(pInstance);
+						m_vecAttachmentNode.emplace_back(pModelInstance, &pBone->GetGlobalTransform());
 						return true;
 					}
 				}
@@ -125,10 +138,45 @@ namespace EastEngine
 				if (pNode == nullptr)
 					return false;
 
-				m_vecAttachmentNode.emplace_back(pInstance, pNode->GetWorldMatrixPtr());
-			}
+				ModelInstance* pModelInstance = static_cast<ModelInstance*>(pInstance);
+				m_vecAttachmentNode.emplace_back(pModelInstance, pNode->GetWorldMatrixPtr());
 
-			return true;
+				return true;
+			}
+		}
+
+		bool ModelInstance::Dettachment(IModelInstance* pInstance)
+		{
+			if (IsLoadComplete() == false)
+			{
+				auto iter = std::find_if(m_listRequestAttachmentNode.begin(), m_listRequestAttachmentNode.end(), [&pInstance](const RequestAttachmentNode& requestAttachmentNode)
+				{
+					return requestAttachmentNode.pInstance == pInstance;
+				});
+
+				if (iter != m_listRequestAttachmentNode.end())
+				{
+					m_listRequestAttachmentNode.erase(iter);
+					return true;
+				}
+
+				return false;
+			}
+			else
+			{
+				auto iter = std::find_if(m_vecAttachmentNode.begin(), m_vecAttachmentNode.end(), [&pInstance](const AttachmentNode& attachmentNode)
+				{
+					return attachmentNode.pInstance == pInstance;
+				});
+
+				if (iter != m_vecAttachmentNode.end())
+				{
+					m_vecAttachmentNode.erase(iter);
+					return true;
+				}
+
+				return false;
+			}
 		}
 
 		void ModelInstance::PlayMotion(IMotion* pMotion, const MotionState* pMotionState)

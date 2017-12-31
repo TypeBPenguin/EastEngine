@@ -1,7 +1,9 @@
 #include "stdafx.h"
 #include "Skeleton.h"
 
-#include "DirectX/DebugUtil.h"
+#include "GeometryModel.h"
+
+#include "CommonLib/Config.h"
 #include "Renderer/RendererManager.h"
 
 namespace StrID
@@ -227,15 +229,40 @@ namespace EastEngine
 			m_pBoneHierarchy = nullptr;
 		}
 
-		void SkeletonInstance::BoneInstance::Update(const Math::Matrix& matParent)
+		void SkeletonInstance::BoneInstance::Update(const Math::Matrix& matWorld, const Math::Matrix& matParent)
 		{
-			m_matTransform = m_matMotionData * matParent;
-			m_matMotionTransform = m_pBoneHierarchy->GetMotionOffsetMatrix() * m_matTransform;
+			m_matLocalTransform = m_matMotionData * matParent;
+			m_matMotionTransform = m_pBoneHierarchy->GetMotionOffsetMatrix() * m_matLocalTransform;
+
+			m_matGlobalTransform = m_matLocalTransform * matWorld;
+
+			RenderBone();
 
 			std::for_each(m_clnChildBones.begin(), m_clnChildBones.end(), [&](BoneInstance& childBone)
 			{
-				childBone.Update(m_matTransform);
+				childBone.Update(matWorld, m_matLocalTransform);
 			});
+		}
+
+		void SkeletonInstance::BoneInstance::RenderBone()
+		{
+			if (Config::IsEnable("VisibleSkeleton"_s))
+			{
+				RenderSubsetVertex aabb;
+				aabb.matWorld = Math::Matrix::CreateScale(0.02f) * GetGlobalTransform();
+				aabb.isWireframe = true;
+				aabb.isIgnoreDepth = true;
+				GeometryModel::GetDebugModel(GeometryModel::EmDebugModel::eBox, &aabb.pVertexBuffer, &aabb.pIndexBuffer);
+				RendererManager::GetInstance()->AddRender(aabb);
+
+				if (m_pParentBone->IsRootBone() == false)
+				{
+					const Math::Vector3* pStartPos = reinterpret_cast<const Math::Vector3*>(&m_pParentBone->GetGlobalTransform()._41);
+					const Math::Vector3* pEndPos = reinterpret_cast<const Math::Vector3*>(&GetGlobalTransform()._41);
+					RenderSubsetLineSegment line(*pStartPos, Math::Color::Blue, *pEndPos, Math::Color::Blue, true);
+					RendererManager::GetInstance()->AddRender(line);
+				}
+			}
 		}
 
 		SkeletonInstance::IBone* SkeletonInstance::BoneInstance::GetChildBone(const String::StringID& strBoneName, bool isFindInAllDepth) const
@@ -261,7 +288,7 @@ namespace EastEngine
 			return pNewBone;
 		}
 
-		SkeletonInstance::RootBone::RootBone(Skeleton::Bone* pBoneHierarchy)
+		SkeletonInstance::RootBone::RootBone(Skeleton::IBone* pBoneHierarchy)
 			: BoneInstance(pBoneHierarchy, nullptr)
 		{
 		}
@@ -270,18 +297,18 @@ namespace EastEngine
 		{
 		}
 
-		void SkeletonInstance::RootBone::Update(const Math::Matrix& matParent)
+		void SkeletonInstance::RootBone::Update(const Math::Matrix& matWorld, const Math::Matrix& matParent)
 		{
 			std::for_each(m_clnChildBones.begin(), m_clnChildBones.end(), [&](BoneInstance& boneInstance)
 			{
-				boneInstance.Update(matParent);
+				boneInstance.Update(matWorld, matParent);
 			});
 		}
 
 		SkeletonInstance::SkeletonInstance(ISkeleton* pSkeleton)
 			: m_pSkeleton(pSkeleton)
 			, m_isDirty(true)
-			, m_pRootBone(new RootBone(static_cast<Skeleton::Bone*>(pSkeleton->GetRootBone())))
+			, m_pRootBone(new RootBone(pSkeleton->GetRootBone()))
 		{
 			m_vecBones.reserve(pSkeleton->GetBoneCount());
 			m_umapBone.reserve(pSkeleton->GetBoneCount());
@@ -291,7 +318,7 @@ namespace EastEngine
 
 			SetIdentity();
 
-			Update();
+			Update(Math::Matrix::Identity);
 		}
 
 		SkeletonInstance::~SkeletonInstance()
@@ -304,11 +331,11 @@ namespace EastEngine
 			m_umapSkinnendData.clear();
 		}
 
-		void SkeletonInstance::Update()
+		void SkeletonInstance::Update(const Math::Matrix& matWorld)
 		{
 			if (m_vecBones.empty() == false)
 			{
-				m_pRootBone->Update(Math::Matrix::Identity);
+				m_pRootBone->Update(matWorld, Math::Matrix::Identity);
 			}
 		}
 

@@ -395,12 +395,12 @@ namespace EastEngine
 
 				if (pMaterial != nullptr)
 				{
-					const float fTessellationFactor = pMaterial->GetTessellationFactor() * pMaterial->GetTessellationFactorResScale();
+					const float fTessellationFactor = pMaterial->GetTessellationFactor();
 					pEffect->SetFloat(StrID::g_fTessellationFactor, fTessellationFactor);
 				}
 				else
 				{
-					const float fTessellationFactor = 256.f;
+					const float fTessellationFactor = 128.f;
 					pEffect->SetFloat(StrID::g_fTessellationFactor, fTessellationFactor);
 				}
 			}

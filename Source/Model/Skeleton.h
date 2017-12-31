@@ -109,7 +109,7 @@ namespace EastEngine
 				virtual ~BoneInstance();
 
 			public:
-				virtual void Update(const Math::Matrix& matParent) override;
+				virtual void Update(const Math::Matrix& matWorld, const Math::Matrix& matParent) override;
 
 			public:
 				virtual const String::StringID& GetName() const override { return m_pBoneHierarchy->GetName(); }
@@ -124,15 +124,22 @@ namespace EastEngine
 				virtual void SetMotionData(const Math::Matrix& matrix) override { m_matMotionData = matrix; }
 				virtual void ClearMotionData() override { m_matMotionData = m_pBoneHierarchy->GetDefaultMotionData(); }
 
-				virtual const Math::Matrix& GetTransform() const override { return m_matTransform; }
+				virtual const Math::Matrix& GetLocalTransform() const override { return m_matLocalTransform; }
+				virtual const Math::Matrix& GetGlobalTransform() const override { return m_matGlobalTransform; }
+
+				virtual bool IsRootBone() const override { return false; }
 
 			public:
 				SkeletonInstance::BoneInstance* AddChildBone(Skeleton::IBone* pBoneHierarchy);
 
+			private:
+				void RenderBone();
+
 			protected:
 				Math::Matrix m_matMotionData;
 				Math::Matrix m_matMotionTransform;
-				Math::Matrix m_matTransform;
+				Math::Matrix m_matLocalTransform;
+				Math::Matrix m_matGlobalTransform;
 
 				BoneInstance* m_pParentBone;
 				plf::colony<BoneInstance> m_clnChildBones;
@@ -145,10 +152,12 @@ namespace EastEngine
 			class RootBone : public BoneInstance
 			{
 			public:
-				RootBone(Skeleton::Bone* pBoneHierarchy);
+				RootBone(Skeleton::IBone* pBoneHierarchy);
 				virtual ~RootBone();
 
-				virtual void Update(const Math::Matrix& matParent);
+				virtual void Update(const Math::Matrix& matWorld, const Math::Matrix& matParent) override;
+
+				virtual bool IsRootBone() const override { return true; }
 			};
 
 		public:
@@ -156,7 +165,7 @@ namespace EastEngine
 			virtual ~SkeletonInstance();
 
 		public:
-			virtual void Update() override;
+			virtual void Update(const Math::Matrix& matWorld) override;
 
 			virtual ISkeleton* GetSkeleton() override { return m_pSkeleton; }
 

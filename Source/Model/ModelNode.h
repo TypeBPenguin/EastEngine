@@ -69,7 +69,7 @@ namespace EastEngine
 			void SetIndexBuffer(IIndexBuffer* pIndexBuffer, uint32_t nLod = 0);
 
 			void AddMaterial(IMaterial* pMaterial);
-			void AddMaterialArray(IMaterial** ppMaterials, uint32_t nCount);
+			void AddMaterialArray(IMaterial** ppMaterials, size_t nCount);
 			void AddModelSubset(ModelSubset& modelSubset, uint32_t nLod = 0);
 			void AddModelSubsets(const std::vector<ModelSubset>& vecModelSubsets, uint32_t nLod = 0);
 

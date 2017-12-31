@@ -44,7 +44,6 @@ namespace EastEngine
 			std::vector<RenderSubsetLineSegment> m_vecLineSegmentSubset;
 
 			IVertexBuffer* m_pLineSegmentVertexBuffer;
-			IIndexBuffer* m_pLineSegmentIndexBuffer;
 
 			struct RenderSubsetVertexBatch
 			{

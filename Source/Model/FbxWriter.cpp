@@ -38,7 +38,6 @@ namespace EastEngine
 			vecVertices.resize(nVertexCount);
 
 			const size_t stride = sizeof(T);
-			uint8_t nMax = 0;
 
 			for (size_t i = 0; i < nVertexCount; ++i)
 			{
@@ -91,8 +90,6 @@ namespace EastEngine
 						const size_t nOffset = sizeof(Math::Vector3) + sizeof(Math::Vector2) + sizeof(Math::Vector3) + sizeof(Math::Vector3);
 						Math::UByte4* pIndex = reinterpret_cast<Math::UByte4*>(pData + nOffset);
 						*pIndex = *reinterpret_cast<const Math::UByte4*>(pVertexData);
-
-						nMax = std::max(nMax, std::max(std::max(std::max(pIndex->x, pIndex->y), pIndex->z), pIndex->w));
 					}
 					break;
 					default:
@@ -299,6 +296,8 @@ namespace EastEngine
 
 						if (vecSubsets[i].nMaterialID == UINT32_MAX)
 						{
+							vecSubsets[i].nMaterialID = vecMaterials.size();
+
 							MaterialInfo materialInfo;
 							WriteMaterial(pBinding->pMaterial, materialInfo);
 

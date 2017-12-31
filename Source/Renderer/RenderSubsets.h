@@ -27,8 +27,9 @@ namespace EastEngine
 		struct RenderSubsetLineSegment
 		{
 			VertexPosCol vertexLineSegment[2];
+			bool isIgnoreDepth = false;
 
-			RenderSubsetLineSegment(const Math::Vector3& f3StartPoint, const Math::Color& colorStartPoint, const Math::Vector3& f3EndPoint, const Math::Color& colorEndPoint);
+			RenderSubsetLineSegment(const Math::Vector3& f3StartPoint, const Math::Color& colorStartPoint, const Math::Vector3& f3EndPoint, const Math::Color& colorEndPoint, bool isIgnoreDepth);
 		};
 
 		struct RenderSubsetVertex
@@ -38,9 +39,10 @@ namespace EastEngine
 			Math::Matrix matWorld;
 			Math::Color color = Math::Color::Red;
 			bool isWireframe = false;
+			bool isIgnoreDepth = false;
 
 			RenderSubsetVertex();
-			RenderSubsetVertex(IVertexBuffer* pVertexBuffer, IIndexBuffer* pIndexBuffer, const Math::Matrix& matWorld, const Math::Color& color, bool isWireframe);
+			RenderSubsetVertex(IVertexBuffer* pVertexBuffer, IIndexBuffer* pIndexBuffer, const Math::Matrix& matWorld, const Math::Color& color, bool isWireframe, bool isIgnoreDepth);
 		};
 
 		struct RenderSubsetStatic

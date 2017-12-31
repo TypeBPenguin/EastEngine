@@ -1,9 +1,6 @@
 #include "stdafx.h"
 #include "ModelNodeSkinned.h"
 
-#include "GeometryModel.h"
-
-#include "CommonLib/Config.h"
 #include "DirectX/VTFMgr.h"
 #include "Renderer/RendererManager.h"
 
@@ -36,6 +33,7 @@ namespace EastEngine
 
 			m_matWorld = matTransformation;
 
+			// 검증되지 않은 방식, 추후 수정 필요
 			Math::Matrix matBoneTransformation;
 			if (pSkeletonInstance != nullptr)
 			{
@@ -125,26 +123,7 @@ namespace EastEngine
 				}
 			}
 
-			if (Config::IsEnable("VisibleCollisionMesh"_s))
-			{
-				Math::Matrix matAABB = Math::Matrix::Compose(m_boundingAABB.Extents, Math::Quaternion::Identity, m_boundingAABB.Center);
-
-				RenderSubsetVertex aabb;
-				aabb.matWorld = matAABB;
-				aabb.isWireframe = true;
-				GeometryModel::GetDebugModel(GeometryModel::EmDebugModel::eBox, &aabb.pVertexBuffer, &aabb.pIndexBuffer);
-				RendererManager::GetInstance()->AddRender(aabb);
-
-				Math::Matrix matSphere = Math::Matrix::Compose(Math::Vector3(m_boundingSphere.Radius), Math::Quaternion::Identity, m_boundingSphere.Center);
-
-				RenderSubsetVertex sphere;
-				sphere.matWorld = matSphere;
-				sphere.isWireframe = true;
-				GeometryModel::GetDebugModel(GeometryModel::EmDebugModel::eSphere, &sphere.pVertexBuffer, &sphere.pIndexBuffer);
-				RendererManager::GetInstance()->AddRender(sphere);
-			}
-
-			size_t nSize = m_vecChildModelNode.size();
+			const size_t nSize = m_vecChildModelNode.size();
 			for (size_t i = 0; i < nSize; ++i)
 			{
 				m_vecChildModelNode[i]->Update(fElapsedTime, m_matWorld, pSkeletonInstance, pMaterialInstance, isModelVisible);

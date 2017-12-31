@@ -340,6 +340,9 @@ namespace EastEngine
 			virtual bool Attachment(IModelInstance* pInstance, const String::StringID& strNodeName) = 0;
 			virtual IModelInstance* GetAttachment(size_t nIndex) const = 0;
 			virtual size_t GetAttachmentCount() const = 0;
+			virtual bool IsAttachment() const = 0;
+
+			virtual bool Dettachment(IModelInstance* pInstance) = 0;
 
 			virtual void PlayMotion(IMotion* pMotion, const MotionState* pMotionState = nullptr) = 0;
 			virtual void StopMotion(float fStopTime) = 0;
@@ -416,7 +419,7 @@ namespace EastEngine
 				virtual ~IBone() = default;
 
 			public:
-				virtual void Update(const Math::Matrix& matParent) = 0;
+				virtual void Update(const Math::Matrix& matWorld, const Math::Matrix& matParent) = 0;
 
 			public:
 				virtual const String::StringID& GetName() const = 0;
@@ -431,7 +434,10 @@ namespace EastEngine
 				virtual void SetMotionData(const Math::Matrix& matrix) = 0;
 				virtual void ClearMotionData() = 0;
 
-				virtual const Math::Matrix& GetTransform() const = 0;
+				virtual const Math::Matrix& GetLocalTransform() const = 0;
+				virtual const Math::Matrix& GetGlobalTransform() const = 0;
+
+				virtual bool IsRootBone() const = 0;
 			};
 
 		protected:
@@ -439,7 +445,7 @@ namespace EastEngine
 			virtual ~ISkeletonInstance() = default;
 
 		public:
-			virtual void Update() = 0;
+			virtual void Update(const Math::Matrix& matWorld) = 0;
 
 			virtual ISkeleton* GetSkeleton() = 0;
 

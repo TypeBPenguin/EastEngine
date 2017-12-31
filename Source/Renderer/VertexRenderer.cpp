@@ -27,7 +27,6 @@ namespace EastEngine
 		VertexRenderer::VertexRenderer()
 			: m_pEffect(nullptr)
 			, m_pLineSegmentVertexBuffer(nullptr)
-			, m_pLineSegmentIndexBuffer(nullptr)
 		{
 		}
 
@@ -38,7 +37,6 @@ namespace EastEngine
 			m_vecLineSegmentSubset.clear();
 
 			SafeDelete(m_pLineSegmentVertexBuffer);
-			SafeDelete(m_pLineSegmentIndexBuffer);
 
 			IEffect::Destroy(&m_pEffect);
 		}
@@ -63,29 +61,17 @@ namespace EastEngine
 
 			{
 				uint32_t nVertexCount = 2;
-				uint32_t nIndexCount = nVertexCount;
-
 				Math::Color color = Math::Color::DarkRed;
 				
 				std::vector<VertexPosCol> vecVertices;
 				vecVertices.reserve(nVertexCount);
 
-				std::vector<uint32_t> vecIndices;
-				vecIndices.reserve(nIndexCount);
-
-				uint32_t nIdx = 0;
 				vecVertices.push_back(VertexPosCol(Math::Vector3::Zero, color));
-				vecIndices.push_back(nIdx);
-				++nIdx;
-
 				vecVertices.push_back(VertexPosCol(Math::Vector3(0.f, 0.f, 1.f), color));
-				vecIndices.push_back(nIdx);
-				++nIdx;
 
 				m_pLineSegmentVertexBuffer = IVertexBuffer::Create(VertexPosCol::Format(), vecVertices.size(), &vecVertices.front(), D3D11_USAGE_DYNAMIC);
-				m_pLineSegmentIndexBuffer = IIndexBuffer::Create(vecIndices.size(), &vecIndices.front(), D3D11_USAGE_IMMUTABLE);
 
-				if (m_pLineSegmentVertexBuffer == nullptr || m_pLineSegmentIndexBuffer == nullptr)
+				if (m_pLineSegmentVertexBuffer == nullptr)
 					return false;
 			}
 
@@ -117,6 +103,9 @@ namespace EastEngine
 			pDeviceContext->SetRenderTargets(&pRenderTarget, 1, pDevice->GetMainDepthStencil());
 
 			RenderVertex(pDevice, pDeviceContext);
+
+			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOn);
+
 			RenderLine(pDevice, pDeviceContext);
 			RenderLineSegment(pDevice, pDeviceContext);
 
@@ -157,57 +146,11 @@ namespace EastEngine
 
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-			/*size_t nSize = m_vecVertexSubset.size();
-			for (size_t i = 0; i < nSize; ++i)
-			{
-				const RenderSubsetVertex* pRenderSubset = &m_vecVertexSubset[i];
-
-				if (pRenderSubset->isWireframe == true)
-				{
-					pDeviceContext->SetRasterizerState(EmRasterizerState::eWireframeCullNone);
-				}
-				else
-				{
-					pDeviceContext->SetRasterizerState(EmRasterizerState::eSolidCCW);
-				}
-
-				pDeviceContext->SetVertexBuffers(pRenderSubset->pVertexBuffer, pRenderSubset->pVertexBuffer->GetFormatSize(), 0);
-				pDeviceContext->SetIndexBuffer(pRenderSubset->pIndexBuffer, 0);
-
-				pEffectTech = m_pEffect->GetTechnique(StrID::Vertex);
-				if (pEffectTech == nullptr)
-				{
-					PRINT_LOG("Not Exist EffectTech !!");
-					continue;
-				}
-
-				if (pDeviceContext->SetInputLayout(pEffectTech->GetLayoutFormat()) == false)
-					continue;
-
-				m_pEffect->SetMatrix(StrID::g_matWVP, pRenderSubset->matWorld * pCamera->GetViewMatrix() * pCamera->GetProjMatrix());
-				m_pEffect->SetVector(StrID::g_color, *reinterpret_cast<const Math::Vector4*>(&pRenderSubset->color));
-
-				uint32_t nPassCount = pEffectTech->GetPassCount();
-				for (uint32_t p = 0; p < nPassCount; ++p)
-				{
-					pEffectTech->PassApply(p, pDeviceContext);
-
-					if (pRenderSubset->pIndexBuffer != nullptr)
-					{
-						pDeviceContext->DrawIndexed(pRenderSubset->pIndexBuffer->GetIndexNum(), 0, 0);
-					}
-					else
-					{
-						pDeviceContext->Draw(pRenderSubset->pVertexBuffer->GetVertexNum(), 0);
-					}
-				}
-			}*/
-
 			const Math::Matrix matViewProjection = pCamera->GetViewMatrix() * pCamera->GetProjMatrix();
 
 			std::map<std::tuple<IVertexBuffer*, IIndexBuffer*, bool>, RenderSubsetVertexBatch> mapVertex;
 			{
-				size_t nSize = m_vecVertexSubset.size();
+				const size_t nSize = m_vecVertexSubset.size();
 				for (size_t i = 0; i < nSize; ++i)
 				{
 					RenderSubsetVertex& renderSubset = m_vecVertexSubset[i];
@@ -238,6 +181,16 @@ namespace EastEngine
 					else
 					{
 						pDeviceContext->SetRasterizerState(EmRasterizerState::eSolidCCW);
+					}
+
+					if (pRenderSubset->isIgnoreDepth == true)
+					{
+						pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOff);
+					}
+					else
+					{
+						pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOn);
+
 					}
 
 					pDeviceContext->SetVertexBuffers(pRenderSubset->pVertexBuffer, pRenderSubset->pVertexBuffer->GetFormatSize(), 0);
@@ -348,7 +301,7 @@ namespace EastEngine
 
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 
-			size_t nSize = m_vecLineSubset.size();
+			const size_t nSize = m_vecLineSubset.size();
 			for (size_t i= 0; i < nSize; ++i)
 			{
 				RenderSubsetLine& renderSubset = m_vecLineSubset[i];
@@ -391,15 +344,18 @@ namespace EastEngine
 				return;
 			}
 
+			if (pDeviceContext->SetInputLayout(pEffectTech->GetLayoutFormat()) == false)
+				return;
+
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 
-			size_t nSize = m_vecLineSegmentSubset.size();
+			const size_t nSize = m_vecLineSegmentSubset.size();
 			for (size_t i= 0; i < nSize; ++i)
 			{
 				RenderSubsetLineSegment& renderSubset = m_vecLineSegmentSubset[i];
 
 				VertexPosCol* pVertices = nullptr;
-				if (m_pLineSegmentVertexBuffer->Map(0, D3D11_MAP_WRITE_NO_OVERWRITE, reinterpret_cast<void**>(&pVertices)) == false)
+				if (m_pLineSegmentVertexBuffer->Map(0, D3D11_MAP_WRITE_DISCARD, reinterpret_cast<void**>(&pVertices)) == false)
 					continue;
 
 				pVertices[0] = renderSubset.vertexLineSegment[0];
@@ -407,8 +363,17 @@ namespace EastEngine
 
 				m_pLineSegmentVertexBuffer->Unmap(0);
 
+				if (renderSubset.isIgnoreDepth == true)
+				{
+					pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOff);
+				}
+				else
+				{
+					pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOn);
+				}
+
 				pDeviceContext->SetVertexBuffers(m_pLineSegmentVertexBuffer, m_pLineSegmentVertexBuffer->GetFormatSize(), 0);
-				pDeviceContext->SetIndexBuffer(m_pLineSegmentIndexBuffer, 0);
+				pDeviceContext->SetIndexBuffer(nullptr, 0);
 
 				m_pEffect->SetMatrix(StrID::g_matWVP, pCamera->GetViewMatrix() * pCamera->GetProjMatrix());
 
@@ -417,7 +382,7 @@ namespace EastEngine
 				{
 					pEffectTech->PassApply(p, pDeviceContext);
 
-					pDeviceContext->DrawIndexed(m_pLineSegmentIndexBuffer->GetIndexNum(), 0, 0);
+					pDeviceContext->Draw(2, 0);
 				}
 			}
 

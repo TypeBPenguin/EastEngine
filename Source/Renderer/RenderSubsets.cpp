@@ -10,7 +10,8 @@ namespace EastEngine
 		{
 		}
 
-		RenderSubsetLineSegment::RenderSubsetLineSegment(const Math::Vector3& f3StartPoint, const Math::Color& colorStartPoint, const Math::Vector3& f3EndPoint, const Math::Color& colorEndPoint)
+		RenderSubsetLineSegment::RenderSubsetLineSegment(const Math::Vector3& f3StartPoint, const Math::Color& colorStartPoint, const Math::Vector3& f3EndPoint, const Math::Color& colorEndPoint, bool isIgnoreDepth)
+			: isIgnoreDepth(isIgnoreDepth)
 		{
 			vertexLineSegment[0] = VertexPosCol(f3StartPoint, colorStartPoint);
 			vertexLineSegment[1] = VertexPosCol(f3EndPoint, colorEndPoint);
@@ -20,8 +21,8 @@ namespace EastEngine
 		{
 		}
 
-		RenderSubsetVertex::RenderSubsetVertex(IVertexBuffer* pVertexBuffer, IIndexBuffer* pIndexBuffer, const Math::Matrix& matWorld, const Math::Color& color, bool isWireframe)
-			: pVertexBuffer(pVertexBuffer), pIndexBuffer(pIndexBuffer), matWorld(matWorld), color(color), isWireframe(isWireframe)
+		RenderSubsetVertex::RenderSubsetVertex(IVertexBuffer* pVertexBuffer, IIndexBuffer* pIndexBuffer, const Math::Matrix& matWorld, const Math::Color& color, bool isWireframe, bool isIgnoreDepth)
+			: pVertexBuffer(pVertexBuffer), pIndexBuffer(pIndexBuffer), matWorld(matWorld), color(color), isWireframe(isWireframe), isIgnoreDepth(isIgnoreDepth)
 		{
 		}
 

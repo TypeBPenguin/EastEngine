@@ -36,18 +36,18 @@ namespace EastEngine
 		private:
 			struct RequestAttachmentNode
 			{
-				IModelInstance* pInstance = nullptr;
+				ModelInstance* pInstance = nullptr;
 				String::StringID strNodeName;
 
-				RequestAttachmentNode(IModelInstance* pInstance, const String::StringID& strNodeName);
+				RequestAttachmentNode(ModelInstance* pInstance, const String::StringID& strNodeName);
 			};
 
 			struct AttachmentNode
 			{
-				IModelInstance* pInstance = nullptr;
+				ModelInstance* pInstance = nullptr;
 				const Math::Matrix* pTargetMatrix = nullptr;
 
-				AttachmentNode(IModelInstance* pInstance, const Math::Matrix* pTargetMatrix);
+				AttachmentNode(ModelInstance* pInstance, const Math::Matrix* pTargetMatrix);
 			};
 
 		public:
@@ -58,15 +58,14 @@ namespace EastEngine
 			void Process();
 
 		public:
-			virtual void Update(float fElapsedTime, const Math::Matrix& matParent) override
-			{
-				m_fUpdateTimeData = fElapsedTime;
-				m_matUpdateData = matParent;
-			}
+			virtual void Update(float fElapsedTime, const Math::Matrix& matParent) override;
 
 			virtual bool Attachment(IModelInstance* pInstance, const String::StringID& strNodeName) override;
 			virtual IModelInstance* GetAttachment(size_t nIndex) const override { return m_vecAttachmentNode[nIndex].pInstance; }
 			virtual size_t GetAttachmentCount() const override { return m_vecAttachmentNode.size(); }
+			virtual bool IsAttachment() const override { return m_isAttachment; }
+
+			virtual bool Dettachment(IModelInstance* pInstance) override;
 
 			virtual void PlayMotion(IMotion* pMotion, const MotionState* pMotionState = nullptr) override;
 			virtual void StopMotion(float fStopTime) override;
@@ -89,12 +88,14 @@ namespace EastEngine
 
 		public:
 			void LoadCompleteCallback(bool bSuccess);
+			void SetAttachment(bool isAttachment) { m_isAttachment = isAttachment; }
 
 		private:
 			bool m_isVisible;
+			bool m_isAttachment;
 
-			float m_fUpdateTimeData;
-			Math::Matrix m_matUpdateData;
+			float m_fElapsedTime;
+			Math::Matrix m_matParent;
 
 			Math::Matrix m_matWorld;
 

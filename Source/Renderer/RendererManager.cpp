@@ -148,11 +148,11 @@ namespace EastEngine
 
 			m_pRenderer[EmRenderer::eDeferred]->Render(0);
 
-			m_pRenderer[EmRenderer::eVertex]->Render(0);
-
 			//m_pRenderer[EmRenderer::eWater]->Render(0);
 
 			m_pRenderer[EmRenderer::eSky]->Render(0);
+
+			m_pRenderer[EmRenderer::eVertex]->Render(0);
 
 			//m_pRenderer[EmRenderer::eParticle]->Render(EmParticleGroup::eEmitter);
 

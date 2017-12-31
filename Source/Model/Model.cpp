@@ -138,7 +138,10 @@ namespace EastEngine
 		{
 			std::for_each(m_clnModelInstance.begin(), m_clnModelInstance.end(), [](ModelInstance& instance)
 			{
-				instance.Process();
+				if (instance.IsAttachment() == false)
+				{
+					instance.Process();
+				}
 			});
 		}
 		
@@ -212,12 +215,10 @@ namespace EastEngine
 			{
 			case EmModelLoader::eFbx:
 			{
-				//static std::mutex mutex;
-				//std::unique_lock<std::mutex> lock(mutex);
+				static std::mutex mutex;
+				std::unique_lock<std::mutex> lock(mutex);
 
-				isSuccess = LoadFbxModel(loader);
-
-				//isSuccess = SFbxImporter::GetInstance()->LoadModel(this, loader.GetFilePath().c_str(), loader.GetScaleFactor());
+				isSuccess = FBXImport::GetInstance()->LoadModel(this, loader.GetFilePath().c_str(), loader.GetScaleFactor());
 				if (isSuccess == false)
 				{
 					PRINT_LOG("Can't load Model[FBX] : %s", loader.GetFilePath().c_str());
@@ -434,7 +435,7 @@ namespace EastEngine
 					{
 						isSuccess = GeometryModel::CreateGrid(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fGridSizeX, pLoadInfo->fGridSizeZ, pLoadInfo->nBlockCountWidth, pLoadInfo->nBlockCountLength);
 
-						aabb.Extents = Math::Vector3(pLoadInfo->fGridSizeX * 0.5f, 0.1f, pLoadInfo->fGridSizeZ * 0.5f);
+						aabb.Extents = Math::Vector3(pLoadInfo->fGridSizeX, 0.1f, pLoadInfo->fGridSizeZ);
 					}
 				}
 				break;
@@ -445,7 +446,7 @@ namespace EastEngine
 					{
 						isSuccess = GeometryModel::CreatePlane(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fEachLengthX, pLoadInfo->fEachLengthZ, pLoadInfo->nTotalCountX, pLoadInfo->nTotalCountZ);
 
-						aabb.Extents = Math::Vector3(pLoadInfo->fEachLengthX * pLoadInfo->nTotalCountX * 0.5f, 0.1f, pLoadInfo->fEachLengthZ * pLoadInfo->nTotalCountZ * 0.5f);
+						aabb.Extents = Math::Vector3(pLoadInfo->fEachLengthX * pLoadInfo->nTotalCountX, 0.1f, pLoadInfo->fEachLengthZ * pLoadInfo->nTotalCountZ);
 					}
 				}
 				break;
@@ -742,15 +743,6 @@ namespace EastEngine
 					pSkeleton->SetSkinnedList(pNodeSkinned->GetName(), &vecBoneNames.front(), vecBoneNames.size());
 				}
 			}
-
-			return true;
-		}
-
-		bool Model::LoadFbxModel(const ModelLoader& loader)
-		{
-			bool isSuccess = FBXImport::GetInstance()->LoadModel(this, loader.GetFilePath().c_str(), loader.GetScaleFactor());
-			if (isSuccess == false)
-				return false;
 
 			return true;
 		}

@@ -448,7 +448,6 @@ namespace EastEngine
 			Math::Vector4 f4SheenTintClearcoatGloss;
 
 			float fTessellationFactor;
-			float fTessellationFactorResScale;
 
 			std::array<String::StringID, EmMaterial::TypeCount> strTextureNameArray;
 
@@ -493,9 +492,6 @@ namespace EastEngine
 
 			virtual float GetTessellationFactor() const = 0;
 			virtual void SetTessellationFactor(float fTessellationFactor) = 0;
-
-			virtual float GetTessellationFactorResScale() const = 0;
-			virtual void SetTessellationFactorResScale(float fTessellationFactorResScale) = 0;
 
 			virtual const String::StringID& GetTextureName(EmMaterial::Type emType) const = 0;
 			virtual void SetTextureName(EmMaterial::Type emType, const String::StringID& strName) = 0;

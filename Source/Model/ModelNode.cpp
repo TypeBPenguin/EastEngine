@@ -1,7 +1,11 @@
 #include "stdafx.h"
 #include "ModelNode.h"
 
+#include "GeometryModel.h"
+
 #include "CommonLib/FileStream.h"
+#include "CommonLib/Config.h"
+#include "Renderer/RendererManager.h"
 
 namespace EastEngine
 {
@@ -84,11 +88,11 @@ namespace EastEngine
 			m_vecMaterial.push_back(pMaterial);
 		}
 
-		void ModelNode::AddMaterialArray(IMaterial** ppMaterials, uint32_t nCount)
+		void ModelNode::AddMaterialArray(IMaterial** ppMaterials, size_t nCount)
 		{
 			m_vecMaterial.reserve(m_vecMaterial.size() + nCount);
 
-			for (uint32_t i = 0; i < nCount; ++i)
+			for (size_t i = 0; i < nCount; ++i)
 			{
 				ppMaterials[i]->IncreaseReference();
 				m_vecMaterial.emplace_back(ppMaterials[i]);
@@ -122,6 +126,25 @@ namespace EastEngine
 			m_boundingAABB.Transform(m_boundingAABB, matWorld);
 			m_boundingOBB.Transform(m_boundingOBB, matWorld);
 			m_boundingSphere.Transform(m_boundingSphere, matWorld);
+
+			if (Config::IsEnable("VisibleCollisionMesh"_s))
+			{
+				Math::Matrix matAABB = Math::Matrix::Compose(m_boundingAABB.Extents, Math::Quaternion::Identity, m_boundingAABB.Center);
+
+				RenderSubsetVertex aabb;
+				aabb.matWorld = matAABB;
+				aabb.isWireframe = true;
+				GeometryModel::GetDebugModel(GeometryModel::EmDebugModel::eBox, &aabb.pVertexBuffer, &aabb.pIndexBuffer);
+				RendererManager::GetInstance()->AddRender(aabb);
+
+				Math::Matrix matSphere = Math::Matrix::Compose(Math::Vector3(m_boundingSphere.Radius), Math::Quaternion::Identity, m_boundingSphere.Center);
+
+				RenderSubsetVertex sphere;
+				sphere.matWorld = matSphere;
+				sphere.isWireframe = true;
+				GeometryModel::GetDebugModel(GeometryModel::EmDebugModel::eSphere, &sphere.pVertexBuffer, &sphere.pIndexBuffer);
+				RendererManager::GetInstance()->AddRender(sphere);
+			}
 		}
 	}
 }

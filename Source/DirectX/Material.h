@@ -40,9 +40,6 @@ namespace EastEngine
 			virtual float GetTessellationFactor() const override { return m_info.fTessellationFactor; }
 			virtual void SetTessellationFactor(float fTessellationFactor) override { m_info.fTessellationFactor = fTessellationFactor; }
 
-			virtual float GetTessellationFactorResScale() const override { return m_info.fTessellationFactorResScale; }
-			virtual void SetTessellationFactorResScale(float fTessellationFactorResScale) override { m_info.fTessellationFactorResScale = fTessellationFactorResScale; }
-
 			virtual const String::StringID& GetTextureName(EmMaterial::Type emType) const override { return m_info.strTextureNameArray[emType]; }
 			virtual void SetTextureName(EmMaterial::Type emType, const String::StringID& strName) override { m_info.strTextureNameArray[emType] = strName; }
 

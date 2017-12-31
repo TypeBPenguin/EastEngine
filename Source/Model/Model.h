@@ -72,9 +72,6 @@ namespace EastEngine
 			void SetFilePath(const std::string& strFilePath) { m_strFilePath = strFilePath; }
 
 		private:
-			bool LoadFbxModel(const ModelLoader& loader);
-
-		private:
 			bool m_isVisible;
 			bool m_isDirtyLocalMatrix;
 
