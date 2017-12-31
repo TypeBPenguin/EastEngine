@@ -320,6 +320,14 @@ namespace EastEngine
 					isEnableTessellation = true;
 				}
 			}
+			else
+			{
+				if (Config::IsEnable("Tessellation"_s) == true)
+				{
+					SetBitMask64(nMask, EmModelShader::eUseTessellation);
+					isEnableTessellation = true;
+				}
+			}
 
 			IEffect* pEffect = GetEffect(nMask);
 			if (pEffect == nullptr)
@@ -387,7 +395,12 @@ namespace EastEngine
 
 				if (pMaterial != nullptr)
 				{
-					float fTessellationFactor = pMaterial->GetTessellationFactor() * pMaterial->GetTessellationFactorResScale();
+					const float fTessellationFactor = pMaterial->GetTessellationFactor() * pMaterial->GetTessellationFactorResScale();
+					pEffect->SetFloat(StrID::g_fTessellationFactor, fTessellationFactor);
+				}
+				else
+				{
+					const float fTessellationFactor = 256.f;
 					pEffect->SetFloat(StrID::g_fTessellationFactor, fTessellationFactor);
 				}
 			}
@@ -476,7 +489,15 @@ namespace EastEngine
 					{
 						pDeviceContext->SetBlendState(pDevice->GetBlendState(EmBlendState::eOff));
 						pDeviceContext->SetDepthStencilState(pDevice->GetDepthStencilState(EmDepthStencilState::eOn));
-						pDeviceContext->SetRasterizerState(pDevice->GetRasterizerState(EmRasterizerState::eSolidCCW));
+
+						if (Config::IsEnable("Wireframe"_s) == true)
+						{
+							pDeviceContext->SetRasterizerState(EmRasterizerState::eWireframeCullNone);
+						}
+						else
+						{
+							pDeviceContext->SetRasterizerState(EmRasterizerState::eSolidCCW);
+						}
 					}
 				}
 			}

@@ -280,17 +280,18 @@ namespace EastEngine
 
 		SkeletonInstance::SkeletonInstance(ISkeleton* pSkeleton)
 			: m_pSkeleton(pSkeleton)
-			, m_isDirty(false)
+			, m_isDirty(true)
 			, m_pRootBone(new RootBone(static_cast<Skeleton::Bone*>(pSkeleton->GetRootBone())))
 		{
 			m_vecBones.reserve(pSkeleton->GetBoneCount());
 			m_umapBone.reserve(pSkeleton->GetBoneCount());
 
 			CreateBone(pSkeleton->GetRootBone(), m_pRootBone);
+			CreateSkinnedData(pSkeleton);
+
+			SetIdentity();
 
 			Update();
-
-			CreateSkinnedData(pSkeleton);
 		}
 
 		SkeletonInstance::~SkeletonInstance()
