@@ -108,6 +108,7 @@
   <ItemGroup>
     <ClInclude Include="CommandLine.h" />
     <ClInclude Include="Config.h" />
+    <ClInclude Include="CrashHandler.h" />
     <ClInclude Include="ErrorDefine.h" />
     <ClInclude Include="Memory.h" />
     <ClInclude Include="Performance.h" />
@@ -138,6 +139,7 @@
     <ClCompile Include="CommandLine.cpp" />
     <ClCompile Include="CommonLib.cpp" />
     <ClCompile Include="Config.cpp" />
+    <ClCompile Include="CrashHandler.cpp" />
     <ClCompile Include="Memory.cpp" />
     <ClCompile Include="Performance.cpp" />
     <ClCompile Include="PipeData.cpp" />

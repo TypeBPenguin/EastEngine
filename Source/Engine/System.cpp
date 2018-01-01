@@ -8,6 +8,7 @@
 #include "CommonLib/DirectoryMonitor.h"
 #include "CommonLib/ThreadPool.h"
 #include "CommonLib/Timer.h"
+#include "CommonLib/CrashHandler.h"
 
 #include "CommonLib/PipeStream.h"
 
@@ -59,6 +60,12 @@ namespace EastEngine
 			return true;
 
 		m_isInit = true;
+
+		if (CrashHandler::Initialize() == false)
+		{
+			Release();
+			return false;
+		}
 
 		s_pDirectoryMonitor = File::DirectoryMonitor::GetInstance();
 		if (s_pDirectoryMonitor->Init() == false)
@@ -236,6 +243,7 @@ namespace EastEngine
 		File::DirectoryMonitor::DestroyInstance();
 
 		String::Release();
+		CrashHandler::Release();
 
 		m_isInit = true;
 	}

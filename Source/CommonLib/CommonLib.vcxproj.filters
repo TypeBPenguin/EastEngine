@@ -73,6 +73,9 @@
     <Filter Include="Type">
       <UniqueIdentifier>{1aeaa061-a01c-4a63-8d63-5d9c65ea1fcd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="CrashHandler">
+      <UniqueIdentifier>{9d3ff15c-7c8e-4146-bf1a-c519b6d4fd21}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -153,6 +156,9 @@
     <ClInclude Include="ThreadPool.h">
       <Filter>ThreadPool</Filter>
     </ClInclude>
+    <ClInclude Include="CrashHandler.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -214,6 +220,9 @@
     </ClCompile>
     <ClCompile Include="ThreadPool.cpp">
       <Filter>ThreadPool</Filter>
+    </ClCompile>
+    <ClCompile Include="CrashHandler.cpp">
+      <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
