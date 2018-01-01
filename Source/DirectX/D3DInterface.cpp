@@ -24,18 +24,24 @@ namespace EastEngine
 	namespace Graphics
 	{
 		static boost::object_pool<Texture> s_poolTexture;
+		static std::mutex s_mutexTexture;
 		static std::atomic<uint32_t> s_nTextureCount;
 		inline std::shared_ptr<Texture> AllocateTexture()
 		{
+			std::lock_guard<std::mutex> lock(s_mutexTexture);
 			s_nTextureCount.fetch_add(1);
+
 			return std::shared_ptr<Texture>(s_poolTexture.construct(), [&](Texture* pTexture)
 			{
+				std::lock_guard<std::mutex> lock(s_mutexTexture);
 				s_poolTexture.destroy(pTexture);
+
 				s_nTextureCount.fetch_sub(1);
 			});
 		}
 
 		static boost::object_pool<Material> s_poolMaterial;
+		static std::mutex s_mutexMaterial;
 
 		IDevice* GetDevice()
 		{
@@ -409,6 +415,8 @@ namespace EastEngine
 
 		IMaterial* IMaterial::Create(const MaterialInfo* pInfo)
 		{
+			std::lock_guard<std::mutex> lock(s_mutexMaterial);
+
 			Material* pMaterial = s_poolMaterial.construct();
 			if (pMaterial->Init(pInfo) == false)
 			{
@@ -421,6 +429,8 @@ namespace EastEngine
 
 		IMaterial* IMaterial::Create(const String::StringID& strName)
 		{
+			std::lock_guard<std::mutex> lock(s_mutexMaterial);
+
 			Material* pMaterial = s_poolMaterial.construct();
 			if (pMaterial->Init(strName) == false)
 			{
@@ -433,6 +443,8 @@ namespace EastEngine
 
 		IMaterial* IMaterial::Clone(const IMaterial* pSource)
 		{
+			std::lock_guard<std::mutex> lock(s_mutexMaterial);
+
 			Material* pMaterial = s_poolMaterial.construct();
 			if (pMaterial->Init(pSource) == false)
 			{
@@ -489,6 +501,8 @@ namespace EastEngine
 		{
 			if (ppMaterial == nullptr || *ppMaterial == nullptr)
 				return;
+
+			std::lock_guard<std::mutex> lock(s_mutexMaterial);
 
 			int nRefCount = (*ppMaterial)->DecreaseReference();
 			if (nRefCount <= 0)

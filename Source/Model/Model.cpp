@@ -161,7 +161,7 @@ namespace EastEngine
 			});
 		}
 
-		IModelNode* Model::GetNode(const String::StringID& strName)
+		IModelNode* Model::GetNode(const String::StringID& strName) const
 		{
 			auto iter = std::find_if(m_vecModelNodes.begin(), m_vecModelNodes.end(), [&](IModelNode* pNode)
 			{
@@ -209,13 +209,14 @@ namespace EastEngine
 
 		bool Model::Load(const ModelLoader& loader)
 		{
+			static std::mutex mutex;
+
 			bool isSuccess = false;
 
 			switch (loader.GetLoadModelType())
 			{
 			case EmModelLoader::eFbx:
 			{
-				static std::mutex mutex;
 				std::unique_lock<std::mutex> lock(mutex);
 
 				isSuccess = FBXImport::GetInstance()->LoadModel(this, loader.GetFilePath().c_str(), loader.GetScaleFactor());
@@ -227,10 +228,10 @@ namespace EastEngine
 			break;
 			case EmModelLoader::eObj:
 			{
-				//static std::mutex mutex;
-				//std::unique_lock<std::mutex> lock(mutex);
+				std::unique_lock<std::mutex> lock(mutex);
 
-				isSuccess = SObjImporter::GetInstance()->LoadModel(this, loader.GetFilePath().c_str(), loader.GetScaleFactor(), loader.GetLodMax(), &loader.GetLODReductionRate());
+				isSuccess = FBXImport::GetInstance()->LoadModel(this, loader.GetFilePath().c_str(), loader.GetScaleFactor());
+				//isSuccess = SObjImporter::GetInstance()->LoadModel(this, loader.GetFilePath().c_str(), loader.GetScaleFactor(), loader.GetLodMax(), &loader.GetLODReductionRate());
 				if (isSuccess == false)
 				{
 					PRINT_LOG("Can't load Model[Obj] : %s", loader.GetFilePath().c_str());

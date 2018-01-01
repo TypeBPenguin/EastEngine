@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "TextureManager.h"
 
-#include "CommonLib/Timer.h"
+#include "CommonLib/Performance.h"
 #include "CommonLib/FileUtil.h"
 #include "CommonLib/ThreadPool.h"
 
@@ -357,7 +357,8 @@ namespace EastEngine
 			HRESULT hr;
 			DirectX::ScratchImage image;
 
-			double dStartTime = Timer::GetInstance()->GetGameTime();
+			Performance::Counter counter;
+			counter.Start();
 
 			std::string strFileExtension(File::GetFileExtension(strFilePath));
 
@@ -483,9 +484,9 @@ namespace EastEngine
 			//	WriteTextureAtlas(pTexture);	
 			//}
 
-			double dEndTime = Timer::GetInstance()->GetGameTime();
+			counter.End();
 
-			PRINT_LOG("Loading Time[%s] : %lf", strFilePath, dEndTime - dStartTime);
+			PRINT_LOG("Loading Time[%s] : %lf", strFilePath, counter.Count());
 
 			Texture* pRealTexture = static_cast<Texture*>(pTexture.get());
 			return pRealTexture->Load(pTexture2D, pShaderResourceView);

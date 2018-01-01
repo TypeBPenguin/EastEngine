@@ -30,26 +30,24 @@ namespace EastEngine
 			void LoadCompleteCallback(bool isSuccess);
 
 		public:
-			virtual const Math::Vector3& GetLocalPosition() override { return m_f3Pos; }
+			virtual const Math::Vector3& GetLocalPosition() const override { return m_f3Pos; }
 			virtual void SetLocalPosition(const Math::Vector3& f3Pos) override { m_f3Pos = f3Pos; m_isDirtyLocalMatrix = true; }
-			virtual const Math::Vector3& GetLocalScale() override { return m_f3Scale; }
+			virtual const Math::Vector3& GetLocalScale() const override { return m_f3Scale; }
 			virtual void SetLocalScale(const Math::Vector3& f3Scale) override { m_f3Scale = f3Scale; m_isDirtyLocalMatrix = true; }
-			virtual const Math::Quaternion& GetLocalRotation() override { return m_quat; }
+			virtual const Math::Quaternion& GetLocalRotation() const override { return m_quat; }
 			virtual void SetLocalRotation(const Math::Quaternion& quat) override { m_quat = quat; m_isDirtyLocalMatrix = true; }
 
-			virtual const String::StringID& GetName() override { return m_strModelName; }
-			virtual const std::string& GetFilePath() override { return m_strFilePath; }
+			virtual const String::StringID& GetName() const override { return m_strModelName; }
+			virtual const std::string& GetFilePath() const override { return m_strFilePath; }
 
-			virtual size_t GetNodeCount() override { return m_vecModelNodes.size(); }
-			virtual IModelNode* GetNode(size_t nIndex) override { return m_vecModelNodes[nIndex]; }
-			virtual IModelNode* GetNode(const String::StringID& strName) override;
+			virtual size_t GetNodeCount() const override { return m_vecModelNodes.size(); }
+			virtual IModelNode* GetNode(size_t nIndex) const override { return m_vecModelNodes[nIndex]; }
+			virtual IModelNode* GetNode(const String::StringID& strName) const override;
 
-			virtual bool IsVisible() override { return m_isVisible; }
+			virtual bool IsVisible() const override { return m_isVisible; }
 			virtual void SetVisible(bool bVisible) override { m_isVisible = bVisible; }
 
-			virtual ISkeleton* GetSkeleton() override { return m_pSkeleton; }
-
-			virtual bool IsSkinningModel() const override { return m_pSkeleton != nullptr; }
+			virtual ISkeleton* GetSkeleton() const override { return m_pSkeleton; }
 
 		public:
 			virtual int GetReferenceCount() const override { return m_nReferenceCount; }

@@ -448,16 +448,16 @@ void SceneStudio::Enter()
 		std::string strPathMotion(File::GetDataPath());
 		strPathMotion.append("Actor\\UnityChan\\Animations\\unitychan_ARpose1.fbx");
 
-		//Graphics::MotionLoader motionLoader;
-		//motionLoader.InitFBX(File::GetFileName(strPathMotion).c_str(), strPathMotion.c_str(), 0.01f);
-		//Graphics::IMotion* pMotion = Graphics::IMotion::Create(motionLoader);
-
 		Graphics::IModelInstance* pModelInstance = pModel->GetModelInstance();
 
-		//Graphics::MotionState motionState;
-		//motionState.fSpeed = 0.075f;
-		//motionState.isLoop = false;
-		//pModelInstance->PlayMotion(pMotion, &motionState);
+		Graphics::MotionLoader motionLoader;
+		motionLoader.InitFBX(File::GetFileName(strPathMotion).c_str(), strPathMotion.c_str(), 0.01f);
+		Graphics::IMotion* pMotion = Graphics::IMotion::Create(motionLoader);
+
+		Graphics::MotionState motionState;
+		motionState.fSpeed = 0.075f;
+		motionState.isLoop = false;
+		pModelInstance->PlayMotion(pMotion, &motionState);
 
 		//GameObject::ComponentPhysics* pCompPhysics = static_cast<GameObject::ComponentPhysics*>(pActor->CreateComponent(GameObject::EmComponent::ePhysics));
 
@@ -466,14 +466,15 @@ void SceneStudio::Enter()
 
 		{
 			Graphics::IModelInstance* pModelInstance_Attach = nullptr;
-			Graphics::MaterialInfo material;
-			material.colorAlbedo = Math::Color::Red;
 			Graphics::ModelLoader loader;
-			loader.InitBox("TestAttachment", &material, Math::Vector3(0.05f));
+			loader.InitFBX("LP.obj", "E:\\3D Model\\elemental-sword-ice\\source\\LP.obj", 0.005f);
 
 			pModelInstance_Attach = Graphics::IModel::CreateInstance(loader, false);
 
-			pModelInstance->Attachment(pModelInstance_Attach, "Character1_LeftHand");
+			Math::Vector3 f3Pos = { 0.08f, 0.225f, -0.02f };
+			Math::Quaternion quat = Math::Quaternion::CreateFromYawPitchRoll(Math::ToRadians(90.f), Math::ToRadians(180.f), 0.f);
+
+			pModelInstance->Attachment(pModelInstance_Attach, "Character1_LeftHand", Math::Matrix::Compose(Math::Vector3::One, quat, f3Pos));
 		}
 	}
 
@@ -1685,7 +1686,7 @@ void SceneStudio::RenderUI()
 										}
 									}
 
-									if (pModel->IsSkinningModel() == true)
+									if (pModel->GetSkeleton() != nullptr)
 									{
 										static bool isShowMotionSystem = false;
 										if (ImGui::Button("Show Motion System") == true)

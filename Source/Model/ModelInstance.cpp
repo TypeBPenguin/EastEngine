@@ -47,14 +47,13 @@ namespace EastEngine
 		{
 		}
 
-		ModelInstance::RequestAttachmentNode::RequestAttachmentNode(ModelInstance* pInstance, const String::StringID& strNodeName)
-			: pInstance(pInstance), strNodeName(strNodeName)
+		ModelInstance::AttachmentNode::AttachmentNode(ModelInstance* pInstance, const String::StringID& strNodeName, const Math::Matrix& matOffset, EmAttachNodeType emAttachNodeType)
+			: pInstance(pInstance)
+			, strNodeName(strNodeName)
+			, matOffset(matOffset)
+			, emAttachNodeType(emAttachNodeType)
 		{
-		}
-
-		ModelInstance::AttachmentNode::AttachmentNode(ModelInstance* pInstance, const Math::Matrix* pTargetMatrix)
-			: pInstance(pInstance), pTargetMatrix(pTargetMatrix)
-		{
+			pInstance->SetAttachment(true);
 		}
 
 		ModelInstance::ModelInstance(IModel* pModel)
@@ -98,10 +97,23 @@ namespace EastEngine
 
 			for (const auto& node : m_vecAttachmentNode)
 			{
-				if (node.pTargetMatrix != nullptr)
+				if (node.emAttachNodeType == AttachmentNode::EmAttachNodeType::eBone && m_pSkeletonInstance != nullptr)
 				{
-					node.pInstance->Update(m_fElapsedTime, *node.pTargetMatrix);
-					node.pInstance->Process();
+					ISkeletonInstance::IBone* pBone = m_pSkeletonInstance->GetBone(node.strNodeName);
+					if (pBone != nullptr)
+					{
+						node.pInstance->Update(m_fElapsedTime, node.matOffset * pBone->GetGlobalTransform());
+						node.pInstance->Process();
+					}
+				}
+				else if (node.emAttachNodeType == AttachmentNode::EmAttachNodeType::eNode)
+				{
+					IModelNode* pNode = m_pModel->GetNode(node.strNodeName);
+					if (pNode != nullptr)
+					{
+						node.pInstance->Update(m_fElapsedTime, node.matOffset * pNode->GetWorldMatrix());
+						node.pInstance->Process();
+					}
 				}
 			}
 		}
@@ -112,12 +124,12 @@ namespace EastEngine
 			m_matParent = matParent;
 		}
 
-		bool ModelInstance::Attachment(IModelInstance* pInstance, const String::StringID& strNodeName)
+		bool ModelInstance::Attachment(IModelInstance* pInstance, const String::StringID& strNodeName, const Math::Matrix& matOffset)
 		{
 			if (IsLoadComplete() == false)
 			{
 				ModelInstance* pModelInstance = static_cast<ModelInstance*>(pInstance);
-				m_listRequestAttachmentNode.emplace_back(pModelInstance, strNodeName);
+				m_listRequestAttachmentNode.emplace_back(pModelInstance, strNodeName, matOffset, AttachmentNode::EmAttachNodeType::eNone);
 
 				return true;
 			}
@@ -129,7 +141,7 @@ namespace EastEngine
 					if (pBone != nullptr)
 					{
 						ModelInstance* pModelInstance = static_cast<ModelInstance*>(pInstance);
-						m_vecAttachmentNode.emplace_back(pModelInstance, &pBone->GetGlobalTransform());
+						m_vecAttachmentNode.emplace_back(pModelInstance, strNodeName, matOffset, AttachmentNode::EmAttachNodeType::eBone);
 						return true;
 					}
 				}
@@ -139,7 +151,7 @@ namespace EastEngine
 					return false;
 
 				ModelInstance* pModelInstance = static_cast<ModelInstance*>(pInstance);
-				m_vecAttachmentNode.emplace_back(pModelInstance, pNode->GetWorldMatrixPtr());
+				m_vecAttachmentNode.emplace_back(pModelInstance, strNodeName, matOffset, AttachmentNode::EmAttachNodeType::eNode);
 
 				return true;
 			}
@@ -149,7 +161,7 @@ namespace EastEngine
 		{
 			if (IsLoadComplete() == false)
 			{
-				auto iter = std::find_if(m_listRequestAttachmentNode.begin(), m_listRequestAttachmentNode.end(), [&pInstance](const RequestAttachmentNode& requestAttachmentNode)
+				auto iter = std::find_if(m_listRequestAttachmentNode.begin(), m_listRequestAttachmentNode.end(), [&pInstance](const AttachmentNode& requestAttachmentNode)
 				{
 					return requestAttachmentNode.pInstance == pInstance;
 				});
@@ -207,7 +219,7 @@ namespace EastEngine
 		{
 			if (isSuccess == true)
 			{
-				if (m_pModel->IsSkinningModel() == true)
+				if (m_pModel->GetSkeleton() != nullptr)
 				{
 					m_pMotionSystem = IMotionSystem::Create(m_pModel);
 					m_pSkeletonInstance = ISkeleton::CreateInstance(m_pModel->GetSkeleton());
@@ -215,7 +227,7 @@ namespace EastEngine
 
 				for (const auto& node : m_listRequestAttachmentNode)
 				{
-					Attachment(node.pInstance, node.strNodeName);
+					Attachment(node.pInstance, node.strNodeName, node.matOffset);
 				}
 				m_listRequestAttachmentNode.clear();
 			}

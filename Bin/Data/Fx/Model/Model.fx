@@ -9,12 +9,12 @@ Texture2D g_texVTF;
 
 #endif
 
-float4x4 DecodeMatrix(float3x4 encodedMatrix)
+float4x4 DecodeMatrix(in float4 encodedMatrix0, in float4 encodedMatrix1, in float4 encodedMatrix2)
 {
-	return float4x4(float4(encodedMatrix[0].xyz, 0),
-		float4(encodedMatrix[1].xyz, 0),
-		float4(encodedMatrix[2].xyz, 0),
-		float4(encodedMatrix[0].w, encodedMatrix[1].w, encodedMatrix[2].w, 1.f));
+	return float4x4(float4(encodedMatrix0.xyz, 0),
+		float4(encodedMatrix1.xyz, 0),
+		float4(encodedMatrix2.xyz, 0),
+		float4(encodedMatrix0.w, encodedMatrix1.w, encodedMatrix2.w, 1.f));
 }
 
 #ifdef USE_INSTANCING
@@ -25,8 +25,6 @@ struct InstDataStatic
 	float4 f4World1;
 	float4 f4World2;
 	float4 f4World3;
-
-	float4 padding;
 };
 
 #ifdef USE_SKINNING
@@ -52,13 +50,13 @@ cbuffer cbInstData
 #else
 cbuffer cbInstData
 {
-	InstDataStatic	g_Instances[MAX_INSTANCE_CONSTANTS];
+	InstDataStatic g_Instances[MAX_INSTANCE_CONSTANTS];
 }
 #endif
 
-float4x4 ComputeWorldMatrix(InstDataStatic worldData)
+float4x4 ComputeWorldMatrix(in InstDataStatic worldData)
 {
-	return DecodeMatrix(float3x4(worldData.f4World1, worldData.f4World2, worldData.f4World3));
+	return DecodeMatrix(worldData.f4World1, worldData.f4World2, worldData.f4World3);
 }
 
 #endif
@@ -86,7 +84,7 @@ float4x4 LoadBoneMatrix(in uint nVTFID, in uint bone)
 	float4 mat2 = g_texVTF.Load(uint3(baseU + 1, baseV, 0));
 	float4 mat3 = g_texVTF.Load(uint3(baseU + 2, baseV, 0));
 
-	return DecodeMatrix(float3x4(mat1, mat2, mat3));
+	return DecodeMatrix(mat1, mat2, mat3);
 }
 
 void ComputeSkinned(in float4 position

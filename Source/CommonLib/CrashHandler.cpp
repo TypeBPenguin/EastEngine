@@ -29,6 +29,8 @@ namespace EastEngine
 				SetProcessExceptionHandlers();
 				SetThreadExceptionHandlers();
 			}
+
+			return true;
 		}
 
 		void Release()
@@ -38,6 +40,12 @@ namespace EastEngine
 				delete s_crashDumpBuffer;
 				s_crashDumpBuffer = 0;
 			}
+		}
+
+		void ForceCrash()
+		{
+			int* p = nullptr;
+			*p = 0;
 		}
 
 		void SecureMemory()

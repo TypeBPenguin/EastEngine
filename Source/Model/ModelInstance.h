@@ -34,20 +34,21 @@ namespace EastEngine
 		class ModelInstance : public IModelInstance
 		{
 		private:
-			struct RequestAttachmentNode
-			{
-				ModelInstance* pInstance = nullptr;
-				String::StringID strNodeName;
-
-				RequestAttachmentNode(ModelInstance* pInstance, const String::StringID& strNodeName);
-			};
-
 			struct AttachmentNode
 			{
-				ModelInstance* pInstance = nullptr;
-				const Math::Matrix* pTargetMatrix = nullptr;
+				enum EmAttachNodeType
+				{
+					eNone = 0,
+					eBone,
+					eNode,
+				};
 
-				AttachmentNode(ModelInstance* pInstance, const Math::Matrix* pTargetMatrix);
+				ModelInstance* pInstance = nullptr;
+				String::StringID strNodeName;
+				EmAttachNodeType emAttachNodeType = EmAttachNodeType::eNone;
+				Math::Matrix matOffset;
+
+				AttachmentNode(ModelInstance* pInstance, const String::StringID& strNodeName, const Math::Matrix& matOffset, EmAttachNodeType emAttachNodeType);
 			};
 
 		public:
@@ -60,7 +61,7 @@ namespace EastEngine
 		public:
 			virtual void Update(float fElapsedTime, const Math::Matrix& matParent) override;
 
-			virtual bool Attachment(IModelInstance* pInstance, const String::StringID& strNodeName) override;
+			virtual bool Attachment(IModelInstance* pInstance, const String::StringID& strNodeName, const Math::Matrix& matOffset) override;
 			virtual IModelInstance* GetAttachment(size_t nIndex) const override { return m_vecAttachmentNode[nIndex].pInstance; }
 			virtual size_t GetAttachmentCount() const override { return m_vecAttachmentNode.size(); }
 			virtual bool IsAttachment() const override { return m_isAttachment; }
@@ -106,7 +107,7 @@ namespace EastEngine
 			MaterialInstance* m_pMaterialInstance;
 
 			std::vector<AttachmentNode> m_vecAttachmentNode;
-			std::list<RequestAttachmentNode> m_listRequestAttachmentNode;
+			std::list<AttachmentNode> m_listRequestAttachmentNode;
 		};
 	}
 }

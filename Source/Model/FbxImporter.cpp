@@ -3,6 +3,7 @@
 
 #include "CommonLib/FileStream.h"
 #include "CommonLib/FileUtil.h"
+#include "CommonLib/Performance.h"
 
 #include "DirectX/Vertex.h"
 
@@ -277,7 +278,8 @@ namespace EastEngine
 
 			ExportLog::LogMsg(9, "DirectXMath version %d", DIRECTX_MATH_VERSION);
 
-			const ExportCoreSettings& InitialSettings = g_pScene->Settings();
+			ExportCoreSettings& InitialSettings = g_pScene->Settings();
+			InitialSettings = ATG::ExportCoreSettings();
 
 			if (InitialSettings.bForceIndex32Format && (InitialSettings.dwFeatureLevel <= D3D_FEATURE_LEVEL_9_1))
 			{
@@ -309,11 +311,11 @@ namespace EastEngine
 
 			if (m_pSDKManager == nullptr)
 			{
-				m_pSDKManager = FbxManager::Create();
+				m_pSDKManager = fbxsdk::FbxManager::Create();
 				if (m_pSDKManager == nullptr)
 					return false;
 
-				fbxsdk::FbxIOSettings* ios = FbxIOSettings::Create(m_pSDKManager, IOSROOT);
+				fbxsdk::FbxIOSettings* ios = fbxsdk::FbxIOSettings::Create(m_pSDKManager, IOSROOT);
 				if (ios == nullptr)
 					return false;
 
@@ -322,7 +324,7 @@ namespace EastEngine
 
 			if (m_pImporter == nullptr)
 			{
-				m_pImporter = FbxImporter::Create(m_pSDKManager, "");
+				m_pImporter = fbxsdk::FbxImporter::Create(m_pSDKManager, "");
 				if (m_pImporter == nullptr)
 					return false;
 			}
@@ -332,7 +334,7 @@ namespace EastEngine
 				m_pFBXScene->Clear();
 			}
 
-			m_pFBXScene = FbxScene::Create(m_pSDKManager, "");
+			m_pFBXScene = fbxsdk::FbxScene::Create(m_pSDKManager, "");
 			if (m_pFBXScene == nullptr)
 				return false;
 
@@ -372,8 +374,11 @@ namespace EastEngine
 
 		bool FBXImport::LoadModel(IModel* pModel, const char* strFilePath, float fScale)
 		{
-			if (pModel == nullptr)
+			if (pModel == nullptr || strFilePath == nullptr)
 				return false;
+
+			Performance::Counter counter;
+			counter.Start();
 
 			if (Initialize() == false)
 			{
@@ -418,11 +423,21 @@ namespace EastEngine
 			Release();
 			ExportLog::ResetCounters();
 
+			counter.End();
+
+			PRINT_LOG("FBX Import, Model[%s] : %lf", strFilePath, counter.Count());
+
 			return true;
 		}
 		
 		bool FBXImport::LoadMotion(IMotion* pMotion, const char* strFilePath, float fScale)
 		{
+			if (pMotion == nullptr || strFilePath == nullptr)
+				return false;
+
+			Performance::Counter counter;
+			counter.Start();
+
 			if (Initialize() == false)
 			{
 				ExportLog::LogError("Failed to initialize FBX");
@@ -458,6 +473,10 @@ namespace EastEngine
 			
 			Release();
 			ExportLog::ResetCounters();
+
+			counter.End();
+
+			PRINT_LOG("FBX Import, Motion[%s] : %lf", strFilePath, counter.Count());
 
 			return true;
 		}

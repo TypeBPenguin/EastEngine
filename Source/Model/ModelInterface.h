@@ -301,26 +301,24 @@ namespace EastEngine
 			virtual void ChangeName(const String::StringID& strName) = 0;
 
 		public:
-			virtual const Math::Vector3& GetLocalPosition() = 0;
+			virtual const Math::Vector3& GetLocalPosition() const = 0;
 			virtual void SetLocalPosition(const Math::Vector3& f3Pos) = 0;
-			virtual const Math::Vector3& GetLocalScale() = 0;
+			virtual const Math::Vector3& GetLocalScale() const = 0;
 			virtual void SetLocalScale(const Math::Vector3& f3Scale) = 0;
-			virtual const Math::Quaternion& GetLocalRotation() = 0;
+			virtual const Math::Quaternion& GetLocalRotation() const = 0;
 			virtual void SetLocalRotation(const Math::Quaternion& quat) = 0;
 
-			virtual const String::StringID& GetName() = 0;
-			virtual const std::string& GetFilePath() = 0;
+			virtual const String::StringID& GetName() const = 0;
+			virtual const std::string& GetFilePath() const = 0;
 
-			virtual uint32_t GetNodeCount() = 0;
-			virtual IModelNode* GetNode(uint32_t nIndex) = 0;
-			virtual IModelNode* GetNode(const String::StringID& strName) = 0;
+			virtual uint32_t GetNodeCount() const = 0;
+			virtual IModelNode* GetNode(uint32_t nIndex) const = 0;
+			virtual IModelNode* GetNode(const String::StringID& strName) const = 0;
 
-			virtual bool IsVisible() = 0;
+			virtual bool IsVisible() const = 0;
 			virtual void SetVisible(bool bVisible) = 0;
 
-			virtual ISkeleton* GetSkeleton() = 0;
-
-			virtual bool IsSkinningModel() const = 0;
+			virtual ISkeleton* GetSkeleton() const = 0;
 
 		public:
 			virtual int GetReferenceCount() const = 0;
@@ -337,7 +335,7 @@ namespace EastEngine
 		public:
 			virtual void Update(float fElapsedTime, const Math::Matrix& matParent) = 0;
 
-			virtual bool Attachment(IModelInstance* pInstance, const String::StringID& strNodeName) = 0;
+			virtual bool Attachment(IModelInstance* pInstance, const String::StringID& strNodeName, const Math::Matrix& matOffset) = 0;
 			virtual IModelInstance* GetAttachment(size_t nIndex) const = 0;
 			virtual size_t GetAttachmentCount() const = 0;
 			virtual bool IsAttachment() const = 0;

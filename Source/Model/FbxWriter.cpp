@@ -323,10 +323,8 @@ namespace EastEngine
 			return nullptr;
 		}
 
-		bool CreateModel(ExportFrame* pFrame, Model* pModel, ModelNode* pParentNode, const String::StringID& strAttachedBoneName)
+		void CreateModel(ExportFrame* pFrame, Model* pModel, ModelNode* pParentNode, const std::unordered_map<String::StringID, Math::Matrix>& umapMotionOffset, Skeleton* pSkeleton, const String::StringID& strParentBoneName)
 		{
-			bool isSkinnedModel = false;
-
 			ModelNode* pModelNode = nullptr;
 			String::StringID strBoneName;
 
@@ -342,8 +340,6 @@ namespace EastEngine
 				pModelNode = CreateModelNode(pExportModel, pModel);
 				if (pModelNode != nullptr)
 				{
-					isSkinnedModel = pModelNode->GetType() == EmModelNode::eSkinned;
-
 					if (pParentNode != nullptr)
 					{
 						pParentNode->AddChildNode(pModelNode);
@@ -354,54 +350,37 @@ namespace EastEngine
 					{
 						pModel->AddNode(pModelNode, pModelNode->GetName(), true);
 
-						if (strAttachedBoneName.empty() == false)
+						if (strParentBoneName.empty() == false)
 						{
-							pModelNode->SetAttachedBoneName(strAttachedBoneName);
+							pModelNode->SetAttachedBoneName(strParentBoneName);
 						}
 					}
 				}
 			}
 			else if (pFrame->GetName() != nullptr)
 			{
-				const Math::Matrix& matTransform = *reinterpret_cast<const Math::Matrix*>(&pFrame->Transform().Matrix());
-				if (matTransform != Math::Matrix::Identity)
-				{
-					strBoneName = pFrame->GetName().SafeString();
-				}
-			}
-
-			const size_t nChildCount = pFrame->GetChildCount();
-			for (size_t i = 0; i < nChildCount; ++i)
-			{
-				ExportFrame* pChildFrame = pFrame->GetChildByIndex(i);
-				isSkinnedModel |= CreateModel(pChildFrame, pModel, pModelNode, strBoneName);
-			}
-
-			return isSkinnedModel;
-		}
-
-		void CreateSkeleton(const std::unordered_map<String::StringID, Math::Matrix>& umapMotionOffset, ExportFrame* pFrame, Skeleton* pSkeleton, const String::StringID& strParentName)
-		{
-			String::StringID strBoneName;
-			const size_t nModelCount = pFrame->GetModelCount();
-			if (nModelCount == 0 && pFrame->GetName() != nullptr)
-			{
 				String::StringID strName = pFrame->GetName();
 				auto iter = umapMotionOffset.find(strName);
 				if (iter != umapMotionOffset.end())
 				{
+					if (pSkeleton == nullptr)
+					{
+						pSkeleton = static_cast<Skeleton*>(ISkeleton::Create());
+						pModel->SetSkeleton(pSkeleton);
+					}
+
 					const Math::Matrix& matMotionOffset = iter->second;
 					const Math::Matrix& matDefaultMotionData = *reinterpret_cast<const Math::Matrix*>(&pFrame->Transform().Matrix());
 
 					strBoneName = pFrame->GetName().SafeString();
 
-					if (strParentName.empty() == true)
+					if (strParentBoneName.empty() == true)
 					{
 						pSkeleton->CreateBone(strBoneName, matMotionOffset, matDefaultMotionData);
 					}
 					else
 					{
-						pSkeleton->CreateBone(strParentName, strBoneName, matMotionOffset, matDefaultMotionData);
+						pSkeleton->CreateBone(strParentBoneName, strBoneName, matMotionOffset, matDefaultMotionData);
 					}
 				}
 			}
@@ -410,7 +389,7 @@ namespace EastEngine
 			for (size_t i = 0; i < nChildCount; ++i)
 			{
 				ExportFrame* pChildFrame = pFrame->GetChildByIndex(i);
-				CreateSkeleton(umapMotionOffset, pChildFrame, pSkeleton, strBoneName);
+				CreateModel(pChildFrame, pModel, pModelNode, umapMotionOffset, pSkeleton, strBoneName);
 			}
 		}
 
@@ -420,16 +399,12 @@ namespace EastEngine
 				return false;
 
 			Model* pRealModel = static_cast<Model*>(pModel);
-			const bool isSkinnedModel = CreateModel(g_pScene, pRealModel, nullptr, String::StringID());
+			CreateModel(g_pScene, pRealModel, nullptr, umapMotionOffset, nullptr, String::StringID());
 
-			if (isSkinnedModel == true)
+			Skeleton* pSkeleton = static_cast<Skeleton*>(pModel->GetSkeleton());
+			if (pSkeleton != nullptr && pSkeleton->GetBoneCount() > 0)
 			{
-				Skeleton* pSkeleton = static_cast<Skeleton*>(ISkeleton::Create());
-				pRealModel->SetSkeleton(pSkeleton);
-
-				CreateSkeleton(umapMotionOffset, g_pScene, pSkeleton, String::StringID());
-
-				size_t nNodeCount = pModel->GetNodeCount();
+				const size_t nNodeCount = pModel->GetNodeCount();
 				for (size_t i = 0; i < nNodeCount; ++i)
 				{
 					IModelNode* pModelNode = pModel->GetNode(i);
