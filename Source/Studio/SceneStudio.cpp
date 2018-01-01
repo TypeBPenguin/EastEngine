@@ -465,9 +465,12 @@ void SceneStudio::Enter()
 		//pCompPhysics->m_pRagDoll->Start();
 
 		{
+			strPath = File::GetDataPath();
+			strPath.append("Model\\ElementalSwordIce\\LP.obj");
+
 			Graphics::IModelInstance* pModelInstance_Attach = nullptr;
 			Graphics::ModelLoader loader;
-			loader.InitFBX("LP.obj", "E:\\3D Model\\elemental-sword-ice\\source\\LP.obj", 0.005f);
+			loader.InitFBX("ElementalSwordIce", strPath.c_str(), 0.005f);
 
 			pModelInstance_Attach = Graphics::IModel::CreateInstance(loader, false);
 
