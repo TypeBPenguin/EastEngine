@@ -53,7 +53,6 @@ namespace EastEngine
 			, matOffset(matOffset)
 			, emAttachNodeType(emAttachNodeType)
 		{
-			pInstance->SetAttachment(true);
 		}
 
 		ModelInstance::ModelInstance(IModel* pModel)
@@ -129,6 +128,8 @@ namespace EastEngine
 			if (IsLoadComplete() == false)
 			{
 				ModelInstance* pModelInstance = static_cast<ModelInstance*>(pInstance);
+				pModelInstance->SetAttachment(true);
+
 				m_listRequestAttachmentNode.emplace_back(pModelInstance, strNodeName, matOffset, AttachmentNode::EmAttachNodeType::eNone);
 
 				return true;
@@ -141,7 +142,10 @@ namespace EastEngine
 					if (pBone != nullptr)
 					{
 						ModelInstance* pModelInstance = static_cast<ModelInstance*>(pInstance);
+						pModelInstance->SetAttachment(true);
+
 						m_vecAttachmentNode.emplace_back(pModelInstance, strNodeName, matOffset, AttachmentNode::EmAttachNodeType::eBone);
+
 						return true;
 					}
 				}
@@ -151,6 +155,8 @@ namespace EastEngine
 					return false;
 
 				ModelInstance* pModelInstance = static_cast<ModelInstance*>(pInstance);
+				pModelInstance->SetAttachment(true);
+
 				m_vecAttachmentNode.emplace_back(pModelInstance, strNodeName, matOffset, AttachmentNode::EmAttachNodeType::eNode);
 
 				return true;
@@ -168,6 +174,8 @@ namespace EastEngine
 
 				if (iter != m_listRequestAttachmentNode.end())
 				{
+					iter->pInstance->SetAttachment(false);
+
 					m_listRequestAttachmentNode.erase(iter);
 					return true;
 				}
@@ -183,6 +191,8 @@ namespace EastEngine
 
 				if (iter != m_vecAttachmentNode.end())
 				{
+					iter->pInstance->SetAttachment(false);
+
 					m_vecAttachmentNode.erase(iter);
 					return true;
 				}
