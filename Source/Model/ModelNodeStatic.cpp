@@ -42,7 +42,7 @@ namespace EastEngine
 				uint32_t nLevel = Math::Min(m_nLod, m_nLodMax);
 				if (m_pVertexBuffer[nLevel] == nullptr || m_pIndexBuffer[nLevel] == nullptr)
 				{
-					PRINT_LOG("Model Data is nullptr, LOD : %d, %d", nLevel, m_nLodMax);
+					LOG_WARNING("Model Data is nullptr, LOD : %d, %d", nLevel, m_nLodMax);
 				}
 				else
 				{

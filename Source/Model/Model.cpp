@@ -222,7 +222,7 @@ namespace EastEngine
 				isSuccess = FBXImport::GetInstance()->LoadModel(this, loader.GetFilePath().c_str(), loader.GetScaleFactor());
 				if (isSuccess == false)
 				{
-					PRINT_LOG("Can't load Model[FBX] : %s", loader.GetFilePath().c_str());
+					LOG_ERROR("Can't load Model[FBX] : %s", loader.GetFilePath().c_str());
 				}
 			}
 			break;
@@ -234,7 +234,7 @@ namespace EastEngine
 				//isSuccess = SObjImporter::GetInstance()->LoadModel(this, loader.GetFilePath().c_str(), loader.GetScaleFactor(), loader.GetLodMax(), &loader.GetLODReductionRate());
 				if (isSuccess == false)
 				{
-					PRINT_LOG("Can't load Model[Obj] : %s", loader.GetFilePath().c_str());
+					LOG_ERROR("Can't load Model[Obj] : %s", loader.GetFilePath().c_str());
 				}
 			}
 			break;
@@ -243,7 +243,7 @@ namespace EastEngine
 				isSuccess = LoadToFile(loader.GetFilePath().c_str());
 				if (isSuccess == false)
 				{
-					PRINT_LOG("Can't load Model[East] : %s", loader.GetFilePath().c_str());
+					LOG_ERROR("Can't load Model[East] : %s", loader.GetFilePath().c_str());
 				}
 			}
 			break;
@@ -461,7 +461,7 @@ namespace EastEngine
 				}
 				else
 				{
-					PRINT_LOG("Can't load Model, GeometryType : %s", GetGeometryTypeName(loader.GetLoadGeometryType()).c_str());
+					LOG_ERROR("Can't load Model, GeometryType : %s", GetGeometryTypeName(loader.GetLoadGeometryType()).c_str());
 				}
 			}
 			break;
@@ -480,7 +480,7 @@ namespace EastEngine
 			File::FileStream file;
 			if (file.Open(strFilePath, File::EmState::eRead | File::EmState::eBinary) == false)
 			{
-				PRINT_LOG("Can't open to file : %s", strFilePath);
+				LOG_WARNING("Can't open to file : %s", strFilePath);
 				return false;
 			}
 
@@ -524,7 +524,7 @@ namespace EastEngine
 					pNode = new ModelNodeSkinned;
 					break;
 				default:
-					PRINT_LOG("잘못된타입임돠, 데이터 포맷이 바뀐 듯 함돠.");
+					LOG_WARNING("잘못된타입임돠, 데이터 포맷이 바뀐 듯 함돠.");
 					break;
 				}
 				
@@ -595,7 +595,7 @@ namespace EastEngine
 					pVertexBuffer = IVertexBuffer::Create(VertexPosTexNor::Format(), vecVertices.size(), &vecVertices.front(), D3D11_USAGE_DYNAMIC, IVertexBuffer::eSaveVertexPos);
 					if (pVertexBuffer == nullptr)
 					{
-						PRINT_LOG("버텍스 버퍼 생성 실패했슴돠");
+						LOG_ERROR("버텍스 버퍼 생성 실패했슴돠");
 						return false;
 					}
 				}
@@ -618,7 +618,7 @@ namespace EastEngine
 					pVertexBuffer = IVertexBuffer::Create(VertexPosTexNorWeiIdx::Format(), vecVertices.size(), &vecVertices.front(), D3D11_USAGE_DYNAMIC, IVertexBuffer::eSaveVertexPos);
 					if (pVertexBuffer == nullptr)
 					{
-						PRINT_LOG("버텍스 버퍼 생성 실패했슴돠");
+						LOG_ERROR("버텍스 버퍼 생성 실패했슴돠");
 						return false;
 					}
 				}
@@ -639,7 +639,7 @@ namespace EastEngine
 				IIndexBuffer* pIndexBuffer = IIndexBuffer::Create(vecIndices.size(), &vecIndices.front(), D3D11_USAGE_DYNAMIC, IIndexBuffer::eSaveRawValue);
 				if (pIndexBuffer == nullptr)
 				{
-					PRINT_LOG("인덱스 버퍼 생성 실패했슴돠");
+					LOG_ERROR("인덱스 버퍼 생성 실패했슴돠");
 					return false;
 				}
 

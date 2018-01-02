@@ -294,7 +294,7 @@ namespace EastEngine
 			IEffectTech* pEffectTech = m_pEffect->GetTechnique(StrID::WaterSimulator_SpectrumCS);
 			if (pEffectTech == nullptr)
 			{
-				PRINT_LOG("Not Exist EffectTech !! : %s", StrID::WaterSimulator_SpectrumCS.c_str());
+				LOG_ERROR("Not Exist EffectTech !! : %s", StrID::WaterSimulator_SpectrumCS.c_str());
 				return;
 			}
 
@@ -364,7 +364,7 @@ namespace EastEngine
 			pEffectTech = m_pEffect->GetTechnique(StrID::WaterSimulator_Displacement);
 			if (pEffectTech == nullptr)
 			{
-				PRINT_LOG("Not Exist EffectTech !!");
+				LOG_ERROR("Not Exist EffectTech !!");
 				return;
 			}
 
@@ -412,7 +412,7 @@ namespace EastEngine
 			pEffectTech = m_pEffect->GetTechnique(StrID::WaterSimulator_Gradient);
 			if (pEffectTech == nullptr)
 			{
-				PRINT_LOG("Not Exist EffectTech !!");
+				LOG_ERROR("Not Exist EffectTech !!");
 				return;
 			}
 
@@ -543,7 +543,7 @@ namespace EastEngine
 			IEffectTech* pEffectTech = m_pEffect_FFT->GetTechnique(istride > 1 ? StrID::WaterFFT_CS : StrID::WaterFFT_CS2);
 			if (pEffectTech == nullptr)
 			{
-				PRINT_LOG("Not Exist EffectTech !!");
+				LOG_ERROR("Not Exist EffectTech !!");
 				return;
 			}
 

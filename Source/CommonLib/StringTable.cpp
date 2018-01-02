@@ -68,7 +68,7 @@ namespace EastEngine
 		{ 
 			if (s_pStringTable != nullptr)
 			{
-				PRINT_LOG("StringTable is Already Init");
+				LOG_MESSAGE("StringTable is Already Init");
 				return true;
 			}
 
@@ -111,7 +111,7 @@ namespace EastEngine
 			#if CHECK_DUPLICATE_STRING_KEY != 0 || defined(DEBUG) || defined(_DEBUG)
 				if (String::IsEquals(str, pExistStringData->pString.get()) == false)
 				{
-					PRINT_LOG("String Hash Crash, Duplicate String Key!! Hash : %u / %s != %s", hashKey, str, pExistStringData->pString.get());
+					LOG_ERROR("String Hash Crash, Duplicate String Key!! Hash : %u / %s != %s", hashKey, str, pExistStringData->pString.get());
 				}
 			#endif
 

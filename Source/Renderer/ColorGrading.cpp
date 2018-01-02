@@ -77,7 +77,7 @@ namespace EastEngine
 			IEffectTech* pEffectTech = m_pEffect->GetTechnique(StrID::ColorGrading);
 			if (pEffectTech == nullptr)
 			{
-				PRINT_LOG("Not Exist EffectTech !!");
+				LOG_ERROR("Not Exist EffectTech !!");
 				return false;
 			}
 

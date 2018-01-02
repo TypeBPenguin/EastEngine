@@ -382,7 +382,7 @@ void MaterialNodeManager::Update(bool& isOpend)
 	}
 
 	bool isMouseDragging = ImGui::IsMouseDragging(0);
-	//PRINT_LOG("IsMouseDragging[%d], SelectedID[%d, %d], HoveredID[%d, %d]", isMouseDragging, m_nSelectedNodeID, m_nSelectedNodeSlotIndex, m_nHoveredNodeID, m_nHoveredNodeSlotIndex);
+	//LOG_MESSAGE("IsMouseDragging[%d], SelectedID[%d, %d], HoveredID[%d, %d]", isMouseDragging, m_nSelectedNodeID, m_nSelectedNodeSlotIndex, m_nHoveredNodeID, m_nHoveredNodeSlotIndex);
 
 	m_nHoveredNodeIDInList = -1;
 	m_nHoveredNodeIDInScene = -1;

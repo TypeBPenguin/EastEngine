@@ -163,7 +163,7 @@ namespace EastEngine
 
 			if (FAILED(GetDevice()->CreateInputLayout(emLayoutFormat, pIAInputSignature, IAInputSignatureSize)))
 			{
-				PRINT_LOG("Failed create technique, Problem InputLayout : %s", strName.c_str());
+				LOG_ERROR("Failed create technique, Problem InputLayout : %s", strName.c_str());
 				SafeDelete(pTech);
 				return nullptr;
 			}

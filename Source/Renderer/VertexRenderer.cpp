@@ -138,7 +138,7 @@ namespace EastEngine
 			Camera* pCamera = CameraManager::GetInstance()->GetMainCamera();
 			if (pCamera == nullptr)
 			{
-				PRINT_LOG("Not Exist Main Camera !!");
+				LOG_ERROR("Not Exist Main Camera !!");
 				return;
 			}
 
@@ -201,7 +201,7 @@ namespace EastEngine
 						pEffectTech = m_pEffect->GetTechnique(StrID::Vertex);
 						if (pEffectTech == nullptr)
 						{
-							PRINT_LOG("Not Exist EffectTech !!");
+							LOG_ERROR("Not Exist EffectTech !!");
 							continue;
 						}
 
@@ -231,7 +231,7 @@ namespace EastEngine
 						pEffectTech = m_pEffect->GetTechnique(StrID::VertexInstancing);
 						if (pEffectTech == nullptr)
 						{
-							PRINT_LOG("Not Exist EffectTech !!");
+							LOG_ERROR("Not Exist EffectTech !!");
 							continue;
 						}
 
@@ -285,14 +285,14 @@ namespace EastEngine
 			IEffectTech* pEffectTech = m_pEffect->GetTechnique(StrID::Color);
 			if (pEffectTech == nullptr)
 			{
-				PRINT_LOG("Not Exist EffectTech !!");
+				LOG_ERROR("Not Exist EffectTech !!");
 				return;
 			}
 
 			Camera* pCamera = CameraManager::GetInstance()->GetMainCamera();
 			if (pCamera == nullptr)
 			{
-				PRINT_LOG("Not Exist Main Camera !!");
+				LOG_ERROR("Not Exist Main Camera !!");
 				return;
 			}
 
@@ -333,14 +333,14 @@ namespace EastEngine
 			IEffectTech* pEffectTech = m_pEffect->GetTechnique(StrID::Color);
 			if (pEffectTech == nullptr)
 			{
-				PRINT_LOG("Not Exist EffectTech !!");
+				LOG_ERROR("Not Exist EffectTech !!");
 				return;
 			}
 
 			Camera* pCamera = CameraManager::GetInstance()->GetMainCamera();
 			if (pCamera == nullptr)
 			{
-				PRINT_LOG("Not Exist Main Camera !!");
+				LOG_ERROR("Not Exist Main Camera !!");
 				return;
 			}
 

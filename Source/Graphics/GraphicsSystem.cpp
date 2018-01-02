@@ -53,7 +53,7 @@ namespace EastEngine
 			s_pd3dObject = Device::GetInstance();
 			if (s_pd3dObject->Init(hWnd, nScreenWidth, nScreenHeight, isFullScreen, isVsync) == false)
 			{
-				PRINT_LOG("Failed GraphicsSystem::Init, s_pd3dObject");
+				LOG_ERROR("Failed Device Initialize, s_pd3dObject");
 				Release();
 				return false;
 			}
@@ -61,7 +61,7 @@ namespace EastEngine
 			s_pShaderMgr = ShaderManager::GetInstance();
 			if (s_pShaderMgr->Init() == false)
 			{
-				PRINT_LOG("Failed GraphicsSystem::Init, s_pShaderMgr");
+				LOG_ERROR("Failed ShaderManager Initialize, s_pShaderMgr");
 				Release();
 				return false;
 			}
@@ -69,7 +69,7 @@ namespace EastEngine
 			s_pTextureMgr = TextureManager::GetInstance();
 			if (s_pTextureMgr->Init() == false)
 			{
-				PRINT_LOG("Failed GraphicsSystem::Init, s_pTextureMgr");
+				LOG_ERROR("Failed TextureManager Initialize, s_pTextureMgr");
 				Release();
 				return false;
 			}
@@ -77,7 +77,7 @@ namespace EastEngine
 			s_pLightMgr = LightManager::GetInstance();
 			if (s_pLightMgr->Init() == false)
 			{
-				PRINT_LOG("Failed GraphicsSystem::Init, s_pLightMgr");
+				LOG_ERROR("Failed LightManager Initialize, s_pLightMgr");
 				Release();
 				return false;
 			}
@@ -86,7 +86,7 @@ namespace EastEngine
 			s_pCameraManager = CameraManager::GetInstance();
 			if (s_pCameraManager->Init(n2ScreenSize.x, n2ScreenSize.y, Math::PIDIV4, s_fScreenNear, s_fScreenDepth) == false)
 			{
-				PRINT_LOG("Failed GraphicsSystem::Init, s_pCameraManager");
+				LOG_ERROR("Failed CameraManager Initialize, s_pCameraManager");
 				Release();
 				return false;
 			}
@@ -94,7 +94,7 @@ namespace EastEngine
 			s_pModelMgr = ModelManager::GetInstance();
 			if (s_pModelMgr->Init() == false)
 			{
-				PRINT_LOG("Failed GraphicsSystem::Init, s_pModelMgr");
+				LOG_ERROR("Failed ModelManager Initialize, s_pModelMgr");
 				Release();
 				return false;
 			}
@@ -102,7 +102,7 @@ namespace EastEngine
 			s_pMotionMgr = MotionManager::GetInstance();
 			if (s_pMotionMgr->Init() == false)
 			{
-				PRINT_LOG("Failed GraphicsSystem::Init, s_pMotionMgr");
+				LOG_ERROR("Failed MotionManager Initialize, s_pMotionMgr");
 				Release();
 				return false;
 			}
@@ -110,7 +110,7 @@ namespace EastEngine
 			s_pParticleMgr = ParticleManager::GetInstance();
 			if (s_pParticleMgr->Init() == false)
 			{
-				PRINT_LOG("Failed GraphicsSystem::Init, s_pParticleMgr");
+				LOG_ERROR("Failed ParticleManager Initialize, s_pParticleMgr");
 				Release();
 				return false;
 			}
@@ -118,7 +118,7 @@ namespace EastEngine
 			s_pOcclusionCulling = SOcclusionCulling::GetInstance();
 			if (s_pOcclusionCulling->Init(n2ScreenSize.x, n2ScreenSize.y, s_fScreenNear) == false)
 			{
-				PRINT_LOG("Failed GraphicsSystem::Init, s_pOcclusionCulling");
+				LOG_ERROR("Failed SOcclusionCulling Initialize, s_pOcclusionCulling");
 				Release();
 				return false;
 			}
@@ -126,7 +126,7 @@ namespace EastEngine
 			s_pVTFMgr = VTFManager::GetInstance();
 			if (s_pVTFMgr->Init() == false)
 			{
-				PRINT_LOG("Failed GraphicsSystem::Init, s_pVTFMgr");
+				LOG_ERROR("Failed VTFManager Initialize, s_pVTFMgr");
 				Release();
 				return false;
 			}
@@ -134,7 +134,7 @@ namespace EastEngine
 			s_pRendererMgr = RendererManager::GetInstance();
 			if (s_pRendererMgr->Init(s_pd3dObject->GetViewport()) == false)
 			{
-				PRINT_LOG("Failed GraphicsSystem::Init, s_pRendererMgr");
+				LOG_ERROR("Failed RendererManager Initialize, s_pRendererMgr");
 				Release();
 				return false;
 			}

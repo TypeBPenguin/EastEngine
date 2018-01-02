@@ -1940,7 +1940,7 @@ namespace EastEngine
 					int target_count = static_cast<int>(std::round((float)(in_vecIndices.size() / 3) * fReduceFraction));
 					if (target_count < 4)
 					{
-						PRINT_LOG("Object will not survive such extreme decimation, Triangle : %d, Target : %d, Reduce Fraction : %f", triangles.size(), target_count, fReduceFraction);
+						LOG_WARNING("Object will not survive such extreme decimation, Triangle : %d, Target : %d, Reduce Fraction : %f", triangles.size(), target_count, fReduceFraction);
 						return false;
 					}
 
@@ -1988,7 +1988,7 @@ namespace EastEngine
 					for (int iteration = 0; iteration < 100; ++iteration)
 					{
 						// target number of triangles reached ? Then break
-						//PRINT_LOG("iteration %d - triangles %d\n", iteration, triangle_count - deleted_triangles);
+						//LOG_WARNING("iteration %d - triangles %d\n", iteration, triangle_count - deleted_triangles);
 						if (triangle_count - deleted_triangles <= target_count)
 							break;
 

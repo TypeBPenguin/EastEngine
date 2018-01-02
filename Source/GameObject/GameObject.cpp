@@ -16,7 +16,7 @@ namespace EastEngine
 			File::FileStream file;
 			if (file.Open(strFilePath, File::EmState::eRead | File::EmState::eBinary) == false)
 			{
-				PRINT_LOG("Can't open to file : %s", strFilePath);
+				LOG_WARNING("Can't open to file : %s", strFilePath);
 				return nullptr;
 			}
 
@@ -67,7 +67,7 @@ namespace EastEngine
 			File::FileStream file;
 			if (file.Open(strFilePath, File::EmState::eWrite | File::EmState::eBinary) == false)
 			{
-				PRINT_LOG("Can't open to file : %s", strFilePath);
+				LOG_WARNING("Can't open to file : %s", strFilePath);
 				return false;
 			}
 

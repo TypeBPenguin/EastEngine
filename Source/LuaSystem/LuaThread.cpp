@@ -1,10 +1,91 @@
 #include "stdafx.h"
 #include "LuaThread.h"
 
+namespace StrID
+{
+	RegisterStringID(Undefined);
+	RegisterStringID(Int);
+	RegisterStringID(Double);
+	RegisterStringID(String);
+	RegisterStringID(Bool);
+}
+
 namespace EastEngine
 {
 	namespace Lua
 	{
+		LuaThread::LuaIOValue::LuaIOValue(double value)
+			: emValueType(EmValueType::eDouble)
+		{
+			element.emplace<double>(value);
+		}
+
+		LuaThread::LuaIOValue::LuaIOValue(const String::StringID& value)
+			: emValueType(EmValueType::eString)
+		{
+			element.emplace<String::StringID>(value);
+		}
+
+		LuaThread::LuaIOValue::LuaIOValue(bool value)
+			: emValueType(EmValueType::eBool)
+		{
+			element.emplace<bool>(value);
+		}
+
+		double LuaThread::LuaIOValue::ToDouble() const
+		{
+			if (IsDouble() == false)
+				return 0.0;
+
+			return std::get<double>(element);
+		}
+
+		const String::StringID& LuaThread::LuaIOValue::ToString() const
+		{
+			if (IsString() == false)
+				return StrID::Unregistered;
+
+			return std::get<String::StringID>(element);
+		}
+
+		bool LuaThread::LuaIOValue::ToBool() const
+		{
+			if (IsBool() == false)
+				return false;
+
+			return std::get<bool>(element);
+		}
+
+		bool LuaThread::LuaIOValue::IsDouble() const
+		{
+			return emValueType == EmValueType::eDouble;
+		}
+
+		bool LuaThread::LuaIOValue::IsString() const
+		{
+			return emValueType == EmValueType::eString;
+		}
+
+		bool LuaThread::LuaIOValue::IsBool() const
+		{
+			return emValueType == EmValueType::eBool;
+		}
+
+		const String::StringID& LuaThread::LuaIOValue::TypeToString() const
+		{
+			switch (emValueType)
+			{
+			case EmValueType::eDouble:
+				return StrID::Double;
+			case EmValueType::eString:
+				return StrID::String;
+			case EmValueType::eBool:
+				return StrID::Bool;
+			default:
+				return StrID::Undefined;
+			}
+		}
+
 		LuaThread::LuaThread(lua_State* pLuaState)
 			: m_pLuaState(pLuaState)
 			, m_isIdle(false)
@@ -16,108 +97,99 @@ namespace EastEngine
 			m_pLuaState = nullptr;
 		}
 
-		void LuaThread::PushInt(int* nValue)
+		void LuaThread::PushInt(intptr_t nValue)
 		{
-			if (nValue == nullptr)
-				return;
-
-			LuaIOValue value;
-			value.emValueType = VT_INT;
-			value.pValue = nValue;
-
-			m_queueInputValue.push(value);
+			m_queueInputValue.emplace(static_cast<double>(nValue));
 		}
 
-		void LuaThread::PushFloat(float* fValue)
+		void LuaThread::PushFloat(float fValue)
 		{
-			if (fValue == nullptr)
-				return;
-
-			LuaIOValue value;
-			value.emValueType = VT_FLOAT;
-			value.pValue = fValue;
-
-			m_queueInputValue.push(value);
+			m_queueInputValue.emplace(static_cast<double>(fValue));
 		}
 
-		void LuaThread::PushString(char* sValue)
+		void LuaThread::PushDouble(double dValue)
 		{
-			if (sValue == nullptr)
-				return;
-
-			LuaIOValue value;
-			value.emValueType = VT_STRING;
-			value.pValue = sValue;
-
-			m_queueInputValue.push(value);
+			m_queueInputValue.emplace(dValue);
 		}
 
-		void LuaThread::PushBool(bool* bValue)
+		void LuaThread::PushString(const String::StringID& sValue)
 		{
-			if (bValue == nullptr)
-				return;
-
-			LuaIOValue value;
-			value.emValueType = VT_BOOL;
-			value.pValue = bValue;
-
-			m_queueInputValue.push(value);
+			m_queueInputValue.emplace(sValue);
 		}
 
-		void LuaThread::PopInt(int* nValue)
+		void LuaThread::PushBool(bool bValue)
 		{
-			if (nValue == nullptr)
-				return;
-
-			LuaIOValue value;
-			value.emValueType = VT_INT;
-			value.pValue = nValue;
-
-			m_stackOutputValue.push(value);
+			m_queueInputValue.emplace(bValue);
 		}
 
-		void LuaThread::PopFloat(float* fValue)
+		intptr_t LuaThread::PopInt(size_t nIndex)
 		{
-			if (fValue == nullptr)
-				return;
-
-			LuaIOValue value;
-			value.emValueType = VT_FLOAT;
-			value.pValue = fValue;
-
-			m_stackOutputValue.push(value);
+			return static_cast<intptr_t>(PopDouble(nIndex));
 		}
 
-		void LuaThread::PopString(String::StringID* sValue)
+		float LuaThread::PopFloat(size_t nIndex)
 		{
-			if (sValue == nullptr)
-				return;
-
-			LuaIOValue value;
-			value.emValueType = VT_STRING;
-			value.pValue = sValue;
-
-			m_stackOutputValue.push(value);
+			return static_cast<float>(PopDouble(nIndex));
 		}
 
-		void LuaThread::PopBool(bool* bValue)
+		double LuaThread::PopDouble(size_t nIndex)
 		{
-			if (bValue == nullptr)
-				return;
+			if (nIndex >= m_vecOutputValue.size())
+			{
+				LOG_WARNING("인덱스 범위 초과 : BufferSize[%Iu] <= Index[%Iu]", m_vecOutputValue.size(), nIndex);
+				return 0.0;
+			}
 
-			LuaIOValue value;
-			value.emValueType = VT_BOOL;
-			value.pValue = bValue;
+			if (m_vecOutputValue[nIndex].IsDouble() == false)
+			{
+				LOG_WARNING("잘못 된 변수 요청 : ValueType is %s", m_vecOutputValue[nIndex].TypeToString().c_str());
+				return 0.0;
+			}
 
-			m_stackOutputValue.push(value);
+			return static_cast<float>(m_vecOutputValue[nIndex].ToDouble());
 		}
 
-		void LuaThread::Run(const String::StringID& strFuncName)
+		const String::StringID& LuaThread::PopString(size_t nIndex)
+		{
+			if (nIndex >= m_vecOutputValue.size())
+			{
+				LOG_WARNING("인덱스 범위 초과 : BufferSize[%Iu] <= Index[%Iu]", m_vecOutputValue.size(), nIndex);
+				return StrID::Unregistered;
+			}
+
+			if (m_vecOutputValue[nIndex].IsString() == false)
+			{
+				LOG_WARNING("잘못 된 변수 요청 : ValueType is %s", m_vecOutputValue[nIndex].TypeToString().c_str());
+				return StrID::Unregistered;
+			}
+
+			return m_vecOutputValue[nIndex].ToString();
+		}
+
+		bool LuaThread::PopBool(size_t nIndex)
+		{
+			if (nIndex >= m_vecOutputValue.size())
+			{
+				LOG_WARNING("인덱스 범위 초과 : BufferSize[%Iu] <= Index[%Iu]", m_vecOutputValue.size(), nIndex);
+				return false;
+			}
+
+			if (m_vecOutputValue[nIndex].IsBool() == false)
+			{
+				LOG_WARNING("잘못 된 변수 요청 : ValueType is %s", m_vecOutputValue[nIndex].TypeToString().c_str());
+				return false;
+			}
+
+			return m_vecOutputValue[nIndex].ToBool();
+		}
+
+		bool LuaThread::Run(const String::StringID& strFuncName, const int nReturnValueCount)
 		{
 			lua_getglobal(m_pLuaState, strFuncName.c_str());
 
-			int nArgs = (int)(m_queueInputValue.size());
-			int nReturn = (int)(m_stackOutputValue.size());
+			m_vecOutputValue.reserve(nReturnValueCount);
+
+			int nArgs = static_cast<int>(m_queueInputValue.size());
 
 			while (m_queueInputValue.empty() == false)
 			{
@@ -125,28 +197,19 @@ namespace EastEngine
 
 				switch (value.emValueType)
 				{
-				case VT_INT:
+				case LuaIOValue::EmValueType::eDouble:
 				{
-					int nValue = *reinterpret_cast<int*>(value.pValue);
-					lua_pushinteger(m_pLuaState, nValue);
+					lua_pushnumber(m_pLuaState, value.ToDouble());
 				}
 				break;
-				case VT_FLOAT:
+				case LuaIOValue::EmValueType::eString:
 				{
-					float fValue = *reinterpret_cast<float*>(value.pValue);
-					lua_pushnumber(m_pLuaState, fValue);
+					lua_pushstring(m_pLuaState, value.ToString().c_str());
 				}
 				break;
-				case VT_STRING:
+				case LuaIOValue::EmValueType::eBool:
 				{
-					char* sValue = reinterpret_cast<char*>(value.pValue);
-					lua_pushstring(m_pLuaState, sValue);
-				}
-				break;
-				case VT_BOOL:
-				{
-					bool bValue = *reinterpret_cast<bool*>(value.pValue);
-					lua_pushboolean(m_pLuaState, bValue);
+					lua_pushboolean(m_pLuaState, value.ToBool());
 				}
 				break;
 				}
@@ -154,61 +217,54 @@ namespace EastEngine
 				m_queueInputValue.pop();
 			}
 
-			if (lua_pcall(m_pLuaState, nArgs, nReturn, 0) != 0)
+			if (lua_pcall(m_pLuaState, nArgs, nReturnValueCount, 0) != 0)
 			{
-				PRINT_LOG("Can't Running Function : %s", lua_tostring(m_pLuaState, -1));
+				LOG_WARNING("Can't Running Function : %s", lua_tostring(m_pLuaState, -1));
 
 				while (m_queueInputValue.empty() == false)
 				{
 					m_queueInputValue.pop();
 				}
 
-				while (m_stackOutputValue.empty() == false)
-				{
-					m_stackOutputValue.pop();
-				}
+				m_vecOutputValue.clear();
 
-				return;
+				return false;
 			}
 
-			while (m_stackOutputValue.empty() == false)
+			for (int i = 0; i < nReturnValueCount; ++i)
 			{
-				LuaIOValue& value = m_stackOutputValue.top();
-
-				switch (value.emValueType)
+				int t = lua_type(m_pLuaState, i);
+				switch (t)
 				{
-				case VT_INT:
+				case LUA_TSTRING:
 				{
-					int* nValue = reinterpret_cast<int*>(value.pValue);
-					*nValue = lua_tointeger(m_pLuaState, -1);
+					String::StringID value = lua_tostring(m_pLuaState, -1);
+					m_vecOutputValue.emplace_back(value);
 				}
 				break;
-				case VT_FLOAT:
+				case LUA_TBOOLEAN:
 				{
-					float* fValue = reinterpret_cast<float*>(value.pValue);
-					*fValue = (float)(lua_tonumber(m_pLuaState, -1));
+					bool value = lua_toboolean(m_pLuaState, -1);
+					m_vecOutputValue.emplace_back(value);
 				}
 				break;
-				case VT_STRING:
+				case LUA_TNUMBER:
 				{
-					String::StringID* sValue = reinterpret_cast<String::StringID*>(value.pValue);
-					*sValue = lua_tostring(m_pLuaState, -1);
+					double value = lua_tonumber(m_pLuaState, -1);
+					m_vecOutputValue.emplace_back(value);
 				}
 				break;
-				case VT_BOOL:
-				{
-					bool* bValue = reinterpret_cast<bool*>(value.pValue);
-					*bValue = lua_toboolean(m_pLuaState, -1) != 0;
-				}
-				break;
+				default:
+					LOG_WARNING("Unknown Type Return : %s", lua_typename(m_pLuaState, t));
+					break;
 				}
 
 				lua_pop(m_pLuaState, 1);
-
-				m_stackOutputValue.pop();
 			}
 
 			m_isIdle = true;
+
+			return true;
 		}
 	}
 }

@@ -76,7 +76,7 @@ namespace EastEngine
 				File::FileStream file;
 				if (file.Open(loader.GetFilePath().c_str(), File::EmState::eRead | File::EmState::eBinary) == false)
 				{
-					PRINT_LOG("Can't open to file : %s", loader.GetFilePath().c_str());
+					LOG_WARNING("Can't open to file : %s", loader.GetFilePath().c_str());
 					return false;
 				}
 
@@ -139,7 +139,7 @@ namespace EastEngine
 			File::FileStream file;
 			if (file.Open(strFilePath, File::EmState::eWrite | File::EmState::eBinary) == false)
 			{
-				PRINT_LOG("Can't save to file : %s", strFilePath);
+				LOG_WARNING("Can't save to file : %s", strFilePath);
 				return false;
 			}
 
@@ -282,7 +282,7 @@ namespace EastEngine
 			File::FileStream file;
 			if (file.Open(strFilePath, File::EmState::eWrite | File::EmState::eBinary) == false)
 			{
-				PRINT_LOG("Can't save to file : %s", strFilePath);
+				LOG_WARNING("Can't save to file : %s", strFilePath);
 				return false;
 			}
 
@@ -337,7 +337,7 @@ namespace EastEngine
 				void* pData = nullptr;
 				if (pVertexBuffer->Map(0, D3D11_MAP_WRITE_NO_OVERWRITE, &pData) == false)
 				{
-					PRINT_LOG("Can't map vertexbuffer");
+					LOG_ERROR("Can't map vertexbuffer");
 					return false;
 				}
 
@@ -374,7 +374,7 @@ namespace EastEngine
 				pData = nullptr;
 				if (pIndexBuffer->Map(0, D3D11_MAP_WRITE_NO_OVERWRITE, &pData) == false)
 				{
-					PRINT_LOG("Can't map indexbuffer");
+					LOG_ERROR("Can't map indexbuffer");
 					return false;
 				}
 

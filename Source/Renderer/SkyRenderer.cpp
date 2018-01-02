@@ -70,14 +70,14 @@ namespace EastEngine
 			IEffectTech* pEffectTech = m_pEffect->GetTechnique(StrID::Skybox);
 			if (pEffectTech == nullptr)
 			{
-				PRINT_LOG("Not Exist EffectTech !!");
+				LOG_ERROR("Not Exist EffectTech !!");
 				return;
 			}
 
 			Camera* pCamera = CameraManager::GetInstance()->GetMainCamera();
 			if (pCamera == nullptr)
 			{
-				PRINT_LOG("Not Exist Main Camera !!");
+				LOG_ERROR("Not Exist Main Camera !!");
 				return;
 			}
 
@@ -166,7 +166,7 @@ namespace EastEngine
 			pEffectTech = m_pEffect->GetTechnique(StrID::SkyEffect);
 			if (pEffectTech == nullptr)
 			{
-				PRINT_LOG("Not Exist EffectTech !!");
+				LOG_ERROR("Not Exist EffectTech !!");
 				return;
 			}
 
@@ -200,7 +200,7 @@ namespace EastEngine
 			pEffectTech = m_pEffect->GetTechnique(StrID::SkyCloud);
 			if (pEffectTech == nullptr)
 			{
-				PRINT_LOG("SkyRenderer::Render() : Not Exist EffectTech !!");
+				LOG_ERROR("SkyRenderer::Render() : Not Exist EffectTech !!");
 				return;
 			}
 

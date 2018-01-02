@@ -52,19 +52,19 @@ namespace EastEngine
 			switch (dwAction)
 			{
 			case FILE_ACTION_ADDED:
-				PRINT_LOG("FILE_ACTION_ADDED : %s", strPath);
+				LOG_MESSAGE("FILE_ACTION_ADDED : %s", strPath);
 				break;
 			case FILE_ACTION_REMOVED:
-				PRINT_LOG("FILE_ACTION_REMOVED : %s", strPath);
+				LOG_MESSAGE("FILE_ACTION_REMOVED : %s", strPath);
 				break;
 			case FILE_ACTION_MODIFIED:
-				PRINT_LOG("FILE_ACTION_MODIFIED : %s", strPath);
+				LOG_MESSAGE("FILE_ACTION_MODIFIED : %s", strPath);
 				break;
 			case FILE_ACTION_RENAMED_OLD_NAME:
-				PRINT_LOG("FILE_ACTION_RENAMED_OLD_NAME : %s", strPath);
+				LOG_MESSAGE("FILE_ACTION_RENAMED_OLD_NAME : %s", strPath);
 				break;
 			case FILE_ACTION_RENAMED_NEW_NAME:
-				PRINT_LOG("FILE_ACTION_RENAMED_NEW_NAME : %s", strPath);
+				LOG_MESSAGE("FILE_ACTION_RENAMED_NEW_NAME : %s", strPath);
 				break;
 			default:
 				break;

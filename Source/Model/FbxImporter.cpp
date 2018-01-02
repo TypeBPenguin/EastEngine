@@ -66,34 +66,21 @@ namespace EastEngine
 
 		class ConsoleOutListener : public ILogListener
 		{
-		protected:
-			HANDLE m_hOut;
-			WORD m_wDefaultConsoleTextAttributes;
-			WORD m_wBackgroundAttributes;
 		public:
-			ConsoleOutListener()
-			{
-				m_hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-				CONSOLE_SCREEN_BUFFER_INFO csbi;
-				GetConsoleScreenBufferInfo(m_hOut, &csbi);
-				m_wDefaultConsoleTextAttributes = csbi.wAttributes;
-				m_wBackgroundAttributes = m_wDefaultConsoleTextAttributes & 0x00F0;
-			}
+			ConsoleOutListener() = default;
+			~ConsoleOutListener() = default;
+
 			virtual void LogMessage(const char* strMessage) override
 			{
-				puts(strMessage);
+				LOG_MESSAGE("%s", strMessage);
 			}
 			virtual void LogWarning(const char* strMessage) override
 			{
-				SetConsoleTextAttribute(m_hOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY | m_wBackgroundAttributes);
-				LogMessage(strMessage);
-				SetConsoleTextAttribute(m_hOut, m_wDefaultConsoleTextAttributes);
+				LOG_WARNING("%s", strMessage);
 			}
 			virtual void LogError(const char* strMessage) override
 			{
-				SetConsoleTextAttribute(m_hOut, FOREGROUND_RED | FOREGROUND_INTENSITY | m_wBackgroundAttributes);
-				LogMessage(strMessage);
-				SetConsoleTextAttribute(m_hOut, m_wDefaultConsoleTextAttributes);
+				LOG_ERROR("%s", strMessage);
 			}
 		};
 
@@ -264,11 +251,9 @@ namespace EastEngine
 			std::string strExporterName = String::Format("%s version %d.%d.%d", CONTENT_EXPORTER_TITLE, CONTENT_EXPORTER_MAJOR_VERSION, CONTENT_EXPORTER_MINOR_VERSION, CONTENT_EXPORTER_REVISION);
 #endif
 
-			ExportLog::LogMsg(0, "----------------------------------------------------------");
 			ExportLog::LogMsg(0, strExporterName.c_str());
 			ExportLog::LogMsg(0, CONTENT_EXPORTER_VENDOR);
 			ExportLog::LogMsg(0, CONTENT_EXPORTER_COPYRIGHT);
-			ExportLog::LogMsg(0, "----------------------------------------------------------");
 
 			g_pScene = new ATG::ExportScene;
 			g_pScene->SetDCCTransformer(&m_fbxTransformer);
@@ -425,7 +410,7 @@ namespace EastEngine
 
 			counter.End();
 
-			PRINT_LOG("FBX Import, Model[%s] : %lf", strFilePath, counter.Count());
+			LOG_MESSAGE("FBX Import, Model[%s] : %lf", strFilePath, counter.Count());
 
 			return true;
 		}
@@ -476,7 +461,7 @@ namespace EastEngine
 
 			counter.End();
 
-			PRINT_LOG("FBX Import, Motion[%s] : %lf", strFilePath, counter.Count());
+			LOG_MESSAGE("FBX Import, Motion[%s] : %lf", strFilePath, counter.Count());
 
 			return true;
 		}

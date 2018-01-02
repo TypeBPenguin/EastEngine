@@ -71,7 +71,7 @@ namespace EastEngine
 			int nError = luaL_loadfile(m_pLuaState, strFile);
 			if (nError != 0)
 			{
-				PRINT_LOG("Can't Load Lua Script : %s", strFile);
+				LOG_ERROR("Can't Load Lua Script : %s", strFile);
 				return false;
 			}
 
@@ -81,7 +81,7 @@ namespace EastEngine
 			auto iter = m_umapCompiledLua.find(strFileName);
 			if (iter != m_umapCompiledLua.end())
 			{
-				PRINT_LOG("Already compiled file : %s", strFileName.c_str());
+				LOG_ERROR("Already compiled file : %s", strFileName.c_str());
 				return false;
 			}
 
@@ -89,7 +89,7 @@ namespace EastEngine
 			int nError = luaL_loadfile(m_pLuaState, strFile);
 			if (nError != 0)
 			{
-				PRINT_LOG("Can't Load Lua Script : %s", strFile);
+				LOG_ERROR("Can't Load Lua Script : %s", strFile);
 				return false;
 			}
 

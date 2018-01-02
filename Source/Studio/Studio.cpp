@@ -16,7 +16,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pScmdLine,
 	//_CrtSetBreakAlloc(1654);
 #endif
 
-	PRINT_LOG("Studio Start..");
+	LOG_ERROR("Studio Start..");
 
 	if (EastEngine::MainSystem::GetInstance()->Init(StrID::EastEngine, 1600, 900, false, false) == true)
 	{
@@ -26,12 +26,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pScmdLine,
 		EastEngine::MainSystem::GetInstance()->Run();
 	}
 
-	PRINT_LOG("게임 종료");
-	PRINT_LOG("3..");
+	LOG_MESSAGE("게임 종료");
+	LOG_MESSAGE("3..");
 	Sleep(1000);
-	PRINT_LOG("2..");
+	LOG_WARNING("2..");
 	Sleep(1000);
-	PRINT_LOG("1..");
+	LOG_ERROR("1..");
 	Sleep(1000);
 
 	EastEngine::MainSystem::GetInstance()->Release();

@@ -411,7 +411,7 @@ namespace EastEngine
 					HRESULT hr = m_pSwapChain->ResizeBuffers(0, nWidth, nHeight, DXGI_FORMAT_UNKNOWN, 0);
 					if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
 					{
-						PRINT_LOG("Device Lost : Reason code 0x%08X", (hr == DXGI_ERROR_DEVICE_REMOVED) ? m_pd3dDevice->GetDeviceRemovedReason() : hr);
+						LOG_WARNING("Device Lost : Reason code 0x%08X", (hr == DXGI_ERROR_DEVICE_REMOVED) ? m_pd3dDevice->GetDeviceRemovedReason() : hr);
 
 						HandleDeviceLost();
 
@@ -427,7 +427,7 @@ namespace EastEngine
 					m_pMainRenderTarget = IRenderTarget::Create(pBackBuffer);
 					if (m_pMainRenderTarget == nullptr)
 					{
-						PRINT_LOG("Failed resize Render Target");
+						LOG_ERROR("Failed resize Render Target");
 						Release();
 						return false;
 					}
@@ -458,7 +458,7 @@ namespace EastEngine
 			{
 				if (pHandler->OnDeviceLost() == false)
 				{
-					PRINT_LOG("Failed Handle Device Lost");
+					LOG_ERROR("Failed Handle Device Lost");
 					assert(false);
 				}
 			});
@@ -470,7 +470,7 @@ namespace EastEngine
 			{
 				if (pHandler->OnDeviceRestored() == false)
 				{
-					PRINT_LOG("Failed Handle Device Restored");
+					LOG_ERROR("Failed Handle Device Restored");
 					assert(false);
 				}
 			});
@@ -503,7 +503,7 @@ namespace EastEngine
 			HRESULT hr = m_pSwapChain->Present1(m_isVsync ? 1 : 0, 0, &presentParam);
 			if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
 			{
-				PRINT_LOG("Device Lost : Reason code 0x%08X", (hr == DXGI_ERROR_DEVICE_REMOVED) ? m_pd3dDevice->GetDeviceRemovedReason() : hr);
+				LOG_WARNING("Device Lost : Reason code 0x%08X", (hr == DXGI_ERROR_DEVICE_REMOVED) ? m_pd3dDevice->GetDeviceRemovedReason() : hr);
 
 				HandleDeviceLost();
 			}

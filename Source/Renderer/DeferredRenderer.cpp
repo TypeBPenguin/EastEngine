@@ -127,14 +127,14 @@ namespace EastEngine
 			m_pEffect = IEffect::Create(StrID::EffectDeferred, strPath.c_str());
 			if (m_pEffect == nullptr)
 			{
-				PRINT_LOG("Can't Create Effect : %s", strPath.c_str());
+				LOG_ERROR("Can't Create Effect : %s", strPath.c_str());
 				return false;
 			}
 
 			IEffectTech* pEffectTech = m_pEffect->CreateTechnique(StrID::Deferred, EmVertexFormat::eUnknown);
 			if (pEffectTech == nullptr)
 			{
-				PRINT_LOG("Not Exist EffectTech !!, %s", StrID::Deferred.c_str());
+				LOG_ERROR("Not Exist EffectTech !!, %s", StrID::Deferred.c_str());
 				return false;
 			}
 
@@ -149,28 +149,28 @@ namespace EastEngine
 			m_pEffectShadow = IEffect::Create(StrID::EffectDeferredShadow, strPath.c_str());
 			if (m_pEffectShadow == nullptr)
 			{
-				PRINT_LOG("Can't Create Effect : %s", strPath.c_str());
+				LOG_ERROR("Can't Create Effect : %s", strPath.c_str());
 				return false;
 			}
 
 			pEffectTech = m_pEffectShadow->CreateTechnique(StrID::Deferred_CascadedShadow, EmVertexFormat::eUnknown);
 			if (pEffectTech == nullptr)
 			{
-				PRINT_LOG("Not Exist EffectTech !!, %s", StrID::Deferred_CascadedShadow.c_str());
+				LOG_ERROR("Not Exist EffectTech !!, %s", StrID::Deferred_CascadedShadow.c_str());
 				return false;
 			}
 
 			pEffectTech = m_pEffectShadow->CreateTechnique(StrID::Deferred_ShadowMap, EmVertexFormat::eUnknown);
 			if (pEffectTech == nullptr)
 			{
-				PRINT_LOG("Not Exist EffectTech !!, %s", StrID::Deferred_ShadowMap.c_str());
+				LOG_ERROR("Not Exist EffectTech !!, %s", StrID::Deferred_ShadowMap.c_str());
 				return false;
 			}
 
 			pEffectTech = m_pEffectShadow->CreateTechnique(StrID::Deferred_ShadowCubeMap, EmVertexFormat::eUnknown);
 			if (pEffectTech == nullptr)
 			{
-				PRINT_LOG("Not Exist EffectTech !!, %s", StrID::Deferred_ShadowCubeMap.c_str());
+				LOG_ERROR("Not Exist EffectTech !!, %s", StrID::Deferred_ShadowCubeMap.c_str());
 				return false;
 			}
 
@@ -182,7 +182,7 @@ namespace EastEngine
 			Camera* pCamera = CameraManager::GetInstance()->GetMainCamera();
 			if (pCamera == nullptr)
 			{
-				PRINT_LOG("Not Exist Main Camera !!");
+				LOG_ERROR("Not Exist Main Camera !!");
 				return;
 			}
 
@@ -231,7 +231,7 @@ namespace EastEngine
 				IEffectTech* pEffectTech = m_pEffect->GetTechnique(StrID::Deferred);
 				if (pEffectTech == nullptr)
 				{
-					PRINT_LOG("Not Exist EffectTech !! : %s", StrID::Deferred.c_str());
+					LOG_ERROR("Not Exist EffectTech !! : %s", StrID::Deferred.c_str());
 					pDevice->ReleaseRenderTargets(&pRenderTargetShadow, 1, false);
 					return;
 				}
@@ -341,7 +341,7 @@ namespace EastEngine
 			Camera* pCamera = CameraManager::GetInstance()->GetMainCamera();
 			if (pCamera == nullptr)
 			{
-				PRINT_LOG("Not Exist Main Camera !!");
+				LOG_ERROR("Not Exist Main Camera !!");
 				return 0;
 			}
 
@@ -386,7 +386,7 @@ namespace EastEngine
 								pEffectTech = m_pEffectShadow->GetTechnique(StrID::Deferred_CascadedShadow);
 								if (pEffectTech == nullptr)
 								{
-									PRINT_LOG("Not Exist EffectTech !! : %s", StrID::Deferred_CascadedShadow.c_str());
+									LOG_ERROR("Not Exist EffectTech !! : %s", StrID::Deferred_CascadedShadow.c_str());
 									continue;
 								}
 
@@ -450,7 +450,7 @@ namespace EastEngine
 								pEffectTech = m_pEffectShadow->GetTechnique(StrID::Deferred_ShadowCubeMap);
 								if (pEffectTech == nullptr)
 								{
-									PRINT_LOG("Not Exist EffectTech !! : %s", StrID::Deferred_ShadowCubeMap.c_str());
+									LOG_ERROR("Not Exist EffectTech !! : %s", StrID::Deferred_ShadowCubeMap.c_str());
 									continue;
 								}
 
@@ -499,7 +499,7 @@ namespace EastEngine
 								pEffectTech = m_pEffectShadow->GetTechnique(StrID::Deferred_ShadowMap);
 								if (pEffectTech == nullptr)
 								{
-									PRINT_LOG("Not Exist EffectTech !! : %s", StrID::Deferred_ShadowMap.c_str());
+									LOG_ERROR("Not Exist EffectTech !! : %s", StrID::Deferred_ShadowMap.c_str());
 									continue;
 								}
 

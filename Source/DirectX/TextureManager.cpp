@@ -377,7 +377,7 @@ namespace EastEngine
 
 			if (FAILED(hr))
 			{
-				PRINT_LOG("Can't found Texture File : %s", strFilePath);
+				LOG_WARNING("Can't found Texture File : %s", strFilePath);
 				return false;
 			}
 
@@ -388,13 +388,13 @@ namespace EastEngine
 				DirectX::ScratchImage mipChain;
 				if (FAILED(DirectX::GenerateMipMaps(image.GetImages(), image.GetImageCount(), image.GetMetadata(), DirectX::TEX_FILTER_DEFAULT, 0, mipChain)))
 				{
-					PRINT_LOG("Can't GenerateMipMaps : %s", strFilePath);
+					LOG_ERROR("Can't GenerateMipMaps : %s", strFilePath);
 					return false;
 				}
 
 				if (FAILED(DirectX::CreateTexture(GetDevice()->GetInterface(), mipChain.GetImages(), mipChain.GetImageCount(), mipChain.GetMetadata(), reinterpret_cast<ID3D11Resource**>(&pTexture2D))))
 				{
-					PRINT_LOG("Can't CreateTexture : %s", strFilePath);
+					LOG_ERROR("Can't CreateTexture : %s", strFilePath);
 					return false;
 				}
 
@@ -404,7 +404,7 @@ namespace EastEngine
 			{
 				if (FAILED(DirectX::CreateTexture(GetDevice()->GetInterface(), image.GetImages(), image.GetImageCount(), image.GetMetadata(), reinterpret_cast<ID3D11Resource**>(&pTexture2D))))
 				{
-					PRINT_LOG("Can't CreateTexture : %s", strFilePath);
+					LOG_ERROR("Can't CreateTexture : %s", strFilePath);
 					return false;
 				}
 			}
@@ -475,7 +475,7 @@ namespace EastEngine
 			ID3D11ShaderResourceView* pShaderResourceView = nullptr;
 			if (FAILED(GetDevice()->CreateShaderResourceView(pTexture2D, &SRVDesc, &pShaderResourceView)))
 			{
-				PRINT_LOG("Can't CreateShaderResourceView : %s", strFilePath);
+				LOG_ERROR("Can't CreateShaderResourceView : %s", strFilePath);
 				return false;
 			}
 
@@ -486,7 +486,7 @@ namespace EastEngine
 
 			counter.End();
 
-			PRINT_LOG("Loading Time[%s] : %lf", strFilePath, counter.Count());
+			LOG_MESSAGE("Loading Time[%s] : %lf", strFilePath, counter.Count());
 
 			Texture* pRealTexture = static_cast<Texture*>(pTexture.get());
 			return pRealTexture->Load(pTexture2D, pShaderResourceView);

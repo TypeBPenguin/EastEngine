@@ -16,7 +16,7 @@ namespace EastEngine
 			{
 				if (nSourceSize != _TRUNCATE)
 				{
-					PRINT_LOG("а╤╫иго╩О, Memory::Move(), BufferSize : %d < SourceSize : %d", nDestinationSize, nSourceSize);
+					LOG_WARNING("а╤╫иго╩О, Memory::Move(), BufferSize : %d < SourceSize : %d", nDestinationSize, nSourceSize);
 				}
 				nSourceSize = nDestinationSize;
 			}
@@ -33,7 +33,7 @@ namespace EastEngine
 			{
 				if (nSourceSize != _TRUNCATE)
 				{
-					PRINT_LOG("а╤╫иго╩О, Memory::Copy(), BufferSize : %d < SourceSize : %d", nDestinationSize, nSourceSize);
+					LOG_WARNING("а╤╫иго╩О, Memory::Copy(), BufferSize : %d < SourceSize : %d", nDestinationSize, nSourceSize);
 				}
 				nSourceSize = nDestinationSize;
 			}

@@ -35,7 +35,7 @@ namespace EastEngine
 			FMOD_RESULT fm_result = FMOD::System_Create(&m_pSystem);
 			if (fm_result != FMOD_OK)
 			{
-				PRINT_LOG("fmod system create failed, %s", FMOD_ErrorString(fm_result));
+				LOG_ERROR("fmod system create failed, %s", FMOD_ErrorString(fm_result));
 				return false;
 			}
 

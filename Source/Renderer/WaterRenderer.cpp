@@ -240,14 +240,14 @@ namespace EastEngine
 			IEffectTech* pEffectTech = m_pEffect->GetTechnique(StrID::Water);
 			if (pEffectTech == nullptr)
 			{
-				PRINT_LOG("Not Exist EffectTech !!");
+				LOG_ERROR("Not Exist EffectTech !!");
 				return;
 			}
 
 			Camera* pCamera = CameraManager::GetInstance()->GetMainCamera();
 			if (pCamera == nullptr)
 			{
-				PRINT_LOG("Not Exist Main Camera !!");
+				LOG_ERROR("Not Exist Main Camera !!");
 				return;
 			}
 

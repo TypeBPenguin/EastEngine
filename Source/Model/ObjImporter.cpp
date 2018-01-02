@@ -99,7 +99,7 @@ namespace EastEngine
 
 					if (m_pMtlImporter->Init(strFileName.c_str(), File::GetFilePath(file.GetPath().c_str()).c_str()) == false)
 					{
-						PRINT_LOG("Cant Load Mtl File : %s", strFileName.c_str());
+						LOG_WARNING("Cant Load Mtl File : %s", strFileName.c_str());
 					}
 				}
 				else if (temp == "g")

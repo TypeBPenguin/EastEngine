@@ -264,7 +264,7 @@ namespace EastEngine
 
 					if (pVertexBuffer == nullptr || pIndexBuffer == nullptr)
 					{
-						PRINT_LOG("Can't created buffer(S/F), Vertex %s, Index %s", pVertexBuffer != nullptr ? "S" : "F", pIndexBuffer != nullptr ? "S" : "F");
+						LOG_ERROR("Can't created buffer(S/F), Vertex %s, Index %s", pVertexBuffer != nullptr ? "S" : "F", pIndexBuffer != nullptr ? "S" : "F");
 					}
 
 					pModelNode->SetVertexBuffer(pVertexBuffer);

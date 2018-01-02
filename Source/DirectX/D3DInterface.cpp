@@ -463,7 +463,7 @@ namespace EastEngine
 			File::FileStream file;
 			if (file.Open(strFullPath.c_str(), File::EmState::eRead | File::EmState::eBinary) == false)
 			{
-				PRINT_LOG("아 실패함");
+				LOG_WARNING("아 실패함");
 				return nullptr;
 			}
 
@@ -523,7 +523,7 @@ namespace EastEngine
 			File::FileStream file;
 			if (file.Open(strFullPath.c_str(), File::EmState::eWrite | File::EmState::eBinary) == false)
 			{
-				PRINT_LOG("아 실패함");
+				LOG_WARNING("아 실패함");
 				return false;
 			}
 

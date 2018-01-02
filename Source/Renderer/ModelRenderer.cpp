@@ -603,7 +603,7 @@ namespace EastEngine
 			Camera* pCamera = CameraManager::GetInstance()->GetMainCamera();
 			if (pCamera == nullptr)
 			{
-				PRINT_LOG("ModelRenderer::Render() : Not Exist Main Camera !!");
+				LOG_ERROR("ModelRenderer::Render() : Not Exist Main Camera !!");
 				return;
 			}
 

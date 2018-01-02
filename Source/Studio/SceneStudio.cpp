@@ -1431,7 +1431,7 @@ void SceneStudio::RenderUI()
 			{
 				if (GameObject::Actor::CreateByFile(ofn.lpstrFile) == nullptr)
 				{
-					PRINT_LOG("로드 실패 : %s", path);
+					LOG_ERROR("로드 실패 : %s", path);
 				}
 			}
 		}
@@ -1683,7 +1683,7 @@ void SceneStudio::RenderUI()
 											{
 												if (Graphics::IModel::SaveToFile(pModel, path) == false)
 												{
-													PRINT_LOG("저장 실패 : %s", path);
+													LOG_ERROR("저장 실패 : %s", path);
 												}
 											}
 										}

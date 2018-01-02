@@ -63,11 +63,11 @@ namespace EastEngine
 
 				if (pError != nullptr)
 				{
-					PRINT_LOG("%s : %s", pError->GetBufferPointer(), str.c_str());
+					LOG_ERROR("%s : %s", pError->GetBufferPointer(), str.c_str());
 				}
 				else
 				{
-					PRINT_LOG("Unknown Error : %s", pError->GetBufferPointer(), str.c_str());
+					LOG_ERROR("Unknown Error : %s", pError->GetBufferPointer(), str.c_str());
 				}
 			}
 
@@ -77,7 +77,7 @@ namespace EastEngine
 			{
 				if (pD3DEffect->IsValid() == false)
 				{
-					PRINT_LOG("Invalid Effect : %s, %s", strName.c_str(), strPath.c_str());
+					LOG_WARNING("Invalid Effect : %s, %s", strName.c_str(), strPath.c_str());
 					SafeRelease(pD3DEffect);
 					return nullptr;
 				}
@@ -104,13 +104,13 @@ namespace EastEngine
 			std::wstring wstrPath(String::MultiToWide(strPath));
 			if (FAILED(D3DReadFileToBlob(wstrPath.c_str(), &pBlob)))
 			{
-				PRINT_LOG("Cant Load Effect File : %s, %s", strName.c_str(), strPath.c_str());
+				LOG_ERROR("Cant Load Effect File : %s, %s", strName.c_str(), strPath.c_str());
 				return nullptr;
 			}
 
 			if (FAILED(D3DX11CreateEffectFromMemory(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), 0, GetDevice()->GetInterface(), &pD3DEffect, strName.c_str())))
 			{
-				PRINT_LOG("Create Fail Effect File : %s, %s", strName.c_str(), strPath.c_str());
+				LOG_ERROR("Create Fail Effect File : %s, %s", strName.c_str(), strPath.c_str());
 				return nullptr;
 			}
 
@@ -118,7 +118,7 @@ namespace EastEngine
 			{
 				if (pD3DEffect->IsValid() == false)
 				{
-					PRINT_LOG("Invalid Effect : %s, %s", strName.c_str(), strPath.c_str());
+					LOG_WARNING("Invalid Effect : %s, %s", strName.c_str(), strPath.c_str());
 					SafeRelease(pD3DEffect);
 					return nullptr;
 				}

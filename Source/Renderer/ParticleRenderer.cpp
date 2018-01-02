@@ -407,7 +407,7 @@ namespace EastEngine
 				IEffectTech* pEffectTech = pEffect->GetTechnique(StrID::Emitter);
 				if (pEffectTech == nullptr)
 				{
-					PRINT_LOG("Not Exist EffectTech !!");
+					LOG_ERROR("Not Exist EffectTech !!");
 					return;
 				}
 
@@ -583,15 +583,14 @@ namespace EastEngine
 					IEffect* pEffect = GetEffect(nMask);
 					if (pEffect == nullptr)
 					{
-						assert(false);
-						PRINT_LOG("Not Exist Effect !!");
+						LOG_ERROR("Not Exist Effect !!");
 						return;
 					}
 
 					IEffectTech* pEffectTech = pEffect->GetTechnique(StrID::Decal);
 					if (pEffectTech == nullptr)
 					{
-						PRINT_LOG("Not Exist EffectTech !!");
+						LOG_ERROR("Not Exist EffectTech !!");
 						return;
 					}
 
