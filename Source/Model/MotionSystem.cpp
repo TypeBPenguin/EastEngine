@@ -264,9 +264,18 @@ namespace EastEngine
 			m_motionPlayerSub = m_motionPlayer;
 
 			m_pMotion = pMotion;
-			m_pMotion->IncreaseReference();
 
-			m_fPlayTime = 0.f;
+			if (m_pMotion != nullptr)
+			{
+				m_pMotion->IncreaseReference();
+
+				m_fPlayTime = m_pMotion->GetStartTime();
+			}
+			else
+			{
+				m_fPlayTime = 0.f;
+			}
+
 			m_fBlemdTime = 0.f;
 
 			m_motionPlayer.Reset();

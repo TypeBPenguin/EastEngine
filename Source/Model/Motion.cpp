@@ -5,8 +5,9 @@ namespace EastEngine
 {
 	namespace Graphics
 	{
-		Motion::Bone::Bone(const String::StringID& strBoneName, const std::vector<Keyframe>& _vecKeyframes)
+		Motion::Bone::Bone(const String::StringID& strBoneName, const std::vector<Keyframe>& _vecKeyframes, float fFrameInterval)
 			: m_strBoneName(strBoneName)
+			, m_fFrameInterval(fFrameInterval)
 		{
 			m_vecKeyframes = std::move(_vecKeyframes);
 		}
@@ -25,27 +26,31 @@ namespace EastEngine
 
 			if (fPlayTime < m_vecKeyframes.front().fTime)
 			{
-				keyframe = m_vecKeyframes.front();
-
 				if (pPlayInfo->IsInverse() == true)
 				{
+					keyframe = m_vecKeyframes.back();
+
 					pPlayInfo->SetCaching(m_strBoneName, m_vecKeyframes.size() - 1);
 				}
 				else
 				{
+					keyframe = m_vecKeyframes.back();
+
 					pPlayInfo->SetCaching(m_strBoneName, 0);
 				}
 			}
 			else if (fPlayTime > m_vecKeyframes.back().fTime)
 			{
-				keyframe = m_vecKeyframes.back();
-
 				if (pPlayInfo->IsInverse() == true)
 				{
+					keyframe = m_vecKeyframes.back();
+
 					pPlayInfo->SetCaching(m_strBoneName, m_vecKeyframes.size() - 1);
 				}
 				else
 				{
+					keyframe = m_vecKeyframes.back();
+
 					pPlayInfo->SetCaching(m_strBoneName, 0);
 				}
 			}
@@ -54,7 +59,7 @@ namespace EastEngine
 				if (pPlayInfo->IsInverse() == true)
 				{
 					size_t nKeyframeIndex = pPlayInfo->GetCaching(m_strBoneName);
-					if (nKeyframeIndex == IMotionPlayer::eInvalidCachingIndex || nKeyframeIndex >= m_vecKeyframes.size())
+					if (nKeyframeIndex == IMotionPlayer::eInvalidCachingIndex || nKeyframeIndex <= 1 || nKeyframeIndex >= m_vecKeyframes.size())
 					{
 						nKeyframeIndex = m_vecKeyframes.size() - 1;
 					}
@@ -66,7 +71,7 @@ namespace EastEngine
 
 						if (keyframe1.fTime <= fPlayTime && fPlayTime <= keyframe2.fTime)
 						{
-							float lerpPercent = (fPlayTime - fPlayTime) / (keyframe2.fTime - keyframe1.fTime);
+							float lerpPercent = (fPlayTime - keyframe1.fTime) / (keyframe2.fTime - keyframe1.fTime);
 
 							Math::Vector3::Lerp(keyframe1.f3Pos, keyframe2.f3Pos, lerpPercent, keyframe.f3Pos);
 							Math::Vector3::Lerp(keyframe1.f3Scale, keyframe2.f3Scale, lerpPercent, keyframe.f3Scale);
@@ -118,7 +123,6 @@ namespace EastEngine
 			, m_fStartTime(0.f)
 			, m_fEndTime(0.f)
 			, m_fFrameInterval(0.f)
-			, m_fSamplingInterval(0.f)
 		{
 		}
 
@@ -148,18 +152,17 @@ namespace EastEngine
 
 		void Motion::AddBoneKeyframes(const String::StringID& strBoneName, const std::vector<Keyframe>& vecKeyframes)
 		{
-			auto iter_result = m_clnBones.emplace(strBoneName, vecKeyframes);
+			auto iter_result = m_clnBones.emplace(strBoneName, vecKeyframes, m_fFrameInterval);
 			Bone* pBone = &(*iter_result);
 			m_vecBonesIndexing.emplace_back(pBone);
 			m_umapBones.emplace(strBoneName, pBone);
 		}
 
-		void Motion::SetInfo(float fStartTime, float fEndTime, float fFrameInterval, float fSamplingInterval)
+		void Motion::SetInfo(float fStartTime, float fEndTime, float fFrameInterval)
 		{
 			m_fStartTime = fStartTime;
 			m_fEndTime = fEndTime;
 			m_fFrameInterval = fFrameInterval;
-			m_fSamplingInterval = fSamplingInterval;
 		}
 	}
 }

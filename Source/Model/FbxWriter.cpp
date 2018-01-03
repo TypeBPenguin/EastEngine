@@ -8,6 +8,8 @@
 
 #include "Skeleton.h"
 
+#include "CommonLib/FileUtil.h"
+
 #include <DirectXMath.h>
 #include <DirectXPackedVector.h>
 #include <DirectXCollision.h>
@@ -180,13 +182,13 @@ namespace EastEngine
 			ExportMaterialParameter* pNormal = pExportMaterial->FindParameter("NormalMapTexture");
 			if (pNormal != nullptr)
 			{
-				materialInfo.strTextureNameArray[EmMaterial::eNormal] = pDiffuse->ValueString.SafeString();
+				materialInfo.strTextureNameArray[EmMaterial::eNormal] = pNormal->ValueString.SafeString();
 			}
 
 			ExportMaterialParameter* pSpecular = pExportMaterial->FindParameter("SpecularMapTexture");
 			if (pSpecular != nullptr)
 			{
-				materialInfo.strTextureNameArray[EmMaterial::eSpecular] = pDiffuse->ValueString.SafeString();
+				materialInfo.strTextureNameArray[EmMaterial::eSpecular] = pSpecular->ValueString.SafeString();
 			}
 		}
 
@@ -299,6 +301,7 @@ namespace EastEngine
 							vecSubsets[i].nMaterialID = vecMaterials.size();
 
 							MaterialInfo materialInfo;
+							materialInfo.strPath = File::GetFilePath(pModel->GetFilePath());
 							WriteMaterial(pBinding->pMaterial, materialInfo);
 
 							vecMaterials.emplace_back(IMaterial::Create(&materialInfo));
@@ -614,7 +617,7 @@ namespace EastEngine
 			return true;
 		}
 
-		void WriteKeyframes(ExportAnimationTrack* pTrack, Motion* pMotion, float fDuration, float fSourceFrameInterval, float fStartTime)
+		void WriteKeyframes(ExportAnimationTrack* pTrack, Motion* pMotion, float fDuration, float fFrameInterval, float fStartTime)
 		{
 			std::vector<Motion::Keyframe> vecKeyframes;
 			ExportAnimationTransformTrack& transformTrack = pTrack->TransformTrack;
@@ -631,14 +634,14 @@ namespace EastEngine
 
 			if (transformTrack.IsTrackEmpty() == false)
 			{
-				size_t nKeyframeCount = static_cast<size_t>(fDuration / fSourceFrameInterval);
+				size_t nKeyframeCount = static_cast<size_t>(fDuration / fFrameInterval) + 1;
 				
 				vecKeyframes.resize(nKeyframeCount);
 				
-				SampleTimeData(vecKeyframes.data(), vecKeyframes.size(), fSourceFrameInterval, fStartTime);
-				SamplePositionData(transformTrack.GetPositionKeys(), transformTrack.GetPositionKeyCount(), vecKeyframes.data(), vecKeyframes.size(), fSourceFrameInterval);
-				SampleOrientationData(transformTrack.GetOrientationKeys(), transformTrack.GetOrientationKeyCount(), vecKeyframes.data(), vecKeyframes.size(), fSourceFrameInterval);
-				SampleScaleData(transformTrack.GetScaleKeys(), transformTrack.GetScaleKeyCount(), vecKeyframes.data(), vecKeyframes.size(), fSourceFrameInterval);
+				SampleTimeData(vecKeyframes.data(), vecKeyframes.size(), fFrameInterval, fStartTime);
+				SamplePositionData(transformTrack.GetPositionKeys(), transformTrack.GetPositionKeyCount(), vecKeyframes.data(), vecKeyframes.size(), fFrameInterval);
+				SampleOrientationData(transformTrack.GetOrientationKeys(), transformTrack.GetOrientationKeyCount(), vecKeyframes.data(), vecKeyframes.size(), fFrameInterval);
+				SampleScaleData(transformTrack.GetScaleKeys(), transformTrack.GetScaleKeyCount(), vecKeyframes.data(), vecKeyframes.size(), fFrameInterval);
 			}
 			else
 			{
@@ -659,6 +662,7 @@ namespace EastEngine
 				return false;
 
 			Motion* pRealMotion = static_cast<Motion*>(pMotion);
+			pRealMotion->SetInfo(pAnimation->fStartTime, pAnimation->fEndTime, pAnimation->fSourceSamplingInterval);
 
 			size_t nTrackCount = pAnimation->GetTrackCount();
 			for (size_t i = 0; i < nTrackCount; ++i)
@@ -667,10 +671,8 @@ namespace EastEngine
 				if (pTrack == nullptr)
 					continue;
 
-				WriteKeyframes(pTrack, pRealMotion, pAnimation->GetDuration(), pAnimation->fSourceFrameInterval, pAnimation->fStartTime);
+				WriteKeyframes(pTrack, pRealMotion, pAnimation->GetDuration(), pAnimation->fSourceSamplingInterval, pAnimation->fStartTime);
 			}
-
-			pRealMotion->SetInfo(pAnimation->fStartTime, pAnimation->fEndTime, pAnimation->fSourceFrameInterval, pAnimation->fSourceSamplingInterval);
 
 			return true;
 		}

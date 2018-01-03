@@ -14,7 +14,7 @@ namespace EastEngine
 			class Bone : public IMotion::IBone
 			{
 			public:
-				Bone(const String::StringID& strBoneName, const std::vector<Keyframe>& _vecKeyframes);
+				Bone(const String::StringID& strBoneName, const std::vector<Keyframe>& _vecKeyframes, float fFrameInterval);
 				virtual ~Bone() override;
 
 			public:
@@ -45,6 +45,7 @@ namespace EastEngine
 			private:
 				String::StringID m_strBoneName;
 				std::vector<Keyframe> m_vecKeyframes;
+				float m_fFrameInterval;
 			};
 
 		public:
@@ -77,7 +78,7 @@ namespace EastEngine
 
 		public:
 			void AddBoneKeyframes(const String::StringID& strBoneName, const std::vector<Keyframe>& vecKeyframes);
-			void SetInfo(float fStartTime, float fEndTime, float fFrameInterval, float fSamplingInterval);
+			void SetInfo(float fStartTime, float fEndTime, float fFrameInterval);
 
 		private:
 			int m_nReferenceCount;
@@ -92,7 +93,6 @@ namespace EastEngine
 			float m_fStartTime;
 			float m_fEndTime;
 			float m_fFrameInterval;
-			float m_fSamplingInterval;
 		};
 	}
 }

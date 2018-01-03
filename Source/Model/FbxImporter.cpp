@@ -307,6 +307,20 @@ namespace EastEngine
 					return false;
 			}
 
+			if (m_pImporter->IsFBX())
+			{
+				fbxsdk::FbxIOSettings* ioSettings = m_pSDKManager->GetIOSettings();
+				ioSettings->SetBoolProp(IMP_FBX_CONSTRAINT, true);
+				ioSettings->SetBoolProp(IMP_FBX_CONSTRAINT_COUNT, true);
+				ioSettings->SetBoolProp(IMP_FBX_MATERIAL, true);
+				ioSettings->SetBoolProp(IMP_FBX_TEXTURE, true);
+				ioSettings->SetBoolProp(IMP_FBX_LINK, true);
+				ioSettings->SetBoolProp(IMP_FBX_SHAPE, true);
+				ioSettings->SetBoolProp(IMP_FBX_GOBO, true);
+				ioSettings->SetBoolProp(IMP_FBX_ANIMATION, true);
+				ioSettings->SetBoolProp(IMP_FBX_GLOBAL_SETTINGS, true);
+			}
+
 			if (m_pFBXScene != nullptr)
 			{
 				m_pFBXScene->Clear();
@@ -365,6 +379,8 @@ namespace EastEngine
 			}
 			ExportLog::LogMsg(4, "FBX has been initialized.");
 
+			g_CurrentOutputFileName = File::GetFilePath(strFilePath).c_str();
+
 			ModelSettings();
 
 			g_pScene->Settings().fExportScale = fScale;
@@ -422,6 +438,8 @@ namespace EastEngine
 				return false;
 			}
 			ExportLog::LogMsg(4, "FBX has been initialized.");
+
+			g_CurrentOutputFileName = File::GetFilePath(strFilePath).c_str();
 
 			MotionSettings();
 			
@@ -925,19 +943,21 @@ namespace EastEngine
 
 			ExportLog::LogMsg(2, "Capturing animation data from %Iu nodes, from time %0.3f to %0.3f, at an interval of %0.3f seconds.", nNodeCount, fStartTime, fEndTime, fDeltaTime);
 
+#if (FBXSDK_VERSION_MAJOR > 2014 || ((FBXSDK_VERSION_MAJOR==2014) && (FBXSDK_VERSION_MINOR>1) ) )
+			fbxsdk::FbxAnimEvaluator* pAnimEvaluator = pFbxScene->GetAnimationEvaluator();
+#else
+			auto pAnimEvaluator = pFbxScene->GetEvaluator();
+#endif
 			while (fCurrentTime <= fEndTime)
 			{
 				FbxTime CurrentTime;
 				CurrentTime.SetSecondDouble(fCurrentTime);
+
+				CurrentTime = pAnimEvaluator->ValidateTime(CurrentTime);
+
 				for (size_t i = 0; i < nNodeCount; ++i)
 				{
 					AnimationScanNode& asn = scanlist[i];
-
-#if (FBXSDK_VERSION_MAJOR > 2014 || ((FBXSDK_VERSION_MAJOR==2014) && (FBXSDK_VERSION_MINOR>1) ) )
-					auto pAnimEvaluator = pFbxScene->GetAnimationEvaluator();
-#else
-					auto pAnimEvaluator = pFbxScene->GetEvaluator();
-#endif
 
 					fbxsdk::FbxAMatrix matGlobal = pAnimEvaluator->GetNodeGlobalTransform(asn.pNode, CurrentTime);
 					AnimationScanNode* pParent = nullptr;
@@ -983,7 +1003,8 @@ namespace EastEngine
 			float fSampleTime = fFrameTime / static_cast<float>(g_pScene->Settings().iAnimSampleCountPerFrame);
 			assert(fSampleTime > 0);
 
-			float fStartTime, fEndTime;
+			float fStartTime = 0.f;
+			float fEndTime = 0.f;
 			if (pTakeInfo != nullptr)
 			{
 				fStartTime = static_cast<float>(pTakeInfo->mLocalTimeSpan.GetStart().GetSecondDouble());
@@ -1001,7 +1022,7 @@ namespace EastEngine
 			}
 
 			pAnim->fStartTime = fStartTime;
-			pAnim->fEndTime = fEndTime;
+			pAnim->fEndTime = fEndTime + 1e-5f;
 			pAnim->fSourceFrameInterval = fFrameTime;
 			pAnim->fSourceSamplingInterval = fSampleTime;
 
@@ -1375,7 +1396,7 @@ namespace EastEngine
 				{ FbxSurfaceMaterial::sSpecular,           "SpecularMapTexture",           PPO_Nothing,                ExportMaterialParameter::EMPF_SPECULARMAP },
 				{ FbxSurfaceMaterial::sEmissive,           "EmissiveMapTexture",           PPO_Nothing,                0 },
 			};
-
+			
 			for (uint32_t nExtractionIndex = 0; nExtractionIndex < ARRAYSIZE(ExtractionList); ++nExtractionIndex)
 			{
 				const TextureParameterExtraction& tpe = ExtractionList[nExtractionIndex];
