@@ -17,6 +17,8 @@ namespace EastEngine
 		std::wstring GetFilePath(const std::wstring& strPath);		// 파일명 제외한 경로명 리턴
 		std::wstring GetFilePath(const wchar_t* strPath);			// 파일명 제외한 경로명 리턴
 
+		bool IsExists(const char* strPath);
+		bool IsExists(const std::string& strPath);
 		std::vector<std::string> GetFilesInFolder(const char* strPath, const char* strType = "*.*", bool bWithPath = false);
 
 		enum EmPath

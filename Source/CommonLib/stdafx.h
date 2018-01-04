@@ -27,6 +27,9 @@
 #include <queue>
 #include <variant>
 
+#include <Shlwapi.h>
+#include <filesystem>
+
 #include <ppl.h>
 #include <concurrent_queue.h>
 

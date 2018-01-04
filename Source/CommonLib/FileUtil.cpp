@@ -3,8 +3,6 @@
 
 #include "StringUtil.h"
 
-#include <Shlwapi.h>
-
 namespace EastEngine
 {
 	namespace File
@@ -101,6 +99,16 @@ namespace EastEngine
 			}
 
 			return str;
+		}
+
+		bool IsExists(const char* strPath)
+		{
+			return std::experimental::filesystem::exists(strPath);
+		}
+
+		bool IsExists(const std::string& strPath)
+		{
+			return IsExists(strPath.c_str());
 		}
 
 		std::vector<std::string> GetFilesInFolder(const char* strPath, const char* strType, bool bWithPath)
