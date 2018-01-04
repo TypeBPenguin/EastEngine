@@ -157,7 +157,7 @@
       <Filter>ThreadPool</Filter>
     </ClInclude>
     <ClInclude Include="CrashHandler.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>CrashHandler</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -222,7 +222,7 @@
       <Filter>ThreadPool</Filter>
     </ClCompile>
     <ClCompile Include="CrashHandler.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>CrashHandler</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
