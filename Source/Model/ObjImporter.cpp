@@ -381,11 +381,11 @@ namespace EastEngine
 						{
 							VertexPosTexNor v;
 							v.pos = m_objData.vecVertex[vIdx];
-							if (UINT32_MAX != tIdx)
+							if (std::numeric_limits<uint32_t>::max() != tIdx)
 							{
 								v.uv = m_objData.vecTexcoord[tIdx];
 							}
-							if (UINT32_MAX != nIdx)
+							if (std::numeric_limits<uint32_t>::max() != nIdx)
 							{
 								v.normal = m_objData.vecNormal[nIdx];
 							}

@@ -16,12 +16,11 @@ namespace EastEngine
 		{
 		}
 
-		void Motion::Bone::Update(IMotionPlayer* pPlayInfo)
+		void Motion::Bone::Update(float fPlayTime, IMotionPlayer* pPlayInfo)
 		{
 			if (m_vecKeyframes.empty() == true)
 				return;
 
-			float fPlayTime = pPlayInfo->GetPlayTime();
 			Keyframe keyframe;
 
 			if (fPlayTime < m_vecKeyframes.front().fTime)
@@ -133,11 +132,11 @@ namespace EastEngine
 			m_clnBones.clear();
 		}
 
-		void Motion::Update(IMotionPlayer* pPlayInfo)
+		void Motion::Update(float fPlayTime, IMotionPlayer* pPlayInfo)
 		{
-			std::for_each(m_clnBones.begin(), m_clnBones.end(), [&pPlayInfo](Bone& bone)
+			std::for_each(m_clnBones.begin(), m_clnBones.end(), [&](Bone& bone)
 			{
-				bone.Update(pPlayInfo);
+				bone.Update(fPlayTime, pPlayInfo);
 			});
 		}
 

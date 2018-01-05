@@ -296,7 +296,7 @@ namespace EastEngine
 							}
 						}
 
-						if (vecSubsets[i].nMaterialID == UINT32_MAX)
+						if (vecSubsets[i].nMaterialID == std::numeric_limits<uint32_t>::max())
 						{
 							vecSubsets[i].nMaterialID = vecMaterials.size();
 

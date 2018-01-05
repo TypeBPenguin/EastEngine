@@ -1,20 +1,10 @@
 #pragma once
 
+#include "Model/ModelInterface.h"
 #include "ComponentInterface.h"
 
 namespace EastEngine
 {
-	namespace Graphics
-	{
-		class IModel;
-		class IModelInstance;
-		class IMotion;
-		class ModelLoader;
-		class MotionLoader;
-
-		struct MotionState;
-	}
-
 	namespace GameObject
 	{
 		class ComponentModel : public IComponent
@@ -37,10 +27,9 @@ namespace EastEngine
 			bool IsLoadComplete();
 
 		public:
-			bool PlayMotion(Graphics::IMotion* pMotion, const Graphics::MotionState* pMotionState = nullptr);
-			bool PlayMotion(const Graphics::MotionLoader& loader, const Graphics::MotionState* pMotionState = nullptr);
-			void StopMotion(float fStopTime);
-			Graphics::IMotion* GetMotioin();
+			bool PlayMotion(Graphics::EmMotion::Layers emLayer, Graphics::IMotion* pMotion, const Graphics::MotionPlaybackInfo* pMotionState = nullptr);
+			bool PlayMotion(Graphics::EmMotion::Layers emLayer, const Graphics::MotionLoader& loader, const Graphics::MotionPlaybackInfo* pMotionState = nullptr);
+			void StopMotion(Graphics::EmMotion::Layers emLayer, float fStopTime);
 
 		private:
 			Graphics::IModelInstance* m_pModelInst;

@@ -22,7 +22,7 @@ namespace EastEngine
 			struct NodeMaterial
 			{
 				String::StringID strNodeName;
-				uint32_t nIndex = UINT32_MAX;
+				uint32_t nIndex = std::numeric_limits<uint32_t>::max();
 				IMaterial* pMaterial = nullptr;
 
 				NodeMaterial(const String::StringID& strNodeName, uint32_t nIndex, IMaterial* pMaterial);
@@ -67,10 +67,6 @@ namespace EastEngine
 			virtual bool IsAttachment() const override { return m_isAttachment; }
 
 			virtual bool Dettachment(IModelInstance* pInstance) override;
-
-			virtual void PlayMotion(IMotion* pMotion, const MotionState* pMotionState = nullptr) override;
-			virtual void StopMotion(float fStopTime) override;
-			virtual IMotion* GetMotion() override;
 
 		public:
 			virtual bool IsLoadComplete() override;

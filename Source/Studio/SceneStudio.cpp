@@ -424,12 +424,6 @@ void SceneStudio::Enter()
 	}
 
 	{
-		//std::string strPath(File::GetDataPath());
-		//strPath.append("Actor\\UnityChan\\UnityChan.eact");
-		//
-		//GameObject::IActor* pActor = GameObject::IActor::CreateByFile(strPath.c_str());
-		//pActor->SetPosition({ 0.f, 60.f, 0.f });
-		
 		GameObject::IActor* pActor = GameObject::IActor::Create("UnityChan");
 		
 		//pActor->SetPosition({ 0.f, 50.f, -90.f });
@@ -439,37 +433,60 @@ void SceneStudio::Enter()
 		strPath.append("Actor\\UnityChan\\Models\\unitychan.fbx");
 		
 		Graphics::ModelLoader loader;
+
 		loader.InitFBX("UnityChan", strPath.c_str(), 0.01f);
 		loader.SetEnableThreadLoad(false);
 		
 		GameObject::ComponentModel* pModel = static_cast<GameObject::ComponentModel*>(pActor->CreateComponent(GameObject::EmComponent::eModel));
 		pModel->Init(&loader);
 
-		std::string strPathMotion(File::GetDataPath());
-		strPathMotion.append("Actor\\UnityChan\\Animations\\unitychan_ARpose1.fbx");
-
 		Graphics::IModelInstance* pModelInstance = pModel->GetModelInstance();
+		Graphics::IMotionSystem* pMotionSystem = pModelInstance->GetMotionSystem();
 
-		Graphics::MotionLoader motionLoader;
-		motionLoader.InitFBX(File::GetFileName(strPathMotion).c_str(), strPathMotion.c_str(), 0.01f);
-		Graphics::IMotion* pMotion = Graphics::IMotion::Create(motionLoader);
+		{
+			std::string strPathMotion(File::GetDataPath());
+			strPathMotion.append("Actor\\UnityChan\\Animations\\unitychan_WAIT00.fbx");
 
-		Graphics::MotionState motionState;
-		motionState.fSpeed = 0.075f;
-		motionState.isLoop = false;
-		pModelInstance->PlayMotion(pMotion, &motionState);
+			Graphics::MotionLoader motionLoader;
+			motionLoader.InitFBX(File::GetFileName(strPathMotion).c_str(), strPathMotion.c_str(), 0.01f);
+			Graphics::IMotion* pMotion = Graphics::IMotion::Create(motionLoader);
+
+			Graphics::MotionPlaybackInfo playback;
+			playback.fSpeed = 1.f;
+			playback.nLoopCount = Graphics::MotionPlaybackInfo::eMaxLoopCount;
+			playback.fWeight = 0.1;
+			pMotionSystem->Play(Graphics::EmMotion::eLayer1, pMotion, &playback);
+		}
+
+		{
+			std::string strPathMotion(File::GetDataPath());
+			//strPathMotion.append("Actor\\UnityChan\\Animations\\unitychan_ARpose1.fbx");
+			strPathMotion.append("Actor\\UnityChan\\Animations\\unitychan_RUN00_F.fbx");
+
+			Graphics::MotionLoader motionLoader;
+			motionLoader.InitFBX(File::GetFileName(strPathMotion).c_str(), strPathMotion.c_str(), 0.01f);
+			Graphics::IMotion* pMotion = Graphics::IMotion::Create(motionLoader);
+
+			Graphics::MotionPlaybackInfo playback;
+			playback.fSpeed = 1.f;
+			playback.nLoopCount = Graphics::MotionPlaybackInfo::eMaxLoopCount;
+			//playback.fSpeed = 0.075f;
+			//playback.nLoopCount = 1;
+			playback.fWeight = 1.f;
+			pMotionSystem->Play(Graphics::EmMotion::eLayer2, pMotion, &playback);
+		}
 
 		//GameObject::ComponentPhysics* pCompPhysics = static_cast<GameObject::ComponentPhysics*>(pActor->CreateComponent(GameObject::EmComponent::ePhysics));
 
 		//pCompPhysics->m_pRagDoll->BuildDefaultHumanRagDoll(pModelInstance->GetSkeleton(), pActor->GetPosition(), Math::Quaternion::Identity, 1.f);
 		//pCompPhysics->m_pRagDoll->Start();
 
+		//if (false)
 		{
 			strPath = File::GetDataPath();
 			strPath.append("Model\\ElementalSwordIce\\LP.obj");
 
 			Graphics::IModelInstance* pModelInstance_Attach = nullptr;
-			Graphics::ModelLoader loader;
 			loader.InitFBX("ElementalSwordIce", strPath.c_str(), 0.005f);
 
 			pModelInstance_Attach = Graphics::IModel::CreateInstance(loader, false);
@@ -969,19 +986,20 @@ void ShowMotion(bool& isShowMotionMenu, GameObject::ComponentModel* pCompModel)
 
 		if (ImGui::Button("Play") == true)
 		{
-			Graphics::MotionState motionState;
-			motionState.fSpeed = fMotionSpeed;
-			motionState.isLoop = isMotionLoop;
-			motionState.isInverse = isMotionInverse;
+			Graphics::MotionPlaybackInfo playback;
+			playback.fSpeed = fMotionSpeed;
+			playback.fWeight = 1.f;
+			playback.nLoopCount = isMotionLoop == true ? Graphics::MotionPlaybackInfo::eMaxLoopCount : 1;
+			playback.isInverse = isMotionInverse;
 
-			pCompModel->PlayMotion(pMotion, &motionState);
+			pCompModel->PlayMotion(Graphics::EmMotion::eLayer1, pMotion, &playback);
 		}
 
 		ImGui::SameLine();
 
 		if (ImGui::Button("Stop") == true)
 		{
-			pCompModel->StopMotion(0.3f);
+			pCompModel->StopMotion(Graphics::EmMotion::eLayer1, 0.3f);
 		}
 
 		ImGui::Separator();
@@ -998,7 +1016,9 @@ void ShowMotion(bool& isShowMotionMenu, GameObject::ComponentModel* pCompModel)
 			Graphics::IMotionSystem* pMotionSystem = pModelInst->GetMotionSystem();
 			if (pMotionSystem != nullptr)
 			{
-				fMotionPlayTime = pMotionSystem->GetPlayTime();
+				const Graphics::IMotionPlayer* pMotionPlayer = pMotionSystem->GetPlayer(Graphics::EmMotion::eLayer1);
+
+				fMotionPlayTime = pMotionPlayer->GetPlayTime();
 			}
 
 			float fEndTime = pMotion->GetEndTime();

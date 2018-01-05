@@ -6,7 +6,7 @@ namespace EastEngine
 {
 	namespace Graphics
 	{
-		struct MotionState;
+		struct MotionPlaybackInfo;
 
 		class ModelLoader;
 		class IModel;
@@ -58,7 +58,7 @@ namespace EastEngine
 		{
 			String::StringID strName;
 
-			uint32_t nMaterialID = UINT32_MAX;
+			uint32_t nMaterialID = std::numeric_limits<uint32_t>::max();
 			size_t nStartIndex = 0;
 			size_t nIndexCount = 0;
 
@@ -112,7 +112,7 @@ namespace EastEngine
 				virtual float GetStartTime() const = 0;
 				virtual float GetEndTime() const = 0;
 
-				virtual void Update(IMotionPlayer* pPlayInfo) = 0;
+				virtual void Update(float fPlayTime, IMotionPlayer* pPlayInfo) = 0;
 
 			public:
 				virtual uint32_t GetKeyframeCount() const = 0;
@@ -130,7 +130,7 @@ namespace EastEngine
 			static bool SaveToFile(IMotion* pMotion, const char* strFilePath);
 
 		public:
-			virtual void Update(IMotionPlayer* pPlayInfo) = 0;
+			virtual void Update(float fPlayTime, IMotionPlayer* pPlayInfo) = 0;
 
 			virtual float GetStartTime() const = 0;
 			virtual float GetEndTime() const = 0;
@@ -138,8 +138,8 @@ namespace EastEngine
 		public:
 			virtual const String::StringID& GetName() = 0;
 
-			virtual uint32_t GetBoneCount() = 0;
-			virtual const IBone* GetBone(uint32_t nIndex) const = 0;
+			virtual size_t GetBoneCount() = 0;
+			virtual const IBone* GetBone(size_t nIndex) const = 0;
 			virtual const IBone* GetBone(const String::StringID& strBoneName) const = 0;
 
 		public:
@@ -147,22 +147,40 @@ namespace EastEngine
 			virtual int IncreaseReference() = 0;
 			virtual int DecreaseReference() = 0;
 		};
-		
-		struct MotionState
+
+		namespace EmMotion
 		{
+			enum Layers
+			{
+				eLayer1 = 0,
+				eLayer2,
+				eLayer3,
+				eLayer4,
+
+				eLayerCount,
+			};
+		}
+
+		struct MotionPlaybackInfo
+		{
+			enum : size_t
+			{
+				eMaxLoopCount = std::numeric_limits<size_t>::max(),
+			};
+
 			float fSpeed = 1.f;
-			float fBlendWeight = 0.f;
+			float fWeight = 0.f;
 			float fBlendTime = 0.f;
+			uint32_t nLoopCount = 1;
 			bool isInverse = false;
-			bool isLoop = false;
 
 			void Reset()
 			{
 				fSpeed = 1.f;
-				fBlendWeight = 0.f;
+				fWeight = 0.f;
 				fBlendTime = 0.f;
+				nLoopCount = 1;
 				isInverse = false;
-				isLoop = false;
 			}
 		};
 
@@ -175,25 +193,28 @@ namespace EastEngine
 		public:
 			enum : size_t
 			{
-				eInvalidCachingIndex = std::numeric_limits<size_t>::max()
+				eInvalidCachingIndex = std::numeric_limits<size_t>::max(),
 			};
 
 		public:
 			virtual void SetCaching(const String::StringID& strBoneName, size_t nIndex) = 0;
-			virtual size_t GetCaching(const String::StringID& strBoneName) = 0;
+			virtual size_t GetCaching(const String::StringID& strBoneName) const = 0;
 
 			virtual void SetKeyframe(const String::StringID& strBoneName, const IMotion::Keyframe& keyframe) = 0;
-			virtual const IMotion::Keyframe* GetKeyframe(const String::StringID& strBoneName) = 0;
-
-			virtual void Reset() = 0;
+			virtual const IMotion::Keyframe* GetKeyframe(const String::StringID& strBoneName) const = 0;
 
 			virtual float GetPlayTime() const = 0;
 
-			virtual float GetPlaySpeed() const = 0;
-			virtual float GetBlendWeight() const = 0;
+			virtual float GetSpeed() const = 0;
+			virtual float GetWeight() const = 0;
 			virtual float GetBlendTime() const = 0;
-			virtual bool IsInverse() const = 0;
+			virtual int GetMaxLoopCount() const = 0;
+			virtual int GetLoopCount() const = 0;
 			virtual bool IsLoop() const = 0;
+			virtual bool IsInverse() const = 0;
+
+			virtual IMotion* GetMotion() const = 0;
+			virtual bool IsPlaying() const = 0;
 		};
 
 		class IMotionSystem
@@ -203,21 +224,16 @@ namespace EastEngine
 			virtual ~IMotionSystem() = default;
 
 		public:
-			static IMotionSystem* Create(IModel* pModel);
+			static IMotionSystem* Create(ISkeletonInstance* pSkeletonInstance);
 			static void Destroy(IMotionSystem** ppMotionSystem);
 
 		public:
-			virtual void Update(float fElapsedTime, ISkeletonInstance* pSkeletonInst) = 0;
+			virtual void Update(float fElapsedTime) = 0;
 
-			virtual void Play(IMotion* pMotion, const MotionState* pMotionState = nullptr) = 0;
-			virtual void Stop(float fStopTime) = 0;
+			virtual void Play(EmMotion::Layers emLayer, IMotion* pMotion, const MotionPlaybackInfo* pPlayback = nullptr) = 0;
+			virtual void Stop(EmMotion::Layers emLayer, float fStopTime) = 0;
 
-			virtual IMotion* GetMotion() = 0;
-
-			virtual bool IsPlayingMotion() = 0;
-
-			virtual float GetPlayTime() const = 0;
-			virtual float GetPlayTimeSub() const = 0;
+			virtual const IMotionPlayer* GetPlayer(EmMotion::Layers emLayer) const = 0;
 		};
 
 		class IMaterialInstance
@@ -259,14 +275,14 @@ namespace EastEngine
 			virtual const Math::Matrix& GetWorldMatrix() = 0;
 			virtual const Math::Matrix* GetWorldMatrixPtr() = 0;
 
-			virtual uint32_t GetChildNodeCount() const = 0;
-			virtual IModelNode* GetChildNode(uint32_t nIndex) = 0;
+			virtual size_t GetChildNodeCount() const = 0;
+			virtual IModelNode* GetChildNode(size_t nIndex) = 0;
 
-			virtual uint32_t GetMaterialCount() const = 0;
-			virtual IMaterial* GetMaterial(uint32_t nIndex) = 0;
+			virtual size_t GetMaterialCount() const = 0;
+			virtual IMaterial* GetMaterial(size_t nIndex) = 0;
 
-			virtual uint32_t GetModelSubsetCount(uint32_t nLOD = 0) const = 0;
-			virtual ModelSubset* GetModelSubset(uint32_t nIndex, uint32_t nLOD = 0) = 0;
+			virtual size_t GetModelSubsetCount(uint32_t nLOD = 0) const = 0;
+			virtual ModelSubset* GetModelSubset(size_t nIndex, uint32_t nLOD = 0) = 0;
 
 			virtual void BuildBoundingBox(const Collision::AABB& aabb) = 0;
 			virtual void UpdateBoundingBox(const Math::Matrix& matWorld) = 0;
@@ -311,8 +327,8 @@ namespace EastEngine
 			virtual const String::StringID& GetName() const = 0;
 			virtual const std::string& GetFilePath() const = 0;
 
-			virtual uint32_t GetNodeCount() const = 0;
-			virtual IModelNode* GetNode(uint32_t nIndex) const = 0;
+			virtual size_t GetNodeCount() const = 0;
+			virtual IModelNode* GetNode(size_t nIndex) const = 0;
 			virtual IModelNode* GetNode(const String::StringID& strName) const = 0;
 
 			virtual bool IsVisible() const = 0;
@@ -341,10 +357,6 @@ namespace EastEngine
 			virtual bool IsAttachment() const = 0;
 
 			virtual bool Dettachment(IModelInstance* pInstance) = 0;
-
-			virtual void PlayMotion(IMotion* pMotion, const MotionState* pMotionState = nullptr) = 0;
-			virtual void StopMotion(float fStopTime) = 0;
-			virtual IMotion* GetMotion() = 0;
 
 		public:
 			virtual bool IsLoadComplete() = 0;
@@ -378,8 +390,8 @@ namespace EastEngine
 
 				virtual IBone* GetParent() const = 0;
 
-				virtual uint32_t GetChildBoneCount() const = 0;
-				virtual IBone* GetChildBone(uint32_t nIndex) const = 0;
+				virtual size_t GetChildBoneCount() const = 0;
+				virtual IBone* GetChildBone(size_t nIndex) const = 0;
 				virtual IBone* GetChildBone(const String::StringID& strBoneName, bool isFindInAllDepth = false) const = 0;
 
 				virtual bool IsRootBone() const = 0;
@@ -399,12 +411,12 @@ namespace EastEngine
 		public:
 			virtual IBone* GetRootBone() const = 0;
 
-			virtual uint32_t GetBoneCount() const = 0;
-			virtual IBone* GetBone(uint32_t nIndex) const = 0;
+			virtual size_t GetBoneCount() const = 0;
+			virtual IBone* GetBone(size_t nIndex) const = 0;
 			virtual IBone* GetBone(const String::StringID& strBoneName) const = 0;
 
-			virtual uint32_t GetSkinnedListCount() const = 0;
-			virtual void GetSkinnedList(uint32_t nIndex, String::StringID& strSkinnedName_out, const String::StringID** ppBoneNames_out, uint32_t& nElementCount_out) = 0;
+			virtual size_t GetSkinnedListCount() const = 0;
+			virtual void GetSkinnedList(size_t nIndex, String::StringID& strSkinnedName_out, const String::StringID** ppBoneNames_out, uint32_t& nElementCount_out) = 0;
 		};
 
 		class ISkeletonInstance
@@ -424,8 +436,8 @@ namespace EastEngine
 
 				virtual IBone* GetParent() const = 0;
 
-				virtual uint32_t GetChildBoneCount() const = 0;
-				virtual IBone* GetChildBone(uint32_t nIndex) const = 0;
+				virtual size_t GetChildBoneCount() const = 0;
+				virtual IBone* GetChildBone(size_t nIndex) const = 0;
 				virtual IBone* GetChildBone(const String::StringID& strBoneName, bool isFindInAllDepth = false) const = 0;
 
 				virtual const Math::Matrix& GetMotionTransform() const = 0;
@@ -447,8 +459,8 @@ namespace EastEngine
 
 			virtual ISkeleton* GetSkeleton() = 0;
 
-			virtual uint32_t GetBoneCount() const = 0;
-			virtual IBone* GetBone(uint32_t nIndex) const = 0;
+			virtual size_t GetBoneCount() const = 0;
+			virtual IBone* GetBone(size_t nIndex) const = 0;
 			virtual IBone* GetBone(const String::StringID& strBoneName) const = 0;
 
 			virtual void GetSkinnedData(const String::StringID& strSkinnedName, const Math::Matrix*** pppMatrixList_out, uint32_t& nElementCount_out) = 0;

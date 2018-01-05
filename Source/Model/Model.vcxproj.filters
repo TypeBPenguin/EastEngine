@@ -55,6 +55,9 @@
     <Filter Include="Interface">
       <UniqueIdentifier>{40f7557c-4855-4f60-a709-6a99a0f52357}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Motion\Player">
+      <UniqueIdentifier>{0a303d2a-231d-4402-9261-d7760efca6c0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -120,6 +123,9 @@
     <ClInclude Include="FbxWriter.h">
       <Filter>Model\Importer\FBX</Filter>
     </ClInclude>
+    <ClInclude Include="MotionPlayer.h">
+      <Filter>Motion\Player</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -178,6 +184,9 @@
     </ClCompile>
     <ClCompile Include="FbxWriter.cpp">
       <Filter>Model\Importer\FBX</Filter>
+    </ClCompile>
+    <ClCompile Include="MotionPlayer.cpp">
+      <Filter>Motion\Player</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

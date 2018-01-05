@@ -101,32 +101,31 @@ namespace EastEngine
 			return m_pModelInst->IsLoadComplete();
 		}
 
-		bool ComponentModel::PlayMotion(Graphics::IMotion* pMotion, const Graphics::MotionState* pMotionState)
+		bool ComponentModel::PlayMotion(Graphics::EmMotion::Layers emLayer, Graphics::IMotion* pMotion, const Graphics::MotionPlaybackInfo* pPlayback)
 		{
-			m_pModelInst->PlayMotion(pMotion, pMotionState);
+			if (m_pModelInst == nullptr || m_pModelInst->GetMotionSystem() == nullptr)
+				return false;
+
+			m_pModelInst->GetMotionSystem()->Play(emLayer, pMotion, pPlayback);
 
 			return true;
 		}
 
-		bool ComponentModel::PlayMotion(const Graphics::MotionLoader& loader, const Graphics::MotionState* pMotionState)
+		bool ComponentModel::PlayMotion(Graphics::EmMotion::Layers emLayer, const Graphics::MotionLoader& loader, const Graphics::MotionPlaybackInfo* pPlayback)
 		{
 			Graphics::IMotion* pMotion = Graphics::IMotion::Create(loader);
 			if (pMotion == nullptr)
 				return false;
 
-			m_pModelInst->PlayMotion(pMotion, pMotionState);
-
-			return true;
+			return PlayMotion(emLayer, pMotion, pPlayback);
 		}
 
-		void ComponentModel::StopMotion(float fStopTime)
+		void ComponentModel::StopMotion(Graphics::EmMotion::Layers emLayer, float fStopTime)
 		{
-			m_pModelInst->StopMotion(fStopTime);
-		}
+			if (m_pModelInst == nullptr || m_pModelInst->GetMotionSystem() == nullptr)
+				return;
 
-		Graphics::IMotion* ComponentModel::GetMotioin()
-		{
-			return m_pModelInst->GetMotion();
+			m_pModelInst->GetMotionSystem()->Stop(emLayer, fStopTime);
 		}
 	}
 }

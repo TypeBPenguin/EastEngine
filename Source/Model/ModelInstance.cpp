@@ -84,7 +84,7 @@ namespace EastEngine
 
 			if (m_pMotionSystem != nullptr)
 			{
-				m_pMotionSystem->Update(m_fElapsedTime, m_pSkeletonInstance);
+				m_pMotionSystem->Update(m_fElapsedTime);
 			}
 
 			if (m_pSkeletonInstance != nullptr)
@@ -201,38 +201,14 @@ namespace EastEngine
 			}
 		}
 
-		void ModelInstance::PlayMotion(IMotion* pMotion, const MotionState* pMotionState)
-		{
-			if (m_pMotionSystem == nullptr)
-				return;
-
-			m_pMotionSystem->Play(pMotion, pMotionState);
-		}
-
-		void ModelInstance::StopMotion(float fStopTime)
-		{
-			if (m_pMotionSystem == nullptr)
-				return;
-
-			m_pMotionSystem->Stop(fStopTime);
-		}
-
-		IMotion* ModelInstance::GetMotion()
-		{
-			if (m_pMotionSystem == nullptr)
-				return nullptr;
-
-			return m_pMotionSystem->GetMotion();
-		}
-
 		void ModelInstance::LoadCompleteCallback(bool isSuccess)
 		{
 			if (isSuccess == true)
 			{
 				if (m_pModel->GetSkeleton() != nullptr)
 				{
-					m_pMotionSystem = IMotionSystem::Create(m_pModel);
 					m_pSkeletonInstance = ISkeleton::CreateInstance(m_pModel->GetSkeleton());
+					m_pMotionSystem = IMotionSystem::Create(m_pSkeletonInstance);
 				}
 
 				for (const auto& node : m_listRequestAttachmentNode)

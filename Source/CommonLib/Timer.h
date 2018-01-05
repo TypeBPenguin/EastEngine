@@ -12,7 +12,7 @@ namespace EastEngine
 		{
 			enum
 			{
-				eUnlimitedTime = UINT32_MAX,
+				eUnlimitedTime = std::numeric_limits<uint32_t>::max(),
 			};
 
 			uint32_t nTimerID = 0;

@@ -220,8 +220,8 @@ void CullingThreadpool::RenderJobQueue::Reset()
 
 	for (unsigned int i = 0; i < mMaxJobs; ++i)
 	{
-		mJobs[i].mBinningJobCompletedIdx = UINT32_MAX;
-		mJobs[i].mBinningJobStartedIdx = UINT32_MAX;
+		mJobs[i].mBinningJobCompletedIdx = std::numeric_limits<uint32_t>::max();
+		mJobs[i].mBinningJobStartedIdx = std::numeric_limits<uint32_t>::max();
 	}
 }
 

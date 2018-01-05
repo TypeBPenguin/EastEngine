@@ -36,7 +36,7 @@ namespace EastEngine
 					return m_vecKeyframes.back().fTime;
 				}
 
-				virtual void Update(IMotionPlayer* pPlayInfo) override;
+				virtual void Update(float fPlayTime, IMotionPlayer* pPlayInfo) override;
 
 			public:
 				virtual size_t GetKeyframeCount() const override { return m_vecKeyframes.size(); }
@@ -53,7 +53,7 @@ namespace EastEngine
 			virtual ~Motion();
 
 		public:
-			virtual void Update(IMotionPlayer* pPlayInfo) override;
+			virtual void Update(float fPlayTime, IMotionPlayer* pPlayInfo) override;
 
 			virtual float GetStartTime() const override { return m_fStartTime; }
 			virtual float GetEndTime() const override { return m_fEndTime; }

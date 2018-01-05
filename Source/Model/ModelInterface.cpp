@@ -174,9 +174,12 @@ namespace EastEngine
 			return true;
 		}
 
-		IMotionSystem* IMotionSystem::Create(IModel* pModel)
+		IMotionSystem* IMotionSystem::Create(ISkeletonInstance* pSkeletonInstance)
 		{
-			return s_poolMotionSystem.construct(pModel);
+			if (pSkeletonInstance == nullptr)
+				return nullptr;
+
+			return s_poolMotionSystem.construct(pSkeletonInstance);
 		}
 
 		void IMotionSystem::Destroy(IMotionSystem** ppMotionSystem)
