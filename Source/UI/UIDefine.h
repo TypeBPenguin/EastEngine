@@ -113,7 +113,7 @@ namespace EastEngine
 
 		struct UITextureNode
 		{
-			uint32_t nClassID = UINT32_MAX;
+			uint32_t nClassID = std::numeric_limits<uint32_t>::max();
 			String::StringID strClassName;
 			String::StringID strName;
 			String::StringID strFile;

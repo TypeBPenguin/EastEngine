@@ -454,7 +454,7 @@ void SceneStudio::Enter()
 			Graphics::MotionPlaybackInfo playback;
 			playback.fSpeed = 1.f;
 			playback.nLoopCount = Graphics::MotionPlaybackInfo::eMaxLoopCount;
-			playback.fWeight = 0.1;
+			playback.fWeight = 0.1f;
 			pMotionSystem->Play(Graphics::EmMotion::eLayer1, pMotion, &playback);
 		}
 
@@ -973,8 +973,19 @@ void ShowMotion(bool& isShowMotionMenu, GameObject::ComponentModel* pCompModel)
 
 	if (pMotion != nullptr)
 	{
+		const std::array<char*, Graphics::EmMotion::eLayerCount> layers = { "Layer1", "Layer2", "Layer3", "Layer4", };
+
+		static Graphics::EmMotion::Layers emLayer = Graphics::EmMotion::eLayer1;
+		ImGui::Combo("Layer", reinterpret_cast<int*>(&emLayer), layers.data(), layers.size());
+
 		static float fMotionSpeed = 1.f;
-		ImGui::DragFloat("Speed", &fMotionSpeed, 0.01f, 0.01f, 10.f);
+		ImGui::DragFloat("Speed", &fMotionSpeed, 0.001f, 0.001f, 10.f);
+
+		static float fMotionWeight = 1.f;
+		ImGui::DragFloat("Weight", &fMotionWeight, 0.001f, 0.f, 1.f);
+
+		static float fMotionBlendTime = 0.f;
+		ImGui::DragFloat("BlendTime", &fMotionBlendTime, 0.001f, 0.f, pMotion->GetEndTime());
 
 		static bool isMotionLoop = false;
 		ImGui::Checkbox("Loop", &isMotionLoop);
@@ -988,53 +999,85 @@ void ShowMotion(bool& isShowMotionMenu, GameObject::ComponentModel* pCompModel)
 		{
 			Graphics::MotionPlaybackInfo playback;
 			playback.fSpeed = fMotionSpeed;
-			playback.fWeight = 1.f;
+			playback.fWeight = fMotionWeight;
+			playback.fBlendTime = fMotionBlendTime;
 			playback.nLoopCount = isMotionLoop == true ? Graphics::MotionPlaybackInfo::eMaxLoopCount : 1;
 			playback.isInverse = isMotionInverse;
 
-			pCompModel->PlayMotion(Graphics::EmMotion::eLayer1, pMotion, &playback);
-		}
-
-		ImGui::SameLine();
-
-		if (ImGui::Button("Stop") == true)
-		{
-			pCompModel->StopMotion(Graphics::EmMotion::eLayer1, 0.3f);
+			pCompModel->PlayMotion(emLayer, pMotion, &playback);
 		}
 
 		ImGui::Separator();
+	}
 
-		char buf[128] = { 0 };
-		String::Copy(buf, sizeof(buf), pMotion->GetName().c_str());
-		ImGui::InputText("Name", buf, sizeof(buf), ImGuiInputTextFlags_::ImGuiInputTextFlags_ReadOnly);
-
-		Graphics::IModelInstance* pModelInst = pCompModel->GetModelInstance();
-		if (pModelInst != nullptr)
+	Graphics::IMotionSystem* pMotionSystem = pCompModel->GetModelInstance()->GetMotionSystem();
+	if (pMotionSystem != nullptr)
+	{
+		for (int i = 0; i < Graphics::EmMotion::eLayerCount; ++i)
 		{
-			static float fMotionPlayTime = 0.0f;
+			Graphics::EmMotion::Layers emLayer = static_cast<Graphics::EmMotion::Layers>(i);
+			Graphics::IMotionPlayer* pPlayer = pMotionSystem->GetPlayer(emLayer);
 
-			Graphics::IMotionSystem* pMotionSystem = pModelInst->GetMotionSystem();
-			if (pMotionSystem != nullptr)
+			std::string strLayer = String::Format("Layer%d", i);
+
+			ImGui::PushID(strLayer.c_str());
+
+			ImGui::Text(strLayer.c_str());
+
+			Graphics::IMotion* pMotionPlaying = pPlayer->GetMotion();
+			if (pMotionPlaying != nullptr)
 			{
-				const Graphics::IMotionPlayer* pMotionPlayer = pMotionSystem->GetPlayer(Graphics::EmMotion::eLayer1);
+				char buf[128] = { 0 };
+				String::Copy(buf, sizeof(buf), pMotionPlaying->GetName().c_str());
+				ImGui::InputText("Name", buf, sizeof(buf), ImGuiInputTextFlags_::ImGuiInputTextFlags_ReadOnly);
 
-				fMotionPlayTime = pMotionPlayer->GetPlayTime();
-			}
+				if (ImGui::Button("Stop") == true)
+				{
+					pCompModel->StopMotion(emLayer, 0.3f);
+				}
 
-			float fEndTime = pMotion->GetEndTime();
+				ImGui::SameLine();
 
-			if (isMotionInverse == true)
-			{
-				std::string strBuf = String::Format("%.2f/%.2f", fEndTime - fMotionPlayTime, fEndTime);
-				ImGui::ProgressBar((fEndTime - fMotionPlayTime) / fEndTime, ImVec2(0.0f, 0.0f), strBuf.c_str());
+				bool isMotionPause = pPlayer->IsPause();
+				ImGui::Checkbox("Pause", &isMotionPause);
+				pPlayer->SetPause(isMotionPause);
+
+				float fMotionSpeed = pPlayer->GetSpeed();
+				ImGui::DragFloat("Speed", &fMotionSpeed, 0.001f, 0.001f, 10.f);
+				pPlayer->SetSpeed(fMotionSpeed);
+
+				float fMotionWeight = pPlayer->GetWeight();
+				ImGui::DragFloat("Weight", &fMotionWeight, 0.001f, 0.f, 1.f);
+				pPlayer->SetWeight(fMotionWeight);
+
+				std::string strBuf = String::Format("%.2f/%.2f", pPlayer->GetBlendWeight(), pPlayer->GetWeight());
+				ImGui::ProgressBar(pPlayer->GetBlendWeight() / pPlayer->GetWeight(), ImVec2(0.0f, 0.0f), strBuf.c_str());
+				ImGui::SameLine(0.0f, ImGui::GetStyle().ItemInnerSpacing.x);
+				ImGui::Text("BlendWeight");
+
+				float fMotionPlayTime = pPlayer->GetPlayTime();
+				float fEndTime = pMotionPlaying->GetEndTime();
+				if (pPlayer->IsInverse() == true)
+				{
+					std::string strBuf = String::Format("%.2f/%.2f", fEndTime - fMotionPlayTime, fEndTime);
+					ImGui::ProgressBar((fEndTime - fMotionPlayTime) / fEndTime, ImVec2(0.0f, 0.0f), strBuf.c_str());
+				}
+				else
+				{
+					std::string strBuf = String::Format("%.2f/%.2f", fMotionPlayTime, fEndTime);
+					ImGui::ProgressBar(fMotionPlayTime / fEndTime, ImVec2(0.0f, 0.0f), strBuf.c_str());
+				}
+				ImGui::SameLine(0.0f, ImGui::GetStyle().ItemInnerSpacing.x);
+				ImGui::Text("Play Time");
 			}
 			else
 			{
-				std::string strBuf = String::Format("%.2f/%.2f", fMotionPlayTime, fEndTime);
-				ImGui::ProgressBar(fMotionPlayTime / fEndTime, ImVec2(0.0f, 0.0f), strBuf.c_str());
+				ImGui::Text("Empty");
 			}
-			ImGui::SameLine(0.0f, ImGui::GetStyle().ItemInnerSpacing.x);
-			ImGui::Text("Play Time");
+
+			ImGui::Separator();
+
+			ImGui::PopID();
 		}
 	}
 

@@ -176,6 +176,7 @@ namespace EastEngine
 			virtual void GetSkinnedData(const String::StringID& strSkinnedName, const Math::Matrix*** pppMatrixList_out, size_t& nElementCount_out) override;
 			virtual void SetIdentity() override;
 			virtual void SetDirty() override { m_isDirty = true; }
+			virtual bool IsDirty() override { return m_isDirty; }
 
 		private:
 			void CreateBone(Skeleton::IBone* pBoneHierarchy, BoneInstance* pParentBone);

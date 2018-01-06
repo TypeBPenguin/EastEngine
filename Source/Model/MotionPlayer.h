@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ModelInterface.h"
+#include "MotionRecoder.h"
 
 namespace EastEngine
 {
@@ -13,51 +14,57 @@ namespace EastEngine
 			virtual ~MotionPlayer();
 
 		public:
-			virtual void SetCaching(const String::StringID& strBoneName, size_t nIndex) override;
-			virtual size_t GetCaching(const String::StringID& strBoneName) const override;
-
-			virtual void SetKeyframe(const String::StringID& strBoneName, const IMotion::Keyframe& keyframe) override;
-			virtual const IMotion::Keyframe* GetKeyframe(const String::StringID& strBoneName) const override;
-
 			virtual float GetPlayTime() const override { return m_fPlayTime; }
+			virtual void SetPlayTime(float fPlayTime) override { m_fPlayTime = fPlayTime; }
 
 			virtual float GetSpeed() const override { return m_playBackInfo.fSpeed; }
+			virtual void SetSpeed(float fSpeed) override { m_playBackInfo.fSpeed = fSpeed; }
+
 			virtual float GetWeight() const override { return m_playBackInfo.fWeight; }
+			virtual void SetWeight(float fWeight) override { m_playBackInfo.fWeight = fWeight; }
+
+			virtual float GetBlendWeight() const override;
+
 			virtual float GetBlendTime() const override { return m_playBackInfo.fBlendTime; }
 			virtual int GetMaxLoopCount() const override { return m_playBackInfo.nLoopCount; }
 			virtual int GetLoopCount() const override { return m_nLoonCount; }
 			virtual bool IsLoop() const override { return m_playBackInfo.nLoopCount == MotionPlaybackInfo::eMaxLoopCount; }
 			virtual bool IsInverse() const override { return m_playBackInfo.isInverse; }
 
+			virtual bool IsPause() const override { return m_isPause; }
+			virtual void SetPause(bool isPause) override { m_isPause = isPause; }
+
 			virtual IMotion* GetMotion() const override { return m_pMotion; }
-			virtual bool IsPlaying() const override { return m_pMotion != nullptr; }
+			virtual bool IsPlaying() const override { return m_pMotion != nullptr && m_isPause == false; }
 
 		public:
-			bool Update(float fElapsedTime);
+			bool Update(float fElapsedTime, bool isEnableTransformUpdate);
 
 			void Play(IMotion* pMotion, const MotionPlaybackInfo* pPlayback);
 			void Stop(float fStopTime);
 
 			void Reset();
 
+			const IMotion::Keyframe* GetKeyframe(const String::StringID& strBoneName) const;
+
 		private:
 			bool m_isStop;
+			bool m_isPause;
 
 			float m_fPlayTime;
 
 			float m_fStopTime;
 			float m_fStopTimeCheck;
 
+			float m_fBlendTime;
+			float m_fBlendWeight;
+
 			uint32_t m_nLoonCount;
 
 			IMotion* m_pMotion;
+
 			MotionPlaybackInfo m_playBackInfo;
-
-			struct keyframeCachingT {};
-			using KeyframeCaching = Type<keyframeCachingT, size_t>;
-
-			std::unordered_map<String::StringID, KeyframeCaching> m_umapKeyframeIndexCaching;
-			std::unordered_map<String::StringID, IMotion::Keyframe> m_umapKeyframe;
+			MotionRecoder m_motionRecoder;
 		};
 	}
 }

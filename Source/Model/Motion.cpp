@@ -16,7 +16,7 @@ namespace EastEngine
 		{
 		}
 
-		void Motion::Bone::Update(float fPlayTime, IMotionPlayer* pPlayInfo)
+		void Motion::Bone::Update(IMotionRecoder* pRecoder, float fPlayTime, bool isInverse)
 		{
 			if (m_vecKeyframes.empty() == true)
 				return;
@@ -25,40 +25,40 @@ namespace EastEngine
 
 			if (fPlayTime < m_vecKeyframes.front().fTime)
 			{
-				if (pPlayInfo->IsInverse() == true)
+				if (isInverse == true)
 				{
 					keyframe = m_vecKeyframes.back();
 
-					pPlayInfo->SetCaching(m_strBoneName, m_vecKeyframes.size() - 1);
+					pRecoder->SetCaching(m_strBoneName, m_vecKeyframes.size() - 1);
 				}
 				else
 				{
 					keyframe = m_vecKeyframes.back();
 
-					pPlayInfo->SetCaching(m_strBoneName, 0);
+					pRecoder->SetCaching(m_strBoneName, 0);
 				}
 			}
 			else if (fPlayTime > m_vecKeyframes.back().fTime)
 			{
-				if (pPlayInfo->IsInverse() == true)
+				if (isInverse == true)
 				{
 					keyframe = m_vecKeyframes.back();
 
-					pPlayInfo->SetCaching(m_strBoneName, m_vecKeyframes.size() - 1);
+					pRecoder->SetCaching(m_strBoneName, m_vecKeyframes.size() - 1);
 				}
 				else
 				{
 					keyframe = m_vecKeyframes.back();
 
-					pPlayInfo->SetCaching(m_strBoneName, 0);
+					pRecoder->SetCaching(m_strBoneName, 0);
 				}
 			}
 			else
 			{
-				if (pPlayInfo->IsInverse() == true)
+				if (isInverse == true)
 				{
-					size_t nKeyframeIndex = pPlayInfo->GetCaching(m_strBoneName);
-					if (nKeyframeIndex == IMotionPlayer::eInvalidCachingIndex || nKeyframeIndex <= 1 || nKeyframeIndex >= m_vecKeyframes.size())
+					size_t nKeyframeIndex = pRecoder->GetCaching(m_strBoneName);
+					if (nKeyframeIndex == IMotionRecoder::eInvalidCachingIndex || nKeyframeIndex <= 1 || nKeyframeIndex >= m_vecKeyframes.size())
 					{
 						nKeyframeIndex = m_vecKeyframes.size() - 1;
 					}
@@ -76,7 +76,7 @@ namespace EastEngine
 							Math::Vector3::Lerp(keyframe1.f3Scale, keyframe2.f3Scale, lerpPercent, keyframe.f3Scale);
 							Math::Quaternion::Lerp(keyframe1.quatRotation, keyframe2.quatRotation, lerpPercent, keyframe.quatRotation);
 
-							pPlayInfo->SetCaching(m_strBoneName, i);
+							pRecoder->SetCaching(m_strBoneName, i);
 
 							break;
 						}
@@ -84,8 +84,8 @@ namespace EastEngine
 				}
 				else
 				{
-					size_t nKeyframeIndex = pPlayInfo->GetCaching(m_strBoneName);
-					if (nKeyframeIndex == IMotionPlayer::eInvalidCachingIndex)
+					size_t nKeyframeIndex = pRecoder->GetCaching(m_strBoneName);
+					if (nKeyframeIndex == IMotionRecoder::eInvalidCachingIndex)
 					{
 						nKeyframeIndex = 0;
 					}
@@ -104,7 +104,7 @@ namespace EastEngine
 							Math::Vector3::Lerp(keyframe1.f3Scale, keyframe2.f3Scale, lerpPercent, keyframe.f3Scale);
 							Math::Quaternion::Lerp(keyframe1.quatRotation, keyframe2.quatRotation, lerpPercent, keyframe.quatRotation);
 
-							pPlayInfo->SetCaching(m_strBoneName, i);
+							pRecoder->SetCaching(m_strBoneName, i);
 
 							break;
 						}
@@ -112,7 +112,7 @@ namespace EastEngine
 				}
 			}
 
-			pPlayInfo->SetKeyframe(m_strBoneName, keyframe);
+			pRecoder->SetKeyframe(m_strBoneName, keyframe);
 		}
 
 		Motion::Motion(const String::StringID& strName, const char* strFilePath)
@@ -132,11 +132,11 @@ namespace EastEngine
 			m_clnBones.clear();
 		}
 
-		void Motion::Update(float fPlayTime, IMotionPlayer* pPlayInfo)
+		void Motion::Update(IMotionRecoder* pRecoder, float fPlayTime, bool isInverse)
 		{
 			std::for_each(m_clnBones.begin(), m_clnBones.end(), [&](Bone& bone)
 			{
-				bone.Update(fPlayTime, pPlayInfo);
+				bone.Update(pRecoder, fPlayTime, isInverse);
 			});
 		}
 

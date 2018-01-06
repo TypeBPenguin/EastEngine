@@ -15,6 +15,7 @@ namespace EastEngine
 		class ISkeleton;
 		class ISkeletonInstance;
 		class IMotionPlayer;
+		class IMotionRecoder;
 		class MotionLoader;
 
 		class IVertexBuffer;
@@ -112,7 +113,7 @@ namespace EastEngine
 				virtual float GetStartTime() const = 0;
 				virtual float GetEndTime() const = 0;
 
-				virtual void Update(float fPlayTime, IMotionPlayer* pPlayInfo) = 0;
+				virtual void Update(IMotionRecoder* pRecoder, float fPlayTime, bool isInverse) = 0;
 
 			public:
 				virtual uint32_t GetKeyframeCount() const = 0;
@@ -130,7 +131,7 @@ namespace EastEngine
 			static bool SaveToFile(IMotion* pMotion, const char* strFilePath);
 
 		public:
-			virtual void Update(float fPlayTime, IMotionPlayer* pPlayInfo) = 0;
+			virtual void Update(IMotionRecoder* pRecoder, float fPlayTime, bool isInverse) = 0;
 
 			virtual float GetStartTime() const = 0;
 			virtual float GetEndTime() const = 0;
@@ -191,6 +192,37 @@ namespace EastEngine
 			virtual ~IMotionPlayer() = default;
 
 		public:
+			virtual float GetPlayTime() const = 0;
+			virtual void SetPlayTime(float fPlayTime) = 0;
+
+			virtual float GetSpeed() const = 0;
+			virtual void SetSpeed(float fSpeed) = 0;
+
+			virtual float GetWeight() const = 0;
+			virtual void SetWeight(float fWeight) = 0;
+
+			virtual float GetBlendWeight() const = 0;
+
+			virtual float GetBlendTime() const = 0;
+			virtual int GetMaxLoopCount() const = 0;
+			virtual int GetLoopCount() const = 0;
+			virtual bool IsLoop() const = 0;
+			virtual bool IsInverse() const = 0;
+
+			virtual bool IsPause() const = 0;
+			virtual void SetPause(bool isPause) = 0;
+
+			virtual IMotion* GetMotion() const = 0;
+			virtual bool IsPlaying() const = 0;
+		};
+
+		class IMotionRecoder
+		{
+		protected:
+			IMotionRecoder() = default;
+			virtual ~IMotionRecoder() = default;
+
+		public:
 			enum : size_t
 			{
 				eInvalidCachingIndex = std::numeric_limits<size_t>::max(),
@@ -202,19 +234,6 @@ namespace EastEngine
 
 			virtual void SetKeyframe(const String::StringID& strBoneName, const IMotion::Keyframe& keyframe) = 0;
 			virtual const IMotion::Keyframe* GetKeyframe(const String::StringID& strBoneName) const = 0;
-
-			virtual float GetPlayTime() const = 0;
-
-			virtual float GetSpeed() const = 0;
-			virtual float GetWeight() const = 0;
-			virtual float GetBlendTime() const = 0;
-			virtual int GetMaxLoopCount() const = 0;
-			virtual int GetLoopCount() const = 0;
-			virtual bool IsLoop() const = 0;
-			virtual bool IsInverse() const = 0;
-
-			virtual IMotion* GetMotion() const = 0;
-			virtual bool IsPlaying() const = 0;
 		};
 
 		class IMotionSystem
@@ -233,7 +252,7 @@ namespace EastEngine
 			virtual void Play(EmMotion::Layers emLayer, IMotion* pMotion, const MotionPlaybackInfo* pPlayback = nullptr) = 0;
 			virtual void Stop(EmMotion::Layers emLayer, float fStopTime) = 0;
 
-			virtual const IMotionPlayer* GetPlayer(EmMotion::Layers emLayer) const = 0;
+			virtual IMotionPlayer* GetPlayer(EmMotion::Layers emLayer) = 0;
 		};
 
 		class IMaterialInstance
@@ -466,6 +485,7 @@ namespace EastEngine
 			virtual void GetSkinnedData(const String::StringID& strSkinnedName, const Math::Matrix*** pppMatrixList_out, uint32_t& nElementCount_out) = 0;
 			virtual void SetIdentity() = 0;
 			virtual void SetDirty() = 0;
+			virtual bool IsDirty() = 0;
 		};
 	}
 }

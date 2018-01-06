@@ -9,21 +9,7 @@ namespace EastEngine
 			: m_fBlemdTime(0.f)
 			, m_pSkeletonInstance(pSkeletonInstance)
 		{
-			ISkeleton* pSkeleton = m_pSkeletonInstance->GetSkeleton();
-			size_t nBoneCount = pSkeleton->GetBoneCount();
-			m_umapKeyframe.reserve(nBoneCount);
-
-			for (size_t i = 0; i < nBoneCount; ++i)
-			{
-				ISkeleton::IBone* pBone = pSkeleton->GetBone(i);
-				if (pBone != nullptr)
-				{
-					IMotion::Keyframe& keyframe = m_umapKeyframe[pBone->GetName()];
-
-					const Math::Matrix& matDefaultMotionData = pBone->GetDefaultMotionData();
-					matDefaultMotionData.Decompose(keyframe.f3Scale, keyframe.quatRotation, keyframe.f3Pos);
-				}
-			}
+			Initialize();
 		}
 
 		MotionSystem::~MotionSystem()
@@ -34,20 +20,28 @@ namespace EastEngine
 		void MotionSystem::Update(float fElapsedTime)
 		{
 			bool isMotionUpdated = false;
+			bool isEnableTransformUpdate = true;
 			int nLastLayerIndex = -1;
 
 			for (int i = 0; i < EmMotion::eLayerCount; ++i)
 			{
-				nLastLayerIndex = i;
+				if (isEnableTransformUpdate == true)
+				{
+					nLastLayerIndex = i;
+				}
 
-				if (m_motionPlayers[i].Update(fElapsedTime) == true)
+				if (m_motionPlayers[i].Update(fElapsedTime, isEnableTransformUpdate) == true)
 				{
 					isMotionUpdated = true;
 
-					if (Math::IsEqual(m_motionPlayers[i].GetWeight(), 1.f))
-						break;
+					if (Math::IsEqual(m_motionPlayers[i].GetBlendWeight(), 1.f))
+					{
+						isEnableTransformUpdate = false;
+					}
 				}
 			}
+
+			SetIdentity(isMotionUpdated);
 
 			if (isMotionUpdated == true)
 			{
@@ -57,10 +51,6 @@ namespace EastEngine
 				}
 
 				Binding();
-			}
-			else
-			{
-				m_pSkeletonInstance->SetIdentity();
 			}
 		}
 
@@ -74,12 +64,61 @@ namespace EastEngine
 			m_motionPlayers[emLayer].Stop(fStopTime);
 		}
 
+		void MotionSystem::Initialize()
+		{
+			m_pSkeletonInstance->SetIdentity();
+
+			ISkeleton* pSkeleton = m_pSkeletonInstance->GetSkeleton();
+			size_t nBoneCount = pSkeleton->GetBoneCount();
+			m_umapKeyframe.reserve(nBoneCount);
+
+			for (size_t i = 0; i < nBoneCount; ++i)
+			{
+				ISkeleton::IBone* pBone = pSkeleton->GetBone(i);
+				if (pBone != nullptr)
+				{
+					const Math::Matrix& matDefaultMotionData = pBone->GetDefaultMotionData();
+
+					KeyframeTemp& keyframe = m_umapKeyframe[pBone->GetName()];
+
+					IMotion::Keyframe& defaultKeyframe = keyframe.defaultKeyframe;
+					IMotion::Keyframe& motionKeyframe = keyframe.motionKeyframe;
+
+					matDefaultMotionData.Decompose(defaultKeyframe.f3Scale, defaultKeyframe.quatRotation, defaultKeyframe.f3Pos);
+					matDefaultMotionData.Decompose(motionKeyframe.f3Scale, motionKeyframe.quatRotation, motionKeyframe.f3Pos);
+				}
+			}
+		}
+
+		void MotionSystem::SetIdentity(bool isMotionUpdated)
+		{
+			if (isMotionUpdated == true)
+			{
+				for (auto& iter : m_umapKeyframe)
+				{
+					iter.second.motionKeyframe = iter.second.defaultKeyframe;
+				}
+			}
+			else
+			{
+				if (m_pSkeletonInstance->IsDirty() == true)
+				{
+					m_pSkeletonInstance->SetIdentity();
+
+					for (auto& iter : m_umapKeyframe)
+					{
+						iter.second.motionKeyframe = iter.second.defaultKeyframe;
+					}
+				}
+			}
+		}
+
 		void MotionSystem::BlendingLayers(const MotionPlayer& player)
 		{
-			if (player.IsPlaying() == false || Math::IsZero(player.GetWeight()) == true)
+			if (player.IsPlaying() == false || Math::IsZero(player.GetBlendWeight()) == true)
 				return;
 
-			float fWeight = player.GetWeight();
+			float fWeight = player.GetBlendWeight();
 			size_t nBoneCount = m_pSkeletonInstance->GetBoneCount();
 			for (size_t i = 0; i < nBoneCount; ++i)
 			{
@@ -90,10 +129,12 @@ namespace EastEngine
 				const IMotion::Keyframe* pSrcKeyframe = player.GetKeyframe(pBone->GetName());
 				if (pSrcKeyframe != nullptr)
 				{
-					IMotion::Keyframe& destKeyframe = m_umapKeyframe[pBone->GetName()];
-					Math::Vector3::Lerp(destKeyframe.f3Pos, pSrcKeyframe->f3Pos, fWeight, destKeyframe.f3Pos);
-					Math::Vector3::Lerp(destKeyframe.f3Scale, pSrcKeyframe->f3Scale, fWeight, destKeyframe.f3Scale);
-					Math::Quaternion::Lerp(destKeyframe.quatRotation, pSrcKeyframe->quatRotation, fWeight, destKeyframe.quatRotation);
+					KeyframeTemp& destKeyframe = m_umapKeyframe[pBone->GetName()];
+					IMotion::Keyframe& motionKeyframe = destKeyframe.motionKeyframe;
+
+					Math::Vector3::Lerp(motionKeyframe.f3Pos, pSrcKeyframe->f3Pos, fWeight, motionKeyframe.f3Pos);
+					Math::Vector3::Lerp(motionKeyframe.f3Scale, pSrcKeyframe->f3Scale, fWeight, motionKeyframe.f3Scale);
+					Math::Quaternion::Lerp(motionKeyframe.quatRotation, pSrcKeyframe->quatRotation, fWeight, motionKeyframe.quatRotation);
 				}
 			}
 		}
@@ -112,10 +153,11 @@ namespace EastEngine
 				if (pBone == nullptr)
 					continue;
 
-				const IMotion::Keyframe& keyframe = m_umapKeyframe[pBone->GetName()];
+				const KeyframeTemp& keyframe = m_umapKeyframe[pBone->GetName()];
+				const IMotion::Keyframe& motionKeyframe = keyframe.motionKeyframe;
 
 				Math::Matrix matMotion;
-				Math::Matrix::Compose(keyframe.f3Scale, keyframe.quatRotation, keyframe.f3Pos, matMotion);
+				Math::Matrix::Compose(motionKeyframe.f3Scale, motionKeyframe.quatRotation, motionKeyframe.f3Pos, matMotion);
 
 				pBone->SetMotionData(matMotion);
 			}

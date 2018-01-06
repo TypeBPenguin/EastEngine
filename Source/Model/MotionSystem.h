@@ -18,9 +18,11 @@ namespace EastEngine
 			virtual void Play(EmMotion::Layers emLayer, IMotion* pMotion, const MotionPlaybackInfo* pMotionState = nullptr) override;
 			virtual void Stop(EmMotion::Layers emLayer, float fStopTime) override;
 
-			const IMotionPlayer* GetPlayer(EmMotion::Layers emLayer) const { return &m_motionPlayers[emLayer]; }
+			IMotionPlayer* GetPlayer(EmMotion::Layers emLayer) { return &m_motionPlayers[emLayer]; }
 
 		private:
+			void Initialize();
+			void SetIdentity(bool isMotionUpdated);
 			void BlendingLayers(const MotionPlayer& player);
 			void Binding();
 
@@ -28,7 +30,14 @@ namespace EastEngine
 			float m_fBlemdTime;
 
 			std::array<MotionPlayer, EmMotion::eLayerCount> m_motionPlayers;
-			std::unordered_map<String::StringID, IMotion::Keyframe> m_umapKeyframe;
+
+			struct KeyframeTemp
+			{
+				IMotion::Keyframe motionKeyframe;
+				IMotion::Keyframe defaultKeyframe;
+			};
+
+			std::unordered_map<String::StringID, KeyframeTemp> m_umapKeyframe;
 
 			ISkeletonInstance* m_pSkeletonInstance;
 		};
