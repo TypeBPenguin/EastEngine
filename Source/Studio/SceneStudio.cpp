@@ -423,18 +423,25 @@ void SceneStudio::Enter()
 		GameObject::ISkybox::Create("BaseSkybox", sky);
 	}
 
+	for (int i = 0; i < 100; ++i)
 	{
-		GameObject::IActor* pActor = GameObject::IActor::Create("UnityChan");
+		String::StringID name;
+		name.Format("UnityChan%d", i);
+		GameObject::IActor* pActor = GameObject::IActor::Create(name);
 		
-		//pActor->SetPosition({ 0.f, 50.f, -90.f });
-		pActor->SetPosition({ 0.f, 1.5f, 0.f });
+		Math::Vector3 pos;
+		pos.x = -10.f + (2.f * (i % 10));
+		pos.y = 0.5f;
+		pos.z = 0.f + (2.f * (i / 10));
+		pActor->SetPosition(pos);
 		
 		strPath = File::GetDataPath();
 		strPath.append("Actor\\UnityChan\\Models\\unitychan.fbx");
 		
 		Graphics::ModelLoader loader;
 
-		loader.InitFBX("UnityChan", strPath.c_str(), 0.01f);
+		name.Format("UnityChan");
+		loader.InitFBX(name, strPath.c_str(), 0.01f);
 		loader.SetEnableThreadLoad(false);
 		
 		GameObject::ComponentModel* pModel = static_cast<GameObject::ComponentModel*>(pActor->CreateComponent(GameObject::EmComponent::eModel));
@@ -447,14 +454,16 @@ void SceneStudio::Enter()
 			std::string strPathMotion(File::GetDataPath());
 			strPathMotion.append("Actor\\UnityChan\\Animations\\unitychan_WAIT00.fbx");
 
+			String::StringID strMotionName;
+			strMotionName.Format("%s", File::GetFileName(strPathMotion).c_str());
 			Graphics::MotionLoader motionLoader;
-			motionLoader.InitFBX(File::GetFileName(strPathMotion).c_str(), strPathMotion.c_str(), 0.01f);
+			motionLoader.InitFBX(strMotionName, strPathMotion.c_str(), 0.01f);
 			Graphics::IMotion* pMotion = Graphics::IMotion::Create(motionLoader);
 
 			Graphics::MotionPlaybackInfo playback;
-			playback.fSpeed = 1.f;
+			playback.fSpeed = Math::Random(0.5f, 1.5f);
 			playback.nLoopCount = Graphics::MotionPlaybackInfo::eMaxLoopCount;
-			playback.fWeight = 0.1f;
+			playback.fWeight = Math::Random(0.1f, 0.5f);
 			pMotionSystem->Play(Graphics::EmMotion::eLayer1, pMotion, &playback);
 		}
 
@@ -463,16 +472,16 @@ void SceneStudio::Enter()
 			//strPathMotion.append("Actor\\UnityChan\\Animations\\unitychan_ARpose1.fbx");
 			strPathMotion.append("Actor\\UnityChan\\Animations\\unitychan_RUN00_F.fbx");
 
+			String::StringID strMotionName;
+			strMotionName.Format("%s", File::GetFileName(strPathMotion).c_str());
 			Graphics::MotionLoader motionLoader;
-			motionLoader.InitFBX(File::GetFileName(strPathMotion).c_str(), strPathMotion.c_str(), 0.01f);
+			motionLoader.InitFBX(strMotionName, strPathMotion.c_str(), 0.01f);
 			Graphics::IMotion* pMotion = Graphics::IMotion::Create(motionLoader);
 
 			Graphics::MotionPlaybackInfo playback;
-			playback.fSpeed = 1.f;
+			playback.fSpeed = Math::Random(0.5f, 1.5f);
 			playback.nLoopCount = Graphics::MotionPlaybackInfo::eMaxLoopCount;
-			//playback.fSpeed = 0.075f;
-			//playback.nLoopCount = 1;
-			playback.fWeight = 1.f;
+			playback.fWeight = Math::Random(0.7f, 1.f);
 			pMotionSystem->Play(Graphics::EmMotion::eLayer2, pMotion, &playback);
 		}
 

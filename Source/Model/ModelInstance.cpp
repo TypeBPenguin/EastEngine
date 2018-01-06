@@ -2,6 +2,7 @@
 #include "ModelInstance.h"
 
 #include "Model.h"
+#include "ModelManager.h"
 
 namespace EastEngine
 {
@@ -74,7 +75,7 @@ namespace EastEngine
 			m_pModel = nullptr;
 		}
 
-		void ModelInstance::Process()
+		void ModelInstance::Ready()
 		{
 			if (m_isVisible == false)
 				return;
@@ -82,39 +83,39 @@ namespace EastEngine
 			if (IsLoadComplete() == false)
 				return;
 
-			if (m_pMotionSystem != nullptr)
+			if (IsAttachment() == true)
+				return;
+
+			if (m_pModel->GetSkeleton() != nullptr)
 			{
-				m_pMotionSystem->Update(m_fElapsedTime);
+				ModelManager::GetInstance()->PushJobUpdateTransformations(this);
 			}
 
-			if (m_pSkeletonInstance != nullptr)
-			{
-				m_pSkeletonInstance->Update(m_matParent);
-			}
+			ModelManager::GetInstance()->PushJobUpdateModels(this);
+		}
 
-			m_pModel->Update(m_fElapsedTime, m_matParent, m_pSkeletonInstance, m_pMaterialInstance);
+		void ModelInstance::UpdateTransformations()
+		{
+			m_pMotionSystem->Update(m_fElapsedTime);
+			m_pSkeletonInstance->Update(m_matParent);
 
 			for (const auto& node : m_vecAttachmentNode)
 			{
-				if (node.emAttachNodeType == AttachmentNode::EmAttachNodeType::eBone && m_pSkeletonInstance != nullptr)
+				if (node.emAttachNodeType == AttachmentNode::EmAttachNodeType::eBone)
 				{
 					ISkeletonInstance::IBone* pBone = m_pSkeletonInstance->GetBone(node.strNodeName);
 					if (pBone != nullptr)
 					{
 						node.pInstance->Update(m_fElapsedTime, node.matOffset * pBone->GetGlobalTransform());
-						node.pInstance->Process();
-					}
-				}
-				else if (node.emAttachNodeType == AttachmentNode::EmAttachNodeType::eNode)
-				{
-					IModelNode* pNode = m_pModel->GetNode(node.strNodeName);
-					if (pNode != nullptr)
-					{
-						node.pInstance->Update(m_fElapsedTime, node.matOffset * pNode->GetWorldMatrix());
-						node.pInstance->Process();
+						node.pInstance->UpdateModel();
 					}
 				}
 			}
+		}
+
+		void ModelInstance::UpdateModel()
+		{
+			m_pModel->Update(m_fElapsedTime, m_matParent, m_pSkeletonInstance, m_pMaterialInstance);
 		}
 
 		void ModelInstance::Update(float fElapsedTime, const Math::Matrix& matParent)
@@ -149,15 +150,6 @@ namespace EastEngine
 						return true;
 					}
 				}
-
-				IModelNode* pNode = m_pModel->GetNode(strNodeName);
-				if (pNode == nullptr)
-					return false;
-
-				ModelInstance* pModelInstance = static_cast<ModelInstance*>(pInstance);
-				pModelInstance->SetAttachment(true);
-
-				m_vecAttachmentNode.emplace_back(pModelInstance, strNodeName, matOffset, AttachmentNode::EmAttachNodeType::eNode);
 
 				return true;
 			}

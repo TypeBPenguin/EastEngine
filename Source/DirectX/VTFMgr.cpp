@@ -13,7 +13,7 @@ namespace EastEngine
 	namespace Graphics
 	{
 		VTFManager::VTFManager()
-			: m_bInit(false)
+			: m_isInit(false)
 			, m_nAllocatedCount(0)
 			, m_pVTFBuffer(nullptr)
 			, m_pVTF(nullptr)
@@ -27,10 +27,10 @@ namespace EastEngine
 
 		bool VTFManager::Init()
 		{
-			if (m_bInit == true)
+			if (m_isInit == true)
 				return true;
 
-			m_bInit = true;
+			m_isInit = true;
 
 			m_pVTFBuffer = new Math::Matrix[eBufferCapacity];
 
@@ -61,17 +61,19 @@ namespace EastEngine
 
 		void VTFManager::Release()
 		{
-			if (m_bInit == false)
+			if (m_isInit == false)
 				return;
 
 			SafeDeleteArray(m_pVTFBuffer);
 			m_pVTF.reset();
 
-			m_bInit = false;
+			m_isInit = false;
 		}
 
 		bool VTFManager::Process()
 		{
+			std::lock_guard<std::mutex> lock(m_mutex);
+
 			if (m_nAllocatedCount == 0)
 				return true;
 
@@ -84,6 +86,25 @@ namespace EastEngine
 			Memory::Copy(pData, nDestSize, m_pVTFBuffer, sizeof(Math::Matrix) * m_nAllocatedCount);
 
 			m_pVTF->Unmap(0);
+
+			return true;
+		}
+
+		bool VTFManager::Allocate(size_t nMatrixCount, Math::Matrix** ppDest_Out, size_t& nVTFID_Out)
+		{
+			std::lock_guard<std::mutex> lock(m_mutex);
+
+			if (m_nAllocatedCount + nMatrixCount >= eBufferCapacity)
+			{
+				*ppDest_Out = nullptr;
+				nVTFID_Out = eInvalidVTFID;
+				return false;
+			}
+
+			*ppDest_Out = &m_pVTFBuffer[m_nAllocatedCount];
+			nVTFID_Out = m_nAllocatedCount;
+
+			m_nAllocatedCount += nMatrixCount;
 
 			return true;
 		}

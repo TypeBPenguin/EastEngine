@@ -18,7 +18,7 @@ namespace EastEngine
 		{
 		}
 
-		void ModelNodeSkinned::Update(float fElapsedTime, const Math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance, bool isModelVisible)
+		void ModelNodeSkinned::Update(float fElapsedTime, const Math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance, bool isModelVisible) const
 		{
 			Math::Matrix matTransformation = matParent;
 			if (m_strAttachedBoneName.empty() == false && pSkeletonInstance != nullptr)
@@ -30,21 +30,6 @@ namespace EastEngine
 					matTransformation = matMotionTransform * matParent;
 				}
 			}
-
-			m_matWorld = matTransformation;
-
-			// 검증되지 않은 방식, 추후 수정 필요
-			Math::Matrix matBoneTransformation;
-			if (pSkeletonInstance != nullptr)
-			{
-				ISkeletonInstance::IBone* pBone = pSkeletonInstance->GetBone(m_vecBoneName[0]);
-				if (pBone != nullptr)
-				{
-					matBoneTransformation = pBone->GetMotionTransform();
-				}
-			}
-
-			UpdateBoundingBox(matBoneTransformation * m_matWorld);
 
 			if (m_isVisible == true && isModelVisible == true)
 			{
@@ -99,6 +84,21 @@ namespace EastEngine
 					}
 					else
 					{
+						// 검증되지 않은 방식, 추후 수정 필요
+						Math::Matrix matBoneTransformation;
+						if (pSkeletonInstance != nullptr)
+						{
+							ISkeletonInstance::IBone* pBone = pSkeletonInstance->GetBone(m_vecBoneName[0]);
+							if (pBone != nullptr)
+							{
+								matBoneTransformation = pBone->GetMotionTransform();
+							}
+						}
+
+						Collision::Sphere boundingSphere;
+						Collision::Sphere::CreateFromAABB(boundingSphere, m_originAABB);
+						boundingSphere.Transform(boundingSphere, matBoneTransformation * matTransformation);
+
 						for (auto& modelSubset : m_vecModelSubsets[nLevel])
 						{
 							IMaterial* pMaterial = nullptr;
@@ -116,7 +116,7 @@ namespace EastEngine
 								}
 							}
 
-							RenderSubsetSkinned subset(&modelSubset, m_pVertexBuffer[nLevel], m_pIndexBuffer[nLevel], pMaterial, m_matWorld, modelSubset.nStartIndex, modelSubset.nIndexCount, nVTFID, m_fDistanceFromCamera);
+							RenderSubsetSkinned subset(&modelSubset, m_pVertexBuffer[nLevel], m_pIndexBuffer[nLevel], pMaterial, matTransformation, modelSubset.nStartIndex, modelSubset.nIndexCount, nVTFID, m_fDistanceFromCamera);
 							RendererManager::GetInstance()->AddRender(subset);
 						}
 					}
@@ -126,7 +126,7 @@ namespace EastEngine
 			const size_t nSize = m_vecChildModelNode.size();
 			for (size_t i = 0; i < nSize; ++i)
 			{
-				m_vecChildModelNode[i]->Update(fElapsedTime, m_matWorld, pSkeletonInstance, pMaterialInstance, isModelVisible);
+				m_vecChildModelNode[i]->Update(fElapsedTime, matTransformation, pSkeletonInstance, pMaterialInstance, isModelVisible);
 			}
 		}
 	}

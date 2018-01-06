@@ -5,7 +5,6 @@
 
 #include "Model.h"
 #include "ModelInstance.h"
-#include "ModelInterface.h"
 
 #include "ModelNodeStatic.h"
 #include "GeometryModel.h"
@@ -64,6 +63,8 @@ namespace EastEngine
 			m_isInit = true;
 
 			m_clnModel.reserve(128);
+			m_vecJobUpdateTransformations.reserve(1024);
+			m_vecJobUpdateModels.reserve(1024);
 
 			if (GeometryModel::Initialize() == false)
 			{
@@ -136,11 +137,20 @@ namespace EastEngine
 
 			std::for_each(m_clnModel.begin(), m_clnModel.end(), [](Model& model)
 			{
-				if (model.GetLoadState() == EmLoadState::eComplete)
-				{
-					model.Process();
-				}
+				model.Ready();
 			});
+
+			Concurrency::parallel_for_each(m_vecJobUpdateTransformations.begin(), m_vecJobUpdateTransformations.end(), [](ModelInstance* pModelInstance)
+			{
+				pModelInstance->UpdateTransformations();
+			});
+			m_vecJobUpdateTransformations.clear();
+
+			Concurrency::parallel_for_each(m_vecJobUpdateModels.begin(), m_vecJobUpdateModels.end(), [](ModelInstance* pModelInstance)
+			{
+				pModelInstance->UpdateModel();
+			});
+			m_vecJobUpdateModels.clear();
 		}
 
 		void ModelManager::Flush()

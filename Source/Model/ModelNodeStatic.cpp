@@ -20,7 +20,7 @@ namespace EastEngine
 		{
 		}
 
-		void ModelNodeStatic::Update(float fElapsedTime, const Math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance, bool isModelVisible)
+		void ModelNodeStatic::Update(float fElapsedTime, const Math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance, bool isModelVisible) const
 		{
 			Math::Matrix matTransformation = matParent;
 			if (m_strAttachedBoneName.empty() == false && pSkeletonInstance != nullptr)
@@ -33,10 +33,6 @@ namespace EastEngine
 				}
 			}
 
-			m_matWorld = matTransformation;
-
-			UpdateBoundingBox(m_matWorld);
-
 			if (m_isVisible == true && isModelVisible == true)
 			{
 				uint32_t nLevel = Math::Min(m_nLod, m_nLodMax);
@@ -46,6 +42,10 @@ namespace EastEngine
 				}
 				else
 				{
+					Collision::Sphere boundingSphere;
+					Collision::Sphere::CreateFromAABB(boundingSphere, m_originAABB);
+					boundingSphere.Transform(boundingSphere, matTransformation);
+
 					for (auto& modelSubset : m_vecModelSubsets[nLevel])
 					{
 						IMaterial* pMaterial = nullptr;
@@ -66,7 +66,7 @@ namespace EastEngine
 							}
 						}
 
-						RenderSubsetStatic subset(&modelSubset, m_pVertexBuffer[nLevel], m_pIndexBuffer[nLevel], pMaterial, m_matWorld, modelSubset.nStartIndex, modelSubset.nIndexCount, m_fDistanceFromCamera, m_boundingSphere);
+						RenderSubsetStatic subset(&modelSubset, m_pVertexBuffer[nLevel], m_pIndexBuffer[nLevel], pMaterial, matTransformation, modelSubset.nStartIndex, modelSubset.nIndexCount, m_fDistanceFromCamera, boundingSphere);
 						RendererManager::GetInstance()->AddRender(subset);
 					}
 				}
@@ -75,7 +75,7 @@ namespace EastEngine
 			const size_t nSize = m_vecChildModelNode.size();
 			for (size_t i = 0; i < nSize; ++i)
 			{
-				m_vecChildModelNode[i]->Update(fElapsedTime, m_matWorld, pSkeletonInstance, pMaterialInstance, isModelVisible);
+				m_vecChildModelNode[i]->Update(fElapsedTime, matTransformation, pSkeletonInstance, pMaterialInstance, isModelVisible);
 			}
 		}
 	}

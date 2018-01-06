@@ -54,7 +54,7 @@ namespace EastEngine
 		private:
 			struct StaticSubset
 			{
-				std::pair<void*, IMaterial*> pairKey;
+				std::pair<const void*, IMaterial*> pairKey;
 				RenderSubsetStatic data;
 				bool isCulling = false;
 
@@ -70,7 +70,7 @@ namespace EastEngine
 
 			struct SkinnedSubset
 			{
-				std::pair<void*, IMaterial*> pairKey;
+				std::pair<const void*, IMaterial*> pairKey;
 				RenderSubsetSkinned data;
 				bool isCulling = false;
 

@@ -18,13 +18,13 @@ namespace EastEngine
 			: IComponent(pOwner, EmComponent::ePhysics)
 			, m_isInit(false)
 			, m_isCollisionModelVisible(false)
-			//, m_pRagDoll(nullptr)
+			, m_pRagDoll(new RagDoll)
 		{
 		}
 
 		ComponentPhysics::~ComponentPhysics()
 		{
-			//SafeDelete(m_pRagDoll);
+			SafeDelete(m_pRagDoll);
 
 			if (m_emType == Type::eModel)
 			{
@@ -53,7 +53,7 @@ namespace EastEngine
 			m_isCollisionModelVisible = isCollisionModelVisible;
 		}
 
-		void ComponentPhysics::Init(String::StringID strID, const Graphics::IVertexBuffer* pVertexBuffer, const Graphics::IIndexBuffer* pIndexBuffer, Math::Matrix* pMatWorld, const Physics::RigidBodyProperty& rigidBodyProperty, bool isCollisionModelVisible)
+		void ComponentPhysics::Init(const String::StringID& strID, const Graphics::IVertexBuffer* pVertexBuffer, const Graphics::IIndexBuffer* pIndexBuffer, Math::Matrix* pMatWorld, const Physics::RigidBodyProperty& rigidBodyProperty, bool isCollisionModelVisible)
 		{
 			m_loader.byCustom.Set(strID, pVertexBuffer, pIndexBuffer, pMatWorld, rigidBodyProperty);
 			m_emType = Type::eCustom;
@@ -68,27 +68,11 @@ namespace EastEngine
 				{
 				case Type::eBasic:
 				{
-					initPhysics(nullptr, m_loader.byBasic.rigidBodyProperty.strName, nullptr, nullptr, nullptr, m_loader.byBasic.rigidBodyProperty);
-
 					m_isInit = true;
 				}
 				break;
 				case Type::eModel:
 				{
-					if (m_loader.byModel.pModelInst != nullptr && m_loader.byModel.pModelInst->IsLoadComplete())
-					{
-						Graphics::IModel* pModel = m_loader.byModel.pModelInst->GetModel();
-						uint32_t nNodeCount = pModel->GetNodeCount();
-						m_umapPhysicsNode.reserve(nNodeCount);
-
-						for (uint32_t i = 0; i < nNodeCount; ++i)
-						{
-							Graphics::IModelNode* pModelNode = pModel->GetNode(i);
-							initPhysics(pModelNode, m_loader.byModel.rigidBodyProperty, m_loader.byModel.nTargetLod);
-						}
-
-						m_isInit = true;
-					}
 				}
 				break;
 				case Type::eCustom:
@@ -96,9 +80,6 @@ namespace EastEngine
 					std::string strName = m_loader.byCustom.rigidBodyProperty.strName.c_str();
 					strName.append("_");
 					strName.append(m_loader.byCustom.strID.c_str());
-
-					initPhysics(nullptr, strName.c_str(), m_loader.byCustom.pVertexBuffer, m_loader.byCustom.pIndexBuffer,
-						m_loader.byCustom.pMatWorld, m_loader.byCustom.rigidBodyProperty);
 
 					m_isInit = true;
 				}
@@ -109,10 +90,10 @@ namespace EastEngine
 			Graphics::Camera* pCamera = Graphics::CameraManager::GetInstance()->GetMainCamera();
 			const Math::Vector3& f3CameraPos = pCamera->GetPosition();
 
-			//if (m_pRagDoll != nullptr)
-			//{
-			//	m_pRagDoll->Update(fElapsedTime);
-			//}
+			if (m_pRagDoll != nullptr)
+			{
+				m_pRagDoll->Update(fElapsedTime);
+			}
 
 			for (auto iter = m_umapPhysicsNode.begin(); iter != m_umapPhysicsNode.end(); ++iter)
 			{
@@ -137,58 +118,6 @@ namespace EastEngine
 					iter->second.pRigidBody->SetLinearVelocity(f3Velocity);
 				}
 				
-				if (iter->second.pModelNode != nullptr)
-				{
-					Collision::AABB aabb = iter->second.pRigidBody->GetAABB();
-					aabb.Transform(aabb, matWorld.Invert());
-
-					iter->second.pModelNode->BuildBoundingBox(aabb);
-
-					float fDist = Math::Vector3::DistanceSquared(iter->second.pRigidBody->GetAABB().Center, f3CameraPos);
-					iter->second.pModelNode->SetDistanceFromCamera(fDist);
-
-					//Math::Vector3 f3Dir = iter->second.pRigidBody->GetAABB().Center - f3CameraPos;
-					//f3Dir.Normalize();
-					//
-					//float fDist = 0.f;
-					//iter->second.pRigidBody->GetAABB().Intersects(f3CameraPos, f3Dir, fDist);
-					//iter->second.pModelNode->SetDistanceFromCamera(fDist);
-
-					//const Math::Vector3& f3Pos = pCamera->GetPosition();
-					//
-					//Math::Vector3 f3Dir = iter->second.pRigidBody->GetAABB().Center - f3Pos;
-					//f3Dir.Normalize();
-					//
-					//float fDist = 0.f;
-					//iter->second.pRigidBody->GetAABB().Intersects(f3Pos, f3Dir, fDist);
-					//
-					//PRINT_LOG("%f", fDist);
-					//
-					//EmLOD emLod = EmLOD::Lv0;
-					//if (fDist < 40.f)
-					//{
-					//	emLod = EmLOD::Lv0;
-					//}
-					//else if (fDist < 60.f)
-					//{
-					//	emLod = EmLOD::Lv1;
-					//}
-					//else if (fDist < 80.f)
-					//{
-					//	emLod = EmLOD::Lv2;
-					//}
-					//else if (fDist < 100.f)
-					//{
-					//	emLod = EmLOD::Lv3;
-					//}
-					//else
-					//{
-					//	emLod = EmLOD::Lv4;
-					//}
-					//
-					//iter->second.pModelNode->SetLOD(emLod);
-				}
-
 				if (iter->second.pPhysicsModelInst != nullptr)
 				{
 					iter->second.pPhysicsModelInst->SetVisible(m_isCollisionModelVisible);
@@ -205,18 +134,7 @@ namespace EastEngine
 			}
 		}
 
-		void ComponentPhysics::initPhysics(Graphics::IModelNode* pModelNode, Physics::RigidBodyProperty& rigidBodyProperty, uint32_t nTargetLod)
-		{
-			using namespace Physics;
-
-			std::string strName = rigidBodyProperty.strName.c_str();
-			strName.append("_");
-			strName.append(pModelNode->GetName().c_str());
-
-			initPhysics(pModelNode, strName.c_str(), pModelNode->GetVertexBuffer(nTargetLod), pModelNode->GetIndexBuffer(nTargetLod), pModelNode->GetWorldMatrixPtr(), rigidBodyProperty);
-		}
-
-		void ComponentPhysics::initPhysics(Graphics::IModelNode* pModelNode, const String::StringID& strID, const Graphics::IVertexBuffer* pVertexBuffer, const Graphics::IIndexBuffer* pIndexBuffer, const Math::Matrix* pMatWorld, Physics::RigidBodyProperty& rigidBodyProperty)
+		void ComponentPhysics::initPhysics(const String::StringID& strID, const Graphics::IVertexBuffer* pVertexBuffer, const Graphics::IIndexBuffer* pIndexBuffer, const Math::Matrix* pMatWorld, Physics::RigidBodyProperty& rigidBodyProperty)
 		{
 			Graphics::MaterialInfo materialInfo;
 			materialInfo.strName = strID;
@@ -296,13 +214,13 @@ namespace EastEngine
 				break;
 			case Physics::EmPhysicsShape::eHull:
 			{
-				if (pModelNode != nullptr)
+				if (pVertexBuffer != nullptr && pIndexBuffer != nullptr)
 				{
-					const Math::Vector3* pVertexPos = reinterpret_cast<const Math::Vector3*>(pModelNode->GetVertexBuffer()->GetVertexPosPtr());
-					uint32_t nVertexCount = pModelNode->GetVertexBuffer()->GetVertexNum();
+					const Math::Vector3* pVertexPos = reinterpret_cast<const Math::Vector3*>(pVertexBuffer->GetVertexPosPtr());
+					uint32_t nVertexCount = pVertexBuffer->GetVertexNum();
 
-					const uint32_t* pIndices = static_cast<const uint32_t*>(pModelNode->GetIndexBuffer()->GetRawValuePtr());
-					uint32_t nIndexCount = pModelNode->GetIndexBuffer()->GetIndexNum();
+					const uint32_t* pIndices = static_cast<const uint32_t*>(pIndexBuffer->GetRawValuePtr());
+					uint32_t nIndexCount = pIndexBuffer->GetIndexNum();
 
 					rigidBodyProperty.shapeInfo.SetHull(pVertexPos, nVertexCount, pIndices, nIndexCount);
 
@@ -312,13 +230,13 @@ namespace EastEngine
 			break;
 			case Physics::EmPhysicsShape::eTriangleMesh:
 			{
-				if (pModelNode != nullptr)
+				if (pVertexBuffer != nullptr && pIndexBuffer != nullptr)
 				{
-					const Math::Vector3* pVertexPos = reinterpret_cast<const Math::Vector3*>(pModelNode->GetVertexBuffer()->GetVertexPosPtr());
-					uint32_t nVertexCount = pModelNode->GetVertexBuffer()->GetVertexNum();
+					const Math::Vector3* pVertexPos = reinterpret_cast<const Math::Vector3*>(pVertexBuffer->GetVertexPosPtr());
+					uint32_t nVertexCount = pVertexBuffer->GetVertexNum();
 
-					const uint32_t* pIndices = static_cast<const uint32_t*>(pModelNode->GetIndexBuffer()->GetRawValuePtr());
-					uint32_t nIndexCount = pModelNode->GetIndexBuffer()->GetIndexNum();
+					const uint32_t* pIndices = static_cast<const uint32_t*>(pIndexBuffer->GetRawValuePtr());
+					uint32_t nIndexCount = pIndexBuffer->GetIndexNum();
 
 					rigidBodyProperty.shapeInfo.SetTriangleMesh(pVertexPos, nVertexCount, pIndices, nIndexCount);
 
@@ -331,7 +249,7 @@ namespace EastEngine
 			if (pRigidBody == nullptr)
 				return;
 
-			m_umapPhysicsNode.emplace(strID, PhysicsNode(pMatWorld, pRigidBody, pModelNode, pPhysicsModelInst));
+			m_umapPhysicsNode.emplace(strID, PhysicsNode(pMatWorld, pRigidBody, pPhysicsModelInst));
 		}
 	}
 }

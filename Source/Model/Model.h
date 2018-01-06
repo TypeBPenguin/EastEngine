@@ -13,14 +13,14 @@ namespace EastEngine
 		class Model : public IModel
 		{
 		public:
-			Model(uint32_t nReserveInstance);
+			Model(size_t nReserveInstance);
 			virtual ~Model();
 
 		public:
 			IModelInstance* CreateInstance();
 			void DestroyInstance(IModelInstance** ppModelInstance);
 
-			void Process();
+			void Ready();
 
 		public:
 			virtual void Update(float fElapsedTime, const Math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance) override;

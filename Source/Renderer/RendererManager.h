@@ -45,25 +45,25 @@ namespace EastEngine
 			void Flush();
 
 		public:
-			void AddRender(const RenderSubsetVertex& renderSubset) { m_pRenderer[EmRenderer::eVertex]->AddRender(renderSubset); }
-			void AddRender(const RenderSubsetLine& renderSubset) { m_pRenderer[EmRenderer::eVertex]->AddRender(renderSubset); }
-			void AddRender(const RenderSubsetLineSegment& renderSubset) { m_pRenderer[EmRenderer::eVertex]->AddRender(renderSubset); }
+			void AddRender(const RenderSubsetVertex& renderSubset);
+			void AddRender(const RenderSubsetLine& renderSubset);
+			void AddRender(const RenderSubsetLineSegment& renderSubset);
 
-			void AddRender(const RenderSubsetStatic& renderSubset) { m_pRenderer[EmRenderer::eModel]->AddRender(renderSubset); }
-			void AddRender(const RenderSubsetSkinned& renderSubset) { m_pRenderer[EmRenderer::eModel]->AddRender(renderSubset); }
-			void AddRender(const RenderSubsetTerrain& renderSubset) { m_pRenderer[EmRenderer::eTerrain]->AddRender(renderSubset); }
+			void AddRender(const RenderSubsetStatic& renderSubset);
+			void AddRender(const RenderSubsetSkinned& renderSubset);
+			void AddRender(const RenderSubsetTerrain& renderSubset);
 
-			void AddRender(const RenderSubsetSky& renderSubset) { m_pRenderer[EmRenderer::eSky]->AddRender(renderSubset); }
-			void AddRender(const RenderSubsetSkybox& renderSubset) { m_pRenderer[EmRenderer::eSky]->AddRender(renderSubset); }
-			void AddRender(const RenderSubsetSkyEffect& renderSubset) { m_pRenderer[EmRenderer::eSky]->AddRender(renderSubset); }
-			void AddRender(const RenderSubsetSkyCloud& renderSubset) { m_pRenderer[EmRenderer::eSky]->AddRender(renderSubset); }
+			void AddRender(const RenderSubsetSky& renderSubset);
+			void AddRender(const RenderSubsetSkybox& renderSubset);
+			void AddRender(const RenderSubsetSkyEffect& renderSubset);
+			void AddRender(const RenderSubsetSkyCloud& renderSubset);
 
-			void AddRender(const RenderSubsetParticleEmitter& renderSubset) { m_pRenderer[EmRenderer::eParticle]->AddRender(renderSubset); }
-			void AddRender(const RenderSubsetParticleDecal& renderSubset) { m_pRenderer[EmRenderer::eParticle]->AddRender(renderSubset); }
+			void AddRender(const RenderSubsetParticleEmitter& renderSubset);
+			void AddRender(const RenderSubsetParticleDecal& renderSubset);
 
-			void AddRender(const RenderSubsetUIText& renderSubset) { m_pRenderer[EmRenderer::eUI]->AddRender(renderSubset); }
-			void AddRender(const RenderSubsetUISprite& renderSubset) { m_pRenderer[EmRenderer::eUI]->AddRender(renderSubset); }
-			void AddRender(const RenderSubsetUIPanel& renderSubset) { m_pRenderer[EmRenderer::eUI]->AddRender(renderSubset); }
+			void AddRender(const RenderSubsetUIText& renderSubset);
+			void AddRender(const RenderSubsetUISprite& renderSubset);
+			void AddRender(const RenderSubsetUIPanel& renderSubset);
 
 		private:
 			void CopyToMainRenderTarget();
@@ -71,8 +71,10 @@ namespace EastEngine
 
 		private:
 			bool m_isInit;
+
 			IEffect* m_pEffect;
 
+			std::array<std::mutex, EmRenderer::TypeCount> m_pMutex;
 			std::array<IRenderer*, EmRenderer::TypeCount> m_pRenderer;
 		};
 	}

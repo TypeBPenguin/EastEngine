@@ -846,7 +846,7 @@ namespace EastEngine
 			{
 				const Collision::Frustum& frustum = pCamera->GetFrustum();
 
-				std::map<std::pair<void*, IMaterial*>, RenderSubsetStaticBatch> mapStatic;
+				std::map<std::pair<const void*, IMaterial*>, RenderSubsetStaticBatch> mapStatic;
 				{
 					D3D_PROFILING(Ready);
 
@@ -923,7 +923,7 @@ namespace EastEngine
 
 			D3D_PROFILING(SkinnedModel);
 			{
-				std::map<std::pair<void*, IMaterial*>, RenderSubsetSkinnedBatch> mapSkinned;
+				std::map<std::pair<const void*, IMaterial*>, RenderSubsetSkinnedBatch> mapSkinned;
 				{
 					D3D_PROFILING(Ready);
 
@@ -986,7 +986,7 @@ namespace EastEngine
 		{
 			D3D_PROFILING(StaticModel_ShadowDepth);
 
-			std::map<std::pair<void*, IMaterial*>, RenderSubsetStaticBatch> mapStatic;
+			std::map<std::pair<const void*, IMaterial*>, RenderSubsetStaticBatch> mapStatic;
 			for (size_t i = 0; i < m_nStaticIndex; ++i)
 			{
 				auto& subset = m_vecStaticSubsets[i];
@@ -1051,7 +1051,7 @@ namespace EastEngine
 		{
 			D3D_PROFILING(SkinnedModel_ShadowDepth);
 
-			std::map<std::pair<void*, IMaterial*>, RenderSubsetSkinnedBatch> mapSkinned;
+			std::map<std::pair<const void*, IMaterial*>, RenderSubsetSkinnedBatch> mapSkinned;
 			{
 				D3D_PROFILING(Ready);
 

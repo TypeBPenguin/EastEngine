@@ -407,7 +407,7 @@ namespace EastEngine
 				strTexName.clear();
 			}
 			
-			pSamplerState = GetDevice()->GetSamplerState(EmSamplerState::eMinMagMipLinearClamp);
+			pSamplerState = GetDevice()->GetSamplerState(EmSamplerState::eMinMagMipLinearWrap);
 			pBlendState = GetDevice()->GetBlendState(EmBlendState::eOff);
 			pRasterizerState = GetDevice()->GetRasterizerState(EmRasterizerState::eSolidCCW);
 			pDepthStencilState = GetDevice()->GetDepthStencilState(EmDepthStencilState::eOn);

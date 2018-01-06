@@ -193,7 +193,7 @@ namespace EastEngine
 			*ppMotionSystem = nullptr;
 		}
 
-		IModel* IModel::Create(const ModelLoader& loader, bool isThreadLoad, uint32_t nReserveInstance)
+		IModel* IModel::Create(const ModelLoader& loader, bool isThreadLoad, size_t nReserveInstance)
 		{
 			IModel* pIModel = ModelManager::GetInstance()->GetModel(loader.GetModelName());
 			if (pIModel != nullptr)

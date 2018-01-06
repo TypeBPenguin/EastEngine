@@ -12,7 +12,7 @@ namespace EastEngine
 			ModelNodeSkinned(uint32_t nLodMax = 0);
 			virtual ~ModelNodeSkinned();
 
-			virtual void Update(float fElapsedTime, const Math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance, bool isModelVisible) override;
+			virtual void Update(float fElapsedTime, const Math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance, bool isModelVisible) const override;
 
 		public:
 			size_t GetBoneCount() const { return m_vecBoneName.size(); }

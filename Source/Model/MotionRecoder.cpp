@@ -15,53 +15,53 @@ namespace EastEngine
 
 		void MotionRecoder::SetCaching(const String::StringID& strBoneName, size_t nIndex)
 		{
-			auto iter = m_umapKeyframeIndexCaching.find(strBoneName);
-			if (iter != m_umapKeyframeIndexCaching.end())
+			auto iter = m_umapMotionData.find(strBoneName);
+			if (iter != m_umapMotionData.end())
 			{
-				iter->second.value = nIndex;
+				iter->second.caching.value = nIndex;
 			}
 			else
 			{
-				m_umapKeyframeIndexCaching.emplace(strBoneName, nIndex);
+				m_umapMotionData.emplace(strBoneName, nIndex);
 			}
 		}
 
 		size_t MotionRecoder::GetCaching(const String::StringID& strBoneName) const
 		{
-			auto iter = m_umapKeyframeIndexCaching.find(strBoneName);
-			if (iter != m_umapKeyframeIndexCaching.end())
-				return iter->second.value;
+			auto iter = m_umapMotionData.find(strBoneName);
+			if (iter != m_umapMotionData.end())
+				return iter->second.caching.value;
 
 			return eInvalidCachingIndex;
 		}
 
 		void MotionRecoder::SetKeyframe(const String::StringID& strBoneName, const IMotion::Keyframe& keyframe)
 		{
-			auto iter = m_umapKeyframe.find(strBoneName);
-			if (iter != m_umapKeyframe.end())
+			auto iter = m_umapMotionData.find(strBoneName);
+			if (iter != m_umapMotionData.end())
 			{
 				iter->second = keyframe;
 			}
 			else
 			{
-				m_umapKeyframe.emplace(strBoneName, keyframe);
+				m_umapMotionData.emplace(strBoneName, keyframe);
 			}
 		}
 
 		const IMotion::Keyframe* MotionRecoder::GetKeyframe(const String::StringID& strBoneName) const
 		{
-			auto iter = m_umapKeyframe.find(strBoneName);
-			if (iter != m_umapKeyframe.end())
-				return &iter->second;
+			auto iter = m_umapMotionData.find(strBoneName);
+			if (iter != m_umapMotionData.end())
+				return &iter->second.keyframe;
 
 			return nullptr;
 		}
 
 		void MotionRecoder::Clear()
 		{
-			for (auto& iter : m_umapKeyframeIndexCaching)
+			for (auto& iter : m_umapMotionData)
 			{
-				iter.second.value = eInvalidCachingIndex;
+				iter.second.caching.value = eInvalidCachingIndex;
 			}
 		}
 	}

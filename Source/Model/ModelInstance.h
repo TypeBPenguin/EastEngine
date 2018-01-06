@@ -40,7 +40,6 @@ namespace EastEngine
 				{
 					eNone = 0,
 					eBone,
-					eNode,
 				};
 
 				ModelInstance* pInstance = nullptr;
@@ -56,7 +55,10 @@ namespace EastEngine
 			virtual ~ModelInstance();
 
 		public:
-			void Process();
+			void Ready();
+
+			void UpdateTransformations();
+			void UpdateModel();
 
 		public:
 			virtual void Update(float fElapsedTime, const Math::Matrix& matParent) override;

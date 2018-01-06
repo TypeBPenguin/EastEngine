@@ -29,17 +29,15 @@ namespace EastEngine
 		{
 			const Math::Matrix* pMatWorld = nullptr;
 			Physics::RigidBody* pRigidBody = nullptr;
-			Graphics::IModelNode* pModelNode = nullptr;
 			Graphics::IModelInstance* pPhysicsModelInst = nullptr;
 
 			PhysicsNode()
 			{
 			}
 
-			PhysicsNode(const Math::Matrix* pMatWorld, Physics::RigidBody* pRigidBody, Graphics::IModelNode* pModelNode, Graphics::IModelInstance* pPhysicsModelInst)
+			PhysicsNode(const Math::Matrix* pMatWorld, Physics::RigidBody* pRigidBody, Graphics::IModelInstance* pPhysicsModelInst)
 				: pMatWorld(pMatWorld)
 				, pRigidBody(pRigidBody)
-				, pModelNode(pModelNode)
 				, pPhysicsModelInst(pPhysicsModelInst)
 			{
 			}
@@ -51,12 +49,12 @@ namespace EastEngine
 			ComponentPhysics(IActor* pOwner);
 			virtual ~ComponentPhysics();
 
-			//RagDoll* m_pRagDoll;
+			RagDoll* m_pRagDoll;
 
 		public:
 			void Init(const Physics::RigidBodyProperty& rigidBodyProperty, bool isCollisionModelVisible = false);
 			void Init(Graphics::IModelInstance* pModelInst, const Physics::RigidBodyProperty& rigidBodyProperty, uint32_t nTargetLod = 0, bool isCollisionModelVisible = false);
-			void Init(String::StringID strID, const Graphics::IVertexBuffer* pVertexBuffer, const Graphics::IIndexBuffer* pIndexBuffer, Math::Matrix* pMatWorld, const Physics::RigidBodyProperty& rigidBodyProperty, bool isCollisionModelVisible = false);
+			void Init(const String::StringID& strID, const Graphics::IVertexBuffer* pVertexBuffer, const Graphics::IIndexBuffer* pIndexBuffer, Math::Matrix* pMatWorld, const Physics::RigidBodyProperty& rigidBodyProperty, bool isCollisionModelVisible = false);
 			virtual void Update(float fElapsedTime) override;
 
 		public:
@@ -72,8 +70,7 @@ namespace EastEngine
 			}
 
 		private:
-			void initPhysics(Graphics::IModelNode* pModelNode, Physics::RigidBodyProperty& rigidBodyProperty, uint32_t nTargetLod);
-			void initPhysics(Graphics::IModelNode* pModelNode, const String::StringID& strID, const Graphics::IVertexBuffer* pVertexBuffer, const Graphics::IIndexBuffer* pIndexBuffer, const Math::Matrix* pMatWorld, Physics::RigidBodyProperty& rigidBodyProperty);
+			void initPhysics(const String::StringID& strID, const Graphics::IVertexBuffer* pVertexBuffer, const Graphics::IIndexBuffer* pIndexBuffer, const Math::Matrix* pMatWorld, Physics::RigidBodyProperty& rigidBodyProperty);
 
 		private:
 			std::unordered_map<String::StringID, PhysicsNode> m_umapPhysicsNode;

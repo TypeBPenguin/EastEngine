@@ -272,7 +272,7 @@ namespace EastEngine
 			virtual ~IModelNode() = default;
 
 		public:
-			virtual void Update(float fElapsedTime, const Math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance, bool isModelVisible) = 0;
+			virtual void Update(float fElapsedTime, const Math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance, bool isModelVisible) const = 0;
 
 		public:
 			virtual EmModelNode::Type GetType() const = 0;
@@ -291,9 +291,6 @@ namespace EastEngine
 			virtual IVertexBuffer* GetVertexBuffer(uint32_t nLOD = 0) = 0;
 			virtual IIndexBuffer* GetIndexBuffer(uint32_t nLOD = 0) = 0;
 
-			virtual const Math::Matrix& GetWorldMatrix() = 0;
-			virtual const Math::Matrix* GetWorldMatrixPtr() = 0;
-
 			virtual size_t GetChildNodeCount() const = 0;
 			virtual IModelNode* GetChildNode(size_t nIndex) = 0;
 
@@ -304,11 +301,6 @@ namespace EastEngine
 			virtual ModelSubset* GetModelSubset(size_t nIndex, uint32_t nLOD = 0) = 0;
 
 			virtual void BuildBoundingBox(const Collision::AABB& aabb) = 0;
-			virtual void UpdateBoundingBox(const Math::Matrix& matWorld) = 0;
-
-			virtual const Collision::AABB& GetAABB() = 0;
-			virtual const Collision::OBB& GetOBB() = 0;
-			virtual const Collision::Sphere& GetSphere() = 0;
 
 			virtual uint32_t GetLOD() = 0;
 			virtual void SetLOD(uint32_t nLOD) = 0;
@@ -321,7 +313,7 @@ namespace EastEngine
 			virtual ~IModel() = default;
 
 		public:
-			static IModel* Create(const ModelLoader& loader, bool isThreadLoad = true, uint32_t nReserveInstance = 8);
+			static IModel* Create(const ModelLoader& loader, bool isThreadLoad = true, size_t nReserveInstance = 8);
 			static void Destroy(IModel** ppModel);
 
 			static IModelInstance* CreateInstance(const ModelLoader& loader, bool isThreadLoad = true);

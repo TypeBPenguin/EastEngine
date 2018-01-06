@@ -10,6 +10,7 @@ namespace EastEngine
 	namespace Graphics
 	{
 		class Model;
+		class ModelInstance;
 		class IModel;
 		class ModelLoader;
 
@@ -57,11 +58,17 @@ namespace EastEngine
 			bool ChangeName(IModel* pModel, const String::StringID& strName);
 			IModel* GetModel(const String::StringID& strModelName);
 
+		public:
+			void PushJobUpdateTransformations(ModelInstance* pModelInstance) { m_vecJobUpdateTransformations.emplace_back(pModelInstance); }
+			void PushJobUpdateModels(ModelInstance* pModelInstance) { m_vecJobUpdateModels.emplace_back(pModelInstance); }
+
 		private:
 			bool m_isInit;
 			bool m_isLoading;
 
 			plf::colony<Model> m_clnModel;
+			std::vector<ModelInstance*> m_vecJobUpdateTransformations;
+			std::vector<ModelInstance*> m_vecJobUpdateModels;
 
 			Concurrency::concurrent_queue<RequestLoadModelInfo> m_conQueueRequestModelLoader;
 			Concurrency::concurrent_queue<ResultLoadModelInfo> m_conFuncLoadCompleteCallback;

@@ -174,6 +174,96 @@ namespace EastEngine
 			}
 		}
 
+		void RendererManager::AddRender(const RenderSubsetVertex& renderSubset)
+		{
+			std::lock_guard<std::mutex> lock(m_pMutex[EmRenderer::eVertex]);
+			m_pRenderer[EmRenderer::eVertex]->AddRender(renderSubset);
+		}
+
+		void RendererManager::AddRender(const RenderSubsetLine& renderSubset)
+		{
+			std::lock_guard<std::mutex> lock(m_pMutex[EmRenderer::eVertex]);
+			m_pRenderer[EmRenderer::eVertex]->AddRender(renderSubset);
+		}
+
+		void RendererManager::AddRender(const RenderSubsetLineSegment& renderSubset)
+		{
+			std::lock_guard<std::mutex> lock(m_pMutex[EmRenderer::eVertex]);
+			m_pRenderer[EmRenderer::eVertex]->AddRender(renderSubset);
+		}
+
+		void RendererManager::AddRender(const RenderSubsetStatic& renderSubset)
+		{
+			std::lock_guard<std::mutex> lock(m_pMutex[EmRenderer::eModel]);
+			m_pRenderer[EmRenderer::eModel]->AddRender(renderSubset);
+		}
+
+		void RendererManager::AddRender(const RenderSubsetSkinned& renderSubset)
+		{
+			std::lock_guard<std::mutex> lock(m_pMutex[EmRenderer::eModel]);
+			m_pRenderer[EmRenderer::eModel]->AddRender(renderSubset);
+		}
+
+		void RendererManager::AddRender(const RenderSubsetTerrain& renderSubset)
+		{
+			std::lock_guard<std::mutex> lock(m_pMutex[EmRenderer::eTerrain]);
+			m_pRenderer[EmRenderer::eTerrain]->AddRender(renderSubset);
+		}
+
+		void RendererManager::AddRender(const RenderSubsetSky& renderSubset)
+		{
+			std::lock_guard<std::mutex> lock(m_pMutex[EmRenderer::eSky]);
+			m_pRenderer[EmRenderer::eSky]->AddRender(renderSubset);
+		}
+
+		void RendererManager::AddRender(const RenderSubsetSkybox& renderSubset)
+		{
+			std::lock_guard<std::mutex> lock(m_pMutex[EmRenderer::eSky]);
+			m_pRenderer[EmRenderer::eSky]->AddRender(renderSubset);
+		}
+
+		void RendererManager::AddRender(const RenderSubsetSkyEffect& renderSubset)
+		{
+			std::lock_guard<std::mutex> lock(m_pMutex[EmRenderer::eSky]);
+			m_pRenderer[EmRenderer::eSky]->AddRender(renderSubset);
+		}
+
+		void RendererManager::AddRender(const RenderSubsetSkyCloud& renderSubset)
+		{
+			std::lock_guard<std::mutex> lock(m_pMutex[EmRenderer::eSky]);
+			m_pRenderer[EmRenderer::eSky]->AddRender(renderSubset);
+		}
+
+		void RendererManager::AddRender(const RenderSubsetParticleEmitter& renderSubset)
+		{
+			std::lock_guard<std::mutex> lock(m_pMutex[EmRenderer::eParticle]);
+			m_pRenderer[EmRenderer::eParticle]->AddRender(renderSubset);
+		}
+
+		void RendererManager::AddRender(const RenderSubsetParticleDecal& renderSubset)
+		{
+			std::lock_guard<std::mutex> lock(m_pMutex[EmRenderer::eParticle]);
+			m_pRenderer[EmRenderer::eParticle]->AddRender(renderSubset);
+		}
+
+		void RendererManager::AddRender(const RenderSubsetUIText& renderSubset)
+		{
+			std::lock_guard<std::mutex> lock(m_pMutex[EmRenderer::eUI]);
+			m_pRenderer[EmRenderer::eUI]->AddRender(renderSubset);
+		}
+
+		void RendererManager::AddRender(const RenderSubsetUISprite& renderSubset)
+		{
+			std::lock_guard<std::mutex> lock(m_pMutex[EmRenderer::eUI]);
+			m_pRenderer[EmRenderer::eUI]->AddRender(renderSubset);
+		}
+
+		void RendererManager::AddRender(const RenderSubsetUIPanel& renderSubset)
+		{
+			std::lock_guard<std::mutex> lock(m_pMutex[EmRenderer::eUI]);
+			m_pRenderer[EmRenderer::eUI]->AddRender(renderSubset);
+		}
+
 		void RendererManager::CopyToMainRenderTarget()
 		{
 			D3D_PROFILING(CopyToMainRenderTarget);

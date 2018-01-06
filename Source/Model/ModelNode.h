@@ -18,7 +18,7 @@ namespace EastEngine
 			virtual ~ModelNode() = 0;
 
 		public:
-			virtual void Update(float fElapsedTime, const Math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance, bool isModelVisible) = 0;
+			virtual void Update(float fElapsedTime, const Math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance, bool isModelVisible) const = 0;
 
 		public:
 			virtual EmModelNode::Type GetType() const override { return m_emModelNodeType; }
@@ -37,9 +37,6 @@ namespace EastEngine
 			virtual IVertexBuffer* GetVertexBuffer(uint32_t nLod = 0) override;
 			virtual IIndexBuffer* GetIndexBuffer(uint32_t nLod = 0) override;
 
-			virtual const Math::Matrix& GetWorldMatrix() override { return m_matWorld; }
-			virtual const Math::Matrix* GetWorldMatrixPtr() override { return &m_matWorld; }
-
 			virtual size_t GetChildNodeCount() const override { return m_vecChildModelNode.size(); }
 			virtual IModelNode* GetChildNode(size_t nIndex) override { return m_vecChildModelNode[nIndex]; }
 
@@ -50,11 +47,6 @@ namespace EastEngine
 			virtual ModelSubset* GetModelSubset(size_t nIndex, uint32_t nLod = 0) override { return &m_vecModelSubsets[nLod][nIndex]; }
 
 			virtual void BuildBoundingBox(const Collision::AABB& aabb) override;
-			virtual void UpdateBoundingBox(const Math::Matrix& matWorld) override;
-
-			virtual const Collision::AABB& GetAABB() override { return m_boundingAABB; }
-			virtual const Collision::OBB& GetOBB() override { return m_boundingOBB; }
-			virtual const Collision::Sphere& GetSphere() override { return m_boundingSphere; }
 
 			virtual uint32_t GetLOD() override { return m_nLod; }
 			virtual void SetLOD(uint32_t nLod) override { m_nLod = nLod; }
@@ -81,8 +73,6 @@ namespace EastEngine
 			IModelNode* m_pParentNode;
 			std::vector<IModelNode*> m_vecChildModelNode;
 
-			Math::Matrix m_matWorld;
-
 			std::vector<IMaterial*> m_vecMaterial;
 			std::vector<ModelSubset> m_vecModelSubsets[eMaxLod];
 
@@ -95,10 +85,6 @@ namespace EastEngine
 			float m_fDistanceFromCamera;
 
 			Collision::AABB m_originAABB;
-
-			Collision::AABB m_boundingAABB;
-			Collision::OBB m_boundingOBB;
-			Collision::Sphere m_boundingSphere;
 
 		private:
 			EmModelNode::Type m_emModelNodeType;

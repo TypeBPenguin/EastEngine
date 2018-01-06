@@ -47,7 +47,7 @@ namespace EastEngine
 
 		struct RenderSubsetStatic
 		{
-			void* pKey = nullptr;
+			const void* pKey = nullptr;
 			IVertexBuffer* pVertexBuffer = nullptr;
 			IIndexBuffer* pIndexBuffer = nullptr;
 			IMaterial* pMaterial = nullptr;
@@ -58,14 +58,14 @@ namespace EastEngine
 			Collision::Sphere boundingSphere;
 
 			RenderSubsetStatic();
-			RenderSubsetStatic(void* pKey, IVertexBuffer* pVertexBuffer, IIndexBuffer* pIndexBuffer, IMaterial* pMaterial
+			RenderSubsetStatic(const void* pKey, IVertexBuffer* pVertexBuffer, IIndexBuffer* pIndexBuffer, IMaterial* pMaterial
 				, const Math::Matrix& matWorld, uint32_t nStartIndex, uint32_t nIndexCount
 				, float fDepth, const Collision::Sphere& boundingSphere);
 		};
 
 		struct RenderSubsetSkinned
 		{
-			void* pKey = nullptr;
+			const void* pKey = nullptr;
 			IVertexBuffer* pVertexBuffer = nullptr;
 			IIndexBuffer* pIndexBuffer = nullptr;
 			IMaterial* pMaterial = nullptr;
@@ -76,7 +76,7 @@ namespace EastEngine
 			float fDepth = 0.f;
 
 			RenderSubsetSkinned();
-			RenderSubsetSkinned(void* pKey, IVertexBuffer* pVertexBuffer, IIndexBuffer* pIndexBuffer, IMaterial* pMaterial
+			RenderSubsetSkinned(const void* pKey, IVertexBuffer* pVertexBuffer, IIndexBuffer* pIndexBuffer, IMaterial* pMaterial
 				, const Math::Matrix& matWorld, uint32_t nStartIndex, uint32_t nIndexCount, uint32_t nVTFID
 				, float fDepth);
 		};

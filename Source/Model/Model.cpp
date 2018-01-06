@@ -69,7 +69,7 @@ namespace EastEngine
 			return strGeometryType[emGeometryType];
 		}
 
-		Model::Model(uint32_t nReserveInstance)
+		Model::Model(size_t nReserveInstance)
 			: m_isVisible(true)
 			, m_isDirtyLocalMatrix(false)
 			, m_nReferenceCount(0)
@@ -134,17 +134,17 @@ namespace EastEngine
 			DecreaseReference();
 		}
 
-		void Model::Process()
+		void Model::Ready()
 		{
+			if (GetLoadState() != EmLoadState::eComplete)
+				return;
+
 			std::for_each(m_clnModelInstance.begin(), m_clnModelInstance.end(), [](ModelInstance& instance)
 			{
-				if (instance.IsAttachment() == false)
-				{
-					instance.Process();
-				}
+				instance.Ready();
 			});
 		}
-		
+
 		void Model::Update(float fElapsedTime, const Math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance)
 		{
 			if (m_isDirtyLocalMatrix == true)
@@ -231,7 +231,6 @@ namespace EastEngine
 				std::unique_lock<std::mutex> lock(mutex);
 
 				isSuccess = FBXImport::GetInstance()->LoadModel(this, loader.GetFilePath().c_str(), loader.GetScaleFactor());
-				//isSuccess = SObjImporter::GetInstance()->LoadModel(this, loader.GetFilePath().c_str(), loader.GetScaleFactor(), loader.GetLodMax(), &loader.GetLODReductionRate());
 				if (isSuccess == false)
 				{
 					LOG_ERROR("Can't load Model[Obj] : %s", loader.GetFilePath().c_str());

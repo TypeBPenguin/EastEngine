@@ -36,7 +36,6 @@ namespace EastEngine
 				IMotion::Keyframe motionKeyframe;
 				IMotion::Keyframe defaultKeyframe;
 			};
-
 			std::unordered_map<String::StringID, KeyframeTemp> m_umapKeyframe;
 
 			ISkeletonInstance* m_pSkeletonInstance;

@@ -30,7 +30,7 @@ namespace EastEngine
 		{
 		}
 
-		RenderSubsetStatic::RenderSubsetStatic(void* pKey, IVertexBuffer* pVertexBuffer, IIndexBuffer* pIndexBuffer, IMaterial* pMaterial
+		RenderSubsetStatic::RenderSubsetStatic(const void* pKey, IVertexBuffer* pVertexBuffer, IIndexBuffer* pIndexBuffer, IMaterial* pMaterial
 			, const Math::Matrix& matWorld, uint32_t nStartIndex, uint32_t nIndexCount
 			, float fDepth, const Collision::Sphere& boundingSphere)
 			: pKey(pKey), pVertexBuffer(pVertexBuffer), pIndexBuffer(pIndexBuffer), pMaterial(pMaterial)
@@ -43,7 +43,7 @@ namespace EastEngine
 		{
 		}
 
-		RenderSubsetSkinned::RenderSubsetSkinned(void* pKey, IVertexBuffer* pVertexBuffer, IIndexBuffer* pIndexBuffer, IMaterial* pMaterial
+		RenderSubsetSkinned::RenderSubsetSkinned(const void* pKey, IVertexBuffer* pVertexBuffer, IIndexBuffer* pIndexBuffer, IMaterial* pMaterial
 			, const Math::Matrix& matWorld, uint32_t nStartIndex, uint32_t nIndexCount, uint32_t nVTFID
 			, float fDepth)
 			: pKey(pKey), pVertexBuffer(pVertexBuffer), pIndexBuffer(pIndexBuffer), pMaterial(pMaterial)

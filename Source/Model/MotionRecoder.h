@@ -23,11 +23,26 @@ namespace EastEngine
 			void Clear();
 
 		private:
-			struct keyframeCachingT {};
-			using KeyframeCaching = Type<keyframeCachingT, size_t>;
+			struct MotionData
+			{
+				struct keyframeCachingT {};
+				using KeyframeCaching = Type<keyframeCachingT, size_t>;
 
-			std::unordered_map<String::StringID, KeyframeCaching> m_umapKeyframeIndexCaching;
-			std::unordered_map<String::StringID, IMotion::Keyframe> m_umapKeyframe;
+				KeyframeCaching caching;
+				IMotion::Keyframe keyframe;
+
+				MotionData(size_t nIndex)
+					: caching(nIndex)
+				{
+				}
+
+				MotionData(const IMotion::Keyframe& keyframe)
+					: caching(eInvalidCachingIndex)
+					, keyframe(keyframe)
+				{
+				}
+			};
+			std::unordered_map<String::StringID, MotionData> m_umapMotionData;
 		};
 	}
 }

@@ -19,17 +19,8 @@ namespace EastEngine
 			, m_nLodMax(0)
 			, m_fDistanceFromCamera(0.f)
 		{
-			Memory::Clear(&m_pVertexBuffer, sizeof(m_pVertexBuffer));
-			Memory::Clear(&m_pIndexBuffer, sizeof(m_pIndexBuffer));
-
-			Math::Vector3 f3Min(-Math::Vector3::One);
-			Math::Vector3 f3Max(Math::Vector3::One);
-
-			Collision::AABB::CreateFromPoints(m_originAABB, f3Min, f3Max);
-
-			Collision::AABB::CreateFromPoints(m_boundingAABB, f3Min, f3Max);
-			Collision::Sphere::CreateFromAABB(m_boundingSphere, m_boundingAABB);
-			Collision::OBB::CreateFromAABB(m_boundingOBB, m_boundingAABB);
+			m_pVertexBuffer.fill(nullptr);
+			m_pIndexBuffer.fill(nullptr);
 		}
 
 		ModelNode::~ModelNode()
@@ -113,38 +104,6 @@ namespace EastEngine
 		{
 			m_originAABB = aabb;
 			m_originAABB.Extents = Math::Vector3::Max(m_originAABB.Extents, Math::Vector3(0.01f));
-
-			m_boundingAABB = m_originAABB;
-			Collision::Sphere::CreateFromAABB(m_boundingSphere, m_originAABB);
-			Collision::OBB::CreateFromAABB(m_boundingOBB, m_originAABB);
-		}
-
-		void ModelNode::UpdateBoundingBox(const Math::Matrix& matWorld)
-		{
-			BuildBoundingBox(m_originAABB);
-
-			m_boundingAABB.Transform(m_boundingAABB, matWorld);
-			m_boundingOBB.Transform(m_boundingOBB, matWorld);
-			m_boundingSphere.Transform(m_boundingSphere, matWorld);
-
-			if (Config::IsEnable("VisibleCollisionMesh"_s))
-			{
-				Math::Matrix matAABB = Math::Matrix::Compose(m_boundingAABB.Extents, Math::Quaternion::Identity, m_boundingAABB.Center);
-
-				RenderSubsetVertex aabb;
-				aabb.matWorld = matAABB;
-				aabb.isWireframe = true;
-				GeometryModel::GetDebugModel(GeometryModel::EmDebugModel::eBox, &aabb.pVertexBuffer, &aabb.pIndexBuffer);
-				RendererManager::GetInstance()->AddRender(aabb);
-
-				Math::Matrix matSphere = Math::Matrix::Compose(Math::Vector3(m_boundingSphere.Radius), Math::Quaternion::Identity, m_boundingSphere.Center);
-
-				RenderSubsetVertex sphere;
-				sphere.matWorld = matSphere;
-				sphere.isWireframe = true;
-				GeometryModel::GetDebugModel(GeometryModel::EmDebugModel::eSphere, &sphere.pVertexBuffer, &sphere.pIndexBuffer);
-				RendererManager::GetInstance()->AddRender(sphere);
-			}
 		}
 	}
 }
