@@ -451,8 +451,18 @@ void SceneStudio::Enter()
 		Graphics::IMotionSystem* pMotionSystem = pModelInstance->GetMotionSystem();
 
 		{
+			std::vector<const char*> vecAnim =
+			{
+				"Actor\\UnityChan\\Animations\\unitychan_WAIT00.fbx",
+				"Actor\\UnityChan\\Animations\\unitychan_WAIT01.fbx",
+				"Actor\\UnityChan\\Animations\\unitychan_WAIT02.fbx",
+				"Actor\\UnityChan\\Animations\\unitychan_WAIT03.fbx",
+				"Actor\\UnityChan\\Animations\\unitychan_WAIT04.fbx",
+			};
+
 			std::string strPathMotion(File::GetDataPath());
-			strPathMotion.append("Actor\\UnityChan\\Animations\\unitychan_WAIT00.fbx");
+			//strPathMotion.append("Actor\\UnityChan\\Animations\\unitychan_WAIT00.fbx");
+			strPathMotion.append(vecAnim[Math::Random(0u, vecAnim.size() - 1)]);
 
 			String::StringID strMotionName;
 			strMotionName.Format("%s", File::GetFileName(strPathMotion).c_str());
@@ -468,9 +478,21 @@ void SceneStudio::Enter()
 		}
 
 		{
+			std::vector<const char*> vecAnim =
+			{
+				"Actor\\UnityChan\\Animations\\unitychan_RUN00_F.fbx",
+				"Actor\\UnityChan\\Animations\\unitychan_JUMP00.fbx",
+				"Actor\\UnityChan\\Animations\\unitychan_LOSE00.fbx",
+				"Actor\\UnityChan\\Animations\\unitychan_REFLESH00.fbx",
+				"Actor\\UnityChan\\Animations\\unitychan_SLIDE00.fbx",
+				"Actor\\UnityChan\\Animations\\unitychan_UMATOBI00.fbx",
+				"Actor\\UnityChan\\Animations\\unitychan_WIN00.fbx",
+			};
+
 			std::string strPathMotion(File::GetDataPath());
 			//strPathMotion.append("Actor\\UnityChan\\Animations\\unitychan_ARpose1.fbx");
-			strPathMotion.append("Actor\\UnityChan\\Animations\\unitychan_RUN00_F.fbx");
+			//strPathMotion.append("Actor\\UnityChan\\Animations\\unitychan_RUN00_F.fbx");
+			strPathMotion.append(vecAnim[Math::Random(0u, vecAnim.size() - 1)]);
 
 			String::StringID strMotionName;
 			strMotionName.Format("%s", File::GetFileName(strPathMotion).c_str());

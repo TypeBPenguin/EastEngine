@@ -103,6 +103,51 @@ namespace EastEngine
 		}
 
 		template <>
+		uint32_t Random(uint32_t min, uint32_t max)
+		{
+			if (min > max)
+			{
+				uint32_t temp = max;
+				max = min;
+				min = temp;
+			}
+
+			std::uniform_int_distribution<uint32_t> distribution(min, max);
+
+			return distribution(s_rand);
+		}
+
+		template <>
+		int64_t Random(int64_t min, int64_t max)
+		{
+			if (min > max)
+			{
+				int64_t temp = max;
+				max = min;
+				min = temp;
+			}
+
+			std::uniform_int_distribution<int64_t> distribution(min, max);
+
+			return distribution(s_rand);
+		}
+
+		template <>
+		uint64_t Random(uint64_t min, uint64_t max)
+		{
+			if (min > max)
+			{
+				uint64_t temp = max;
+				max = min;
+				min = temp;
+			}
+
+			std::uniform_int_distribution<uint64_t> distribution(min, max);
+
+			return distribution(s_rand);
+		}
+
+		template <>
 		float Random(float min, float max)
 		{
 			if (min > max)
