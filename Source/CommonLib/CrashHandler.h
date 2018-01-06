@@ -4,7 +4,7 @@ namespace EastEngine
 {
 	namespace CrashHandler
 	{
-		bool Initialize();
+		bool Initialize(const char* strPath);
 		void Release();
 
 		void ForceCrash();

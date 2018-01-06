@@ -5,6 +5,7 @@
 #include "SceneMgr.h"
 
 #include "CommonLib/CommandLine.h"
+#include "CommonLib/FileUtil.h"
 #include "CommonLib/DirectoryMonitor.h"
 #include "CommonLib/ThreadPool.h"
 #include "CommonLib/Timer.h"
@@ -61,7 +62,7 @@ namespace EastEngine
 
 		m_isInit = true;
 
-		if (CrashHandler::Initialize() == false)
+		if (CrashHandler::Initialize(File::GetBinPath()) == false)
 		{
 			Release();
 			return false;

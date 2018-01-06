@@ -1,6 +1,9 @@
 #include "stdafx.h"
 #include "CrashHandler.h"
 
+#include "StringUtil.h"
+#include "FileUtil.h"
+
 #include <new.h>
 #include <tchar.h>
 #include <csignal>
@@ -16,11 +19,12 @@ namespace EastEngine
 		};
 
 		static char* s_crashDumpBuffer = nullptr;
+		std::string s_strMiniDumpPath;
 
 		void SetProcessExceptionHandlers();
 		void SetThreadExceptionHandlers();
 
-		bool Initialize()
+		bool Initialize(const char* strPath)
 		{
 			if (s_crashDumpBuffer == nullptr)
 			{
@@ -29,6 +33,8 @@ namespace EastEngine
 				SetProcessExceptionHandlers();
 				SetThreadExceptionHandlers();
 			}
+
+			s_strMiniDumpPath = strPath;
 
 			return true;
 		}
@@ -89,7 +95,6 @@ namespace EastEngine
 #pragma warning(pop)
 			ContextRecord.Ebp = *((ULONG *)_AddressOfReturnAddress() - 1);
 
-
 #elif defined (_IA64_) || defined (_AMD64_)
 
 			/* Need to fill up the Context in IA64 and AMD64. */
@@ -105,8 +110,6 @@ namespace EastEngine
 
 			ExceptionRecord.ExceptionCode = dwExceptionCode;
 			ExceptionRecord.ExceptionAddress = _ReturnAddress();
-
-			///
 
 			EXCEPTION_RECORD* pExceptionRecord = new EXCEPTION_RECORD;
 			memcpy(pExceptionRecord, &ExceptionRecord, sizeof(EXCEPTION_RECORD));
@@ -132,9 +135,25 @@ namespace EastEngine
 				return;
 			}
 
+			std::time_t curTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+
+			std::tm tmTime;
+			localtime_s(&tmTime, &curTime);
+			
+			std::string strDumpPath = String::Format("%s%s_[%d%02d%02d-%02d%02d%02d]_CrashMiniDump.dmp", 
+				s_strMiniDumpPath.c_str(), 
+				File::GetProgramFileName(),
+				tmTime.tm_year + 1900,
+				tmTime.tm_mon + 1, 
+				tmTime.tm_mday, 
+				tmTime.tm_hour, 
+				tmTime.tm_min, 
+				tmTime.tm_sec
+				);
+
 			// Create the minidump file
 			HANDLE hFile = CreateFile(
-				_T("crashdump.dmp"),
+				strDumpPath.c_str(),
 				GENERIC_WRITE,
 				0,
 				nullptr,

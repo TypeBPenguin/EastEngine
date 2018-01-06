@@ -271,11 +271,22 @@ namespace EastEngine
 
 			// 실행파일명 제거
 			strPath = strModulePath;
-			auto pos = strPath.find_last_of("\\");
-			if (pos == std::string::npos)
-				return "";
+			strPath = GetFilePath(strPath);
 
-			strPath = strPath.substr(0, pos + 1);
+			return strPath.c_str();
+		}
+
+		const char* GetProgramFileName()
+		{
+			static std::string strPath;
+
+			if (strPath.empty() == false)
+				return strPath.c_str();
+
+			char strModulePath[MAX_PATH];
+			GetModuleFileName(NULL, strModulePath, MAX_PATH);	// 실행파일경로
+
+			strPath = GetFileNameWithoutExtension(strModulePath);
 
 			return strPath.c_str();
 		}

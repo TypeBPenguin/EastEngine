@@ -35,5 +35,6 @@ namespace EastEngine
 		const char* GetPath(EmPath emPath);
 		const char* GetDataPath();
 		const char* GetBinPath();	// 현재 실행 경로, Bin Path
+		const char* GetProgramFileName();
 	}
 }
