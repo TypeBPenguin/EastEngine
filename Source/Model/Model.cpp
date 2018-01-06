@@ -258,7 +258,7 @@ namespace EastEngine
 					ModelNodeStatic* pModelStatic = new ModelNodeStatic;
 					pModelStatic->SetVertexBuffer(pVertexBuffer);
 					pModelStatic->SetIndexBuffer(pIndexBuffer);
-					pModelStatic->BuildBoundingBox(aabb);
+					pModelStatic->SetOriginAABB(aabb);
 
 					IMaterial* pMaterial = IMaterial::Create(&loader.GetMaterial());
 					pModelStatic->AddMaterial(pMaterial);
@@ -551,14 +551,21 @@ namespace EastEngine
 					AddNode(pNode, pNode->GetName(), false);
 				}
 
+				file >> strBuf;
+				if (strBuf != "None")
+				{
+					pNode->SetAttachedBoneName(strBuf.c_str());
+				}
+
+				Collision::AABB aabb;
+				file.Read(&aabb.Center.x, 3);
+				file.Read(&aabb.Extents.x, 3);
+				pNode->SetOriginAABB(aabb);
+
 				bool isVisible = true;
 				file >> isVisible;
 
 				pNode->SetVisible(isVisible);
-
-				// 쓸모없는 데이터들
-				file.Read(&matBuf._11, 16);
-				file.Read(&matBuf._11, 16);
 
 				uint32_t nSubsetCount = 0;
 				file >> nSubsetCount;
@@ -567,14 +574,21 @@ namespace EastEngine
 				vecSubsets.resize(nSubsetCount);
 				for (uint32_t j = 0; j < nSubsetCount; ++j)
 				{
+					file >> strBuf;
+					vecSubsets[j].strName = strBuf.c_str();
+
 					file >> vecSubsets[j].nStartIndex;
 					file >> vecSubsets[j].nIndexCount;
 					file >> vecSubsets[j].nMaterialID;
+
+					int nTemp = 0;
+					file >> nTemp;
+					vecSubsets[j].emPrimitiveType = static_cast<EmPrimitive::Type>(nTemp);
 				}
 
 				pNode->AddModelSubsets(vecSubsets);
 
-				int nVertexCount = 0;
+				uint32_t nVertexCount = 0;
 				file >> nVertexCount;
 
 				IVertexBuffer* pVertexBuffer = nullptr;
@@ -583,7 +597,7 @@ namespace EastEngine
 					std::vector<VertexPosTexNor> vecVertices;
 					vecVertices.resize(nVertexCount);
 
-					for (int j = 0; j < nVertexCount; ++j)
+					for (uint32_t j = 0; j < nVertexCount; ++j)
 					{
 						VertexPosTexNor& vertex = vecVertices[j];
 						file.Read(&vertex.pos.x, 3);
@@ -603,7 +617,7 @@ namespace EastEngine
 					std::vector<VertexPosTexNorWeiIdx> vecVertices;
 					vecVertices.resize(nVertexCount);
 
-					for (int j = 0; j < nVertexCount; ++j)
+					for (uint32_t j = 0; j < nVertexCount; ++j)
 					{
 						VertexPosTexNorWeiIdx& vertex = vecVertices[j];
 						file.Read(&vertex.pos.x, 3);
@@ -624,13 +638,13 @@ namespace EastEngine
 
 				pNode->SetVertexBuffer(pVertexBuffer);
 
-				int nIndexCount = 0;
+				uint32_t nIndexCount = 0;
 				file >> nIndexCount;
 
 				std::vector<uint32_t> vecIndices;
 				vecIndices.resize(nIndexCount);
 
-				for (int j = 0; j < nIndexCount; ++j)
+				for (uint32_t j = 0; j < nIndexCount; ++j)
 				{
 					file >> vecIndices[j];
 				}
@@ -697,19 +711,19 @@ namespace EastEngine
 					std::string strParentName;
 					file >> strParentName;
 
-					Math::Matrix matTransformation;
-					file.Read(&matTransformation._11, 16);
-
 					Math::Matrix matMotionOffset;
 					file.Read(&matMotionOffset._11, 16);
 
+					Math::Matrix matDefaultMotionData;
+					file.Read(&matDefaultMotionData._11, 16);
+
 					if (strParentName == "NoParent")
 					{
-						pSkeleton->CreateBone(strName.c_str(), matMotionOffset, matTransformation);
+						pSkeleton->CreateBone(strName.c_str(), matMotionOffset, matDefaultMotionData);
 					}
 					else
 					{
-						pSkeleton->CreateBone(strParentName.c_str(), strName.c_str(), matMotionOffset, matTransformation);
+						pSkeleton->CreateBone(strParentName.c_str(), strName.c_str(), matMotionOffset, matDefaultMotionData);
 					}
 				}
 			}
@@ -730,12 +744,12 @@ namespace EastEngine
 
 					ModelNodeSkinned* pNodeSkinned = static_cast<ModelNodeSkinned*>(pNode);
 
-					uint32_t nBoneCount = pNodeSkinned->GetBoneCount();
+					size_t nBoneCount = pNodeSkinned->GetBoneCount();
 
 					std::vector<String::StringID> vecBoneNames;
 					vecBoneNames.resize(nBoneCount);
 
-					for (uint32_t j = 0; j < nBoneCount; ++j)
+					for (size_t j = 0; j < nBoneCount; ++j)
 					{
 						vecBoneNames[j] = pNodeSkinned->GetBoneName(j);
 					}

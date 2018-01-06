@@ -436,12 +436,12 @@ void SceneStudio::Enter()
 		pActor->SetPosition(pos);
 		
 		strPath = File::GetDataPath();
-		strPath.append("Actor\\UnityChan\\Models\\unitychan.fbx");
+		strPath.append("Actor\\UnityChan\\unitychan.emod");
 		
 		Graphics::ModelLoader loader;
 
-		name.Format("UnityChan");
-		loader.InitFBX(name, strPath.c_str(), 0.01f);
+		String::StringID strFileName = File::GetFileName(strPath).c_str();
+		loader.InitEast(strFileName, strPath.c_str());
 		loader.SetEnableThreadLoad(false);
 		
 		GameObject::ComponentModel* pModel = static_cast<GameObject::ComponentModel*>(pActor->CreateComponent(GameObject::EmComponent::eModel));
@@ -515,10 +515,10 @@ void SceneStudio::Enter()
 		//if (false)
 		{
 			strPath = File::GetDataPath();
-			strPath.append("Model\\ElementalSwordIce\\LP.obj");
+			strPath.append("Model\\ElementalSwordIce\\LP.emod");
 
 			Graphics::IModelInstance* pModelInstance_Attach = nullptr;
-			loader.InitFBX("ElementalSwordIce", strPath.c_str(), 0.005f);
+			loader.InitEast(File::GetFileName(strPath).c_str(), strPath.c_str());
 
 			pModelInstance_Attach = Graphics::IModel::CreateInstance(loader, false);
 
@@ -1376,6 +1376,7 @@ void ShowMaterial(bool& isShowMaterial, Graphics::IMaterial* pMaterial, int nInd
 		{
 			pMaterial->SetEmissiveColor(*reinterpret_cast<Math::Color*>(&color));
 		}
+		TextureInfo(Graphics::EmMaterial::eEmissiveColor, 12);
 
 		float fEmissiveIntensity = pMaterial->GetEmissive();
 		if (ImGui::DragFloat("Emissive Intensity", &fEmissiveIntensity, 0.01f, 0.f, 10000.f) == true)

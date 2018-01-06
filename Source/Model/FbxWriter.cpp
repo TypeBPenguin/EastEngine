@@ -315,7 +315,7 @@ namespace EastEngine
 						pModelNode->AddMaterialArray(vecMaterials.data(), vecMaterials.size());
 					}
 
-					pModelNode->BuildBoundingBox(aabb);
+					pModelNode->SetOriginAABB(aabb);
 				}
 
 				return pModelNode;

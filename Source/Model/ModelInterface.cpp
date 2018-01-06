@@ -317,12 +317,20 @@ namespace EastEngine
 					file << "NoParent";
 				}
 
-				file << pNode->IsVisible();
+				if (pNode->GetAttachedBoneName().empty() == false)
+				{
+					file << pNode->GetAttachedBoneName().c_str();
+				}
+				else
+				{
+					file << "None";
+				}
 
-				// 필요없는 데이터
-				Math::Matrix mat;
-				file.Write(&mat._11, 16);
-				file.Write(&mat._11, 16);
+				const Collision::AABB& aabb = pNode->GetOriginAABB();
+				file.Write(&aabb.Center.x, 3);
+				file.Write(&aabb.Extents.x, 3);
+
+				file << pNode->IsVisible();
 
 				uint32_t nSubsetCount = pNode->GetModelSubsetCount();
 				file << nSubsetCount;
@@ -330,9 +338,11 @@ namespace EastEngine
 				for (uint32_t j = 0; j < nSubsetCount; ++j)
 				{
 					ModelSubset* pModelSubset = pNode->GetModelSubset(j);
+					file << pModelSubset->strName.c_str();
 					file << pModelSubset->nStartIndex;
 					file << pModelSubset->nIndexCount;
 					file << pModelSubset->nMaterialID;
+					file << pModelSubset->emPrimitiveType;
 				}
 
 				IVertexBuffer* pVertexBuffer = pNode->GetVertexBuffer();
@@ -381,10 +391,10 @@ namespace EastEngine
 					return false;
 				}
 
-				int nIndexCount = pIndexBuffer->GetIndexNum();
+				uint32_t nIndexCount = pIndexBuffer->GetIndexNum();
 				file << nIndexCount;
 				uint32_t* pIndices = reinterpret_cast<uint32_t*>(pData);
-				for (int j = 0; j < nIndexCount; ++j)
+				for (uint32_t j = 0; j < nIndexCount; ++j)
 				{
 					file << pIndices[j];
 				}
@@ -440,9 +450,8 @@ namespace EastEngine
 						file << "NoParent";
 					}
 
-					Math::Matrix matrix;
-					file.Write(&matrix._11, 16);
-					file.Write(&matrix._11, 16);
+					file.Write(&pBone->GetMotionOffsetMatrix()._11, 16);
+					file.Write(&pBone->GetDefaultMotionData()._11, 16);
 
 					uint32_t nChildBoneCount = pBone->GetChildBoneCount();
 					for (uint32_t i = 0; i < nChildBoneCount; ++i)

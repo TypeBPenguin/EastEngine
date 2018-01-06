@@ -46,7 +46,8 @@ namespace EastEngine
 			virtual size_t GetModelSubsetCount(uint32_t nLod = 0) const override { return m_vecModelSubsets[nLod].size(); }
 			virtual ModelSubset* GetModelSubset(size_t nIndex, uint32_t nLod = 0) override { return &m_vecModelSubsets[nLod][nIndex]; }
 
-			virtual void BuildBoundingBox(const Collision::AABB& aabb) override;
+			virtual void SetOriginAABB(const Collision::AABB& aabb) override;
+			virtual const Collision::AABB& GetOriginAABB() const override { return m_originAABB; }
 
 			virtual uint32_t GetLOD() override { return m_nLod; }
 			virtual void SetLOD(uint32_t nLod) override { m_nLod = nLod; }

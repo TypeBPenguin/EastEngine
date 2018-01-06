@@ -44,6 +44,7 @@ namespace StrID
 	RegisterStringID(g_texRoughness);
 	RegisterStringID(g_texMetallic);
 	RegisterStringID(g_texEmissive);
+	RegisterStringID(g_texEmissiveColor);
 	RegisterStringID(g_texSurface);
 	RegisterStringID(g_texSpecular);
 	RegisterStringID(g_texSpecularTint);
@@ -71,6 +72,7 @@ namespace EastEngine
 				eUseTexRoughness,
 				eUseTexMetallic,
 				eUseTexEmissive,
+				eUseTexEmissiveColor,
 				eUseTexSurface,
 				eUseTexSpecular,
 				eUseTexSpecularTint,
@@ -100,6 +102,7 @@ namespace EastEngine
 					"USE_TEX_ROUGHNESS",
 					"USE_TEX_METALLIC",
 					"USE_TEX_EMISSIVE",
+					"USE_TEX_EMISSIVECOLOR",
 					"USE_TEX_SURFACE",
 					"USE_TEX_SPECULAR",
 					"USE_TEX_SPECULARTINT",
@@ -235,6 +238,7 @@ namespace EastEngine
 			pEffect->SetTexture(StrID::g_texRoughness, nullptr);
 			pEffect->SetTexture(StrID::g_texMetallic, nullptr);
 			pEffect->SetTexture(StrID::g_texEmissive, nullptr);
+			pEffect->SetTexture(StrID::g_texEmissiveColor, nullptr);
 			pEffect->SetTexture(StrID::g_texSurface, nullptr);
 			pEffect->SetTexture(StrID::g_texSpecular, nullptr);
 			pEffect->SetTexture(StrID::g_texSpecularTint, nullptr);
@@ -305,6 +309,7 @@ namespace EastEngine
 				SetBitMask64(nMask, IsValidTexture(EmMaterial::eRoughness) == true ? EmModelShader::eUseTexRoughness : -1);
 				SetBitMask64(nMask, IsValidTexture(EmMaterial::eMetallic) == true ? EmModelShader::eUseTexMetallic : -1);
 				SetBitMask64(nMask, IsValidTexture(EmMaterial::eEmissive) == true ? EmModelShader::eUseTexEmissive : -1);
+				SetBitMask64(nMask, IsValidTexture(EmMaterial::eEmissiveColor) == true ? EmModelShader::eUseTexEmissiveColor : -1);
 				SetBitMask64(nMask, IsValidTexture(EmMaterial::eSurface) == true ? EmModelShader::eUseTexSurface : -1);
 				SetBitMask64(nMask, IsValidTexture(EmMaterial::eSpecular) == true ? EmModelShader::eUseTexSpecular : -1);
 				SetBitMask64(nMask, IsValidTexture(EmMaterial::eSpecularTint) == true ? EmModelShader::eUseTexSpecularTint : -1);
@@ -447,6 +452,7 @@ namespace EastEngine
 					pEffect->SetTexture(StrID::g_texRoughness, pMaterial->GetTexture(EmMaterial::eRoughness));
 					pEffect->SetTexture(StrID::g_texMetallic, pMaterial->GetTexture(EmMaterial::eMetallic));
 					pEffect->SetTexture(StrID::g_texEmissive, pMaterial->GetTexture(EmMaterial::eEmissive));
+					pEffect->SetTexture(StrID::g_texEmissiveColor, pMaterial->GetTexture(EmMaterial::eEmissiveColor));
 					pEffect->SetTexture(StrID::g_texSurface, pMaterial->GetTexture(EmMaterial::eSurface));
 					pEffect->SetTexture(StrID::g_texSpecular, pMaterial->GetTexture(EmMaterial::eSpecular));
 					pEffect->SetTexture(StrID::g_texSpecularTint, pMaterial->GetTexture(EmMaterial::eSpecularTint));

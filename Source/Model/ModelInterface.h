@@ -300,7 +300,8 @@ namespace EastEngine
 			virtual size_t GetModelSubsetCount(uint32_t nLOD = 0) const = 0;
 			virtual ModelSubset* GetModelSubset(size_t nIndex, uint32_t nLOD = 0) = 0;
 
-			virtual void BuildBoundingBox(const Collision::AABB& aabb) = 0;
+			virtual void SetOriginAABB(const Collision::AABB& aabb) = 0;
+			virtual const Collision::AABB& GetOriginAABB() const = 0;
 
 			virtual uint32_t GetLOD() = 0;
 			virtual void SetLOD(uint32_t nLOD) = 0;

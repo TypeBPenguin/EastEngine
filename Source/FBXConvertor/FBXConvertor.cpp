@@ -16,60 +16,58 @@ enum EmFlag
 	eMotion = 2,
 };
 
-void Show()
-{
-	std::cout << "fbx 파일을 드래그드랍 해주세요." << std::endl;
-	std::cout << "인자를 2개 설정해야합니다." << std::endl;
-	std::cout << "첫번째 인자" << std::endl;
-	std::cout << "-Model : 모델 정보를 *.emod 파일로 추출" << std::endl;
-	std::cout << "-Motion : 모션 정보를 *.emot 파일로 추출" << std::endl;
-	std::cout << "-All : 모델과 모션 정보를 *.emod, *.emot 파일로 추출" << std::endl;
-	std::cout << "두번째 인자" << std::endl;
-	std::cout << "float : 스케일 값을 설정합니다." << std::endl;
-	std::cout << "ex) -Model 0.01 : Model 을 1/100 사이즈로 추출합니다." << std::endl;
-}
-
 int main(int argn, char** argc)
 {
 	if (argn <= 1)
 	{
-		Show();
+		std::cout << "fbx 파일을 드래그드랍 해주세요." << std::endl;
 		system("pause");
 
 		return 0;
 	}
+
+	std::cout << "추출할 데이터를 선택해주세요." << std::endl;
+	std::cout << "1. Model" << std::endl;
+	std::cout << "2. Motion" << std::endl;
+	std::cout << "3. Model & Motion" << std::endl;
+
+	int nSelect = 0;
+	std::cin >> nSelect;
+	std::cout << std::endl;
 
 	int nFlag = 0;
 	std::string strLoadType;
-	if (String::IsEqualsNoCase(argc[1], "-Model") == true)
+
+	switch (nSelect)
 	{
+	case 1:
 		nFlag = eModel;
 		strLoadType = "Model";
-	}
-	else if (String::IsEqualsNoCase(argc[1], "-Motion") == true)
-	{
+		break;
+	case 2:
 		nFlag = eMotion;
 		strLoadType = "Motion";
-	}
-	else if (String::IsEqualsNoCase(argc[1], "-All") == true)
-	{
+		break;
+	case 3:
 		nFlag = eModel | eMotion;
 		strLoadType = "All";
-	}
-	else
-	{
+		break;
+	default:
 		std::cout << "인자가 올바르지 않습니다." << std::endl << std::endl;
-
-		Show();
 		system("pause");
 
 		return 0;
 	}
 
-	float fScale = String::ToValue<float>(argc[2]);
-	if (Math::IsZero(fScale) == true)
+	std::cout << "스케일 값을 입력해주세요." << std::endl;
+
+	float fScale = 1.f;
+	std::cin >> fScale;
+	std::cout << std::endl;
+
+	if (fScale <= 0.f)
 	{
-		std::cout << "스케일 값은 0이 될 수 없습니다." << std::endl;
+		std::cout << "스케일 값은 0 이하가 될 수 없습니다." << std::endl;
 
 		system("pause");
 
@@ -102,7 +100,7 @@ int main(int argn, char** argc)
 	int nModelFailedCount = 0;
 	int nMotionFailedCount = 0;
 
-	for (int i = 3; i < argn; ++i)
+	for (int i = 1; i < argn; ++i)
 	{
 		if ((nFlag & eModel) != 0)
 		{

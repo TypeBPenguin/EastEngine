@@ -190,6 +190,10 @@ Texture2D g_texMetallic;
 Texture2D g_texEmissive;
 #endif
 
+#ifdef USE_TEX_EMISSIVECOLOR
+Texture2D g_texEmissiveColor;
+#endif
+
 #ifdef USE_TEX_SURFACE
 Texture2D g_texSurface;
 #endif
@@ -623,9 +627,15 @@ PS_OUTPUT D_PS(PS_INPUT input)
 	float3 specular = lerp(0.03f, albedo.xyz, RM.y);
 #endif
 
+#ifdef USE_TEX_EMISSIVECOLOR
+	float3 emissiveColor = g_texEmissiveColor.Sample(g_samplerState, input.tex).xyz;
+#else
+	float3 emissiveColor = g_f4EmissiveColor.xyz;
+#endif
+
 	output.colors.x = Pack3PNForFP32(saturate(albedo));
 	output.colors.y = Pack3PNForFP32(specular);
-	output.colors.z = Pack3PNForFP32(g_f4EmissiveColor.xyz);
+	output.colors.z = Pack3PNForFP32(emissiveColor);
 	output.colors.w = emissiveIntensity;
 
 	float3 SST = g_f4SurSpecTintAniso.xyz;

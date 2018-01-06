@@ -100,7 +100,7 @@ namespace EastEngine
 			std::copy(vecModelPiece.begin(), vecModelPiece.end(), std::back_inserter(m_vecModelSubsets[Math::Min(nLod, m_nLodMax)]));
 		}
 
-		void ModelNode::BuildBoundingBox(const Collision::AABB& aabb)
+		void ModelNode::SetOriginAABB(const Collision::AABB& aabb)
 		{
 			m_originAABB = aabb;
 			m_originAABB.Extents = Math::Vector3::Max(m_originAABB.Extents, Math::Vector3(0.01f));
