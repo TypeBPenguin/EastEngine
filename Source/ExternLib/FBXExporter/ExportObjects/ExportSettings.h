@@ -124,7 +124,6 @@ namespace ATG
 
         ExportSettingsEntry* AddRootCategory( ExportString Caption );
         ExportSettingsEntry* AddCategory( ExportSettingsEntry* pParentCategory, ExportString Caption );
-        bool                 DeleteRootCategoryAndChildren( ExportSettingsEntry* pCategory );
 
         ExportSettingsEntry* AddBool( ExportSettingsEntry* pCategory, ExportString Caption, ExportString CmdLine, bool bDefaultValue, bool* pLinkedValue = nullptr );
         ExportSettingsEntry* AddFloatBounded( ExportSettingsEntry* pCategory, ExportString Caption, ExportString CmdLine, float fDefaultValue, float fMin, float fMax, float* pLinkedValue = nullptr );
@@ -156,7 +155,10 @@ namespace ATG
     {
     public:
         ExportCoreSettings();
+
+		void Initialize();
         void SetDefaultSettings();
+
     public:
         bool        bFlipTriangles;
         bool        bInvertTexVCoord;

@@ -577,122 +577,126 @@ namespace ATG
 
     ExportCoreSettings::ExportCoreSettings()
     {
-        auto pCategoryPlatform = g_SettingsManager.AddRootCategory( "Target Platform" );
-        static const ExportEnumValue EndianEnums[] = {
-            { "Big-Endian (PowerPC)", "ppc", 0 },
-            { "Little-Endian (Intel)", "intel", 1 },
-        };
-        g_SettingsManager.AddEnum( pCategoryPlatform, "Data Endianness", "endian", 1, EndianEnums, ARRAYSIZE( EndianEnums ), &bLittleEndian );
-        static const ExportEnumValue FLTypes[] = {
-            { "Feature Level 12.1", "12.1", 0xc100 /*D3D_FEATURE_LEVEL_12_1*/ },
-            { "Feature Level 12.0", "12.0", 0xc000 /*D3D_FEATURE_LEVEL_12_0*/ },
-            { "Feature Level 11.1", "11.1", D3D_FEATURE_LEVEL_11_1 },
-            { "Feature Level 11.0", "11.0", D3D_FEATURE_LEVEL_11_0 },
-            { "Feature Level 10.1", "10.1", D3D_FEATURE_LEVEL_10_1 },
-            { "Feature Level 10.0", "10.0", D3D_FEATURE_LEVEL_10_0 },
-            { "Feature Level 9.3",  "9.3",  D3D_FEATURE_LEVEL_9_3 },
-            { "Feature Level 9.2",  "9.2",  D3D_FEATURE_LEVEL_9_2 },
-            { "Feature Level 9.1",  "9.1",  D3D_FEATURE_LEVEL_9_1 },
-        };
-        g_SettingsManager.AddEnum( pCategoryPlatform, "Target Feature Level", "featurelevel", D3D_FEATURE_LEVEL_11_0, FLTypes, ARRAYSIZE( FLTypes ), (INT*)&dwFeatureLevel );
-        pCategoryPlatform->ReverseChildOrder();
-        
-        auto pCategoryScene = g_SettingsManager.AddRootCategory( "Scene" );
-        g_SettingsManager.AddBool( pCategoryScene, "Export Hidden Objects", "exporthiddenobjects", false, &bExportHiddenObjects );
-        g_SettingsManager.AddBool( pCategoryScene, "Export Frames", "exportframes", true, &bExportScene );
-        g_SettingsManager.AddBool( pCategoryScene, "Export Lights", "exportlights", true, &bExportLights );
-        g_SettingsManager.AddFloatBounded( pCategoryScene, "Light Range Scale", "lightrangescale", 1.0f, 0.0f, 1000.0f, &fLightRangeScale );
-        g_SettingsManager.AddBool( pCategoryScene, "Export Cameras", "exportcameras", true, &bExportCameras );
-        g_SettingsManager.AddBool( pCategoryScene, "Export in Bind Pose", "exportbindpose", true, &bSetBindPoseBeforeSceneParse );
-        g_SettingsManager.AddFloatBounded( pCategoryScene, "Export Scene Scale (1.0 = default)", "exportscale", 1.0f, 0.0f, 1000000.f, &fExportScale );
-        pCategoryScene->ReverseChildOrder();
-
-        auto pCategoryMeshes = g_SettingsManager.AddRootCategory( "Meshes" );
-        g_SettingsManager.AddBool( pCategoryMeshes, "Export Meshes", "exportmeshes", true, &bExportMeshes );
-        g_SettingsManager.AddBool( pCategoryMeshes, "Compress Vertex Data", "compressvertexdata", false, &bCompressVertexData );
-        g_SettingsManager.AddBool( pCategoryMeshes, "Compute Vertex Tangent Space", "computevertextangents", false, &bComputeVertexTangentSpace );
-        g_SettingsManager.AddIntBounded( pCategoryMeshes, "Generate Tangents on Texture Coordinate Index", "tangentsindex", 0, 0, 7, &iTangentSpaceIndex );
-        g_SettingsManager.AddBool( pCategoryMeshes, "Export Binormals", "exportbinormals", true, &bExportBinormal );
-        static const ExportEnumValue VertexNormalTypes[] = {
-            { "FLOAT3 (12 bytes)", "float3", D3DDECLTYPE_FLOAT3 },
-            { "UBYTE4N Biased (4 bytes)", "ubyte4n", D3DDECLTYPE_UBYTE4N },
-            { "SHORT4N (8 bytes)", "short4n", D3DDECLTYPE_SHORT4N },
-            { "FLOAT16_4 (8 bytes)", "float16_4", D3DDECLTYPE_FLOAT16_4 },
-            { "10:10:10:2 Biased (4 bytes)", "rgba_10", D3DDECLTYPE_DXGI_R10G10B10A2_UNORM },
-            { "R11G11B10 Biased (4 bytes)", "r11g11b10", D3DDECLTYPE_DXGI_R11G11B10_FLOAT },
-            { "R8G8B8A8 Signed (4 bytes)", "rgba_snorm", D3DDECLTYPE_DXGI_R8G8B8A8_SNORM },
-            { "10:10:10 Signed A2 (4 bytes, Xbox)", "rgba_s10", D3DDECLTYPE_XBOX_R10G10B10_SNORM_A2_UNORM },
-        };
-        g_SettingsManager.AddEnum( pCategoryMeshes, "Compressed Type for Normals", "compressednormaltype", D3DDECLTYPE_FLOAT16_4, VertexNormalTypes, ARRAYSIZE( VertexNormalTypes ), (INT*)&dwNormalCompressedType );
-        g_SettingsManager.AddBool( pCategoryMeshes, "Export Normals", "exportnormals", true, &bExportNormals );
-        g_SettingsManager.AddBool( pCategoryMeshes, "Export Vertex Colors", "exportcolors", true, &bExportColors );
-        static const ExportEnumValue VertexColorTypes[] = {
-            { "D3DCOLOR (4 bytes)", "bgra", D3DDECLTYPE_D3DCOLOR },
-            { "UBYTE4N (4 bytes)", "rgba", D3DDECLTYPE_UBYTE4N },
-            { "FLOAT4 (16 bytes)", "float4", D3DDECLTYPE_FLOAT4 },
-            { "FLOAT16_4 (8 bytes)", "float16_4", D3DDECLTYPE_FLOAT16_4 },
-            { "10:10:10:2 (4 byts)", "rgba_10", D3DDECLTYPE_DXGI_R10G10B10A2_UNORM },
-            { "R11G11B10 (4 bytes)", "r11g11b10", D3DDECLTYPE_DXGI_R11G11B10_FLOAT },
-        };
-        g_SettingsManager.AddEnum(pCategoryMeshes, "Type for Vertex Colors", "vertexcolortype", D3DDECLTYPE_D3DCOLOR, VertexColorTypes, ARRAYSIZE(VertexColorTypes), (INT*)&dwVertexColorType);
-        g_SettingsManager.AddBool( pCategoryMeshes, "Force 32 Bit Index Buffers", "force32bitindices", false, &bForceIndex32Format );
-        g_SettingsManager.AddIntBounded( pCategoryMeshes, "Max UV Set Count", "maxuvsetcount", 8, 0, 8, &iMaxUVSetCount );
-        g_SettingsManager.AddBool( pCategoryMeshes, "Export Bone Weights & Indices for Skinned Meshes", "exportboneweights", true, &bExportSkinWeights );
-        g_SettingsManager.AddBool( pCategoryMeshes, "Always Export Bone Weights & Indices for Skinned Meshes (even if no data present)", "forceboneweights", false, &bForceExportSkinWeights );
-        g_SettingsManager.AddBool( pCategoryMeshes, "Flip Triangle Winding", "fliptriangles", true, &bFlipTriangles );
-        g_SettingsManager.AddBool( pCategoryMeshes, "Apply global transformation (if not animated)", "applyglobaltrans", false, &bApplyGlobalTrans );
-        g_SettingsManager.AddBool( pCategoryMeshes, "Invert V Texture Coordinates", "invertvtexcoord", true, &bInvertTexVCoord );
-        g_SettingsManager.AddBool( pCategoryMeshes, "Invert Z Coordinates", "flipz", true, &bFlipZ );
-        g_SettingsManager.AddString( pCategoryMeshes, "Mesh Name Decoration, applied as a prefix to mesh names", "meshnamedecoration", "Mesh", strMeshNameDecoration );
-
-        auto pCategoryOpt = g_SettingsManager.AddCategory( pCategoryMeshes, "Mesh optimization" );
-        g_SettingsManager.AddBool( pCategoryOpt, "Use geometric rather than topographic adjacency", "gadjacency", false, &bGeometricAdjacency );
-        g_SettingsManager.AddBool( pCategoryOpt, "Perform vertex cache optimization of meshes", "optimizemeshes", false, &bOptimizeVCache );
-        g_SettingsManager.AddIntBounded( pCategoryOpt, "Vertex cache size for optimizemesh", "vcache", 12, 0, 64, &iVcacheSize );
-        g_SettingsManager.AddIntBounded( pCategoryOpt, "Strip restart length for optimizemesh", "restart", 7, 0, 64, &iStripRestart );
-        g_SettingsManager.AddBool( pCategoryOpt, "Clean up meshes (implied by optimizemeshes)", "cleanmeshes", false, &bCleanMeshes );
-        pCategoryOpt->ReverseChildOrder();
-
-        auto pCategoryUVAtlas = g_SettingsManager.AddCategory( pCategoryMeshes, "UV Atlas Generation" );
-        g_SettingsManager.AddIntBounded( pCategoryUVAtlas, "Generate UV Atlas on Texture Coordinate Index", "generateuvatlas", -1, -1, 7, &iGenerateUVAtlasOnTexCoordIndex );
-        g_SettingsManager.AddFloatBounded( pCategoryUVAtlas, "UV Atlas Max Stretch Factor", "uvatlasstretch", 0.75f, 0.0f, 1.0f, &fUVAtlasMaxStretch );
-        g_SettingsManager.AddFloatBounded( pCategoryUVAtlas, "UV Atlas Gutter Size", "uvatlasgutter", 2.5f, 0.0f, 10.0f, &fUVAtlasGutter );
-        g_SettingsManager.AddIntBounded( pCategoryUVAtlas, "UV Atlas Texture Size", "uvatlastexturesize", 1024, 64, 4096, &iUVAtlasTextureSize );
-        pCategoryUVAtlas->ReverseChildOrder();
-
-        auto pCategorySubD = g_SettingsManager.AddCategory( pCategoryMeshes, "Subdivision Surfaces" );
-        g_SettingsManager.AddBool( pCategorySubD, "Convert Poly Meshes to Subdivision Surfaces", "convertmeshtosubd", false, &bConvertMeshesToSubD );
-        pCategorySubD->ReverseChildOrder();
-
-        pCategoryMeshes->ReverseChildOrder();
-
-        auto pCategoryMaterials = g_SettingsManager.AddRootCategory( "Materials" );
-        g_SettingsManager.AddBool( pCategoryMaterials, "Export Materials", "exportmaterials", true, &bExportMaterials );
-        g_SettingsManager.AddString( pCategoryMaterials, "Default Material Name", "defaultmaterialname", "Default", strDefaultMaterialName );
-        g_SettingsManager.AddBool( pCategoryMaterials, "Export material colors", "materialcolors", true, &bMaterialColors );
-        g_SettingsManager.AddBool( pCategoryMaterials, "Use Texture Compression", "texturecompression", true, &bTextureCompression );
-        g_SettingsManager.AddBool( pCategoryMaterials, "Use BGRA texture format", "texturebgra", false, &bBGRvsRGB );
-        g_SettingsManager.AddBool( pCategoryMaterials, "Ignore sRGB metadata in source texture", "ignoresrgb", true, &bIgnoreSRGB );
-        g_SettingsManager.AddBool( pCategoryMaterials, "Generate Texture Mip Maps", "generatetexturemips", true, &bGenerateTextureMipMaps );
-        g_SettingsManager.AddBool( pCategoryMaterials, "Force Texture File Overwriting", "forcetextureoverwrite", true, &bForceTextureOverwrite );
-        g_SettingsManager.AddBool( pCategoryMaterials, "Use emissive texture as specular texture", "useemissivetexture", true, &bUseEmissiveTexture );
-        g_SettingsManager.AddString( pCategoryMaterials, "Default Diffuse Map Texture Filename", "defaultdiffusemap", "", strDefaultDiffuseMapTextureName );
-        g_SettingsManager.AddString( pCategoryMaterials, "Default Normal Map Texture Filename", "defaultnormalmap", "", strDefaultNormalMapTextureName );
-        g_SettingsManager.AddString( pCategoryMaterials, "Default Specular Map Texture Filename", "defaultspecmap", "", strDefaultSpecMapTextureName );
-        pCategoryMaterials->ReverseChildOrder();
-
-        auto pCategoryAnimation = g_SettingsManager.AddRootCategory( "Animation" );
-        g_SettingsManager.AddBool( pCategoryAnimation, "Export Animations", "exportanimations", true, &bExportAnimations );
-        g_SettingsManager.AddBool( pCategoryAnimation, "Optimize Animations", "optimizeanimations", true, &bOptimizeAnimations );
-        g_SettingsManager.AddBool( pCategoryAnimation, "Rename Animations To Match Output File Name", "renameanimations", true, &bRenameAnimationsToFileName );
-        g_SettingsManager.AddIntBounded( pCategoryAnimation, "Animation Baking Sample Count Per Frame", "animsamplecount", 1, 1, 10, &iAnimSampleCountPerFrame );
-        g_SettingsManager.AddIntBounded( pCategoryAnimation, "Position Curve Quality", "positioncurvequality", 50, 0, 100, &iAnimPositionExportQuality );
-        g_SettingsManager.AddIntBounded( pCategoryAnimation, "Orientation Curve Quality", "orientationcurvequality", 50, 0, 100, &iAnimOrientationExportQuality );
-        g_SettingsManager.AddString( pCategoryAnimation, "Animation Root Node Name (default includes all nodes)", "animationrootnode", "", strAnimationRootNodeName );
-        pCategoryAnimation->ReverseChildOrder();
-
-        SetDefaultSettings();
     }
+
+	void ExportCoreSettings::Initialize()
+	{
+		auto pCategoryPlatform = g_SettingsManager.AddRootCategory("Target Platform");
+		static const ExportEnumValue EndianEnums[] = {
+			{ "Big-Endian (PowerPC)", "ppc", 0 },
+		{ "Little-Endian (Intel)", "intel", 1 },
+		};
+		g_SettingsManager.AddEnum(pCategoryPlatform, "Data Endianness", "endian", 1, EndianEnums, ARRAYSIZE(EndianEnums), &bLittleEndian);
+		static const ExportEnumValue FLTypes[] = {
+			{ "Feature Level 12.1", "12.1", 0xc100 /*D3D_FEATURE_LEVEL_12_1*/ },
+		{ "Feature Level 12.0", "12.0", 0xc000 /*D3D_FEATURE_LEVEL_12_0*/ },
+		{ "Feature Level 11.1", "11.1", D3D_FEATURE_LEVEL_11_1 },
+		{ "Feature Level 11.0", "11.0", D3D_FEATURE_LEVEL_11_0 },
+		{ "Feature Level 10.1", "10.1", D3D_FEATURE_LEVEL_10_1 },
+		{ "Feature Level 10.0", "10.0", D3D_FEATURE_LEVEL_10_0 },
+		{ "Feature Level 9.3",  "9.3",  D3D_FEATURE_LEVEL_9_3 },
+		{ "Feature Level 9.2",  "9.2",  D3D_FEATURE_LEVEL_9_2 },
+		{ "Feature Level 9.1",  "9.1",  D3D_FEATURE_LEVEL_9_1 },
+		};
+		g_SettingsManager.AddEnum(pCategoryPlatform, "Target Feature Level", "featurelevel", D3D_FEATURE_LEVEL_11_0, FLTypes, ARRAYSIZE(FLTypes), (INT*)&dwFeatureLevel);
+		pCategoryPlatform->ReverseChildOrder();
+
+		auto pCategoryScene = g_SettingsManager.AddRootCategory("Scene");
+		g_SettingsManager.AddBool(pCategoryScene, "Export Hidden Objects", "exporthiddenobjects", false, &bExportHiddenObjects);
+		g_SettingsManager.AddBool(pCategoryScene, "Export Frames", "exportframes", true, &bExportScene);
+		g_SettingsManager.AddBool(pCategoryScene, "Export Lights", "exportlights", true, &bExportLights);
+		g_SettingsManager.AddFloatBounded(pCategoryScene, "Light Range Scale", "lightrangescale", 1.0f, 0.0f, 1000.0f, &fLightRangeScale);
+		g_SettingsManager.AddBool(pCategoryScene, "Export Cameras", "exportcameras", true, &bExportCameras);
+		g_SettingsManager.AddBool(pCategoryScene, "Export in Bind Pose", "exportbindpose", true, &bSetBindPoseBeforeSceneParse);
+		g_SettingsManager.AddFloatBounded(pCategoryScene, "Export Scene Scale (1.0 = default)", "exportscale", 1.0f, 0.0f, 1000000.f, &fExportScale);
+		pCategoryScene->ReverseChildOrder();
+
+		auto pCategoryMeshes = g_SettingsManager.AddRootCategory("Meshes");
+		g_SettingsManager.AddBool(pCategoryMeshes, "Export Meshes", "exportmeshes", true, &bExportMeshes);
+		g_SettingsManager.AddBool(pCategoryMeshes, "Compress Vertex Data", "compressvertexdata", false, &bCompressVertexData);
+		g_SettingsManager.AddBool(pCategoryMeshes, "Compute Vertex Tangent Space", "computevertextangents", false, &bComputeVertexTangentSpace);
+		g_SettingsManager.AddIntBounded(pCategoryMeshes, "Generate Tangents on Texture Coordinate Index", "tangentsindex", 0, 0, 7, &iTangentSpaceIndex);
+		g_SettingsManager.AddBool(pCategoryMeshes, "Export Binormals", "exportbinormals", true, &bExportBinormal);
+		static const ExportEnumValue VertexNormalTypes[] = {
+			{ "FLOAT3 (12 bytes)", "float3", D3DDECLTYPE_FLOAT3 },
+		{ "UBYTE4N Biased (4 bytes)", "ubyte4n", D3DDECLTYPE_UBYTE4N },
+		{ "SHORT4N (8 bytes)", "short4n", D3DDECLTYPE_SHORT4N },
+		{ "FLOAT16_4 (8 bytes)", "float16_4", D3DDECLTYPE_FLOAT16_4 },
+		{ "10:10:10:2 Biased (4 bytes)", "rgba_10", D3DDECLTYPE_DXGI_R10G10B10A2_UNORM },
+		{ "R11G11B10 Biased (4 bytes)", "r11g11b10", D3DDECLTYPE_DXGI_R11G11B10_FLOAT },
+		{ "R8G8B8A8 Signed (4 bytes)", "rgba_snorm", D3DDECLTYPE_DXGI_R8G8B8A8_SNORM },
+		{ "10:10:10 Signed A2 (4 bytes, Xbox)", "rgba_s10", D3DDECLTYPE_XBOX_R10G10B10_SNORM_A2_UNORM },
+		};
+		g_SettingsManager.AddEnum(pCategoryMeshes, "Compressed Type for Normals", "compressednormaltype", D3DDECLTYPE_FLOAT16_4, VertexNormalTypes, ARRAYSIZE(VertexNormalTypes), (INT*)&dwNormalCompressedType);
+		g_SettingsManager.AddBool(pCategoryMeshes, "Export Normals", "exportnormals", true, &bExportNormals);
+		g_SettingsManager.AddBool(pCategoryMeshes, "Export Vertex Colors", "exportcolors", true, &bExportColors);
+		static const ExportEnumValue VertexColorTypes[] = {
+			{ "D3DCOLOR (4 bytes)", "bgra", D3DDECLTYPE_D3DCOLOR },
+		{ "UBYTE4N (4 bytes)", "rgba", D3DDECLTYPE_UBYTE4N },
+		{ "FLOAT4 (16 bytes)", "float4", D3DDECLTYPE_FLOAT4 },
+		{ "FLOAT16_4 (8 bytes)", "float16_4", D3DDECLTYPE_FLOAT16_4 },
+		{ "10:10:10:2 (4 byts)", "rgba_10", D3DDECLTYPE_DXGI_R10G10B10A2_UNORM },
+		{ "R11G11B10 (4 bytes)", "r11g11b10", D3DDECLTYPE_DXGI_R11G11B10_FLOAT },
+		};
+		g_SettingsManager.AddEnum(pCategoryMeshes, "Type for Vertex Colors", "vertexcolortype", D3DDECLTYPE_D3DCOLOR, VertexColorTypes, ARRAYSIZE(VertexColorTypes), (INT*)&dwVertexColorType);
+		g_SettingsManager.AddBool(pCategoryMeshes, "Force 32 Bit Index Buffers", "force32bitindices", false, &bForceIndex32Format);
+		g_SettingsManager.AddIntBounded(pCategoryMeshes, "Max UV Set Count", "maxuvsetcount", 8, 0, 8, &iMaxUVSetCount);
+		g_SettingsManager.AddBool(pCategoryMeshes, "Export Bone Weights & Indices for Skinned Meshes", "exportboneweights", true, &bExportSkinWeights);
+		g_SettingsManager.AddBool(pCategoryMeshes, "Always Export Bone Weights & Indices for Skinned Meshes (even if no data present)", "forceboneweights", false, &bForceExportSkinWeights);
+		g_SettingsManager.AddBool(pCategoryMeshes, "Flip Triangle Winding", "fliptriangles", true, &bFlipTriangles);
+		g_SettingsManager.AddBool(pCategoryMeshes, "Apply global transformation (if not animated)", "applyglobaltrans", false, &bApplyGlobalTrans);
+		g_SettingsManager.AddBool(pCategoryMeshes, "Invert V Texture Coordinates", "invertvtexcoord", true, &bInvertTexVCoord);
+		g_SettingsManager.AddBool(pCategoryMeshes, "Invert Z Coordinates", "flipz", true, &bFlipZ);
+		g_SettingsManager.AddString(pCategoryMeshes, "Mesh Name Decoration, applied as a prefix to mesh names", "meshnamedecoration", "Mesh", strMeshNameDecoration);
+
+		auto pCategoryOpt = g_SettingsManager.AddCategory(pCategoryMeshes, "Mesh optimization");
+		g_SettingsManager.AddBool(pCategoryOpt, "Use geometric rather than topographic adjacency", "gadjacency", false, &bGeometricAdjacency);
+		g_SettingsManager.AddBool(pCategoryOpt, "Perform vertex cache optimization of meshes", "optimizemeshes", false, &bOptimizeVCache);
+		g_SettingsManager.AddIntBounded(pCategoryOpt, "Vertex cache size for optimizemesh", "vcache", 12, 0, 64, &iVcacheSize);
+		g_SettingsManager.AddIntBounded(pCategoryOpt, "Strip restart length for optimizemesh", "restart", 7, 0, 64, &iStripRestart);
+		g_SettingsManager.AddBool(pCategoryOpt, "Clean up meshes (implied by optimizemeshes)", "cleanmeshes", false, &bCleanMeshes);
+		pCategoryOpt->ReverseChildOrder();
+
+		auto pCategoryUVAtlas = g_SettingsManager.AddCategory(pCategoryMeshes, "UV Atlas Generation");
+		g_SettingsManager.AddIntBounded(pCategoryUVAtlas, "Generate UV Atlas on Texture Coordinate Index", "generateuvatlas", -1, -1, 7, &iGenerateUVAtlasOnTexCoordIndex);
+		g_SettingsManager.AddFloatBounded(pCategoryUVAtlas, "UV Atlas Max Stretch Factor", "uvatlasstretch", 0.75f, 0.0f, 1.0f, &fUVAtlasMaxStretch);
+		g_SettingsManager.AddFloatBounded(pCategoryUVAtlas, "UV Atlas Gutter Size", "uvatlasgutter", 2.5f, 0.0f, 10.0f, &fUVAtlasGutter);
+		g_SettingsManager.AddIntBounded(pCategoryUVAtlas, "UV Atlas Texture Size", "uvatlastexturesize", 1024, 64, 4096, &iUVAtlasTextureSize);
+		pCategoryUVAtlas->ReverseChildOrder();
+
+		auto pCategorySubD = g_SettingsManager.AddCategory(pCategoryMeshes, "Subdivision Surfaces");
+		g_SettingsManager.AddBool(pCategorySubD, "Convert Poly Meshes to Subdivision Surfaces", "convertmeshtosubd", false, &bConvertMeshesToSubD);
+		pCategorySubD->ReverseChildOrder();
+
+		pCategoryMeshes->ReverseChildOrder();
+
+		auto pCategoryMaterials = g_SettingsManager.AddRootCategory("Materials");
+		g_SettingsManager.AddBool(pCategoryMaterials, "Export Materials", "exportmaterials", true, &bExportMaterials);
+		g_SettingsManager.AddString(pCategoryMaterials, "Default Material Name", "defaultmaterialname", "Default", strDefaultMaterialName);
+		g_SettingsManager.AddBool(pCategoryMaterials, "Export material colors", "materialcolors", true, &bMaterialColors);
+		g_SettingsManager.AddBool(pCategoryMaterials, "Use Texture Compression", "texturecompression", true, &bTextureCompression);
+		g_SettingsManager.AddBool(pCategoryMaterials, "Use BGRA texture format", "texturebgra", false, &bBGRvsRGB);
+		g_SettingsManager.AddBool(pCategoryMaterials, "Ignore sRGB metadata in source texture", "ignoresrgb", true, &bIgnoreSRGB);
+		g_SettingsManager.AddBool(pCategoryMaterials, "Generate Texture Mip Maps", "generatetexturemips", true, &bGenerateTextureMipMaps);
+		g_SettingsManager.AddBool(pCategoryMaterials, "Force Texture File Overwriting", "forcetextureoverwrite", true, &bForceTextureOverwrite);
+		g_SettingsManager.AddBool(pCategoryMaterials, "Use emissive texture as specular texture", "useemissivetexture", true, &bUseEmissiveTexture);
+		g_SettingsManager.AddString(pCategoryMaterials, "Default Diffuse Map Texture Filename", "defaultdiffusemap", "", strDefaultDiffuseMapTextureName);
+		g_SettingsManager.AddString(pCategoryMaterials, "Default Normal Map Texture Filename", "defaultnormalmap", "", strDefaultNormalMapTextureName);
+		g_SettingsManager.AddString(pCategoryMaterials, "Default Specular Map Texture Filename", "defaultspecmap", "", strDefaultSpecMapTextureName);
+		pCategoryMaterials->ReverseChildOrder();
+
+		auto pCategoryAnimation = g_SettingsManager.AddRootCategory("Animation");
+		g_SettingsManager.AddBool(pCategoryAnimation, "Export Animations", "exportanimations", true, &bExportAnimations);
+		g_SettingsManager.AddBool(pCategoryAnimation, "Optimize Animations", "optimizeanimations", true, &bOptimizeAnimations);
+		g_SettingsManager.AddBool(pCategoryAnimation, "Rename Animations To Match Output File Name", "renameanimations", true, &bRenameAnimationsToFileName);
+		g_SettingsManager.AddIntBounded(pCategoryAnimation, "Animation Baking Sample Count Per Frame", "animsamplecount", 1, 1, 10, &iAnimSampleCountPerFrame);
+		g_SettingsManager.AddIntBounded(pCategoryAnimation, "Position Curve Quality", "positioncurvequality", 50, 0, 100, &iAnimPositionExportQuality);
+		g_SettingsManager.AddIntBounded(pCategoryAnimation, "Orientation Curve Quality", "orientationcurvequality", 50, 0, 100, &iAnimOrientationExportQuality);
+		g_SettingsManager.AddString(pCategoryAnimation, "Animation Root Node Name (default includes all nodes)", "animationrootnode", "", strAnimationRootNodeName);
+		pCategoryAnimation->ReverseChildOrder();
+
+		SetDefaultSettings();
+	}
 
     void ExportCoreSettings::SetDefaultSettings()
     {

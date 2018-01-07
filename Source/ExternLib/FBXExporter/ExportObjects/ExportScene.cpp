@@ -57,6 +57,9 @@ ExportScene::ExportScene()
     GetVersionEx( &OSVersion );
     sprintf_s( strTemp, "Windows NT %u.%u build %u", OSVersion.dwMajorVersion, OSVersion.dwMinorVersion, OSVersion.dwBuildNumber );
     m_Information.PlatformName = strTemp;
+
+	g_SettingsManager.Clear();
+	g_ExportCoreSettings.Initialize();
 }
 
 ExportScene::~ExportScene()

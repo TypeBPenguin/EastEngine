@@ -260,18 +260,17 @@ namespace EastEngine
 			ExportLog::LogMsg(9, "DirectXMath version %d", DIRECTX_MATH_VERSION);
 
 			ExportCoreSettings& InitialSettings = g_pScene->Settings();
-			InitialSettings.SetDefaultSettings();
 
 			if (InitialSettings.bForceIndex32Format && (InitialSettings.dwFeatureLevel <= D3D_FEATURE_LEVEL_9_1))
 			{
 				ExportLog::LogWarning("32-bit index buffers not supported on Feature Level 9.1");
 			}
 
-			if (InitialSettings.bCompressVertexData && 
+			if (InitialSettings.bCompressVertexData &&
 				(InitialSettings.dwNormalCompressedType == D3DDECLTYPE_DXGI_R10G10B10A2_UNORM ||
 					InitialSettings.dwNormalCompressedType == D3DDECLTYPE_DXGI_R11G11B10_FLOAT ||
 					InitialSettings.dwNormalCompressedType == D3DDECLTYPE_DXGI_R8G8B8A8_SNORM) &&
-				(InitialSettings.dwFeatureLevel < D3D_FEATURE_LEVEL_10_0))
+					(InitialSettings.dwFeatureLevel < D3D_FEATURE_LEVEL_10_0))
 			{
 				ExportLog::LogWarning("R11G11B10_FLOAT/10:10:10:2/R8G8B8A8 Signed in vertex normals not supported on Feature Level 9.x");
 			}
@@ -414,7 +413,7 @@ namespace EastEngine
 
 			return true;
 		}
-		
+
 		bool FBXImport::LoadMotion(IMotion* pMotion, const char* strFilePath, float fScale)
 		{
 			if (pMotion == nullptr || strFilePath == nullptr)
@@ -435,31 +434,31 @@ namespace EastEngine
 			g_CurrentOutputFileName = File::GetFilePath(strFilePath).c_str();
 
 			MotionSettings();
-			
+
 			g_pScene->Settings().fExportScale = fScale;
-			
+
 			g_pScene->Statistics().StartExport();
 			g_pScene->Statistics().StartSceneParse();
-			
+
 			if (ImportFile(strFilePath) == false)
 			{
 				ExportLog::LogError("Could not load file \"%s\".", strFilePath);
 				return false;
 			}
-			
+
 			g_pScene->Statistics().StartSave();
-			
+
 			WriteMotion(pMotion);
-			
+
 			g_pScene->Statistics().EndExport();
 			g_pScene->Statistics().FinalReport();
-			
+
 			bool isFoundErrors = false;
 			if (ExportLog::GenerateLogReport())
 			{
 				isFoundErrors = true;
 			}
-			
+
 			Release();
 			ExportLog::ResetCounters();
 
@@ -920,8 +919,8 @@ namespace EastEngine
 			Math::Vector3 f3Translation;
 			matLocalFinal.Decompose(f3Scale, quatRotation, f3Translation);
 
-			asn.pTrack->TransformTrack.AddKey(fTime, 
-				*reinterpret_cast<const DirectX::XMFLOAT3*>(&f3Translation), 
+			asn.pTrack->TransformTrack.AddKey(fTime,
+				*reinterpret_cast<const DirectX::XMFLOAT3*>(&f3Translation),
 				*reinterpret_cast<const DirectX::XMFLOAT4*>(&quatRotation),
 				*reinterpret_cast<const DirectX::XMFLOAT3*>(&f3Scale));
 		}
@@ -1390,7 +1389,7 @@ namespace EastEngine
 				{ FbxSurfaceMaterial::sSpecular,           "SpecularMapTexture",           PPO_Nothing,                ExportMaterialParameter::EMPF_SPECULARMAP },
 				{ FbxSurfaceMaterial::sEmissive,           "EmissiveMapTexture",           PPO_Nothing,                0 },
 			};
-			
+
 			for (uint32_t nExtractionIndex = 0; nExtractionIndex < ARRAYSIZE(ExtractionList); ++nExtractionIndex)
 			{
 				const TextureParameterExtraction& tpe = ExtractionList[nExtractionIndex];
@@ -1525,7 +1524,7 @@ namespace EastEngine
 
 					FbxAMatrix matXBindPose;
 					pCluster->GetTransformLinkMatrix(matXBindPose);
-					
+
 					FbxAMatrix matReferenceGlobalInitPosition;
 					pCluster->GetTransformMatrix(matReferenceGlobalInitPosition);
 
@@ -1533,7 +1532,7 @@ namespace EastEngine
 
 					Math::Matrix matMotionOffset = ConvertMatrix(matXBindPose.Inverse() * matReferenceGlobalInitPosition);
 					g_pScene->GetDCCTransformer()->TransformMatrix(reinterpret_cast<DirectX::XMFLOAT4X4*>(&matMotionOffset), reinterpret_cast<const DirectX::XMFLOAT4X4*>(&matMotionOffset));
-					
+
 					m_umapMotionOffsetMarix.emplace(pLink->GetName(), matMotionOffset);
 
 					CaptureBindPoseMatrix(pLink, matBindPose);
@@ -1717,7 +1716,7 @@ namespace EastEngine
 			// Compute total transformation
 			FbxAMatrix vertMatrix;
 			FbxAMatrix normMatrix;
-			{	
+			{
 				fbxsdk::FbxVector4 trans = pNode->GetGeometricTranslation(FbxNode::eSourcePivot);
 				fbxsdk::FbxVector4 rot = pNode->GetGeometricRotation(FbxNode::eSourcePivot);
 				fbxsdk::FbxVector4 scale = pNode->GetGeometricScaling(FbxNode::eSourcePivot);
