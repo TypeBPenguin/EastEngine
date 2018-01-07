@@ -560,7 +560,7 @@ void SceneStudio::Enter()
 		//if (false)
 		{
 			std::string strPathMotion(File::GetDataPath());
-			strPathMotion.append("Actor\\KimJiYoon\\AR_Idle_CC.fbx");
+			strPathMotion.append("Model\\KimJiYoon\\AR_Idle_CC.fbx");
 
 			String::StringID strMotionName;
 			strMotionName.Format("%s", File::GetFileName(strPathMotion).c_str());

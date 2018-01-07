@@ -133,6 +133,8 @@ namespace EastEngine
 			void ParseSubDiv(fbxsdk::FbxNode* pNode, fbxsdk::FbxSubDiv* pFbxSubD, ATG::ExportFrame* pParentFrame);
 
 		private:
+			std::mutex m_mutex;
+
 			fbxsdk::FbxManager* m_pSDKManager;
 			fbxsdk::FbxImporter* m_pImporter;
 			fbxsdk::FbxScene* m_pFBXScene;

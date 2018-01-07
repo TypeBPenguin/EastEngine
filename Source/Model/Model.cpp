@@ -207,16 +207,12 @@ namespace EastEngine
 
 		bool Model::Load(const ModelLoader& loader)
 		{
-			static std::mutex mutex;
-
 			bool isSuccess = false;
 
 			switch (loader.GetLoadModelType())
 			{
 			case EmModelLoader::eFbx:
 			{
-				std::unique_lock<std::mutex> lock(mutex);
-
 				isSuccess = FBXImport::GetInstance()->LoadModel(this, loader.GetFilePath().c_str(), loader.GetScaleFactor());
 				if (isSuccess == false)
 				{
@@ -226,8 +222,6 @@ namespace EastEngine
 			break;
 			case EmModelLoader::eObj:
 			{
-				std::unique_lock<std::mutex> lock(mutex);
-
 				isSuccess = FBXImport::GetInstance()->LoadModel(this, loader.GetFilePath().c_str(), loader.GetScaleFactor());
 				if (isSuccess == false)
 				{

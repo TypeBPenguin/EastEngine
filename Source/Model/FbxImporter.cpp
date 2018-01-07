@@ -260,7 +260,7 @@ namespace EastEngine
 			ExportLog::LogMsg(9, "DirectXMath version %d", DIRECTX_MATH_VERSION);
 
 			ExportCoreSettings& InitialSettings = g_pScene->Settings();
-			InitialSettings = ATG::ExportCoreSettings();
+			InitialSettings.SetDefaultSettings();
 
 			if (InitialSettings.bForceIndex32Format && (InitialSettings.dwFeatureLevel <= D3D_FEATURE_LEVEL_9_1))
 			{
@@ -358,6 +358,8 @@ namespace EastEngine
 			if (pModel == nullptr || strFilePath == nullptr)
 				return false;
 
+			std::lock_guard<std::mutex> lock(m_mutex);
+
 			Performance::Counter counter;
 			counter.Start();
 
@@ -417,6 +419,8 @@ namespace EastEngine
 		{
 			if (pMotion == nullptr || strFilePath == nullptr)
 				return false;
+
+			std::lock_guard<std::mutex> lock(m_mutex);
 
 			Performance::Counter counter;
 			counter.Start();
@@ -1446,8 +1450,6 @@ namespace EastEngine
 
 		void FBXImport::SkinData::InsertWeight(size_t nIndex, uint32_t nBoneIndex, float fBoneWeight)
 		{
-			assert(nBoneIndex < 256);
-
 			byte* pIndices = GetIndices(nIndex);
 			float* pWeights = GetWeights(nIndex);
 
