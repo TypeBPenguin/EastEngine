@@ -336,6 +336,8 @@ namespace EastEngine
 			virtual const Math::Quaternion& GetLocalRotation() const = 0;
 			virtual void SetLocalRotation(const Math::Quaternion& quat) = 0;
 
+			virtual const Math::Matrix& GetLocalTransform() const = 0;
+
 			virtual const String::StringID& GetName() const = 0;
 			virtual const std::string& GetFilePath() const = 0;
 

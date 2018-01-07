@@ -121,7 +121,7 @@ namespace EastEngine
 		void ModelInstance::Update(float fElapsedTime, const Math::Matrix& matParent)
 		{
 			m_fElapsedTime = fElapsedTime;
-			m_matParent = matParent;
+			m_matParent = m_pModel->GetLocalTransform() * matParent;
 		}
 
 		bool ModelInstance::Attachment(IModelInstance* pInstance, const String::StringID& strNodeName, const Math::Matrix& matOffset)

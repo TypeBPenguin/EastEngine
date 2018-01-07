@@ -62,7 +62,9 @@ namespace EastEngine
 
 		m_isInit = true;
 
-		if (CrashHandler::Initialize(File::GetBinPath()) == false)
+		std::string strDumpPath = File::GetBinPath();
+		strDumpPath.append("Dump\\");
+		if (CrashHandler::Initialize(strDumpPath.c_str()) == false)
 		{
 			Release();
 			return false;

@@ -151,6 +151,8 @@ namespace EastEngine
 				tmTime.tm_sec
 				);
 
+			CreateDirectory(s_strMiniDumpPath.c_str(), nullptr);
+
 			// Create the minidump file
 			HANDLE hFile = CreateFile(
 				strDumpPath.c_str(),

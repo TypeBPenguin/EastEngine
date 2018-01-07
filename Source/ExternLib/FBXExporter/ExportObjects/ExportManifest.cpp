@@ -171,7 +171,7 @@ namespace ATG
 		{
 			strDesiredTextureFileFormat = "tga";
 		}
-		if (_stricmp(strSourceExtension, strDesiredTextureFileFormat) != 0)
+		if (strSourceExtension != nullptr &&_stricmp(strSourceExtension, strDesiredTextureFileFormat) != 0)
 		{
 			TexOperation = ETO_CONVERTFORMAT;
 			IntermediateFileName.ChangeExtension(strDesiredTextureFileFormat);

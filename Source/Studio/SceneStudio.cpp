@@ -423,16 +423,16 @@ void SceneStudio::Enter()
 		GameObject::ISkybox::Create("BaseSkybox", sky);
 	}
 
-	for (int i = 0; i < 100; ++i)
+	for (int i = 0; i < 1; ++i)
 	{
 		String::StringID name;
 		name.Format("UnityChan%d", i);
 		GameObject::IActor* pActor = GameObject::IActor::Create(name);
 		
 		Math::Vector3 pos;
-		pos.x = -10.f + (2.f * (i % 10));
+		//pos.x = -10.f + (2.f * (i % 10));
 		pos.y = 0.5f;
-		pos.z = 0.f + (2.f * (i / 10));
+		//pos.z = 0.f + (2.f * (i / 10));
 		pActor->SetPosition(pos);
 		
 		strPath = File::GetDataPath();
@@ -450,6 +450,7 @@ void SceneStudio::Enter()
 		Graphics::IModelInstance* pModelInstance = pModel->GetModelInstance();
 		Graphics::IMotionSystem* pMotionSystem = pModelInstance->GetMotionSystem();
 
+		//if (false)
 		{
 			std::vector<const char*> vecAnim =
 			{
@@ -471,48 +472,50 @@ void SceneStudio::Enter()
 			Graphics::IMotion* pMotion = Graphics::IMotion::Create(motionLoader);
 
 			Graphics::MotionPlaybackInfo playback;
-			playback.fSpeed = Math::Random(0.5f, 1.5f);
+			//playback.fSpeed = Math::Random(0.5f, 1.5f);
+			playback.fSpeed = 1.f;
 			playback.nLoopCount = Graphics::MotionPlaybackInfo::eMaxLoopCount;
-			playback.fWeight = Math::Random(0.1f, 0.5f);
+			//playback.fWeight = Math::Random(0.1f, 0.5f);
+			playback.fWeight = 1.f;
 			pMotionSystem->Play(Graphics::EmMotion::eLayer1, pMotion, &playback);
 		}
 
-		{
-			std::vector<const char*> vecAnim =
-			{
-				"Actor\\UnityChan\\Animations\\unitychan_RUN00_F.fbx",
-				"Actor\\UnityChan\\Animations\\unitychan_JUMP00.fbx",
-				"Actor\\UnityChan\\Animations\\unitychan_LOSE00.fbx",
-				"Actor\\UnityChan\\Animations\\unitychan_REFLESH00.fbx",
-				"Actor\\UnityChan\\Animations\\unitychan_SLIDE00.fbx",
-				"Actor\\UnityChan\\Animations\\unitychan_UMATOBI00.fbx",
-				"Actor\\UnityChan\\Animations\\unitychan_WIN00.fbx",
-			};
+		//{
+		//	std::vector<const char*> vecAnim =
+		//	{
+		//		"Actor\\UnityChan\\Animations\\unitychan_RUN00_F.fbx",
+		//		"Actor\\UnityChan\\Animations\\unitychan_JUMP00.fbx",
+		//		"Actor\\UnityChan\\Animations\\unitychan_LOSE00.fbx",
+		//		"Actor\\UnityChan\\Animations\\unitychan_REFLESH00.fbx",
+		//		"Actor\\UnityChan\\Animations\\unitychan_SLIDE00.fbx",
+		//		"Actor\\UnityChan\\Animations\\unitychan_UMATOBI00.fbx",
+		//		"Actor\\UnityChan\\Animations\\unitychan_WIN00.fbx",
+		//	};
 
-			std::string strPathMotion(File::GetDataPath());
-			//strPathMotion.append("Actor\\UnityChan\\Animations\\unitychan_ARpose1.fbx");
-			//strPathMotion.append("Actor\\UnityChan\\Animations\\unitychan_RUN00_F.fbx");
-			strPathMotion.append(vecAnim[Math::Random(0u, vecAnim.size() - 1)]);
+		//	std::string strPathMotion(File::GetDataPath());
+		//	//strPathMotion.append("Actor\\UnityChan\\Animations\\unitychan_ARpose1.fbx");
+		//	//strPathMotion.append("Actor\\UnityChan\\Animations\\unitychan_RUN00_F.fbx");
+		//	strPathMotion.append(vecAnim[Math::Random(0u, vecAnim.size() - 1)]);
 
-			String::StringID strMotionName;
-			strMotionName.Format("%s", File::GetFileName(strPathMotion).c_str());
-			Graphics::MotionLoader motionLoader;
-			motionLoader.InitFBX(strMotionName, strPathMotion.c_str(), 0.01f);
-			Graphics::IMotion* pMotion = Graphics::IMotion::Create(motionLoader);
+		//	String::StringID strMotionName;
+		//	strMotionName.Format("%s", File::GetFileName(strPathMotion).c_str());
+		//	Graphics::MotionLoader motionLoader;
+		//	motionLoader.InitFBX(strMotionName, strPathMotion.c_str(), 0.01f);
+		//	Graphics::IMotion* pMotion = Graphics::IMotion::Create(motionLoader);
 
-			Graphics::MotionPlaybackInfo playback;
-			playback.fSpeed = Math::Random(0.5f, 1.5f);
-			playback.nLoopCount = Graphics::MotionPlaybackInfo::eMaxLoopCount;
-			playback.fWeight = Math::Random(0.7f, 1.f);
-			pMotionSystem->Play(Graphics::EmMotion::eLayer2, pMotion, &playback);
-		}
+		//	Graphics::MotionPlaybackInfo playback;
+		//	playback.fSpeed = Math::Random(0.5f, 1.5f);
+		//	playback.nLoopCount = Graphics::MotionPlaybackInfo::eMaxLoopCount;
+		//	playback.fWeight = Math::Random(0.7f, 1.f);
+		//	pMotionSystem->Play(Graphics::EmMotion::eLayer2, pMotion, &playback);
+		//}
 
 		//GameObject::ComponentPhysics* pCompPhysics = static_cast<GameObject::ComponentPhysics*>(pActor->CreateComponent(GameObject::EmComponent::ePhysics));
 
 		//pCompPhysics->m_pRagDoll->BuildDefaultHumanRagDoll(pModelInstance->GetSkeleton(), pActor->GetPosition(), Math::Quaternion::Identity, 1.f);
 		//pCompPhysics->m_pRagDoll->Start();
 
-		//if (false)
+		if (false)
 		{
 			strPath = File::GetDataPath();
 			strPath.append("Model\\ElementalSwordIce\\LP.emod");
@@ -526,6 +529,94 @@ void SceneStudio::Enter()
 			Math::Quaternion quat = Math::Quaternion::CreateFromYawPitchRoll(Math::ToRadians(90.f), Math::ToRadians(180.f), 0.f);
 
 			pModelInstance->Attachment(pModelInstance_Attach, "Character1_LeftHand", Math::Matrix::Compose(Math::Vector3::One, quat, f3Pos));
+		}
+	}
+
+	{
+		String::StringID name;
+		name.Format("KimJiYoon");
+		GameObject::IActor* pActor = GameObject::IActor::Create(name);
+
+		Math::Vector3 pos;
+		pos.x = 2.f;
+		pos.y = 0.5f;
+		pActor->SetPosition(pos);
+
+		strPath = File::GetDataPath();
+		strPath.append("Model\\KimJiYoon\\KimJiYoon.emod");
+
+		Graphics::ModelLoader loader;
+
+		String::StringID strFileName = File::GetFileName(strPath).c_str();
+		loader.InitEast(strFileName, strPath.c_str());
+		loader.SetEnableThreadLoad(false);
+
+		GameObject::ComponentModel* pModel = static_cast<GameObject::ComponentModel*>(pActor->CreateComponent(GameObject::EmComponent::eModel));
+		pModel->Init(&loader);
+
+		Graphics::IModelInstance* pModelInstance = pModel->GetModelInstance();
+		Graphics::IMotionSystem* pMotionSystem = pModelInstance->GetMotionSystem();
+
+		//if (false)
+		{
+			std::string strPathMotion(File::GetDataPath());
+			strPathMotion.append("Actor\\KimJiYoon\\AR_Idle_CC.fbx");
+
+			String::StringID strMotionName;
+			strMotionName.Format("%s", File::GetFileName(strPathMotion).c_str());
+			Graphics::MotionLoader motionLoader;
+			motionLoader.InitFBX(strMotionName, strPathMotion.c_str(), 0.01f);
+			Graphics::IMotion* pMotion = Graphics::IMotion::Create(motionLoader);
+
+			Graphics::MotionPlaybackInfo playback;
+			playback.fSpeed = 1.f;
+			playback.nLoopCount = Graphics::MotionPlaybackInfo::eMaxLoopCount;
+			playback.fWeight = 1.f;
+			pMotionSystem->Play(Graphics::EmMotion::eLayer1, pMotion, &playback);
+		}
+	}
+
+	{
+		String::StringID name;
+		name.Format("2B");
+		GameObject::IActor* pActor = GameObject::IActor::Create(name);
+
+		Math::Vector3 pos;
+		pos.x = -2.f;
+		pos.y = 0.5f;
+		pActor->SetPosition(pos);
+
+		strPath = File::GetDataPath();
+		strPath.append("Model\\2B\\2B.emod");
+
+		Graphics::ModelLoader loader;
+		
+		String::StringID strFileName = File::GetFileName(strPath).c_str();
+		loader.InitEast(strFileName, strPath.c_str());
+		loader.SetEnableThreadLoad(false);
+
+		GameObject::ComponentModel* pModel = static_cast<GameObject::ComponentModel*>(pActor->CreateComponent(GameObject::EmComponent::eModel));
+		pModel->Init(&loader);
+
+		Graphics::IModelInstance* pModelInstance = pModel->GetModelInstance();
+		Graphics::IMotionSystem* pMotionSystem = pModelInstance->GetMotionSystem();
+
+		if (false)
+		{
+			std::string strPathMotion(File::GetDataPath());
+			strPathMotion.append("Actor\\HomunculusGirl\\HomunculusGirl.fbx");
+
+			String::StringID strMotionName;
+			strMotionName.Format("%s", File::GetFileName(strPathMotion).c_str());
+			Graphics::MotionLoader motionLoader;
+			motionLoader.InitFBX(strMotionName, strPathMotion.c_str(), 0.01f);
+			Graphics::IMotion* pMotion = Graphics::IMotion::Create(motionLoader);
+
+			Graphics::MotionPlaybackInfo playback;
+			playback.fSpeed = 1.f;
+			playback.nLoopCount = Graphics::MotionPlaybackInfo::eMaxLoopCount;
+			playback.fWeight = 1.f;
+			pMotionSystem->Play(Graphics::EmMotion::eLayer1, pMotion, &playback);
 		}
 	}
 

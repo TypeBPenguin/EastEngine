@@ -123,6 +123,7 @@ namespace EastEngine
 				eRoughness,
 				eMetallic,
 				eEmissive,
+				eEmissiveColor,
 
 				eSurface,
 				eSpecular,

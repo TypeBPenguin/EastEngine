@@ -362,29 +362,31 @@ namespace EastEngine
 			}
 			else if (pFrame->GetName() != nullptr)
 			{
-				String::StringID strName = pFrame->GetName();
+				if (pSkeleton == nullptr)
+				{
+					pSkeleton = static_cast<Skeleton*>(ISkeleton::Create());
+					pModel->SetSkeleton(pSkeleton);
+				}
+
+				strBoneName = pFrame->GetName().SafeString();
+
+				Math::Matrix matMotionOffset;
+				const String::StringID strName = pFrame->GetName();
 				auto iter = umapMotionOffset.find(strName);
 				if (iter != umapMotionOffset.end())
 				{
-					if (pSkeleton == nullptr)
-					{
-						pSkeleton = static_cast<Skeleton*>(ISkeleton::Create());
-						pModel->SetSkeleton(pSkeleton);
-					}
+					matMotionOffset = iter->second;
+				}
 
-					const Math::Matrix& matMotionOffset = iter->second;
-					const Math::Matrix& matDefaultMotionData = *reinterpret_cast<const Math::Matrix*>(&pFrame->Transform().Matrix());
+				const Math::Matrix& matDefaultMotionData = *reinterpret_cast<const Math::Matrix*>(&pFrame->Transform().Matrix());
 
-					strBoneName = pFrame->GetName().SafeString();
-
-					if (strParentBoneName.empty() == true)
-					{
-						pSkeleton->CreateBone(strBoneName, matMotionOffset, matDefaultMotionData);
-					}
-					else
-					{
-						pSkeleton->CreateBone(strParentBoneName, strBoneName, matMotionOffset, matDefaultMotionData);
-					}
+				if (strParentBoneName.empty() == true)
+				{
+					pSkeleton->CreateBone(strBoneName, matMotionOffset, matDefaultMotionData);
+				}
+				else
+				{
+					pSkeleton->CreateBone(strParentBoneName, strBoneName, matMotionOffset, matDefaultMotionData);
 				}
 			}
 
@@ -654,6 +656,9 @@ namespace EastEngine
 		bool WriteMotion(IMotion* pMotion)
 		{
 			if (g_pScene == nullptr || pMotion == nullptr)
+				return false;
+
+			if (g_pScene->GetAnimationCount() == 0)
 				return false;
 
 			// 이 로직에서는 애니메이션 하나만 추출한다.

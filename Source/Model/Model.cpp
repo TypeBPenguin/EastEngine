@@ -153,11 +153,9 @@ namespace EastEngine
 				m_isDirtyLocalMatrix = false;
 			}
 
-			Math::Matrix matModel = m_matLocal * matParent;
-
 			std::for_each(m_vecHierarchyModelNodes.begin(), m_vecHierarchyModelNodes.end(), [&](IModelNode* pModelNode)
 			{
-				pModelNode->Update(fElapsedTime, matModel, pSkeletonInstance, pMaterialInstance, m_isVisible);
+				pModelNode->Update(fElapsedTime, matParent, pSkeletonInstance, pMaterialInstance, m_isVisible);
 			});
 		}
 
@@ -473,6 +471,13 @@ namespace EastEngine
 
 		bool Model::LoadToFile(const char* strFilePath)
 		{
+			std::string strFileExtension = File::GetFileExtension(strFilePath);
+			if (strFileExtension != "emod")
+			{
+				LOG_ERROR("Invalid Extension, Required[%s] != Request[%s]", "emod", strFileExtension.c_str());
+				return false;
+			}
+
 			// 좀 더 구조적으로 쉽고 간편한 Save Load 방식이 필요함
 			// FileStream 은 빨라서 좋지만, 데이터 규격이 달라지면 기존 데이터를 사용할 수 없게됨
 			// 또는 확실한 버전 관리로, 버전별 Save Load 로직을 구현한다면 FileStream 으로도 문제없음

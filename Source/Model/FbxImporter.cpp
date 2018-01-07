@@ -87,15 +87,12 @@ namespace EastEngine
 		void FBXTransformer::Initialize(fbxsdk::FbxScene* pScene)
 		{
 			ExportLog::LogMsg(4, "Identifying scene's coordinate system.");
-			fbxsdk::FbxAxisSystem SceneAxisSystem = pScene->GetGlobalSettings().GetAxisSystem();
 
-			// convert scene to Maya Y up coordinate system
-			FbxAxisSystem::MayaYUp.ConvertScene(pScene);
+			fbxsdk::FbxAxisSystem SceneAxisSystem = pScene->GetGlobalSettings().GetAxisSystem();
 
 			int nUpAxisSign = 0;
 			fbxsdk::FbxAxisSystem::EUpVector UpVector = SceneAxisSystem.GetUpVector(nUpAxisSign);
-
-			if (UpVector == FbxAxisSystem::eZAxis)
+			if (UpVector == fbxsdk::FbxAxisSystem::eZAxis)
 			{
 				ExportLog::LogMsg(4, "Converting from Z-up axis system to Y-up axis system.");
 				m_isMaxConversion = true;
@@ -103,6 +100,12 @@ namespace EastEngine
 			else
 			{
 				m_isMaxConversion = false;
+			}
+
+			if (SceneAxisSystem != fbxsdk::FbxAxisSystem::MayaYUp)
+			{
+				// convert scene to Maya Y up coordinate system
+				fbxsdk::FbxAxisSystem::MayaYUp.ConvertScene(pScene);
 			}
 
 			SetUnitScale(g_pScene->Settings().fExportScale);
@@ -127,7 +130,7 @@ namespace EastEngine
 			// column are negated (so element _33 is left alone).  So instead of actually
 			// carrying out the multiplication, we just negate the 6 matrix elements.
 
-			if (m_isFlipZ)
+			if (m_isFlipZ == true)
 			{
 				pDestMatrix->_13 = -pSrcMatrix->_13;
 				pDestMatrix->_23 = -pSrcMatrix->_23;
@@ -182,7 +185,7 @@ namespace EastEngine
 				pSrcDirection = &SrcVector;
 			}
 
-			if (m_isMaxConversion)
+			if (m_isMaxConversion == true)
 			{
 				pDestDirection->x = pSrcDirection->x;
 				pDestDirection->y = pSrcDirection->z;
@@ -305,20 +308,6 @@ namespace EastEngine
 				m_pImporter = fbxsdk::FbxImporter::Create(m_pSDKManager, "");
 				if (m_pImporter == nullptr)
 					return false;
-			}
-
-			if (m_pImporter->IsFBX())
-			{
-				fbxsdk::FbxIOSettings* ioSettings = m_pSDKManager->GetIOSettings();
-				ioSettings->SetBoolProp(IMP_FBX_CONSTRAINT, true);
-				ioSettings->SetBoolProp(IMP_FBX_CONSTRAINT_COUNT, true);
-				ioSettings->SetBoolProp(IMP_FBX_MATERIAL, true);
-				ioSettings->SetBoolProp(IMP_FBX_TEXTURE, true);
-				ioSettings->SetBoolProp(IMP_FBX_LINK, true);
-				ioSettings->SetBoolProp(IMP_FBX_SHAPE, true);
-				ioSettings->SetBoolProp(IMP_FBX_GOBO, true);
-				ioSettings->SetBoolProp(IMP_FBX_ANIMATION, true);
-				ioSettings->SetBoolProp(IMP_FBX_GLOBAL_SETTINGS, true);
 			}
 
 			if (m_pFBXScene != nullptr)
@@ -486,6 +475,7 @@ namespace EastEngine
 			g_pScene->Settings().bExportMeshes = true;
 			g_pScene->Settings().bExportScene = true;
 			g_pScene->Settings().bForceIndex32Format = true;
+			g_pScene->Settings().iMaxUVSetCount = 1;
 			g_pScene->Settings().bOptimizeVCache = true;
 		}
 
@@ -1977,7 +1967,8 @@ namespace EastEngine
 			size_t nMaterialCount = MaterialList.size();
 			if (pMesh->GetSubDMesh() == nullptr)
 			{
-				for (size_t nSubset = 0; nSubset < nMaterialCount; ++nSubset)
+				size_t nSubsetCount = pMesh->GetSubsetCount();
+				for (size_t nSubset = 0; nSubset < nSubsetCount; ++nSubset)
 				{
 					ATG::ExportMaterial* pMaterial = MaterialList[nSubset];
 					ATG::ExportIBSubset* pSubset = pMesh->GetSubset(nSubset);

@@ -380,7 +380,7 @@ namespace EastEngine
 		MaterialInfo::MaterialInfo()
 			: colorAlbedo(1.f, 1.f, 1.f, 1.f)
 			, colorEmissive(0.f, 0.f, 0.f, 1.f)
-			, fTessellationFactor(128.f)
+			, fTessellationFactor(256.f)
 			, pSamplerState(nullptr)
 			, pBlendState(nullptr)
 			, pRasterizerState(nullptr)
@@ -400,7 +400,7 @@ namespace EastEngine
 			f4SurSpecTintAniso = Math::Vector4::Zero;
 			f4SheenTintClearcoatGloss = Math::Vector4::Zero;
 
-			fTessellationFactor = 128.f;
+			fTessellationFactor = 256.f;
 
 			for (auto& strTexName : strTextureNameArray)
 			{

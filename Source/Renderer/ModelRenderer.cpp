@@ -405,7 +405,7 @@ namespace EastEngine
 				}
 				else
 				{
-					const float fTessellationFactor = 128.f;
+					const float fTessellationFactor = 256.f;
 					pEffect->SetFloat(StrID::g_fTessellationFactor, fTessellationFactor);
 				}
 			}
