@@ -203,6 +203,10 @@ namespace EastEngine
 			{
 				m_vecModelNodes.emplace_back(pNode);
 			}
+			else
+			{
+				assert(false);
+			}
 		}
 
 		bool Model::Load(const ModelLoader& loader)
@@ -504,8 +508,6 @@ namespace EastEngine
 			uint32_t nNodeCount = 0;
 			file >> nNodeCount;
 
-			std::map<std::string, std::vector<IModelNode*>> mapChildNodes;
-
 			for (uint32_t i = 0; i < nNodeCount; ++i)
 			{
 				ModelNode* pNode = nullptr;
@@ -536,16 +538,10 @@ namespace EastEngine
 				}
 				else
 				{
-					auto iter = mapChildNodes.find(strBuf);
-					if (iter != mapChildNodes.end())
-					{
-						iter->second.emplace_back(pNode);
-					}
-					else
-					{
-						auto iter_result = mapChildNodes.emplace(strBuf, std::vector<IModelNode*>());
-						iter_result.first->second.emplace_back(pNode);
-					}
+					ModelNode* pParentNode = static_cast<ModelNode*>(GetNode(strBuf.c_str()));
+					assert(pParentNode != nullptr);
+					
+					pParentNode->AddChildNode(pNode);
 
 					AddNode(pNode, pNode->GetName(), false);
 				}

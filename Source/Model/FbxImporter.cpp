@@ -1577,7 +1577,7 @@ namespace EastEngine
 			bool isSmoothMesh = false;
 
 			fbxsdk::FbxMesh::ESmoothness Smoothness = pFbxMesh->GetMeshSmoothness();
-			if (Smoothness != FbxMesh::eHull && g_pScene->Settings().bConvertMeshesToSubD)
+			if (Smoothness != fbxsdk::FbxMesh::eHull && g_pScene->Settings().bConvertMeshesToSubD)
 			{
 				isSubDProcess = true;
 				isSmoothMesh = true;
@@ -2040,7 +2040,7 @@ namespace EastEngine
 				return;
 			}
 
-			FbxMesh* pLevelMesh = nullptr;
+			fbxsdk::FbxMesh* pLevelMesh = nullptr;
 			int nCurrentLevel = nLevelCount - 1;
 			while (!pLevelMesh && nCurrentLevel > 0)
 			{
