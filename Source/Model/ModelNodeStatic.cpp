@@ -59,9 +59,6 @@ namespace EastEngine
 						{
 							if (modelSubset.nMaterialID < m_vecMaterial.size())
 							{
-								if (m_vecMaterial[modelSubset.nMaterialID]->IsLoadComplete() == false)
-									continue;
-
 								pMaterial = m_vecMaterial[modelSubset.nMaterialID];
 							}
 						}
