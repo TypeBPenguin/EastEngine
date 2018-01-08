@@ -139,6 +139,12 @@ namespace EastEngine
 			if (GetLoadState() != EmLoadState::eComplete)
 				return;
 
+			if (m_isDirtyLocalMatrix == true)
+			{
+				m_matLocal = Math::Matrix::Compose(m_f3Scale, m_quat, m_f3Pos);
+				m_isDirtyLocalMatrix = false;
+			}
+
 			std::for_each(m_clnModelInstance.begin(), m_clnModelInstance.end(), [](ModelInstance& instance)
 			{
 				instance.Ready();
@@ -147,12 +153,6 @@ namespace EastEngine
 
 		void Model::Update(float fElapsedTime, const Math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance)
 		{
-			if (m_isDirtyLocalMatrix == true)
-			{
-				m_matLocal = Math::Matrix::Compose(m_f3Scale, m_quat, m_f3Pos);
-				m_isDirtyLocalMatrix = false;
-			}
-
 			std::for_each(m_vecHierarchyModelNodes.begin(), m_vecHierarchyModelNodes.end(), [&](IModelNode* pModelNode)
 			{
 				pModelNode->Update(fElapsedTime, matParent, pSkeletonInstance, pMaterialInstance, m_isVisible);

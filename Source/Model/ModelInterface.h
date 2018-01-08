@@ -60,8 +60,8 @@ namespace EastEngine
 			String::StringID strName;
 
 			uint32_t nMaterialID = std::numeric_limits<uint32_t>::max();
-			size_t nStartIndex = 0;
-			size_t nIndexCount = 0;
+			uint32_t nStartIndex = 0;
+			uint32_t nIndexCount = 0;
 
 			EmPrimitive::Type emPrimitiveType = EmPrimitive::eTriangleList;
 		};
