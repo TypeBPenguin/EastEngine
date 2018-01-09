@@ -38,10 +38,18 @@ namespace EastEngine
 			uint32_t GetDataSize() { return m_nDataSize; }
 
 		public:
+			FileStream& operator << (int8_t value);
+			FileStream& operator >> (int8_t& value);
+			FileStream& operator << (int16_t value);
+			FileStream& operator >> (int16_t& value);
 			FileStream& operator << (int value);
 			FileStream& operator >> (int& value);
 			FileStream& operator << (DWORD value);
 			FileStream& operator >> (DWORD& value);
+			FileStream& operator << (uint8_t value);
+			FileStream& operator >> (uint8_t& value);
+			FileStream& operator << (uint16_t value);
+			FileStream& operator >> (uint16_t& value);
 			FileStream& operator << (uint32_t value);
 			FileStream& operator >> (uint32_t& value);
 			FileStream& operator << (float value);
@@ -58,21 +66,31 @@ namespace EastEngine
 			FileStream& operator << (wchar_t* value);
 
 		public:
-			FileStream& FileStream::Write(const float* pValue, uint32_t nCount);
-			FileStream& FileStream::Write(const double* pValue, uint32_t nCount);
-			FileStream& FileStream::Write(const int* pValue, uint32_t nCount);
-			FileStream& FileStream::Write(const uint32_t* pValue, uint32_t nCount);
-			FileStream& FileStream::Write(const uint64_t* pValue, uint32_t nCount);
+			FileStream& Write(const float* pValue, uint32_t nCount = 1);
+			FileStream& Write(const double* pValue, uint32_t nCount = 1);
+			FileStream& Write(const int8_t* pValue, uint32_t nCount = 1);
+			FileStream& Write(const int16_t* pValue, uint32_t nCount = 1);
+			FileStream& Write(const int32_t* pValue, uint32_t nCount = 1);
+			FileStream& Write(const int64_t* pValue, uint32_t nCount = 1);
+			FileStream& Write(const uint8_t* pValue, uint32_t nCount = 1);
+			FileStream& Write(const uint16_t* pValue, uint32_t nCount = 1);
+			FileStream& Write(const uint32_t* pValue, uint32_t nCount = 1);
+			FileStream& Write(const uint64_t* pValue, uint32_t nCount = 1);
 
-			FileStream& FileStream::Write(const char* pValue, uint32_t nLength);
+			FileStream& Write(const char* pValue, uint32_t nLength = 1);
 
-			FileStream& FileStream::Read(float* pBuffer, uint32_t nCount);
-			FileStream& FileStream::Read(double* pBuffer, uint32_t nCount);
-			FileStream& FileStream::Read(int* pBuffer, uint32_t nCount);
-			FileStream& FileStream::Read(uint32_t* pBuffer, uint32_t nCount);
-			FileStream& FileStream::Read(uint64_t* pBuffer, uint32_t nCount);
+			FileStream& Read(float* pBuffer, uint32_t nCount = 1);
+			FileStream& Read(double* pBuffer, uint32_t nCount = 1);
+			FileStream& Read(int8_t* pBuffer, uint32_t nCount = 1);
+			FileStream& Read(int16_t* pBuffer, uint32_t nCount = 1);
+			FileStream& Read(int32_t* pBuffer, uint32_t nCount = 1);
+			FileStream& Read(int64_t* pBuffer, uint32_t nCount = 1);
+			FileStream& Read(uint8_t* pBuffer, uint32_t nCount = 1);
+			FileStream& Read(uint16_t* pBuffer, uint32_t nCount = 1);
+			FileStream& Read(uint32_t* pBuffer, uint32_t nCount = 1);
+			FileStream& Read(uint64_t* pBuffer, uint32_t nCount = 1);
 
-			FileStream& FileStream::Read(char* pBuffer, uint32_t nLength);
+			FileStream& Read(char* pBuffer, uint32_t nLength);
 
 		public:
 			const std::string& GetPath() { return m_strPath; }

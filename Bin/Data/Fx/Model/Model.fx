@@ -593,8 +593,10 @@ PS_OUTPUT D_PS(PS_INPUT input)
 
 #ifdef USE_TEX_MASK
 	albedo.w = saturate(albedo.w * g_texMask.Sample(g_samplerState, input.tex).x * 2.f);
-#endif
 	clip(albedo.w - 0.1f);
+#elif USE_TRANSPARENT
+	clip(albedo.w - 0.1f);
+#endif
 
 #ifdef USE_TEX_NORMAL
 	float3 normal = g_texNormalMap.Sample(g_samplerState, input.tex).xyz;

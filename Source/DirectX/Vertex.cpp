@@ -128,17 +128,16 @@ namespace EastEngine
 		}
 
 		VertexPosTexNorWeiIdx::VertexPosTexNorWeiIdx()
-			: boneIndices(0u)
 		{
 		}
 
-		VertexPosTexNorWeiIdx::VertexPosTexNorWeiIdx(const Math::Vector3& f3Pos, const Math::Vector2& f2UV, const Math::Vector3& f3Normal, const Math::Vector3& f3Weight, const Math::UByte4& indices)
+		VertexPosTexNorWeiIdx::VertexPosTexNorWeiIdx(const Math::Vector3& f3Pos, const Math::Vector2& f2UV, const Math::Vector3& f3Normal, const Math::Vector3& f3Weight, const uint16_t indices[4])
 			: pos(f3Pos)
 			, uv(f2UV)
 			, normal(f3Normal)
 			, boneWeight(f3Weight)
-			, boneIndices(boneIndices)
 		{
+			Memory::Copy(boneIndices, indices);
 		}
 
 		VertexUI::VertexUI()

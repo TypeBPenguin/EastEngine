@@ -86,6 +86,7 @@ namespace EastEngine
 				eUseWriteDepth,
 				eUseCubeMap,
 				eUseTessellation,
+				eUseTransparent,
 
 				MaskCount,
 			};
@@ -116,6 +117,7 @@ namespace EastEngine
 					"USE_WRITEDEPTH",
 					"USE_CUBEMAP",
 					"USE_TESSELLATION",
+					"USE_TRANSPARENT",
 				};
 
 				return s_strMaskName[nMask].c_str();
@@ -318,6 +320,8 @@ namespace EastEngine
 				SetBitMask64(nMask, IsValidTexture(EmMaterial::eSheenTint) == true ? EmModelShader::eUseTexSheenTint : -1);
 				SetBitMask64(nMask, IsValidTexture(EmMaterial::eClearcoat) == true ? EmModelShader::eUseTexClearcoat : -1);
 				SetBitMask64(nMask, IsValidTexture(EmMaterial::eClearcoatGloss) == true ? EmModelShader::eUseTexClearcoatGloss : -1);
+
+				SetBitMask64(nMask, pMaterial->IsTransparent() == true ? EmModelShader::eUseTransparent : -1);
 
 				if (Config::IsEnable("Tessellation"_s) == true && Math::IsZero(pMaterial->GetTessellationFactor() - 1.f) == false)
 				{

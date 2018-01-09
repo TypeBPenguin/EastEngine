@@ -19,6 +19,7 @@ namespace EastEngine
 				eGeometry = 0,
 				eFbx,
 				eObj,
+				eXps,
 				eEast,
 			};
 
@@ -162,8 +163,9 @@ namespace EastEngine
 			~ModelLoader();
 
 		public:
-			void InitFBX(const String::StringID& strModelName, const char* strFilePath, float fScaleFactor = 1.f, uint32_t nLodMax = 0, const LODReductionRate& reductionRate = LODReductionRate());
+			void InitFBX(const String::StringID& strModelName, const char* strFilePath, float fScaleFactor = 1.f, bool isFlipZ = true, uint32_t nLodMax = 0, const LODReductionRate& reductionRate = LODReductionRate());
 			void InitObj(const String::StringID& strModelName, const char* strFilePath, float fScaleFactor = 1.f, uint32_t nLodMax = 0, const LODReductionRate& reductionRate = LODReductionRate());
+			void InitXPS(const String::StringID& strModelName, const char* strFilePath);
 			void InitEast(const String::StringID& strModelName, const char* strFilePath);
 
 			void InitCube(const String::StringID& strModelName, MaterialInfo* pMaterialInfo = nullptr, float fSize = 1.f, bool rhcoords = false);
@@ -210,6 +212,7 @@ namespace EastEngine
 			const MaterialInfo& GetMaterial() const { return m_materialInfo; }
 
 			float GetScaleFactor() const { return m_fScaleFactor; }
+			bool IsFlipZ() const { return m_isFlipZ; }
 
 			uint32_t GetLodMax() const { return m_nLodMax; }
 			const LODReductionRate& GetLODReductionRate() const { return m_lodReductionRate; }
@@ -254,6 +257,7 @@ namespace EastEngine
 			MaterialInfo m_materialInfo;
 
 			float m_fScaleFactor;
+			bool m_isFlipZ;
 
 			uint32_t m_nLodMax;
 			LODReductionRate m_lodReductionRate;

@@ -448,6 +448,7 @@ namespace EastEngine
 			Math::Vector4 f4SheenTintClearcoatGloss;
 
 			float fTessellationFactor;
+			bool isTransparent;
 
 			std::array<String::StringID, EmMaterial::TypeCount> strTextureNameArray;
 
@@ -546,6 +547,7 @@ namespace EastEngine
 			virtual float GetClearcoatGloss() const = 0;
 			virtual void SetClearcoatGloss(float fClearcoatGloss) = 0;
 
+			virtual bool IsTransparent() const = 0;
 			virtual bool IsLoadComplete() const = 0;
 
 		public:

@@ -376,7 +376,7 @@ namespace EastEngine
 						file.Write(&pVertices[j].uv.x, 2);
 						file.Write(&pVertices[j].normal.x, 3);
 						file.Write(&pVertices[j].boneWeight.x, 3);
-						file << pVertices[j].boneIndices.v;
+						file.Write(&pVertices[j].boneIndices[0], 4);
 					}
 				}
 

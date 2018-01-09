@@ -158,10 +158,10 @@ namespace EastEngine
 			Math::Vector2 uv;
 			Math::Vector3 normal;
 			Math::Vector3 boneWeight;
-			Math::UByte4 boneIndices;
+			uint16_t boneIndices[4] = {};
 
 			VertexPosTexNorWeiIdx();
-			VertexPosTexNorWeiIdx(const Math::Vector3& f3Pos, const Math::Vector2& f2UV, const Math::Vector3& f3Normal, const Math::Vector3& f3Weight, const Math::UByte4& indices);
+			VertexPosTexNorWeiIdx(const Math::Vector3& f3Pos, const Math::Vector2& f2UV, const Math::Vector3& f3Normal, const Math::Vector3& f3Weight, const uint16_t boneIndices[4]);
 
 			void operator = (const VertexPosTexNor& vertex)
 			{
@@ -170,7 +170,7 @@ namespace EastEngine
 				normal = vertex.normal;
 			}
 
-			void SetVertex(const Math::Vector3& f3Pos, const Math::Vector2& f2UV, const Math::Vector3& f3Normal, const Math::Vector3& f3Weight, const Math::UByte4& indices) { pos = f3Pos; uv = f2UV; normal = f3Normal; boneWeight = f3Weight; boneIndices = indices; }
+			void SetVertex(const Math::Vector3& f3Pos, const Math::Vector2& f2UV, const Math::Vector3& f3Normal, const Math::Vector3& f3Weight, const uint16_t _boneIndices[4]) { pos = f3Pos; uv = f2UV; normal = f3Normal; boneWeight = f3Weight; Memory::Copy(boneIndices, _boneIndices); }
 		};
 
 		struct VertexUI

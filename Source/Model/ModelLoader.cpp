@@ -100,6 +100,7 @@ namespace EastEngine
 			, m_f3Scale(Math::Vector3::One)
 			, m_funcCallback(funcCallback)
 			, m_fScaleFactor(0.f)
+			, m_isFlipZ(true)
 			, m_emLoadModelType(EmModelLoader::eGeometry)
 			, m_emLoadGeometryType(EmModelLoader::eCustomStaticModel)
 			, m_isRhcoords(false)
@@ -112,11 +113,12 @@ namespace EastEngine
 		{
 		}
 
-		void ModelLoader::InitFBX(const String::StringID& strModelName, const char* strFilePath, float fScaleFactor, uint32_t nLodMax, const LODReductionRate& reductionRate)
+		void ModelLoader::InitFBX(const String::StringID& strModelName, const char* strFilePath, float fScaleFactor, bool isFlipZ, uint32_t nLodMax, const LODReductionRate& reductionRate)
 		{
 			m_strModelName = strModelName;
 			m_strFilePath = strFilePath;
 			m_fScaleFactor = fScaleFactor;
+			m_isFlipZ = isFlipZ;
 
 			m_nLodMax = nLodMax;
 			m_lodReductionRate = reductionRate;
@@ -134,6 +136,14 @@ namespace EastEngine
 			m_lodReductionRate = reductionRate;
 
 			m_emLoadModelType = EmModelLoader::eObj;
+		}
+
+		void ModelLoader::InitXPS(const String::StringID& strModelName, const char* strFilePath)
+		{
+			m_strModelName = strModelName;
+			m_strFilePath = strFilePath;
+
+			m_emLoadModelType = EmModelLoader::eXps;
 		}
 
 		void ModelLoader::InitEast(const String::StringID& strModelName, const char* strFilePath)

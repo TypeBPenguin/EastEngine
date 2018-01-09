@@ -352,7 +352,7 @@ namespace EastEngine
 			}
 		}
 
-		bool FBXImport::LoadModel(IModel* pModel, const char* strFilePath, float fScale)
+		bool FBXImport::LoadModel(IModel* pModel, const char* strFilePath, float fScale, bool isFlipZ)
 		{
 			if (pModel == nullptr || strFilePath == nullptr)
 				return false;
@@ -374,6 +374,7 @@ namespace EastEngine
 			ModelSettings();
 
 			g_pScene->Settings().fExportScale = fScale;
+			g_pScene->Settings().bFlipZ = isFlipZ;
 
 			g_pScene->Statistics().StartExport();
 			g_pScene->Statistics().StartSceneParse();

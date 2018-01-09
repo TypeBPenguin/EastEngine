@@ -19,6 +19,46 @@ namespace EastEngine
 			Close();
 		}
 
+		FileStream& FileStream::operator << (int8_t value)
+		{
+			if (m_nFlag == EmState::eNone)
+				m_file << value;
+			else
+				m_file.write(reinterpret_cast<char*>(&value), sizeof(int8_t));
+
+			return *this;
+		}
+
+		FileStream& FileStream::operator >> (int8_t& value)
+		{
+			if (m_nFlag == EmState::eNone)
+				m_file >> value;
+			else
+				m_file.read(reinterpret_cast<char*>(&value), sizeof(int8_t));
+
+			return *this;
+		}
+
+		FileStream& FileStream::operator << (int16_t value)
+		{
+			if (m_nFlag == EmState::eNone)
+				m_file << value;
+			else
+				m_file.write(reinterpret_cast<char*>(&value), sizeof(int16_t));
+
+			return *this;
+		}
+
+		FileStream& FileStream::operator >> (int16_t& value)
+		{
+			if (m_nFlag == EmState::eNone)
+				m_file >> value;
+			else
+				m_file.read(reinterpret_cast<char*>(&value), sizeof(int16_t));
+
+			return *this;
+		}
+
 		FileStream& FileStream::operator << (int value)
 		{
 			if (m_nFlag == EmState::eNone)
@@ -55,6 +95,46 @@ namespace EastEngine
 				m_file >> value;
 			else
 				m_file.read(reinterpret_cast<char*>(&value), sizeof(DWORD));
+
+			return *this;
+		}
+
+		FileStream& FileStream::operator << (uint8_t value)
+		{
+			if (m_nFlag == EmState::eNone)
+				m_file << value;
+			else
+				m_file.write(reinterpret_cast<char*>(&value), sizeof(uint8_t));
+
+			return *this;
+		}
+
+		FileStream& FileStream::operator >> (uint8_t& value)
+		{
+			if (m_nFlag == EmState::eNone)
+				m_file >> value;
+			else
+				m_file.read(reinterpret_cast<char*>(&value), sizeof(uint8_t));
+
+			return *this;
+		}
+
+		FileStream& FileStream::operator << (uint16_t value)
+		{
+			if (m_nFlag == EmState::eNone)
+				m_file << value;
+			else
+				m_file.write(reinterpret_cast<char*>(&value), sizeof(uint16_t));
+
+			return *this;
+		}
+
+		FileStream& FileStream::operator >> (uint16_t& value)
+		{
+			if (m_nFlag == EmState::eNone)
+				m_file >> value;
+			else
+				m_file.read(reinterpret_cast<char*>(&value), sizeof(uint16_t));
 
 			return *this;
 		}
@@ -283,7 +363,47 @@ namespace EastEngine
 			return *this;
 		}
 
-		FileStream& FileStream::Write(const int* pValue, uint32_t nCount)
+		FileStream& FileStream::Write(const int8_t* pValue, uint32_t nCount)
+		{
+			for (uint32_t i = 0; i < nCount; ++i)
+			{
+				*this << pValue[i];
+			}
+
+			return *this;
+		}
+
+		FileStream& FileStream::Write(const int16_t* pValue, uint32_t nCount)
+		{
+			for (uint32_t i = 0; i < nCount; ++i)
+			{
+				*this << pValue[i];
+			}
+
+			return *this;
+		}
+
+		FileStream& FileStream::Write(const int32_t* pValue, uint32_t nCount)
+		{
+			for (uint32_t i = 0; i < nCount; ++i)
+			{
+				*this << pValue[i];
+			}
+
+			return *this;
+		}
+
+		FileStream& FileStream::Write(const uint8_t* pValue, uint32_t nCount)
+		{
+			for (uint32_t i = 0; i < nCount; ++i)
+			{
+				*this << pValue[i];
+			}
+
+			return *this;
+		}
+
+		FileStream& FileStream::Write(const uint16_t* pValue, uint32_t nCount)
 		{
 			for (uint32_t i = 0; i < nCount; ++i)
 			{
@@ -343,7 +463,47 @@ namespace EastEngine
 			return *this;
 		}
 
-		FileStream& FileStream::Read(int* pBuffer, uint32_t nCount)
+		FileStream& FileStream::Read(int8_t* pBuffer, uint32_t nCount)
+		{
+			for (uint32_t i = 0; i < nCount; ++i)
+			{
+				*this >> pBuffer[i];
+			}
+
+			return *this;
+		}
+
+		FileStream& FileStream::Read(int16_t* pBuffer, uint32_t nCount)
+		{
+			for (uint32_t i = 0; i < nCount; ++i)
+			{
+				*this >> pBuffer[i];
+			}
+
+			return *this;
+		}
+
+		FileStream& FileStream::Read(int32_t* pBuffer, uint32_t nCount)
+		{
+			for (uint32_t i = 0; i < nCount; ++i)
+			{
+				*this >> pBuffer[i];
+			}
+
+			return *this;
+		}
+
+		FileStream& FileStream::Read(uint8_t* pBuffer, uint32_t nCount)
+		{
+			for (uint32_t i = 0; i < nCount; ++i)
+			{
+				*this >> pBuffer[i];
+			}
+
+			return *this;
+		}
+
+		FileStream& FileStream::Read(uint16_t* pBuffer, uint32_t nCount)
 		{
 			for (uint32_t i = 0; i < nCount; ++i)
 			{

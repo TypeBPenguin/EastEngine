@@ -93,6 +93,7 @@ namespace EastEngine
 			virtual float GetClearcoatGloss() const override { return m_info.f4SheenTintClearcoatGloss.w; }
 			virtual void SetClearcoatGloss(float fClearcoatGloss) override { m_info.f4SheenTintClearcoatGloss.w = fClearcoatGloss; }
 
+			virtual bool IsTransparent() const override { return m_info.isTransparent; }
 			virtual bool IsLoadComplete() const override;
 
 		public:

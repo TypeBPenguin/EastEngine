@@ -381,6 +381,7 @@ namespace EastEngine
 			: colorAlbedo(1.f, 1.f, 1.f, 1.f)
 			, colorEmissive(0.f, 0.f, 0.f, 1.f)
 			, fTessellationFactor(256.f)
+			, isTransparent(false)
 			, pSamplerState(nullptr)
 			, pBlendState(nullptr)
 			, pRasterizerState(nullptr)
@@ -401,6 +402,7 @@ namespace EastEngine
 			f4SheenTintClearcoatGloss = Math::Vector4::Zero;
 
 			fTessellationFactor = 256.f;
+			isTransparent = false;
 
 			for (auto& strTexName : strTextureNameArray)
 			{

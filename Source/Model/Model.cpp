@@ -15,6 +15,7 @@
 
 #include "FbxImporter.h"
 #include "ObjImporter.h"
+#include "XpsImporter.h"
 
 #include "Skeleton.h"
 
@@ -217,7 +218,7 @@ namespace EastEngine
 			{
 			case EmModelLoader::eFbx:
 			{
-				isSuccess = FBXImport::GetInstance()->LoadModel(this, loader.GetFilePath().c_str(), loader.GetScaleFactor());
+				isSuccess = FBXImport::GetInstance()->LoadModel(this, loader.GetFilePath().c_str(), loader.GetScaleFactor(), loader.IsFlipZ());
 				if (isSuccess == false)
 				{
 					LOG_ERROR("Can't load Model[FBX] : %s", loader.GetFilePath().c_str());
@@ -226,10 +227,19 @@ namespace EastEngine
 			break;
 			case EmModelLoader::eObj:
 			{
-				isSuccess = FBXImport::GetInstance()->LoadModel(this, loader.GetFilePath().c_str(), loader.GetScaleFactor());
+				isSuccess = FBXImport::GetInstance()->LoadModel(this, loader.GetFilePath().c_str(), loader.GetScaleFactor(), loader.IsFlipZ());
 				if (isSuccess == false)
 				{
 					LOG_ERROR("Can't load Model[Obj] : %s", loader.GetFilePath().c_str());
+				}
+			}
+			break;
+			case EmModelLoader::eXps:
+			{
+				isSuccess = XPSImport::LoadModel(this, loader.GetFilePath().c_str());
+				if (isSuccess == false)
+				{
+					LOG_ERROR("Can't load Model[XPS] : %s", loader.GetFilePath().c_str());
 				}
 			}
 			break;
@@ -619,8 +629,7 @@ namespace EastEngine
 						file.Read(&vertex.uv.x, 2);
 						file.Read(&vertex.normal.x, 3);
 						file.Read(&vertex.boneWeight.x, 3);
-
-						file >> vertex.boneIndices.v;
+						file.Read(&vertex.boneIndices[0], 4);
 					}
 
 					pVertexBuffer = IVertexBuffer::Create(VertexPosTexNorWeiIdx::Format(), vecVertices.size(), &vecVertices.front(), D3D11_USAGE_DYNAMIC, IVertexBuffer::eSaveVertexPos);

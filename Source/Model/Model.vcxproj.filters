@@ -61,6 +61,9 @@
     <Filter Include="Motion\Recoder">
       <UniqueIdentifier>{1167bfef-d673-4f3f-866d-8798e7a014dd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Model\Importer\XPS">
+      <UniqueIdentifier>{09d88cb6-e403-4c9d-bfdf-7d5d782f1b3f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -132,6 +135,9 @@
     <ClInclude Include="MotionRecoder.h">
       <Filter>Motion\Recoder</Filter>
     </ClInclude>
+    <ClInclude Include="XpsImporter.h">
+      <Filter>Model\Importer\XPS</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -196,6 +202,9 @@
     </ClCompile>
     <ClCompile Include="MotionRecoder.cpp">
       <Filter>Motion\Recoder</Filter>
+    </ClCompile>
+    <ClCompile Include="XpsImporter.cpp">
+      <Filter>Model\Importer\XPS</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
