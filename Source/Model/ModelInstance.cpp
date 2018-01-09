@@ -86,11 +86,6 @@ namespace EastEngine
 			if (IsAttachment() == true)
 				return;
 
-			if (m_pModel->GetSkeleton() != nullptr)
-			{
-				ModelManager::GetInstance()->PushJobUpdateTransformations(this);
-			}
-
 			ModelManager::GetInstance()->PushJobUpdateModels(this);
 		}
 

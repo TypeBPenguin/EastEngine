@@ -54,12 +54,10 @@ namespace EastEngine
 			IModel* AllocateModel(uint32_t nReserveInstance);
 			void DestroyModel(IModel** ppModel);
 
-			//bool AddModel(const String::StringID& strModelName, IModel* pModel);
 			bool ChangeName(IModel* pModel, const String::StringID& strName);
 			IModel* GetModel(const String::StringID& strModelName);
 
 		public:
-			void PushJobUpdateTransformations(ModelInstance* pModelInstance) { m_vecJobUpdateTransformations.emplace_back(pModelInstance); }
 			void PushJobUpdateModels(ModelInstance* pModelInstance) { m_vecJobUpdateModels.emplace_back(pModelInstance); }
 
 		private:
@@ -67,7 +65,6 @@ namespace EastEngine
 			bool m_isLoading;
 
 			plf::colony<Model> m_clnModel;
-			std::vector<ModelInstance*> m_vecJobUpdateTransformations;
 			std::vector<ModelInstance*> m_vecJobUpdateModels;
 
 			Concurrency::concurrent_queue<RequestLoadModelInfo> m_conQueueRequestModelLoader;

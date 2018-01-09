@@ -63,7 +63,6 @@ namespace EastEngine
 			m_isInit = true;
 
 			m_clnModel.reserve(128);
-			m_vecJobUpdateTransformations.reserve(1024);
 			m_vecJobUpdateModels.reserve(1024);
 
 			if (GeometryModel::Initialize() == false)
@@ -140,14 +139,12 @@ namespace EastEngine
 				model.Ready();
 			});
 
-			Concurrency::parallel_for_each(m_vecJobUpdateTransformations.begin(), m_vecJobUpdateTransformations.end(), [](ModelInstance* pModelInstance)
-			{
-				pModelInstance->UpdateTransformations();
-			});
-			m_vecJobUpdateTransformations.clear();
-
 			Concurrency::parallel_for_each(m_vecJobUpdateModels.begin(), m_vecJobUpdateModels.end(), [](ModelInstance* pModelInstance)
 			{
+				if (pModelInstance->GetSkeleton() != nullptr)
+				{
+					pModelInstance->UpdateTransformations();
+				}
 				pModelInstance->UpdateModel();
 			});
 			m_vecJobUpdateModels.clear();
