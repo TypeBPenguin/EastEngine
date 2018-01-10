@@ -105,13 +105,22 @@ namespace EastEngine
 				bool IsLeftThumbStickLeft() const { return (thumbSticks.leftX < -0.5f) != 0; }
 				bool IsLeftThumbStickRight() const { return (thumbSticks.leftX > 0.5f) != 0; }
 
+				float GetLeftThumbStickX() const { return thumbSticks.leftX; }
+				float GetLeftThumbStickY() const { return thumbSticks.leftY; }
+
 				bool IsRightThumbStickUp() const { return (thumbSticks.rightY > 0.5f) != 0; }
 				bool IsRightThumbStickDown() const { return (thumbSticks.rightY < -0.5f) != 0; }
 				bool IsRightThumbStickLeft() const { return (thumbSticks.rightX < -0.5f) != 0; }
 				bool IsRightThumbStickRight() const { return (thumbSticks.rightX > 0.5f) != 0; }
 
+				float GetRightThumbStickX() const { return thumbSticks.rightX; }
+				float GetRightThumbStickY() const { return thumbSticks.rightY; }
+
 				bool IsLeftTriggerPressed() const { return (triggers.left > 0.5f) != 0; }
 				bool IsRightTriggerPressed() const { return (triggers.right > 0.5f) != 0; }
+
+				float GetLeftTrigger() const { return triggers.left; }
+				float GetRightTrigger() const { return triggers.right; }
 			};
 
 			struct Capabilities
@@ -141,6 +150,9 @@ namespace EastEngine
 			class ButtonStateTracker
 			{
 			public:
+				ButtonStateTracker() { Reset(); }
+				~ButtonStateTracker() = default;
+
 				enum EmButtonState
 				{
 					eUp = 0,		// Button is up
@@ -149,6 +161,32 @@ namespace EastEngine
 					ePressed,		// Button was just pressed
 				};
 
+			public:
+				void Update(const State& state);
+
+				void Reset();
+
+			public:
+				const EmButtonState& A() const { return a; }
+				const EmButtonState& B() const { return b; }
+				const EmButtonState& X() const { return x; }
+				const EmButtonState& Y() const { return y; }
+
+				const EmButtonState& LeftStick() const { return leftStick; }
+				const EmButtonState& RightStick() const { return rightStick; }
+
+				const EmButtonState& LeftShoulder() const { return leftShoulder; }
+				const EmButtonState& RightShoulder() const { return rightShoulder; }
+
+				const EmButtonState& Back() const { return back; }
+				const EmButtonState& Start() const { return start; }
+
+				const EmButtonState& DPadUp() const { return dpadUp; }
+				const EmButtonState& DPadDown() const { return dpadDown; }
+				const EmButtonState& DPadLeft() const { return dpadLeft; }
+				const EmButtonState& DPadRight() const { return dpadRight; }
+
+			private:
 				EmButtonState a;
 				EmButtonState b;
 				EmButtonState x;
@@ -168,34 +206,19 @@ namespace EastEngine
 				EmButtonState dpadLeft;
 				EmButtonState dpadRight;
 
-				ButtonStateTracker() { Reset(); }
-
-				void Update(const State& state);
-
-				void Reset();
-
-			private:
 				State lastState;
 			};
 
 			class Player
 			{
 			public:
-				Player(EmPlayerID emPlayer)
-					: m_emPlayerID(emPlayer)
-					, m_isConnected(false)
-					, m_fLastReadTime(0.f)
-					, m_emDeadZoneMode(EmDeadZone::eIndependentAxes)
-				{
-				}
+				Player(EmPlayerID emPlayer);
+				~Player();
 
-				~Player()
-				{
-				}
-
+			public:
 				void Update(float fElapsedTime);
 
-				bool SetVibration(float fLeftMotor, float fRightMotor, float fLeftTrigger = 0.f, float fRightTrigger = 0.f);
+				bool SetVibration(float fLeftMotor, float fRightMotor);
 
 			public:
 				EmPlayerID GetPlayerID() const { return m_emPlayerID; }
@@ -237,9 +260,9 @@ namespace EastEngine
 			Player* GetPlayer(EmPlayerID emPlayerID) { return &m_players[emPlayerID]; }
 
 			// Set the vibration motor speeds of the gamepad
-			bool SetVibration(EmPlayerID emPlayerID, float fLeftMotor, float fRightMotor, float fLeftTrigger = 0.f, float fRightTrigger = 0.f)
+			bool SetVibration(EmPlayerID emPlayerID, float fLeftMotor, float fRightMotor)
 			{
-				return m_players[emPlayerID].SetVibration(fLeftMotor, fRightMotor, fLeftTrigger, fRightTrigger);
+				return m_players[emPlayerID].SetVibration(fLeftMotor, fRightMotor);
 			}
 
 			// Handle suspending/resuming

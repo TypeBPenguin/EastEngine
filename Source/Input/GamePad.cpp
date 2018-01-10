@@ -100,6 +100,18 @@ namespace EastEngine
 			Memory::Clear(this, sizeof(ButtonStateTracker));
 		}
 
+		GamePad::Player::Player(EmPlayerID emPlayer)
+			: m_emPlayerID(emPlayer)
+			, m_isConnected(false)
+			, m_fLastReadTime(0.f)
+			, m_emDeadZoneMode(EmDeadZone::eIndependentAxes)
+		{
+		}
+
+		GamePad::Player::~Player()
+		{
+		}
+
 		void GamePad::Player::Update(float fElapsedTime)
 		{
 			if (throttleRetry(fElapsedTime) == true)
@@ -116,7 +128,7 @@ namespace EastEngine
 			}
 		}
 
-		bool GamePad::Player::SetVibration(float fLeftMotor, float fRightMotor, float fLeftTrigger, float fRightTrigger)
+		bool GamePad::Player::SetVibration(float fLeftMotor, float fRightMotor)
 		{
 			if (throttleRetry(0.f) == true)
 				return false;
