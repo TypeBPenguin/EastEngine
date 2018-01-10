@@ -1429,6 +1429,11 @@ void ShowMaterial(bool& isShowMaterial, Graphics::IMaterial* pMaterial, int nInd
 			pMaterial->SetAlbedoColor(*reinterpret_cast<Math::Color*>(&color));
 		}
 		TextureInfo(Graphics::EmMaterial::eAlbedo, 1);
+		bool isAlbedoAlphaChannelMaskMap = pMaterial->IsAlbedoAlphaChannelMaskMap();
+		if (ImGui::Checkbox("Is Albedo Alpha Channel a Mask Map ?", &isAlbedoAlphaChannelMaskMap) == true)
+		{
+			pMaterial->SetAlbedoAlphaChannelMaskMap(isAlbedoAlphaChannelMaskMap);
+		}
 	}
 
 	ImGui::Separator();

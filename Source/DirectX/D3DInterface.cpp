@@ -233,7 +233,7 @@ namespace EastEngine
 			return pVertexBuffer;
 		}
 
-		IIndexBuffer* IIndexBuffer::Create(size_t nElementCount, const uint32_t* pData, D3D11_USAGE emUsage, size_t nOptions)
+		IIndexBuffer* IIndexBuffer::Create(size_t nElementCount, const uint32_t* pData, D3D11_USAGE emUsage, uint32_t nOptions)
 		{
 			IndexBuffer* pIndexBuffer = new IndexBuffer;
 			if (pIndexBuffer->Init(nElementCount, pData, emUsage, nOptions) == false)
@@ -381,7 +381,7 @@ namespace EastEngine
 			: colorAlbedo(1.f, 1.f, 1.f, 1.f)
 			, colorEmissive(0.f, 0.f, 0.f, 1.f)
 			, fTessellationFactor(256.f)
-			, isTransparent(false)
+			, isAlbedoAlphaChannelMaskMap(false)
 			, pSamplerState(nullptr)
 			, pBlendState(nullptr)
 			, pRasterizerState(nullptr)
@@ -402,7 +402,7 @@ namespace EastEngine
 			f4SheenTintClearcoatGloss = Math::Vector4::Zero;
 
 			fTessellationFactor = 256.f;
-			isTransparent = false;
+			isAlbedoAlphaChannelMaskMap = false;
 
 			for (auto& strTexName : strTextureNameArray)
 			{

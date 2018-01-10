@@ -32,12 +32,16 @@ namespace EastEngine
 		class Effect : public IEffect
 		{
 		public:
-			Effect(ID3DX11Effect* pEffect, const String::StringID& strName);
+			Effect(const String::StringID& strName);
 			virtual ~Effect();
 
+		public:
+			void Init(ID3DX11Effect* pEffect) { m_pEffect = pEffect; }
 			void Optimize();
+			void SetValid(bool isValid) { m_isValid = isValid; }
 
 		public:
+			virtual bool IsValid() const override { return m_isValid; }
 			virtual void ClearState(IDeviceContext* pd3dDeviceContext, IEffectTech* pEffectTech) override;
 
 			virtual const String::StringID& GetName() override { return m_strName; }
@@ -108,6 +112,7 @@ namespace EastEngine
 			String::StringID m_strName;
 
 			bool m_isOptimized;
+			bool m_isValid;
 
 			std::unordered_map<String::StringID, IEffectTech*> m_umapEffectTech;
 			std::unordered_map<String::StringID, EffectHandle*> m_umapEffectHandle;

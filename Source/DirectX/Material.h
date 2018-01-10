@@ -93,7 +93,9 @@ namespace EastEngine
 			virtual float GetClearcoatGloss() const override { return m_info.f4SheenTintClearcoatGloss.w; }
 			virtual void SetClearcoatGloss(float fClearcoatGloss) override { m_info.f4SheenTintClearcoatGloss.w = fClearcoatGloss; }
 
-			virtual bool IsTransparent() const override { return m_info.isTransparent; }
+			virtual bool IsAlbedoAlphaChannelMaskMap() const override { return m_info.isAlbedoAlphaChannelMaskMap; }
+			virtual void SetAlbedoAlphaChannelMaskMap(bool isAlbedoAlphaChannelMaskMap) override { m_info.isAlbedoAlphaChannelMaskMap = isAlbedoAlphaChannelMaskMap; }
+
 			virtual bool IsLoadComplete() const override;
 
 		public:

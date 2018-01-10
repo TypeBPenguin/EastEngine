@@ -8,8 +8,6 @@ namespace EastEngine
 {
 	namespace Thread
 	{
-		using FuncTask = std::function<void()>;
-
 		class ThreadPool;
 
 		class Task
@@ -54,9 +52,9 @@ namespace EastEngine
 			struct RequestTask
 			{
 				std::promise<Task*> promiseThread;
-				FuncTask funcTask;
+				std::function<void()> funcTask;
 
-				RequestTask(FuncTask funcTask);
+				RequestTask(std::function<void()> funcTask);
 			};
 
 		public:
@@ -64,7 +62,7 @@ namespace EastEngine
 			void Release();
 
 		public:
-			std::future<Task*> Push(FuncTask funcTask);
+			std::future<Task*> Push(std::function<void()> funcTask);
 
 			bool IsStop() { return m_isStop.load(); }
 			bool IsEmptyTask() { return m_queueTasks.empty(); }
@@ -84,6 +82,6 @@ namespace EastEngine
 			std::condition_variable m_condition;
 		};
 
-		std::future<Task*> CreateTask(FuncTask funcTask);
+		std::future<Task*> CreateTask(std::function<void()> funcTask);
 	}
 }

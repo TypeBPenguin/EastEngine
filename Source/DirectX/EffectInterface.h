@@ -60,8 +60,8 @@ namespace EastEngine
 		private:
 			struct Macro
 			{
-				const char* Name;
-				const char* Definition;
+				const char* Name = nullptr;
+				const char* Definition = nullptr;
 
 				Macro(const char* strName, const char* strDefinition);
 			};
@@ -81,6 +81,20 @@ namespace EastEngine
 			void PrintMacros(std::string& strBuf) const;
 
 			const void* GetMacros() const;
+
+			size_t GetMacroCount() const { return vecMacros.size(); }
+			void GetMacro(size_t nIndex, std::string& strName_out, std::string& strDefinition_out) const
+			{
+				if (vecMacros[nIndex].Name != nullptr)
+				{
+					strName_out = vecMacros[nIndex].Name;
+				}
+
+				if (vecMacros[nIndex].Definition != nullptr)
+				{
+					strDefinition_out = vecMacros[nIndex].Definition;
+				}
+			}
 		};
 
 		class IEffectTech
@@ -107,10 +121,12 @@ namespace EastEngine
 
 		public:
 			static IEffect* Compile(const String::StringID& strName, const std::string& strPath, const ShaderMacros* pShaderMacros);
+			static IEffect* CompileAsync(const String::StringID& strName, const std::string& strPath, const ShaderMacros* pShaderMacros, std::function<void(IEffect*, bool)> funcCallback);
 			static IEffect* Create(const String::StringID& strName, const std::string& strPath);
 			static void Destroy(IEffect** ppEffect);
 
 		public:
+			virtual bool IsValid() const = 0;
 			virtual void ClearState(IDeviceContext* pd3dDeviceContext, IEffectTech* pEffectTech) = 0;
 
 			virtual const String::StringID& GetName() = 0;

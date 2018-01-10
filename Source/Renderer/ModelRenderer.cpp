@@ -86,7 +86,7 @@ namespace EastEngine
 				eUseWriteDepth,
 				eUseCubeMap,
 				eUseTessellation,
-				eUseTransparent,
+				eUseAlbedoAlphaIsMaskMap,
 
 				MaskCount,
 			};
@@ -117,7 +117,7 @@ namespace EastEngine
 					"USE_WRITEDEPTH",
 					"USE_CUBEMAP",
 					"USE_TESSELLATION",
-					"USE_TRANSPARENT",
+					"USE_ALBEDO_ALPHA_IS_MASK_MAP",
 				};
 
 				return s_strMaskName[nMask].c_str();
@@ -178,25 +178,30 @@ namespace EastEngine
 				strPath.append("Model\\Model.fx");
 			}
 
-			pEffect = IEffect::Compile(strName, strPath.c_str(), &macros);
+			pEffect = IEffect::CompileAsync(strName, strPath.c_str(), &macros, [emTechType](IEffect* pEffect, bool isSuccess)
+			{
+				if (isSuccess == true)
+				{
+					switch (emTechType)
+					{
+					case eModelStatic:
+						pEffect->CreateTechnique(StrID::ModelStatic, EmVertexFormat::ePosTexNor);
+						break;
+					case eModelSkinned:
+						pEffect->CreateTechnique(StrID::ModelSkinned, EmVertexFormat::ePosTexNorWeiIdx);
+						break;
+					case eModelStatic_Tessellation:
+						pEffect->CreateTechnique(StrID::ModelStatic_Tessellation, EmVertexFormat::ePosTexNor);
+						break;
+					case eModelSkinned_Tessellation:
+						pEffect->CreateTechnique(StrID::ModelSkinned_Tessellation, EmVertexFormat::ePosTexNorWeiIdx);
+						break;
+					}
+				}
+			});
+
 			if (pEffect == nullptr)
 				return nullptr;
-
-			switch (emTechType)
-			{
-			case eModelStatic:
-				pEffect->CreateTechnique(StrID::ModelStatic, EmVertexFormat::ePosTexNor);
-				break;
-			case eModelSkinned:
-				pEffect->CreateTechnique(StrID::ModelSkinned, EmVertexFormat::ePosTexNorWeiIdx);
-				break;
-			case eModelStatic_Tessellation:
-				pEffect->CreateTechnique(StrID::ModelStatic_Tessellation, EmVertexFormat::ePosTexNor);
-				break;
-			case eModelSkinned_Tessellation:
-				pEffect->CreateTechnique(StrID::ModelSkinned_Tessellation, EmVertexFormat::ePosTexNorWeiIdx);
-				break;
-			}
 
 			return pEffect;
 		}
@@ -321,7 +326,7 @@ namespace EastEngine
 				SetBitMask64(nMask, IsValidTexture(EmMaterial::eClearcoat) == true ? EmModelShader::eUseTexClearcoat : -1);
 				SetBitMask64(nMask, IsValidTexture(EmMaterial::eClearcoatGloss) == true ? EmModelShader::eUseTexClearcoatGloss : -1);
 
-				SetBitMask64(nMask, pMaterial->IsTransparent() == true ? EmModelShader::eUseTransparent : -1);
+				SetBitMask64(nMask, pMaterial->IsAlbedoAlphaChannelMaskMap() == true ? EmModelShader::eUseAlbedoAlphaIsMaskMap : -1);
 
 				if (Config::IsEnable("Tessellation"_s) == true && Math::IsZero(pMaterial->GetTessellationFactor() - 1.f) == false)
 				{
@@ -339,8 +344,19 @@ namespace EastEngine
 			}
 
 			IEffect* pEffect = GetEffect(nMask);
-			if (pEffect == nullptr)
-				return;
+			if (pEffect == nullptr || pEffect->IsValid() == false)
+			{
+				int64_t nDefaultMask = 0;
+				SetBitMask64(nDefaultMask, isInstancing == true ? EmModelShader::eUseInstancing : -1);
+				SetBitMask64(nDefaultMask, isSkinnedModel == true ? EmModelShader::eUseSkinning : -1);
+				SetBitMask64(nDefaultMask, isWriteDepth == true ? EmModelShader::eUseWriteDepth : -1);
+				SetBitMask64(nDefaultMask, isCubeMap == true ? EmModelShader::eUseCubeMap : -1);
+				SetBitMask64(nDefaultMask, isEnableTessellation == true ? EmModelShader::eUseTessellation : -1);
+
+				pEffect = GetEffect(nDefaultMask);
+				if (pEffect == nullptr || pEffect->IsValid() == false)
+					return;
+			}
 
 			String::StringID strTechName = StrID::ModelStatic;
 			if (isSkinnedModel == true)

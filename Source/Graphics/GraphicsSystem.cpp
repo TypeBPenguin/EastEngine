@@ -196,6 +196,8 @@ namespace EastEngine
 		{
 			s_pCameraManager->Update(fElapsedTime);
 
+			s_pShaderMgr->Update();
+
 			s_pModelMgr->Update();
 			s_pTextureMgr->Update(fElapsedTime);
 

@@ -3,6 +3,7 @@
 
 #include "CommonLib/FileUtil.h"
 #include "CommonLib/DirectoryMonitor.h"
+#include "CommonLib/ThreadPool.h"
 
 #include "Effect.h"
 
@@ -47,6 +48,20 @@ namespace EastEngine
 			m_isInit = false;
 		}
 
+		void ShaderManager::Update()
+		{
+			while (m_conQueueCompleteEffectAsyncLoader.empty() == false)
+			{
+				CompleteEffectAsyncLoader loader;
+				if (m_conQueueCompleteEffectAsyncLoader.try_pop(loader) == true)
+				{
+					Effect* pEffect = static_cast<Effect*>(loader.pEffect);
+					pEffect->SetValid(loader.isSuccess);
+					loader.funcCallback(loader.pEffect, loader.isSuccess);
+				}
+			}
+		}
+
 		void CALLBACK ShaderManager::DirectoryMonitorCallback(const char* strPath, DWORD dwAction, LPARAM lParam)
 		{
 			switch (dwAction)
@@ -73,6 +88,8 @@ namespace EastEngine
 
 		IEffect* ShaderManager::GetEffect(const String::StringID& strName)
 		{
+			std::lock_guard<std::mutex> lock(m_mutex);
+
 			auto iter = m_umapEffects.find(strName);
 			if (iter != m_umapEffects.end())
 				return iter->second;
@@ -85,6 +102,8 @@ namespace EastEngine
 			if (pEffect == nullptr || GetEffect(pEffect->GetName()) != nullptr)
 				return false;
 
+			std::lock_guard<std::mutex> lock(m_mutex);
+
 			m_umapEffects.emplace(pEffect->GetName(), pEffect);
 
 			return true;
@@ -95,11 +114,28 @@ namespace EastEngine
 			if (pEffect == nullptr)
 				return;
 
+			std::lock_guard<std::mutex> lock(m_mutex);
+
 			auto iter = m_umapEffects.find(pEffect->GetName());
 			if (iter == m_umapEffects.end())
 				return;
 
+			Effect* pRealEffect = static_cast<Effect*>(iter->second);
+			SafeDelete(pRealEffect);
 			m_umapEffects.erase(iter);
+		}
+
+		void ShaderManager::RequestEffectAsyncLoad(IEffect* pEffect, std::function<bool()> funcLoader)
+		{
+		}
+
+		void ShaderManager::CompleteEffectAsyncLoad(IEffect* pEffect, bool isSuccess, std::function<void(IEffect*, bool)> funcCallback)
+		{
+			CompleteEffectAsyncLoader loader;
+			loader.pEffect = pEffect;
+			loader.isSuccess = isSuccess;
+			loader.funcCallback = funcCallback;
+			m_conQueueCompleteEffectAsyncLoader.push(loader);
 		}
 	}
 }

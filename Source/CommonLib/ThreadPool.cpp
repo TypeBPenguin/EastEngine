@@ -46,7 +46,7 @@ namespace EastEngine
 			}
 		}
 
-		ThreadPool::RequestTask::RequestTask(FuncTask funcTask)
+		ThreadPool::RequestTask::RequestTask(std::function<void()> funcTask)
 			: funcTask(funcTask)
 		{
 		}
@@ -139,7 +139,7 @@ namespace EastEngine
 			m_isInit = false;
 		}
 
-		std::future<Task*> ThreadPool::Push(FuncTask funcTask)
+		std::future<Task*> ThreadPool::Push(std::function<void()> funcTask)
 		{
 			assert(m_isInit == true);
 
@@ -158,7 +158,7 @@ namespace EastEngine
 			return futureThread;
 		}
 
-		std::future<Task*> CreateTask(FuncTask funcTask)
+		std::future<Task*> CreateTask(std::function<void()> funcTask)
 		{
 			return ThreadPool::GetInstance()->Push(funcTask);
 		}

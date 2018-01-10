@@ -103,10 +103,11 @@ namespace EastEngine
 			return desc.Passes;
 		}
 
-		Effect::Effect(ID3DX11Effect* pEffect, const String::StringID& strName)
-			: m_pEffect(pEffect)
+		Effect::Effect(const String::StringID& strName)
+			: m_pEffect(nullptr)
 			, m_strName(strName)
 			, m_isOptimized(false)
+			, m_isValid(false)
 		{
 		}
 
