@@ -33,8 +33,6 @@ namespace EastEngine
 			void Seekg(std::streampos pos, uint32_t state) { m_file.seekg(pos, state); }
 			std::streampos Tellg() { m_file.tellg(); }
 
-			void GetLine(std::string& str) { std::getline(m_file, str); }
-
 			uint32_t GetDataSize() { return m_nDataSize; }
 
 		public:
@@ -91,6 +89,8 @@ namespace EastEngine
 			FileStream& Read(uint64_t* pBuffer, uint32_t nCount = 1);
 
 			FileStream& Read(char* pBuffer, uint32_t nLength);
+
+			void ReadLine(std::string& str) { std::getline(m_file, str); }
 
 		public:
 			const std::string& GetPath() { return m_strPath; }

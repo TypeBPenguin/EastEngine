@@ -9,11 +9,10 @@ namespace EastEngine
 {
 	namespace Graphics
 	{
-		class IMotion;
-		class IModel;
-		class IModelNode;
+		class Motion;
+		class Model;
 
-		bool WriteModel(IModel* pModel, const std::unordered_map<String::StringID, Math::Matrix>& umapMotionOffset);
-		bool WriteMotion(IMotion* pMotion);
+		bool WriteModel(Model* pModel, const std::unordered_map<String::StringID, Math::Matrix>& umapMotionOffset);
+		bool WriteMotion(Motion* pMotion);
 	}
 }

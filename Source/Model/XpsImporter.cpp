@@ -5,6 +5,8 @@
 #include "ModelNodeSkinned.h"
 #include "Skeleton.h"
 
+#include "Motion.h"
+
 #include "CommonLib/FileStream.h"
 #include "CommonLib/FileUtil.h"
 
@@ -319,6 +321,47 @@ namespace EastEngine
 						}
 
 						pSkeleton->SetSkinnedList(pSkinnedNode->GetName(), vecBoneNames.data(), vecBoneNames.size());
+					}
+				}
+
+				file.Close();
+
+				return true;
+			}
+
+			bool LoadMotion(Motion* pMotion, const char* strFilePath)
+			{
+				File::FileStream file;
+				if (file.Open(strFilePath, File::EmState::eRead | File::EmState::eBinary) == false)
+					return false;
+
+				pMotion->SetInfo(0.f, 0.f, 0.f);
+
+				while (file.Eof() == false)
+				{
+					std::string strTemp;
+					file.ReadLine(strTemp);
+
+					if (strTemp.empty() == false)
+					{
+						std::vector<Motion::Keyframe> vecKeyframes;
+
+						char temp[128] = {};
+						Math::Vector3 f3Rotation;
+
+						Motion::Keyframe keyframe;
+
+						sscanf_s(strTemp.c_str(), "%s: %f %f %f %f %f %f %f %f %f",
+							temp, sizeof(temp),
+							&f3Rotation.x, &f3Rotation.y, &f3Rotation.z,
+							&keyframe.f3Pos.x, &keyframe.f3Pos.y, &keyframe.f3Pos.z,
+							&keyframe.f3Scale.x, &keyframe.f3Scale.y, &keyframe.f3Scale.z);
+
+						keyframe.quatRotation = Math::Quaternion::CreateFromYawPitchRoll(f3Rotation.y, f3Rotation.x, f3Rotation.z);
+
+						vecKeyframes.emplace_back(keyframe);
+
+						pMotion->AddBoneKeyframes(temp, vecKeyframes);
 					}
 				}
 

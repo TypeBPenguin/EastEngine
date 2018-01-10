@@ -24,6 +24,15 @@ namespace EastEngine
 			m_emLoadMotionType = EmMotionLoader::eFbx;
 		}
 
+		void MotionLoader::InitXPS(const String::StringID& strMotionName, const char* strFilePath)
+		{
+			m_strMotionName = strMotionName;
+			m_strFilePath = strFilePath;
+			m_fScaleFactor = 1.f;
+
+			m_emLoadMotionType = EmMotionLoader::eXps;
+		}
+
 		void MotionLoader::InitEast(const String::StringID& strMotionName, const char* strFilePath)
 		{
 			m_strMotionName = strMotionName;

@@ -37,14 +37,14 @@ namespace EastEngine
 
 				if (temp == "#")
 				{
-					file.GetLine(temp);
+					file.ReadLine(temp);
 					continue;
 				}
 
 				if (temp == "newmtl")
 				{
 					std::string strNewMtlName;
-					file.GetLine(strNewMtlName);
+					file.ReadLine(strNewMtlName);
 
 					if (strNewMtlName.empty())
 						continue;
@@ -189,7 +189,7 @@ namespace EastEngine
 
 					// diffuse Texture
 					std::string strTextureName;
-					file.GetLine(strTextureName);
+					file.ReadLine(strTextureName);
 
 					if (strTextureName.empty())
 						continue;
@@ -202,7 +202,7 @@ namespace EastEngine
 
 					// specular Texture
 					std::string strTextureName;
-					file.GetLine(strTextureName);
+					file.ReadLine(strTextureName);
 
 					if (strTextureName.empty())
 						continue;
@@ -215,7 +215,7 @@ namespace EastEngine
 
 					// specular Highlight
 					std::string strTextureName;
-					file.GetLine(strTextureName);
+					file.ReadLine(strTextureName);
 
 					if (strTextureName.empty())
 						continue;
@@ -229,7 +229,7 @@ namespace EastEngine
 					// the alpha texture map
 					// mask map
 					std::string strTextureName;
-					file.GetLine(strTextureName);
+					file.ReadLine(strTextureName);
 
 					if (strTextureName.empty())
 						continue;
@@ -242,7 +242,7 @@ namespace EastEngine
 
 					// some implementations use 'map_bump' instead of 'bump' below
 					std::string strTextureName;
-					file.GetLine(strTextureName);
+					file.ReadLine(strTextureName);
 
 					if (strTextureName.empty())
 						continue;
@@ -255,7 +255,7 @@ namespace EastEngine
 
 					// displacement map
 					std::string strTextureName;
-					file.GetLine(strTextureName);
+					file.ReadLine(strTextureName);
 
 					if (strTextureName.empty())
 						continue;
@@ -292,7 +292,7 @@ namespace EastEngine
 
 					// roughness map
 					std::string strTextureName;
-					file.GetLine(strTextureName);
+					file.ReadLine(strTextureName);
 
 					if (strTextureName.empty())
 						continue;
@@ -315,7 +315,7 @@ namespace EastEngine
 
 					// metallic map
 					std::string strTextureName;
-					file.GetLine(strTextureName);
+					file.ReadLine(strTextureName);
 
 					if (strTextureName.empty())
 						continue;
@@ -338,7 +338,7 @@ namespace EastEngine
 
 					// sheen map
 					std::string strTextureName;
-					file.GetLine(strTextureName);
+					file.ReadLine(strTextureName);
 
 					if (strTextureName.empty())
 						continue;
@@ -382,7 +382,7 @@ namespace EastEngine
 
 					// emissive map
 					std::string strTextureName;
-					file.GetLine(strTextureName);
+					file.ReadLine(strTextureName);
 
 					if (strTextureName.empty())
 						continue;

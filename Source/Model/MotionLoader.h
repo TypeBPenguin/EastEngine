@@ -9,6 +9,7 @@ namespace EastEngine
 			enum Type
 			{
 				eFbx = 0,
+				eXps,
 				eEast,
 			};
 		}
@@ -21,6 +22,7 @@ namespace EastEngine
 
 		public:
 			void InitFBX(const String::StringID& strMotionName, const char* strFilePath, float fScaleFactor = 1.f);
+			void InitXPS(const String::StringID& strMotionName, const char* strFilePath);
 			void InitEast(const String::StringID& strMotionName, const char* strFilePath);
 
 		public:

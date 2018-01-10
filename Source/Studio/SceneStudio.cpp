@@ -637,7 +637,6 @@ void SceneStudio::Enter()
 
 		String::StringID strFileName = File::GetFileName(strPath).c_str();
 		loader.InitXPS(strFileName, strPath.c_str());
-		//loader.SetLocalRotation(Math::Quaternion::CreateFromYawPitchRoll(0.f, Math::ToRadians(-90.f), Math::ToRadians(180.f)));
 		loader.SetEnableThreadLoad(false);
 
 		GameObject::ComponentModel* pModel = static_cast<GameObject::ComponentModel*>(pActor->CreateComponent(GameObject::EmComponent::eModel));
@@ -646,15 +645,14 @@ void SceneStudio::Enter()
 		Graphics::IModelInstance* pModelInstance = pModel->GetModelInstance();
 		Graphics::IMotionSystem* pMotionSystem = pModelInstance->GetMotionSystem();
 
-		if (false)
 		{
 			std::string strPathMotion(File::GetDataPath());
-			strPathMotion.append("Actor\\HomunculusGirl\\HomunculusGirl.fbx");
+			strPathMotion.append("Model\\2B_NierAutomata\\default.pose");
 
 			String::StringID strMotionName;
 			strMotionName.Format("%s", File::GetFileName(strPathMotion).c_str());
 			Graphics::MotionLoader motionLoader;
-			motionLoader.InitFBX(strMotionName, strPathMotion.c_str(), 0.01f);
+			motionLoader.InitXPS(strMotionName, strPathMotion.c_str());
 			Graphics::IMotion* pMotion = Graphics::IMotion::Create(motionLoader);
 
 			Graphics::MotionPlaybackInfo playback;
@@ -664,6 +662,7 @@ void SceneStudio::Enter()
 			pMotionSystem->Play(Graphics::EmMotion::eLayer1, pMotion, &playback);
 		}
 	}
+
 
 	m_pMaterialNodeManager = new MaterialNodeManager;
 }
@@ -835,18 +834,18 @@ void SceneStudio::ProcessInput(float fElapsedTime)
 		LogStick("LeftTrigger", state.GetLeftTrigger());
 		LogStick("RightTrigger", state.GetRightTrigger());
 
-		static float fTime = 0.f;
-		if (fTime >= 0.1f && fTime < 1.f)
-		{
-			pPlayer->SetVibration(0.5f * fTime, 0.5f * fTime);
-		}
-		else if (fTime >= 1.f)
-		{
-			pPlayer->SetVibration(0.f, 0.f);
-			fTime -= 1.f;
-		}
-
-		fTime += fElapsedTime;
+		//static float fTime = 0.f;
+		//if (fTime >= 0.1f && fTime < 1.f)
+		//{
+		//	pPlayer->SetVibration(0.5f * fTime, 0.5f * fTime);
+		//}
+		//else if (fTime >= 1.f)
+		//{
+		//	pPlayer->SetVibration(0.f, 0.f);
+		//	fTime -= 1.f;
+		//}
+		//
+		//fTime += fElapsedTime;
 	}
 	else
 	{

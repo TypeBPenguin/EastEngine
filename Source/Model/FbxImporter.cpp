@@ -352,7 +352,7 @@ namespace EastEngine
 			}
 		}
 
-		bool FBXImport::LoadModel(IModel* pModel, const char* strFilePath, float fScale, bool isFlipZ)
+		bool FBXImport::LoadModel(Model* pModel, const char* strFilePath, float fScale, bool isFlipZ)
 		{
 			if (pModel == nullptr || strFilePath == nullptr)
 				return false;
@@ -415,7 +415,7 @@ namespace EastEngine
 			return true;
 		}
 
-		bool FBXImport::LoadMotion(IMotion* pMotion, const char* strFilePath, float fScale)
+		bool FBXImport::LoadMotion(Motion* pMotion, const char* strFilePath, float fScale)
 		{
 			if (pMotion == nullptr || strFilePath == nullptr)
 				return false;

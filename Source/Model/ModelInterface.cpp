@@ -16,6 +16,7 @@
 #include "MotionSystem.h"
 
 #include "FbxImporter.h"
+#include "XpsImporter.h"
 
 namespace EastEngine
 {
@@ -59,6 +60,25 @@ namespace EastEngine
 				Motion* pMotion = s_poolMotion.construct(strMotionName, loader.GetFilePath().c_str());
 
 				if (FBXImport::GetInstance()->LoadMotion(pMotion, loader.GetFilePath().c_str(), loader.GetScaleFactor()) == false)
+				{
+					pMotion->SetLoadState(EmLoadState::eInvalid);
+					return nullptr;
+				}
+
+				pMotion->SetLoadState(EmLoadState::eComplete);
+
+				MotionManager::GetInstance()->AddMotion(loader.GetName(), pMotion);
+
+				return pMotion;
+			}
+			break;
+			case EmMotionLoader::eXps:
+			{
+				String::StringID strMotionName = File::GetFileNameWithoutExtension(loader.GetFilePath().c_str()).c_str();
+
+				Motion* pMotion = s_poolMotion.construct(strMotionName, loader.GetFilePath().c_str());
+
+				if (XPSImport::LoadMotion(pMotion, loader.GetFilePath().c_str()) == false)
 				{
 					pMotion->SetLoadState(EmLoadState::eInvalid);
 					return nullptr;

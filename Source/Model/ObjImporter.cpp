@@ -84,13 +84,13 @@ namespace EastEngine
 
 				if (temp == "#")
 				{
-					file.GetLine(temp);
+					file.ReadLine(temp);
 					continue;
 				}
 				else if (temp == "mtllib")
 				{
 					std::string strFileName;
-					file.GetLine(strFileName);
+					file.ReadLine(strFileName);
 
 					if (strFileName.empty())
 						continue;
@@ -105,7 +105,7 @@ namespace EastEngine
 				else if (temp == "g")
 				{
 					std::string strFileName;
-					file.GetLine(strFileName);
+					file.ReadLine(strFileName);
 
 					if (strFileName.empty())
 						continue;
@@ -127,7 +127,7 @@ namespace EastEngine
 				else if (temp == "usemtl")
 				{
 					std::string strFileName;
-					file.GetLine(strFileName);
+					file.ReadLine(strFileName);
 
 					if (strFileName.empty())
 						continue;
@@ -178,7 +178,7 @@ namespace EastEngine
 				else if (temp == "f")
 				{
 					std::string strFace;
-					file.GetLine(strFace);
+					file.ReadLine(strFace);
 
 					std::vector<std::string> vecFace = String::Tokenizer(strFace, " ");
 					if (vecFace.empty() == false)

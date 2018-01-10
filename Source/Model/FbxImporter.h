@@ -31,8 +31,8 @@ namespace EastEngine
 {
 	namespace Graphics
 	{
-		class IModel;
-		class IMotion;
+		class Model;
+		class Motion;
 
 		class FBXTransformer : public ATG::IDCCTransformer
 		{
@@ -71,8 +71,8 @@ namespace EastEngine
 			void Release();
 
 		public:
-			bool LoadModel(IModel* pModel, const char* strFilePath, float fScale, bool isFlipZ);
-			bool LoadMotion(IMotion* pMotion, const char* strFilePath, float fScale);
+			bool LoadModel(Model* pModel, const char* strFilePath, float fScale, bool isFlipZ);
+			bool LoadMotion(Motion* pMotion, const char* strFilePath, float fScale);
 
 		private:
 			void ModelSettings();

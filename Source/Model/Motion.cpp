@@ -23,7 +23,7 @@ namespace EastEngine
 
 			Keyframe keyframe;
 
-			if (fPlayTime < m_vecKeyframes.front().fTime)
+			if (fPlayTime <= m_vecKeyframes.front().fTime)
 			{
 				if (isInverse == true)
 				{
@@ -38,7 +38,7 @@ namespace EastEngine
 					pRecoder->SetCaching(m_strBoneName, 0);
 				}
 			}
-			else if (fPlayTime > m_vecKeyframes.back().fTime)
+			else if (fPlayTime >= m_vecKeyframes.back().fTime)
 			{
 				if (isInverse == true)
 				{

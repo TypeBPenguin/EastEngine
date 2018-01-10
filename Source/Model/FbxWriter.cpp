@@ -398,13 +398,12 @@ namespace EastEngine
 			}
 		}
 
-		bool WriteModel(IModel* pModel, const std::unordered_map<String::StringID, Math::Matrix>& umapMotionOffset)
+		bool WriteModel(Model* pModel, const std::unordered_map<String::StringID, Math::Matrix>& umapMotionOffset)
 		{
 			if (g_pScene == nullptr || pModel == nullptr)
 				return false;
 
-			Model* pRealModel = static_cast<Model*>(pModel);
-			CreateModel(g_pScene, pRealModel, nullptr, umapMotionOffset, nullptr, String::StringID());
+			CreateModel(g_pScene, pModel, nullptr, umapMotionOffset, nullptr, String::StringID());
 
 			Skeleton* pSkeleton = static_cast<Skeleton*>(pModel->GetSkeleton());
 			if (pSkeleton != nullptr && pSkeleton->GetBoneCount() > 0)
@@ -653,7 +652,7 @@ namespace EastEngine
 			pMotion->AddBoneKeyframes(strName, vecKeyframes);
 		}
 
-		bool WriteMotion(IMotion* pMotion)
+		bool WriteMotion(Motion* pMotion)
 		{
 			if (g_pScene == nullptr || pMotion == nullptr)
 				return false;
@@ -666,8 +665,7 @@ namespace EastEngine
 			if (pAnimation == nullptr)
 				return false;
 
-			Motion* pRealMotion = static_cast<Motion*>(pMotion);
-			pRealMotion->SetInfo(pAnimation->fStartTime, pAnimation->fEndTime, pAnimation->fSourceSamplingInterval);
+			pMotion->SetInfo(pAnimation->fStartTime, pAnimation->fEndTime, pAnimation->fSourceSamplingInterval);
 
 			size_t nTrackCount = pAnimation->GetTrackCount();
 			for (size_t i = 0; i < nTrackCount; ++i)
@@ -676,7 +674,7 @@ namespace EastEngine
 				if (pTrack == nullptr)
 					continue;
 
-				WriteKeyframes(pTrack, pRealMotion, pAnimation->GetDuration(), pAnimation->fSourceSamplingInterval, pAnimation->fStartTime);
+				WriteKeyframes(pTrack, pMotion, pAnimation->GetDuration(), pAnimation->fSourceSamplingInterval, pAnimation->fStartTime);
 			}
 
 			return true;
