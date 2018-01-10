@@ -594,7 +594,7 @@ PS_OUTPUT D_PS(PS_INPUT input)
 #ifdef USE_TEX_MASK
 	albedo.w = saturate(albedo.w * g_texMask.Sample(g_samplerState, input.tex).x * 2.f);
 	clip(albedo.w - 0.1f);
-#elif USE_MASK_IN_ALBEDO
+#elif USE_ALBEDO_ALPHA_IS_MASK_MAP
 	clip(albedo.w - 0.1f);
 #endif
 
