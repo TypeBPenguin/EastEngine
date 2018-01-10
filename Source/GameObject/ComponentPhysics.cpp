@@ -139,7 +139,7 @@ namespace EastEngine
 			Graphics::MaterialInfo materialInfo;
 			materialInfo.strName = strID;
 			materialInfo.colorAlbedo = Math::Color::Red;
-			materialInfo.pRasterizerState = Graphics::GetDevice()->GetRasterizerState(Graphics::EmRasterizerState::eWireframeCullNone);
+			materialInfo.emRasterizerState = Graphics::EmRasterizerState::eWireframeCullNone;
 			
 			Physics::RigidBody* pRigidBody = nullptr;
 			Graphics::IModelInstance* pPhysicsModelInst = nullptr;

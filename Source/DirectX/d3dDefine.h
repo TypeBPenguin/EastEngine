@@ -15,7 +15,7 @@ namespace EastEngine
 				eWireframeCW,
 				eWireframeCullNone,
 
-				eCount,
+				TypeCount,
 			};
 		}
 
@@ -26,7 +26,7 @@ namespace EastEngine
 				eOn = 0,
 				eOff,
 
-				eCount,
+				TypeCount,
 			};
 		}
 
@@ -43,7 +43,7 @@ namespace EastEngine
 				eNegative,			// 반전합성
 				eOpacity,			// 불투명합성
 
-				eCount,
+				TypeCount,
 			};
 		};
 

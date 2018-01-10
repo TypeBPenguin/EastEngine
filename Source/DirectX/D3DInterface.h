@@ -452,10 +452,10 @@ namespace EastEngine
 
 			std::array<String::StringID, EmMaterial::TypeCount> strTextureNameArray;
 
-			ISamplerState* pSamplerState = nullptr;
-			IBlendState* pBlendState = nullptr;
-			IRasterizerState* pRasterizerState = nullptr;
-			IDepthStencilState* pDepthStencilState = nullptr;
+			EmSamplerState::Type emSamplerState;
+			EmBlendState::Type emBlendState;
+			EmRasterizerState::Type emRasterizerState;
+			EmDepthStencilState::Type emDepthStencilState;
 
 			MaterialInfo();
 			void Clear();
@@ -500,17 +500,17 @@ namespace EastEngine
 			virtual const std::shared_ptr<ITexture>& GetTexture(EmMaterial::Type emType) const = 0;
 			virtual void SetTexture(EmMaterial::Type emType, const std::shared_ptr<ITexture>& pTexture) = 0;
 
-			virtual ISamplerState* GetSamplerState() const = 0;
-			virtual void SetSamplerState(ISamplerState* pSamplerState) = 0;
+			virtual EmSamplerState::Type GetSamplerState() const = 0;
+			virtual void SetSamplerState(EmSamplerState::Type pSamplerState) = 0;
 
-			virtual IBlendState* GetBlendState() const = 0;
-			virtual void SetBlendState(IBlendState* pBlendState) = 0;
+			virtual EmBlendState::Type GetBlendState() const = 0;
+			virtual void SetBlendState(EmBlendState::Type pBlendState) = 0;
 
-			virtual IRasterizerState* GetRasterizerState() const = 0;
-			virtual void SetRasterizerState(IRasterizerState* pRasterizerState) = 0;
+			virtual EmRasterizerState::Type GetRasterizerState() const = 0;
+			virtual void SetRasterizerState(EmRasterizerState::Type pRasterizerState) = 0;
 
-			virtual IDepthStencilState* GetDepthStencilState() const = 0;
-			virtual void SetDepthStencilState(IDepthStencilState* pDepthStencilState) = 0;
+			virtual EmDepthStencilState::Type GetDepthStencilState() const = 0;
+			virtual void SetDepthStencilState(EmDepthStencilState::Type pDepthStencilState) = 0;
 
 			virtual const Math::Vector4& GetDisRoughMetEmi() const = 0;
 			virtual void SetDisRoughMetEmi(const Math::Vector4& f4DisRoughMetEmi) = 0;

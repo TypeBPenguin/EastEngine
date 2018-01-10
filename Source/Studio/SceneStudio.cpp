@@ -255,7 +255,7 @@ void SceneStudio::Enter()
 		materialInfo.f4DisRoughMetEmi.y = 0.5f;
 		materialInfo.f4DisRoughMetEmi.z = 0.5f;
 
-		materialInfo.pDepthStencilState = Graphics::GetDevice()->GetDepthStencilState(Graphics::EmDepthStencilState::eOff);
+		materialInfo.emDepthStencilState = Graphics::EmDepthStencilState::eOff;
 
 		Graphics::ParticleDecalAttributes attributes;
 		attributes.strDecalName = "TestDecal";
@@ -515,7 +515,6 @@ void SceneStudio::Enter()
 		//pCompPhysics->m_pRagDoll->BuildDefaultHumanRagDoll(pModelInstance->GetSkeleton(), pActor->GetPosition(), Math::Quaternion::Identity, 1.f);
 		//pCompPhysics->m_pRagDoll->Start();
 
-		if (false)
 		{
 			strPath = File::GetDataPath();
 			strPath.append("Model\\ElementalSwordIce\\LP.emod");
@@ -663,6 +662,28 @@ void SceneStudio::Enter()
 		}
 	}
 
+	{
+		String::StringID name;
+		name.Format("ElementalSwordIce");
+		GameObject::IActor* pActor = GameObject::IActor::Create(name);
+
+		Math::Vector3 pos;
+		pos.x = -6.f;
+		pos.y = 0.5f;
+		pActor->SetPosition(pos);
+
+		strPath = File::GetDataPath();
+		strPath.append("Model\\ElementalSwordIce\\LP.emod");
+
+		Graphics::ModelLoader loader;
+
+		String::StringID strFileName = File::GetFileName(strPath).c_str();
+		loader.InitEast(strFileName, strPath.c_str());
+		loader.SetEnableThreadLoad(false);
+
+		GameObject::ComponentModel* pModel = static_cast<GameObject::ComponentModel*>(pActor->CreateComponent(GameObject::EmComponent::eModel));
+		pModel->Init(&loader);
+	}
 
 	m_pMaterialNodeManager = new MaterialNodeManager;
 }
@@ -1350,6 +1371,84 @@ void ShowMaterial(bool& isShowMaterial, Graphics::IMaterial* pMaterial, int nInd
 	char buf[1024] = { 0 };
 	String::Copy(buf, pMaterial->GetPath().c_str());
 	ImGui::InputText("Path", buf, sizeof(buf), ImGuiInputTextFlags_ReadOnly);
+
+	float fTessellationFactor = pMaterial->GetTessellationFactor();
+	if (ImGui::DragFloat("TessellationFactor", &fTessellationFactor, 0.01f, 1.f, 512.f) == true)
+	{
+		pMaterial->SetTessellationFactor(fTessellationFactor);
+	}
+
+	const char* strSamplerState[Graphics::EmSamplerState::TypeCount] =
+	{
+		"MinMagMipLinearWrap",
+		"MinMagMipLinearClamp",
+		"MinMagMipLinearBorder",
+		"MinMagMipLinearMirror",
+		"MinMagMipLinearMirrorOnce",
+		"MinMagLinearMipPointWrap",
+		"MinMagLinearMipPointClamp",
+		"MinMagLinearMipPointBorder",
+		"MinMagLinearMipPointMirror",
+		"MinMagLinearMipPointMirrorOnce",
+		"AnisotropicWrap",
+		"AnisotropicClamp",
+		"AnisotropicBorder",
+		"AnisotropicMirror",
+		"AnisotropicMirrorOnce",
+		"MinMagMipPointWrap",
+		"MinMagMipPointClamp",
+		"MinMagMipPointBorder",
+		"MinMagMipPointMirror",
+		"MinMagMipPointMirrorOnce",
+	};
+	Graphics::EmSamplerState::Type emSamplerState = pMaterial->GetSamplerState();
+	if (ImGui::Combo("SamplerState", reinterpret_cast<int*>(&emSamplerState), strSamplerState, Graphics::EmSamplerState::TypeCount) == true)
+	{
+		pMaterial->SetSamplerState(emSamplerState);
+	}
+
+	const char* strBlendState[Graphics::EmBlendState::TypeCount] =
+	{
+		"Off",
+		"Linear",
+		"Additive",
+		"SubTractive",
+		"Multiplicative",
+		"Squared",
+		"Negative",
+		"Opacity",
+	};
+	Graphics::EmBlendState::Type emBlendState = pMaterial->GetBlendState();
+	if (ImGui::Combo("BlendState", reinterpret_cast<int*>(&emBlendState), strBlendState, Graphics::EmBlendState::TypeCount) == true)
+	{
+		pMaterial->SetBlendState(emBlendState);
+	}
+
+	const char* strRasterizerState[Graphics::EmRasterizerState::TypeCount] =
+	{
+		"SolidCCW",
+		"SolidCW",
+		"SolidCullNone",
+		"WireframeCCW",
+		"WireframeCW",
+		"WireframeCullNone",
+	};
+	Graphics::EmRasterizerState::Type emRasterizerState = pMaterial->GetRasterizerState();
+	if (ImGui::Combo("RasterizerState", reinterpret_cast<int*>(&emRasterizerState), strRasterizerState, Graphics::EmRasterizerState::TypeCount) == true)
+	{
+		pMaterial->SetRasterizerState(emRasterizerState);
+	}
+
+	const char* strDepthStencilState[Graphics::EmDepthStencilState::TypeCount] =
+	{
+		"eOn",
+		"eOff",
+	};
+	Graphics::EmDepthStencilState::Type emDepthStencilState = pMaterial->GetDepthStencilState();
+	if (ImGui::Combo("DepthStencilState", reinterpret_cast<int*>(&emDepthStencilState), strDepthStencilState, Graphics::EmDepthStencilState::TypeCount) == true)
+	{
+		pMaterial->SetDepthStencilState(emDepthStencilState);
+	}
 
 	auto TextureInfo = [&](Graphics::EmMaterial::Type emType, int nIndex)
 	{

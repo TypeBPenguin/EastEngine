@@ -49,10 +49,10 @@ namespace EastEngine
 			SetSurSpecTintAniso(pInfo->f4SurSpecTintAniso);
 			SetSheenTintClearcoatGloss(pInfo->f4SheenTintClearcoatGloss);
 
-			SetSamplerState(pInfo->pSamplerState);
-			SetBlendState(pInfo->pBlendState);
-			SetRasterizerState(pInfo->pRasterizerState);
-			SetDepthStencilState(pInfo->pDepthStencilState);
+			SetSamplerState(pInfo->emSamplerState);
+			SetBlendState(pInfo->emBlendState);
+			SetRasterizerState(pInfo->emRasterizerState);
+			SetDepthStencilState(pInfo->emDepthStencilState);
 
 			LoadTexture();
 

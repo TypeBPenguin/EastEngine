@@ -382,10 +382,10 @@ namespace EastEngine
 			, colorEmissive(0.f, 0.f, 0.f, 1.f)
 			, fTessellationFactor(256.f)
 			, isAlbedoAlphaChannelMaskMap(false)
-			, pSamplerState(nullptr)
-			, pBlendState(nullptr)
-			, pRasterizerState(nullptr)
-			, pDepthStencilState(nullptr)
+			, emSamplerState(EmSamplerState::eMinMagMipLinearWrap)
+			, emBlendState(EmBlendState::eOff)
+			, emRasterizerState(EmRasterizerState::eSolidCCW)
+			, emDepthStencilState(EmDepthStencilState::eOn)
 		{
 			Clear();
 		}
@@ -409,17 +409,20 @@ namespace EastEngine
 				strTexName.clear();
 			}
 			
-			pSamplerState = GetDevice()->GetSamplerState(EmSamplerState::eMinMagMipLinearWrap);
-			pBlendState = GetDevice()->GetBlendState(EmBlendState::eOff);
-			pRasterizerState = GetDevice()->GetRasterizerState(EmRasterizerState::eSolidCCW);
-			pDepthStencilState = GetDevice()->GetDepthStencilState(EmDepthStencilState::eOn);
+			emSamplerState = EmSamplerState::eMinMagMipLinearWrap;
+			emBlendState = EmBlendState::eOff;
+			emRasterizerState = EmRasterizerState::eSolidCCW;
+			emDepthStencilState = EmDepthStencilState::eOn;
 		}
 
 		IMaterial* IMaterial::Create(const MaterialInfo* pInfo)
 		{
-			std::lock_guard<std::mutex> lock(s_mutexMaterial);
+			Material* pMaterial = nullptr;
+			{
+				std::lock_guard<std::mutex> lock(s_mutexMaterial);
+				pMaterial = s_poolMaterial.construct();
+			}
 
-			Material* pMaterial = s_poolMaterial.construct();
 			if (pMaterial->Init(pInfo) == false)
 			{
 				SafeDelete(pMaterial);
@@ -431,9 +434,12 @@ namespace EastEngine
 
 		IMaterial* IMaterial::Create(const String::StringID& strName)
 		{
-			std::lock_guard<std::mutex> lock(s_mutexMaterial);
+			Material* pMaterial = nullptr;
+			{
+				std::lock_guard<std::mutex> lock(s_mutexMaterial);
+				pMaterial = s_poolMaterial.construct();
+			}
 
-			Material* pMaterial = s_poolMaterial.construct();
 			if (pMaterial->Init(strName) == false)
 			{
 				SafeDelete(pMaterial);
@@ -445,9 +451,12 @@ namespace EastEngine
 
 		IMaterial* IMaterial::Clone(const IMaterial* pSource)
 		{
-			std::lock_guard<std::mutex> lock(s_mutexMaterial);
+			Material* pMaterial = nullptr;
+			{
+				std::lock_guard<std::mutex> lock(s_mutexMaterial);
+				pMaterial = s_poolMaterial.construct();
+			}
 
-			Material* pMaterial = s_poolMaterial.construct();
 			if (pMaterial->Init(pSource) == false)
 			{
 				SafeDelete(pMaterial);
@@ -484,6 +493,9 @@ namespace EastEngine
 			file.Read(&materialInfo.f4SurSpecTintAniso.x, 4);
 			file.Read(&materialInfo.f4SheenTintClearcoatGloss.x, 4);
 
+			file >> materialInfo.fTessellationFactor;
+			file >> materialInfo.isAlbedoAlphaChannelMaskMap;
+
 			for (int i = 0; i < EmMaterial::TypeCount; ++i)
 			{
 				file >> strBuf;
@@ -493,6 +505,11 @@ namespace EastEngine
 					materialInfo.strTextureNameArray[i] = strBuf.c_str();
 				}
 			}
+
+			file >> *reinterpret_cast<int*>(&materialInfo.emSamplerState);
+			file >> *reinterpret_cast<int*>(&materialInfo.emBlendState);
+			file >> *reinterpret_cast<int*>(&materialInfo.emRasterizerState);
+			file >> *reinterpret_cast<int*>(&materialInfo.emDepthStencilState);
 
 			file.Close();
 
@@ -538,6 +555,9 @@ namespace EastEngine
 			file.Write(&pMaterial->GetSurSpecTintAniso().x, 4);
 			file.Write(&pMaterial->GetSheenTintClearcoatGloss().x, 4);
 
+			file << pMaterial->GetTessellationFactor();
+			file << pMaterial->IsAlbedoAlphaChannelMaskMap();
+
 			for (int i = 0; i < EmMaterial::TypeCount; ++i)
 			{
 				const String::StringID& strName = pMaterial->GetTextureName(static_cast<EmMaterial::Type>(i));
@@ -550,6 +570,11 @@ namespace EastEngine
 					file << strName.c_str();
 				}
 			}
+
+			file << pMaterial->GetSamplerState();
+			file << pMaterial->GetBlendState();
+			file << pMaterial->GetRasterizerState();
+			file << pMaterial->GetDepthStencilState();
 
 			file.Close();
 

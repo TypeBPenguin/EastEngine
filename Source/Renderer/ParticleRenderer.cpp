@@ -635,7 +635,8 @@ namespace EastEngine
 						pEffect->SetTexture(StrID::g_texClearcoat, pMaterial->GetTexture(EmMaterial::eClearcoat));
 						pEffect->SetTexture(StrID::g_texClearcoatGloss, pMaterial->GetTexture(EmMaterial::eClearcoatGloss));
 
-						pEffect->SetSamplerState(StrID::g_samplerState, pMaterial->GetSamplerState(), 0);
+						ISamplerState* pSamplerState = pDevice->GetSamplerState(pMaterial->GetSamplerState());
+						pEffect->SetSamplerState(StrID::g_samplerState, pSamplerState, 0);
 
 						pDeviceContext->SetBlendState(pMaterial->GetBlendState());
 						pDeviceContext->SetDepthStencilState(pMaterial->GetDepthStencilState());

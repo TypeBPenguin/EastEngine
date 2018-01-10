@@ -1490,7 +1490,7 @@ namespace EastEngine
 			if (IsInit() == false)
 				return false;
 
-			for (uint32_t i = 0; i < EmRasterizerState::eCount; ++i)
+			for (uint32_t i = 0; i < EmRasterizerState::TypeCount; ++i)
 			{
 				if (GetRasterizerState(static_cast<EmRasterizerState::Type>(i)) == nullptr)
 					return false;
@@ -1522,7 +1522,7 @@ namespace EastEngine
 			if (m_pDepthStencil == nullptr)
 				return false;
 
-			for (uint32_t i = 0; i < EmDepthStencilState::eCount; ++i)
+			for (uint32_t i = 0; i < EmDepthStencilState::TypeCount; ++i)
 			{
 				if (GetDepthStencilState(static_cast<EmDepthStencilState::Type>(i)) == nullptr)
 					return false;
@@ -1536,7 +1536,7 @@ namespace EastEngine
 			if (IsInit() == false)
 				return false;
 
-			for (uint32_t i = 0; i < EmBlendState::eCount; ++i)
+			for (uint32_t i = 0; i < EmBlendState::TypeCount; ++i)
 			{
 				if (GetBlendState(static_cast<EmBlendState::Type>(i)) == nullptr)
 					return false;

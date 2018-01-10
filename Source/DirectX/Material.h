@@ -7,10 +7,6 @@ namespace EastEngine
 	namespace Graphics
 	{
 		class ITexture;
-		class ISamplerState;
-		class IBlendState;
-		class IRasterizerState;
-		class IDepthStencilState;
 
 		class Material : public IMaterial
 		{
@@ -46,17 +42,17 @@ namespace EastEngine
 			virtual const std::shared_ptr<ITexture>& GetTexture(EmMaterial::Type emType) const override { return m_pTextureArray[emType]; }
 			virtual void SetTexture(EmMaterial::Type emType, const std::shared_ptr<ITexture>& pTexture) override { m_pTextureArray[emType] = pTexture; }
 
-			virtual ISamplerState* GetSamplerState() const override { return m_info.pSamplerState; }
-			virtual void SetSamplerState(ISamplerState* pSamplerState) override { m_info.pSamplerState = pSamplerState; }
+			virtual EmSamplerState::Type GetSamplerState() const override { return m_info.emSamplerState; }
+			virtual void SetSamplerState(EmSamplerState::Type emSamplerState) override { m_info.emSamplerState = emSamplerState; }
 
-			virtual IBlendState* GetBlendState() const override { return m_info.pBlendState; }
-			virtual void SetBlendState(IBlendState* pBlendState) override { m_info.pBlendState = pBlendState; }
+			virtual EmBlendState::Type GetBlendState() const override { return m_info.emBlendState; }
+			virtual void SetBlendState(EmBlendState::Type emBlendState) override { m_info.emBlendState = emBlendState; }
 
-			virtual IRasterizerState* GetRasterizerState() const override { return m_info.pRasterizerState; }
-			virtual void SetRasterizerState(IRasterizerState* pRasterizerState) override { m_info.pRasterizerState = pRasterizerState; }
+			virtual EmRasterizerState::Type GetRasterizerState() const override { return m_info.emRasterizerState; }
+			virtual void SetRasterizerState(EmRasterizerState::Type emRasterizerState) override { m_info.emRasterizerState = emRasterizerState; }
 
-			virtual IDepthStencilState* GetDepthStencilState() const override { return m_info.pDepthStencilState; }
-			virtual void SetDepthStencilState(IDepthStencilState* pDepthStencilState) override { m_info.pDepthStencilState = pDepthStencilState; }
+			virtual EmDepthStencilState::Type GetDepthStencilState() const override { return m_info.emDepthStencilState; }
+			virtual void SetDepthStencilState(EmDepthStencilState::Type emDepthStencilState) override { m_info.emDepthStencilState = emDepthStencilState; }
 
 			virtual const Math::Vector4& GetDisRoughMetEmi() const override { return m_info.f4DisRoughMetEmi; }
 			virtual void SetDisRoughMetEmi(const Math::Vector4& f4DisRoughMetEmi) override { m_info.f4DisRoughMetEmi = f4DisRoughMetEmi; }
