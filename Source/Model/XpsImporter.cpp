@@ -75,6 +75,7 @@ namespace EastEngine
 				else
 				{
 					std::string strPath = File::GetFilePath(strFilePath);
+					std::string strFileName = File::GetFileName(strFilePath);
 
 					std::vector<XPS_Bone> vecBones;
 					std::vector<XPS_Mesh> vecMeshs;
@@ -170,133 +171,242 @@ namespace EastEngine
 						file.Read(mesh.elements.data(), mesh.elements.size());
 					}
 
-					ModelNodeSkinned* pSkinnedNode = new ModelNodeSkinned;
-					pSkinnedNode->SetNodeName(File::GetFileName(strFilePath).c_str());
-					pSkinnedNode->SetVisible(true);
-
-					std::vector<ModelSubset> vecModelSubset;
-					vecModelSubset.resize(nMeshCount);
-
-					std::vector<IMaterial*> vecMaterial;
-					vecMaterial.resize(nMeshCount);
-
-					std::vector<VertexPosTexNorWeiIdx> vecVertices;
-					std::vector<uint32_t> vecIndices;
-
-					uint32_t nVertexCount = 0;
-					uint32_t nIndexCount = 0;
-					for (uint32_t i = 0; i < nMeshCount; ++i)
 					{
-						XPS_Mesh& mesh = vecMeshs[i];
+						ModelNodeSkinned* pSkinnedNode = new ModelNodeSkinned;
+						pSkinnedNode->SetNodeName(strFileName.c_str());
+						pSkinnedNode->SetVisible(true);
 
-						nVertexCount += mesh.numVertices;
-						nIndexCount += mesh.numElements;
-					}
-					vecVertices.resize(nVertexCount);
-					vecIndices.resize(nIndexCount);
+						std::vector<VertexPosTexNorWeiIdx> vecVertices;
+						std::vector<uint32_t> vecIndices;
+						std::vector<ModelSubset> vecModelSubset;
+						std::vector<IMaterial*> vecMaterial;
 
-					uint32_t nStartVertex = 0;
-					uint32_t nStartIndex = 0;
-
-					for (uint32_t i = 0; i < nMeshCount; ++i)
-					{
-						XPS_Mesh& mesh = vecMeshs[i];
-
-						vecModelSubset[i].strName = mesh.name.c_str();
-						vecModelSubset[i].nStartIndex = nStartIndex;
-						vecModelSubset[i].nIndexCount = mesh.numElements;
-						vecModelSubset[i].nMaterialID = i;
-
-						MaterialInfo materianInfo;
-						materianInfo.strPath = strPath;
-						materianInfo.strName.Format("material_%s", mesh.name.c_str());
-						materianInfo.strTextureNameArray[EmMaterial::eAlbedo] = File::GetFileName(mesh.textures[0].filename).c_str();
-						materianInfo.strTextureNameArray[EmMaterial::eNormal] = File::GetFileName(mesh.textures[2].filename).c_str();
-						vecMaterial[i] = IMaterial::Create(&materianInfo);
-
-						for (uint32_t j = 0; j < mesh.numVertices; ++j)
+						bool isEnableMeshOptimize = false;
+						if (isEnableMeshOptimize == true)
 						{
-							vecVertices[nStartVertex + j].pos = mesh.vertices[j].vertex;
-							vecVertices[nStartVertex + j].uv = mesh.vertices[j].texCoord[0];
-							vecVertices[nStartVertex + j].normal = mesh.vertices[j].normal;
-							vecVertices[nStartVertex + j].boneWeight.x = mesh.vertices[j].boneWeight[0];
-							vecVertices[nStartVertex + j].boneWeight.y = mesh.vertices[j].boneWeight[1];
-							vecVertices[nStartVertex + j].boneWeight.z = mesh.vertices[j].boneWeight[2];
+							uint32_t nVertexCount = 0;
+							uint32_t nIndexCount = 0;
 
-							vecVertices[nStartVertex + j].boneIndices[0] = mesh.vertices[j].boneIndex[0];
-							vecVertices[nStartVertex + j].boneIndices[1] = mesh.vertices[j].boneIndex[1];
-							vecVertices[nStartVertex + j].boneIndices[2] = mesh.vertices[j].boneIndex[2];
-							vecVertices[nStartVertex + j].boneIndices[3] = mesh.vertices[j].boneIndex[3];
-						}
+							struct MeshOptimizer
+							{
+								std::vector<int> vecMeshIndex;
+								uint32_t numVertices = 0;
+								uint32_t numElements = 0;
+							};
 
-						for (uint32_t j = 0; j < mesh.numElements; ++j)
-						{
-							vecIndices[nStartIndex + j] = nStartVertex + mesh.elements[j];
-						}
+							std::map<std::pair<std::string, std::string>, MeshOptimizer> umapMesh;
+							for (uint32_t i = 0; i < nMeshCount; ++i)
+							{
+								XPS_Mesh& mesh = vecMeshs[i];
 
-						nStartVertex += mesh.numVertices;
-						nStartIndex += mesh.numElements;
-					}
+								nVertexCount += mesh.numVertices;
+								nIndexCount += mesh.numElements;
 
-					IVertexBuffer* pVertexBuffer = IVertexBuffer::Create(VertexPosTexNorWeiIdx::Format(), vecVertices.size(), vecVertices.data(), D3D11_USAGE_DYNAMIC);
-					IIndexBuffer* pIndexBuffer = IIndexBuffer::Create(vecIndices.size(), vecIndices.data(), D3D11_USAGE_DYNAMIC);
+								std::string strAlbedo = File::GetFileName(mesh.textures[0].filename);
+								std::string strNormal = File::GetFileName(mesh.textures[2].filename);
 
-					pSkinnedNode->SetVertexBuffer(pVertexBuffer);
-					pSkinnedNode->SetIndexBuffer(pIndexBuffer);
+								std::pair<std::string, std::string> key = std::make_pair(strAlbedo, strNormal);
+								auto iter = umapMesh.find(key);
+								if (iter != umapMesh.end())
+								{
+									MeshOptimizer& meshOptimizer = iter->second;
+									meshOptimizer.vecMeshIndex.emplace_back(i);
+									meshOptimizer.numVertices += mesh.numVertices;
+									meshOptimizer.numElements += mesh.numElements;
+								}
+								else
+								{
+									auto iter_result = umapMesh.emplace(key, MeshOptimizer());
+									MeshOptimizer& meshOptimizer = iter_result.first->second;
+									meshOptimizer.vecMeshIndex.emplace_back(i);
+									meshOptimizer.numVertices += mesh.numVertices;
+									meshOptimizer.numElements += mesh.numElements;
+								}
+							}
 
-					pSkinnedNode->AddModelSubsets(vecModelSubset);
-					pSkinnedNode->AddMaterialArray(vecMaterial.data(), vecMaterial.size());
+							vecModelSubset.resize(umapMesh.size());
+							vecMaterial.resize(umapMesh.size());
+							vecVertices.resize(nVertexCount);
+							vecIndices.resize(nIndexCount);
 
-					Collision::AABB aabb;
-					Collision::AABB::CreateFromPoints(aabb, vecVertices.size(), &vecVertices[0].pos, VertexPosTexNorWeiIdx::Size());
+							uint32_t nStartVertex = 0;
+							uint32_t nStartIndex = 0;
 
-					pSkinnedNode->SetOriginAABB(aabb);
+							int nIndex = 0;
+							for (auto iter : umapMesh)
+							{
+								const std::pair<std::string, std::string> key = iter.first;
+								const MeshOptimizer& meshOptimizer = iter.second;
 
-					pModel->AddNode(pSkinnedNode, pSkinnedNode->GetName(), true);
+								vecModelSubset[nIndex].strName.Format("%s_%d", strFileName.c_str(), nIndex);
+								vecModelSubset[nIndex].nStartIndex = nStartIndex;
+								vecModelSubset[nIndex].nIndexCount = meshOptimizer.numElements;
+								vecModelSubset[nIndex].nMaterialID = nIndex;
 
-					std::unordered_map<uint16_t, std::pair<Skeleton::Bone*, Math::Matrix>> umapBones;
-					umapBones.reserve(nBoneCount);
+								MaterialInfo materianInfo;
+								materianInfo.strPath = strPath;
+								materianInfo.strName.Format("%s_%d", strFileName.c_str(), nIndex);
+								materianInfo.strTextureNameArray[EmMaterial::eAlbedo] = key.first.c_str();
+								materianInfo.strTextureNameArray[EmMaterial::eNormal] = key.second.c_str();
+								vecMaterial[nIndex] = IMaterial::Create(&materianInfo);
 
-					std::vector<String::StringID> vecBoneNames;
-					vecBoneNames.resize(nBoneCount);
+								++nIndex;
 
-					Skeleton* pSkeleton = static_cast<Skeleton*>(ISkeleton::Create());
-					pModel->SetSkeleton(pSkeleton);
+								const std::vector<int>& vecMeshIndex = meshOptimizer.vecMeshIndex;
+								size_t nSize = vecMeshIndex.size();
+								for (size_t i = 0; i < nSize; ++i)
+								{
+									XPS_Mesh& mesh = vecMeshs[vecMeshIndex[i]];
 
-					for (uint32_t i = 0; i < nBoneCount; ++i)
-					{
-						XPS_Bone& bone = vecBones[i];
+									for (uint32_t j = 0; j < mesh.numVertices; ++j)
+									{
+										vecVertices[nStartVertex + j].pos = mesh.vertices[j].vertex;
+										vecVertices[nStartVertex + j].uv = mesh.vertices[j].texCoord[0];
+										vecVertices[nStartVertex + j].normal = mesh.vertices[j].normal;
+										vecVertices[nStartVertex + j].boneWeight.x = mesh.vertices[j].boneWeight[0];
+										vecVertices[nStartVertex + j].boneWeight.y = mesh.vertices[j].boneWeight[1];
+										vecVertices[nStartVertex + j].boneWeight.z = mesh.vertices[j].boneWeight[2];
 
-						vecBoneNames[i] = bone.name.c_str();
+										vecVertices[nStartVertex + j].boneIndices[0] = mesh.vertices[j].boneIndex[0];
+										vecVertices[nStartVertex + j].boneIndices[1] = mesh.vertices[j].boneIndex[1];
+										vecVertices[nStartVertex + j].boneIndices[2] = mesh.vertices[j].boneIndex[2];
+										vecVertices[nStartVertex + j].boneIndices[3] = mesh.vertices[j].boneIndex[3];
+									}
 
-						Math::Matrix matDefaultMotionData = Math::Matrix::CreateTranslation(bone.defaultPositionX, bone.defaultPositionY, bone.defaultPositionZ);
-						Math::Matrix matParent;
+									for (uint32_t j = 0; j < mesh.numElements; ++j)
+									{
+										vecIndices[nStartIndex + j] = nStartVertex + mesh.elements[j];
+									}
 
-						Skeleton::Bone* pParentBone = nullptr;
-						auto iter = umapBones.find(bone.parentIndex);
-						if (iter != umapBones.end())
-						{
-							pParentBone = iter->second.first;
-							matParent = iter->second.second;
-						}
-
-						Math::Matrix matDefault = matParent.Invert() * matDefaultMotionData;
-						Math::Matrix matMotionOffset = matDefaultMotionData.Invert();
-
-						Skeleton::Bone* pBone = nullptr;
-						if (pParentBone != nullptr)
-						{
-							pBone = pSkeleton->CreateBone(pParentBone->GetName(), bone.name.c_str(), matMotionOffset, matDefault);
+									nStartVertex += mesh.numVertices;
+									nStartIndex += mesh.numElements;
+								}
+							}
 						}
 						else
 						{
-							pBone = pSkeleton->CreateBone(bone.name.c_str(), matMotionOffset, matDefault);
+							vecModelSubset.resize(nMeshCount);
+							vecMaterial.resize(nMeshCount);
+
+							uint32_t nVertexCount = 0;
+							uint32_t nIndexCount = 0;
+							for (uint32_t i = 0; i < nMeshCount; ++i)
+							{
+								XPS_Mesh& mesh = vecMeshs[i];
+
+								nVertexCount += mesh.numVertices;
+								nIndexCount += mesh.numElements;
+							}
+
+							vecVertices.resize(nVertexCount);
+							vecIndices.resize(nIndexCount);
+
+							uint32_t nStartVertex = 0;
+							uint32_t nStartIndex = 0;
+
+							for (uint32_t i = 0; i < nMeshCount; ++i)
+							{
+								XPS_Mesh& mesh = vecMeshs[i];
+
+								vecModelSubset[i].strName = mesh.name.c_str();
+								vecModelSubset[i].nStartIndex = nStartIndex;
+								vecModelSubset[i].nIndexCount = mesh.numElements;
+								vecModelSubset[i].nMaterialID = i;
+
+								MaterialInfo materianInfo;
+								materianInfo.strPath = strPath;
+								materianInfo.strName.Format("material_%s", mesh.name.c_str());
+								materianInfo.strTextureNameArray[EmMaterial::eAlbedo] = File::GetFileName(mesh.textures[0].filename).c_str();
+								materianInfo.strTextureNameArray[EmMaterial::eNormal] = File::GetFileName(mesh.textures[2].filename).c_str();
+								vecMaterial[i] = IMaterial::Create(&materianInfo);
+
+								for (uint32_t j = 0; j < mesh.numVertices; ++j)
+								{
+									vecVertices[nStartVertex + j].pos = mesh.vertices[j].vertex;
+									vecVertices[nStartVertex + j].uv = mesh.vertices[j].texCoord[0];
+									vecVertices[nStartVertex + j].normal = mesh.vertices[j].normal;
+									vecVertices[nStartVertex + j].boneWeight.x = mesh.vertices[j].boneWeight[0];
+									vecVertices[nStartVertex + j].boneWeight.y = mesh.vertices[j].boneWeight[1];
+									vecVertices[nStartVertex + j].boneWeight.z = mesh.vertices[j].boneWeight[2];
+
+									vecVertices[nStartVertex + j].boneIndices[0] = mesh.vertices[j].boneIndex[0];
+									vecVertices[nStartVertex + j].boneIndices[1] = mesh.vertices[j].boneIndex[1];
+									vecVertices[nStartVertex + j].boneIndices[2] = mesh.vertices[j].boneIndex[2];
+									vecVertices[nStartVertex + j].boneIndices[3] = mesh.vertices[j].boneIndex[3];
+								}
+
+								for (uint32_t j = 0; j < mesh.numElements; ++j)
+								{
+									vecIndices[nStartIndex + j] = nStartVertex + mesh.elements[j];
+								}
+
+								nStartVertex += mesh.numVertices;
+								nStartIndex += mesh.numElements;
+							}
 						}
 
-						umapBones.emplace(static_cast<uint16_t>(i), std::make_pair(pBone, matDefaultMotionData));
+						IVertexBuffer* pVertexBuffer = IVertexBuffer::Create(VertexPosTexNorWeiIdx::Format(), vecVertices.size(), vecVertices.data(), D3D11_USAGE_DYNAMIC);
+						IIndexBuffer* pIndexBuffer = IIndexBuffer::Create(vecIndices.size(), vecIndices.data(), D3D11_USAGE_DYNAMIC);
+
+						pSkinnedNode->SetVertexBuffer(pVertexBuffer);
+						pSkinnedNode->SetIndexBuffer(pIndexBuffer);
+
+						pSkinnedNode->AddModelSubsets(vecModelSubset);
+						pSkinnedNode->AddMaterialArray(vecMaterial.data(), vecMaterial.size());
+
+						Collision::AABB aabb;
+						Collision::AABB::CreateFromPoints(aabb, vecVertices.size(), &vecVertices[0].pos, VertexPosTexNorWeiIdx::Size());
+
+						pSkinnedNode->SetOriginAABB(aabb);
+
+						pModel->AddNode(pSkinnedNode, pSkinnedNode->GetName(), true);
+
+						std::unordered_map<uint16_t, std::pair<Skeleton::Bone*, Math::Matrix>> umapBones;
+						umapBones.reserve(nBoneCount);
+
+						std::vector<String::StringID> vecBoneNames;
+						vecBoneNames.resize(nBoneCount);
+
+						Skeleton* pSkeleton = static_cast<Skeleton*>(ISkeleton::Create());
+						pModel->SetSkeleton(pSkeleton);
+
+						for (uint32_t i = 0; i < nBoneCount; ++i)
+						{
+							XPS_Bone& bone = vecBones[i];
+
+							vecBoneNames[i] = bone.name.c_str();
+
+							Math::Matrix matDefaultMotionData = Math::Matrix::CreateTranslation(bone.defaultPositionX, bone.defaultPositionY, bone.defaultPositionZ);
+							Math::Matrix matParent;
+
+							Skeleton::Bone* pParentBone = nullptr;
+							auto iter = umapBones.find(bone.parentIndex);
+							if (iter != umapBones.end())
+							{
+								pParentBone = iter->second.first;
+								matParent = iter->second.second;
+							}
+
+							Math::Matrix matDefault = matParent.Invert() * matDefaultMotionData;
+							Math::Matrix matMotionOffset = matDefaultMotionData.Invert();
+
+							Skeleton::Bone* pBone = nullptr;
+							if (pParentBone != nullptr)
+							{
+								pBone = pSkeleton->CreateBone(pParentBone->GetName(), bone.name.c_str(), matMotionOffset, matDefault);
+							}
+							else
+							{
+								pBone = pSkeleton->CreateBone(bone.name.c_str(), matMotionOffset, matDefault);
+							}
+
+							umapBones.emplace(static_cast<uint16_t>(i), std::make_pair(pBone, matDefaultMotionData));
+						}
+
+						pSkinnedNode->SetBoneNameList(vecBoneNames);
 					}
 
-					pSkinnedNode->SetBoneNameList(vecBoneNames);
+					Skeleton* pSkeleton = static_cast<Skeleton*>(pModel->GetSkeleton());
 
 					const size_t nNodeCount = pModel->GetNodeCount();
 					for (size_t i = 0; i < nNodeCount; ++i)
@@ -310,12 +420,12 @@ namespace EastEngine
 
 						ModelNodeSkinned* pSkinnedNode = static_cast<ModelNodeSkinned*>(pModelNode);
 
-						const size_t nBoneCount = pSkinnedNode->GetBoneCount();
+						const size_t nSkinnedBoneCount = pSkinnedNode->GetBoneCount();
 
 						std::vector<String::StringID> vecBoneNames;
-						vecBoneNames.resize(nBoneCount);
+						vecBoneNames.resize(nSkinnedBoneCount);
 
-						for (size_t j = 0; j < nBoneCount; ++j)
+						for (size_t j = 0; j < nSkinnedBoneCount; ++j)
 						{
 							vecBoneNames[j] = pSkinnedNode->GetBoneName(j);
 						}

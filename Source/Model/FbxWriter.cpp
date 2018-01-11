@@ -90,8 +90,12 @@ namespace EastEngine
 					{
 						assert(pVertexElements[j].Type == D3DDECLTYPE::D3DDECLTYPE_UBYTE4);
 						const size_t nOffset = sizeof(Math::Vector3) + sizeof(Math::Vector2) + sizeof(Math::Vector3) + sizeof(Math::Vector3);
-						Math::UByte4* pIndex = reinterpret_cast<Math::UByte4*>(pData + nOffset);
-						*pIndex = *reinterpret_cast<const Math::UByte4*>(pVertexData);
+						const Math::UByte4* pIndexData = reinterpret_cast<const Math::UByte4*>(pVertexData);
+						uint16_t* pIndex = reinterpret_cast<uint16_t*>(pData + nOffset);
+						pIndex[0] = static_cast<uint16_t>(pIndexData->x);
+						pIndex[1] = static_cast<uint16_t>(pIndexData->y);
+						pIndex[2] = static_cast<uint16_t>(pIndexData->z);
+						pIndex[3] = static_cast<uint16_t>(pIndexData->w);
 					}
 					break;
 					default:
