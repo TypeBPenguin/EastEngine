@@ -43,7 +43,7 @@ namespace EastEngine
 			virtual void OnMousePressedIn() = 0;
 			virtual void OnMousePressedOut() = 0;
 
-			virtual void OnKeyboardTyping(Input::EmKeyboard::Button emKeyboardButton) = 0;
+			virtual void OnKeyboardTyping(Input::Keyboard::Button emKeyboardButton) = 0;
 
 			virtual uint32_t GetHotKey() = 0;
 
@@ -73,9 +73,9 @@ namespace EastEngine
 
 			virtual void SetMouseEnterScript(const String::StringID& strScpFuncName) = 0;
 			virtual void SetMouseLeaveScript(const String::StringID& strScpFuncName) = 0;
-			virtual void SetMouseClickScript(Input::EmMouse::Button emMouseButton, const String::StringID& strScpFuncName) = 0;
-			virtual void SetMouseDoubleClickScript(Input::EmMouse::Button emMouseButton, const String::StringID& strScpFuncName) = 0;
-			virtual void SetMouseDragScript(Input::EmMouse::Button emMouseButton, const String::StringID& strScpFuncName) = 0;
+			virtual void SetMouseClickScript(Input::Mouse::Button emMouseButton, const String::StringID& strScpFuncName) = 0;
+			virtual void SetMouseDoubleClickScript(Input::Mouse::Button emMouseButton, const String::StringID& strScpFuncName) = 0;
+			virtual void SetMouseDragScript(Input::Mouse::Button emMouseButton, const String::StringID& strScpFuncName) = 0;
 
 		public:
 			virtual const String::StringID& GetID() = 0;

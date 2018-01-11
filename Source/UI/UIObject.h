@@ -39,7 +39,7 @@ namespace EastEngine
 			virtual void OnMousePressedIn() override { m_bPressed = true; }
 			virtual void OnMousePressedOut() override { m_bPressed = false; }
 
-			virtual void OnKeyboardTyping(Input::EmKeyboard::Button emKeyboardButton) override {}
+			virtual void OnKeyboardTyping(Input::Keyboard::Button emKeyboardButton) override {}
 
 			virtual uint32_t GetHotKey() override { return 0; }
 
@@ -69,9 +69,9 @@ namespace EastEngine
 
 			virtual void SetMouseEnterScript(const String::StringID& strScpFuncName) override { m_strMouseEnterScp = strScpFuncName; }
 			virtual void SetMouseLeaveScript(const String::StringID& strScpFuncName) override { m_strMouseLeaveScp = strScpFuncName; }
-			virtual void SetMouseClickScript(Input::EmMouse::Button emMouseButton, const String::StringID& strScpFuncName) override { m_strMouseClickScp[emMouseButton] = strScpFuncName; }
-			virtual void SetMouseDoubleClickScript(Input::EmMouse::Button emMouseButton, const String::StringID& strScpFuncName) override { m_strMouseDoubleClickScp[emMouseButton] = strScpFuncName; }
-			virtual void SetMouseDragScript(Input::EmMouse::Button emMouseButton, const String::StringID& strScpFuncName) override { m_strMouseDragScp[emMouseButton] = strScpFuncName; }
+			virtual void SetMouseClickScript(Input::Mouse::Button emMouseButton, const String::StringID& strScpFuncName) override { m_strMouseClickScp[emMouseButton] = strScpFuncName; }
+			virtual void SetMouseDoubleClickScript(Input::Mouse::Button emMouseButton, const String::StringID& strScpFuncName) override { m_strMouseDoubleClickScp[emMouseButton] = strScpFuncName; }
+			virtual void SetMouseDragScript(Input::Mouse::Button emMouseButton, const String::StringID& strScpFuncName) override { m_strMouseDragScp[emMouseButton] = strScpFuncName; }
 
 		public:
 			virtual const String::StringID& GetID() override { return m_strID; }
@@ -129,9 +129,9 @@ namespace EastEngine
 
 			String::StringID m_strMouseEnterScp;
 			String::StringID m_strMouseLeaveScp;
-			String::StringID m_strMouseClickScp[Input::EmMouse::eCount];
-			String::StringID m_strMouseDoubleClickScp[Input::EmMouse::eCount];
-			String::StringID m_strMouseDragScp[Input::EmMouse::eCount];
+			String::StringID m_strMouseClickScp[Input::Mouse::Count];
+			String::StringID m_strMouseDoubleClickScp[Input::Mouse::Count];
+			String::StringID m_strMouseDragScp[Input::Mouse::Count];
 
 		private:
 			String::StringID m_strID;

@@ -2,8 +2,6 @@
 
 #include "CommonLib/Singleton.h"
 
-#include "KeyState.h"
-
 struct IDirectInput8A;
 struct IDirectInputDevice8A;
 
@@ -19,19 +17,22 @@ namespace EastEngine
 			virtual ~Keyboard();
 
 		public:
+#include "KeyState.inl"
+
+		public:
 			bool Init(HWND hWnd, IDirectInput8A* pInput, DWORD keyboardCoopFlag);
 			void Release();
 			void Update();
 
 		public:
-			bool IsKeyEvent(EmKeyboard::Button emKeyButton) { return IsCurKeyDown(emKeyButton); }
-			bool IsKeyDown(EmKeyboard::Button emKeyButton) { return IsOldKeyDown(emKeyButton) == false && IsCurKeyDown(emKeyButton); }
-			bool IsKeyPress(EmKeyboard::Button emKeyButton) { return IsOldKeyDown(emKeyButton) && IsCurKeyDown(emKeyButton); }
-			bool IsKeyUp(EmKeyboard::Button emKeyButton) { return IsOldKeyDown(emKeyButton) && IsCurKeyDown(emKeyButton) == false; }
+			bool IsKeyEvent(Button emKeyButton) { return IsCurKeyDown(emKeyButton); }
+			bool IsKeyDown(Button emKeyButton) { return IsOldKeyDown(emKeyButton) == false && IsCurKeyDown(emKeyButton); }
+			bool IsKeyPress(Button emKeyButton) { return IsOldKeyDown(emKeyButton) && IsCurKeyDown(emKeyButton); }
+			bool IsKeyUp(Button emKeyButton) { return IsOldKeyDown(emKeyButton) && IsCurKeyDown(emKeyButton) == false; }
 
 		private:
-			bool IsCurKeyDown(EmKeyboard::Button emKeyButton) { return (m_curKeyState[emKeyButton] & 0x80) != 0; }
-			bool IsOldKeyDown(EmKeyboard::Button emKeyButton) { return (m_oldKeyState[emKeyButton] & 0x80) != 0; }
+			bool IsCurKeyDown(Button emKeyButton) { return (m_curKeyState[emKeyButton] & 0x80) != 0; }
+			bool IsOldKeyDown(Button emKeyButton) { return (m_oldKeyState[emKeyButton] & 0x80) != 0; }
 
 		private:
 			IDirectInputDevice8A* m_pKeyboard;		// 키보드 디바이스

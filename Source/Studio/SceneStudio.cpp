@@ -725,7 +725,7 @@ void SceneStudio::ProcessInput(float fElapsedTime)
 	float dz = static_cast<float>(pMouse->GetMoveWheel());
 	bool isMoveAxisX = Math::IsZero(dx) == false;
 	bool isMoveAxisY = Math::IsZero(dy) == false;
-	if (pMouse->IsMousePress(Input::EmMouse::eRight))
+	if (pMouse->IsButtonPress(Input::Mouse::eRight))
 	{
 		if (isMoveAxisX == true)
 		{
@@ -738,7 +738,7 @@ void SceneStudio::ProcessInput(float fElapsedTime)
 		}
 	}
 
-	if (pMouse->IsMousePress(Input::EmMouse::eMiddle))
+	if (pMouse->IsButtonPress(Input::Mouse::eMiddle))
 	{
 		if (isMoveAxisX == true)
 		{
@@ -751,7 +751,7 @@ void SceneStudio::ProcessInput(float fElapsedTime)
 		}
 	}
 
-	if (pMouse->IsMousePress(Input::EmMouse::eLeft))
+	if (pMouse->IsButtonPress(Input::Mouse::eLeft))
 	{
 		if (isMoveAxisX == true)
 		{
@@ -770,32 +770,32 @@ void SceneStudio::ProcessInput(float fElapsedTime)
 	}
 
 	Input::Keyboard* pKeyboard = Input::Keyboard::GetInstance();
-	if (pKeyboard->IsKeyPress(Input::EmKeyboard::eW))
+	if (pKeyboard->IsKeyPress(Input::Keyboard::eW))
 	{
 		pCamera->MoveForward(1.f);
 	}
 
-	if (pKeyboard->IsKeyPress(Input::EmKeyboard::eS))
+	if (pKeyboard->IsKeyPress(Input::Keyboard::eS))
 	{
 		pCamera->MoveForward(-1.f);
 	}
 
-	if (pKeyboard->IsKeyPress(Input::EmKeyboard::eA))
+	if (pKeyboard->IsKeyPress(Input::Keyboard::eA))
 	{
 		pCamera->MoveSideward(-1.f);
 	}
 
-	if (pKeyboard->IsKeyPress(Input::EmKeyboard::eD))
+	if (pKeyboard->IsKeyPress(Input::Keyboard::eD))
 	{
 		pCamera->MoveSideward(1.f);
 	}
 
-	if (pKeyboard->IsKeyPress(Input::EmKeyboard::eE))
+	if (pKeyboard->IsKeyPress(Input::Keyboard::eE))
 	{
 		pCamera->MoveUpward(1.f);
 	}
 
-	if (pKeyboard->IsKeyPress(Input::EmKeyboard::eQ))
+	if (pKeyboard->IsKeyPress(Input::Keyboard::eQ))
 	{
 		pCamera->MoveUpward(-1.f);
 	}
@@ -856,17 +856,13 @@ void SceneStudio::ProcessInput(float fElapsedTime)
 		LogStick("RightTrigger", state.GetRightTrigger());
 
 		//static float fTime = 0.f;
-		//if (fTime >= 0.1f && fTime < 1.f)
+		//if (fTime >= 5.f)
 		//{
-		//	pPlayer->SetVibration(0.5f * fTime, 0.5f * fTime);
+		//	pPlayer->SetVibration(0.5f, 0.5f, 1.f);
+		//	fTime -= 5.f;
 		//}
-		//else if (fTime >= 1.f)
-		//{
-		//	pPlayer->SetVibration(0.f, 0.f);
-		//	fTime -= 1.f;
-		//}
-		//
-		//fTime += fElapsedTime;
+
+		fTime += fElapsedTime;
 	}
 	else
 	{

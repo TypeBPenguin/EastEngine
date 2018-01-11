@@ -8,6 +8,8 @@ namespace EastEngine
 		Keyboard::Keyboard()
 			: m_pKeyboard(nullptr)
 		{
+			m_oldKeyState.fill(0);
+			m_curKeyState.fill(0);
 		}
 
 		Keyboard::~Keyboard()
@@ -47,7 +49,7 @@ namespace EastEngine
 			{
 				if (hr == DIERR_INPUTLOST || hr == DIERR_NOTACQUIRED)
 				{
-					Memory::Clear(&m_curKeyState, sizeof(m_curKeyState));
+					m_curKeyState.fill(0);
 					m_pKeyboard->Acquire();
 				}
 			}

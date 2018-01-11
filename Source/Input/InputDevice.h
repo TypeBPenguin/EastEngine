@@ -21,12 +21,12 @@ namespace EastEngine
 			eNoWinKey = 1 << 4,
 		};
 
-		class InputDevice : public Singleton<InputDevice>
+		class Device : public Singleton<Device>
 		{
-			friend Singleton<InputDevice>;
+			friend Singleton<Device>;
 		private:
-			InputDevice();
-			virtual ~InputDevice();
+			Device();
+			virtual ~Device();
 
 		public:
 			bool Init(HINSTANCE hInstance, HWND hWnd, DWORD keyboardCoopFlag = eNoneExclusive | eForeGround, DWORD mouseCoopFlag = eNoneExclusive | eForeGround);
@@ -37,19 +37,19 @@ namespace EastEngine
 			bool HandleMsg(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam);
 
 		public:
-			bool IsMouseEvent(EmMouse::Button emMouseButton) { return m_pMouse->IsMouseEvent(emMouseButton); }
-			bool IsMouseDown(EmMouse::Button emMouseButton) { return m_pMouse->IsMouseDown(emMouseButton); }
-			bool IsMousePress(EmMouse::Button emMouseButton) { return m_pMouse->IsMousePress(emMouseButton); }
-			bool IsMouseUp(EmMouse::Button emMouseButton) { return m_pMouse->IsMouseUp(emMouseButton); }
+			bool IsMouseEvent(Mouse::Button emMouseButton) { return m_pMouse->IsButtonEvent(emMouseButton); }
+			bool IsMouseDown(Mouse::Button emMouseButton) { return m_pMouse->IsButtonDown(emMouseButton); }
+			bool IsMousePress(Mouse::Button emMouseButton) { return m_pMouse->IsButtonPress(emMouseButton); }
+			bool IsMouseUp(Mouse::Button emMouseButton) { return m_pMouse->IsButtonUp(emMouseButton); }
 
 			long GetMoveX() { return m_pMouse->GetMoveX(); }
 			long GetMoveY() { return m_pMouse->GetMoveY(); }
 			long GetMoveWheel() { return m_pMouse->GetMoveWheel(); }
 
-			bool IsKeyEvent(EmKeyboard::Button emKeyButton) { return m_pKeyboard->IsKeyEvent(emKeyButton); }
-			bool IsKeyDown(EmKeyboard::Button emKeyButton) { return m_pKeyboard->IsKeyDown(emKeyButton); }
-			bool IsKeyPress(EmKeyboard::Button emKeyButton) { return m_pKeyboard->IsKeyPress(emKeyButton); }
-			bool IsKeyUp(EmKeyboard::Button emKeyButton) { return m_pKeyboard->IsKeyUp(emKeyButton); }
+			bool IsKeyEvent(Keyboard::Button emKeyButton) { return m_pKeyboard->IsKeyEvent(emKeyButton); }
+			bool IsKeyDown(Keyboard::Button emKeyButton) { return m_pKeyboard->IsKeyDown(emKeyButton); }
+			bool IsKeyPress(Keyboard::Button emKeyButton) { return m_pKeyboard->IsKeyPress(emKeyButton); }
+			bool IsKeyUp(Keyboard::Button emKeyButton) { return m_pKeyboard->IsKeyUp(emKeyButton); }
 
 			Mouse* GetMouse() { return m_pMouse; }
 			Keyboard* GetKeyboard() { return m_pKeyboard; }

@@ -33,7 +33,7 @@ namespace EastEngine
 
 	namespace Input
 	{
-		class InputDevice;
+		class Device;
 	}
 
 	namespace Physics
@@ -104,7 +104,7 @@ namespace EastEngine
 		Lua::LuaSystem* s_pLuaSystem;
 		Windows::WindowsManager* s_pWindows;
 		Graphics::GraphicsSystem* s_pGraphicsSystem;
-		Input::InputDevice* s_pInputDevice;
+		Input::Device* s_pInputDevice;
 		Physics::PhysicsSystem* s_pPhysicsSystem;
 		Sound::SoundSystem* s_pSoundSystem;
 		UI::UIManager* s_pUIMgr;

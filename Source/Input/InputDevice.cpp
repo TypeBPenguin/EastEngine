@@ -7,7 +7,7 @@ namespace EastEngine
 {
 	namespace Input
 	{
-		InputDevice::InputDevice()
+		Device::Device()
 			: m_pInput(nullptr)
 			, m_pMouse(nullptr)
 			, m_pKeyboard(nullptr)
@@ -17,12 +17,12 @@ namespace EastEngine
 		{
 		}
 
-		InputDevice::~InputDevice()
+		Device::~Device()
 		{
 			Release();
 		}
 
-		bool InputDevice::Init(HINSTANCE hInstance, HWND hWnd, DWORD keyboardCoopFlag, DWORD mouseCoopFlag)
+		bool Device::Init(HINSTANCE hInstance, HWND hWnd, DWORD keyboardCoopFlag, DWORD mouseCoopFlag)
 		{
 			if (m_isInit == true)
 				return true;
@@ -55,7 +55,7 @@ namespace EastEngine
 			return true;
 		}
 
-		void InputDevice::Release()
+		void Device::Release()
 		{
 			SafeRelease(m_pMouse);
 			Mouse::DestroyInstance();
@@ -70,14 +70,14 @@ namespace EastEngine
 			m_isInit = false;
 		}
 
-		void InputDevice::Update(float fElapsedTime)
+		void Device::Update(float fElapsedTime)
 		{
 			m_pMouse->Update();
 			m_pKeyboard->Update();
 			m_pGamePad->Update(fElapsedTime);
 		}
 
-		bool InputDevice::HandleMsg(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
+		bool Device::HandleMsg(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
 		{
 			switch (nMsg)
 			{

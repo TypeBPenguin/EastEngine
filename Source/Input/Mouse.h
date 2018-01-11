@@ -9,8 +9,14 @@ namespace EastEngine
 {
 	namespace Input
 	{
-		namespace EmMouse
+		class Mouse : public Singleton<Mouse>
 		{
+			friend Singleton<Mouse>;
+		private:
+			Mouse();
+			virtual ~Mouse();
+
+		public:
 			enum Button
 			{
 				eLeft = 0,
@@ -22,40 +28,29 @@ namespace EastEngine
 				eUndefine4,
 				eUndefine5,
 
-				eCount,
+				Count,
 			};
-		}
 
-		struct MouseState
-		{
-			/*int x;
-			int y;*/
-
-			long moveX;
-			long moveY;
-			long moveWheel;
-
-			union
-			{
-				struct _rgbButton
-				{
-					byte leftButton;
-					byte rightButton;
-					byte middleButton;
-					byte undefineButton[5];
-				};
-
-				_rgbButton rgbButton;
-				byte rgbButtonArr[8];
-			};
-		};
-
-		class Mouse : public Singleton<Mouse>
-		{
-			friend Singleton<Mouse>;
 		private:
-			Mouse();
-			virtual ~Mouse();
+			struct MouseState
+			{
+				long moveX = 0;
+				long moveY = 0;
+				long moveWheel = 0;
+
+				union
+				{
+					struct
+					{
+						byte leftButton;
+						byte rightButton;
+						byte middleButton;
+						byte undefineButton[5];
+					};
+
+					byte rgbButtonArr[8];
+				};
+			};
 
 		public:
 			bool Init(HWND hWnd, IDirectInput8A* pInput, DWORD mouseCoopFlag);
@@ -66,10 +61,10 @@ namespace EastEngine
 			void HandleMouse(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam);
 
 		public:
-			bool IsMouseEvent(EmMouse::Button emMouseButton) { return CurMouseDown(emMouseButton); }
-			bool IsMouseDown(EmMouse::Button emMouseButton) { return !OldMouseDown(emMouseButton) && CurMouseDown(emMouseButton); }
-			bool IsMousePress(EmMouse::Button emMouseButton) { return OldMouseDown(emMouseButton) && CurMouseDown(emMouseButton); }
-			bool IsMouseUp(EmMouse::Button emMouseButton) { return OldMouseDown(emMouseButton) && !CurMouseDown(emMouseButton); }
+			bool IsButtonEvent(Mouse::Button emMouseButton) { return CurMouseDown(emMouseButton); }
+			bool IsButtonDown(Mouse::Button emMouseButton) { return !OldMouseDown(emMouseButton) && CurMouseDown(emMouseButton); }
+			bool IsButtonPress(Mouse::Button emMouseButton) { return OldMouseDown(emMouseButton) && CurMouseDown(emMouseButton); }
+			bool IsButtonUp(Mouse::Button emMouseButton) { return OldMouseDown(emMouseButton) && !CurMouseDown(emMouseButton); }
 
 			int	GetPosX() { return m_nX; }
 			int GetPosY() { return m_nY; }
@@ -79,8 +74,8 @@ namespace EastEngine
 			long GetMoveWheel() { return m_CurMouseState.moveWheel; }	// 휠 이동거리
 
 		private:
-			bool CurMouseDown(EmMouse::Button emMouseButton) { return (m_CurMouseState.rgbButtonArr[static_cast<int>(emMouseButton)] & 0x80) != 0; }
-			bool OldMouseDown(EmMouse::Button emMouseButton) { return (m_OldMouseState.rgbButtonArr[static_cast<int>(emMouseButton)] & 0x80) != 0; }
+			bool CurMouseDown(Mouse::Button emMouseButton) { return (m_CurMouseState.rgbButtonArr[static_cast<int>(emMouseButton)] & 0x80) != 0; }
+			bool OldMouseDown(Mouse::Button emMouseButton) { return (m_OldMouseState.rgbButtonArr[static_cast<int>(emMouseButton)] & 0x80) != 0; }
 
 		private:
 			IDirectInputDevice8A* m_pMouse;	// 마우스 디바이스

@@ -14,17 +14,17 @@ namespace EastEngine
 			virtual ~GamePad();
 
 		public:
-			enum EmPlayerID
+			enum PlayerID
 			{
 				e1P = 0,
 				e2P,
 				e3P,
 				e4P,
 
-				MaxCount,
+				Count,
 			};
 
-			enum EmDeadZone
+			enum DeadZone
 			{
 				eIndependentAxes = 0,
 				eCircular,
@@ -125,7 +125,7 @@ namespace EastEngine
 
 			struct Capabilities
 			{
-				enum EmType
+				enum Type
 				{
 					eUnknown = 0,
 					eGamePad,
@@ -141,8 +141,8 @@ namespace EastEngine
 				};
 
 				bool isConnected = false;
-				EmType emGamepadType = EmType::eUnknown;
-				EmPlayerID emPlayerID = EmPlayerID::e1P;
+				Type emGamepadType = Type::eUnknown;
+				PlayerID emPlayerID = PlayerID::e1P;
 
 				bool IsConnected() const { return isConnected; }
 			};
@@ -212,44 +212,49 @@ namespace EastEngine
 			class Player
 			{
 			public:
-				Player(EmPlayerID emPlayer);
+				Player(PlayerID emPlayer);
 				~Player();
 
 			public:
 				void Update(float fElapsedTime);
 
-				bool SetVibration(float fLeftMotor, float fRightMotor);
+				bool SetVibration(float fLeftMotor, float fRightMotor, float fVabrationTime = 0.f);
 
 			public:
-				EmPlayerID GetPlayerID() const { return m_emPlayerID; }
+				PlayerID GetPlayerID() const { return m_emPlayerID; }
 
 				bool IsConnected() const { return m_isConnected; }
 
-				EmDeadZone GetDeadZone() const { return m_emDeadZoneMode; }
-				void SetDeadZone(EmDeadZone emDeadZone) { m_emDeadZoneMode = emDeadZone; }
+				DeadZone GetDeadZone() const { return m_emDeadZoneMode; }
+				void SetDeadZone(DeadZone emDeadZone) { m_emDeadZoneMode = emDeadZone; }
 
 				const State& GetCurState() const { return m_state; }
 				const ButtonStateTracker& GetButtonStateTracker() const { return m_buttonStateTracker; }
 				const Capabilities& GetCapabilities() const { return m_capabilities; }
 
 			private:
-				void refreshState();
-				void refreshCapabilities();
+				void RefreshState();
+				void RefreshCapabilities();
 
-				bool throttleRetry(float fElapsedTime);
-				void clearSlot(float fTime)
+				bool ThrottleRetry(float fElapsedTime);
+				void ClearSlot(float fTime)
 				{
 					m_isConnected = false;
 					m_fLastReadTime = fTime;
+					m_fVabrationTime = 0.f;
+					m_fMaxVabrationTime = 0.f;
 				}
 
 			private:
-				EmPlayerID m_emPlayerID;
+				PlayerID m_emPlayerID;
 
 				bool m_isConnected;
 				float m_fLastReadTime;
 
-				EmDeadZone m_emDeadZoneMode;
+				float m_fVabrationTime;
+				float m_fMaxVabrationTime;
+
+				DeadZone m_emDeadZoneMode;
 
 				State m_state;
 				ButtonStateTracker m_buttonStateTracker;
@@ -257,22 +262,18 @@ namespace EastEngine
 				Capabilities m_capabilities;
 			};
 
-			Player* GetPlayer(EmPlayerID emPlayerID) { return &m_players[emPlayerID]; }
+			Player* GetPlayer(PlayerID emPlayerID) { return &m_players[emPlayerID]; }
 
 			// Set the vibration motor speeds of the gamepad
-			bool SetVibration(EmPlayerID emPlayerID, float fLeftMotor, float fRightMotor)
+			bool SetVibration(PlayerID emPlayerID, float fLeftMotor, float fRightMotor, float fVabrationTime = 0.f)
 			{
-				return m_players[emPlayerID].SetVibration(fLeftMotor, fRightMotor);
+				return m_players[emPlayerID].SetVibration(fLeftMotor, fRightMotor, fVabrationTime);
 			}
-
-			// Handle suspending/resuming
-			/*void Suspend();
-			void Resume();*/
 
 			void Update(float fElapsedTime);
 
 		private:
-			std::array<Player, EmPlayerID::MaxCount> m_players;
+			std::array<Player, PlayerID::Count> m_players;
 		};
 	}
 }

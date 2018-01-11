@@ -29,7 +29,7 @@ namespace EastEngine
 			return Math::Max(-1.f, Math::Min(scaledValue, 1.f));
 		}
 
-		void ApplyStickDeadZone(float x, float y, GamePad::EmDeadZone emDeadZoneMode, float fMaxValue, float fDeadZoneSize,
+		void ApplyStickDeadZone(float x, float y, GamePad::DeadZone emDeadZoneMode, float fMaxValue, float fDeadZoneSize,
 			_Out_ float& fResultX_out, _Out_ float& fResultY_out)
 		{
 			switch (emDeadZoneMode)
@@ -100,11 +100,13 @@ namespace EastEngine
 			Memory::Clear(this, sizeof(ButtonStateTracker));
 		}
 
-		GamePad::Player::Player(EmPlayerID emPlayer)
+		GamePad::Player::Player(PlayerID emPlayer)
 			: m_emPlayerID(emPlayer)
 			, m_isConnected(false)
 			, m_fLastReadTime(0.f)
-			, m_emDeadZoneMode(EmDeadZone::eIndependentAxes)
+			, m_fVabrationTime(0.f)
+			, m_fMaxVabrationTime(0.f)
+			, m_emDeadZoneMode(DeadZone::eIndependentAxes)
 		{
 		}
 
@@ -114,23 +116,35 @@ namespace EastEngine
 
 		void GamePad::Player::Update(float fElapsedTime)
 		{
-			if (throttleRetry(fElapsedTime) == true)
+			if (ThrottleRetry(fElapsedTime) == true)
 			{
 				Memory::Clear(&m_state, sizeof(State));
 				Memory::Clear(&m_capabilities, sizeof(Capabilities));
 			}
 			else
 			{
-				refreshState();
-				refreshCapabilities();
+				RefreshState();
+				RefreshCapabilities();
 
 				m_buttonStateTracker.Update(m_state);
+
+				if (Math::IsZero(m_fMaxVabrationTime) == false)
+				{
+					if (m_fVabrationTime >= m_fMaxVabrationTime)
+					{
+						SetVibration(0.f, 0.f, 0.f);
+					}
+					else
+					{
+						m_fVabrationTime += fElapsedTime;
+					}
+				}
 			}
 		}
 
-		bool GamePad::Player::SetVibration(float fLeftMotor, float fRightMotor)
+		bool GamePad::Player::SetVibration(float fLeftMotor, float fRightMotor, float fVabrationTime)
 		{
-			if (throttleRetry(0.f) == true)
+			if (ThrottleRetry(0.f) == true)
 				return false;
 
 			XINPUT_VIBRATION xVibration;
@@ -139,23 +153,26 @@ namespace EastEngine
 			DWORD result = XInputSetState(m_emPlayerID, &xVibration);
 			if (result == ERROR_DEVICE_NOT_CONNECTED)
 			{
-				clearSlot(0.f);
+				ClearSlot(0.f);
 				return false;
 			}
 			else
 			{
+				m_fVabrationTime = 0.f;
+				m_fMaxVabrationTime = fVabrationTime;;
+
 				m_isConnected = true;
 				return result == ERROR_SUCCESS;
 			}
 		}
 
-		void GamePad::Player::refreshState()
+		void GamePad::Player::RefreshState()
 		{
 			XINPUT_STATE xState;
 			DWORD result = XInputGetState(m_emPlayerID, &xState);
 			if (result == ERROR_DEVICE_NOT_CONNECTED)
 			{
-				clearSlot(0.f);
+				ClearSlot(0.f);
 			}
 			else
 			{
@@ -181,7 +198,7 @@ namespace EastEngine
 				m_state.dpad.right = (xbuttons & XINPUT_GAMEPAD_DPAD_RIGHT) != 0;
 				m_state.dpad.left = (xbuttons & XINPUT_GAMEPAD_DPAD_LEFT) != 0;
 
-				if (m_emDeadZoneMode == EmDeadZone::eNone)
+				if (m_emDeadZoneMode == DeadZone::eNone)
 				{
 					m_state.triggers.left = ApplyLinearDeadZone(float(xState.Gamepad.bLeftTrigger), 255.f, 0.f);
 					m_state.triggers.right = ApplyLinearDeadZone(float(xState.Gamepad.bRightTrigger), 255.f, 0.f);
@@ -202,13 +219,13 @@ namespace EastEngine
 			}
 		}
 
-		void GamePad::Player::refreshCapabilities()
+		void GamePad::Player::RefreshCapabilities()
 		{
 			XINPUT_CAPABILITIES xCaps;
 			DWORD result = XInputGetCapabilities(m_emPlayerID, 0, &xCaps);
 			if (result == ERROR_DEVICE_NOT_CONNECTED)
 			{
-				clearSlot(0.f);
+				ClearSlot(0.f);
 			}
 			else
 			{
@@ -229,12 +246,12 @@ namespace EastEngine
 					static_assert(XINPUT_DEVSUBTYPE_GUITAR_BASS == Capabilities::eGuitarBass, "xinput.h mismatch");
 					static_assert(XINPUT_DEVSUBTYPE_ARCADE_PAD == Capabilities::eArcadePad, "xinput.h mismatch");
 
-					m_capabilities.emGamepadType = Capabilities::EmType(xCaps.SubType);
+					m_capabilities.emGamepadType = Capabilities::Type(xCaps.SubType);
 				}
 			}
 		}
 
-		bool GamePad::Player::throttleRetry(float fElapsedTime)
+		bool GamePad::Player::ThrottleRetry(float fElapsedTime)
 		{
 			// This function minimizes a potential performance issue with XInput on Windows when
 			// checking a disconnected controller slot which requires device enumeration.
@@ -251,23 +268,13 @@ namespace EastEngine
 		}
 
 		GamePad::GamePad()
-			: m_players({ EmPlayerID::e1P, EmPlayerID::e2P, EmPlayerID::e3P, EmPlayerID::e4P })
+			: m_players({ PlayerID::e1P, PlayerID::e2P, PlayerID::e3P, PlayerID::e4P })
 		{
 		}
 
 		GamePad::~GamePad()
 		{
 		}
-
-		/*void GamePad::Suspend()
-		{
-			XInputEnable(FALSE);
-		}
-
-		void GamePad::Resume()
-		{
-			XInputEnable(TRUE);
-		}*/
 
 		void GamePad::Update(float fElapsedTime)
 		{

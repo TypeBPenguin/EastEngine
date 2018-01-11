@@ -123,7 +123,7 @@ namespace EastEngine
 			return Graphics::GraphicsSystem::GetInstance()->GetD3D()->HandleMsg(hWnd, nMsg, wParam, lParam);
 		});
 		
-		s_pInputDevice = Input::InputDevice::GetInstance();
+		s_pInputDevice = Input::Device::GetInstance();
 		if (s_pInputDevice->Init(hInstance, hWnd) == false)
 		{
 			Release();
@@ -132,7 +132,7 @@ namespace EastEngine
 
 		s_pWindows->AddMessageHandler([](HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam) -> bool
 		{
-			return Input::InputDevice::GetInstance()->HandleMsg(hWnd, nMsg, wParam, lParam);
+			return Input::Device::GetInstance()->HandleMsg(hWnd, nMsg, wParam, lParam);
 		});
 
 		s_pPhysicsSystem = Physics::PhysicsSystem::GetInstance();
@@ -216,7 +216,7 @@ namespace EastEngine
 		Physics::PhysicsSystem::DestroyInstance();
 
 		SafeRelease(s_pInputDevice);
-		Input::InputDevice::DestroyInstance();
+		Input::Device::DestroyInstance();
 
 		SafeRelease(s_pGraphicsSystem);
 		Graphics::GraphicsSystem::DestroyInstance();

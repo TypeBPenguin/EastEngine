@@ -56,13 +56,13 @@ namespace EastEngine
 				m_pMainCamera->SetThirdView(f3Eye);
 			}
 
-			Input::InputDevice* pInputDevice = Input::InputDevice::GetInstance();
+			Input::Device* pInputDevice = Input::Device::GetInstance();
 			float dx = static_cast<float>(pInputDevice->GetMoveX() * 0.25f);
 			float dy = static_cast<float>(pInputDevice->GetMoveY() * 0.25f);
 			float dz = static_cast<float>(pInputDevice->GetMoveWheel()) * 0.01f;
 			bool bX = fabsf(dx) > 0.f;
 			bool bY = fabsf(dy) > 0.f;
-			if (pInputDevice->IsMousePress(Input::EmMouse::eRight))
+			if (pInputDevice->IsMousePress(Input::Mouse::eRight))
 			{
 				if (bX)
 				{
