@@ -116,6 +116,9 @@ namespace EastEngine
 								}
 							}
 
+							if (pMaterial != nullptr && pMaterial->IsVisible() == false)
+								continue;
+
 							RenderSubsetSkinned subset(&modelSubset, m_pVertexBuffer[nLevel], m_pIndexBuffer[nLevel], pMaterial, matTransformation, modelSubset.nStartIndex, modelSubset.nIndexCount, nVTFID, m_fDistanceFromCamera);
 							RendererManager::GetInstance()->AddRender(subset);
 						}

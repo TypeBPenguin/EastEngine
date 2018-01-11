@@ -92,6 +92,9 @@ namespace EastEngine
 			virtual bool IsAlbedoAlphaChannelMaskMap() const override { return m_info.isAlbedoAlphaChannelMaskMap; }
 			virtual void SetAlbedoAlphaChannelMaskMap(bool isAlbedoAlphaChannelMaskMap) override { m_info.isAlbedoAlphaChannelMaskMap = isAlbedoAlphaChannelMaskMap; }
 
+			virtual bool IsVisible() const override { return m_info.isVisible; }
+			virtual void SetVisible(bool isVisible) override { m_info.isVisible = isVisible; }
+
 			virtual bool IsLoadComplete() const override;
 
 		public:

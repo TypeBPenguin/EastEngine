@@ -39,6 +39,9 @@ namespace EastEngine
 			SetAlbedoColor(pInfo->colorAlbedo);
 			SetEmissiveColor(pInfo->colorEmissive);
 
+			SetTessellationFactor(pInfo->fTessellationFactor);
+			SetAlbedoAlphaChannelMaskMap(pInfo->isAlbedoAlphaChannelMaskMap);
+
 			for (uint32_t i = 0; i < EmMaterial::TypeCount; ++i)
 			{
 				EmMaterial::Type emType = static_cast<EmMaterial::Type>(i);

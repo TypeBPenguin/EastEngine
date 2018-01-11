@@ -57,9 +57,14 @@ namespace EastEngine
 
 		struct ModelSubset
 		{
+			enum : uint32_t
+			{
+				eInvalidMaterialID = std::numeric_limits<uint32_t>::max(),
+			};
+
 			String::StringID strName;
 
-			uint32_t nMaterialID = std::numeric_limits<uint32_t>::max();
+			uint32_t nMaterialID = eInvalidMaterialID;
 			uint32_t nStartIndex = 0;
 			uint32_t nIndexCount = 0;
 
@@ -296,6 +301,7 @@ namespace EastEngine
 
 			virtual size_t GetMaterialCount() const = 0;
 			virtual IMaterial* GetMaterial(size_t nIndex) = 0;
+			virtual IMaterial* GetMaterial(const String::StringID& strMaterialName, uint32_t& nMaterialID_out) = 0;
 
 			virtual size_t GetModelSubsetCount(uint32_t nLOD = 0) const = 0;
 			virtual ModelSubset* GetModelSubset(size_t nIndex, uint32_t nLOD = 0) = 0;

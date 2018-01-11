@@ -190,6 +190,10 @@ namespace EastEngine
 			void AddAnimInfoByFBX(std::string strAnimPath) { m_listAnimationList.emplace_back(strAnimPath); }
 			const std::list<std::string>& GetAnimInfo() const { return m_listAnimationList; }
 
+			void AddDevideByKeywordByXPS(const char* strKeyword) { m_vecDevideByKeywords.emplace_back(strKeyword); }
+			const std::string* GetDevideKeywords() const { return m_vecDevideByKeywords.data(); }
+			size_t GetDevideKeywordCount() const { return m_vecDevideByKeywords.size(); }
+
 			std::function<void(bool)> GetCallbackFunc() const { return m_funcCallback; }
 
 		public:
@@ -250,6 +254,7 @@ namespace EastEngine
 			EmModelLoader::GeometryType m_emLoadGeometryType;
 
 			std::list<std::string> m_listAnimationList;
+			std::vector<std::string> m_vecDevideByKeywords;
 
 			std::string m_strFilePath;
 			String::StringID m_strModelName;

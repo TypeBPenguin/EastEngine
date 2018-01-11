@@ -515,6 +515,7 @@ void SceneStudio::Enter()
 		//pCompPhysics->m_pRagDoll->BuildDefaultHumanRagDoll(pModelInstance->GetSkeleton(), pActor->GetPosition(), Math::Quaternion::Identity, 1.f);
 		//pCompPhysics->m_pRagDoll->Start();
 
+		if (false)
 		{
 			strPath = File::GetDataPath();
 			strPath.append("Model\\ElementalSwordIce\\LP.emod");
@@ -575,22 +576,28 @@ void SceneStudio::Enter()
 		}
 	}
 
+	for (int i = 0; i < 2; ++i)
 	{
 		String::StringID name;
-		name.Format("2B");
+		name.Format("2B_NierAutomata_%d", i);
 		GameObject::IActor* pActor = GameObject::IActor::Create(name);
 
 		Math::Vector3 pos;
-		pos.x = -2.f;
+		pos.x = -2.f + (i * -2.f);
 		pos.y = 0.5f;
 		pActor->SetPosition(pos);
 
 		strPath = File::GetDataPath();
-		strPath.append("Model\\2B\\2B.emod");
+		//strPath.append("Model\\2B_NierAutomata\\Generic_Item.mesh");
+		strPath.append("Model\\2B_NierAutomata\\2B_NierAutomata.emod");
 
 		Graphics::ModelLoader loader;
-		
+
 		String::StringID strFileName = File::GetFileName(strPath).c_str();
+		//loader.InitXPS(strFileName, strPath.c_str());
+		//loader.AddDevideByKeywordByXPS("skirt");
+		//loader.AddDevideByKeywordByXPS("eyepatch");
+		//loader.AddDevideByKeywordByXPS("white");
 		loader.InitEast(strFileName, strPath.c_str());
 		loader.SetEnableThreadLoad(false);
 
@@ -600,49 +607,24 @@ void SceneStudio::Enter()
 		Graphics::IModelInstance* pModelInstance = pModel->GetModelInstance();
 		Graphics::IMotionSystem* pMotionSystem = pModelInstance->GetMotionSystem();
 
-		if (false)
+		if (i == 1)
 		{
-			std::string strPathMotion(File::GetDataPath());
-			strPathMotion.append("Actor\\HomunculusGirl\\HomunculusGirl.fbx");
+			Graphics::IModelNode* pNode = pModelInstance->GetModel()->GetNode("Generic_Item.mesh");
 
-			String::StringID strMotionName;
-			strMotionName.Format("%s", File::GetFileName(strPathMotion).c_str());
-			Graphics::MotionLoader motionLoader;
-			motionLoader.InitFBX(strMotionName, strPathMotion.c_str(), 0.01f);
-			Graphics::IMotion* pMotion = Graphics::IMotion::Create(motionLoader);
+			auto SetMaterialVisible = [&](const String::StringID& strMaterialName)
+			{
+				uint32_t nMaterialID = 0;
+				Graphics::IMaterial* pMaterial = pNode->GetMaterial(strMaterialName, nMaterialID);
 
-			Graphics::MotionPlaybackInfo playback;
-			playback.fSpeed = 1.f;
-			playback.nLoopCount = Graphics::MotionPlaybackInfo::eMaxLoopCount;
-			playback.fWeight = 1.f;
-			pMotionSystem->Play(Graphics::EmMotion::eLayer1, pMotion, &playback);
+				Graphics::IMaterial* pMaterialClone = Graphics::IMaterial::Clone(pMaterial);
+				pMaterialClone->SetVisible(false);
+
+				pModelInstance->ChangeMaterial("Generic_Item.mesh", nMaterialID, pMaterialClone);
+			};
+
+			//SetMaterialVisible("Skirt");
+			SetMaterialVisible("Eyepatch");
 		}
-	}
-
-	{
-		String::StringID name;
-		name.Format("2B_NierAutomata");
-		GameObject::IActor* pActor = GameObject::IActor::Create(name);
-
-		Math::Vector3 pos;
-		pos.x = -4.f;
-		pos.y = 0.5f;
-		pActor->SetPosition(pos);
-
-		strPath = File::GetDataPath();
-		strPath.append("Model\\2B_NierAutomata\\Generic_Item.mesh");
-
-		Graphics::ModelLoader loader;
-
-		String::StringID strFileName = File::GetFileName(strPath).c_str();
-		loader.InitXPS(strFileName, strPath.c_str());
-		loader.SetEnableThreadLoad(false);
-
-		GameObject::ComponentModel* pModel = static_cast<GameObject::ComponentModel*>(pActor->CreateComponent(GameObject::EmComponent::eModel));
-		pModel->Init(&loader);
-
-		Graphics::IModelInstance* pModelInstance = pModel->GetModelInstance();
-		Graphics::IMotionSystem* pMotionSystem = pModelInstance->GetMotionSystem();
 
 		{
 			std::string strPathMotion(File::GetDataPath());
@@ -668,8 +650,8 @@ void SceneStudio::Enter()
 		GameObject::IActor* pActor = GameObject::IActor::Create(name);
 
 		Math::Vector3 pos;
-		pos.x = -6.f;
-		pos.y = 0.5f;
+		pos.y = 1.f;
+		pos.z -= 2.f;
 		pActor->SetPosition(pos);
 
 		strPath = File::GetDataPath();
@@ -861,8 +843,7 @@ void SceneStudio::ProcessInput(float fElapsedTime)
 		//	pPlayer->SetVibration(0.5f, 0.5f, 1.f);
 		//	fTime -= 5.f;
 		//}
-
-		fTime += fElapsedTime;
+		//fTime += fElapsedTime;
 	}
 	else
 	{

@@ -185,10 +185,7 @@ namespace EastEngine
 
 		void Model::ChangeName(const String::StringID& strName)
 		{
-			if (ModelManager::GetInstance()->ChangeName(this, strName) == true)
-			{
-				SetName(strName);
-			}
+			SetName(strName);
 		}
 
 		void Model::AddNode(IModelNode* pNode, const String::StringID& strNodeName, bool isRootNode)
@@ -236,7 +233,7 @@ namespace EastEngine
 			break;
 			case EmModelLoader::eXps:
 			{
-				isSuccess = XPSImport::LoadModel(this, loader.GetFilePath().c_str());
+				isSuccess = XPSImport::LoadModel(this, loader.GetFilePath().c_str(), loader.GetDevideKeywords(), loader.GetDevideKeywordCount());
 				if (isSuccess == false)
 				{
 					LOG_ERROR("Can't load Model[XPS] : %s", loader.GetFilePath().c_str());
@@ -552,6 +549,7 @@ namespace EastEngine
 					assert(pParentNode != nullptr);
 					
 					pParentNode->AddChildNode(pNode);
+					pNode->SetParentNode(pParentNode);
 
 					AddNode(pNode, pNode->GetName(), false);
 				}

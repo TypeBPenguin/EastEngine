@@ -42,6 +42,7 @@ namespace EastEngine
 
 			virtual size_t GetMaterialCount() const override { return m_vecMaterial.size(); }
 			virtual IMaterial* GetMaterial(size_t nIndex) override { return m_vecMaterial[nIndex]; }
+			virtual IMaterial* GetMaterial(const String::StringID& strMaterialName, uint32_t& nMaterialID_out) override;
 
 			virtual size_t GetModelSubsetCount(uint32_t nLod = 0) const override { return m_vecModelSubsets[nLod].size(); }
 			virtual ModelSubset* GetModelSubset(size_t nIndex, uint32_t nLod = 0) override { return &m_vecModelSubsets[nLod][nIndex]; }

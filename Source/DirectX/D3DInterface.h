@@ -449,6 +449,7 @@ namespace EastEngine
 
 			float fTessellationFactor;
 			bool isAlbedoAlphaChannelMaskMap;
+			bool isVisible;
 
 			std::array<String::StringID, EmMaterial::TypeCount> strTextureNameArray;
 
@@ -549,6 +550,9 @@ namespace EastEngine
 
 			virtual bool IsAlbedoAlphaChannelMaskMap() const = 0;
 			virtual void SetAlbedoAlphaChannelMaskMap(bool isAlbedoAlphaChannelMaskMap) = 0;
+
+			virtual bool IsVisible() const = 0;
+			virtual void SetVisible(bool isVisible) = 0;
 
 			virtual bool IsLoadComplete() const = 0;
 

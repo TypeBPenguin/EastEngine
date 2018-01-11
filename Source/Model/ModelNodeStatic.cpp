@@ -63,6 +63,9 @@ namespace EastEngine
 							}
 						}
 
+						if (pMaterial != nullptr && pMaterial->IsVisible() == false)
+							continue;
+
 						RenderSubsetStatic subset(&modelSubset, m_pVertexBuffer[nLevel], m_pIndexBuffer[nLevel], pMaterial, matTransformation, modelSubset.nStartIndex, modelSubset.nIndexCount, m_fDistanceFromCamera, boundingSphere);
 						RendererManager::GetInstance()->AddRender(subset);
 					}

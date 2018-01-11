@@ -225,25 +225,9 @@ namespace EastEngine
 			*ppModel = nullptr;
 		}
 
-		bool ModelManager::ChangeName(IModel* pModel, const String::StringID& strName)
-		{
-			auto iter = std::find_if(m_clnModel.begin(), m_clnModel.end(), [strName](Model& model)
-			{
-				return model.GetName() == strName;
-			});
-
-			if (iter == m_clnModel.end())
-				return false;
-
-			Model& model = *iter;
-			model.SetName(strName);
-
-			return true;
-		}
-
 		IModel* ModelManager::GetModel(const String::StringID& strModelName)
 		{
-			auto iter = std::find_if(m_clnModel.begin(), m_clnModel.end(), [strModelName](Model& model)
+			auto iter = std::find_if(m_clnModel.begin(), m_clnModel.end(), [&strModelName](Model& model)
 			{
 				return model.GetName() == strModelName;
 			});

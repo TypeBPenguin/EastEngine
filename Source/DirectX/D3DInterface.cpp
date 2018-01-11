@@ -382,6 +382,7 @@ namespace EastEngine
 			, colorEmissive(0.f, 0.f, 0.f, 1.f)
 			, fTessellationFactor(256.f)
 			, isAlbedoAlphaChannelMaskMap(false)
+			, isVisible(true)
 			, emSamplerState(EmSamplerState::eMinMagMipLinearWrap)
 			, emBlendState(EmBlendState::eOff)
 			, emRasterizerState(EmRasterizerState::eSolidCCW)
@@ -403,6 +404,7 @@ namespace EastEngine
 
 			fTessellationFactor = 256.f;
 			isAlbedoAlphaChannelMaskMap = false;
+			isVisible = true;
 
 			for (auto& strTexName : strTextureNameArray)
 			{

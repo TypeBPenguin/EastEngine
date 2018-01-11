@@ -100,6 +100,22 @@ namespace EastEngine
 			std::copy(vecModelPiece.begin(), vecModelPiece.end(), std::back_inserter(m_vecModelSubsets[Math::Min(nLod, m_nLodMax)]));
 		}
 
+		IMaterial* ModelNode::GetMaterial(const String::StringID& strMaterialName, uint32_t& nMaterialID_out)
+		{
+			const size_t nSize = m_vecMaterial.size();
+			for (size_t i = 0; i < nSize; ++i)
+			{
+				if (m_vecMaterial[i]->GetName() == strMaterialName)
+				{
+					nMaterialID_out = i;
+					return m_vecMaterial[i];
+				}
+			}
+
+			nMaterialID_out = ModelSubset::eInvalidMaterialID;
+			return nullptr;
+		}
+
 		void ModelNode::SetOriginAABB(const Collision::AABB& aabb)
 		{
 			m_originAABB = aabb;

@@ -54,10 +54,12 @@ namespace EastEngine
 
 		void Camera::Update(float fElapsedTime)
 		{
+			const float fMin = 0.0001f;
+
 			float fValue = fElapsedTime * 5.f;
 			float fDeValue = 1.f - fValue;
 
-			if (std::abs(m_fAddDistance) > 0.001f)
+			if (std::abs(m_fAddDistance) > fMin)
 			{
 				float fOffset = m_fAddDistance * fValue;
 				m_fAddDistance *= fDeValue;
@@ -72,7 +74,7 @@ namespace EastEngine
 				m_fAddDistance = 0.f;
 			}
 
-			if (std::abs(m_fMoveFront) > 0.001f)
+			if (std::abs(m_fMoveFront) > fMin)
 			{
 				float fOffset = m_fMoveFront * fValue;
 				m_fMoveFront *= fDeValue;
@@ -90,7 +92,7 @@ namespace EastEngine
 				m_fMoveFront = 0.f;
 			}
 
-			if (std::abs(m_fMoveForward) > 0.001f)
+			if (std::abs(m_fMoveForward) > fMin)
 			{
 				float fOffset = m_fMoveForward * fValue;
 				m_fMoveForward *= fDeValue;
@@ -106,7 +108,7 @@ namespace EastEngine
 				m_fMoveForward = 0.f;
 			}
 
-			if (std::abs(m_fMoveSideward) > 0.001f)
+			if (std::abs(m_fMoveSideward) > fMin)
 			{
 				float fOffset = m_fMoveSideward * fValue;
 				m_fMoveSideward *= fDeValue;
@@ -122,7 +124,7 @@ namespace EastEngine
 				m_fMoveSideward = 0.f;
 			}
 
-			if (std::abs(m_fMoveUpward) > 0.001f)
+			if (std::abs(m_fMoveUpward) > fMin)
 			{
 				float fOffset = m_fMoveUpward * fValue;
 				m_fMoveUpward *= fDeValue;
@@ -138,7 +140,7 @@ namespace EastEngine
 				m_fMoveUpward = 0.f;
 			}
 
-			if (std::abs(m_f3RotationOffset.x) > 0.001f)
+			if (std::abs(m_f3RotationOffset.x) > fMin)
 			{
 				float fOffset = m_f3RotationOffset.x * fValue * 5.f;
 				m_f3RotationOffset.x *= fDeValue;
@@ -159,7 +161,7 @@ namespace EastEngine
 				m_f3RotationOffset.x = 0.f;
 			}
 
-			if (std::abs(m_f3RotationOffset.y) > 0.001f)
+			if (std::abs(m_f3RotationOffset.y) > fMin)
 			{
 				float fOffset = m_f3RotationOffset.y * fValue * 5.f;
 				m_f3RotationOffset.y *= fDeValue;
@@ -180,7 +182,7 @@ namespace EastEngine
 				m_f3RotationOffset.y = 0.f;
 			}
 
-			if (std::abs(m_f3RotationOffset.z) > 0.001f)
+			if (std::abs(m_f3RotationOffset.z) > fMin)
 			{
 				float fOffset = m_f3RotationOffset.z * fValue * 5.f;
 				m_f3RotationOffset.z *= fDeValue;

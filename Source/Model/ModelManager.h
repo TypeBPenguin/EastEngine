@@ -54,7 +54,6 @@ namespace EastEngine
 			IModel* AllocateModel(uint32_t nReserveInstance);
 			void DestroyModel(IModel** ppModel);
 
-			bool ChangeName(IModel* pModel, const String::StringID& strName);
 			IModel* GetModel(const String::StringID& strModelName);
 
 		public:

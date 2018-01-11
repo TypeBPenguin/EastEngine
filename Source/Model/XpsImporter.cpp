@@ -54,7 +54,7 @@ namespace EastEngine
 				std::vector<uint32_t> elements;	// [numElements];
 			};
 
-			bool LoadModel(Model* pModel, const char* strFilePath)
+			bool LoadModel(Model* pModel, const char* strFilePath, const std::string* pStrDevideModels, size_t nKeywordCount)
 			{
 				File::FileStream file;
 				if (file.Open(strFilePath, File::EmState::eRead | File::EmState::eBinary) == false)
@@ -181,7 +181,7 @@ namespace EastEngine
 						std::vector<ModelSubset> vecModelSubset;
 						std::vector<IMaterial*> vecMaterial;
 
-						bool isEnableMeshOptimize = false;
+						bool isEnableMeshOptimize = true;
 						if (isEnableMeshOptimize == true)
 						{
 							uint32_t nVertexCount = 0;
@@ -194,7 +194,8 @@ namespace EastEngine
 								uint32_t numElements = 0;
 							};
 
-							std::map<std::pair<std::string, std::string>, MeshOptimizer> umapMesh;
+							//std::map<std::pair<std::string, std::string>, MeshOptimizer> umapMesh;
+							std::map<std::tuple<std::string, std::string, std::string>, MeshOptimizer> umapMesh;
 							for (uint32_t i = 0; i < nMeshCount; ++i)
 							{
 								XPS_Mesh& mesh = vecMeshs[i];
@@ -204,8 +205,17 @@ namespace EastEngine
 
 								std::string strAlbedo = File::GetFileName(mesh.textures[0].filename);
 								std::string strNormal = File::GetFileName(mesh.textures[2].filename);
+								std::string strClassify;
 
-								std::pair<std::string, std::string> key = std::make_pair(strAlbedo, strNormal);
+								for (size_t j = 0; j < nKeywordCount; ++j)
+								{
+									if (strstr(mesh.name.c_str(), pStrDevideModels[j].c_str()) != nullptr)
+									{
+										strClassify = pStrDevideModels[j];
+									}
+								}
+
+								std::tuple<std::string, std::string, std::string> key = std::make_tuple(strAlbedo, strNormal, strClassify);
 								auto iter = umapMesh.find(key);
 								if (iter != umapMesh.end())
 								{
@@ -235,7 +245,7 @@ namespace EastEngine
 							int nIndex = 0;
 							for (auto iter : umapMesh)
 							{
-								const std::pair<std::string, std::string> key = iter.first;
+								const std::tuple<std::string, std::string, std::string> key = iter.first;
 								const MeshOptimizer& meshOptimizer = iter.second;
 
 								vecModelSubset[nIndex].strName.Format("%s_%d", strFileName.c_str(), nIndex);
@@ -246,8 +256,8 @@ namespace EastEngine
 								MaterialInfo materianInfo;
 								materianInfo.strPath = strPath;
 								materianInfo.strName.Format("%s_%d", strFileName.c_str(), nIndex);
-								materianInfo.strTextureNameArray[EmMaterial::eAlbedo] = key.first.c_str();
-								materianInfo.strTextureNameArray[EmMaterial::eNormal] = key.second.c_str();
+								materianInfo.strTextureNameArray[EmMaterial::eAlbedo] = std::get<0>(key).c_str();
+								materianInfo.strTextureNameArray[EmMaterial::eNormal] = std::get<1>(key).c_str();
 								vecMaterial[nIndex] = IMaterial::Create(&materianInfo);
 
 								++nIndex;
