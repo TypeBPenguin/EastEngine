@@ -52,7 +52,7 @@
       <Filter>InputDevice\GamePad</Filter>
     </ClInclude>
     <ClInclude Include="InputInterface.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Interface</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -72,7 +72,7 @@
       <Filter>InputDevice\GamePad</Filter>
     </ClCompile>
     <ClCompile Include="InputInterface.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Interface</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
