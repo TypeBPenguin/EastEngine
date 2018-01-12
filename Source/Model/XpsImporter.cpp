@@ -150,8 +150,8 @@ namespace EastEngine
 					strTemp.resize(1028);
 					file.Read(strTemp.data(), 1028);
 
-					uint8_t nTemp8 = 0;
-					file.Read(&nTemp8);
+					//uint8_t nTemp8 = 0;
+					//file.Read(&nTemp8);
 
 					file.Read(&nBoneCount);
 				}
