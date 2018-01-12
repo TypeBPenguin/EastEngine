@@ -5,18 +5,18 @@ namespace EastEngine
 {
 	namespace Input
 	{
-		Keyboard::Keyboard()
+		KeyboardInstance::KeyboardInstance()
 			: m_pKeyboard(nullptr)
 		{
 			m_oldKeyState.fill(0);
 			m_curKeyState.fill(0);
 		}
 
-		Keyboard::~Keyboard()
+		KeyboardInstance::~KeyboardInstance()
 		{
 		}
 
-		bool Keyboard::Init(HWND hWnd, IDirectInput8A* pInput, DWORD keyboardCoopFlag)
+		bool KeyboardInstance::Init(HWND hWnd, IDirectInput8A* pInput, DWORD keyboardCoopFlag)
 		{
 			if (pInput == nullptr)
 				return false;
@@ -30,7 +30,7 @@ namespace EastEngine
 			return true;
 		}
 
-		void Keyboard::Release()
+		void KeyboardInstance::Release()
 		{
 			if (m_pKeyboard != nullptr)
 			{
@@ -39,7 +39,7 @@ namespace EastEngine
 			SafeRelease(m_pKeyboard);
 		}
 
-		void Keyboard::Update()
+		void KeyboardInstance::Update()
 		{
 			Memory::Copy(&m_oldKeyState, sizeof(m_oldKeyState), &m_curKeyState, sizeof(m_curKeyState));
 

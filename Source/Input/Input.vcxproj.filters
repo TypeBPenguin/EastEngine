@@ -25,8 +25,8 @@
     <Filter Include="InputDevice\GamePad">
       <UniqueIdentifier>{5a9fb94b-69b2-4c63-afe3-26e8fc3ee92c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="IME">
-      <UniqueIdentifier>{3e8e9fcc-7614-4182-b6b4-8bd9e18a9909}</UniqueIdentifier>
+    <Filter Include="Interface">
+      <UniqueIdentifier>{63b383bd-00b0-4531-a502-3a93e13d184c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -48,11 +48,11 @@
     <ClInclude Include="Mouse.h">
       <Filter>InputDevice\Mouse</Filter>
     </ClInclude>
-    <ClInclude Include="KeyState.h">
-      <Filter>InputDevice\Keyboard</Filter>
-    </ClInclude>
     <ClInclude Include="GamePad.h">
       <Filter>InputDevice\GamePad</Filter>
+    </ClInclude>
+    <ClInclude Include="InputInterface.h">
+      <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -71,5 +71,13 @@
     <ClCompile Include="GamePad.cpp">
       <Filter>InputDevice\GamePad</Filter>
     </ClCompile>
+    <ClCompile Include="InputInterface.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="KeyCode.inl">
+      <Filter>InputDevice\Keyboard</Filter>
+    </None>
   </ItemGroup>
 </Project>

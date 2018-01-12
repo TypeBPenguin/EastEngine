@@ -105,8 +105,8 @@
   <ItemGroup>
     <ClInclude Include="GamePad.h" />
     <ClInclude Include="InputDevice.h" />
+    <ClInclude Include="InputInterface.h" />
     <ClInclude Include="Keyboard.h" />
-    <ClInclude Include="KeyState.h" />
     <ClInclude Include="Mouse.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
@@ -114,12 +114,16 @@
   <ItemGroup>
     <ClCompile Include="GamePad.cpp" />
     <ClCompile Include="InputDevice.cpp" />
+    <ClCompile Include="InputInterface.cpp" />
     <ClCompile Include="Keyboard.cpp" />
     <ClCompile Include="Mouse.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="KeyCode.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

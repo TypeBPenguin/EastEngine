@@ -18,7 +18,7 @@
 
 #include "Windows/Windows.h"
 
-#include "Input/InputDevice.h"
+#include "Input/InputInterface.h"
 
 #include "Renderer/DepthOfField.h"
 #include "Renderer/HDRFilter.h"
@@ -701,13 +701,12 @@ void SceneStudio::ProcessInput(float fElapsedTime)
 	if (pCamera == nullptr)
 		return;
 
-	Input::Mouse* pMouse = Input::Mouse::GetInstance();
-	float dx = static_cast<float>(pMouse->GetMoveX());
-	float dy = static_cast<float>(pMouse->GetMoveY());
-	float dz = static_cast<float>(pMouse->GetMoveWheel());
+	float dx = static_cast<float>(Input::Mouse::GetMoveX());
+	float dy = static_cast<float>(Input::Mouse::GetMoveY());
+	float dz = static_cast<float>(Input::Mouse::GetMoveWheel());
 	bool isMoveAxisX = Math::IsZero(dx) == false;
 	bool isMoveAxisY = Math::IsZero(dy) == false;
-	if (pMouse->IsButtonPress(Input::Mouse::eRight))
+	if (Input::Mouse::IsButtonPressed(Input::Mouse::eRight))
 	{
 		if (isMoveAxisX == true)
 		{
@@ -720,7 +719,7 @@ void SceneStudio::ProcessInput(float fElapsedTime)
 		}
 	}
 
-	if (pMouse->IsButtonPress(Input::Mouse::eMiddle))
+	if (Input::Mouse::IsButtonPressed(Input::Mouse::eMiddle))
 	{
 		if (isMoveAxisX == true)
 		{
@@ -733,7 +732,7 @@ void SceneStudio::ProcessInput(float fElapsedTime)
 		}
 	}
 
-	if (pMouse->IsButtonPress(Input::Mouse::eLeft))
+	if (Input::Mouse::IsButtonPressed(Input::Mouse::eLeft))
 	{
 		if (isMoveAxisX == true)
 		{
@@ -751,75 +750,72 @@ void SceneStudio::ProcessInput(float fElapsedTime)
 		pCamera->MoveForward(dz * 0.01f);
 	}
 
-	Input::Keyboard* pKeyboard = Input::Keyboard::GetInstance();
-	if (pKeyboard->IsKeyPress(Input::Keyboard::eW))
+	if (Input::Keyboard::IsKeyPressed(Input::Keyboard::eW))
 	{
 		pCamera->MoveForward(1.f);
 	}
 
-	if (pKeyboard->IsKeyPress(Input::Keyboard::eS))
+	if (Input::Keyboard::IsKeyPressed(Input::Keyboard::eS))
 	{
 		pCamera->MoveForward(-1.f);
 	}
 
-	if (pKeyboard->IsKeyPress(Input::Keyboard::eA))
+	if (Input::Keyboard::IsKeyPressed(Input::Keyboard::eA))
 	{
 		pCamera->MoveSideward(-1.f);
 	}
 
-	if (pKeyboard->IsKeyPress(Input::Keyboard::eD))
+	if (Input::Keyboard::IsKeyPressed(Input::Keyboard::eD))
 	{
 		pCamera->MoveSideward(1.f);
 	}
 
-	if (pKeyboard->IsKeyPress(Input::Keyboard::eE))
+	if (Input::Keyboard::IsKeyPressed(Input::Keyboard::eE))
 	{
 		pCamera->MoveUpward(1.f);
 	}
 
-	if (pKeyboard->IsKeyPress(Input::Keyboard::eQ))
+	if (Input::Keyboard::IsKeyPressed(Input::Keyboard::eQ))
 	{
 		pCamera->MoveUpward(-1.f);
 	}
 
-	Input::GamePad::Player* pPlayer = Input::GamePad::GetInstance()->GetPlayer(Input::GamePad::e1P);
-	if (pPlayer->IsConnected() == true)
+	if (Input::GamePad::IsConnected() == true)
 	{
-		auto LogButton = [](const char* strButtonName, const Input::GamePad::ButtonStateTracker::EmButtonState& emButtonState)
+		auto LogButton = [](const char* strButtonName, const Input::GamePad::ButtonState& emButtonState)
 		{
-			if (emButtonState == Input::GamePad::ButtonStateTracker::EmButtonState::eHeld)
-			{
-				LOG_MESSAGE("%s Held", strButtonName);
-			}
-			else if (emButtonState == Input::GamePad::ButtonStateTracker::EmButtonState::eReleased)
-			{
-				LOG_MESSAGE("%s Released", strButtonName);
-			}
-			else if (emButtonState == Input::GamePad::ButtonStateTracker::EmButtonState::ePressed)
+			if (emButtonState == Input::GamePad::ButtonState::ePressed)
 			{
 				LOG_MESSAGE("%s Pressed", strButtonName);
 			}
+			else if (emButtonState == Input::GamePad::ButtonState::eUp)
+			{
+				LOG_MESSAGE("%s Up", strButtonName);
+			}
+			else if (emButtonState == Input::GamePad::ButtonState::eDown)
+			{
+				LOG_MESSAGE("%s Down", strButtonName);
+			}
 		};
 
-		const Input::GamePad::ButtonStateTracker& tracker = pPlayer->GetButtonStateTracker();
-		LogButton("A", tracker.A());
-		LogButton("B", tracker.B());
-		LogButton("X", tracker.X());
-		LogButton("Y", tracker.Y());
+		LogButton("A", Input::GamePad::A());
+		LogButton("B", Input::GamePad::B());
+		LogButton("X", Input::GamePad::X());
+		LogButton("Y", Input::GamePad::Y());
 
-		LogButton("LeftStick", tracker.LeftStick());
-		LogButton("RightStick", tracker.RightStick());
+		LogButton("LeftStick", Input::GamePad::LeftStick());
+		LogButton("RightStick", Input::GamePad::RightStick());
 
-		LogButton("LeftShoulder", tracker.LeftShoulder());
-		LogButton("RightShoulder", tracker.RightShoulder());
+		LogButton("LeftShoulder", Input::GamePad::LeftShoulder());
+		LogButton("RightShoulder", Input::GamePad::RightShoulder());
 
-		LogButton("Back", tracker.Back());
-		LogButton("Start", tracker.Start());
+		LogButton("Back", Input::GamePad::Back());
+		LogButton("Start", Input::GamePad::Start());
 
-		LogButton("DPadUp", tracker.DPadUp());
-		LogButton("DPadDown", tracker.DPadDown());
-		LogButton("DPadLeft", tracker.DPadLeft());
-		LogButton("DPadRight", tracker.DPadRight());
+		LogButton("DPadUp", Input::GamePad::DPadUp());
+		LogButton("DPadDown", Input::GamePad::DPadDown());
+		LogButton("DPadLeft", Input::GamePad::DPadLeft());
+		LogButton("DPadRight", Input::GamePad::DPadRight());
 
 		auto LogStick = [](const char* strStickName, float fValue)
 		{
@@ -829,13 +825,12 @@ void SceneStudio::ProcessInput(float fElapsedTime)
 			}
 		};
 
-		const Input::GamePad::State& state = pPlayer->GetCurState();
-		LogStick("LeftThumbStickX", state.GetLeftThumbStickX());
-		LogStick("LeftThumbStickY", state.GetLeftThumbStickY());
-		LogStick("RightThumbStickX", state.GetRightThumbStickX());
-		LogStick("RightThumbStickY", state.GetRightThumbStickY());
-		LogStick("LeftTrigger", state.GetLeftTrigger());
-		LogStick("RightTrigger", state.GetRightTrigger());
+		LogStick("LeftThumbStickX", Input::GamePad::LeftThumbStickX());
+		LogStick("LeftThumbStickY", Input::GamePad::LeftThumbStickY());
+		LogStick("RightThumbStickX", Input::GamePad::RightThumbStickX());
+		LogStick("RightThumbStickY", Input::GamePad::RightThumbStickY());
+		LogStick("LeftTrigger", Input::GamePad::LeftTrigger());
+		LogStick("RightTrigger", Input::GamePad::RightTrigger());
 
 		//static float fTime = 0.f;
 		//if (fTime >= 5.f)

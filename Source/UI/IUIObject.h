@@ -43,7 +43,7 @@ namespace EastEngine
 			virtual void OnMousePressedIn() = 0;
 			virtual void OnMousePressedOut() = 0;
 
-			virtual void OnKeyboardTyping(Input::Keyboard::Button emKeyboardButton) = 0;
+			virtual void OnKeyboardTyping(Input::Keyboard::KeyCode emKeyCode) = 0;
 
 			virtual uint32_t GetHotKey() = 0;
 

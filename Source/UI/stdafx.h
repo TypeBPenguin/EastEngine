@@ -13,5 +13,5 @@
 
 #include "CommonLib/CommonLib.h"
 #include "DirectX/D3DInterface.h"
-#include "Input/InputDevice.h"
+#include "Input/InputInterface.h"
 #include "Renderer/RendererManager.h"

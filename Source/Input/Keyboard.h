@@ -1,41 +1,34 @@
 #pragma once
 
-#include "CommonLib/Singleton.h"
-
-struct IDirectInput8A;
-struct IDirectInputDevice8A;
+#include "InputInterface.h"
 
 namespace EastEngine
 {
 	namespace Input
 	{
-		class Keyboard : public Singleton<Keyboard>
+		class KeyboardInstance
 		{
-			friend Singleton<Keyboard>;
-		private:
-			Keyboard();
-			virtual ~Keyboard();
+		public:
+			KeyboardInstance();
+			~KeyboardInstance();
 
 		public:
-#include "KeyState.inl"
-
-		public:
-			bool Init(HWND hWnd, IDirectInput8A* pInput, DWORD keyboardCoopFlag);
+			bool Init(HWND hWnd, struct IDirectInput8A* pInput, DWORD keyboardCoopFlag);
 			void Release();
 			void Update();
 
 		public:
-			bool IsKeyEvent(Button emKeyButton) { return IsCurKeyDown(emKeyButton); }
-			bool IsKeyDown(Button emKeyButton) { return IsOldKeyDown(emKeyButton) == false && IsCurKeyDown(emKeyButton); }
-			bool IsKeyPress(Button emKeyButton) { return IsOldKeyDown(emKeyButton) && IsCurKeyDown(emKeyButton); }
-			bool IsKeyUp(Button emKeyButton) { return IsOldKeyDown(emKeyButton) && IsCurKeyDown(emKeyButton) == false; }
+			bool IsKeyEvent(Keyboard::KeyCode emKeyCode) { return IsCurKeyDown(emKeyCode); }
+			bool IsKeyDown(Keyboard::KeyCode emKeyCode) { return IsOldKeyDown(emKeyCode) == false && IsCurKeyDown(emKeyCode); }
+			bool IsKeyPressed(Keyboard::KeyCode emKeyCode) { return IsOldKeyDown(emKeyCode) && IsCurKeyDown(emKeyCode); }
+			bool IsKeyUp(Keyboard::KeyCode emKeyCode) { return IsOldKeyDown(emKeyCode) && IsCurKeyDown(emKeyCode) == false; }
 
 		private:
-			bool IsCurKeyDown(Button emKeyButton) { return (m_curKeyState[emKeyButton] & 0x80) != 0; }
-			bool IsOldKeyDown(Button emKeyButton) { return (m_oldKeyState[emKeyButton] & 0x80) != 0; }
+			bool IsCurKeyDown(Keyboard::KeyCode emKeyCode) { return (m_curKeyState[emKeyCode] & 0x80) != 0; }
+			bool IsOldKeyDown(Keyboard::KeyCode emKeyCode) { return (m_oldKeyState[emKeyCode] & 0x80) != 0; }
 
 		private:
-			IDirectInputDevice8A* m_pKeyboard;		// 키보드 디바이스
+			struct IDirectInputDevice8A* m_pKeyboard;		// 키보드 디바이스
 			std::array<byte, 256> m_oldKeyState;	// 각 키들의 이전 상태
 			std::array<byte, 256> m_curKeyState;	// 각 키들의 현재 상태
 			byte* m_pCurKeyState;

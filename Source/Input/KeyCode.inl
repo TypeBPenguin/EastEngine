@@ -1,7 +1,5 @@
-#pragma once
-
 // dinput.h 와 대응하는 키 값
-enum Button
+enum KeyCode
 {
 	eEscape = 0x01,
 	e1 = 0x02,

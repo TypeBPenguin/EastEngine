@@ -1,35 +1,16 @@
 #pragma once
 
-#include "CommonLib/Singleton.h"
-
-struct IDirectInput8A;
-struct IDirectInputDevice8A;
+#include "InputInterface.h"
 
 namespace EastEngine
 {
 	namespace Input
 	{
-		class Mouse : public Singleton<Mouse>
+		class MouseInstance
 		{
-			friend Singleton<Mouse>;
-		private:
-			Mouse();
-			virtual ~Mouse();
-
 		public:
-			enum Button
-			{
-				eLeft = 0,
-				eRight,
-				eMiddle,
-				eUndefine1,
-				eUndefine2,
-				eUndefine3,
-				eUndefine4,
-				eUndefine5,
-
-				Count,
-			};
+			MouseInstance();
+			~MouseInstance();
 
 		private:
 			struct MouseState
@@ -53,7 +34,7 @@ namespace EastEngine
 			};
 
 		public:
-			bool Init(HWND hWnd, IDirectInput8A* pInput, DWORD mouseCoopFlag);
+			bool Init(HWND hWnd, struct IDirectInput8A* pInput, DWORD mouseCoopFlag);
 			void Release();
 
 			void Update();
@@ -63,11 +44,11 @@ namespace EastEngine
 		public:
 			bool IsButtonEvent(Mouse::Button emMouseButton) { return CurMouseDown(emMouseButton); }
 			bool IsButtonDown(Mouse::Button emMouseButton) { return !OldMouseDown(emMouseButton) && CurMouseDown(emMouseButton); }
-			bool IsButtonPress(Mouse::Button emMouseButton) { return OldMouseDown(emMouseButton) && CurMouseDown(emMouseButton); }
+			bool IsButtonPressed(Mouse::Button emMouseButton) { return OldMouseDown(emMouseButton) && CurMouseDown(emMouseButton); }
 			bool IsButtonUp(Mouse::Button emMouseButton) { return OldMouseDown(emMouseButton) && !CurMouseDown(emMouseButton); }
 
-			int	GetPosX() { return m_nX; }
-			int GetPosY() { return m_nY; }
+			int	GetX() { return m_nX; }
+			int GetY() { return m_nY; }
 
 			long GetMoveX() { return m_CurMouseState.moveX; }				// 마우스 X 이동거리
 			long GetMoveY() { return m_CurMouseState.moveY; }				// 마우스 Y 이동거리
@@ -78,7 +59,7 @@ namespace EastEngine
 			bool OldMouseDown(Mouse::Button emMouseButton) { return (m_OldMouseState.rgbButtonArr[static_cast<int>(emMouseButton)] & 0x80) != 0; }
 
 		private:
-			IDirectInputDevice8A* m_pMouse;	// 마우스 디바이스
+			struct IDirectInputDevice8A* m_pMouse;	// 마우스 디바이스
 			MouseState m_CurMouseState;
 			MouseState m_OldMouseState;
 

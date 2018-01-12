@@ -1,7 +1,9 @@
 #include "stdafx.h"
+#include "InputDevice.h"
+
 #include "Mouse.h"
 #include "Keyboard.h"
-#include "InputDevice.h"
+#include "GamePad.h"
 
 namespace EastEngine
 {
@@ -36,34 +38,30 @@ namespace EastEngine
 			if (m_pInput == nullptr)
 				return false;
 
-			m_pMouse = Mouse::GetInstance();
+			m_pMouse = new MouseInstance;
 			if (m_pMouse->Init(hWnd, m_pInput, mouseCoopFlag) == false)
 			{
 				Release();
 				return false;
 			}
 
-			m_pKeyboard = Keyboard::GetInstance();
+			m_pKeyboard = new KeyboardInstance;
 			if (m_pKeyboard->Init(hWnd, m_pInput, keyboardCoopFlag) == false)
 			{
 				Release();
 				return false;
 			}
 
-			m_pGamePad = GamePad::GetInstance();
+			m_pGamePad = new GamePadInstance;
 
 			return true;
 		}
 
 		void Device::Release()
 		{
-			SafeRelease(m_pMouse);
-			Mouse::DestroyInstance();
-
-			SafeRelease(m_pKeyboard);
-			Keyboard::DestroyInstance();
-
-			GamePad::DestroyInstance();
+			SafeDelete(m_pMouse);
+			SafeDelete(m_pKeyboard);
+			SafeDelete(m_pGamePad);
 
 			SafeRelease(m_pInput);
 

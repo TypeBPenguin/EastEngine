@@ -39,7 +39,7 @@ namespace EastEngine
 			virtual void OnMousePressedIn() override { m_bPressed = true; }
 			virtual void OnMousePressedOut() override { m_bPressed = false; }
 
-			virtual void OnKeyboardTyping(Input::Keyboard::Button emKeyboardButton) override {}
+			virtual void OnKeyboardTyping(Input::Keyboard::KeyCode emKeyCode) override {}
 
 			virtual uint32_t GetHotKey() override { return 0; }
 
@@ -129,9 +129,9 @@ namespace EastEngine
 
 			String::StringID m_strMouseEnterScp;
 			String::StringID m_strMouseLeaveScp;
-			String::StringID m_strMouseClickScp[Input::Mouse::Count];
-			String::StringID m_strMouseDoubleClickScp[Input::Mouse::Count];
-			String::StringID m_strMouseDragScp[Input::Mouse::Count];
+			String::StringID m_strMouseClickScp[Input::Mouse::ButtonCount];
+			String::StringID m_strMouseDoubleClickScp[Input::Mouse::ButtonCount];
+			String::StringID m_strMouseDragScp[Input::Mouse::ButtonCount];
 
 		private:
 			String::StringID m_strID;

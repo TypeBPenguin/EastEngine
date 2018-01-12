@@ -5,7 +5,7 @@ namespace EastEngine
 {
 	namespace Input
 	{
-		Mouse::Mouse()
+		MouseInstance::MouseInstance()
 			: m_pMouse(nullptr)
 			, m_nX(0)
 			, m_nY(0)
@@ -14,11 +14,12 @@ namespace EastEngine
 			Memory::Clear(&m_OldMouseState, sizeof(m_OldMouseState));
 		}
 
-		Mouse::~Mouse()
+		MouseInstance::~MouseInstance()
 		{
+			Release();
 		}
 
-		bool Mouse::Init(HWND hWnd, IDirectInput8A* pInput, DWORD mouseCoopFlag)
+		bool MouseInstance::Init(HWND hWnd, IDirectInput8A* pInput, DWORD mouseCoopFlag)
 		{
 			if (pInput == nullptr)
 				return false;
@@ -32,7 +33,7 @@ namespace EastEngine
 			return true;
 		}
 
-		void Mouse::Release()
+		void MouseInstance::Release()
 		{
 			if (m_pMouse != nullptr)
 			{
@@ -41,7 +42,7 @@ namespace EastEngine
 			SafeRelease(m_pMouse);
 		}
 
-		void Mouse::Update()
+		void MouseInstance::Update()
 		{
 			Memory::Copy(&m_OldMouseState, sizeof(m_OldMouseState), &m_CurMouseState, sizeof(m_CurMouseState));
 
@@ -57,13 +58,13 @@ namespace EastEngine
 			}
 		}
 
-		void Mouse::HandleMouse(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
+		void MouseInstance::HandleMouse(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
 		{
 			switch (nMsg)
 			{
 			case WM_MOUSEMOVE:
-				m_nX = (short)(LOWORD(lParam)); // GET_X_LPARAM(lParam);
-				m_nY = (short)(HIWORD(lParam)); // GET_Y_LPARAM(lParam);
+				m_nX = static_cast<short>(LOWORD(lParam)); // GET_X_LPARAM(lParam);
+				m_nY = static_cast<short>(HIWORD(lParam)); // GET_Y_LPARAM(lParam);
 				break;
 			}
 		}

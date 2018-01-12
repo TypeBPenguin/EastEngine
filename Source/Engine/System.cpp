@@ -25,8 +25,6 @@
 
 #include "GameObject/ComponentModel.h"
 
-#include <ppl.h>
-
 namespace EastEngine
 {
 	MainSystem::MainSystem()

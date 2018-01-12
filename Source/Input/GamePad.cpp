@@ -56,16 +56,16 @@ namespace EastEngine
 			}
 		}
 
-#define UPDATE_BUTTON_STATE(field) field = static_cast<EmButtonState>( ( !!state.buttons.field ) | ( ( !!state.buttons.field ^ !!lastState.buttons.field ) << 1 ) );
+#define UPDATE_BUTTON_STATE(field) field = static_cast<GamePad::ButtonState>( ( !!state.buttons.field ) | ( ( !!state.buttons.field ^ !!lastState.buttons.field ) << 1 ) );
 
-		void GamePad::ButtonStateTracker::Update(const GamePad::State& state)
+		void GamePadInstance::ButtonStateTracker::Update(const GamePadInstance::State& state)
 		{
 			UPDATE_BUTTON_STATE(a);
 
-			assert((!state.buttons.a && !lastState.buttons.a) == (a == eUp));
-			assert((state.buttons.a && lastState.buttons.a) == (a == eHeld));
-			assert((!state.buttons.a && lastState.buttons.a) == (a == eReleased));
-			assert((state.buttons.a && !lastState.buttons.a) == (a == ePressed));
+			assert((!state.buttons.a && !lastState.buttons.a) == (a == GamePad::eIdle));
+			assert((state.buttons.a && lastState.buttons.a) == (a == GamePad::ePressed));
+			assert((!state.buttons.a && lastState.buttons.a) == (a == GamePad::eUp));
+			assert((state.buttons.a && !lastState.buttons.a) == (a == GamePad::eDown));
 
 			UPDATE_BUTTON_STATE(b);
 			UPDATE_BUTTON_STATE(x);
@@ -80,41 +80,41 @@ namespace EastEngine
 			UPDATE_BUTTON_STATE(back);
 			UPDATE_BUTTON_STATE(start);
 
-			dpadUp = static_cast<EmButtonState>((!!state.dpad.up) | ((!!state.dpad.up ^ !!lastState.dpad.up) << 1));
-			dpadDown = static_cast<EmButtonState>((!!state.dpad.down) | ((!!state.dpad.down ^ !!lastState.dpad.down) << 1));
-			dpadLeft = static_cast<EmButtonState>((!!state.dpad.left) | ((!!state.dpad.left ^ !!lastState.dpad.left) << 1));
-			dpadRight = static_cast<EmButtonState>((!!state.dpad.right) | ((!!state.dpad.right ^ !!lastState.dpad.right) << 1));
+			dpadUp = static_cast<GamePad::ButtonState>((!!state.dpad.up) | ((!!state.dpad.up ^ !!lastState.dpad.up) << 1));
+			dpadDown = static_cast<GamePad::ButtonState>((!!state.dpad.down) | ((!!state.dpad.down ^ !!lastState.dpad.down) << 1));
+			dpadLeft = static_cast<GamePad::ButtonState>((!!state.dpad.left) | ((!!state.dpad.left ^ !!lastState.dpad.left) << 1));
+			dpadRight = static_cast<GamePad::ButtonState>((!!state.dpad.right) | ((!!state.dpad.right ^ !!lastState.dpad.right) << 1));
 
-			assert((!state.dpad.up && !lastState.dpad.up) == (dpadUp == eUp));
-			assert((state.dpad.up && lastState.dpad.up) == (dpadUp == eHeld));
-			assert((!state.dpad.up && lastState.dpad.up) == (dpadUp == eReleased));
-			assert((state.dpad.up && !lastState.dpad.up) == (dpadUp == ePressed));
+			assert((!state.dpad.up && !lastState.dpad.up) == (dpadUp == GamePad::eIdle));
+			assert((state.dpad.up && lastState.dpad.up) == (dpadUp == GamePad::ePressed));
+			assert((!state.dpad.up && lastState.dpad.up) == (dpadUp == GamePad::eUp));
+			assert((state.dpad.up && !lastState.dpad.up) == (dpadUp == GamePad::eDown));
 
 			lastState = state;
 		}
 
 #undef UPDATE_BUTTON_STATE
 
-		void GamePad::ButtonStateTracker::Reset()
+		void GamePadInstance::ButtonStateTracker::Reset()
 		{
 			Memory::Clear(this, sizeof(ButtonStateTracker));
 		}
 
-		GamePad::Player::Player(PlayerID emPlayer)
+		GamePadInstance::Player::Player(GamePad::PlayerID emPlayer)
 			: m_emPlayerID(emPlayer)
 			, m_isConnected(false)
 			, m_fLastReadTime(0.f)
-			, m_fVabrationTime(0.f)
-			, m_fMaxVabrationTime(0.f)
-			, m_emDeadZoneMode(DeadZone::eIndependentAxes)
+			, m_fVibrationTime(0.f)
+			, m_fMaxVibrationTime(0.f)
+			, m_emDeadZoneMode(GamePad::DeadZone::eIndependentAxes)
 		{
 		}
 
-		GamePad::Player::~Player()
+		GamePadInstance::Player::~Player()
 		{
 		}
 
-		void GamePad::Player::Update(float fElapsedTime)
+		void GamePadInstance::Player::Update(float fElapsedTime)
 		{
 			if (ThrottleRetry(fElapsedTime) == true)
 			{
@@ -128,21 +128,21 @@ namespace EastEngine
 
 				m_buttonStateTracker.Update(m_state);
 
-				if (Math::IsZero(m_fMaxVabrationTime) == false)
+				if (Math::IsZero(m_fMaxVibrationTime) == false)
 				{
-					if (m_fVabrationTime >= m_fMaxVabrationTime)
+					if (m_fVibrationTime >= m_fMaxVibrationTime)
 					{
 						SetVibration(0.f, 0.f, 0.f);
 					}
 					else
 					{
-						m_fVabrationTime += fElapsedTime;
+						m_fVibrationTime += fElapsedTime;
 					}
 				}
 			}
 		}
 
-		bool GamePad::Player::SetVibration(float fLeftMotor, float fRightMotor, float fVabrationTime)
+		bool GamePadInstance::Player::SetVibration(float fLeftMotor, float fRightMotor, float fVibrationTime)
 		{
 			if (ThrottleRetry(0.f) == true)
 				return false;
@@ -158,15 +158,15 @@ namespace EastEngine
 			}
 			else
 			{
-				m_fVabrationTime = 0.f;
-				m_fMaxVabrationTime = fVabrationTime;;
+				m_fVibrationTime = 0.f;
+				m_fMaxVibrationTime = fVibrationTime;;
 
 				m_isConnected = true;
 				return result == ERROR_SUCCESS;
 			}
 		}
 
-		void GamePad::Player::RefreshState()
+		void GamePadInstance::Player::RefreshState()
 		{
 			XINPUT_STATE xState;
 			DWORD result = XInputGetState(m_emPlayerID, &xState);
@@ -198,7 +198,7 @@ namespace EastEngine
 				m_state.dpad.right = (xbuttons & XINPUT_GAMEPAD_DPAD_RIGHT) != 0;
 				m_state.dpad.left = (xbuttons & XINPUT_GAMEPAD_DPAD_LEFT) != 0;
 
-				if (m_emDeadZoneMode == DeadZone::eNone)
+				if (m_emDeadZoneMode == GamePad::DeadZone::eNone)
 				{
 					m_state.triggers.left = ApplyLinearDeadZone(float(xState.Gamepad.bLeftTrigger), 255.f, 0.f);
 					m_state.triggers.right = ApplyLinearDeadZone(float(xState.Gamepad.bRightTrigger), 255.f, 0.f);
@@ -219,7 +219,7 @@ namespace EastEngine
 			}
 		}
 
-		void GamePad::Player::RefreshCapabilities()
+		void GamePadInstance::Player::RefreshCapabilities()
 		{
 			XINPUT_CAPABILITIES xCaps;
 			DWORD result = XInputGetCapabilities(m_emPlayerID, 0, &xCaps);
@@ -235,23 +235,23 @@ namespace EastEngine
 				m_capabilities.emPlayerID = m_emPlayerID;
 				if (xCaps.Type == XINPUT_DEVTYPE_GAMEPAD)
 				{
-					static_assert(Capabilities::eGamePad == XINPUT_DEVSUBTYPE_GAMEPAD, "xinput.h mismatch");
-					static_assert(XINPUT_DEVSUBTYPE_WHEEL == Capabilities::eWheel, "xinput.h mismatch");
-					static_assert(XINPUT_DEVSUBTYPE_ARCADE_STICK == Capabilities::eArcadeStick, "xinput.h mismatch");
-					static_assert(XINPUT_DEVSUBTYPE_FLIGHT_STICK == Capabilities::eFlightStick, "xinput.h mismatch");
-					static_assert(XINPUT_DEVSUBTYPE_DANCE_PAD == Capabilities::eDancePad, "xinput.h mismatch");
-					static_assert(XINPUT_DEVSUBTYPE_GUITAR == Capabilities::eGuitar, "xinput.h mismatch");
-					static_assert(XINPUT_DEVSUBTYPE_GUITAR_ALTERNATE == Capabilities::eGuitarAlternate, "xinput.h mismatch");
-					static_assert(XINPUT_DEVSUBTYPE_DRUM_KIT == Capabilities::eDrumKit, "xinput.h mismatch");
-					static_assert(XINPUT_DEVSUBTYPE_GUITAR_BASS == Capabilities::eGuitarBass, "xinput.h mismatch");
-					static_assert(XINPUT_DEVSUBTYPE_ARCADE_PAD == Capabilities::eArcadePad, "xinput.h mismatch");
+					static_assert(XINPUT_DEVSUBTYPE_GAMEPAD == GamePad::eGamePad, "xinput.h mismatch");
+					static_assert(XINPUT_DEVSUBTYPE_WHEEL == GamePad::eWheel, "xinput.h mismatch");
+					static_assert(XINPUT_DEVSUBTYPE_ARCADE_STICK == GamePad::eArcadeStick, "xinput.h mismatch");
+					static_assert(XINPUT_DEVSUBTYPE_FLIGHT_STICK == GamePad::eFlightStick, "xinput.h mismatch");
+					static_assert(XINPUT_DEVSUBTYPE_DANCE_PAD == GamePad::eDancePad, "xinput.h mismatch");
+					static_assert(XINPUT_DEVSUBTYPE_GUITAR == GamePad::eGuitar, "xinput.h mismatch");
+					static_assert(XINPUT_DEVSUBTYPE_GUITAR_ALTERNATE == GamePad::eGuitarAlternate, "xinput.h mismatch");
+					static_assert(XINPUT_DEVSUBTYPE_DRUM_KIT == GamePad::eDrumKit, "xinput.h mismatch");
+					static_assert(XINPUT_DEVSUBTYPE_GUITAR_BASS == GamePad::eGuitarBass, "xinput.h mismatch");
+					static_assert(XINPUT_DEVSUBTYPE_ARCADE_PAD == GamePad::eArcadePad, "xinput.h mismatch");
 
-					m_capabilities.emGamepadType = Capabilities::Type(xCaps.SubType);
+					m_capabilities.emGamepadType = GamePad::Type(xCaps.SubType);
 				}
 			}
 		}
 
-		bool GamePad::Player::ThrottleRetry(float fElapsedTime)
+		bool GamePadInstance::Player::ThrottleRetry(float fElapsedTime)
 		{
 			// This function minimizes a potential performance issue with XInput on Windows when
 			// checking a disconnected controller slot which requires device enumeration.
@@ -267,16 +267,16 @@ namespace EastEngine
 			return false;
 		}
 
-		GamePad::GamePad()
-			: m_players({ PlayerID::e1P, PlayerID::e2P, PlayerID::e3P, PlayerID::e4P })
+		GamePadInstance::GamePadInstance()
+			: m_players({ GamePad::e1P, GamePad::e2P, GamePad::e3P, GamePad::e4P })
 		{
 		}
 
-		GamePad::~GamePad()
+		GamePadInstance::~GamePadInstance()
 		{
 		}
 
-		void GamePad::Update(float fElapsedTime)
+		void GamePadInstance::Update(float fElapsedTime)
 		{
 			for (auto& player : m_players)
 			{
