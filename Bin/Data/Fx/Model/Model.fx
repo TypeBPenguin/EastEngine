@@ -148,6 +148,9 @@ cbuffer cbMatrix
 	float4 g_f4SurSpecTintAniso;
 	float4 g_f4SheenTintClearcoatGloss;
 
+	float g_fStippleTransparencyFactor = 0.f;
+	float3 g_f3Padding = 0.f;
+
 #ifdef USE_TESSELLATION
 	float4 g_FrustumNormals[4];
 	float3 g_FrustumOrigin;
@@ -584,6 +587,15 @@ GS_CUBEMAP_INPUT VS(
 PS_OUTPUT D_PS(PS_INPUT input)
 {
 	PS_OUTPUT output = (PS_OUTPUT)0;
+
+	if (g_fStippleTransparencyFactor > 0.f)
+	{
+		float2 screenPos = 0.f;
+		screenPos = floor(input.pos * g_fStippleTransparencyFactor) * 0.5f;
+
+		float checker = -frac(screenPos.r + screenPos.g);
+		clip(checker);
+	}
 
 #ifdef USE_TEX_ALBEDO
 	float4 albedo = saturate(g_f4AlbedoColor * pow(abs(g_texAlbedo.Sample(g_samplerState, input.tex)), 2.2f) * 2.f);

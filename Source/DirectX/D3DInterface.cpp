@@ -380,6 +380,7 @@ namespace EastEngine
 		MaterialInfo::MaterialInfo()
 			: colorAlbedo(1.f, 1.f, 1.f, 1.f)
 			, colorEmissive(0.f, 0.f, 0.f, 1.f)
+			, fStippleTransparencyFactor(0.f)
 			, fTessellationFactor(256.f)
 			, isAlbedoAlphaChannelMaskMap(false)
 			, isVisible(true)
@@ -402,6 +403,7 @@ namespace EastEngine
 			f4SurSpecTintAniso = Math::Vector4::Zero;
 			f4SheenTintClearcoatGloss = Math::Vector4::Zero;
 
+			fStippleTransparencyFactor = 0.f;
 			fTessellationFactor = 256.f;
 			isAlbedoAlphaChannelMaskMap = false;
 			isVisible = true;
@@ -495,6 +497,8 @@ namespace EastEngine
 			file.Read(&materialInfo.f4SurSpecTintAniso.x, 4);
 			file.Read(&materialInfo.f4SheenTintClearcoatGloss.x, 4);
 
+			file >> materialInfo.isVisible;
+			file >> materialInfo.fStippleTransparencyFactor;
 			file >> materialInfo.fTessellationFactor;
 			file >> materialInfo.isAlbedoAlphaChannelMaskMap;
 
@@ -557,6 +561,8 @@ namespace EastEngine
 			file.Write(&pMaterial->GetSurSpecTintAniso().x, 4);
 			file.Write(&pMaterial->GetSheenTintClearcoatGloss().x, 4);
 
+			file << pMaterial->IsVisible();
+			file << pMaterial->GetStippleTransparencyFactor();
 			file << pMaterial->GetTessellationFactor();
 			file << pMaterial->IsAlbedoAlphaChannelMaskMap();
 

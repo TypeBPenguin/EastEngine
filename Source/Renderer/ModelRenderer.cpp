@@ -30,6 +30,7 @@ namespace StrID
 	RegisterStringID(g_FrustumOrigin);
 	RegisterStringID(g_FrustumNormals);
 	RegisterStringID(g_fTessellationFactor);
+	RegisterStringID(g_fStippleTransparencyFactor);
 
 	RegisterStringID(g_f4AlbedoColor);
 	RegisterStringID(g_f4EmissiveColor);
@@ -482,6 +483,8 @@ namespace EastEngine
 					pEffect->SetTexture(StrID::g_texClearcoat, pMaterial->GetTexture(EmMaterial::eClearcoat));
 					pEffect->SetTexture(StrID::g_texClearcoatGloss, pMaterial->GetTexture(EmMaterial::eClearcoatGloss));
 
+					pEffect->SetFloat(StrID::g_fStippleTransparencyFactor, pMaterial->GetStippleTransparencyFactor());
+
 					ISamplerState* pSamplerState = pDevice->GetSamplerState(pMaterial->GetSamplerState());
 					pEffect->SetSamplerState(StrID::g_samplerState, pSamplerState, 0);
 
@@ -509,6 +512,8 @@ namespace EastEngine
 					pEffect->SetVector(StrID::g_f4DisRoughMetEmi, reinterpret_cast<const Math::Vector4&>(Math::Color::Transparent));
 					pEffect->SetVector(StrID::g_f4SurSpecTintAniso, reinterpret_cast<const Math::Vector4&>(Math::Color::Transparent));
 					pEffect->SetVector(StrID::g_f4SheenTintClearcoatGloss, reinterpret_cast<const Math::Vector4&>(Math::Color::Transparent));
+					
+					pEffect->SetFloat(StrID::g_fStippleTransparencyFactor, 0.f);
 
 					ClearEffect(pDeviceContext, pEffect, pEffectTech);
 

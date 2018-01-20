@@ -64,7 +64,7 @@ namespace EastEngine
 				}
 				else
 				{
-					int8_t nNameLength = 0;
+					uint8_t nNameLength = 0;
 					file.Read(&nNameLength);
 
 					std::string strTemp;
@@ -78,7 +78,7 @@ namespace EastEngine
 			bool LoadModel(Model* pModel, const char* strFilePath, const std::string* pStrDevideModels, size_t nKeywordCount)
 			{
 				File::FileStream file;
-				if (file.Open(strFilePath, File::EmState::eRead) == false)
+				if (file.Open(strFilePath, File::EmState::eRead | File::EmState::eBinary) == false)
 					return false;
 
 				std::string strPath = File::GetFilePath(strFilePath);
@@ -117,16 +117,33 @@ namespace EastEngine
 					int8_t byte = 0;
 					file.Read(&byte);
 
-					if (byte != 1)
-					{
-						file.Seekg(-1, 1);
-					}
-
 					strTemp.clear();
 					strTemp.resize(length);
 					file.Read(strTemp.data(), length);
 
-					file.Read(&nTemp32);
+					int nReadSize = 0;
+					if (strTemp.back() != -68)
+					{
+						nReadSize = 1029;
+
+						while (true)
+						{
+							file.Read(&byte);
+
+							if (byte == -68)
+							{
+								file.Read(&nTemp16);
+								break;
+							}
+						}
+					}
+					else
+					{
+						nReadSize = 1028;
+
+						file.Read(&nTemp32);
+					}
+
 					file.Read(&nTemp32);
 					file.Read(&nTemp32);
 					file.Read(&nTemp32);
@@ -156,8 +173,8 @@ namespace EastEngine
 					file.Read(&nTemp32);
 
 					strTemp.clear();
-					strTemp.resize(1028);
-					file.Read(strTemp.data(), 1028);
+					strTemp.resize(nReadSize);
+					file.Read(strTemp.data(), nReadSize);
 
 					//uint8_t nTemp8 = 0;
 					//file.Read(&nTemp8);
@@ -336,6 +353,7 @@ namespace EastEngine
 							materianInfo.strName.Format("%s_%d", strFileName.c_str(), nIndex);
 							materianInfo.strTextureNameArray[EmMaterial::eAlbedo] = std::get<0>(key).c_str();
 							materianInfo.strTextureNameArray[EmMaterial::eNormal] = std::get<1>(key).c_str();
+							materianInfo.strTextureNameArray[EmMaterial::eSpecularColor] = std::get<2>(key).c_str();
 							vecMaterial[nIndex] = IMaterial::Create(&materianInfo);
 
 							++nIndex;
@@ -418,6 +436,7 @@ namespace EastEngine
 							{
 								materianInfo.strTextureNameArray[EmMaterial::eAlbedo] = File::GetFileName(mesh.textures[0].filename).c_str();
 								materianInfo.strTextureNameArray[EmMaterial::eNormal] = File::GetFileName(mesh.textures[2].filename).c_str();
+								materianInfo.strTextureNameArray[EmMaterial::eSpecularColor] = File::GetFileName(mesh.textures[3].filename).c_str();
 							}
 
 							vecMaterial[i] = IMaterial::Create(&materianInfo);
@@ -557,13 +576,22 @@ namespace EastEngine
 					{
 						std::vector<Motion::Keyframe> vecKeyframes;
 
-						char temp[128] = {};
+						String::StringID strName;
 						Math::Vector3 f3Rotation;
 
 						Motion::Keyframe keyframe;
 
-						sscanf_s(strTemp.c_str(), "%s: %f %f %f %f %f %f %f %f %f",
-							temp, sizeof(temp),
+						std::size_t nFindPos = strTemp.find(": ");
+						if (nFindPos == std::string::npos)
+						{
+							assert(false);
+						}
+
+						strName = strTemp.substr(0, nFindPos).c_str();
+
+						std::string strKeyframeData = strTemp.substr(nFindPos + 2, strTemp.size() - (nFindPos + 2));
+
+						sscanf_s(strKeyframeData.c_str(), "%f %f %f %f %f %f %f %f %f",
 							&f3Rotation.x, &f3Rotation.y, &f3Rotation.z,
 							&keyframe.f3Pos.x, &keyframe.f3Pos.y, &keyframe.f3Pos.z,
 							&keyframe.f3Scale.x, &keyframe.f3Scale.y, &keyframe.f3Scale.z);
@@ -572,7 +600,7 @@ namespace EastEngine
 
 						vecKeyframes.emplace_back(keyframe);
 
-						pMotion->AddBoneKeyframes(temp, vecKeyframes);
+						pMotion->AddBoneKeyframes(strName, vecKeyframes);
 					}
 				}
 

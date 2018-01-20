@@ -431,13 +431,11 @@ void SceneStudio::Enter()
 
 		Math::Vector3 pos;
 		//pos.x = -10.f + (2.f * (i % 10));
-		pos.y = 0.5f;
 		//pos.z = 0.f + (2.f * (i / 10));
 		pActor->SetPosition(pos);
 
 		strPath = File::GetDataPath();
-		strPath.append("Actor\\UnityChan\\unitychan.emod");
-		
+		strPath.append("Actor\\UnityChan\\unitychan.emod"); 
 		Graphics::ModelLoader loader;
 
 		String::StringID strFileName = File::GetFileName(strPath).c_str();
@@ -624,6 +622,7 @@ void SceneStudio::Enter()
 			SetMaterialVisible("Eyepatch");
 		}
 
+		if (false)
 		{
 			std::string strPathMotion(File::GetDataPath());
 			strPathMotion.append("Model\\2B_NierAutomata\\default.pose");
@@ -640,6 +639,29 @@ void SceneStudio::Enter()
 			playback.fWeight = 1.f;
 			pMotionSystem->Play(Graphics::EmMotion::eLayer1, pMotion, &playback);
 		}
+	}
+
+	//if (false)
+	{
+		String::StringID name;
+		name.Format("Delia");
+		GameObject::IActor* pActor = GameObject::IActor::Create(name);
+
+		Math::Vector3 pos;
+		pos.x = 4.f;
+		pActor->SetPosition(pos);
+
+		strPath = File::GetDataPath();
+		strPath.append("Model\\Delia\\Delia.emod");
+
+		Graphics::ModelLoader loader;
+
+		String::StringID strFileName = File::GetFileName(strPath).c_str();
+		loader.InitEast(strFileName, strPath.c_str());
+		loader.SetEnableThreadLoad(false);
+
+		GameObject::ComponentModel* pModel = static_cast<GameObject::ComponentModel*>(pActor->CreateComponent(GameObject::EmComponent::eModel));
+		pModel->Init(&loader);
 	}
 
 	{
@@ -1348,6 +1370,12 @@ void ShowMaterial(bool& isShowMaterial, Graphics::IMaterial* pMaterial, int nInd
 		pMaterial->SetTessellationFactor(fTessellationFactor);
 	}
 
+	float fStippleTransparencyFactor = pMaterial->GetStippleTransparencyFactor();
+	if (ImGui::DragFloat("StippleTransparencyFactor", &fStippleTransparencyFactor, 0.01f, 0.f, 1.f) == true)
+	{
+		pMaterial->SetStippleTransparencyFactor(fStippleTransparencyFactor);
+	}
+
 	const char* strSamplerState[Graphics::EmSamplerState::TypeCount] =
 	{
 		"MinMagMipLinearWrap",
@@ -1418,6 +1446,12 @@ void ShowMaterial(bool& isShowMaterial, Graphics::IMaterial* pMaterial, int nInd
 	if (ImGui::Combo("DepthStencilState", reinterpret_cast<int*>(&emDepthStencilState), strDepthStencilState, Graphics::EmDepthStencilState::TypeCount) == true)
 	{
 		pMaterial->SetDepthStencilState(emDepthStencilState);
+	}
+
+	bool isVisible = pMaterial->IsVisible();
+	if (ImGui::Checkbox("Vibisle", &isVisible) == true)
+	{
+		pMaterial->SetVisible(isVisible);
 	}
 
 	auto TextureInfo = [&](Graphics::EmMaterial::Type emType, int nIndex)

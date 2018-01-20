@@ -14,6 +14,7 @@ namespace EastEngine
 			Material();
 			virtual ~Material();
 
+		public:
 			bool Init(const MaterialInfo* pInfo);
 			bool Init(const String::StringID& strName);
 			bool Init(const IMaterial* pSource);
@@ -32,9 +33,6 @@ namespace EastEngine
 
 			virtual const Math::Color& GetEmissiveColor() const override { return m_info.colorEmissive; }
 			virtual void SetEmissiveColor(const Math::Color& color) override { m_info.colorEmissive = color; }
-
-			virtual float GetTessellationFactor() const override { return m_info.fTessellationFactor; }
-			virtual void SetTessellationFactor(float fTessellationFactor) override { m_info.fTessellationFactor = fTessellationFactor; }
 
 			virtual const String::StringID& GetTextureName(EmMaterial::Type emType) const override { return m_info.strTextureNameArray[emType]; }
 			virtual void SetTextureName(EmMaterial::Type emType, const String::StringID& strName) override { m_info.strTextureNameArray[emType] = strName; }
@@ -88,6 +86,12 @@ namespace EastEngine
 			virtual void SetClearcoat(float fClearcoat) override { m_info.f4SheenTintClearcoatGloss.z = fClearcoat; }
 			virtual float GetClearcoatGloss() const override { return m_info.f4SheenTintClearcoatGloss.w; }
 			virtual void SetClearcoatGloss(float fClearcoatGloss) override { m_info.f4SheenTintClearcoatGloss.w = fClearcoatGloss; }
+
+			virtual float GetStippleTransparencyFactor() const override { return m_info.fStippleTransparencyFactor; }
+			virtual void SetStippleTransparencyFactor(float fStippleTransparencyFactor) override { m_info.fStippleTransparencyFactor = fStippleTransparencyFactor; }
+
+			virtual float GetTessellationFactor() const override { return m_info.fTessellationFactor; }
+			virtual void SetTessellationFactor(float fTessellationFactor) override { m_info.fTessellationFactor = fTessellationFactor; }
 
 			virtual bool IsAlbedoAlphaChannelMaskMap() const override { return m_info.isAlbedoAlphaChannelMaskMap; }
 			virtual void SetAlbedoAlphaChannelMaskMap(bool isAlbedoAlphaChannelMaskMap) override { m_info.isAlbedoAlphaChannelMaskMap = isAlbedoAlphaChannelMaskMap; }

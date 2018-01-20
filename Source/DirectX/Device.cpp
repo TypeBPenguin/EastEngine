@@ -749,7 +749,7 @@ namespace EastEngine
 			case EmSamplerState::eMinMagMipLinearMirror:
 			case EmSamplerState::eMinMagMipLinearMirrorOnce:
 				samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-				samplerDesc.MipLODBias = 0.0f;
+				samplerDesc.MipLODBias = -3.f;
 				samplerDesc.MaxAnisotropy = 1;
 				samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
 				samplerDesc.BorderColor[0] = 0;
@@ -793,7 +793,7 @@ namespace EastEngine
 			case EmSamplerState::eMinMagLinearMipPointMirror:
 			case EmSamplerState::eMinMagLinearMipPointMirrorOnce:
 				samplerDesc.Filter = D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT;
-				samplerDesc.MipLODBias = 0.f;
+				samplerDesc.MipLODBias = -3.f;
 				samplerDesc.MaxAnisotropy = 1;
 				samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
 				samplerDesc.BorderColor[0] = 0.f;
@@ -839,7 +839,7 @@ namespace EastEngine
 			case EmSamplerState::eAnisotropicMirrorOnce:
 				samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
 				samplerDesc.MaxAnisotropy = 16;
-				samplerDesc.MipLODBias = 0.f;
+				samplerDesc.MipLODBias = -3.f;
 				samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
 				samplerDesc.BorderColor[0] = 0.f;
 				samplerDesc.BorderColor[1] = 0.f;
@@ -882,7 +882,7 @@ namespace EastEngine
 			case EmSamplerState::eMinMagMipPointMirror:
 			case EmSamplerState::eMinMagMipPointMirrorOnce:
 				samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
-				samplerDesc.MipLODBias = 0.0f;
+				samplerDesc.MipLODBias = -3.0f;
 				samplerDesc.MaxAnisotropy = 1;
 				samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
 				samplerDesc.BorderColor[0] = 0;

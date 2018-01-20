@@ -39,6 +39,8 @@ namespace EastEngine
 			SetAlbedoColor(pInfo->colorAlbedo);
 			SetEmissiveColor(pInfo->colorEmissive);
 
+			SetVisible(pInfo->isVisible);
+			SetStippleTransparencyFactor(pInfo->fStippleTransparencyFactor);
 			SetTessellationFactor(pInfo->fTessellationFactor);
 			SetAlbedoAlphaChannelMaskMap(pInfo->isAlbedoAlphaChannelMaskMap);
 
@@ -108,6 +110,7 @@ namespace EastEngine
 				EmMaterial::Type emType = static_cast<EmMaterial::Type>(i);
 
 				std::string strTexPath = GetPath();
+				strTexPath.append("Texture\\");
 				strTexPath.append(GetTextureName(emType).c_str());
 
 				if (GetTextureName(emType).empty() == true)

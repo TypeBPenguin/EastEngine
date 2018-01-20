@@ -447,6 +447,7 @@ namespace EastEngine
 			Math::Vector4 f4SurSpecTintAniso;
 			Math::Vector4 f4SheenTintClearcoatGloss;
 
+			float fStippleTransparencyFactor;
 			float fTessellationFactor;
 			bool isAlbedoAlphaChannelMaskMap;
 			bool isVisible;
@@ -491,9 +492,6 @@ namespace EastEngine
 
 			virtual const Math::Color& GetEmissiveColor() const = 0;
 			virtual void SetEmissiveColor(const Math::Color& color) = 0;
-
-			virtual float GetTessellationFactor() const = 0;
-			virtual void SetTessellationFactor(float fTessellationFactor) = 0;
 
 			virtual const String::StringID& GetTextureName(EmMaterial::Type emType) const = 0;
 			virtual void SetTextureName(EmMaterial::Type emType, const String::StringID& strName) = 0;
@@ -547,6 +545,12 @@ namespace EastEngine
 			virtual void SetClearcoat(float fClearcoat) = 0;
 			virtual float GetClearcoatGloss() const = 0;
 			virtual void SetClearcoatGloss(float fClearcoatGloss) = 0;
+
+			virtual float GetStippleTransparencyFactor() const = 0;
+			virtual void SetStippleTransparencyFactor(float fStippleTransparencyFactor) = 0;
+
+			virtual float GetTessellationFactor() const = 0;
+			virtual void SetTessellationFactor(float fTessellationFactor) = 0;
 
 			virtual bool IsAlbedoAlphaChannelMaskMap() const = 0;
 			virtual void SetAlbedoAlphaChannelMaskMap(bool isAlbedoAlphaChannelMaskMap) = 0;
