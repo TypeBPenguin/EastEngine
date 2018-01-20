@@ -479,168 +479,168 @@ namespace EastEngine
 				Math::Quaternion quatBodyOrigin;
 				pBodyPart->matBodyOrigin.Decompose(f3ScaleBodyOrigin, quatBodyOrigin, f3PosBodyOrigin);
 
-				if (pBodyPart->isRootNode == true)
-				{
-					Math::Matrix mmm = pBodyPart->pBone->GetMotionOffsetTransform() * pBodyPart->pBone->GetDefaultMotionData();
+				//if (pBodyPart->isRootNode == true)
+				//{
+				//	Math::Matrix mmm = pBodyPart->pBone->GetMotionOffsetTransform() * pBodyPart->pBone->GetDefaultMotionData();
 
-					Math::Vector3 f3ScaleOrigin;
-					Math::Vector3 f3PosOrigin;
-					Math::Quaternion quatOrigin;
-					pBodyPart->pBone->GetDefaultMotionData().Decompose(f3ScaleOrigin, quatOrigin, f3PosOrigin);
-					//mmm.Decompose(f3ScaleOrigin, quatOrigin, f3PosOrigin);
+				//	Math::Vector3 f3ScaleOrigin;
+				//	Math::Vector3 f3PosOrigin;
+				//	Math::Quaternion quatOrigin;
+				//	pBodyPart->pBone->GetDefaultMotionData().Decompose(f3ScaleOrigin, quatOrigin, f3PosOrigin);
+				//	//mmm.Decompose(f3ScaleOrigin, quatOrigin, f3PosOrigin);
 
-					//Math::Matrix mat = Math::Matrix::Compose(f3ScaleOrigin, quatWorld * quatBodyOrigin.Inverse() * quatOrigin, f3PosOrigin);
-					//Math::Matrix mat = Math::Matrix::Compose(f3ScaleOrigin, quatOrigin * quatWorld, f3PosWorld);
-					//Math::Matrix mat = Math::Matrix::CreateFromQuaternion(quatWorld * quatBodyOrigin.Inverse() * quatOrigin);
-					Math::Matrix mat = Math::Matrix::Compose(f3ScaleOrigin, quatWorld * quatBodyOrigin.Inverse() * quatOrigin, f3PosWorld);
-				
-					pBodyPart->pBone->SetMotionData(mat);
+				//	//Math::Matrix mat = Math::Matrix::Compose(f3ScaleOrigin, quatWorld * quatBodyOrigin.Inverse() * quatOrigin, f3PosOrigin);
+				//	//Math::Matrix mat = Math::Matrix::Compose(f3ScaleOrigin, quatOrigin * quatWorld, f3PosWorld);
+				//	//Math::Matrix mat = Math::Matrix::CreateFromQuaternion(quatWorld * quatBodyOrigin.Inverse() * quatOrigin);
+				//	Math::Matrix mat = Math::Matrix::Compose(f3ScaleOrigin, quatWorld * quatBodyOrigin.Inverse() * quatOrigin, f3PosWorld);
+				//
+				//	pBodyPart->pBone->SetMotionData(mat);
 
-					mapWorldMatrix[pBodyPart->pBone] = std::make_pair(quatOrigin, quatWorld);
-				}
-				else
-				{
-					if (pBodyPart->isChildBone == true)
-					{
-						Math::Vector3 f3ScaleOrigin;
-						Math::Vector3 f3PosOrigin;
-						Math::Quaternion quatOrigin;
-						pBodyPart->pBone->GetParent()->GetDefaultMotionData().Decompose(f3ScaleOrigin, quatOrigin, f3PosOrigin);
+				//	mapWorldMatrix[pBodyPart->pBone] = std::make_pair(quatOrigin, quatWorld);
+				//}
+				//else
+				//{
+				//	if (pBodyPart->isChildBone == true)
+				//	{
+				//		Math::Vector3 f3ScaleOrigin;
+				//		Math::Vector3 f3PosOrigin;
+				//		Math::Quaternion quatOrigin;
+				//		pBodyPart->pBone->GetParent()->GetDefaultMotionData().Decompose(f3ScaleOrigin, quatOrigin, f3PosOrigin);
 
-						Math::Vector3 f3ScaleOrigin2;
-						Math::Vector3 f3PosOrigin2;
-						Math::Quaternion quatOrigin2;
-						pBodyPart->pBone->GetDefaultMotionData().Decompose(f3ScaleOrigin2, quatOrigin2, f3PosOrigin2);
+				//		Math::Vector3 f3ScaleOrigin2;
+				//		Math::Vector3 f3PosOrigin2;
+				//		Math::Quaternion quatOrigin2;
+				//		pBodyPart->pBone->GetDefaultMotionData().Decompose(f3ScaleOrigin2, quatOrigin2, f3PosOrigin2);
 
-						/*if (nFrame >= 1440)
-						{
-							nFrame = 0;
-							++nFrame2;
+				//		/*if (nFrame >= 1440)
+				//		{
+				//			nFrame = 0;
+				//			++nFrame2;
 
-							if (nFrame2 >= 6)
-							{
-								int a = 0;
-								a = 10;
-							}
-						}
+				//			if (nFrame2 >= 6)
+				//			{
+				//				int a = 0;
+				//				a = 10;
+				//			}
+				//		}
 
-						auto CQ = [&](const Math::Quaternion& a, const Math::Quaternion& b, const Math::Quaternion& c)
-						{
-							switch (nFrame / 180)
-							{
-							case 0:	return a * b * c;
-							case 1: return a.Inverse() * b * c;
-							case 2: return a * b.Inverse() * c;
-							case 3: return a * b * c.Inverse();
-							case 4: return a.Inverse() * b.Inverse() * c;
-							case 5: return a.Inverse() * b * c.Inverse();
-							case 6: return a * b.Inverse() * c.Inverse();
-							case 7: return a.Inverse() * b.Inverse() * c.Inverse();
-							}
-						};
+				//		auto CQ = [&](const Math::Quaternion& a, const Math::Quaternion& b, const Math::Quaternion& c)
+				//		{
+				//			switch (nFrame / 180)
+				//			{
+				//			case 0:	return a * b * c;
+				//			case 1: return a.Inverse() * b * c;
+				//			case 2: return a * b.Inverse() * c;
+				//			case 3: return a * b * c.Inverse();
+				//			case 4: return a.Inverse() * b.Inverse() * c;
+				//			case 5: return a.Inverse() * b * c.Inverse();
+				//			case 6: return a * b.Inverse() * c.Inverse();
+				//			case 7: return a.Inverse() * b.Inverse() * c.Inverse();
+				//			}
+				//		};
 
-						Math::Quaternion quatRet;
+				//		Math::Quaternion quatRet;
 
-						switch (nFrame2)
-						{
-						case 0: quatRet = CQ(quatOrigin, quatWorld, quatBodyOrigin); break;
-						case 1: quatRet = CQ(quatOrigin, quatBodyOrigin, quatWorld); break;
-						case 2: quatRet = CQ(quatWorld, quatOrigin, quatBodyOrigin); break;
-						case 3: quatRet = CQ(quatWorld, quatBodyOrigin, quatOrigin); break;
-						case 4: quatRet = CQ(quatBodyOrigin, quatOrigin, quatWorld); break;
-						case 5: quatRet = CQ(quatBodyOrigin, quatWorld, quatOrigin); break;
-						}*/
+				//		switch (nFrame2)
+				//		{
+				//		case 0: quatRet = CQ(quatOrigin, quatWorld, quatBodyOrigin); break;
+				//		case 1: quatRet = CQ(quatOrigin, quatBodyOrigin, quatWorld); break;
+				//		case 2: quatRet = CQ(quatWorld, quatOrigin, quatBodyOrigin); break;
+				//		case 3: quatRet = CQ(quatWorld, quatBodyOrigin, quatOrigin); break;
+				//		case 4: quatRet = CQ(quatBodyOrigin, quatOrigin, quatWorld); break;
+				//		case 5: quatRet = CQ(quatBodyOrigin, quatWorld, quatOrigin); break;
+				//		}*/
 
-						Math::Matrix mat;
-						Math::Matrix m = Math::Matrix::Compose(f3ScaleOrigin, quatOrigin * quatWorld.Inverse() * quatBodyOrigin, f3PosOrigin);
+				//		Math::Matrix mat;
+				//		Math::Matrix m = Math::Matrix::Compose(f3ScaleOrigin, quatOrigin * quatWorld.Inverse() * quatBodyOrigin, f3PosOrigin);
 
-						if (pParent != nullptr)
-						{
-							//Math::Matrix matInv = pParent->pBone->GetGlobalTransform().Invert();
-							//Math::Matrix matInv = pParent->pRigidBody->GetWorldMatrix();
-							//mat = matInv * m;
-							mat = m;
-						}
-						else
-						{
-							mat = m;
-						}
+				//		if (pParent != nullptr)
+				//		{
+				//			//Math::Matrix matInv = pParent->pBone->GetGlobalTransform().Invert();
+				//			//Math::Matrix matInv = pParent->pRigidBody->GetWorldMatrix();
+				//			//mat = matInv * m;
+				//			mat = m;
+				//		}
+				//		else
+				//		{
+				//			mat = m;
+				//		}
 
-						pBodyPart->pBone->GetParent()->SetMotionData(mat);
-					}
-					else
-					{
-						Math::Quaternion quatRoot;
-						if (pParent->isRootNode == true)
-						{
-							Math::Vector3 f3ScaleOrigin;
-							Math::Vector3 f3PosOrigin;
-							pBodyPart->pBone->GetDefaultMotionData().Decompose(f3ScaleOrigin, quatRoot, f3PosOrigin);
-						}
+				//		pBodyPart->pBone->GetParent()->SetMotionData(mat);
+				//	}
+				//	else
+				//	{
+				//		Math::Quaternion quatRoot;
+				//		if (pParent->isRootNode == true)
+				//		{
+				//			Math::Vector3 f3ScaleOrigin;
+				//			Math::Vector3 f3PosOrigin;
+				//			pBodyPart->pBone->GetDefaultMotionData().Decompose(f3ScaleOrigin, quatRoot, f3PosOrigin);
+				//		}
 
-						Math::Vector3 f3ScaleOrigin;
-						Math::Vector3 f3PosOrigin;
-						Math::Quaternion quatOrigin;
-						pBodyPart->pBone->GetDefaultMotionData().Decompose(f3ScaleOrigin, quatOrigin, f3PosOrigin);
+				//		Math::Vector3 f3ScaleOrigin;
+				//		Math::Vector3 f3PosOrigin;
+				//		Math::Quaternion quatOrigin;
+				//		pBodyPart->pBone->GetDefaultMotionData().Decompose(f3ScaleOrigin, quatOrigin, f3PosOrigin);
 
-						Math::Matrix matTransform = pParent->pRigidBody->GetWorldMatrix().Invert() * pBodyPart->pRigidBody->GetWorldMatrix();
+				//		Math::Matrix matTransform = pParent->pRigidBody->GetWorldMatrix().Invert() * pBodyPart->pRigidBody->GetWorldMatrix();
 
-						Math::Vector3 f3ScaleOrigin2;
-						Math::Vector3 f3PosOrigin2;
-						Math::Quaternion quatOrigin2;
-						//pBodyPart->pBone->GetDefaultMotionData().Decompose(f3ScaleOrigin, quatOrigin, f3PosOrigin);
-						matTransform.Decompose(f3ScaleOrigin2, quatOrigin2, f3PosOrigin2);
+				//		Math::Vector3 f3ScaleOrigin2;
+				//		Math::Vector3 f3PosOrigin2;
+				//		Math::Quaternion quatOrigin2;
+				//		//pBodyPart->pBone->GetDefaultMotionData().Decompose(f3ScaleOrigin, quatOrigin, f3PosOrigin);
+				//		matTransform.Decompose(f3ScaleOrigin2, quatOrigin2, f3PosOrigin2);
 
-						//Math::Matrix mat = Math::Matrix::Compose(f3ScaleOrigin, quatOrigin, f3PosOrigin);
-						//Math::Matrix mat = Math::Matrix::CreateFromQuaternion(mapWorldMatrix[pBodyPart->pBone].first.Inverse() * quatOrigin);
-						//Math::Matrix mat = Math::Matrix::CreateFromQuaternion(quatOrigin2 * quatRoot * quatOrigin);
-						//Math::Matrix mat = Math::Matrix::CreateFromQuaternion(quatOrigin2.Inverse() * quatRoot * quatOrigin);
-						//Math::Matrix mat = Math::Matrix::CreateFromQuaternion(quatWorld);
-						Math::Matrix mat = Math::Matrix::CreateFromQuaternion(quatOrigin2 * quatBodyOrigin.Inverse() * quatOrigin);
+				//		//Math::Matrix mat = Math::Matrix::Compose(f3ScaleOrigin, quatOrigin, f3PosOrigin);
+				//		//Math::Matrix mat = Math::Matrix::CreateFromQuaternion(mapWorldMatrix[pBodyPart->pBone].first.Inverse() * quatOrigin);
+				//		//Math::Matrix mat = Math::Matrix::CreateFromQuaternion(quatOrigin2 * quatRoot * quatOrigin);
+				//		//Math::Matrix mat = Math::Matrix::CreateFromQuaternion(quatOrigin2.Inverse() * quatRoot * quatOrigin);
+				//		//Math::Matrix mat = Math::Matrix::CreateFromQuaternion(quatWorld);
+				//		Math::Matrix mat = Math::Matrix::CreateFromQuaternion(quatOrigin2 * quatBodyOrigin.Inverse() * quatOrigin);
 
-						pBodyPart->pBone->SetMotionData(mat);
+				//		pBodyPart->pBone->SetMotionData(mat);
 
-						//Math::Vector3 f3ScaleOrigin;
-						//Math::Vector3 f3PosOrigin;
-						//Math::Quaternion quatOrigin;
-						//pBodyPart->pBone->GetDefaultMotionData().Decompose(f3ScaleOrigin, quatOrigin, f3PosOrigin);
+				//		//Math::Vector3 f3ScaleOrigin;
+				//		//Math::Vector3 f3PosOrigin;
+				//		//Math::Quaternion quatOrigin;
+				//		//pBodyPart->pBone->GetDefaultMotionData().Decompose(f3ScaleOrigin, quatOrigin, f3PosOrigin);
 
-						//Math::Matrix mat;
-						////Math::Matrix m = Math::Matrix::Compose(f3ScaleOrigin, quatWorld, f3PosWorld);
-						////Math::Matrix m = Math::Matrix::Compose(f3ScaleOrigin, quatWorld * quatBodyOrigin.Inverse() * quatOrigin, f3PosOrigin);
-						//Math::Matrix m = Math::Matrix::Compose(f3ScaleOrigin, quatOrigin * quatWorld.Inverse() * quatBodyOrigin, f3PosOrigin);
-						////Math::Matrix m = Math::Matrix::Compose(f3ScaleOrigin, quatBodyOrigin.Inverse() * quatWorld, f3PosOrigin);
+				//		//Math::Matrix mat;
+				//		////Math::Matrix m = Math::Matrix::Compose(f3ScaleOrigin, quatWorld, f3PosWorld);
+				//		////Math::Matrix m = Math::Matrix::Compose(f3ScaleOrigin, quatWorld * quatBodyOrigin.Inverse() * quatOrigin, f3PosOrigin);
+				//		//Math::Matrix m = Math::Matrix::Compose(f3ScaleOrigin, quatOrigin * quatWorld.Inverse() * quatBodyOrigin, f3PosOrigin);
+				//		////Math::Matrix m = Math::Matrix::Compose(f3ScaleOrigin, quatBodyOrigin.Inverse() * quatWorld, f3PosOrigin);
 
-						//if (pParent != nullptr)
-						//{
-						//	Math::Vector3 f3ScaleOrigin2;
-						//	Math::Vector3 f3PosOrigin2;
-						//	Math::Quaternion quatOrigin2; 
-						//	pParent->pBone->GetDefaultMotionData().Decompose(f3ScaleOrigin2, quatOrigin2, f3PosOrigin2);
-						//	//pParent->pRigidBody->GetWorldMatrix().Invert().Decompose(f3ScaleOrigin2, quatOrigin2, f3PosOrigin2);
-						//	//mapWorldMatrix[pParent->pBone].Decompose(f3ScaleOrigin2, quatOrigin2, f3PosOrigin2);
+				//		//if (pParent != nullptr)
+				//		//{
+				//		//	Math::Vector3 f3ScaleOrigin2;
+				//		//	Math::Vector3 f3PosOrigin2;
+				//		//	Math::Quaternion quatOrigin2; 
+				//		//	pParent->pBone->GetDefaultMotionData().Decompose(f3ScaleOrigin2, quatOrigin2, f3PosOrigin2);
+				//		//	//pParent->pRigidBody->GetWorldMatrix().Invert().Decompose(f3ScaleOrigin2, quatOrigin2, f3PosOrigin2);
+				//		//	//mapWorldMatrix[pParent->pBone].Decompose(f3ScaleOrigin2, quatOrigin2, f3PosOrigin2);
 
-						//	//m = Math::Matrix::Compose(f3ScaleOrigin, quatWorld, f3PosOrigin);
-						//	
-						//	//mat = Math::Matrix::CreateFromQuaternion(quatOrigin2) * m;
-						//	auto a = mapWorldMatrix[pParent->pBone];
-						//	mat = Math::Matrix::CreateFromQuaternion(a.first * a.second.Inverse()) * m;
+				//		//	//m = Math::Matrix::Compose(f3ScaleOrigin, quatWorld, f3PosOrigin);
+				//		//	
+				//		//	//mat = Math::Matrix::CreateFromQuaternion(quatOrigin2) * m;
+				//		//	auto a = mapWorldMatrix[pParent->pBone];
+				//		//	mat = Math::Matrix::CreateFromQuaternion(a.first * a.second.Inverse()) * m;
 
-						//	//mat = mapWorldMatrix[pParent->pBone].Invert() * m;
+				//		//	//mat = mapWorldMatrix[pParent->pBone].Invert() * m;
 
-						//	//Math::Matrix matInv = pParent->pBone->GetMotionOffsetTransform();
-						//	//Math::Matrix matInv = pParent->pRigidBody->GetWorldMatrix().Invert();
-						//	//mat = matInv * mat;
-						//	//mat = m;
-						//}
-						//else
-						//{
-						//	mat = m;
-						//}
-						//
-						//pBodyPart->pBone->SetMotionData(mat);
-					}
-				}
+				//		//	//Math::Matrix matInv = pParent->pBone->GetMotionOffsetTransform();
+				//		//	//Math::Matrix matInv = pParent->pRigidBody->GetWorldMatrix().Invert();
+				//		//	//mat = matInv * mat;
+				//		//	//mat = m;
+				//		//}
+				//		//else
+				//		//{
+				//		//	mat = m;
+				//		//}
+				//		//
+				//		//pBodyPart->pBone->SetMotionData(mat);
+				//	}
+				//}
 			};
 
 			for (auto& pJoint : m_vecJoints)
