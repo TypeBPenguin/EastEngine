@@ -56,20 +56,29 @@ namespace EastEngine
 
 			std::string GetString(File::FileStream& file)
 			{
-				int8_t nNameLength = 0;
-				file.Read(&nNameLength);
+				if (file.GetFlag() == 0)
+				{
+					std::string strTemp;
+					file >> strTemp;
+					return strTemp;
+				}
+				else
+				{
+					int8_t nNameLength = 0;
+					file.Read(&nNameLength);
 
-				std::string strTemp;
-				strTemp.resize(nNameLength);
-				file.Read(strTemp.data(), nNameLength);
+					std::string strTemp;
+					strTemp.resize(nNameLength);
+					file.Read(strTemp.data(), nNameLength);
 
-				return strTemp;
+					return strTemp;
+				}
 			}
 
 			bool LoadModel(Model* pModel, const char* strFilePath, const std::string* pStrDevideModels, size_t nKeywordCount)
 			{
 				File::FileStream file;
-				if (file.Open(strFilePath, File::EmState::eRead | File::EmState::eBinary) == false)
+				if (file.Open(strFilePath, File::EmState::eRead) == false)
 					return false;
 
 				std::string strPath = File::GetFilePath(strFilePath);
@@ -165,11 +174,7 @@ namespace EastEngine
 				{
 					XPS_Bone& bone = vecBones[i];
 
-					int8_t nBoneNameLength = 0;
-					file.Read(&nBoneNameLength);
-
-					bone.name.resize(nBoneNameLength);
-					file.Read(bone.name.data(), nBoneNameLength);
+					bone.name = GetString(file);
 
 					file.Read(&bone.parentIndex);
 					file.Read(&bone.defaultPositionX);

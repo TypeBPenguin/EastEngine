@@ -339,7 +339,7 @@ void SceneStudio::Enter()
 	//		//prop.shapeInfo.SetCapsule(Math::Random(0.5f, 1.f), Math::Random(1.f, 2.f));
 	//		prop.nCollisionFlag = Physics::EmCollision::eCharacterObject;
 	//		prop.f3OriginPos = f3Pos;
-	//		pCompPhysics->Init(pModelInst, prop);
+	//		pCompPhysics->Init(prop);
 	//	}
 	//}
 
@@ -428,13 +428,13 @@ void SceneStudio::Enter()
 		String::StringID name;
 		name.Format("UnityChan%d", i);
 		GameObject::IActor* pActor = GameObject::IActor::Create(name);
-		
+
 		Math::Vector3 pos;
 		//pos.x = -10.f + (2.f * (i % 10));
 		pos.y = 0.5f;
 		//pos.z = 0.f + (2.f * (i / 10));
 		pActor->SetPosition(pos);
-		
+
 		strPath = File::GetDataPath();
 		strPath.append("Actor\\UnityChan\\unitychan.emod");
 		
@@ -448,11 +448,10 @@ void SceneStudio::Enter()
 		pModel->Init(&loader);
 
 		Graphics::IModelInstance* pModelInstance = pModel->GetModelInstance();
-		Graphics::IMotionSystem* pMotionSystem = pModelInstance->GetMotionSystem();
 
-		//if (false)
+		if (false)
 		{
-			std::vector<const char*> vecAnim =
+			const std::vector<const char*> vecAnim =
 			{
 				"Actor\\UnityChan\\Animations\\unitychan_WAIT00.fbx",
 				"Actor\\UnityChan\\Animations\\unitychan_WAIT01.fbx",
@@ -477,7 +476,7 @@ void SceneStudio::Enter()
 			playback.nLoopCount = Graphics::MotionPlaybackInfo::eMaxLoopCount;
 			//playback.fWeight = Math::Random(0.1f, 0.5f);
 			playback.fWeight = 1.f;
-			pMotionSystem->Play(Graphics::EmMotion::eLayer1, pMotion, &playback);
+			pModel->PlayMotion(Graphics::EmMotion::eLayer1, pMotion, &playback);
 		}
 
 		//{
@@ -510,9 +509,10 @@ void SceneStudio::Enter()
 		//	pMotionSystem->Play(Graphics::EmMotion::eLayer2, pMotion, &playback);
 		//}
 
-		//GameObject::ComponentPhysics* pCompPhysics = static_cast<GameObject::ComponentPhysics*>(pActor->CreateComponent(GameObject::EmComponent::ePhysics));
-
-		//pCompPhysics->m_pRagDoll->BuildDefaultHumanRagDoll(pModelInstance->GetSkeleton(), pActor->GetPosition(), Math::Quaternion::Identity, 1.f);
+		GameObject::ComponentPhysics* pCompPhysics = static_cast<GameObject::ComponentPhysics*>(pActor->CreateComponent(GameObject::EmComponent::ePhysics));
+		
+		//Math::Vector3 ragdollPos = pActor->GetPosition();
+		//pCompPhysics->m_pRagDoll->BuildBipadRagDoll(pModelInstance->GetSkeleton(), ragdollPos, Math::Quaternion::Identity, 0.8f);
 		//pCompPhysics->m_pRagDoll->Start();
 
 		if (false)
@@ -539,7 +539,6 @@ void SceneStudio::Enter()
 
 		Math::Vector3 pos;
 		pos.x = 2.f;
-		pos.y = 0.5f;
 		pActor->SetPosition(pos);
 
 		strPath = File::GetDataPath();
@@ -584,7 +583,6 @@ void SceneStudio::Enter()
 
 		Math::Vector3 pos;
 		pos.x = -2.f + (i * -2.f);
-		pos.y = 0.5f;
 		pActor->SetPosition(pos);
 
 		strPath = File::GetDataPath();

@@ -204,17 +204,15 @@ namespace EastEngine
 			Math::Quaternion quat;
 
 			mat.Decompose(vScale, quat, f3Pos);
-
-			m_pMotionState->setWorldTransform(Math::ConvertToBt(f3Pos, quat));
+			btTransform transform = Math::ConvertToBt(f3Pos, quat);
+			m_pMotionState->setWorldTransform(transform);
+			m_pRigidBody->setWorldTransform(transform);
 			m_pCollisionShape->setLocalScaling(Math::ConvertToBt(vScale));
 		}
 
 		Math::Matrix RigidBody::GetWorldMatrix()
 		{
-			btTransform bt;
-			m_pMotionState->getWorldTransform(bt);
-
-			return Math::Convert(bt);
+			return Math::Convert(m_pRigidBody->getWorldTransform());
 		}
 
 		Math::Quaternion RigidBody::GetOrientation()
@@ -268,10 +266,28 @@ namespace EastEngine
 
 		void RigidBody::SetActiveState(EmActiveState::Type emActiveState)
 		{
-			if (m_pRigidBody != nullptr)
+			m_pRigidBody->setActivationState((int)(emActiveState));
+		}
+
+		void RigidBody::SetGravity(bool isEnable)
+		{
+			if (isEnable == true)
 			{
-				m_pRigidBody->setActivationState((int)(emActiveState));
+				m_pRigidBody->setGravity(m_pDynamicsWorld->getGravity());
 			}
+			else
+			{
+				const btVector3 zeroVector(0.f, 0.f, 0.f);
+				m_pRigidBody->setGravity(zeroVector);
+			}
+
+			m_pRigidBody->applyGravity();
+		}
+
+		void RigidBody::SetGravity(const Math::Vector3& f3Gravity)
+		{
+			m_pRigidBody->setGravity(Math::ConvertToBt(f3Gravity));
+			m_pRigidBody->applyGravity();
 		}
 
 		bool RigidBody::init(const RigidBodyProperty& rigidBodyProperty)

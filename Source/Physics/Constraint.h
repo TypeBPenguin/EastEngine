@@ -38,7 +38,7 @@ namespace EastEngine
 				RigidBody* pRigidBodyB;
 				Math::Vector3 f3OriginPosB;
 				Math::Quaternion originQuatB;
-				bool isEnableLinearREfrenceFrameA;
+				bool isEnableLinearRefrenceFrameA;
 				bool isEnableCollisionBetweenLinkedBodies;
 			};
 
@@ -51,7 +51,7 @@ namespace EastEngine
 			{
 			}
 
-			void SetGeneric6Dof(RigidBody* pRigidBodyA, const Math::Vector3& f3OriginPosA, const Math::Quaternion& originQuatA, RigidBody* pRigidBodyB, const Math::Vector3& f3OriginPosB, const Math::Quaternion& originQuatB, bool isEnableLinearREfrenceFrameA, bool isEnableCollisionBetweenLinkedBodies = true)
+			void SetGeneric6Dof(RigidBody* pRigidBodyA, const Math::Vector3& f3OriginPosA, const Math::Quaternion& originQuatA, RigidBody* pRigidBodyB, const Math::Vector3& f3OriginPosB, const Math::Quaternion& originQuatB, bool isEnableLinearRefrenceFrameA, bool isEnableCollisionBetweenLinkedBodies = true)
 			{
 				generic6Dof.pRigidBodyA = pRigidBodyA;
 				generic6Dof.f3OriginPosA = f3OriginPosA;
@@ -59,12 +59,12 @@ namespace EastEngine
 				generic6Dof.pRigidBodyB = pRigidBodyB;
 				generic6Dof.f3OriginPosB = f3OriginPosB;
 				generic6Dof.originQuatB = originQuatB;
-				generic6Dof.isEnableLinearREfrenceFrameA = isEnableLinearREfrenceFrameA;
+				generic6Dof.isEnableLinearRefrenceFrameA = isEnableLinearRefrenceFrameA;
 				generic6Dof.isEnableCollisionBetweenLinkedBodies = isEnableCollisionBetweenLinkedBodies;
 				emType = EmConstraint::eGeneric6Dof;
 			}
 
-			void SetGeneric6Dof(RigidBody* pRigidBodyB, const Math::Vector3& f3OriginPosB, const Math::Quaternion& originQuatB, bool isEnableLinearREfrenceFrameA, bool isEnableCollisionBetweenLinkedBodies = true)
+			void SetGeneric6Dof(RigidBody* pRigidBodyB, const Math::Vector3& f3OriginPosB, const Math::Quaternion& originQuatB, bool isEnableLinearRefrenceFrameA, bool isEnableCollisionBetweenLinkedBodies = true)
 			{
 				generic6Dof.pRigidBodyA = nullptr;
 				generic6Dof.f3OriginPosA = Math::Vector3::Zero;
@@ -72,7 +72,7 @@ namespace EastEngine
 				generic6Dof.pRigidBodyB = pRigidBodyB;
 				generic6Dof.f3OriginPosB = f3OriginPosB;
 				generic6Dof.originQuatB = originQuatB;
-				generic6Dof.isEnableLinearREfrenceFrameA = isEnableLinearREfrenceFrameA;
+				generic6Dof.isEnableLinearRefrenceFrameA = isEnableLinearRefrenceFrameA;
 				generic6Dof.isEnableCollisionBetweenLinkedBodies = isEnableCollisionBetweenLinkedBodies;
 				emType = EmConstraint::eGeneric6Dof;
 			}

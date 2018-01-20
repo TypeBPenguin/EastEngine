@@ -75,7 +75,7 @@ namespace EastEngine
 			Generic6DofConstraint* pGeneric6DofConstraint = nullptr;
 			if (pRigidBodyA != nullptr || pRigidBodyB != nullptr)
 			{
-				bool isEnableLinearReferenceFrameA = constraintProperty.generic6Dof.isEnableLinearREfrenceFrameA;
+				bool isEnableLinearReferenceFrameA = constraintProperty.generic6Dof.isEnableLinearRefrenceFrameA;
 				Math::Matrix matA = Math::Matrix::Compose(Math::Vector3::One, constraintProperty.generic6Dof.originQuatA, constraintProperty.generic6Dof.f3OriginPosA);
 				Math::Matrix matB = Math::Matrix::Compose(Math::Vector3::One, constraintProperty.generic6Dof.originQuatB, constraintProperty.generic6Dof.f3OriginPosB);
 
@@ -85,7 +85,7 @@ namespace EastEngine
 			}
 			else if (pRigidBodyA == nullptr || pRigidBodyB != nullptr)
 			{
-				bool isEnableLinearReferenceFrameA = constraintProperty.generic6Dof.isEnableLinearREfrenceFrameA;
+				bool isEnableLinearReferenceFrameA = constraintProperty.generic6Dof.isEnableLinearRefrenceFrameA;
 				Math::Matrix matB = Math::Matrix::Compose(Math::Vector3::One, constraintProperty.generic6Dof.originQuatB, constraintProperty.generic6Dof.f3OriginPosB);
 
 				pGeneric6DofConstraint = new Generic6DofConstraint;

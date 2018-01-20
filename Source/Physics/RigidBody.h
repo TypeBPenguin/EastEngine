@@ -107,6 +107,8 @@ namespace EastEngine
 			void SetAngularFactor(float fFactor);
 
 			void SetActiveState(EmActiveState::Type emActiveState);
+			void SetGravity(bool isEnable);
+			void SetGravity(const Math::Vector3& f3Gravity);
 
 			const Collision::AABB& GetAABB() { return m_boundingBox; }
 			const Collision::Sphere& GetBoundingSphere() { return m_boundingSphere; }

@@ -21,7 +21,7 @@ namespace EastEngine
 
 		FileStream& FileStream::operator << (int8_t value)
 		{
-			if (m_nFlag == EmState::eNone)
+			if ((m_nFlag & EmState::eBinary) == 0)
 				m_file << value;
 			else
 				m_file.write(reinterpret_cast<char*>(&value), sizeof(int8_t));
@@ -31,7 +31,7 @@ namespace EastEngine
 
 		FileStream& FileStream::operator >> (int8_t& value)
 		{
-			if (m_nFlag == EmState::eNone)
+			if ((m_nFlag & EmState::eBinary) == 0)
 				m_file >> value;
 			else
 				m_file.read(reinterpret_cast<char*>(&value), sizeof(int8_t));
@@ -41,7 +41,7 @@ namespace EastEngine
 
 		FileStream& FileStream::operator << (int16_t value)
 		{
-			if (m_nFlag == EmState::eNone)
+			if ((m_nFlag & EmState::eBinary) == 0)
 				m_file << value;
 			else
 				m_file.write(reinterpret_cast<char*>(&value), sizeof(int16_t));
@@ -51,7 +51,7 @@ namespace EastEngine
 
 		FileStream& FileStream::operator >> (int16_t& value)
 		{
-			if (m_nFlag == EmState::eNone)
+			if ((m_nFlag & EmState::eBinary) == 0)
 				m_file >> value;
 			else
 				m_file.read(reinterpret_cast<char*>(&value), sizeof(int16_t));
@@ -61,7 +61,7 @@ namespace EastEngine
 
 		FileStream& FileStream::operator << (int value)
 		{
-			if (m_nFlag == EmState::eNone)
+			if ((m_nFlag & EmState::eBinary) == 0)
 				m_file << value;
 			else
 				m_file.write(reinterpret_cast<char*>(&value), sizeof(int));
@@ -71,7 +71,7 @@ namespace EastEngine
 
 		FileStream& FileStream::operator >> (int& value)
 		{
-			if (m_nFlag == EmState::eNone)
+			if ((m_nFlag & EmState::eBinary) == 0)
 				m_file >> value;
 			else
 				m_file.read(reinterpret_cast<char*>(&value), sizeof(int));
@@ -81,7 +81,7 @@ namespace EastEngine
 
 		FileStream& FileStream::operator << (DWORD value)
 		{
-			if (m_nFlag == EmState::eNone)
+			if ((m_nFlag & EmState::eBinary) == 0)
 				m_file << value;
 			else
 				m_file.write(reinterpret_cast<char*>(&value), sizeof(DWORD));
@@ -91,7 +91,7 @@ namespace EastEngine
 
 		FileStream& FileStream::operator >> (DWORD& value)
 		{
-			if (m_nFlag == EmState::eNone)
+			if ((m_nFlag & EmState::eBinary) == 0)
 				m_file >> value;
 			else
 				m_file.read(reinterpret_cast<char*>(&value), sizeof(DWORD));
@@ -101,7 +101,7 @@ namespace EastEngine
 
 		FileStream& FileStream::operator << (uint8_t value)
 		{
-			if (m_nFlag == EmState::eNone)
+			if ((m_nFlag & EmState::eBinary) == 0)
 				m_file << value;
 			else
 				m_file.write(reinterpret_cast<char*>(&value), sizeof(uint8_t));
@@ -111,7 +111,7 @@ namespace EastEngine
 
 		FileStream& FileStream::operator >> (uint8_t& value)
 		{
-			if (m_nFlag == EmState::eNone)
+			if ((m_nFlag & EmState::eBinary) == 0)
 				m_file >> value;
 			else
 				m_file.read(reinterpret_cast<char*>(&value), sizeof(uint8_t));
@@ -121,7 +121,7 @@ namespace EastEngine
 
 		FileStream& FileStream::operator << (uint16_t value)
 		{
-			if (m_nFlag == EmState::eNone)
+			if ((m_nFlag & EmState::eBinary) == 0)
 				m_file << value;
 			else
 				m_file.write(reinterpret_cast<char*>(&value), sizeof(uint16_t));
@@ -131,7 +131,7 @@ namespace EastEngine
 
 		FileStream& FileStream::operator >> (uint16_t& value)
 		{
-			if (m_nFlag == EmState::eNone)
+			if ((m_nFlag & EmState::eBinary) == 0)
 				m_file >> value;
 			else
 				m_file.read(reinterpret_cast<char*>(&value), sizeof(uint16_t));
@@ -141,7 +141,7 @@ namespace EastEngine
 
 		FileStream& FileStream::operator << (uint32_t value)
 		{
-			if (m_nFlag == EmState::eNone)
+			if ((m_nFlag & EmState::eBinary) == 0)
 				m_file << value;
 			else
 				m_file.write(reinterpret_cast<char*>(&value), sizeof(uint32_t));
@@ -151,7 +151,7 @@ namespace EastEngine
 
 		FileStream& FileStream::operator >> (uint32_t& value)
 		{
-			if (m_nFlag == EmState::eNone)
+			if ((m_nFlag & EmState::eBinary) == 0)
 				m_file >> value;
 			else
 				m_file.read(reinterpret_cast<char*>(&value), sizeof(uint32_t));
@@ -161,7 +161,7 @@ namespace EastEngine
 
 		FileStream& FileStream::operator << (float value)
 		{
-			if (m_nFlag == EmState::eNone)
+			if ((m_nFlag & EmState::eBinary) == 0)
 				m_file << value;
 			else
 				m_file.write(reinterpret_cast<char*>(&value), sizeof(float));
@@ -171,7 +171,7 @@ namespace EastEngine
 
 		FileStream& FileStream::operator >> (float& value)
 		{
-			if (m_nFlag == EmState::eNone)
+			if ((m_nFlag & EmState::eBinary) == 0)
 				m_file >> value;
 			else
 				m_file.read(reinterpret_cast<char*>(&value), sizeof(float));
@@ -181,7 +181,7 @@ namespace EastEngine
 
 		FileStream& FileStream::operator << (double value)
 		{
-			if (m_nFlag == EmState::eNone)
+			if ((m_nFlag & EmState::eBinary) == 0)
 				m_file << value;
 			else
 				m_file.write(reinterpret_cast<char*>(&value), sizeof(double));
@@ -191,7 +191,7 @@ namespace EastEngine
 
 		FileStream& FileStream::operator >> (double& value)
 		{
-			if (m_nFlag == EmState::eNone)
+			if ((m_nFlag & EmState::eBinary) == 0)
 				m_file >> value;
 			else
 				m_file.read(reinterpret_cast<char*>(&value), sizeof(double));
@@ -201,7 +201,7 @@ namespace EastEngine
 
 		FileStream& FileStream::operator << (bool value)
 		{
-			if (m_nFlag == EmState::eNone)
+			if ((m_nFlag & EmState::eBinary) == 0)
 				m_file << value;
 			else
 				m_file.write(reinterpret_cast<char*>(&value), sizeof(bool));
@@ -211,7 +211,7 @@ namespace EastEngine
 
 		FileStream& FileStream::operator >> (bool& value)
 		{
-			if (m_nFlag == EmState::eNone)
+			if ((m_nFlag & EmState::eBinary) == 0)
 				m_file >> value;
 			else
 				m_file.read(reinterpret_cast<char*>(&value), sizeof(bool));
@@ -221,7 +221,7 @@ namespace EastEngine
 
 		FileStream& FileStream::operator << (const std::string& value)
 		{
-			if (m_nFlag == EmState::eNone)
+			if ((m_nFlag & EmState::eBinary) == 0)
 			{
 				m_file << value;
 			}
@@ -237,7 +237,7 @@ namespace EastEngine
 
 		FileStream& FileStream::operator >> (std::string& value)
 		{
-			if (m_nFlag == EmState::eNone)
+			if ((m_nFlag & EmState::eBinary) == 0)
 			{
 				m_file >> value;
 			}
@@ -260,7 +260,7 @@ namespace EastEngine
 
 		FileStream& FileStream::operator << (const std::wstring& value)
 		{
-			if (m_nFlag == EmState::eNone)
+			if ((m_nFlag & EmState::eBinary) == 0)
 			{
 				m_file << String::WideToMulti(value.c_str(), CP_ACP);
 			}
@@ -275,7 +275,7 @@ namespace EastEngine
 		}
 		FileStream& FileStream::operator >> (std::wstring& value)
 		{
-			if (m_nFlag == EmState::eNone)
+			if ((m_nFlag & EmState::eBinary) == 0)
 			{
 				std::string str;
 				m_file >> str;
@@ -301,7 +301,7 @@ namespace EastEngine
 
 		FileStream& FileStream::operator << (const char* value)
 		{
-			if (m_nFlag == EmState::eNone)
+			if ((m_nFlag & EmState::eBinary) == 0)
 			{
 				m_file << value;
 			}
@@ -322,7 +322,7 @@ namespace EastEngine
 
 		FileStream& FileStream::operator << (wchar_t* value)
 		{
-			if (m_nFlag == EmState::eNone)
+			if ((m_nFlag & EmState::eBinary) == 0)
 			{
 				m_file << value;
 
@@ -425,7 +425,7 @@ namespace EastEngine
 
 		FileStream& FileStream::Write(const char* pValue, uint32_t nLength)
 		{
-			if (m_nFlag == EmState::eNone)
+			if ((m_nFlag & EmState::eBinary) == 0)
 			{
 				m_file << pValue;
 			}

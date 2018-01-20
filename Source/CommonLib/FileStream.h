@@ -30,7 +30,7 @@ namespace EastEngine
 			bool Eof() { return m_file.eof(); }
 
 			void Clear() { m_file.clear(); }
-			void Seekg(std::streampos pos, uint32_t state) { m_file.seekg(pos, state); }
+			void Seekg(std::streampos pos, uint32_t state) { m_file.seekp(pos, state); }
 			std::streampos Tellg() { m_file.tellg(); }
 
 			uint32_t GetDataSize() { return m_nDataSize; }
@@ -94,6 +94,7 @@ namespace EastEngine
 
 		public:
 			const std::string& GetPath() { return m_strPath; }
+			uint32_t GetFlag() const { return m_nFlag; }
 
 		private:
 			std::fstream m_file;

@@ -29,18 +29,10 @@ namespace EastEngine
 		{
 			const Math::Matrix* pMatWorld = nullptr;
 			Physics::RigidBody* pRigidBody = nullptr;
-			Graphics::IModelInstance* pPhysicsModelInst = nullptr;
+			Graphics::IModelInstance* pPhysicsModelInstance = nullptr;
+			Graphics::IModelInstance* pModelInstance = nullptr;
 
-			PhysicsNode()
-			{
-			}
-
-			PhysicsNode(const Math::Matrix* pMatWorld, Physics::RigidBody* pRigidBody, Graphics::IModelInstance* pPhysicsModelInst)
-				: pMatWorld(pMatWorld)
-				, pRigidBody(pRigidBody)
-				, pPhysicsModelInst(pPhysicsModelInst)
-			{
-			}
+			PhysicsNode(const Math::Matrix* pMatWorld, Physics::RigidBody* pRigidBody, Graphics::IModelInstance* pPhysicsModelInstance, Graphics::IModelInstance* pModelInstance);
 		};
 
 		class ComponentPhysics : public IComponent
@@ -53,7 +45,7 @@ namespace EastEngine
 
 		public:
 			void Init(const Physics::RigidBodyProperty& rigidBodyProperty, bool isCollisionModelVisible = false);
-			void Init(Graphics::IModelInstance* pModelInst, const Physics::RigidBodyProperty& rigidBodyProperty, uint32_t nTargetLod = 0, bool isCollisionModelVisible = false);
+			void Init(Graphics::IModelInstance* pModelInstance, const Physics::RigidBodyProperty& rigidBodyProperty, uint32_t nTargetLod = 0, bool isCollisionModelVisible = false);
 			void Init(const String::StringID& strID, const Graphics::IVertexBuffer* pVertexBuffer, const Graphics::IIndexBuffer* pIndexBuffer, Math::Matrix* pMatWorld, const Physics::RigidBodyProperty& rigidBodyProperty, bool isCollisionModelVisible = false);
 			virtual void Update(float fElapsedTime) override;
 
@@ -70,68 +62,66 @@ namespace EastEngine
 			}
 
 		private:
-			void initPhysics(const String::StringID& strID, const Graphics::IVertexBuffer* pVertexBuffer, const Graphics::IIndexBuffer* pIndexBuffer, const Math::Matrix* pMatWorld, Physics::RigidBodyProperty& rigidBodyProperty);
+			void initPhysics(const String::StringID& strID, const Physics::RigidBodyProperty& rigidBodyProperty, const Math::Matrix* pMatWorld, Graphics::IModelInstance* pModelInstance);
 
 		private:
-			std::unordered_map<String::StringID, PhysicsNode> m_umapPhysicsNode;
-
-			enum Type
-			{
-				eBasic = 0,
-				eModel,
-				eCustom,
-			} m_emType;
-
-			union PhysicsLoader
-			{
-				struct Basic
-				{
-					Physics::RigidBodyProperty rigidBodyProperty;
-
-					void Set(const Physics::RigidBodyProperty& _rigidBodyProperty)
-					{
-						rigidBodyProperty = _rigidBodyProperty;
-					}
-				} byBasic;
-
-				struct ByModel
-				{
-					Graphics::IModelInstance* pModelInst;
-					Physics::RigidBodyProperty rigidBodyProperty;
-					uint32_t nTargetLod;
-
-					void Set(Graphics::IModelInstance* _pModelInst, const Physics::RigidBodyProperty& _rigidBodyProperty, uint32_t _nTargetLod)
-					{
-						pModelInst = _pModelInst;
-						rigidBodyProperty = _rigidBodyProperty;
-						nTargetLod = _nTargetLod;
-					}
-				} byModel;
-
-				struct ByCustom
-				{
-					String::StringID strID;
-					const Graphics::IVertexBuffer* pVertexBuffer;
-					const Graphics::IIndexBuffer* pIndexBuffer;
-					Math::Matrix* pMatWorld;
-					Physics::RigidBodyProperty rigidBodyProperty;
-
-					void Set(const String::StringID& _strID, const Graphics::IVertexBuffer* _pVertexBuffer, const Graphics::IIndexBuffer* _pIndexBuffer, Math::Matrix* _pMatWorld, const Physics::RigidBodyProperty& _rigidBodyProperty)
-					{
-						strID = _strID;
-						pVertexBuffer = _pVertexBuffer;
-						pIndexBuffer = _pIndexBuffer;
-						pMatWorld = _pMatWorld;
-						rigidBodyProperty = _rigidBodyProperty;
-					}
-				} byCustom;
-
-				PhysicsLoader() {}
-				~PhysicsLoader() {}
-			} m_loader;
-
 			bool m_isInit;
 			bool m_isCollisionModelVisible;
+
+			std::unordered_map<String::StringID, PhysicsNode> m_umapPhysicsNode;
+
+			enum RigidBodyType
+			{
+				eNone = 0,
+				eBasic,
+				eModel,
+				eCustom,
+			};
+
+			struct BasicRigidBody
+			{
+				Physics::RigidBodyProperty rigidBodyProperty;
+
+				void Set(const Physics::RigidBodyProperty& _rigidBodyProperty)
+				{
+					rigidBodyProperty = _rigidBodyProperty;
+				}
+			};
+
+			struct ModelRigidBody
+			{
+				Graphics::IModelInstance* pModelInstance = nullptr;
+				Physics::RigidBodyProperty rigidBodyProperty;
+				uint32_t nTargetLod = 0;
+
+				void Set(Graphics::IModelInstance* _pModelInstance, const Physics::RigidBodyProperty& _rigidBodyProperty, uint32_t _nTargetLod)
+				{
+					pModelInstance = _pModelInstance;
+					rigidBodyProperty = _rigidBodyProperty;
+					nTargetLod = _nTargetLod;
+				}
+			};
+
+			struct CustomRigidBody
+			{
+				String::StringID strID;
+				const Graphics::IVertexBuffer* pVertexBuffer = nullptr;
+				const Graphics::IIndexBuffer* pIndexBuffer = nullptr;
+				Math::Matrix* pMatWorld = nullptr;
+				Physics::RigidBodyProperty rigidBodyProperty;
+
+				void Set(const String::StringID& _strID, const Graphics::IVertexBuffer* _pVertexBuffer, const Graphics::IIndexBuffer* _pIndexBuffer, Math::Matrix* _pMatWorld, const Physics::RigidBodyProperty& _rigidBodyProperty)
+				{
+					strID = _strID;
+					pVertexBuffer = _pVertexBuffer;
+					pIndexBuffer = _pIndexBuffer;
+					pMatWorld = _pMatWorld;
+					rigidBodyProperty = _rigidBodyProperty;
+				}
+			};
+
+			RigidBodyType m_emRigidBodyType;
+			std::variant<BasicRigidBody, ModelRigidBody, CustomRigidBody> m_rigidBodyElements;
 		};
 	}
 }
