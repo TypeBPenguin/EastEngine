@@ -37,7 +37,7 @@ namespace EastEngine
 			virtual const Math::Quaternion& GetLocalRotation() const override { return m_quat; }
 			virtual void SetLocalRotation(const Math::Quaternion& quat) override { m_quat = quat; m_isDirtyLocalMatrix = true; }
 
-			virtual const Math::Matrix& GetLocalTransform() const override { return m_matLocal; }
+			virtual const Math::Matrix& GetLocalMatrix() const override { return m_matLocal; }
 
 			virtual const String::StringID& GetName() const override { return m_strModelName; }
 			virtual const std::string& GetFilePath() const override { return m_strFilePath; }

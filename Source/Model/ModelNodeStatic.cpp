@@ -28,7 +28,7 @@ namespace EastEngine
 				ISkeletonInstance::IBone* pBone = pSkeletonInstance->GetBone(m_strAttachedBoneName);
 				if (pBone != nullptr)
 				{
-					const Math::Matrix& matMotionTransform = pBone->GetMotionTransform();
+					const Math::Matrix& matMotionTransform = pBone->GetSkinningMatrix();
 					matTransformation = matMotionTransform * matParent;
 				}
 			}

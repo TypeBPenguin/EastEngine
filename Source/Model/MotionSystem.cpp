@@ -81,11 +81,11 @@ namespace EastEngine
 
 					KeyframeTemp& keyframe = m_umapKeyframe[pBone->GetName()];
 
-					IMotion::Keyframe& defaultKeyframe = keyframe.defaultKeyframe;
-					IMotion::Keyframe& motionKeyframe = keyframe.motionKeyframe;
+					Math::Transform& motionTransform = keyframe.motionTransform;
+					Math::Transform& defaultTransform = keyframe.defaultTransform;
 
-					matDefaultMotionData.Decompose(defaultKeyframe.f3Scale, defaultKeyframe.quatRotation, defaultKeyframe.f3Pos);
-					matDefaultMotionData.Decompose(motionKeyframe.f3Scale, motionKeyframe.quatRotation, motionKeyframe.f3Pos);
+					matDefaultMotionData.Decompose(motionTransform.scale, motionTransform.rotation, motionTransform.position);
+					matDefaultMotionData.Decompose(defaultTransform.scale, defaultTransform.rotation, defaultTransform.position);
 				}
 			}
 		}
@@ -96,7 +96,7 @@ namespace EastEngine
 			{
 				for (auto& iter : m_umapKeyframe)
 				{
-					iter.second.motionKeyframe = iter.second.defaultKeyframe;
+					iter.second.motionTransform = iter.second.defaultTransform;
 				}
 			}
 			else
@@ -107,7 +107,7 @@ namespace EastEngine
 
 					for (auto& iter : m_umapKeyframe)
 					{
-						iter.second.motionKeyframe = iter.second.defaultKeyframe;
+						iter.second.motionTransform = iter.second.defaultTransform;
 					}
 				}
 			}
@@ -130,11 +130,12 @@ namespace EastEngine
 				if (pSrcKeyframe != nullptr)
 				{
 					KeyframeTemp& destKeyframe = m_umapKeyframe[pBone->GetName()];
-					IMotion::Keyframe& motionKeyframe = destKeyframe.motionKeyframe;
+					const Math::Transform& sourceTransform = pSrcKeyframe->transform;
+					Math::Transform& motionTransform = destKeyframe.motionTransform;
 
-					Math::Vector3::Lerp(motionKeyframe.f3Pos, pSrcKeyframe->f3Pos, fWeight, motionKeyframe.f3Pos);
-					Math::Vector3::Lerp(motionKeyframe.f3Scale, pSrcKeyframe->f3Scale, fWeight, motionKeyframe.f3Scale);
-					Math::Quaternion::Lerp(motionKeyframe.quatRotation, pSrcKeyframe->quatRotation, fWeight, motionKeyframe.quatRotation);
+					Math::Vector3::Lerp(motionTransform.scale, sourceTransform.scale, fWeight, motionTransform.scale);
+					Math::Quaternion::Lerp(motionTransform.rotation, sourceTransform.rotation, fWeight, motionTransform.rotation);
+					Math::Vector3::Lerp(motionTransform.position, sourceTransform.position, fWeight, motionTransform.position);
 				}
 			}
 		}
@@ -154,12 +155,7 @@ namespace EastEngine
 					continue;
 
 				const KeyframeTemp& keyframe = m_umapKeyframe[pBone->GetName()];
-				const IMotion::Keyframe& motionKeyframe = keyframe.motionKeyframe;
-
-				Math::Matrix matMotion;
-				Math::Matrix::Compose(motionKeyframe.f3Scale, motionKeyframe.quatRotation, motionKeyframe.f3Pos, matMotion);
-
-				pBone->SetMotionData(matMotion);
+				pBone->SetMotionTransform(keyframe.motionTransform);
 			}
 		}
 	}

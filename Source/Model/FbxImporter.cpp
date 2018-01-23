@@ -1966,7 +1966,7 @@ namespace EastEngine
 			pMesh->Optimize(nMeshOptimizationFlags);
 
 			ExportModel* pModel = new ExportModel(pMesh);
-			size_t nMaterialCount = MaterialList.size();
+			const size_t nMaterialCount = MaterialList.size();
 			if (pMesh->GetSubDMesh() == nullptr)
 			{
 				size_t nSubsetCount = pMesh->GetSubsetCount();

@@ -102,9 +102,7 @@ namespace EastEngine
 			struct Keyframe
 			{
 				float fTime = 0.f;
-				Math::Vector3 f3Pos;
-				Math::Vector3 f3Scale = Math::Vector3::One;
-				Math::Quaternion quatRotation;
+				Math::Transform transform;
 			};
 
 			class IBone
@@ -342,7 +340,7 @@ namespace EastEngine
 			virtual const Math::Quaternion& GetLocalRotation() const = 0;
 			virtual void SetLocalRotation(const Math::Quaternion& quat) = 0;
 
-			virtual const Math::Matrix& GetLocalTransform() const = 0;
+			virtual const Math::Matrix& GetLocalMatrix() const = 0;
 
 			virtual const String::StringID& GetName() const = 0;
 			virtual const std::string& GetFilePath() const = 0;
@@ -460,12 +458,26 @@ namespace EastEngine
 				virtual IBone* GetChildBone(size_t nIndex) const = 0;
 				virtual IBone* GetChildBone(const String::StringID& strBoneName, bool isFindInAllDepth = false) const = 0;
 
-				virtual const Math::Matrix& GetMotionTransform() const = 0;
-				virtual void SetMotionData(const Math::Matrix& matrix) = 0;
-				virtual void ClearMotionData() = 0;
+				virtual const Math::Matrix& GetSkinningMatrix() const = 0;
 
-				virtual const Math::Matrix& GetLocalTransform() const = 0;
-				virtual const Math::Matrix& GetGlobalTransform() const = 0;
+				virtual void SetMotionTransform(const Math::Transform& transform) = 0;
+				virtual const Math::Transform& GetMotionTransform() const = 0;
+				virtual void ClearMotionTransform() = 0;
+
+				//virtual const Math::Transform& GetUserOffsetTransform() const = 0;
+				//virtual void SetUserOffsetTransform(const Math::Transform& userOffsetTransform) = 0;
+
+				virtual const Math::Vector3& GetUserOffsetScale() const = 0;
+				virtual void SetUserOffsetScale(const Math::Vector3& f3Scale) = 0;
+
+				virtual const Math::Vector3& GetUserOffsetRotation() const = 0;
+				virtual void SetUserOffsetRotation(const Math::Vector3& f3Rotation) = 0;
+
+				virtual const Math::Vector3& GetUserOffsetPosition() const = 0;
+				virtual void SetUserOffsetPosition(const Math::Vector3& f3Position) = 0;
+
+				virtual const Math::Matrix& GetLocalMatrix() const = 0;
+				virtual const Math::Matrix& GetGlobalMatrix() const = 0;
 
 				virtual bool IsRootBone() const = 0;
 			};

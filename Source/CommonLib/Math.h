@@ -941,6 +941,9 @@ namespace EastEngine
 
 			float Dot(const Quaternion& Q) const;
 
+			Vector3 ToEularRadians() const;
+			Vector3 ToEularDegrees() const;
+
 			// Static functions
 			static Quaternion CreateFromAxisAngle(const Vector3& axis, float angle);
 			static Quaternion CreateFromYawPitchRoll(float yaw, float pitch, float roll);
@@ -967,6 +970,19 @@ namespace EastEngine
 		Quaternion operator/ (const Quaternion& Q, float S);
 		Quaternion operator/ (const Quaternion& Q1, const Quaternion& Q2);
 		Quaternion operator* (float S, const Quaternion& Q);
+
+		struct Transform
+		{
+			Math::Vector3 scale;
+			Math::Quaternion rotation;
+			Math::Vector3 position;
+
+			Transform();
+			Transform(const Vector3& scale, const Quaternion& rotation, const Vector3& position);
+			Transform(const Matrix& matrix);
+
+			Matrix Compose();
+		};
 
 		//------------------------------------------------------------------------------
 		// Color

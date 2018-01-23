@@ -3404,6 +3404,81 @@ namespace EastEngine
 			return XMVectorGetX(XMQuaternionDot(q1, q2));
 		}
 
+		Vector3 Quaternion::ToEularRadians() const
+		{
+			/*float m00 = 1.f - (2.f * ((y * y) + z * z));
+			float m01 = 2.f * (x * y + w * z);
+
+			Math::Vector3 result
+			(
+				std::atan2(2.f * (y * z + w * x), 1.f - (2.f * ((x * x) + (y * y)))),
+				std::atan2(-2.f * (x * z - w * y), std::sqrt((m00 * m00) + (m01 * m01))),
+				std::atan2(m01, m00)
+			);
+
+			return result;*/
+
+			double check = x * y + z * w;
+			if (check > 0.499)
+			{
+				return Math::Vector3(2 * std::atan2(x, w), Math::PI / 2, 0);
+			}
+			else if (check < -0.499)
+			{
+				return Math::Vector3(-2 * std::atan2(x, w), -Math::PI / 2, 0);
+			}
+			else
+			{
+				return Math::Vector3
+				(
+					std::atan2(2 * x * w - 2 * y * z, 1 - 2 * x * x - 2 * z * z),
+					std::asin(2 * check),
+					std::atan2(2 * y * w - 2 * x * z, 1 - 2 * y * y - 2 * z * z)
+				);
+			}
+
+			/*Math::Vector3 v;
+
+			v.z = (float)std::atan2
+			(
+				2 * y * w - 2 * x * z,
+				1 - 2 * std::pow(y, 2) - 2 * std::pow(z, 2)
+			);
+
+			v.y = (float)std::asin
+			(
+				2 * x*y + 2 * z*w
+			);
+
+			v.x = (float)std::atan2
+			(
+				2 * x*w - 2 * y*z,
+				1 - 2 * std::pow(x, 2) - 2 * std::pow(z, 2)
+			);
+
+			if (x*y + z*w == 0.5)
+			{
+				v.z = (float)(2 * std::atan2(x, w));
+				v.x = 0;
+			}
+			else if (x*y + z*w == -0.5)
+			{
+				v.z = (float)(-2 * std::atan2(x, w));
+				v.x = 0;
+			}
+
+			return v;*/
+		}
+
+		Vector3 Quaternion::ToEularDegrees() const
+		{
+			Vector3 eular = ToEularRadians();
+			eular.x = ToDegrees(eular.x);
+			eular.y = ToDegrees(eular.y);
+			eular.z = ToDegrees(eular.z);
+			return eular;
+		}
+
 		//------------------------------------------------------------------------------
 		// Static functions
 		//------------------------------------------------------------------------------
@@ -3527,6 +3602,18 @@ namespace EastEngine
 		}
 
 		const Quaternion Quaternion::Identity = { 0.f, 0.f, 0.f, 1.f };
+
+		Transform::Transform() : scale(Vector3::One) {}
+		Transform::Transform(const Math::Vector3& scale, const Math::Quaternion& rotation, const Math::Vector3& position) : scale(scale), rotation(rotation), position(position) {}
+		Transform::Transform(const Matrix& matrix)
+		{
+			matrix.Decompose(scale, rotation, position);
+		}
+
+		Matrix Transform::Compose()
+		{
+			return Matrix::Compose(scale, rotation, position);
+		}
 
 		RGBA::RGBA() : b(0), g(0), r(0), a(255) {}
 		RGBA::RGBA(uint32_t Color) : c(Color) {}

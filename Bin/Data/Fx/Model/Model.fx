@@ -197,7 +197,7 @@ Texture2D g_texEmissive;
 Texture2D g_texEmissiveColor;
 #endif
 
-#ifdef USE_TEX_SURFACE
+#ifdef USE_TEX_SUBSURFACE
 Texture2D g_texSurface;
 #endif
 
@@ -656,7 +656,7 @@ PS_OUTPUT D_PS(PS_INPUT input)
 	float3 AST = float3(g_f4SurSpecTintAniso.w, g_f4SheenTintClearcoatGloss.xy);
 	float3 CG = float3(g_f4SheenTintClearcoatGloss.zw, 0.f);
 
-#ifdef USE_TEX_SURFACE
+#ifdef USE_TEX_SUBSURFACE
 	SST.x = g_texSurface.Sample(g_samplerState, input.tex).x;
 #endif
 #ifdef USE_TEX_SPECULAR

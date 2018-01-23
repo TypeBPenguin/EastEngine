@@ -2,6 +2,7 @@
 
 #include "Engine/SceneMgr.h"
 
+class SkeletonController;
 class MaterialNodeManager;
 
 namespace EastEngine
@@ -35,6 +36,7 @@ private:
 	void RenderUI();
 
 private:
+	SkeletonController* m_pSkeletonController;
 	MaterialNodeManager* m_pMaterialNodeManager;
 	EastEngine::GameObject::SectorMgr* m_pSectorMgr;
 

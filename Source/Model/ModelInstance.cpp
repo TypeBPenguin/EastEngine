@@ -101,7 +101,7 @@ namespace EastEngine
 					ISkeletonInstance::IBone* pBone = m_pSkeletonInstance->GetBone(node.strNodeName);
 					if (pBone != nullptr)
 					{
-						node.pInstance->Update(m_fElapsedTime, node.matOffset * pBone->GetGlobalTransform());
+						node.pInstance->Update(m_fElapsedTime, node.matOffset * pBone->GetGlobalMatrix());
 						node.pInstance->UpdateModel();
 					}
 				}
@@ -116,7 +116,7 @@ namespace EastEngine
 		void ModelInstance::Update(float fElapsedTime, const Math::Matrix& matParent)
 		{
 			m_fElapsedTime = fElapsedTime;
-			m_matParent = m_pModel->GetLocalTransform() * matParent;
+			m_matParent = m_pModel->GetLocalMatrix() * matParent;
 		}
 
 		bool ModelInstance::Attachment(IModelInstance* pInstance, const String::StringID& strNodeName, const Math::Matrix& matOffset)

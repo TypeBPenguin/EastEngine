@@ -173,6 +173,7 @@
     <ClInclude Include="imgui_internal.h" />
     <ClInclude Include="MaterialNodeManager.h" />
     <ClInclude Include="SceneStudio.h" />
+    <ClInclude Include="SkeletonController.h" />
     <ClInclude Include="stb_rect_pack.h" />
     <ClInclude Include="stb_textedit.h" />
     <ClInclude Include="stb_truetype.h" />
@@ -187,6 +188,7 @@
     <ClCompile Include="imgui_impl_dx11.cpp" />
     <ClCompile Include="MaterialNodeManager.cpp" />
     <ClCompile Include="SceneStudio.cpp" />
+    <ClCompile Include="SkeletonController.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

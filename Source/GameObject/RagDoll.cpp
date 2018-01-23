@@ -83,12 +83,12 @@ namespace EastEngine
 				//	Math::Vector3 f3ScaleChild;
 				//	Math::Vector3 f3PosChild;
 				//	Math::Quaternion quatChild;
-				//	pBone->GetGlobalTransform().Decompose(f3ScaleChild, quatChild, f3PosChild);
+				//	pBone->GetGlobalMatrix().Decompose(f3ScaleChild, quatChild, f3PosChild);
 				//
 				//	Math::Vector3 f3ScaleParent;
 				//	Math::Vector3 f3PosParent;
 				//	Math::Quaternion quatParent;
-				//	pBone->GetParent()->GetGlobalTransform().Decompose(f3ScaleParent, quatParent, f3PosParent);
+				//	pBone->GetParent()->GetGlobalMatrix().Decompose(f3ScaleParent, quatParent, f3PosParent);
 				//
 				//	f3Offset = (f3PosChild - f3PosParent) * 0.5f;
 				//	f3NewPos = f3PosParent + f3Offset;
@@ -121,7 +121,7 @@ namespace EastEngine
 
 				//Math::Vector3 f3Scale;
 				//Math::Quaternion quat2;
-				//pBone->GetGlobalTransform().Decompose(f3Scale, quat2, prop.f3OriginPos);
+				//pBone->GetGlobalMatrix().Decompose(f3Scale, quat2, prop.f3OriginPos);
 
 				BodyPart* pBodyPart = AddBodyPart(strName, prop, pPhysicsModelInst, pBone);
 				pBodyPart->f3Offset = f3Offset;
@@ -341,11 +341,11 @@ namespace EastEngine
 				//	Graphics::ISkeletonInstance::IBone* pParentBone = pBodyPart->pBone->GetParent();
 				//	if (pParentBone != nullptr)
 				//	{
-				//		matInvParent = pParentBone->GetGlobalTransform().Invert();
+				//		matInvParent = pParentBone->GetGlobalMatrix().Invert();
 				//	}
 				//	
 				//	Math::Matrix matWorldMatrix = pBodyPart->pRigidBody->GetWorldMatrix();
-				//	pBodyPart->pBone->SetMotionData(matWorldMatrix * matInvParent);
+				//	pBodyPart->pBone->SetMotionTransform(matWorldMatrix * matInvParent);
 				//}
 			}
 
@@ -366,7 +366,7 @@ namespace EastEngine
 			{
 				m_vecBodyParts.emplace_back(new BodyPart(strPartName, pRigidBody, pPhysicsModelInstance, pBone));
 				pBodyPart = m_vecBodyParts.back();
-				pBodyPart->matOrigin = pBone->GetGlobalTransform();
+				pBodyPart->matOrigin = pBone->GetGlobalMatrix();
 				pBodyPart->matBodyOrigin = Math::Matrix::Compose(Math::Vector3::One, rigidBodyProperty.originQuat, rigidBodyProperty.f3OriginPos);
 			}
 
@@ -494,7 +494,7 @@ namespace EastEngine
 				//	//Math::Matrix mat = Math::Matrix::CreateFromQuaternion(quatWorld * quatBodyOrigin.Inverse() * quatOrigin);
 				//	Math::Matrix mat = Math::Matrix::Compose(f3ScaleOrigin, quatWorld * quatBodyOrigin.Inverse() * quatOrigin, f3PosWorld);
 				//
-				//	pBodyPart->pBone->SetMotionData(mat);
+				//	pBodyPart->pBone->SetMotionTransform(mat);
 
 				//	mapWorldMatrix[pBodyPart->pBone] = std::make_pair(quatOrigin, quatWorld);
 				//}
@@ -556,7 +556,7 @@ namespace EastEngine
 
 				//		if (pParent != nullptr)
 				//		{
-				//			//Math::Matrix matInv = pParent->pBone->GetGlobalTransform().Invert();
+				//			//Math::Matrix matInv = pParent->pBone->GetGlobalMatrix().Invert();
 				//			//Math::Matrix matInv = pParent->pRigidBody->GetWorldMatrix();
 				//			//mat = matInv * m;
 				//			mat = m;
@@ -566,7 +566,7 @@ namespace EastEngine
 				//			mat = m;
 				//		}
 
-				//		pBodyPart->pBone->GetParent()->SetMotionData(mat);
+				//		pBodyPart->pBone->GetParent()->SetMotionTransform(mat);
 				//	}
 				//	else
 				//	{
@@ -598,7 +598,7 @@ namespace EastEngine
 				//		//Math::Matrix mat = Math::Matrix::CreateFromQuaternion(quatWorld);
 				//		Math::Matrix mat = Math::Matrix::CreateFromQuaternion(quatOrigin2 * quatBodyOrigin.Inverse() * quatOrigin);
 
-				//		pBodyPart->pBone->SetMotionData(mat);
+				//		pBodyPart->pBone->SetMotionTransform(mat);
 
 				//		//Math::Vector3 f3ScaleOrigin;
 				//		//Math::Vector3 f3PosOrigin;
@@ -638,7 +638,7 @@ namespace EastEngine
 				//		//	mat = m;
 				//		//}
 				//		//
-				//		//pBodyPart->pBone->SetMotionData(mat);
+				//		//pBodyPart->pBone->SetMotionTransform(mat);
 				//	}
 				//}
 			};
@@ -673,12 +673,12 @@ namespace EastEngine
 					Math::Vector3 f3ScaleChild;
 					Math::Vector3 f3PosChild;
 					Math::Quaternion quatChild;
-					pChildBone->GetGlobalTransform().Decompose(f3ScaleChild, quatChild, f3PosChild);
+					pChildBone->GetGlobalMatrix().Decompose(f3ScaleChild, quatChild, f3PosChild);
 
 					Math::Vector3 f3ScaleParent;
 					Math::Vector3 f3PosParent;
 					Math::Quaternion quatParent;
-					pParentBone->GetGlobalTransform().Decompose(f3ScaleParent, quatParent, f3PosParent);
+					pParentBone->GetGlobalMatrix().Decompose(f3ScaleParent, quatParent, f3PosParent);
 
 					Math::Vector3 f3Offset = (f3PosChild - f3PosParent) * 0.5f;
 					f3Pos = f3PosParent + f3Offset;
@@ -689,7 +689,7 @@ namespace EastEngine
 					// 여기 문제없는지 확인 필요
 					Math::Vector3 f3ScaleBone;
 					Math::Quaternion quatBone;
-					pBodyPart->pBone->GetGlobalTransform().Decompose(f3ScaleBone, quatBone, f3Pos);
+					pBodyPart->pBone->GetGlobalMatrix().Decompose(f3ScaleBone, quatBone, f3Pos);
 				}
 
 				Math::Matrix matWorld = Math::Matrix::Compose(Math::Vector3::One, quat, f3Pos);

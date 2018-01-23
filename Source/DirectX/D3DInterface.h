@@ -528,8 +528,8 @@ namespace EastEngine
 			virtual float GetEmissive() const = 0;
 			virtual void SetEmissive(float fEmissive) = 0;
 
-			virtual float GetSurface() const = 0;
-			virtual void SetSurface(float fSurface) = 0;
+			virtual float GetSubsurface() const = 0;
+			virtual void SetSubsurface(float fSurface) = 0;
 			virtual float GetSpecular() const = 0;
 			virtual void SetSpecular(float fSpecular) = 0;
 			virtual float GetSpecularTint() const = 0;

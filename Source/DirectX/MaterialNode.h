@@ -16,7 +16,7 @@ namespace EastEngine
 
 				eRoughness,
 				eMetallic,
-				eSurface,
+				eSubsurface,
 				eSpecular,
 				eSpecularTint,
 				eAnisotropic,

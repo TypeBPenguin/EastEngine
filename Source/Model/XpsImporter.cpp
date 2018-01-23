@@ -593,10 +593,10 @@ namespace EastEngine
 
 						sscanf_s(strKeyframeData.c_str(), "%f %f %f %f %f %f %f %f %f",
 							&f3Rotation.x, &f3Rotation.y, &f3Rotation.z,
-							&keyframe.f3Pos.x, &keyframe.f3Pos.y, &keyframe.f3Pos.z,
-							&keyframe.f3Scale.x, &keyframe.f3Scale.y, &keyframe.f3Scale.z);
+							&keyframe.transform.position.x, &keyframe.transform.position.y, &keyframe.transform.position.z,
+							&keyframe.transform.scale.x, &keyframe.transform.scale.y, &keyframe.transform.scale.z);
 
-						keyframe.quatRotation = Math::Quaternion::CreateFromYawPitchRoll(f3Rotation.y, f3Rotation.x, f3Rotation.z);
+						keyframe.transform.rotation = Math::Quaternion::CreateFromYawPitchRoll(f3Rotation.y, f3Rotation.x, f3Rotation.z);
 
 						vecKeyframes.emplace_back(keyframe);
 

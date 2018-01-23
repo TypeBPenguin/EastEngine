@@ -120,12 +120,26 @@ namespace EastEngine
 				virtual IBone* GetChildBone(size_t nIndex) const override { return m_vecChildBonesIndexing[nIndex]; }
 				virtual IBone* GetChildBone(const String::StringID& strBoneName, bool isFindInAllDepth = false) const override;
 
-				virtual const Math::Matrix& GetMotionTransform() const override { return m_matMotionTransform; }
-				virtual void SetMotionData(const Math::Matrix& matrix) override { m_matMotionData = matrix; }
-				virtual void ClearMotionData() override { m_matMotionData = m_pBoneHierarchy->GetDefaultMotionData(); }
+				virtual const Math::Matrix& GetSkinningMatrix() const override { return m_matSkinning; }
 
-				virtual const Math::Matrix& GetLocalTransform() const override { return m_matLocalTransform; }
-				virtual const Math::Matrix& GetGlobalTransform() const override { return m_matGlobalTransform; }
+				virtual void SetMotionTransform(const Math::Transform& transform) override { m_motionTransform = transform; }
+				virtual const Math::Transform& GetMotionTransform() const override { return m_motionTransform; }
+				virtual void ClearMotionTransform() override { m_motionTransform = m_pBoneHierarchy->GetDefaultMotionData(); }
+
+				//virtual const Math::Transform& GetUserOffsetTransform() const override { return m_userOffsetTransform; }
+				//virtual void SetUserOffsetTransform(const Math::Transform& userOffsetTransform) override { m_userOffsetTransform = userOffsetTransform; }
+
+				virtual const Math::Vector3& GetUserOffsetScale() const override { return m_userOffsetScale; }
+				virtual void SetUserOffsetScale(const Math::Vector3& f3Scale) override { m_userOffsetScale = f3Scale; }
+
+				virtual const Math::Vector3& GetUserOffsetRotation() const override { return m_userOffsetRotation; }
+				virtual void SetUserOffsetRotation(const Math::Vector3& f3Rotation) override { m_userOffsetRotation = f3Rotation; }
+
+				virtual const Math::Vector3& GetUserOffsetPosition() const override { return m_userOffsetPosition; }
+				virtual void SetUserOffsetPosition(const Math::Vector3& f3Position) override { m_userOffsetPosition = f3Position; }
+
+				virtual const Math::Matrix& GetLocalMatrix() const override { return m_matLocal; }
+				virtual const Math::Matrix& GetGlobalMatrix() const override { return m_matGlobal; }
 
 				virtual bool IsRootBone() const override { return false; }
 
@@ -136,10 +150,16 @@ namespace EastEngine
 				void RenderBone();
 
 			protected:
-				Math::Matrix m_matMotionData;
-				Math::Matrix m_matMotionTransform;
-				Math::Matrix m_matLocalTransform;
-				Math::Matrix m_matGlobalTransform;
+				Math::Transform m_motionTransform;
+				//Math::Transform m_userOffsetTransform;
+
+				Math::Vector3 m_userOffsetScale;
+				Math::Vector3 m_userOffsetRotation;
+				Math::Vector3 m_userOffsetPosition;
+
+				Math::Matrix m_matSkinning;
+				Math::Matrix m_matLocal;
+				Math::Matrix m_matGlobal;
 
 				BoneInstance* m_pParentBone;
 				plf::colony<BoneInstance> m_clnChildBones;

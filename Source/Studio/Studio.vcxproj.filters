@@ -28,6 +28,9 @@
     <Filter Include="UI\Convertor">
       <UniqueIdentifier>{b4a64977-519a-45ba-b9f8-b3555df5ed80}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Util">
+      <UniqueIdentifier>{e0521d7f-82f6-4a6b-be40-744632ac4ded}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -38,9 +41,6 @@
     </ClInclude>
     <ClInclude Include="targetver.h">
       <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="SceneStudio.h">
-      <Filter>Scene</Filter>
     </ClInclude>
     <ClInclude Include="imgui_impl_dx11.h">
       <Filter>UI\imgui</Filter>
@@ -68,6 +68,12 @@
     </ClInclude>
     <ClInclude Include="imguiConvertor.h">
       <Filter>UI\Convertor</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneStudio.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="SkeletonController.h">
+      <Filter>Util</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -97,6 +103,9 @@
     </ClCompile>
     <ClCompile Include="imguiConvertor.cpp">
       <Filter>UI\Convertor</Filter>
+    </ClCompile>
+    <ClCompile Include="SkeletonController.cpp">
+      <Filter>Util</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

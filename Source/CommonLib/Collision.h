@@ -312,8 +312,12 @@ namespace EastEngine
 			// Ray operations
 			bool Intersects(const Sphere& sphere, _Out_ float& Dist) const;
 			bool Intersects(const AABB& box, _Out_ float& Dist) const;
+			bool Intersects(const OBB& box, _Out_ float& Dist) const;
 			bool Intersects(const Math::Vector3& tri0, const Math::Vector3& tri1, const Math::Vector3& tri2, _Out_ float& Dist) const;
 			bool Intersects(const Math::Plane& plane, _Out_ float& Dist) const;
+
+			// Static methods
+			static Ray __vectorcall CreateFromScreenCoordinates(const Math::Int2& n2ScreenPoint, const Math::UInt2& n2ScreenSize, const Math::Matrix& matView, const Math::Matrix& matProjection);
 		};
 
 		//-----------------------------------------------------------------------------

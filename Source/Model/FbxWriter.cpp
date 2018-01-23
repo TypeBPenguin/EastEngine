@@ -375,7 +375,7 @@ namespace EastEngine
 				strBoneName = pFrame->GetName().SafeString();
 
 				Math::Matrix matMotionOffset;
-				const String::StringID strName = pFrame->GetName();
+				const String::StringID strName = pFrame->GetName().SafeString();
 				auto iter = umapMotionOffset.find(strName);
 				if (iter != umapMotionOffset.end())
 				{
@@ -475,7 +475,7 @@ namespace EastEngine
 
 				if (isEndKey == false)
 				{
-					pDestKeys[i].f3Pos = *reinterpret_cast<Math::Vector3*>(&StartKey.Position);
+					pDestKeys[i].transform.position = *reinterpret_cast<Math::Vector3*>(&StartKey.Position);
 				}
 				else
 				{
@@ -488,7 +488,7 @@ namespace EastEngine
 
 					v = DirectX::XMVectorLerp(v, vEnd, fLerpFactor);
 
-					DirectX::XMStoreFloat3(reinterpret_cast<DirectX::XMFLOAT3*>(&pDestKeys[i].f3Pos), v);
+					DirectX::XMStoreFloat3(reinterpret_cast<DirectX::XMFLOAT3*>(&pDestKeys[i].transform.position), v);
 				}
 
 				fTime += fKeyInterval;
@@ -531,7 +531,7 @@ namespace EastEngine
 
 				if (isEndKey == false)
 				{
-					pDestKeys[i].quatRotation = *reinterpret_cast<Math::Quaternion*>(&StartKey.Orientation);
+					pDestKeys[i].transform.rotation = *reinterpret_cast<Math::Quaternion*>(&StartKey.Orientation);
 				}
 				else
 				{
@@ -544,7 +544,7 @@ namespace EastEngine
 
 					v = DirectX::XMVectorLerp(v, vEnd, fLerpFactor);
 
-					DirectX::XMStoreFloat4(reinterpret_cast<DirectX::XMFLOAT4*>(&pDestKeys[i].quatRotation), v);
+					DirectX::XMStoreFloat4(reinterpret_cast<DirectX::XMFLOAT4*>(&pDestKeys[i].transform.rotation), v);
 				}
 
 				fTime += fKeyInterval;
@@ -587,7 +587,7 @@ namespace EastEngine
 
 				if (isEndKey == false)
 				{
-					pDestKeys[i].f3Scale = *reinterpret_cast<Math::Vector3*>(&StartKey.Scale);
+					pDestKeys[i].transform.scale = *reinterpret_cast<Math::Vector3*>(&StartKey.Scale);
 				}
 				else
 				{
@@ -600,7 +600,7 @@ namespace EastEngine
 
 					v = DirectX::XMVectorLerp(v, vEnd, fLerpFactor);
 
-					DirectX::XMStoreFloat3(reinterpret_cast<DirectX::XMFLOAT3*>(&pDestKeys[i].f3Scale), v);
+					DirectX::XMStoreFloat3(reinterpret_cast<DirectX::XMFLOAT3*>(&pDestKeys[i].transform.scale), v);
 				}
 
 				fTime += fKeyInterval;

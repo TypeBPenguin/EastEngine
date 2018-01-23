@@ -34,6 +34,7 @@
 #include "imgui.h"
 #include "imgui_impl_dx11.h"
 
+#include "SkeletonController.h"
 #include "MaterialNodeManager.h"
 
 using namespace EastEngine;
@@ -136,6 +137,7 @@ namespace StrID
 
 SceneStudio::SceneStudio()
 	: SceneInterface(StrID::Studio)
+	, m_pSkeletonController(nullptr)
 	, m_pMaterialNodeManager(nullptr)
 	, m_pSectorMgr(nullptr)
 {
@@ -143,11 +145,151 @@ SceneStudio::SceneStudio()
 
 SceneStudio::~SceneStudio()
 {
+	SafeDelete(m_pSkeletonController);
 	SafeDelete(m_pMaterialNodeManager);
+}
+
+Math::Vector3 GetEularAngle1(const Math::Quaternion& quat)
+{
+	Math::Matrix RotationMatrix = Math::Matrix::CreateFromQuaternion(quat);
+	
+	double ForwardY = -RotationMatrix._32;
+
+	float DegreesYaw = 0.f;
+    float DegreesPitch = 0.f;
+    float DegreesRoll = 0.f;
+
+	if (ForwardY <= -1.0f)
+	{
+		DegreesPitch = Math::ToDegrees(-Math::PI2);
+	}
+	else if (ForwardY >= 1.0f)
+	{
+		DegreesPitch = Math::ToDegrees(Math::PI2);
+	}
+	else
+	{
+		DegreesPitch = Math::ToDegrees(Math::ASin(ForwardY));
+	}
+
+	//Gimbal lock
+	if (ForwardY > 0.9999f)
+	{
+		DegreesYaw = 0.f;
+		DegreesRoll = Math::ToDegrees(std::atan2(RotationMatrix._13, RotationMatrix._11));
+	}
+	else
+	{
+		DegreesYaw = Math::ToDegrees(std::atan2(RotationMatrix._31, RotationMatrix._33));
+		DegreesRoll = Math::ToDegrees(std::atan2(RotationMatrix._12, RotationMatrix._22));
+	}
+
+	return { DegreesPitch ,DegreesYaw, DegreesRoll };
+}
+
+Math::Vector3 GetEularAngle2(Math::Quaternion q)
+{
+	Math::Vector3 result;
+
+	double test = q.x * q.y + q.z * q.w;
+	if (test > 0.499)
+	{
+		result = Math::Vector3(2 * std::atan2(q.x, q.w), Math::PI / 2, 0);
+	}
+	else if (test < -0.499)
+	{
+		result = Math::Vector3(-2 * std::atan2(q.x, q.w), -Math::PI / 2, 0);
+	}
+	else
+	{
+		result = Math::Vector3
+		(
+			std::atan2(2 * q.x * q.w - 2 * q.y * q.z, 1 - 2 * q.x * q.x - 2 * q.z * q.z),
+			std::asin(2 * test),
+			std::atan2(2 * q.y * q.w - 2 * q.x * q.z, 1 - 2 * q.y * q.y - 2 * q.z * q.z)
+		);
+	}
+
+	result.x = Math::ToDegrees(result.x);
+	result.y = Math::ToDegrees(result.y);
+	result.z = Math::ToDegrees(result.z);
+
+	return result;
+}
+
+Math::Vector3 GetEularAngle3(Math::Quaternion q)
+{
+	float m00 = 1.0f - (2.0f * ((q.y * q.y) + q.z * q.z));
+	float m01 = 2.0f * (q.x * q.y + q.w * q.z);
+
+	Math::Vector3 result
+	(
+		std::atan2(2.0f * (q.y * q.z + q.w * q.x), 1.0f - (2.0f * ((q.x * q.x) + (q.y * q.y)))),
+		std::atan2(-2.0f * (q.x * q.z - q.w * q.y), std::sqrt((m00 * m00) + (m01 * m01))),
+		std::atan2(m01, m00)
+	);
+
+	result.x = Math::ToDegrees(result.x);
+	result.y = Math::ToDegrees(result.y);
+	result.z = Math::ToDegrees(result.z);
+
+	return result;
+}
+
+Math::Vector3 GetEularAngle4(Math::Quaternion q)
+{
+	Math::Vector3 v;
+	
+	v.x = (float)std::atan2 
+	( 
+	    2 * q.y * q.w - 2 * q.x * q.z,  
+	    1 - 2* std::pow(q.y, 2) - 2* std::pow(q.z, 2)
+	); 
+	
+	v.y = (float)std::asin
+	( 
+	    2*q.x*q.y + 2*q.z*q.w 
+	); 
+	
+	v.z = (float)std::atan2
+	( 
+	    2*q.x*q.w-2*q.y*q.z, 
+	    1 - 2* std::pow(q.x, 2) - 2* std::pow(q.z, 2)
+	); 
+	
+	if(q.x*q.y + q.z*q.w == 0.5) 
+	{ 
+	    v.x = (float)(2 * std::atan2(q.x,q.w));
+	    v.z = 0;     
+	} 
+	else if(q.x*q.y + q.z*q.w == -0.5) 
+	{ 
+	    v.x = (float)(-2 * std::atan2(q.x, q.w));
+	    v.z = 0; 
+	} 
+
+	v.x = Math::ToDegrees(v.x);
+	v.y = Math::ToDegrees(v.y);
+	v.z = Math::ToDegrees(v.z);
+
+	return v; 
 }
 
 void SceneStudio::Enter()
 {
+	Math::Vector3 Degrees(90.0002f, 0.0001f, 180.0003f);
+	Math::Quaternion quat = Math::Quaternion::CreateFromYawPitchRoll(Math::ToRadians(Degrees.y), Math::ToRadians(Degrees.x), Math::ToRadians(Degrees.z));
+
+	Math::Vector3 eularAngle1 = GetEularAngle1(quat);
+	Math::Vector3 eularAngle2 = GetEularAngle2(quat);
+	Math::Vector3 eularAngle3 = GetEularAngle3(quat);
+	Math::Vector3 eularAngle4 = GetEularAngle4(quat);
+
+	bool is1 = Degrees == eularAngle1;
+	bool is2 = Math::IsEqual(Degrees.x, eularAngle2.x) && Math::IsEqual(Degrees.y, eularAngle2.y) && Math::IsEqual(Degrees.z, eularAngle2.z);
+	bool is3 = Degrees == eularAngle3;
+	bool is4 = Degrees == eularAngle4;
+
 	Windows::WindowsManager::GetInstance()->AddMessageHandler(HandleMsg);
 
 	HWND hWnd = Windows::GetHwnd();
@@ -687,6 +829,7 @@ void SceneStudio::Enter()
 		pModel->Init(&loader);
 	}
 
+	m_pSkeletonController = new SkeletonController;
 	m_pMaterialNodeManager = new MaterialNodeManager;
 }
 
@@ -695,6 +838,7 @@ void SceneStudio::Exit()
 	std::for_each(m_vecSuns.begin(), m_vecSuns.end(), DeleteSTLObject());
 	m_vecSuns.clear();
 
+	SafeDelete(m_pSkeletonController);
 	SafeDelete(m_pMaterialNodeManager);
 	
 	ImGui_ImplDX11_Shutdown();
@@ -704,9 +848,14 @@ void SceneStudio::Update(float fElapsedTime)
 {
 	ImGuiIO& io = ImGui::GetIO();
 
+	bool isProcessedMouseInput = m_pSkeletonController->Process(fElapsedTime);
+
 	if (io.WantCaptureMouse == false)
 	{
-		ProcessInput(fElapsedTime);
+		if (isProcessedMouseInput == false)
+		{
+			ProcessInput(fElapsedTime);
+		}
 	}
 
 	if (m_pSectorMgr != nullptr)
@@ -1597,18 +1746,18 @@ void ShowMaterial(bool& isShowMaterial, Graphics::IMaterial* pMaterial, int nInd
 
 	ImGui::Separator();
 	{
-		ImGui::Text("Surface");
+		ImGui::Text("Subsurface");
 
-		if (pMaterial->GetTexture(Graphics::EmMaterial::eSurface) == nullptr)
+		if (pMaterial->GetTexture(Graphics::EmMaterial::eSubsurface) == nullptr)
 		{
-			float fSurface = pMaterial->GetSurface();
-			if (ImGui::DragFloat("Surface", &fSurface, 0.001f, 0.f, 1.f) == true)
+			float fSubsurface = pMaterial->GetSubsurface();
+			if (ImGui::DragFloat("Subsurface", &fSubsurface, 0.001f, 0.f, 1.f) == true)
 			{
-				pMaterial->SetSurface(fSurface);
+				pMaterial->SetSubsurface(fSubsurface);
 			}
 		}
 
-		TextureInfo(Graphics::EmMaterial::eSurface, 6);
+		TextureInfo(Graphics::EmMaterial::eSubsurface, 6);
 	}
 
 	ImGui::Separator();
@@ -1723,6 +1872,8 @@ void SceneStudio::RenderUI()
 
 	//static bool isShowMaterialEditor = false;
 	//m_pMaterialNodeManager->Update(isShowMaterialEditor);
+
+	m_pSkeletonController->RenderUI();
 
 	static bool isShowDebug = true;
 	{

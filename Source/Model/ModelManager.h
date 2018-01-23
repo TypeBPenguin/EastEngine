@@ -24,7 +24,7 @@ namespace EastEngine
 			struct RequestLoadModelInfo
 			{
 				ModelLoader loader;
-				IModel* pModel_out;
+				IModel* pModel_out = nullptr;
 
 				RequestLoadModelInfo();
 				RequestLoadModelInfo(const ModelLoader& loader, IModel* pModel_out);
@@ -34,7 +34,7 @@ namespace EastEngine
 			struct ResultLoadModelInfo
 			{
 				bool isSuccess = false;
-				IModel* pModel_out;
+				IModel* pModel_out = nullptr;
 
 				ResultLoadModelInfo();
 				ResultLoadModelInfo(bool isSuccess, IModel* pModel_out);

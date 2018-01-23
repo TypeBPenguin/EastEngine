@@ -33,8 +33,8 @@ namespace EastEngine
 
 			struct KeyframeTemp
 			{
-				IMotion::Keyframe motionKeyframe;
-				IMotion::Keyframe defaultKeyframe;
+				Math::Transform motionTransform;
+				Math::Transform defaultTransform;
 			};
 			std::unordered_map<String::StringID, KeyframeTemp> m_umapKeyframe;
 

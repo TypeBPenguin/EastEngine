@@ -72,9 +72,9 @@ namespace EastEngine
 						{
 							float lerpPercent = (fPlayTime - keyframe1.fTime) / (keyframe2.fTime - keyframe1.fTime);
 
-							Math::Vector3::Lerp(keyframe1.f3Pos, keyframe2.f3Pos, lerpPercent, keyframe.f3Pos);
-							Math::Vector3::Lerp(keyframe1.f3Scale, keyframe2.f3Scale, lerpPercent, keyframe.f3Scale);
-							Math::Quaternion::Lerp(keyframe1.quatRotation, keyframe2.quatRotation, lerpPercent, keyframe.quatRotation);
+							Math::Vector3::Lerp(keyframe1.transform.scale, keyframe2.transform.scale, lerpPercent, keyframe.transform.scale);
+							Math::Quaternion::Lerp(keyframe1.transform.rotation, keyframe2.transform.rotation, lerpPercent, keyframe.transform.rotation);
+							Math::Vector3::Lerp(keyframe1.transform.position, keyframe2.transform.position, lerpPercent, keyframe.transform.position);
 
 							pRecoder->SetCaching(m_strBoneName, i);
 
@@ -100,9 +100,9 @@ namespace EastEngine
 						{
 							float lerpPercent = (fPlayTime - keyframe1.fTime) / (keyframe2.fTime - keyframe1.fTime);
 
-							Math::Vector3::Lerp(keyframe1.f3Pos, keyframe2.f3Pos, lerpPercent, keyframe.f3Pos);
-							Math::Vector3::Lerp(keyframe1.f3Scale, keyframe2.f3Scale, lerpPercent, keyframe.f3Scale);
-							Math::Quaternion::Lerp(keyframe1.quatRotation, keyframe2.quatRotation, lerpPercent, keyframe.quatRotation);
+							Math::Vector3::Lerp(keyframe1.transform.scale, keyframe2.transform.scale, lerpPercent, keyframe.transform.scale);
+							Math::Quaternion::Lerp(keyframe1.transform.rotation, keyframe2.transform.rotation, lerpPercent, keyframe.transform.rotation);
+							Math::Vector3::Lerp(keyframe1.transform.position, keyframe2.transform.position, lerpPercent, keyframe.transform.position);
 
 							pRecoder->SetCaching(m_strBoneName, i);
 

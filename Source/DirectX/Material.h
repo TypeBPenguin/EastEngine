@@ -69,8 +69,8 @@ namespace EastEngine
 			virtual float GetEmissive() const override { return m_info.f4DisRoughMetEmi.w; }
 			virtual void SetEmissive(float fEmissive) override { m_info.f4DisRoughMetEmi.w = fEmissive; }
 
-			virtual float GetSurface() const override { return m_info.f4SurSpecTintAniso.x; }
-			virtual void SetSurface(float fSurface) override { m_info.f4SurSpecTintAniso.x = fSurface; }
+			virtual float GetSubsurface() const override { return m_info.f4SurSpecTintAniso.x; }
+			virtual void SetSubsurface(float fSurface) override { m_info.f4SurSpecTintAniso.x = fSurface; }
 			virtual float GetSpecular() const override { return m_info.f4SurSpecTintAniso.y; }
 			virtual void SetSpecular(float fSpecular) override { m_info.f4SurSpecTintAniso.y = fSpecular; }
 			virtual float GetSpecularTint() const override { return m_info.f4SurSpecTintAniso.z; }

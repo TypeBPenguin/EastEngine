@@ -68,7 +68,7 @@ namespace EastEngine
 				eUseTexRoughness,
 				eUseTexMetallic,
 				eUseTexEmissive,
-				eUseTexSurface,
+				eUseTexSubsurface,
 				eUseTexSpecular,
 				eUseTexSpecularTint,
 				eUseTexAnisotropic,
@@ -93,7 +93,7 @@ namespace EastEngine
 					"USE_TEX_ROUGHNESS",
 					"USE_TEX_METALLIC",
 					"USE_TEX_EMISSIVE",
-					"USE_TEX_SURFACE",
+					"USE_TEX_SUBSURFACE",
 					"USE_TEX_SPECULAR",
 					"USE_TEX_SPECULARTINT",
 					"USE_TEX_ANISOTROPIC",
@@ -570,7 +570,7 @@ namespace EastEngine
 						SetBitMask64(nMask, IsValidTexture(EmMaterial::eRoughness) == true ? EmParticleShader::eUseTexRoughness : -1);
 						SetBitMask64(nMask, IsValidTexture(EmMaterial::eMetallic) == true ? EmParticleShader::eUseTexMetallic : -1);
 						SetBitMask64(nMask, IsValidTexture(EmMaterial::eEmissive) == true ? EmParticleShader::eUseTexEmissive : -1);
-						SetBitMask64(nMask, IsValidTexture(EmMaterial::eSurface) == true ? EmParticleShader::eUseTexSurface : -1);
+						SetBitMask64(nMask, IsValidTexture(EmMaterial::eSubsurface) == true ? EmParticleShader::eUseTexSubsurface : -1);
 						SetBitMask64(nMask, IsValidTexture(EmMaterial::eSpecular) == true ? EmParticleShader::eUseTexSpecular : -1);
 						SetBitMask64(nMask, IsValidTexture(EmMaterial::eSpecularTint) == true ? EmParticleShader::eUseTexSpecularTint : -1);
 						SetBitMask64(nMask, IsValidTexture(EmMaterial::eAnisotropic) == true ? EmParticleShader::eUseTexAnisotropic : -1);
@@ -626,7 +626,7 @@ namespace EastEngine
 						pEffect->SetTexture(StrID::g_texRoughness, pMaterial->GetTexture(EmMaterial::eRoughness));
 						pEffect->SetTexture(StrID::g_texMetallic, pMaterial->GetTexture(EmMaterial::eMetallic));
 						pEffect->SetTexture(StrID::g_texEmissive, pMaterial->GetTexture(EmMaterial::eEmissive));
-						pEffect->SetTexture(StrID::g_texSurface, pMaterial->GetTexture(EmMaterial::eSurface));
+						pEffect->SetTexture(StrID::g_texSurface, pMaterial->GetTexture(EmMaterial::eSubsurface));
 						pEffect->SetTexture(StrID::g_texSpecular, pMaterial->GetTexture(EmMaterial::eSpecular));
 						pEffect->SetTexture(StrID::g_texSpecularTint, pMaterial->GetTexture(EmMaterial::eSpecularTint));
 						pEffect->SetTexture(StrID::g_texAnisotropic, pMaterial->GetTexture(EmMaterial::eAnisotropic));

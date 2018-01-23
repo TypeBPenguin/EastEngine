@@ -217,6 +217,7 @@ namespace EastEngine
 		SkeletonInstance::BoneInstance::BoneInstance(Skeleton::IBone* pBoneHierarchy, BoneInstance* pParentBone)
 			: m_pParentBone(pParentBone)
 			, m_pBoneHierarchy(pBoneHierarchy)
+			, m_userOffsetScale(Math::Vector3::One)
 		{
 		}
 
@@ -231,25 +232,30 @@ namespace EastEngine
 
 		void SkeletonInstance::BoneInstance::Update(const Math::Matrix& matWorld, const Math::Matrix& matParent)
 		{
-			m_matLocalTransform = m_matMotionData * matParent;
-			m_matMotionTransform = m_pBoneHierarchy->GetMotionOffsetMatrix() * m_matLocalTransform;
+			Math::Quaternion quatUserOffset = Math::Quaternion::CreateFromYawPitchRoll(m_userOffsetRotation.y, m_userOffsetRotation.x, m_userOffsetRotation.z);
+			Math::Matrix matUserOffset = Math::Matrix::Compose(m_userOffsetScale, quatUserOffset, m_userOffsetPosition);
 
-			m_matGlobalTransform = m_matLocalTransform * matWorld;
+			m_matLocal = matUserOffset * m_motionTransform.Compose() * matParent;
+			m_matSkinning = m_pBoneHierarchy->GetMotionOffsetMatrix() * m_matLocal;
+
+			m_matGlobal = m_matLocal * matWorld;
 
 			RenderBone();
 
 			std::for_each(m_clnChildBones.begin(), m_clnChildBones.end(), [&](BoneInstance& childBone)
 			{
-				childBone.Update(matWorld, m_matLocalTransform);
+				childBone.Update(matWorld, m_matLocal);
 			});
 		}
 
 		void SkeletonInstance::BoneInstance::RenderBone()
 		{
+			return;
+
 			if (Config::IsEnable("VisibleSkeleton"_s))
 			{
 				RenderSubsetVertex aabb;
-				aabb.matWorld = Math::Matrix::CreateScale(0.02f) * GetGlobalTransform();
+				aabb.matWorld = Math::Matrix::CreateScale(0.02f) * GetGlobalMatrix();
 				aabb.isWireframe = true;
 				aabb.isIgnoreDepth = true;
 				GeometryModel::GetDebugModel(GeometryModel::EmDebugModel::eBox, &aabb.pVertexBuffer, &aabb.pIndexBuffer);
@@ -257,8 +263,8 @@ namespace EastEngine
 
 				if (m_pParentBone->IsRootBone() == false)
 				{
-					const Math::Vector3* pStartPos = reinterpret_cast<const Math::Vector3*>(&m_pParentBone->GetGlobalTransform()._41);
-					const Math::Vector3* pEndPos = reinterpret_cast<const Math::Vector3*>(&GetGlobalTransform()._41);
+					const Math::Vector3* pStartPos = reinterpret_cast<const Math::Vector3*>(&m_pParentBone->GetGlobalMatrix()._41);
+					const Math::Vector3* pEndPos = reinterpret_cast<const Math::Vector3*>(&GetGlobalMatrix()._41);
 					RenderSubsetLineSegment line(*pStartPos, Math::Color::Blue, *pEndPos, Math::Color::Blue, true);
 					RendererManager::GetInstance()->AddRender(line);
 				}
@@ -369,7 +375,7 @@ namespace EastEngine
 
 			std::for_each(m_vecBones.begin(), m_vecBones.end(), [](BoneInstance* pBone)
 			{
-				pBone->ClearMotionData();
+				pBone->ClearMotionTransform();
 			});
 
 			m_isDirty = false;
@@ -417,7 +423,7 @@ namespace EastEngine
 					auto iter_find = m_umapBone.find(pBoneNames[j]);
 					if (iter_find != m_umapBone.end())
 					{
-						vecSkinnedData[j] = &iter_find->second->GetMotionTransform();
+						vecSkinnedData[j] = &iter_find->second->GetSkinningMatrix();
 					}
 				}
 			}

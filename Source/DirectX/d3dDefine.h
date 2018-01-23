@@ -125,7 +125,7 @@ namespace EastEngine
 				eEmissive,
 				eEmissiveColor,
 
-				eSurface,
+				eSubsurface,
 				eSpecular,
 				eSpecularTint,
 				eAnisotropic,

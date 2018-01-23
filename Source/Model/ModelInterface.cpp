@@ -121,9 +121,9 @@ namespace EastEngine
 					for (uint32_t j = 0; j < nKeyframe; ++j)
 					{
 						file >> vecKeyframes[j].fTime;
-						file.Read(&vecKeyframes[j].f3Pos.x, 3);
-						file.Read(&vecKeyframes[j].f3Scale.x, 3);
-						file.Read(&vecKeyframes[j].quatRotation.x, 4);
+						file.Read(&vecKeyframes[j].transform.position.x, 3);
+						file.Read(&vecKeyframes[j].transform.scale.x, 3);
+						file.Read(&vecKeyframes[j].transform.rotation.x, 4);
 					}
 
 					pMotion->AddBoneKeyframes(strBuf.c_str(), vecKeyframes);
@@ -183,9 +183,9 @@ namespace EastEngine
 					const Keyframe* pKeyframe = pBone->GetKeyframe(j);
 
 					file << pKeyframe->fTime;
-					file.Write(&pKeyframe->f3Pos.x, 3);
-					file.Write(&pKeyframe->f3Scale.x, 3);
-					file.Write(&pKeyframe->quatRotation.x, 4);
+					file.Write(&pKeyframe->transform.position.x, 3);
+					file.Write(&pKeyframe->transform.scale.x, 3);
+					file.Write(&pKeyframe->transform.rotation.x, 4);
 				}
 			}
 

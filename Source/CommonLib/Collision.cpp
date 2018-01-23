@@ -3662,6 +3662,11 @@ namespace EastEngine
 			return box.Intersects(position, direction, Dist);
 		}
 
+		bool Ray::Intersects(const OBB& box, _Out_ float& Dist) const
+		{
+			return box.Intersects(position, direction, Dist);
+		}
+
 		bool Ray::Intersects(const Math::Vector3& tri0, const Math::Vector3& tri1, const Math::Vector3& tri2, _Out_ float& Dist) const
 		{
 			return DirectX::TriangleTests::Intersects(position, direction, tri0, tri1, tri2, Dist);
@@ -3700,6 +3705,23 @@ namespace EastEngine
 					return true;
 				}
 			}
+		}
+
+		Ray __vectorcall Ray::CreateFromScreenCoordinates(const Math::Int2& n2ScreenPoint, const Math::UInt2& n2ScreenSize, const Math::Matrix& matView, const Math::Matrix& matProjection)
+		{
+			Math::Vector2 f2Point;
+			f2Point.x = (((2.f * n2ScreenPoint.x) / n2ScreenSize.x) - 1.f) / matProjection._11;
+			f2Point.y = -(((2.f * n2ScreenPoint.y) / n2ScreenSize.y) - 1.f) / matProjection._22;
+
+			Math::Matrix matInvView = matView.Invert();
+
+			Math::Vector3 f3Position(matInvView._41, matInvView._42, matInvView._43);
+			Math::Vector3 f3Direction(f2Point.x * matInvView._11 + f2Point.y * matInvView._21 + matInvView._31,
+				f2Point.x * matInvView._12 + f2Point.y * matInvView._22 + matInvView._32,
+				f2Point.x * matInvView._13 + f2Point.y * matInvView._23 + matInvView._33);
+			f3Direction.Normalize();
+
+			return { f3Position, f3Direction };
 		}
 
 		//-----------------------------------------------------------------------------
