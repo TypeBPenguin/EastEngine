@@ -29,7 +29,9 @@ namespace EastEngine
 	{
 		DepthOfField::DepthOfField()
 			: m_isInit(false)
+			, m_pEffect(nullptr)
 			, m_pSamplerPoint(nullptr)
+			, m_pSamplerLinear(nullptr)
 		{
 		}
 
@@ -144,7 +146,7 @@ namespace EastEngine
 
 			m_pEffect->SetVectorArray(StrID::g_f2FilterTaps, discOffsets, 0, 12);
 
-			uint32_t nPassCount = pTech->GetPassCount();
+			const uint32_t nPassCount = pTech->GetPassCount();
 			for (uint32_t p = 0; p < nPassCount; ++p)
 			{
 				pTech->PassApply(p, pDeviceContext);

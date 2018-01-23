@@ -13,6 +13,7 @@ namespace EastEngine
 		class ASSAO;
 		class HDRFilter;
 		class ColorGrading;
+		class SSS;
 
 		class PostProcessingRenderer : public IRenderer
 		{
@@ -34,6 +35,7 @@ namespace EastEngine
 			HDRFilter*	m_pHDRFilter;
 			ColorGrading* m_pColorGrading;
 			ASSAO* m_pASSAO;
+			SSS* m_pSSS;
 		};
 	}
 }

@@ -244,7 +244,7 @@ float4 PS(PS_INPUT input) : SV_Target0
 
 	color += ((diffuse + (envFresnel * envColor * sumReflectionIntensity)) * shadow) + (irradiance * ambient);
 
-	return float4(pow(abs(color), 1.f / 2.2f), 1.f);
+	return float4(pow(abs(color), 1.f / 2.2f), SST.x);
 }
 
 technique11 Deferred

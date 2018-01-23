@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "PostProcessingRenderer.h"
+
 #include "GaussianBlur.h"
 #include "Downscale.h"
 #include "DepthOfField.h"
@@ -7,6 +8,7 @@
 #include "ColorGrading.h"
 #include "HDRFilter.h"
 #include "ASSAO.h"
+#include "SSS.h"
 
 #include "CommonLib/Timer.h"
 #include "CommonLib/Config.h"
@@ -24,6 +26,7 @@ namespace EastEngine
 			, m_pFxaa(nullptr)
 			, m_pColorGrading(nullptr)
 			, m_pASSAO(nullptr)
+			, m_pSSS(nullptr)
 		{
 		}
 
@@ -49,6 +52,9 @@ namespace EastEngine
 
 			SafeRelease(m_pASSAO);
 			ASSAO::DestroyInstance();
+
+			SafeRelease(m_pSSS);
+			SSS::DestroyInstance();
 		}
 
 		bool PostProcessingRenderer::Init(const Math::Viewport& viewport)
@@ -81,6 +87,10 @@ namespace EastEngine
 			//if (m_pASSAO->Init(viewport) == false)
 			//	return false;
 
+			m_pSSS = SSS::GetInstance();
+			if (m_pSSS->Init() == false)
+				return false;
+
 			return true;
 		}
 
@@ -89,6 +99,16 @@ namespace EastEngine
 			D3D_PROFILING(PostProcessing);
 
 			IDevice* pDevice = GetDevice();
+
+			if (Config::IsEnable("SSS"_s) == true)
+			{
+				IRenderTarget* pDepthOfField = pDevice->GetRenderTarget(pDevice->GetMainRenderTarget()->GetDesc2D(), false);
+				IRenderTarget* pSource = pDevice->GetLastUseRenderTarget();
+				const std::shared_ptr<ITexture>& pDepth = pDevice->GetMainDepthStencil()->GetTexture();
+				m_pSSS->Apply(pDepthOfField, pSource, pDepth);
+
+				pDevice->ReleaseRenderTargets(&pDepthOfField);
+			}
 
 			if (Config::IsEnable("SSAO"_s) == true)
 			{

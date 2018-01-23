@@ -75,7 +75,7 @@ Texture2D g_texMetallic;
 Texture2D g_texEmissive;
 #endif
 
-#ifdef USE_TEX_SURFACE
+#ifdef USE_TEX_SUBSURFACE
 Texture2D g_texSurface;
 #endif
 
@@ -259,7 +259,7 @@ PS_OUTPUT PS_DECAL(PS_INPUT_DECAL input)
 	float3 AST = float3(g_f4SurSpecTintAniso.w, g_f4SheenTintClearcoatGloss.xy);
 	float3 CG = float3(g_f4SheenTintClearcoatGloss.zw, 0.f);
 
-#ifdef USE_TEX_SURFACE
+#ifdef USE_TEX_SUBSURFACE
 	SST.x = g_texSurface.Sample(g_samplerState, f2DecalUV).x;
 #endif
 #ifdef USE_TEX_SPECULAR

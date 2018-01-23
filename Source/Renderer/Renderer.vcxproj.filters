@@ -79,6 +79,9 @@
     <Filter Include="Renderer\PostProcessing\GaussianBlur">
       <UniqueIdentifier>{271f14c2-2cc0-455a-9698-387fc3aea60d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Renderer\PostProcessing\SSS">
+      <UniqueIdentifier>{9ddfc154-5d2b-4ba8-b4ab-237a4bc2ae39}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -156,6 +159,9 @@
     <ClInclude Include="RendererManager.h">
       <Filter>Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="SSS.h">
+      <Filter>Renderer\PostProcessing\SSS</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -227,5 +233,13 @@
     <ClCompile Include="RendererManager.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="SSS.cpp">
+      <Filter>Renderer\PostProcessing\SSS</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\..\Bin\Data\Fx\PostProcessing\SSS\SSS.fx">
+      <Filter>Renderer\PostProcessing\SSS</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

@@ -22,6 +22,7 @@
 
 #include "Renderer/DepthOfField.h"
 #include "Renderer/HDRFilter.h"
+#include "Renderer/SSS.h"
 
 #include "GameObject/GameObject.h"
 #include "GameObject/ActorManager.h"
@@ -1092,6 +1093,27 @@ void ShowConfig()
 			if (ImGui::Checkbox("Apply", &isApplyShadow) == true)
 			{
 				Config::SetEnable("Shadow"_s, isApplyShadow);
+			}
+
+			ImGui::PopID();
+
+			ImGui::TreePop();
+		}
+
+		if (ImGui::TreeNode("SSS"))
+		{
+			ImGui::PushID("ASSAO");
+
+			bool isApplyASSAO = Config::IsEnable("SSS"_s);
+			if (ImGui::Checkbox("Apply", &isApplyASSAO) == true)
+			{
+				Config::SetEnable("SSS"_s, isApplyASSAO);
+			}
+
+			float fSSSWidth = Graphics::SSS::GetInstance()->GetSSSWidth();
+			if (ImGui::DragFloat("Width", &fSSSWidth, 0.001f, 0.f, 100.f) == true)
+			{
+				Graphics::SSS::GetInstance()->SetSSSWidth(fSSSWidth);
 			}
 
 			ImGui::PopID();
