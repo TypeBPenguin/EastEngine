@@ -440,7 +440,7 @@ namespace EastEngine
 				pDeviceContext->SetRenderTargets(&pRenderTarget, 1, nullptr);
 				pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 				pDeviceContext->SetRasterizerState(EmRasterizerState::eSolidCCW);
-				pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOff);
+				pDeviceContext->SetDepthStencilState(EmDepthStencilState::eRead_Write_Off);
 
 				pDeviceContext->SetVertexBuffers(m_pEmitterVB, m_pEmitterVB->GetFormatSize(), 0);
 				pDeviceContext->SetIndexBuffer(m_pEmitterIB, 0);
@@ -654,7 +654,7 @@ namespace EastEngine
 						ClearEffect(pDeviceContext, pEffect, pEffectTech);
 
 						pDeviceContext->SetBlendState(pDevice->GetBlendState(EmBlendState::eOff));
-						pDeviceContext->SetDepthStencilState(pDevice->GetDepthStencilState(EmDepthStencilState::eOn));
+						pDeviceContext->SetDepthStencilState(pDevice->GetDepthStencilState(EmDepthStencilState::eRead_Write_On));
 						pDeviceContext->SetRasterizerState(pDevice->GetRasterizerState(EmRasterizerState::eSolidCCW));
 					}
 

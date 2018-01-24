@@ -253,7 +253,7 @@ namespace EastEngine
 				Release();
 				return false;
 			}
-			m_pd3dImmediateContext->SetDepthStencilState(EmDepthStencilState::eOn, 1);
+			m_pd3dImmediateContext->SetDepthStencilState(EmDepthStencilState::eRead_Write_On, 1);
 
 			if (FAILED(createRasterizeState()))
 			{
@@ -1338,7 +1338,7 @@ namespace EastEngine
 
 			switch (emDepthStencilState)
 			{
-			case EmDepthStencilState::eOn:
+			case EmDepthStencilState::eRead_Write_On:
 			{
 				// 스텐실 상태의 description을 작성합니다.
 				depthStencilDesc.DepthEnable = true;
@@ -1361,12 +1361,57 @@ namespace EastEngine
 				depthStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 			}
 			break;
-			case EmDepthStencilState::eOff:
+			case EmDepthStencilState::eRead_Write_Off:
 			{
 				depthStencilDesc.DepthEnable = false;
 				depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
 				depthStencilDesc.DepthFunc = D3D11_COMPARISON_NEVER;
 				depthStencilDesc.StencilEnable = false;
+				depthStencilDesc.StencilReadMask = 0xFF;
+				depthStencilDesc.StencilWriteMask = 0xFF;
+
+				// Stencil operations if pixel is front-facing.
+				depthStencilDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+				depthStencilDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+				depthStencilDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+				depthStencilDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+
+				// Stencil operations if pixel is back-facing.
+				depthStencilDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+				depthStencilDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+				depthStencilDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+				depthStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+			}
+			break;
+			case EmDepthStencilState::eRead_On_Write_Off:
+			{
+				depthStencilDesc.DepthEnable = true;
+				depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+				depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
+				depthStencilDesc.StencilEnable = true;
+				depthStencilDesc.StencilReadMask = 0xFF;
+				depthStencilDesc.StencilWriteMask = 0xFF;
+
+				// Stencil operations if pixel is front-facing.
+				depthStencilDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+				depthStencilDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
+				depthStencilDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+				depthStencilDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+
+				// Stencil operations if pixel is back-facing.
+				depthStencilDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+				depthStencilDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
+				depthStencilDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+				depthStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+			}
+			break;
+			case EmDepthStencilState::eRead_Off_Write_On:
+			{
+				// 스텐실 상태의 description을 작성합니다.
+				depthStencilDesc.DepthEnable = true;
+				depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+				depthStencilDesc.DepthFunc = D3D11_COMPARISON_ALWAYS;
+				depthStencilDesc.StencilEnable = true;
 				depthStencilDesc.StencilReadMask = 0xFF;
 				depthStencilDesc.StencilWriteMask = 0xFF;
 

@@ -16,6 +16,14 @@ namespace EastEngine
 			ModelRenderer();
 			virtual ~ModelRenderer();
 
+			enum Group
+			{
+				eDeferred = 0,
+				eForward,
+
+				GroupCount,
+			};
+
 		public:
 			virtual bool Init(const Math::Viewport& viewport) override;
 
@@ -23,33 +31,15 @@ namespace EastEngine
 			virtual void Flush() override;
 
 		public:
-			virtual void AddRender(const RenderSubsetStatic& renderSubset) override
-			{
-				if (m_nStaticIndex >= m_vecStaticSubsets.size())
-				{
-					m_vecStaticSubsets.resize(m_vecStaticSubsets.size() * 2);
-				}
+			virtual void AddRender(const RenderSubsetStatic& renderSubset) override;
+			virtual void AddRender(const RenderSubsetSkinned& renderSubset) override;
 
-				m_vecStaticSubsets[m_nStaticIndex].Set(renderSubset);
-				++m_nStaticIndex;
-			}
-
-			virtual void AddRender(const RenderSubsetSkinned& renderSubset) override
-			{
-				if (m_nSkinnedIndex >= m_vecSkinnedSubsets.size())
-				{
-					m_vecSkinnedSubsets.resize(m_vecSkinnedSubsets.size() * 2);
-				}
-
-				m_vecSkinnedSubsets[m_nSkinnedIndex].Set(renderSubset);
-				++m_nSkinnedIndex;
-			}
 		private:
-			void renderStaticModel(IDevice* pDevice, Camera* pCamera);
-			void renderSkinnedModel(IDevice* pDevice, Camera* pCamera);
+			void renderStaticModel(IDevice* pDevice, Camera* pCamera, uint32_t nRenderGroupFlag);
+			void renderSkinnedModel(IDevice* pDevice, Camera* pCamera, uint32_t nRenderGroupFlag);
 
-			void renderStaticModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, const Math::Matrix* pMatView, const Math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap);
-			void renderSkinnedModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, const Math::Matrix* pMatView, const Math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap);
+			void renderStaticModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, const Math::Matrix* pMatView, const Math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap);
+			void renderSkinnedModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, const Math::Matrix* pMatView, const Math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap);
 
 		private:
 			struct StaticSubset
@@ -65,8 +55,8 @@ namespace EastEngine
 					isCulling = false;
 				}
 			};
-			std::vector<StaticSubset> m_vecStaticSubsets;
-			size_t m_nStaticIndex;
+			std::array<std::vector<StaticSubset>, GroupCount> m_vecStaticSubsets;
+			std::array<size_t, GroupCount> m_nStaticIndex;
 
 			struct SkinnedSubset
 			{
@@ -80,8 +70,8 @@ namespace EastEngine
 					data = source;;
 				}
 			};
-			std::vector<SkinnedSubset> m_vecSkinnedSubsets;
-			size_t m_nSkinnedIndex;
+			std::array<std::vector<SkinnedSubset>, GroupCount> m_vecSkinnedSubsets;
+			std::array<size_t, GroupCount> m_nSkinnedIndex;
 
 			struct RenderSubsetStaticBatch
 			{

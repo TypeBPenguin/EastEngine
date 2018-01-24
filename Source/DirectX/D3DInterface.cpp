@@ -387,7 +387,7 @@ namespace EastEngine
 			, emSamplerState(EmSamplerState::eMinMagMipLinearWrap)
 			, emBlendState(EmBlendState::eOff)
 			, emRasterizerState(EmRasterizerState::eSolidCCW)
-			, emDepthStencilState(EmDepthStencilState::eOn)
+			, emDepthStencilState(EmDepthStencilState::eRead_Write_On)
 		{
 			Clear();
 		}
@@ -416,7 +416,7 @@ namespace EastEngine
 			emSamplerState = EmSamplerState::eMinMagMipLinearWrap;
 			emBlendState = EmBlendState::eOff;
 			emRasterizerState = EmRasterizerState::eSolidCCW;
-			emDepthStencilState = EmDepthStencilState::eOn;
+			emDepthStencilState = EmDepthStencilState::eRead_Write_On;
 		}
 
 		IMaterial* IMaterial::Create(const MaterialInfo* pInfo)

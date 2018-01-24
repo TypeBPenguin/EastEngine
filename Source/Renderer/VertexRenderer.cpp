@@ -90,7 +90,7 @@ namespace EastEngine
 			pDeviceContext->SetDefaultViewport();
 
 			pDeviceContext->SetBlendState(EmBlendState::eOff);
-			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOn);
+			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eRead_Write_On);
 
 			auto desc = pDevice->GetMainRenderTarget()->GetDesc2D();
 			if (Config::IsEnable("HDRFilter"_s) == true)
@@ -104,7 +104,7 @@ namespace EastEngine
 
 			RenderVertex(pDevice, pDeviceContext);
 
-			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOn);
+			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eRead_Write_On);
 
 			RenderLine(pDevice, pDeviceContext);
 			RenderLineSegment(pDevice, pDeviceContext);
@@ -185,11 +185,11 @@ namespace EastEngine
 
 					if (pRenderSubset->isIgnoreDepth == true)
 					{
-						pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOff);
+						pDeviceContext->SetDepthStencilState(EmDepthStencilState::eRead_Write_Off);
 					}
 					else
 					{
-						pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOn);
+						pDeviceContext->SetDepthStencilState(EmDepthStencilState::eRead_Write_On);
 
 					}
 
@@ -365,11 +365,11 @@ namespace EastEngine
 
 				if (renderSubset.isIgnoreDepth == true)
 				{
-					pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOff);
+					pDeviceContext->SetDepthStencilState(EmDepthStencilState::eRead_Write_Off);
 				}
 				else
 				{
-					pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOn);
+					pDeviceContext->SetDepthStencilState(EmDepthStencilState::eRead_Write_On);
 				}
 
 				pDeviceContext->SetVertexBuffers(m_pLineSegmentVertexBuffer, m_pLineSegmentVertexBuffer->GetFormatSize(), 0);

@@ -205,6 +205,9 @@
     <Filter Include="DirectX\Shader\Fx\Model\Deferred\Shadow">
       <UniqueIdentifier>{4c63acca-1f05-4dd5-bc77-3c31ef5d3109}</UniqueIdentifier>
     </Filter>
+    <Filter Include="DirectX\Shader\Fx\Model\Forward">
+      <UniqueIdentifier>{a92f6ee8-275c-4b53-81cd-845e915dc3a8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -552,6 +555,9 @@
     </FxCompile>
     <FxCompile Include="..\..\Bin\Data\Fx\Terrain\Terrain.fx">
       <Filter>DirectX\Shader\Fx\Terrain</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\Bin\Data\Fx\Model\Forward.fx">
+      <Filter>DirectX\Shader\Fx\Model\Forward</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

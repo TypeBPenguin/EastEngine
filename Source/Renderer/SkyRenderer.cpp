@@ -93,7 +93,7 @@ namespace EastEngine
 
 			pDeviceContext->SetRasterizerState(EmRasterizerState::eSolidCW);
 			pDeviceContext->SetBlendState(EmBlendState::eOff);
-			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOn);
+			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eRead_Write_Off);
 
 			IRenderTarget* pRenderTarget = nullptr;
 			if (Config::IsEnable("HDRFilter"_s) == true)
@@ -113,7 +113,9 @@ namespace EastEngine
 				pRenderTarget = pDevice->GetRenderTarget(desc);
 			}
 
-			pDeviceContext->SetRenderTargets(&pRenderTarget, 1, pDevice->GetMainDepthStencil());
+			pDeviceContext->ClearRenderTargetView(pRenderTarget, Math::Color::Black);
+			pDeviceContext->SetRenderTargets(&pRenderTarget, 1, nullptr);
+
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 			size_t nSize = m_vecRenderSubsetSkybox.size();

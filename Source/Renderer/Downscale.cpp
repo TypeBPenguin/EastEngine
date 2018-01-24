@@ -118,7 +118,7 @@ namespace EastEngine
 			pDeviceContext->ClearState();
 			pDeviceContext->SetDefaultViewport();
 			pDeviceContext->SetRasterizerState(EmRasterizerState::eSolidCCW);
-			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOff);
+			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eRead_Write_Off);
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 			IEffectTech* pTech = m_pEffect->GetTechnique(isLuminance == true ? StrID::Downscale4Luminance : StrID::Downscale4);;
@@ -152,7 +152,7 @@ namespace EastEngine
 			pDeviceContext->ClearState();
 			pDeviceContext->SetDefaultViewport();
 			pDeviceContext->SetRasterizerState(EmRasterizerState::eSolidCCW);
-			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOff);
+			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eRead_Write_Off);
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 			IEffectTech* pTech = m_pEffect->GetTechnique(StrID::Downscale4);
@@ -199,7 +199,7 @@ namespace EastEngine
 			pDeviceContext->ClearState();
 			pDeviceContext->SetDefaultViewport();
 			pDeviceContext->SetRasterizerState(EmRasterizerState::eSolidCCW);
-			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOff);
+			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eRead_Write_Off);
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 			IEffectTech* pTech = m_pEffect->GetTechnique(StrID::DownscaleHW);
@@ -230,7 +230,7 @@ namespace EastEngine
 			pDeviceContext->ClearState();
 			pDeviceContext->SetDefaultViewport();
 			pDeviceContext->SetRasterizerState(EmRasterizerState::eSolidCCW);
-			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOff);
+			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eRead_Write_Off);
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 			IEffectTech* pTech = m_pEffect->GetTechnique(StrID::DownscaleHW);

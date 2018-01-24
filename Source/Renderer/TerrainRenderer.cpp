@@ -88,7 +88,7 @@ namespace EastEngine
 
 			pDeviceContext->SetRenderTargets(pGBuffers->GetGBuffers(), EmGBuffer::Count, pDevice->GetMainDepthStencil());
 
-			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOn);
+			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eRead_Write_On);
 			pDeviceContext->SetBlendState(EmBlendState::eOff);
 
 			Math::Matrix matViewProj = pCamera->GetViewMatrix() * pCamera->GetProjMatrix();

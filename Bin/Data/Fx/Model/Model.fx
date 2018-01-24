@@ -3,10 +3,8 @@
 
 #include "../Converter.fx"
 
-#ifdef USE_SKINNING
-
-Texture2D g_texVTF;
-
+#ifdef USE_ALPHABLENDING
+#include "Common.fx"
 #endif
 
 float4x4 DecodeMatrix(in float4 encodedMatrix0, in float4 encodedMatrix1, in float4 encodedMatrix2)
@@ -64,6 +62,8 @@ float4x4 ComputeWorldMatrix(in InstDataStatic worldData)
 #ifdef USE_SKINNING
 
 #define VTF_WIDTH 1024
+
+Texture2D g_texVTF;
 
 struct SkinnedInfo
 {
@@ -252,6 +252,10 @@ struct PS_INPUT
 
 	float3 tangent	: TANGENT;		// ÅºÁ¨Æ®
 	float3 binormal	: BINORMAL;
+#endif
+
+#ifdef USE_ALPHABLENDING
+	float4 posW : TEXCOORD1;
 #endif
 };
 
@@ -468,6 +472,9 @@ PS_INPUT DS(HS_ConstantOutput input,
 	#endif
 
 	float4 pos = mul(float4(position, 1.f), matWorld);
+#ifdef USE_ALPHABLENDING
+	output.posW = pos;
+#endif
 	output.pos = mul(pos, g_matViewProj);
 	output.tex = texCoord;
 
@@ -514,10 +521,16 @@ GS_CUBEMAP_INPUT VS(
 			ComputeSkinned(inPos, inBlendWeight, inBlendIndices, g_Instances[InstanceID].motionData.nVTFID, output.pos);
 
 			output.pos = mul(output.pos, matWorld);
+#ifdef USE_ALPHABLENDING
+			output.posW = output.pos;
+#endif
 		#else
 			float4x4 matWorld = ComputeWorldMatrix(g_Instances[InstanceID]);
 
 			output.pos = mul(inPos, matWorld);
+#ifdef USE_ALPHABLENDING
+			output.posW = output.pos;
+#endif
 		#endif
 	#else
 		#ifdef USE_SKINNING
@@ -527,8 +540,14 @@ GS_CUBEMAP_INPUT VS(
 			ComputeSkinned(inPos, inBlendWeight, inBlendIndices, g_nVTFID, output.pos);
 
 			output.pos = mul(output.pos, matWorld);
+#ifdef USE_ALPHABLENDING
+			output.posW = output.pos;
+#endif
 		#else
 			output.pos = mul(inPos, g_matWorld);
+#ifdef USE_ALPHABLENDING
+			output.posW = output.pos;
+#endif
 		#endif
 	#endif
 #else
@@ -540,11 +559,17 @@ GS_CUBEMAP_INPUT VS(
 			ComputeSkinned(inPos, inNormal, inBlendWeight, inBlendIndices, g_Instances[InstanceID].motionData.nVTFID, output.pos, output.normal);
 
 			output.pos = mul(output.pos, matWorld);
+#ifdef USE_ALPHABLENDING
+			output.posW = output.pos;
+#endif
 			output.normal = normalize(mul(output.normal, (float3x3)matWorld));
 		#else
 			float4x4 matWorld = ComputeWorldMatrix(g_Instances[InstanceID]);
 
 			output.pos = mul(inPos, matWorld);
+#ifdef USE_ALPHABLENDING
+			output.posW = output.pos;
+#endif
 			output.normal = normalize(mul(inNormal, (float3x3)matWorld));
 		#endif
 	#else
@@ -555,10 +580,16 @@ GS_CUBEMAP_INPUT VS(
 			ComputeSkinned(inPos, inNormal, inBlendWeight, inBlendIndices, g_nVTFID, output.pos, output.normal);
 
 			output.pos = mul(output.pos, matWorld);
+#ifdef USE_ALPHABLENDING
+			output.posW = output.pos;
+#endif
 			output.normal = normalize(mul(output.normal, (float3x3)matWorld));
 		#else
 			float4x4 matWorld = g_matWorld;
 			output.pos = mul(inPos, matWorld);
+#ifdef USE_ALPHABLENDING
+			output.posW = output.pos;
+#endif
 			output.normal = normalize(mul(inNormal, (float3x3)matWorld));
 		#endif
 	#endif
@@ -584,9 +615,15 @@ GS_CUBEMAP_INPUT VS(
 #endif
 
 #ifndef USE_WRITEDEPTH
+#ifdef USE_ALPHABLENDING
+float4 D_PS(PS_INPUT input) : SV_Target0
+{
+	float4 output = 0.f;
+#else
 PS_OUTPUT D_PS(PS_INPUT input)
 {
 	PS_OUTPUT output = (PS_OUTPUT)0;
+#endif
 
 	if (g_fStippleTransparencyFactor > 0.f)
 	{
@@ -618,9 +655,6 @@ PS_OUTPUT D_PS(PS_INPUT input)
 	float3 normal = input.normal;
 #endif
 
-	output.normals.xy = CompressNormal(normal);
-	output.normals.zw = CompressNormal(input.tangent);
-
 	float3 RM = float3(g_f4DisRoughMetEmi.yz, 0.f);
 #ifdef USE_TEX_ROUGHNESS
 	RM.x = g_texRoughness.Sample(g_samplerState, input.tex).x;
@@ -646,11 +680,6 @@ PS_OUTPUT D_PS(PS_INPUT input)
 #else
 	float3 emissiveColor = g_f4EmissiveColor.xyz;
 #endif
-
-	output.colors.x = Pack3PNForFP32(saturate(albedo));
-	output.colors.y = Pack3PNForFP32(specular);
-	output.colors.z = Pack3PNForFP32(emissiveColor);
-	output.colors.w = emissiveIntensity;
 
 	float3 SST = g_f4SurSpecTintAniso.xyz;
 	float3 AST = float3(g_f4SurSpecTintAniso.w, g_f4SheenTintClearcoatGloss.xy);
@@ -683,10 +712,32 @@ PS_OUTPUT D_PS(PS_INPUT input)
 	CG.y = g_texClearcoatGloss.Sample(g_samplerState, input.tex).x;
 #endif
 
+#ifdef USE_ALPHABLENDING
+	output = CalcColor(input.posW,
+		normal, input.tangent, input.binormal,
+		//saturate(albedo), specular, emissiveColor, emissiveIntensity,
+		albedo, specular, emissiveColor, emissiveIntensity,
+		RM.x, RM.y,
+		SST.x, SST.y, SST.z,
+		AST.x, AST.y, AST.z,
+		CG.x, CG.y,
+		float2(0.f, 0.f));
+
+	output.w = albedo.w;
+#else
+	output.normals.xy = CompressNormal(normal);
+	output.normals.zw = CompressNormal(input.tangent);
+
+	output.colors.x = Pack3PNForFP32(saturate(albedo));
+	output.colors.y = Pack3PNForFP32(specular);
+	output.colors.z = Pack3PNForFP32(emissiveColor);
+	output.colors.w = emissiveIntensity;
+
 	output.disneyBRDF.x = Pack3PNForFP32(RM);
 	output.disneyBRDF.y = Pack3PNForFP32(SST);
 	output.disneyBRDF.z = Pack3PNForFP32(AST);
 	output.disneyBRDF.w = Pack3PNForFP32(CG);
+#endif
 
 	return output;
 }
@@ -710,6 +761,15 @@ PS_OUTPUT D_PS(PS_INPUT input)
 		}
 	}
 	#endif
+#endif
+
+#ifdef USE_ALPHABLENDING
+	DepthStencilState DepthEnabling
+	{
+		DepthEnable = TRUE;
+		DepthWriteMask = ALL;
+		DepthFunc = LESS_EQUAL;
+	};
 #endif
 
 #ifdef USE_TESSELLATION
@@ -761,6 +821,19 @@ PS_OUTPUT D_PS(PS_INPUT input)
 			SetPixelShader(CompileShader(ps_5_0, D_PS()));
 	#endif
 		}
+
+#ifdef USE_ALPHABLENDING
+		pass Pass_1
+		{
+			SetDepthStencilState(DepthEnabling, 0);
+
+			SetVertexShader(CompileShader(vs_5_0, VS()));
+			SetHullShader(NULL);
+			SetDomainShader(NULL);
+			SetGeometryShader(NULL);
+			SetPixelShader(CompileShader(ps_5_0, D_PS()));
+		}
+#endif
 	}
 #endif
 

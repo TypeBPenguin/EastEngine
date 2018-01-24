@@ -192,7 +192,7 @@ namespace EastEngine
 			}
 
 			pDeviceContext->SetRasterizerState(EmRasterizerState::eSolidCCW);
-			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOff);
+			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eRead_Write_Off);
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 			RenderTargetDesc2D desc = pSource->GetDesc2D();

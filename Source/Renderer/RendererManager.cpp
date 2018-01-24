@@ -140,17 +140,18 @@ namespace EastEngine
 
 		void RendererManager::Render()
 		{
-			m_pRenderer[EmRenderer::eModel]->Render(0);
+			m_pRenderer[EmRenderer::eModel]->Render(ModelRenderer::Group::eDeferred);
 			//m_pRenderer[EmRenderer::eModelShadow]->Render(0);
 			m_pRenderer[EmRenderer::eTerrain]->Render(0);
 
 			//m_pRenderer[EmRenderer::eParticle]->Render(EmParticleGroup::eDecal);
 
+			m_pRenderer[EmRenderer::eSky]->Render(0);
 			m_pRenderer[EmRenderer::eDeferred]->Render(0);
 
-			//m_pRenderer[EmRenderer::eWater]->Render(0);
+			m_pRenderer[EmRenderer::eModel]->Render(ModelRenderer::Group::eForward);
 
-			m_pRenderer[EmRenderer::eSky]->Render(0);
+			//m_pRenderer[EmRenderer::eWater]->Render(0);
 
 			m_pRenderer[EmRenderer::eVertex]->Render(0);
 
@@ -287,7 +288,7 @@ namespace EastEngine
 			pDeviceContext->ClearState();
 			pDeviceContext->SetDefaultViewport();
 
-			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOff);
+			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eRead_Write_Off);
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 			IRenderTarget* pRenderTarget = pDevice->GetMainRenderTarget();

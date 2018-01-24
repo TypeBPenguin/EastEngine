@@ -1844,7 +1844,7 @@ namespace EastEngine
 #endif
 
 			GetDeviceContext()->SetRenderTargets(&pResult, 1, nullptr);
-			GetDeviceContext()->SetDepthStencilState(EmDepthStencilState::eOff);
+			GetDeviceContext()->SetDepthStencilState(EmDepthStencilState::eRead_Write_Off);
 
 			m_pEffect->Draw(m_settings, &inputs);
 		}

@@ -398,7 +398,7 @@ void SceneStudio::Enter()
 		materialInfo.f4DisRoughMetEmi.y = 0.5f;
 		materialInfo.f4DisRoughMetEmi.z = 0.5f;
 
-		materialInfo.emDepthStencilState = Graphics::EmDepthStencilState::eOff;
+		materialInfo.emDepthStencilState = Graphics::EmDepthStencilState::eRead_Write_Off;
 
 		Graphics::ParticleDecalAttributes attributes;
 		attributes.strDecalName = "TestDecal";
@@ -1610,8 +1610,10 @@ void ShowMaterial(bool& isShowMaterial, Graphics::IMaterial* pMaterial, int nInd
 
 	const char* strDepthStencilState[Graphics::EmDepthStencilState::TypeCount] =
 	{
-		"eOn",
-		"eOff",
+		"Read_Write_On",
+		"Read_Write_Off",
+		"Read_On_Write_Off",
+		"Read_Off_Write_On",
 	};
 	Graphics::EmDepthStencilState::Type emDepthStencilState = pMaterial->GetDepthStencilState();
 	if (ImGui::Combo("DepthStencilState", reinterpret_cast<int*>(&emDepthStencilState), strDepthStencilState, Graphics::EmDepthStencilState::TypeCount) == true)

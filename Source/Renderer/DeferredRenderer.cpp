@@ -222,7 +222,7 @@ namespace EastEngine
 			pDeviceContext->SetDefaultViewport();
 			pDeviceContext->SetBlendState(EmBlendState::eOff);
 			pDeviceContext->SetRasterizerState(EmRasterizerState::eSolidCCW);
-			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOff);
+			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eRead_Write_Off);
 
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
@@ -254,7 +254,6 @@ namespace EastEngine
 					pRenderTarget = pDevice->GetRenderTarget(desc);
 				}
 
-				pDeviceContext->ClearRenderTargetView(pRenderTarget, Math::Color::Black);
 				pDeviceContext->SetRenderTargets(&pRenderTarget, 1, nullptr);
 
 				m_pEffect->SetVector(StrID::g_f3CameraPos, pCamera->GetPosition());
@@ -351,7 +350,7 @@ namespace EastEngine
 			pDeviceContext->SetBlendState(m_pBlendStateAdditive);
 			//pDeviceContext->SetBlendState(EmBlendState::eMultiplicative);
 			pDeviceContext->SetRasterizerState(EmRasterizerState::eSolidCCW);
-			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOff);
+			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eRead_Write_Off);
 
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 

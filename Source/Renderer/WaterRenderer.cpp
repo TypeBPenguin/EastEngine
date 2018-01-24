@@ -281,7 +281,7 @@ namespace EastEngine
 				return;
 
 			pDeviceContext->SetDefaultViewport();
-			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOn);
+			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eRead_Write_On);
 			pDeviceContext->SetRasterizerState(EmRasterizerState::eWireframeCullNone);
 			pDeviceContext->SetBlendState(EmBlendState::eLinear);
 

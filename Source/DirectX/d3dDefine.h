@@ -23,8 +23,10 @@ namespace EastEngine
 		{
 			enum Type
 			{
-				eOn = 0,
-				eOff,
+				eRead_Write_On = 0,
+				eRead_Write_Off,
+				eRead_On_Write_Off,
+				eRead_Off_Write_On,
 
 				TypeCount,
 			};

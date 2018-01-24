@@ -120,7 +120,7 @@ namespace EastEngine
 			pDeviceContext->ClearState();
 			pDeviceContext->SetDefaultViewport();
 			pDeviceContext->SetRasterizerState(EmRasterizerState::eSolidCCW);
-			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOff);
+			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eRead_Write_Off);
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 			m_pEffect->SetFloat(StrID::g_fSigma, fSigma);
@@ -184,7 +184,7 @@ namespace EastEngine
 			pDeviceContext->ClearState();
 			pDeviceContext->SetDefaultViewport();
 			pDeviceContext->SetRasterizerState(EmRasterizerState::eSolidCCW);
-			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eOff);
+			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eRead_Write_Off);
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 			m_pEffect->SetFloat(StrID::g_fSigma, fSigma);
