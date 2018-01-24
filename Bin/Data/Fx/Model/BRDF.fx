@@ -135,6 +135,8 @@ void CalcBRDF(float3 albedoColor, float3 specularColor, float3 normal,
 	// Compute some useful values.
 	float NdL = saturate(dot(normal, lightDir));
 	float NdV = saturate(dot(normal, viewDir));
+	if (NdL < 0.f || NdV < 0.f)
+		return;
 
 	float3 h = normalize(lightDir + viewDir);
 	float NdH = saturate(dot(normal, h));

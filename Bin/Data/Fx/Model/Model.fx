@@ -715,8 +715,7 @@ PS_OUTPUT D_PS(PS_INPUT input)
 #ifdef USE_ALPHABLENDING
 	output = CalcColor(input.posW,
 		normal, input.tangent, input.binormal,
-		//saturate(albedo), specular, emissiveColor, emissiveIntensity,
-		albedo, specular, emissiveColor, emissiveIntensity,
+		saturate(albedo), specular, emissiveColor, emissiveIntensity,
 		RM.x, RM.y,
 		SST.x, SST.y, SST.z,
 		AST.x, AST.y, AST.z,

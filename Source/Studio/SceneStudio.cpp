@@ -566,28 +566,52 @@ void SceneStudio::Enter()
 		GameObject::ISkybox::Create("BaseSkybox", sky);
 	}
 
+	auto CreateActor = [](const String::StringID& strActorName, const char* strModelFilePath, 
+		const Math::Vector3& f3Position,
+		Graphics::EmModelLoader::LoadType emModelType = Graphics::EmModelLoader::eEast)
+	{
+		GameObject::IActor* pActor = GameObject::IActor::Create(strActorName);
+
+		pActor->SetPosition(f3Position);
+
+		Graphics::ModelLoader loader;
+
+		String::StringID strFileName = File::GetFileName(strModelFilePath).c_str();
+		switch (emModelType)
+		{
+		case Graphics::EmModelLoader::LoadType::eFbx:
+		case Graphics::EmModelLoader::LoadType::eObj:
+			loader.InitFBX(strFileName, strModelFilePath, 0.01f);
+			break;
+		case Graphics::EmModelLoader::LoadType::eXps:
+			loader.InitXPS(strFileName, strModelFilePath);
+			break;
+		case Graphics::EmModelLoader::LoadType::eEast:
+			loader.InitEast(strFileName, strModelFilePath);
+			break;
+		}
+		loader.SetEnableThreadLoad(false);
+
+		GameObject::ComponentModel* pModel = static_cast<GameObject::ComponentModel*>(pActor->CreateComponent(GameObject::EmComponent::eModel));
+		pModel->Init(&loader);
+
+		return pActor;
+	};
+
 	for (int i = 0; i < 1; ++i)
 	{
 		String::StringID name;
 		name.Format("UnityChan%d", i);
-		GameObject::IActor* pActor = GameObject::IActor::Create(name);
+
+		strPath = File::GetDataPath();
+		strPath.append("Actor\\UnityChan\\unitychan.emod");
 
 		Math::Vector3 pos;
 		//pos.x = -10.f + (2.f * (i % 10));
 		//pos.z = 0.f + (2.f * (i / 10));
-		pActor->SetPosition(pos);
 
-		strPath = File::GetDataPath();
-		strPath.append("Actor\\UnityChan\\unitychan.emod"); 
-		Graphics::ModelLoader loader;
-
-		String::StringID strFileName = File::GetFileName(strPath).c_str();
-		loader.InitEast(strFileName, strPath.c_str());
-		loader.SetEnableThreadLoad(false);
-		
+		GameObject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
 		GameObject::ComponentModel* pModel = static_cast<GameObject::ComponentModel*>(pActor->CreateComponent(GameObject::EmComponent::eModel));
-		pModel->Init(&loader);
-
 		Graphics::IModelInstance* pModelInstance = pModel->GetModelInstance();
 
 		if (false)
@@ -650,7 +674,7 @@ void SceneStudio::Enter()
 		//	pMotionSystem->Play(Graphics::EmMotion::eLayer2, pMotion, &playback);
 		//}
 
-		GameObject::ComponentPhysics* pCompPhysics = static_cast<GameObject::ComponentPhysics*>(pActor->CreateComponent(GameObject::EmComponent::ePhysics));
+		//GameObject::ComponentPhysics* pCompPhysics = static_cast<GameObject::ComponentPhysics*>(pActor->CreateComponent(GameObject::EmComponent::ePhysics));
 		
 		//Math::Vector3 ragdollPos = pActor->GetPosition();
 		//pCompPhysics->m_pRagDoll->BuildBipadRagDoll(pModelInstance->GetSkeleton(), ragdollPos, Math::Quaternion::Identity, 0.8f);
@@ -662,6 +686,7 @@ void SceneStudio::Enter()
 			strPath.append("Model\\ElementalSwordIce\\LP.emod");
 
 			Graphics::IModelInstance* pModelInstance_Attach = nullptr;
+			Graphics::ModelLoader loader;
 			loader.InitEast(File::GetFileName(strPath).c_str(), strPath.c_str());
 
 			pModelInstance_Attach = Graphics::IModel::CreateInstance(loader, false);
@@ -676,26 +701,15 @@ void SceneStudio::Enter()
 	{
 		String::StringID name;
 		name.Format("KimJiYoon");
-		GameObject::IActor* pActor = GameObject::IActor::Create(name);
 
 		Math::Vector3 pos;
 		pos.x = 2.f;
-		pActor->SetPosition(pos);
 
 		strPath = File::GetDataPath();
 		strPath.append("Model\\KimJiYoon\\KimJiYoon.emod");
 
-		Graphics::ModelLoader loader;
-
-		String::StringID strFileName = File::GetFileName(strPath).c_str();
-		loader.InitEast(strFileName, strPath.c_str());
-		loader.SetEnableThreadLoad(false);
-
+		GameObject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
 		GameObject::ComponentModel* pModel = static_cast<GameObject::ComponentModel*>(pActor->CreateComponent(GameObject::EmComponent::eModel));
-		pModel->Init(&loader);
-
-		Graphics::IModelInstance* pModelInstance = pModel->GetModelInstance();
-		Graphics::IMotionSystem* pMotionSystem = pModelInstance->GetMotionSystem();
 
 		//if (false)
 		{
@@ -712,7 +726,7 @@ void SceneStudio::Enter()
 			playback.fSpeed = 1.f;
 			playback.nLoopCount = Graphics::MotionPlaybackInfo::eMaxLoopCount;
 			playback.fWeight = 1.f;
-			pMotionSystem->Play(Graphics::EmMotion::eLayer1, pMotion, &playback);
+			pModel->PlayMotion(Graphics::EmMotion::eLayer1, pMotion, &playback);
 		}
 	}
 
@@ -720,31 +734,17 @@ void SceneStudio::Enter()
 	{
 		String::StringID name;
 		name.Format("2B_NierAutomata_%d", i);
-		GameObject::IActor* pActor = GameObject::IActor::Create(name);
 
 		Math::Vector3 pos;
 		pos.x = -2.f + (i * -2.f);
-		pActor->SetPosition(pos);
 
 		strPath = File::GetDataPath();
-		//strPath.append("Model\\2B_NierAutomata\\Generic_Item.mesh");
 		strPath.append("Model\\2B_NierAutomata\\2B_NierAutomata.emod");
 
-		Graphics::ModelLoader loader;
-
-		String::StringID strFileName = File::GetFileName(strPath).c_str();
-		//loader.InitXPS(strFileName, strPath.c_str());
-		//loader.AddDevideByKeywordByXPS("skirt");
-		//loader.AddDevideByKeywordByXPS("eyepatch");
-		//loader.AddDevideByKeywordByXPS("white");
-		loader.InitEast(strFileName, strPath.c_str());
-		loader.SetEnableThreadLoad(false);
-
+		GameObject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
 		GameObject::ComponentModel* pModel = static_cast<GameObject::ComponentModel*>(pActor->CreateComponent(GameObject::EmComponent::eModel));
-		pModel->Init(&loader);
 
 		Graphics::IModelInstance* pModelInstance = pModel->GetModelInstance();
-		Graphics::IMotionSystem* pMotionSystem = pModelInstance->GetMotionSystem();
 
 		if (i == 1)
 		{
@@ -764,70 +764,97 @@ void SceneStudio::Enter()
 			//SetMaterialVisible("Skirt");
 			SetMaterialVisible("Eyepatch");
 		}
-
-		if (false)
-		{
-			std::string strPathMotion(File::GetDataPath());
-			strPathMotion.append("Model\\2B_NierAutomata\\default.pose");
-
-			String::StringID strMotionName;
-			strMotionName.Format("%s", File::GetFileName(strPathMotion).c_str());
-			Graphics::MotionLoader motionLoader;
-			motionLoader.InitXPS(strMotionName, strPathMotion.c_str());
-			Graphics::IMotion* pMotion = Graphics::IMotion::Create(motionLoader);
-
-			Graphics::MotionPlaybackInfo playback;
-			playback.fSpeed = 1.f;
-			playback.nLoopCount = Graphics::MotionPlaybackInfo::eMaxLoopCount;
-			playback.fWeight = 1.f;
-			pMotionSystem->Play(Graphics::EmMotion::eLayer1, pMotion, &playback);
-		}
 	}
 
 	//if (false)
 	{
 		String::StringID name;
 		name.Format("Delia");
-		GameObject::IActor* pActor = GameObject::IActor::Create(name);
 
 		Math::Vector3 pos;
 		pos.x = 4.f;
-		pActor->SetPosition(pos);
 
 		strPath = File::GetDataPath();
 		strPath.append("Model\\Delia\\Delia.emod");
 
-		Graphics::ModelLoader loader;
+		GameObject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
+	}
 
-		String::StringID strFileName = File::GetFileName(strPath).c_str();
-		loader.InitEast(strFileName, strPath.c_str());
-		loader.SetEnableThreadLoad(false);
+	//if (false)
+	{
+		String::StringID name;
+		name.Format("DarkKnight_Female");
 
-		GameObject::ComponentModel* pModel = static_cast<GameObject::ComponentModel*>(pActor->CreateComponent(GameObject::EmComponent::eModel));
-		pModel->Init(&loader);
+		Math::Vector3 pos;
+		pos.x = -4.f;
+		pos.z = 2.f;
+
+		strPath = File::GetDataPath();
+		strPath.append("Model\\Dark Knight_Female\\DarkKnight_Female.emod");
+
+		//GameObject::IActor* pActor = CreateActor(name, strPath.c_str(), pos, Graphics::EmModelLoader::eXps);
+		GameObject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
+	}
+
+	//if (false)
+	{
+		String::StringID name;
+		name.Format("DarkKnight_Transformed_Female");
+
+		Math::Vector3 pos;
+		pos.x = -2.f;
+		pos.z = 2.f;
+
+		strPath = File::GetDataPath();
+		strPath.append("Model\\Dark Knight Transformed_Female\\DarkKnight_Transformed_Female.emod");
+
+		//GameObject::IActor* pActor = CreateActor(name, strPath.c_str(), pos, Graphics::EmModelLoader::eXps);
+		GameObject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
+	}
+
+	//if (false)
+	{
+		String::StringID name;
+		name.Format("Paladin_Female");
+
+		Math::Vector3 pos;
+		pos.x = 0.f;
+		pos.z = 2.f;
+
+		strPath = File::GetDataPath();
+		strPath.append("Model\\Paladin_Female\\Paladin_Female.emod");
+
+		GameObject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
+	}
+
+	//if (false)
+	{
+		String::StringID name;
+		name.Format("Paladin_Transformed_Female");
+
+		Math::Vector3 pos;
+		pos.x = 2.f;
+		pos.z = 2.f;
+
+		strPath = File::GetDataPath();
+		strPath.append("Model\\Paladin Transformed_Female\\Paladin_Transformed_Female.emod");
+
+		//GameObject::IActor* pActor = CreateActor(name, strPath.c_str(), pos, Graphics::EmModelLoader::eXps);
+		GameObject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
 	}
 
 	{
 		String::StringID name;
 		name.Format("ElementalSwordIce");
-		GameObject::IActor* pActor = GameObject::IActor::Create(name);
 
 		Math::Vector3 pos;
 		pos.y = 1.f;
 		pos.z -= 2.f;
-		pActor->SetPosition(pos);
 
 		strPath = File::GetDataPath();
 		strPath.append("Model\\ElementalSwordIce\\LP.emod");
 
-		Graphics::ModelLoader loader;
-
-		String::StringID strFileName = File::GetFileName(strPath).c_str();
-		loader.InitEast(strFileName, strPath.c_str());
-		loader.SetEnableThreadLoad(false);
-
-		GameObject::ComponentModel* pModel = static_cast<GameObject::ComponentModel*>(pActor->CreateComponent(GameObject::EmComponent::eModel));
-		pModel->Init(&loader);
+		GameObject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
 	}
 
 	m_pSkeletonController = new SkeletonController;
