@@ -44,6 +44,7 @@ namespace EastEngine
 				eSquared,			// 제곱합성
 				eNegative,			// 반전합성
 				eOpacity,			// 불투명합성
+				eAlphaBlend,
 
 				TypeCount,
 			};

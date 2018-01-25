@@ -127,6 +127,7 @@ namespace EastEngine
 			virtual const Math::UInt2& GetScreenSize() const = 0;
 			virtual bool IsFullScreen() const = 0;
 			virtual bool IsVSync() const = 0;
+			virtual void SetVSync(bool isVSync) = 0;
 
 			virtual void GetVideoCardInfo(std::string& strCardName, int& nMemory) const = 0;
 		};

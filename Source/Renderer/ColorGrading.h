@@ -23,7 +23,10 @@ namespace EastEngine
 			void Release();
 
 			bool Apply(IRenderTarget* pResult, IRenderTarget* pSource);
-			void Flush();
+
+		public:
+			void SetColorGuide(const Math::Vector3& f3ColorGuide) { m_f3ColorGuide = f3ColorGuide; }
+			const Math::Vector3& GetColorGuide() const { return m_f3ColorGuide; }
 
 		private:
 			void ClearEffect(IDeviceContext* pd3dDeviceContext, IEffectTech* pTech);
@@ -31,8 +34,9 @@ namespace EastEngine
 		private:
 			bool m_isInit;
 
-			IEffect* m_pEffect;
+			Math::Vector3 m_f3ColorGuide;
 
+			IEffect* m_pEffect;
 			ISamplerState* m_pSamplerState;
 		};
 	}

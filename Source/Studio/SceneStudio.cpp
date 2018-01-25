@@ -23,6 +23,8 @@
 #include "Renderer/DepthOfField.h"
 #include "Renderer/HDRFilter.h"
 #include "Renderer/SSS.h"
+#include "Renderer/ColorGrading.h"
+#include "Renderer/BloomFilter.h"
 
 #include "GameObject/GameObject.h"
 #include "GameObject/ActorManager.h"
@@ -1092,6 +1094,36 @@ void ShowConfig()
 
 	if (ImGui::CollapsingHeader("Graphics") == true)
 	{
+		if (ImGui::TreeNode("VSync"))
+		{
+			ImGui::PushID("VSync");
+
+			bool isVSync = Graphics::GetDevice()->IsVSync();
+			if (ImGui::Checkbox("Apply", &isVSync) == true)
+			{
+				Graphics::GetDevice()->SetVSync(isVSync);
+			}
+
+			ImGui::PopID();
+
+			ImGui::TreePop();
+		}
+
+		if (ImGui::TreeNode("Shadow"))
+		{
+			ImGui::PushID("Shadow");
+
+			bool isApplyShadow = Config::IsEnable("Shadow"_s);
+			if (ImGui::Checkbox("Apply", &isApplyShadow) == true)
+			{
+				Config::SetEnable("Shadow"_s, isApplyShadow);
+			}
+
+			ImGui::PopID();
+
+			ImGui::TreePop();
+		}
+
 		if (ImGui::TreeNode("FXAA"))
 		{
 			ImGui::PushID("FXAA");
@@ -1112,15 +1144,45 @@ void ShowConfig()
 			ImGui::TreePop();
 		}
 
-		if (ImGui::TreeNode("Shadow"))
+		if (ImGui::TreeNode("ColorGrading"))
 		{
-			ImGui::PushID("Shadow");
+			ImGui::PushID("ColorGrading");
 
-			bool isApplyShadow = Config::IsEnable("Shadow"_s);
-			if (ImGui::Checkbox("Apply", &isApplyShadow) == true)
+			bool isApplyColorGrading = Config::IsEnable("ColorGrading"_s);
+			if (ImGui::Checkbox("Apply", &isApplyColorGrading) == true)
 			{
-				Config::SetEnable("Shadow"_s, isApplyShadow);
+				Config::SetEnable("ColorGrading"_s, isApplyColorGrading);
 			}
+
+			Math::Vector3 color = Graphics::ColorGrading::GetInstance()->GetColorGuide();
+			if (ImGui::ColorEdit3("Guide", &color.x) == true)
+			{
+				Graphics::ColorGrading::GetInstance()->SetColorGuide(color);
+			}
+
+			ImGui::PopID();
+
+			ImGui::TreePop();
+		}
+
+		if (ImGui::TreeNode("BloomFilter"))
+		{
+			ImGui::PushID("BloomFilter");
+
+			bool isApplyColorGrading = Config::IsEnable("BloomFilter"_s);
+			if (ImGui::Checkbox("Apply", &isApplyColorGrading) == true)
+			{
+				Config::SetEnable("BloomFilter"_s, isApplyColorGrading);
+			}
+
+			const std::array<char*, Graphics::BloomFilter::PresetCount> presets = { "Wide", "Focussed", "Small", "SuperWide", "Cheap", "One", };
+
+			auto& settings = Graphics::BloomFilter::GetInstance()->GetSettings();
+			ImGui::Combo("Presets", reinterpret_cast<int*>(&settings.emPreset), presets.data(), presets.size());
+
+			ImGui::DragFloat("Threshold", &settings.fThreshold, 0.001f, 0.f, 10.f);
+			ImGui::DragFloat("StrengthMultiplier", &settings.fStrengthMultiplier, 0.001f, 0.f, 10.f);
+			ImGui::Checkbox("IsEnableLuminance", &settings.isEnableLuminance);
 
 			ImGui::PopID();
 
@@ -1129,12 +1191,12 @@ void ShowConfig()
 
 		if (ImGui::TreeNode("SSS"))
 		{
-			ImGui::PushID("ASSAO");
+			ImGui::PushID("SSS");
 
-			bool isApplyASSAO = Config::IsEnable("SSS"_s);
-			if (ImGui::Checkbox("Apply", &isApplyASSAO) == true)
+			bool isApplySSS = Config::IsEnable("SSS"_s);
+			if (ImGui::Checkbox("Apply", &isApplySSS) == true)
 			{
-				Config::SetEnable("SSS"_s, isApplyASSAO);
+				Config::SetEnable("SSS"_s, isApplySSS);
 			}
 
 			float fSSSWidth = Graphics::SSS::GetInstance()->GetSSSWidth();

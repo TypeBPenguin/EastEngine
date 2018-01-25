@@ -20,7 +20,7 @@ namespace EastEngine
 		SSS::SSS()
 			: m_isInit(false)
 			, m_pEffect(nullptr)
-			, m_fSSSWidth(0.2f)
+			, m_fSSSWidth(0.1f)
 		{
 		}
 

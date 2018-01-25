@@ -125,11 +125,7 @@ namespace EastEngine
 
 			return true;
 		}
-
-		void FXAA::Flush()
-		{
-		}
-
+		
 		void FXAA::ClearEffect(IDeviceContext* pd3dDeviceContext, IEffectTech* pTech)
 		{
 			m_pEffect->SetTexture(StrID::g_texInput, nullptr);

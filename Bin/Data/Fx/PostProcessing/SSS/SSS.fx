@@ -371,12 +371,6 @@ float3 SSSSTransmittance(
 //-----------------------------------------------------------------------------
 // Separable SSS Reflectance Vertex Shader
 
-//void SSSSBlurVS(float4 position,
-//	out float4 svPosition,
-//	inout float2 texcoord) {
-//	svPosition = position;
-//}
-
 struct PS_INPUT
 {
 	float4 pos : SV_Position;

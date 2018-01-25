@@ -82,6 +82,9 @@
     <Filter Include="Renderer\PostProcessing\SSS">
       <UniqueIdentifier>{9ddfc154-5d2b-4ba8-b4ab-237a4bc2ae39}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Renderer\PostProcessing\BloomFilter">
+      <UniqueIdentifier>{3fa8718d-4a80-465e-a7b7-5ad0bfab0e40}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -162,6 +165,9 @@
     <ClInclude Include="SSS.h">
       <Filter>Renderer\PostProcessing\SSS</Filter>
     </ClInclude>
+    <ClInclude Include="BloomFilter.h">
+      <Filter>Renderer\PostProcessing\BloomFilter</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -236,10 +242,16 @@
     <ClCompile Include="SSS.cpp">
       <Filter>Renderer\PostProcessing\SSS</Filter>
     </ClCompile>
+    <ClCompile Include="BloomFilter.cpp">
+      <Filter>Renderer\PostProcessing\BloomFilter</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\..\Bin\Data\Fx\PostProcessing\SSS\SSS.fx">
       <Filter>Renderer\PostProcessing\SSS</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\Bin\Data\Fx\PostProcessing\BloomFilter\BloomFilter.fx">
+      <Filter>Renderer\PostProcessing\BloomFilter</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

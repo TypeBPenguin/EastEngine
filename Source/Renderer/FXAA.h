@@ -21,7 +21,6 @@ namespace EastEngine
 			void Release();
 
 			bool Apply(IRenderTarget* pResult, IRenderTarget* pSource);
-			void Flush();
 
 		private:
 			void ClearEffect(IDeviceContext* pd3dDeviceContext, IEffectTech* pTech);

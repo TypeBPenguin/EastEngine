@@ -8,6 +8,8 @@ namespace StrID
 	RegisterStringID(EffectColorGrading);
 	RegisterStringID(ColorGrading);
 
+	RegisterStringID(g_colorGuide);
+
 	RegisterStringID(g_texSrc);
 	RegisterStringID(g_samLinearWrap);
 }
@@ -18,6 +20,7 @@ namespace EastEngine
 	{
 		ColorGrading::ColorGrading()
 			: m_isInit(false)
+			, m_f3ColorGuide(1.f, 0.588f, 0.529f)
 			, m_pEffect(nullptr)
 			, m_pSamplerState(nullptr)
 		{
@@ -96,11 +99,11 @@ namespace EastEngine
 
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
+			m_pEffect->SetVector(StrID::g_colorGuide, m_f3ColorGuide);
 			m_pEffect->SetTexture(StrID::g_texSrc, pSource->GetTexture());
-
 			m_pEffect->SetSamplerState(StrID::g_samLinearWrap, m_pSamplerState, 0);
 
-			uint32_t nPassCount = pEffectTech->GetPassCount();
+			const uint32_t nPassCount = pEffectTech->GetPassCount();
 			for (uint32_t p = 0; p < nPassCount; ++p)
 			{
 				pEffectTech->PassApply(p, pDeviceContext);
@@ -111,10 +114,6 @@ namespace EastEngine
 			ClearEffect(pDeviceContext, pEffectTech);
 
 			return true;
-		}
-
-		void ColorGrading::Flush()
-		{
 		}
 
 		void ColorGrading::ClearEffect(IDeviceContext* pd3dDeviceContext, IEffectTech* pTech)

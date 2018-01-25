@@ -110,6 +110,7 @@ namespace EastEngine
 			virtual const Math::UInt2& GetScreenSize() const override { return m_n2ScreenSize; }
 			virtual bool IsFullScreen() const override { return m_isFullScreen; }
 			virtual bool IsVSync() const override { return m_isVsync; }
+			virtual void SetVSync(bool isVSync) override { m_isVsync = isVSync; }
 
 			virtual void GetVideoCardInfo(std::string& strCardName, int& nMemory) const override { strCardName = m_strVideoCardDescription; nMemory = m_nVideoCardMemory; }
 

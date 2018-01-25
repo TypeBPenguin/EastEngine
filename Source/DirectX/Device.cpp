@@ -1105,7 +1105,20 @@ namespace EastEngine
 					blendStateDesc.RenderTarget[i].DestBlend = D3D11_BLEND_ZERO;
 					blendStateDesc.RenderTarget[i].BlendOp = D3D11_BLEND_OP_ADD;
 					blendStateDesc.RenderTarget[i].SrcBlendAlpha = D3D11_BLEND_ONE;
-					blendStateDesc.RenderTarget[i].DestBlendAlpha = D3D11_BLEND_ONE;
+					blendStateDesc.RenderTarget[i].DestBlendAlpha = D3D11_BLEND_ZERO;
+					blendStateDesc.RenderTarget[i].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+					blendStateDesc.RenderTarget[i].RenderTargetWriteMask = 0x0f;
+				}
+				break;
+			case EmBlendState::eAlphaBlend:
+				for (int i = 0; i < 8; ++i)
+				{
+					blendStateDesc.RenderTarget[i].BlendEnable = true;
+					blendStateDesc.RenderTarget[i].SrcBlend = D3D11_BLEND_ONE;
+					blendStateDesc.RenderTarget[i].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+					blendStateDesc.RenderTarget[i].BlendOp = D3D11_BLEND_OP_ADD;
+					blendStateDesc.RenderTarget[i].SrcBlendAlpha = D3D11_BLEND_ONE;
+					blendStateDesc.RenderTarget[i].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
 					blendStateDesc.RenderTarget[i].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 					blendStateDesc.RenderTarget[i].RenderTargetWriteMask = 0x0f;
 				}

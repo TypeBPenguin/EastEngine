@@ -1,6 +1,11 @@
 #ifndef _COLOR_GRADING_
 #define _COLOR_GRADING_
 
+cbuffer cbContents
+{
+	float3 g_colorGuide = float3(1.0f, 0.5f, 0.0f);
+};
+
 struct PS_INPUT
 {
 	float4 pos : SV_Position;
@@ -90,8 +95,6 @@ float HueLerp(float h1, float h2, float v)
 float3 PostComplement(float3 input)
 {
 	// Tweakable values
-	float3 guide = float3(1.0f, 0.5f, 0.0f); // the RGB colour that you want to 'bring out'
-
 	float amount = 0.5f; // influence how much a colour gets lerped toward the guide or complement
 
 						 // Correlation and Concentration together define a curve along which the colour grading is done
@@ -101,7 +104,7 @@ float3 PostComplement(float3 input)
 
 	// Convert everything to HSV
 	float3 input_hsv = RGBtoHSV(input);
-	float3 hue_pole1 = RGBtoHSV(guide);
+	float3 hue_pole1 = RGBtoHSV(g_colorGuide);
 	float3 hue_pole2 = HSVComplement(hue_pole1);
 
 	// Find the difference in hue, again hue is circular so keep it in a circle
