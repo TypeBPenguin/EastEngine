@@ -125,11 +125,11 @@ float3 Specular(float3 specularColor, float3 h, float3 v, float3 l, float a, flo
 //	}
 //};
 
-void CalcBRDF(float3 albedoColor, float3 specularColor, float3 normal,
+void CalcBRDF(in float3 albedoColor, in float3 normal, in float3 tangent, in float3 binormal,
+	in float3 lightDir, in float3 viewDir,
 	float roughness, float metallic,
 	float subsurface, float specular, float specularTint, float anisotropic,
 	float sheen, float sheenTint, float clearcoat, float clearcoatGloss,
-	float3 lightColor, float3 lightDir, float3 viewDir, float3 X, float3 Y,
 	out float3 albedo, out float3 diffuse)
 {
 	// Compute some useful values.
@@ -139,41 +139,38 @@ void CalcBRDF(float3 albedoColor, float3 specularColor, float3 normal,
 		return;
 
 	float3 h = normalize(lightDir + viewDir);
-	float NdH = saturate(dot(normal, h));
-	float VdH = saturate(dot(viewDir, h));
-	float LdV = saturate(dot(lightDir, viewDir));
-	float LdH = saturate(dot(lightDir, h));
-	float roughness_sqr = max(0.001f, roughness * roughness);
+	float NdH = dot(normal, h);
+	float LdH = dot(lightDir, h);
 
 	float luminance = dot(LUM_CONVERT, albedoColor);
 
-	float3 tint = luminance > 0.0f ? albedoColor / luminance : 1.f.xxx; // Normalize luminance to isolate hue+sat.
-	specularColor = lerp(specular * 0.08f * lerp(1.f.xxx, tint, specularTint), albedoColor, metallic);
-	float3 CSheen = lerp(1.f.xxx, tint, sheenTint);
+	float3 CTint = luminance > 0.0f ? albedoColor / luminance : 1.f.xxx; // Normalize luminance to isolate hue+sat.
+	float3 CSpec0 = lerp(specular * 0.08f * lerp(1.f.xxx, CTint, specularTint), albedoColor, metallic);
+	float3 CSheen = lerp(1.f.xxx, CTint, sheenTint);
 
 	// Diffuse fresnel - go from 1 at normal incidence to .5 at grazing
 	// and mix in diffuse retro-reflection based on roughness
 	float FL = Fresnel_Schlick(NdL);
 	float FV = Fresnel_Schlick(NdV);
-	float Fd90 = 0.5f + 2.0f * LdH * LdH * roughness_sqr;
+	float Fd90 = 0.5f + 2.0f * LdH * LdH * roughness;
 	float Fd = lerp(1.f, Fd90, FL) * lerp(1.f, Fd90, FV);
 
 	// Based on Hanrahan-Krueger brdf approximation of isotropic bssrdf
 	// 1.25 scale is used to (roughly) preserve albedo
 	// Fss90 used to "flatten" retroreflection based on roughness
-	float Fss90 = LdH * LdH * roughness_sqr;
+	float Fss90 = LdH * LdH * roughness;
 	float Fss = lerp(1.f, Fss90, FL) * lerp(1.f, Fss90, FV);
-	float ss = 1.25f * (Fss * (1.f / (NdL + NdV + 0.0001f) - 0.5f) + 0.5f);
+	float ss = 1.25f * (Fss * (1.f / (NdL + NdV + 1e-5f) - 0.5f) + 0.5f);
 
 	// Specular
 	float aspect = sqrt(1.f - anisotropic * 0.9f);
-	float ax = max(0.001f, sqr(roughness_sqr) / aspect);
-	float ay = max(0.001f, sqr(roughness_sqr) * aspect);
-	float Ds = GTR2_aniso(NdH, dot(h, X), dot(h, Y), ax, ay);
+	float ax = max(0.001f, sqr(roughness) / aspect);
+	float ay = max(0.001f, sqr(roughness) * aspect);
+	float Ds = GTR2_aniso(NdH, dot(h, tangent), dot(h, binormal), ax, ay);
 	Ds = isnan(Ds) ? 1e-8 : Ds;
 	float FH = Fresnel_Schlick(LdH);
-	float3 Fs = lerp(specularColor, 1.f.xxx, FH);
-	float roughg = sqr(roughness_sqr * 0.5f + 0.5f);
+	float3 Fs = lerp(CSpec0, 1.f.xxx, FH);
+	float roughg = sqr(roughness * 0.5f + 0.5f);
 	float Gs = smithG_GGX(NdL, roughg) * smithG_GGX(NdV, roughg);
 
 	// Sheen
@@ -185,7 +182,7 @@ void CalcBRDF(float3 albedoColor, float3 specularColor, float3 normal,
 	float Gr = smithG_GGX(NdL, 0.25f) * smithG_GGX(NdV, 0.25f);
 	albedo = (INV_PI * lerp(Fd, ss, subsurface) * albedoColor + Fsheen) * (1.f - metallic);
 
-	diffuse = (lightColor * albedo + Gs*Fs*Ds + 0.25f * clearcoat * Gr * Fr * Dr) * NdL;
+	diffuse = (albedo + Gs*Fs*Ds + 0.25f * clearcoat * Gr * Fr * Dr) * NdL;
 }
 
 #endif

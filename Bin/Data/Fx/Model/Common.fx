@@ -68,11 +68,12 @@ float4 CalcColor(in float3 posW,
 		float3 albedo = float3(0.f, 0.f, 0.f);
 		float3 diffuseColor = float3(0.f, 0.f, 0.f);
 	
-		CalcBRDF(realAlbedo, specularColor, normal,
+		CalcBRDF(realAlbedo, normal, tangent, binormal,
+			lightDir, viewDir,
 			roughness, metallic,
 			subsourface, specular, specularTint, anisotropic,
 			sheen, sheenTint, clearcoat, clearcoatGloss,
-			lightColor, lightDir, viewDir, tangent, binormal, albedo, diffuseColor);
+			albedo, diffuseColor);
 	
 		diffuse += diffuseColor * attenuation * lightIntensity;
 		sumReflectionIntensity += reflectionIntensity;
@@ -101,11 +102,12 @@ float4 CalcColor(in float3 posW,
 			attenuation -= PI + 1e-5f;
 			attenuation *= 0.1f;
 
-			CalcBRDF(realAlbedo, specularColor, normal,
+			CalcBRDF(realAlbedo, normal, tangent, binormal,
+				lightDir, viewDir,
 				roughness, metallic,
 				subsourface, specular, specularTint, anisotropic,
 				sheen, sheenTint, clearcoat, clearcoatGloss,
-				lightColor, lightDir, viewDir, tangent, binormal, albedo, diffuseColor);
+				albedo, diffuseColor);
 
 			diffuse += diffuseColor * attenuation;
 			sumReflectionIntensity += reflectionIntensity * attenuation;
@@ -144,11 +146,12 @@ float4 CalcColor(in float3 posW,
 			float3 albedo = float3(0.f, 0.f, 0.f);
 			float3 diffuseColor = float3(0.f, 0.f, 0.f);
 
-			CalcBRDF(realAlbedo, specularColor, normal,
+			CalcBRDF(realAlbedo, normal, tangent, binormal,
+				lightDir, viewDir,
 				roughness, metallic,
 				subsourface, specular, specularTint, anisotropic,
 				sheen, sheenTint, clearcoat, clearcoatGloss,
-				lightColor, lightDir, viewDir, tangent, binormal, albedo, diffuseColor);
+				albedo, diffuseColor);
 
 			diffuse += diffuseColor * attenuation * spotIntensity;
 			sumReflectionIntensity += reflectionIntensity * attenuation * spotIntensity;
