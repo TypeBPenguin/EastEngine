@@ -1,177 +1,360 @@
 #include "stdafx.h"
 #include "HDRFilter.h"
 
+#include "CommonLib/Timer.h"
 #include "CommonLib/FileUtil.h"
-
-#include "Downscale.h"
-#include "GaussianBlur.h"
 
 namespace StrID
 {
-	RegisterStringID(EffectHDR);
+	RegisterStringID(EffectHDRFilter);
 
-	RegisterStringID(Luminance);
-	RegisterStringID(CalcAdaptedLuminance);
-	RegisterStringID(ToneMap);
 	RegisterStringID(Threshold);
+	RegisterStringID(BloomBlurH);
+	RegisterStringID(BloomBlurV);
+	RegisterStringID(LuminanceMap);
+	RegisterStringID(Composite);
+	RegisterStringID(CompositeWithExposure);
+	RegisterStringID(Scale);
+	RegisterStringID(AdaptLuminance);
 
-	RegisterStringID(LensFlareFirstPass);
-	RegisterStringID(LensFlareSecondPass);
-	RegisterStringID(Combine);
+	RegisterStringID(BloomThreshold);
+	RegisterStringID(BloomMagnitude);
+	RegisterStringID(BloomBlurSigma);
+	RegisterStringID(Tau);
+	RegisterStringID(TimeDelta);
+	RegisterStringID(ToneMapTechnique);
+	RegisterStringID(Exposure);
+	RegisterStringID(KeyValue);
+	RegisterStringID(AutoExposure);
+	RegisterStringID(WhiteLevel);
+	RegisterStringID(ShoulderStrength);
+	RegisterStringID(LinearStrength);
+	RegisterStringID(LinearAngle);
+	RegisterStringID(ToeStrength);
+	RegisterStringID(ToeNumerator);
+	RegisterStringID(ToeDenominator);
+	RegisterStringID(LinearWhite);
+	RegisterStringID(LuminanceSaturation);
+	RegisterStringID(LumMapMipLevel);
+	RegisterStringID(Bias);
 
-	RegisterStringID(g_fMiddleGrey);
-	RegisterStringID(g_fMaxLuminance);
-	RegisterStringID(g_fElapsedTime);
-	RegisterStringID(g_fBloomMultiplier);
-	RegisterStringID(g_fThreshold);
-	RegisterStringID(g_f2SourceDimensions);
-	RegisterStringID(g_texColor);
-	RegisterStringID(g_texBloom);
-	RegisterStringID(g_texLuminanceCur);
-	RegisterStringID(g_texLuminanceLast);
-	RegisterStringID(g_texLensFlare1);
-	RegisterStringID(g_texLensFlare2);
-	RegisterStringID(g_samplerPoint);
-	RegisterStringID(g_samplerLinear);
+	RegisterStringID(InputSize0);
+	RegisterStringID(InputSize1);
+	RegisterStringID(InputSize2);
+	RegisterStringID(InputSize3);
+	RegisterStringID(OutputSize);
+
+	RegisterStringID(PointSampler);
+	RegisterStringID(LinearSampler);
+
+	RegisterStringID(InputTexture0);
+	RegisterStringID(InputTexture1);
+	RegisterStringID(InputTexture2);
+	RegisterStringID(InputTexture3);
 }
 
 namespace EastEngine
 {
 	namespace Graphics
 	{
+		class HDRFilter::Impl
+		{
+		public:
+			Impl();
+			~Impl();
+
+		public:
+			bool Apply(IRenderTarget* pResult, IRenderTarget* pSource);
+
+		private:
+			void ClearEffect(IDeviceContext* pd3dDeviceContext, IEffectTech* pTech);
+
+		public:
+			Settings& GetSettings() { return m_settings; }
+			void SetSettings(const Settings& settings) { m_settings = settings; }
+
+			ToneMappingType GetToneMappingType() const { return m_emToneMappingType; }
+			void SetToneMappingType(ToneMappingType emToneMappingType) { m_emToneMappingType = emToneMappingType; }
+
+			AutoExposureType GetAutoExposureType() const { return m_emAutoExposureType; }
+			void SetAutoExposureType(AutoExposureType emAutoExposureType) { m_emAutoExposureType = emAutoExposureType; }
+
+		private:
+			ToneMappingType m_emToneMappingType{ ToneMappingType::eNone };
+			AutoExposureType m_emAutoExposureType{ AutoExposureType::eManual };
+			Settings m_settings;
+
+			IEffect* m_pEffect{ nullptr };
+
+			uint32_t m_nCurLumTarget{ 0 };
+			std::array<IRenderTarget*, 2> m_pAdaptedLuminances{ nullptr };
+			IRenderTarget* m_pInitialLuminances{ nullptr };
+		};
+
+		HDRFilter::Impl::Impl()
+		{
+			std::string strPath(File::GetPath(File::EmPath::eFx));
+
+#if defined(DEBUG) || defined(_DEBUG)
+			strPath.append("PostProcessing\\HDRFilter\\HDRFilter_D.cso");
+#else
+			strPath.append("PostProcessing\\HDRFilter\\HDRFilter.cso");
+#endif
+
+			m_pEffect = IEffect::Create(StrID::EffectHDRFilter, strPath.c_str());
+			if (m_pEffect == nullptr)
+			{
+				assert(false);
+				return;
+			}
+
+			m_pEffect->CreateTechnique(StrID::Threshold, EmVertexFormat::eUnknown);
+			m_pEffect->CreateTechnique(StrID::BloomBlurH, EmVertexFormat::eUnknown);
+			m_pEffect->CreateTechnique(StrID::BloomBlurV, EmVertexFormat::eUnknown);
+			m_pEffect->CreateTechnique(StrID::LuminanceMap, EmVertexFormat::eUnknown);
+			m_pEffect->CreateTechnique(StrID::Composite, EmVertexFormat::eUnknown);
+			m_pEffect->CreateTechnique(StrID::CompositeWithExposure, EmVertexFormat::eUnknown);
+			m_pEffect->CreateTechnique(StrID::Scale, EmVertexFormat::eUnknown);
+			m_pEffect->CreateTechnique(StrID::AdaptLuminance, EmVertexFormat::eUnknown);
+
+			{
+				RenderTargetDesc2D rtDesc(DXGI_FORMAT_R32_FLOAT, 1024, 1024, 1, 11);
+				rtDesc.Build();
+				m_pAdaptedLuminances[0] = IRenderTarget::Create(rtDesc);
+				m_pAdaptedLuminances[1] = IRenderTarget::Create(rtDesc);
+			}
+
+			{
+				RenderTargetDesc2D rtDesc(DXGI_FORMAT_R32_FLOAT, 1024, 1024);
+				rtDesc.Build();
+				m_pInitialLuminances = IRenderTarget::Create(rtDesc);
+			}
+		}
+
+		HDRFilter::Impl::~Impl()
+		{
+			IEffect::Destroy(&m_pEffect);
+
+			std::for_each(m_pAdaptedLuminances.begin(), m_pAdaptedLuminances.end(), [](IRenderTarget* pRenderTarget)
+			{
+				SafeDelete(pRenderTarget);
+			});
+			SafeDelete(m_pInitialLuminances);
+		}
+
+		bool HDRFilter::Impl::Apply(IRenderTarget* pResult, IRenderTarget* pSource)
+		{
+			D3D_PROFILING(HDRFilter);
+
+			IDevice* pDevice = GetDevice();
+			IDeviceContext* pDeviceContext = GetDeviceContext();
+			pDeviceContext->ClearState();
+
+			pDeviceContext->SetRasterizerState(EmRasterizerState::eSolidCCW);
+			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eRead_Write_Off);
+			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+
+			m_settings.TimeDelta = Timer::GetInstance()->GetDeltaTime();
+			m_settings.ToneMapTechnique = static_cast<float>(m_emToneMappingType);
+			m_settings.AutoExposure = static_cast<float>(m_emAutoExposureType);
+
+			m_pEffect->SetFloat(StrID::BloomThreshold, m_settings.BloomThreshold);
+			m_pEffect->SetFloat(StrID::BloomMagnitude, m_settings.BloomMagnitude);
+			m_pEffect->SetFloat(StrID::BloomBlurSigma, m_settings.BloomBlurSigma);
+			m_pEffect->SetFloat(StrID::Tau, m_settings.Tau);
+			m_pEffect->SetFloat(StrID::TimeDelta, m_settings.TimeDelta);
+			m_pEffect->SetFloat(StrID::ToneMapTechnique, m_settings.ToneMapTechnique);
+			m_pEffect->SetFloat(StrID::Exposure, m_settings.Exposure);
+			m_pEffect->SetFloat(StrID::KeyValue, m_settings.KeyValue);
+			m_pEffect->SetFloat(StrID::AutoExposure, m_settings.AutoExposure);
+			m_pEffect->SetFloat(StrID::WhiteLevel, m_settings.WhiteLevel);
+			m_pEffect->SetFloat(StrID::ShoulderStrength, m_settings.ShoulderStrength);
+			m_pEffect->SetFloat(StrID::LinearStrength, m_settings.LinearStrength);
+			m_pEffect->SetFloat(StrID::LinearAngle, m_settings.LinearAngle);
+			m_pEffect->SetFloat(StrID::ToeStrength, m_settings.ToeStrength);
+			m_pEffect->SetFloat(StrID::ToeNumerator, m_settings.ToeNumerator);
+			m_pEffect->SetFloat(StrID::ToeDenominator, m_settings.ToeDenominator);
+			m_pEffect->SetFloat(StrID::LinearWhite, m_settings.LinearWhite);
+			m_pEffect->SetFloat(StrID::LuminanceSaturation, m_settings.LuminanceSaturation);
+			m_pEffect->SetFloat(StrID::LumMapMipLevel, m_settings.LumMapMipLevel);
+			m_pEffect->SetFloat(StrID::Bias, m_settings.Bias);
+
+			auto PostProcess = [&](const String::StringID& strTechName, IRenderTarget* pResult, IRenderTarget** ppSource, size_t nSourceCount = 1)
+			{
+				IEffectTech* pTech = m_pEffect->GetTechnique(strTechName);
+				if (pTech == nullptr)
+				{
+					assert(false);
+					return;
+				}
+
+				auto GetSize = [](IRenderTarget* pSource)
+				{
+					TextureDesc2D desc;
+					pSource->GetTexture()->GetTexture2D()->GetDesc(&desc);
+
+					CD3D11_SHADER_RESOURCE_VIEW_DESC srDesc;
+					pSource->GetTexture()->GetShaderResourceView()->GetDesc(&srDesc);
+
+					uint32_t nMipLevel = srDesc.Texture2D.MostDetailedMip;
+
+					Math::Vector2 f2Result;
+					f2Result.x = static_cast<float>(std::max(desc.Width / (1 << nMipLevel), 1u));
+					f2Result.y = static_cast<float>(std::max(desc.Height / (1 << nMipLevel), 1u));
+
+					return f2Result;
+				};
+
+				Math::Vector2 InputSize[4];
+				Math::Vector2 OutputSize;
+
+				for (size_t i = 0; i < nSourceCount; ++i)
+				{
+					String::StringID strSizeName;
+					strSizeName.Format("InputSize%d", i);
+					Math::Vector2 InputSize = GetSize(ppSource[i]);
+					m_pEffect->SetVector(strSizeName, InputSize);
+
+					String::StringID strTextureName;
+					strTextureName.Format("InputTexture%d", i);
+					m_pEffect->SetTexture(strTextureName, ppSource[i]->GetTexture());
+				}
+
+				OutputSize = GetSize(pResult);
+				m_pEffect->SetVector("OutputSize", OutputSize);
+
+				m_pEffect->SetSamplerState(StrID::PointSampler, pDevice->GetSamplerState(EmSamplerState::eMinMagMipPointClamp), 0);
+				m_pEffect->SetSamplerState(StrID::LinearSampler, pDevice->GetSamplerState(EmSamplerState::eMinMagMipLinearClamp), 0);
+
+				Math::Viewport viewport;
+				viewport.width = OutputSize.x;
+				viewport.height = OutputSize.y;
+
+				pDeviceContext->SetViewport(viewport);
+				pDeviceContext->SetRenderTargets(&pResult, 1);
+
+				uint32_t nPassCount = pTech->GetPassCount();
+				for (uint32_t p = 0; p < nPassCount; ++p)
+				{
+					pTech->PassApply(p, pDeviceContext);
+
+					pDeviceContext->Draw(4, 0);
+				}
+
+				ClearEffect(pDeviceContext, pTech);
+			};
+
+			// CalcAvgLuminance
+			{
+				// Luminance mapping
+				PostProcess(StrID::LuminanceMap, m_pInitialLuminances, &pSource);
+
+				// Adaptation
+				IRenderTarget* ppAdaptation[] =
+				{
+					m_pAdaptedLuminances[!m_nCurLumTarget],
+					m_pInitialLuminances,
+				};
+				PostProcess(StrID::AdaptLuminance, m_pAdaptedLuminances[m_nCurLumTarget], ppAdaptation, 2);
+
+				pDeviceContext->GenerateMips(m_pAdaptedLuminances[m_nCurLumTarget]->GetTexture()->GetShaderResourceView());
+			}
+
+			// Bloom
+			IRenderTarget* pBloom = nullptr;
+			{
+				const Math::UInt2& n2Size = pResult->GetSize();
+				RenderTargetDesc2D desc = pResult->GetDesc2D();
+				desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				desc.Width = n2Size.x / 1;
+				desc.Height = n2Size.y / 1;
+				desc.Build();
+				pBloom = pDevice->GetRenderTarget(desc, false);
+
+				IRenderTarget* ppBloomThreshold[] =
+				{
+					pSource,
+					m_pAdaptedLuminances[m_nCurLumTarget],
+				};
+				PostProcess(StrID::Threshold, pBloom, ppBloomThreshold, 2);
+
+				desc.Width = n2Size.x / 2;
+				desc.Height = n2Size.y / 2;
+				desc.Build();
+				IRenderTarget* pDownScale1 = pDevice->GetRenderTarget(desc, false);
+				PostProcess(StrID::Scale, pDownScale1, &pBloom);
+				pDevice->ReleaseRenderTargets(&pBloom);
+
+				desc.Width = n2Size.x / 4;
+				desc.Height = n2Size.y / 4;
+				desc.Build();
+				IRenderTarget* pDownScale2 = pDevice->GetRenderTarget(desc, false);
+				PostProcess(StrID::Scale, pDownScale2, &pDownScale1);
+
+				desc.Width = n2Size.x / 8;
+				desc.Height = n2Size.y / 8;
+				desc.Build();
+				IRenderTarget* pDownScale3 = pDevice->GetRenderTarget(desc, false);
+				PostProcess(StrID::Scale, pDownScale3, &pDownScale2);
+
+				// Blur it
+				for (size_t i = 0; i < 4; ++i)
+				{
+					IRenderTarget* pBlur = pDevice->GetRenderTarget(desc, true);
+					PostProcess(StrID::BloomBlurH, pBlur, &pDownScale3);
+					PostProcess(StrID::BloomBlurV, pDownScale3, &pBlur);
+					pDevice->ReleaseRenderTargets(&pBlur);
+				}
+
+				PostProcess(StrID::Scale, pDownScale2, &pDownScale3);
+				pDevice->ReleaseRenderTargets(&pDownScale3);
+
+				PostProcess(StrID::Scale, pDownScale1, &pDownScale2);
+				pDevice->ReleaseRenderTargets(&pDownScale2);
+
+				pBloom = pDownScale1;
+			}
+
+			// Final composite
+			{
+				IRenderTarget* ppComposite[] =
+				{
+					pSource,
+					m_pAdaptedLuminances[m_nCurLumTarget],
+					pBloom,
+				};
+				PostProcess(StrID::Composite, pResult, ppComposite, 3);
+				pDevice->ReleaseRenderTargets(&pBloom);
+			}
+
+			m_nCurLumTarget = !m_nCurLumTarget;
+
+			return true;
+		}
+
+		void HDRFilter::Impl::ClearEffect(IDeviceContext* pd3dDeviceContext, IEffectTech* pTech)
+		{
+			m_pEffect->UndoSamplerState(StrID::PointSampler, 0);
+			m_pEffect->UndoSamplerState(StrID::LinearSampler, 0);
+
+			m_pEffect->SetTexture(StrID::InputTexture0, nullptr);
+			m_pEffect->SetTexture(StrID::InputTexture1, nullptr);
+			m_pEffect->SetTexture(StrID::InputTexture2, nullptr);
+			m_pEffect->SetTexture(StrID::InputTexture3, nullptr);
+
+			m_pEffect->ClearState(pd3dDeviceContext, pTech);
+		}
+
 		HDRFilter::HDRFilter()
-			: m_isInit(false)
-			, m_isEnableLensFlare(true)
-			, m_pEffect(nullptr)
-			, m_fBloomThreshold(0.85f)
-			, m_fToneMapKey(0.8f)
-			, m_fMaxLuminance(512.f)
-			, m_fBloomMultiplier(1.f)
-			, m_fBlurSigma(2.5f)
-			, m_pLuminanceCurrent(nullptr)
-			, m_pLuminanceLast(nullptr)
-			, m_pAdaptedLuminance(nullptr)
-			, m_pSamplerPoint(nullptr)
-			, m_pSamplerLinear(nullptr)
+			: m_pImpl{ std::make_unique<Impl>() }
 		{
 		}
 
 		HDRFilter::~HDRFilter()
 		{
-			Release();
 		}
 
-		bool HDRFilter::Init()
-		{
-			if (m_isInit == true)
-				return true;
-
-			m_isInit = true;
-
-			std::string strPath(File::GetPath(File::EmPath::eFx));
-
-#if defined(DEBUG) || defined(_DEBUG)
-			strPath.append("PostProcessing\\HDR\\HDR_D.cso");
-#else
-			strPath.append("PostProcessing\\HDR\\HDR.cso");
-#endif
-
-			m_pEffect = IEffect::Create(StrID::EffectHDR, strPath.c_str());
-			if (m_pEffect == nullptr)
-				return false;
-
-			m_pEffect->CreateTechnique(StrID::Luminance, EmVertexFormat::eUnknown);
-			m_pEffect->CreateTechnique(StrID::CalcAdaptedLuminance, EmVertexFormat::eUnknown);
-			m_pEffect->CreateTechnique(StrID::ToneMap, EmVertexFormat::eUnknown);
-			m_pEffect->CreateTechnique(StrID::Threshold, EmVertexFormat::eUnknown);
-			m_pEffect->CreateTechnique(StrID::LensFlareFirstPass, EmVertexFormat::eUnknown);
-			m_pEffect->CreateTechnique(StrID::LensFlareSecondPass, EmVertexFormat::eUnknown);
-			m_pEffect->CreateTechnique(StrID::Combine, EmVertexFormat::eUnknown);
-
-			SamplerStateDesc desc;
-			desc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
-			desc.MaxAnisotropy = 1;
-			desc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
-			desc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
-			m_pSamplerPoint = ISamplerState::Create(desc);
-
-			desc.Filter = D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT;
-			m_pSamplerLinear = ISamplerState::Create(desc);
-
-			const Math::UInt2& n2Size = GetDevice()->GetScreenSize();
-
-			int nChainLength = 1;
-			int nStartSize = Math::Min(n2Size.x / 16, n2Size.y / 16);
-			int nSize = 16;
-			for (nSize = 16; nSize < nStartSize; nSize *= 4)
-			{
-				++nChainLength;
-			}
-
-			nSize /= 4;
-			RenderTargetDesc2D rtDesc(DXGI_FORMAT_R32_FLOAT, nSize, nSize);
-			rtDesc.Build();
-
-			m_vecLuminanceChain.resize(nChainLength);
-			for (int i = 0; i < nChainLength; ++i)
-			{
-				m_vecLuminanceChain[i] = IRenderTarget::Create(rtDesc);
-
-				rtDesc.Width /= 4;
-				rtDesc.Height /= 4;
-			}
-
-			rtDesc.Width = 1;
-			rtDesc.Height = 1;
-
-			m_pLuminanceCurrent = IRenderTarget::Create(rtDesc);
-			m_pLuminanceLast = IRenderTarget::Create(rtDesc);
-			m_pAdaptedLuminance = IRenderTarget::Create(rtDesc);
-
-			return true;
-		}
-
-		void HDRFilter::Release()
-		{
-			if (m_isInit == false)
-				return;
-
-			std::for_each(m_vecLuminanceChain.begin(), m_vecLuminanceChain.end(), [](IRenderTarget* pRenderTarget)
-			{
-				SafeDelete(pRenderTarget);
-			});
-			m_vecLuminanceChain.clear();
-			
-			SafeDelete(m_pLuminanceCurrent);
-			SafeDelete(m_pLuminanceLast);
-			SafeDelete(m_pAdaptedLuminance);
-
-			IEffect::Destroy(&m_pEffect);
-
-			m_pSamplerPoint = nullptr;
-			m_pSamplerLinear = nullptr;
-
-			m_isInit = false;
-		}
-
-		void Apply(IDeviceContext* pDeviceContext, IEffect* pEffect, IEffectTech* pTech, IRenderTarget* pResult)
-		{
-			Math::Viewport viewport;
-			viewport.width = static_cast<float>(pResult->GetSize().x);
-			viewport.height = static_cast<float>(pResult->GetSize().y);
-			pDeviceContext->SetViewport(viewport);
-			pDeviceContext->SetRenderTargets(&pResult, 1);
-
-			uint32_t nPassCount = pTech->GetPassCount();
-			for (uint32_t p = 0; p < nPassCount; ++p)
-			{
-				pTech->PassApply(p, pDeviceContext);
-
-				pDeviceContext->Draw(4, 0);
-			}
-		}
-
-		bool HDRFilter::ToneMap(IRenderTarget* pResult, IRenderTarget* pSource, float fElapsedTime)
+		bool HDRFilter::Apply(IRenderTarget* pResult, IRenderTarget* pSource)
 		{
 			if (pResult == nullptr || pResult->GetTexture() == nullptr)
 				return false;
@@ -179,250 +362,37 @@ namespace EastEngine
 			if (pSource == nullptr || pSource->GetTexture() == nullptr)
 				return false;
 
-			D3D_PROFILING(HDRFilter);
-
-			IDevice* pDevice = GetDevice();
-			IDeviceContext* pDeviceContext = GetDeviceContext();
-			
-			{
-				D3D_PROFILING(ResetD3D);
-
-				pDeviceContext->ClearState();
-				pDeviceContext->SetDefaultViewport();
-			}
-
-			pDeviceContext->SetRasterizerState(EmRasterizerState::eSolidCCW);
-			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eRead_Write_Off);
-			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-
-			RenderTargetDesc2D desc = pSource->GetDesc2D();
-			desc.Width /= 16;
-			desc.Height /= 16;
-			desc.Build();
-			IRenderTarget* pDownscale = pDevice->GetRenderTarget(desc, false);
-			if (Downscale::GetInstance()->Apply16SW(pDownscale, pSource) == false)
-			{
-				pDevice->ReleaseRenderTargets(&pDownscale);
-				return false;
-			}
-
-			// CalculateAverageLuminance
-			{
-				D3D_PROFILING(CalculateAverageLuminance);
-
-				// Calculate the initial luminance
-				IEffectTech* pTech = m_pEffect->GetTechnique(StrID::Luminance);
-				if (pTech == nullptr)
-				{
-					assert(false);
-					return false;
-				}
-
-				m_pEffect->SetTexture(StrID::g_texColor, pDownscale->GetTexture());
-				m_pEffect->SetSamplerState(StrID::g_samplerPoint, m_pSamplerPoint, 0);
-				m_pEffect->SetSamplerState(StrID::g_samplerLinear, m_pSamplerLinear, 0);
-
-				Apply(pDeviceContext, m_pEffect, pTech, m_vecLuminanceChain[0]);
-				ClearEffect(pDeviceContext, pTech);
-
-				// Repeatedly downscale
-				size_t nSize = m_vecLuminanceChain.size();
-				for (size_t i = 1; i < nSize; ++i)
-				{
-					Downscale::GetInstance()->Apply4SW(m_vecLuminanceChain[i], m_vecLuminanceChain[i - 1]);
-				}
-
-				// Final downscale
-				Downscale::GetInstance()->Apply4SW(m_pLuminanceCurrent, m_vecLuminanceChain.back(), true);
-
-				// Adapt the luminance, to simulate slowly adjust exposure
-				m_pEffect->SetFloat(StrID::g_fElapsedTime, fElapsedTime);
-
-				pTech = m_pEffect->GetTechnique(StrID::CalcAdaptedLuminance);
-				if (pTech == nullptr)
-				{
-					assert(false);
-					return false;
-				}
-
-				m_pEffect->SetTexture(StrID::g_texLuminanceCur, m_pLuminanceCurrent->GetTexture());
-				m_pEffect->SetTexture(StrID::g_texLuminanceLast, m_pLuminanceLast->GetTexture());
-
-				m_pEffect->SetSamplerState(StrID::g_samplerPoint, m_pSamplerPoint, 0);
-				m_pEffect->SetSamplerState(StrID::g_samplerLinear, m_pSamplerLinear, 0);
-
-				Apply(pDeviceContext, m_pEffect, pTech, m_pAdaptedLuminance);
-				ClearEffect(pDeviceContext, pTech);
-			}
-
-            // Do the bloom first
-			IRenderTarget* pThreshold = pDevice->GetRenderTarget(pDownscale->GetDesc2D(), false);
-			{
-				D3D_PROFILING(Threshold);
-
-				m_pEffect->SetFloat(StrID::g_fThreshold, m_fBloomThreshold);
-				m_pEffect->SetFloat(StrID::g_fMiddleGrey, m_fToneMapKey);
-				m_pEffect->SetFloat(StrID::g_fMaxLuminance, m_fMaxLuminance);
-
-				IEffectTech* pTech = m_pEffect->GetTechnique(StrID::Threshold);
-				if (pTech == nullptr)
-				{
-					assert(false);
-					return false;
-				}
-
-				m_pEffect->SetTexture(StrID::g_texColor, pDownscale->GetTexture());
-				m_pEffect->SetTexture(StrID::g_texLuminanceCur, m_pAdaptedLuminance->GetTexture());
-
-				m_pEffect->SetSamplerState(StrID::g_samplerPoint, m_pSamplerPoint, 0);
-				m_pEffect->SetSamplerState(StrID::g_samplerLinear, m_pSamplerLinear, 0);
-
-				Apply(pDeviceContext, m_pEffect, pTech, pThreshold);
-				ClearEffect(pDeviceContext, pTech);
-			}
-
-			IRenderTarget* pPostBlur = pDevice->GetRenderTarget(pDownscale->GetDesc2D(), false);
-			GaussianBlur::GetInstance()->Apply(pPostBlur, pThreshold, m_fBlurSigma);
-			pDevice->ReleaseRenderTargets(&pThreshold);
-
-			IRenderTarget* pCombine = pPostBlur;
-			if (m_isEnableLensFlare == true)
-			{
-				// LensFlare
-				Math::Vector2 f2SourceDimensions;
-				f2SourceDimensions.x = static_cast<float>(pPostBlur->GetSize().x);
-				f2SourceDimensions.y = static_cast<float>(pPostBlur->GetSize().y);
-
-				m_pEffect->SetVector(StrID::g_f2SourceDimensions, f2SourceDimensions);
-
-				// Calculate the lens flare, first pass
-				IRenderTarget* pLensFlare1 = pDevice->GetRenderTarget(pDownscale->GetDesc2D(), false);
-				IEffectTech* pTech = m_pEffect->GetTechnique(StrID::LensFlareFirstPass);
-				if (pTech == nullptr)
-				{
-					assert(false);
-					return false;
-				}
-
-				m_pEffect->SetTexture(StrID::g_texColor, pPostBlur->GetTexture());
-
-				m_pEffect->SetSamplerState(StrID::g_samplerPoint, m_pSamplerPoint, 0);
-				m_pEffect->SetSamplerState(StrID::g_samplerLinear, m_pSamplerLinear, 0);
-
-				Apply(pDeviceContext, m_pEffect, pTech, pLensFlare1);
-				ClearEffect(pDeviceContext, pTech);
-
-				// Calculate the lens flare, second pass
-				IRenderTarget* pLensFlare2 = pDevice->GetRenderTarget(pDownscale->GetDesc2D(), false);
-				pTech = m_pEffect->GetTechnique(StrID::LensFlareSecondPass);
-				if (pTech == nullptr)
-				{
-					assert(false);
-					return false;
-				}
-
-				m_pEffect->SetTexture(StrID::g_texColor, pPostBlur->GetTexture());
-
-				m_pEffect->SetSamplerState(StrID::g_samplerPoint, m_pSamplerPoint, 0);
-				m_pEffect->SetSamplerState(StrID::g_samplerLinear, m_pSamplerLinear, 0);
-
-				Apply(pDeviceContext, m_pEffect, pTech, pLensFlare2);
-				ClearEffect(pDeviceContext, pTech);
-
-				// Combine the lens flare with the bloom
-				pCombine = pDevice->GetRenderTarget(pDownscale->GetDesc2D(), false);
-				pTech = m_pEffect->GetTechnique(StrID::Combine);
-				if (pTech == nullptr)
-				{
-					assert(false);
-					return false;
-				}
-
-				m_pEffect->SetTexture(StrID::g_texColor, pPostBlur->GetTexture());
-
-				m_pEffect->SetTexture(StrID::g_texLensFlare1, pLensFlare1->GetTexture());
-				m_pEffect->SetTexture(StrID::g_texLensFlare2, pLensFlare2->GetTexture());
-
-				m_pEffect->SetSamplerState(StrID::g_samplerPoint, m_pSamplerPoint, 0);
-				m_pEffect->SetSamplerState(StrID::g_samplerLinear, m_pSamplerLinear, 0);
-
-				Apply(pDeviceContext, m_pEffect, pTech, pCombine);
-				ClearEffect(pDeviceContext, pTech);
-
-				pDevice->ReleaseRenderTargets(&pPostBlur);
-				pDevice->ReleaseRenderTargets(&pLensFlare1);
-				pDevice->ReleaseRenderTargets(&pLensFlare2);
-			}
-
-			// Scale it back to half of full size (will do the final scaling step when sampling
-			// the bloom texture during tone mapping).
-			desc = pCombine->GetDesc2D();
-			desc.Width *= 2;
-			desc.Height *= 2;
-			desc.Build();
-			IRenderTarget* pUpScale1 = pDevice->GetRenderTarget(desc, false);
-			Downscale::GetInstance()->ApplyHW(pUpScale1, pCombine);
-			pDevice->ReleaseRenderTargets(&pCombine);
-
-			desc = pUpScale1->GetDesc2D();
-			desc.Width *= 2;
-			desc.Height *= 2;
-			desc.Build();
-			IRenderTarget* pUpScale2 = pDevice->GetRenderTarget(desc, false);
-			Downscale::GetInstance()->ApplyHW(pUpScale2, pUpScale1);
-			pDevice->ReleaseRenderTargets(&pUpScale1);
-
-			desc = pUpScale2->GetDesc2D();
-			desc.Width *= 2;
-			desc.Height *= 2;
-			desc.Build();
-			IRenderTarget* pBloom = pDevice->GetRenderTarget(desc, false);
-			Downscale::GetInstance()->ApplyHW(pBloom, pUpScale2);
-			pDevice->ReleaseRenderTargets(&pUpScale2);
-
-			{
-				D3D_PROFILING(Apply);
-
-				m_pEffect->SetFloat(StrID::g_fMiddleGrey, m_fToneMapKey);
-				m_pEffect->SetFloat(StrID::g_fMaxLuminance, m_fMaxLuminance);
-				m_pEffect->SetFloat(StrID::g_fBloomMultiplier, m_fBloomMultiplier);
-
-				m_pEffect->SetTexture(StrID::g_texColor, pSource->GetTexture());
-				m_pEffect->SetTexture(StrID::g_texLuminanceCur, m_pAdaptedLuminance->GetTexture());
-				m_pEffect->SetTexture(StrID::g_texBloom, pBloom->GetTexture());
-
-				IEffectTech* pTech = m_pEffect->GetTechnique(StrID::ToneMap);
-				if (pTech == nullptr)
-				{
-					assert(false);
-					return false;
-				}
-
-				m_pEffect->SetSamplerState(StrID::g_samplerPoint, m_pSamplerPoint, 0);
-				m_pEffect->SetSamplerState(StrID::g_samplerLinear, m_pSamplerLinear, 0);
-
-				Apply(pDeviceContext, m_pEffect, pTech, pResult);
-				ClearEffect(pDeviceContext, pTech);
-			}
-
-			pDevice->ReleaseRenderTargets(&pBloom);
-			pDevice->ReleaseRenderTargets(&pDownscale);
-
-			std::swap(m_pLuminanceCurrent, m_pLuminanceLast);
-
-			return true;
+			return m_pImpl->Apply(pResult, pSource);
 		}
 
-		void HDRFilter::ClearEffect(IDeviceContext* pd3dDeviceContext, IEffectTech* pEffectTech)
+		HDRFilter::Settings& HDRFilter::GetSettings()
 		{
-			m_pEffect->SetTexture(StrID::g_texColor, nullptr);
-			m_pEffect->SetTexture(StrID::g_texBloom, nullptr);
-			m_pEffect->SetTexture(StrID::g_texLuminanceCur, nullptr);
-			m_pEffect->SetTexture(StrID::g_texLuminanceLast, nullptr);
-			m_pEffect->SetTexture(StrID::g_texLensFlare1, nullptr);
-			m_pEffect->SetTexture(StrID::g_texLensFlare2, nullptr);
-			m_pEffect->UndoSamplerState(StrID::g_samplerPoint, 0);
-			m_pEffect->UndoSamplerState(StrID::g_samplerLinear, 0);
+			return m_pImpl->GetSettings();
+		}
+
+		void HDRFilter::SetSettings(const Settings& settings)
+		{
+			return m_pImpl->SetSettings(settings);
+		}
+
+		HDRFilter::ToneMappingType HDRFilter::GetToneMappingType() const
+		{
+			return m_pImpl->GetToneMappingType();
+		}
+
+		void HDRFilter::SetToneMappingType(HDRFilter::ToneMappingType emToneMappingType)
+		{
+			m_pImpl->SetToneMappingType(emToneMappingType);
+		}
+
+		HDRFilter::AutoExposureType HDRFilter::GetAutoExposureType() const
+		{
+			return m_pImpl->GetAutoExposureType();
+		}
+
+		void HDRFilter::SetAutoExposureType(HDRFilter::AutoExposureType emAutoExposureType)
+		{
+			m_pImpl->SetAutoExposureType(emAutoExposureType);
 		}
 	}
 }

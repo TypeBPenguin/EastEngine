@@ -180,6 +180,7 @@ namespace EastEngine
 			virtual void SetRenderTargetsAndUnorderedAccessViews(IRenderTarget** ppRenderTarget, uint32_t nSize, IDepthStencil* pDepthStencil, uint32_t nUAVStartSlot, uint32_t nUAVCount, ID3D11UnorderedAccessView* const* ppUnorderedAccessViews, const uint32_t* pUAVInitialCounts) = 0;
 
 			virtual void SetViewport(const Math::Viewport& viewport) = 0;
+			virtual void SetViewport(const Math::Viewport* pViewports, uint32_t nCount) = 0;
 			virtual void SetDefaultViewport() = 0;
 
 		public:

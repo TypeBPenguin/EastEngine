@@ -253,5 +253,8 @@
     <FxCompile Include="..\..\Bin\Data\Fx\PostProcessing\BloomFilter\BloomFilter.fx">
       <Filter>Renderer\PostProcessing\BloomFilter</Filter>
     </FxCompile>
+    <FxCompile Include="..\..\Bin\Data\Fx\PostProcessing\HDRFilter\HDRFilter.fx">
+      <Filter>Renderer\PostProcessing\HDR</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

@@ -145,9 +145,6 @@
     <Filter Include="DirectX\Shader\Fx\PostProcess\Downscale">
       <UniqueIdentifier>{2866a8d5-9187-4c7f-8d76-2d5db0f82033}</UniqueIdentifier>
     </Filter>
-    <Filter Include="DirectX\Shader\Fx\PostProcess\HDRFilter">
-      <UniqueIdentifier>{d9bc0fa6-81d6-48cf-a11e-4549120fe612}</UniqueIdentifier>
-    </Filter>
     <Filter Include="DirectX\Shader\Fx\Terrain">
       <UniqueIdentifier>{86084968-588b-4517-a17a-defc129e12a6}</UniqueIdentifier>
     </Filter>
@@ -525,9 +522,6 @@
     </FxCompile>
     <FxCompile Include="..\..\Bin\Data\Fx\PostProcessing\ColorGrading\ColorGrading.fx">
       <Filter>DirectX\Shader\Fx\PostProcess\ColorGrading</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\Bin\Data\Fx\PostProcessing\HDR\HDR.fx">
-      <Filter>DirectX\Shader\Fx\PostProcess\HDRFilter</Filter>
     </FxCompile>
     <FxCompile Include="..\..\Bin\Data\Fx\PostProcessing\SSAO\SSAO.fx">
       <Filter>DirectX\Shader\Fx\PostProcess\SSAO</Filter>

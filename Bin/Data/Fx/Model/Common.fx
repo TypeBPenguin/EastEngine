@@ -76,7 +76,7 @@ float4 CalcColor(in float3 posW,
 			albedo, diffuseColor);
 	
 		diffuse += diffuseColor * attenuation * lightIntensity;
-		sumReflectionIntensity += reflectionIntensity;
+		sumReflectionIntensity += reflectionIntensity * 0.1f;
 		ambient += albedo * ambientIntensity;
 	}
 

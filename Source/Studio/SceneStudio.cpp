@@ -152,147 +152,8 @@ SceneStudio::~SceneStudio()
 	SafeDelete(m_pMaterialNodeManager);
 }
 
-Math::Vector3 GetEularAngle1(const Math::Quaternion& quat)
-{
-	Math::Matrix RotationMatrix = Math::Matrix::CreateFromQuaternion(quat);
-	
-	double ForwardY = -RotationMatrix._32;
-
-	float DegreesYaw = 0.f;
-    float DegreesPitch = 0.f;
-    float DegreesRoll = 0.f;
-
-	if (ForwardY <= -1.0f)
-	{
-		DegreesPitch = Math::ToDegrees(-Math::PI2);
-	}
-	else if (ForwardY >= 1.0f)
-	{
-		DegreesPitch = Math::ToDegrees(Math::PI2);
-	}
-	else
-	{
-		DegreesPitch = Math::ToDegrees(Math::ASin(ForwardY));
-	}
-
-	//Gimbal lock
-	if (ForwardY > 0.9999f)
-	{
-		DegreesYaw = 0.f;
-		DegreesRoll = Math::ToDegrees(std::atan2(RotationMatrix._13, RotationMatrix._11));
-	}
-	else
-	{
-		DegreesYaw = Math::ToDegrees(std::atan2(RotationMatrix._31, RotationMatrix._33));
-		DegreesRoll = Math::ToDegrees(std::atan2(RotationMatrix._12, RotationMatrix._22));
-	}
-
-	return { DegreesPitch ,DegreesYaw, DegreesRoll };
-}
-
-Math::Vector3 GetEularAngle2(Math::Quaternion q)
-{
-	Math::Vector3 result;
-
-	double test = q.x * q.y + q.z * q.w;
-	if (test > 0.499)
-	{
-		result = Math::Vector3(2 * std::atan2(q.x, q.w), Math::PI / 2, 0);
-	}
-	else if (test < -0.499)
-	{
-		result = Math::Vector3(-2 * std::atan2(q.x, q.w), -Math::PI / 2, 0);
-	}
-	else
-	{
-		result = Math::Vector3
-		(
-			std::atan2(2 * q.x * q.w - 2 * q.y * q.z, 1 - 2 * q.x * q.x - 2 * q.z * q.z),
-			std::asin(2 * test),
-			std::atan2(2 * q.y * q.w - 2 * q.x * q.z, 1 - 2 * q.y * q.y - 2 * q.z * q.z)
-		);
-	}
-
-	result.x = Math::ToDegrees(result.x);
-	result.y = Math::ToDegrees(result.y);
-	result.z = Math::ToDegrees(result.z);
-
-	return result;
-}
-
-Math::Vector3 GetEularAngle3(Math::Quaternion q)
-{
-	float m00 = 1.0f - (2.0f * ((q.y * q.y) + q.z * q.z));
-	float m01 = 2.0f * (q.x * q.y + q.w * q.z);
-
-	Math::Vector3 result
-	(
-		std::atan2(2.0f * (q.y * q.z + q.w * q.x), 1.0f - (2.0f * ((q.x * q.x) + (q.y * q.y)))),
-		std::atan2(-2.0f * (q.x * q.z - q.w * q.y), std::sqrt((m00 * m00) + (m01 * m01))),
-		std::atan2(m01, m00)
-	);
-
-	result.x = Math::ToDegrees(result.x);
-	result.y = Math::ToDegrees(result.y);
-	result.z = Math::ToDegrees(result.z);
-
-	return result;
-}
-
-Math::Vector3 GetEularAngle4(Math::Quaternion q)
-{
-	Math::Vector3 v;
-	
-	v.x = (float)std::atan2 
-	( 
-	    2 * q.y * q.w - 2 * q.x * q.z,  
-	    1 - 2* std::pow(q.y, 2) - 2* std::pow(q.z, 2)
-	); 
-	
-	v.y = (float)std::asin
-	( 
-	    2*q.x*q.y + 2*q.z*q.w 
-	); 
-	
-	v.z = (float)std::atan2
-	( 
-	    2*q.x*q.w-2*q.y*q.z, 
-	    1 - 2* std::pow(q.x, 2) - 2* std::pow(q.z, 2)
-	); 
-	
-	if(q.x*q.y + q.z*q.w == 0.5) 
-	{ 
-	    v.x = (float)(2 * std::atan2(q.x,q.w));
-	    v.z = 0;     
-	} 
-	else if(q.x*q.y + q.z*q.w == -0.5) 
-	{ 
-	    v.x = (float)(-2 * std::atan2(q.x, q.w));
-	    v.z = 0; 
-	} 
-
-	v.x = Math::ToDegrees(v.x);
-	v.y = Math::ToDegrees(v.y);
-	v.z = Math::ToDegrees(v.z);
-
-	return v; 
-}
-
 void SceneStudio::Enter()
 {
-	Math::Vector3 Degrees(90.0002f, 0.0001f, 180.0003f);
-	Math::Quaternion quat = Math::Quaternion::CreateFromYawPitchRoll(Math::ToRadians(Degrees.y), Math::ToRadians(Degrees.x), Math::ToRadians(Degrees.z));
-
-	Math::Vector3 eularAngle1 = GetEularAngle1(quat);
-	Math::Vector3 eularAngle2 = GetEularAngle2(quat);
-	Math::Vector3 eularAngle3 = GetEularAngle3(quat);
-	Math::Vector3 eularAngle4 = GetEularAngle4(quat);
-
-	bool is1 = Degrees == eularAngle1;
-	bool is2 = Math::IsEqual(Degrees.x, eularAngle2.x) && Math::IsEqual(Degrees.y, eularAngle2.y) && Math::IsEqual(Degrees.z, eularAngle2.z);
-	bool is3 = Degrees == eularAngle3;
-	bool is4 = Degrees == eularAngle4;
-
 	Windows::WindowsManager::GetInstance()->AddMessageHandler(HandleMsg);
 
 	HWND hWnd = Windows::GetHwnd();
@@ -344,14 +205,25 @@ void SceneStudio::Enter()
 	Graphics::IImageBasedLight* pIBL = Graphics::GetImageBasedLight();
 
 	std::string strCubeMapPath = strPath;
-	strCubeMapPath.append("CubeMap.dds");
-	std::shared_ptr<Graphics::ITexture> pTexture = Graphics::ITexture::Create("CubeMap.dds", strCubeMapPath);
+	strCubeMapPath.append("IBL\\Summi_Pool\\Summi_PoolEnvHDR.dds");
+	std::shared_ptr<Graphics::ITexture> pTexture = Graphics::ITexture::Create(File::GetFileName(strCubeMapPath).c_str(), strCubeMapPath);
 	pIBL->SetCubeMap(pTexture);
 
 	std::string strIrradiancePath = strPath;
-	strIrradiancePath.append("Irradiance.dds");
-	pTexture = Graphics::ITexture::Create("Irradiance.dds", strIrradiancePath);
+	strIrradiancePath.append("IBL\\Summi_Pool\\Summi_PoolDiffuseHDR.dds");
+	pTexture = Graphics::ITexture::Create(File::GetFileName(strIrradiancePath).c_str(), strIrradiancePath);
 	pIBL->SetIrradianceMap(pTexture);
+
+	{
+		GameObject::SkyboxProperty sky;
+
+		sky.strTexSky = File::GetPath(File::eTexture);
+		sky.strTexSky.append("IBL\\Summi_Pool\\Summi_PoolEnvHDR.dds");
+
+		sky.fBoxSize = 5000.f;
+
+		m_pSkybox = GameObject::ISkybox::Create("BaseSkybox", sky);
+	}
 
 	{
 		auto pActor = GameObject::ActorManager::GetInstance()->CreateActor(StrID::Studio_Ground);
@@ -555,17 +427,6 @@ void SceneStudio::Enter()
 
 		// 백그라운드 로딩은 이렇게 쓰면됨
 		//GameObject::ITerrain::CreateAsync("BaseTerrain", terrain);
-	}
-
-	{
-		GameObject::SkyboxProperty sky;
-
-		sky.strTexSky = File::GetPath(File::eTexture);
-		sky.strTexSky.append("grasscube1024.dds");
-
-		sky.fBoxSize = 5000.f;
-
-		GameObject::ISkybox::Create("BaseSkybox", sky);
 	}
 
 	auto CreateActor = [](const String::StringID& strActorName, const char* strModelFilePath, 
@@ -868,6 +729,7 @@ void SceneStudio::Exit()
 	std::for_each(m_vecSuns.begin(), m_vecSuns.end(), DeleteSTLObject());
 	m_vecSuns.clear();
 
+	GameObject::ISkybox::Destroy(&m_pSkybox);
 	SafeDelete(m_pSkeletonController);
 	SafeDelete(m_pMaterialNodeManager);
 	
@@ -1052,7 +914,7 @@ void SceneStudio::ProcessInput(float fElapsedTime)
 	}
 }
 
-void ShowConfig()
+void SceneStudio::ShowConfig()
 {
 	static bool isShowMainMenu = true;
 
@@ -1280,44 +1142,70 @@ void ShowConfig()
 				Config::SetEnable("HDRFilter"_s, isApplyHDRFilter);
 			}
 
-			Graphics::HDRFilter* pHDRFilter = Graphics::HDRFilter::GetInstance();
-
-			bool isApplyLensFlare = pHDRFilter->IsEnableLensFlare();
-			if (ImGui::Checkbox("LensFlare Apply", &isApplyLensFlare) == true)
+			Graphics::HDRFilter::Settings& settings = Graphics::HDRFilter::GetInstance()->GetSettings();
+			if (ImGui::Button("Reset") == true)
 			{
-				pHDRFilter->SetEnableLensFlare(isApplyLensFlare);
+				settings = Graphics::HDRFilter::Settings();
+				Graphics::HDRFilter::GetInstance()->SetToneMappingType(Graphics::HDRFilter::eNone);
+				Graphics::HDRFilter::GetInstance()->SetAutoExposureType(Graphics::HDRFilter::eManual);
 			}
 
-			ImGui::PushItemWidth(100);
-			float fBloomThreshold = pHDRFilter->GetBloomThreshold();
-			if (ImGui::DragFloat("Bloom Threshold", &fBloomThreshold, 0.01f, 0.f, 10.f) == true)
+			ImGui::PushItemWidth(150);
+
+			const std::array<const char*, Graphics::HDRFilter::NumToneMappingTypes> ToneMappingTypes = 
 			{
-				pHDRFilter->SetBloomThreshold(fBloomThreshold);
+				"None",
+				"Logarithmic",
+				"Exponential",
+				"DragoLogarithmic",
+				"Reinhard",
+				"ReinhardModified",
+				"FilmicALU",
+				"FilmicUncharted",
+				"ACES",
+			};
+
+			const std::array<const char*, Graphics::HDRFilter::NumAutoExposureTypes> AutoExposureTypes =
+			{
+				"Manual",
+				"GeometricMean",
+				"GeometricMeanAutoKey",
+			};
+
+			Graphics::HDRFilter::ToneMappingType emToneMappingType = Graphics::HDRFilter::GetInstance()->GetToneMappingType();
+			if (ImGui::Combo("ToneMappingTypes", reinterpret_cast<int*>(&emToneMappingType), ToneMappingTypes.data(), ToneMappingTypes.size()) == true)
+			{
+				Graphics::HDRFilter::GetInstance()->SetToneMappingType(emToneMappingType);
 			}
 
-			float fBloomMultiplier = pHDRFilter->GetBloomMultiplier();
-			if (ImGui::DragFloat("Bloom Multiplier", &fBloomMultiplier, 0.01f, 0.f, 16.f) == true)
+			Graphics::HDRFilter::AutoExposureType emAutoExposureType = Graphics::HDRFilter::GetInstance()->GetAutoExposureType();
+			if (ImGui::Combo("AutoExposureTypes", reinterpret_cast<int*>(&emAutoExposureType), AutoExposureTypes.data(), AutoExposureTypes.size()) == true)
 			{
-				pHDRFilter->SetBloomMultiplier(fBloomMultiplier);
+				Graphics::HDRFilter::GetInstance()->SetAutoExposureType(emAutoExposureType);
 			}
 
-			float fToneMapKey = pHDRFilter->GetToneMapKey();
-			if (ImGui::DragFloat("ToneMapKey", &fToneMapKey, 0.01f, 0.f, 10.f) == true)
-			{
-				pHDRFilter->SetToneMapKey(fToneMapKey);
-			}
+			ImGui::DragFloat("BloomThreshold", &settings.BloomThreshold, 0.01f, 0.f, 10.f);
+			ImGui::DragFloat("BloomMagnitude", &settings.BloomMagnitude, 0.01f, 0.f, 2.f);
+			ImGui::DragFloat("BloomBlurSigma", &settings.BloomBlurSigma, 0.01f, 0.5f, 1.5f);
+			ImGui::DragFloat("Tau", &settings.Tau, 0.01f, 0.f, 4.f);
+			ImGui::DragFloat("Exposure", &settings.Exposure, 0.01f, -10.f, 10.f);
+			ImGui::DragFloat("KeyValue", &settings.KeyValue, 0.01f, 0.f, 1.f);
+			ImGui::DragFloat("WhiteLevel", &settings.WhiteLevel, 0.01f, 0.f, 5.f);
+			ImGui::DragFloat("ShoulderStrength", &settings.ShoulderStrength, 0.01f, 0.f, 2.f);
+			ImGui::DragFloat("LinearStrength", &settings.LinearStrength, 0.01f, 0.f, 5.f);
+			ImGui::DragFloat("LinearAngle", &settings.LinearAngle, 0.01f, 0.f, 1.f);
+			ImGui::DragFloat("ToeStrength", &settings.ToeStrength, 0.01f, 0.f, 2.f);
+			ImGui::DragFloat("ToeNumerator", &settings.ToeNumerator, 0.01f, 0.f, 0.5f);
+			ImGui::DragFloat("ToeDenominator", &settings.ToeDenominator, 0.01f, 0.f, 2.f);
+			ImGui::DragFloat("LinearWhite", &settings.LinearWhite, 0.01f, 0.f, 20.f);
+			ImGui::DragFloat("LuminanceSaturation", &settings.LuminanceSaturation, 0.01f, 0.f, 4.f);
 
-			float fMaxLuminance = pHDRFilter->GetMaxLuminance();
-			if (ImGui::DragFloat("MaxLuminance", &fMaxLuminance, 0.1f, 0.f, 1024.f) == true)
+			int nLumMapMipLevel = static_cast<int>(settings.LumMapMipLevel);
+			if (ImGui::DragInt("LumMapMipLevel", &nLumMapMipLevel, 0.1f, 0, 10) == true)
 			{
-				pHDRFilter->SetMaxLuminance(fMaxLuminance);
+				settings.LumMapMipLevel = static_cast<float>(nLumMapMipLevel);
 			}
-
-			float fBlurSigma = pHDRFilter->GetBlurSigma();
-			if (ImGui::DragFloat("fBlurSigma", &fBlurSigma, 0.01f, 0.f, 32.f) == true)
-			{
-				pHDRFilter->SetBlurSigma(fBlurSigma);
-			}
+			ImGui::DragFloat("Bias", &settings.Bias, 0.01f, 0.f, 1.f);
 
 			ImGui::PopItemWidth();
 
@@ -1354,6 +1242,50 @@ void ShowConfig()
 			ImGui::PopID();
 
 			ImGui::TreePop();
+		}
+	}
+
+	if (ImGui::CollapsingHeader("Skybox") == true)
+	{
+		const std::array<const char*, 3> IBL_EnvHDR_Type =
+		{
+			"Summi_Pool",
+			"PaperMill_E",
+			"Default",
+		};
+
+		const std::array<const char*, 3> IBL_EnvHDR = 
+		{
+			"IBL\\Summi_Pool\\Summi_PoolEnvHDR.dds",
+			"IBL\\PaperMill_Ruins_E\\PaperMill_EEnvHDR.dds",
+			"IBL\\Default\\CubeMap.dds",
+		};
+
+		const std::array<const char*, 3> IBL_DiffuseHDR = 
+		{
+			"IBL\\Summi_Pool\\Summi_PoolDiffuseHDR.dds",
+			"IBL\\PaperMill_Ruins_E\\PaperMill_EDiffuseHDR.dds",
+			"IBL\\Default\\Irradiance.dds",
+		};
+
+		static int nSelectedIndex = 0;
+		if (ImGui::Combo("Env", &nSelectedIndex, IBL_EnvHDR_Type.data(), IBL_EnvHDR_Type.size()) == true)
+		{
+			std::string strPath = File::GetPath(File::eTexture);
+
+			Graphics::IImageBasedLight* pIBL = Graphics::GetImageBasedLight();
+
+			std::string strEnvPath = strPath;
+			strEnvPath.append(IBL_EnvHDR[nSelectedIndex]);
+			std::shared_ptr<Graphics::ITexture> pEnvTexture = Graphics::ITexture::Create(File::GetFileName(strEnvPath).c_str(), strEnvPath);
+			pIBL->SetCubeMap(pEnvTexture);
+
+			std::string strDiffusePath = strPath;
+			strDiffusePath.append(IBL_DiffuseHDR[nSelectedIndex]);
+			std::shared_ptr<Graphics::ITexture> pDiffuseTexture = Graphics::ITexture::Create(File::GetFileName(strDiffusePath).c_str(), strDiffusePath);
+			pIBL->SetIrradianceMap(pDiffuseTexture);
+
+			m_pSkybox->SetTexture(pEnvTexture);
 		}
 	}
 
@@ -1675,6 +1607,7 @@ void ShowMaterial(bool& isShowMaterial, Graphics::IMaterial* pMaterial, int nInd
 		"Squared",
 		"Negative",
 		"Opacity",
+		"AlphaBlend",
 	};
 	Graphics::EmBlendState::Type emBlendState = pMaterial->GetBlendState();
 	if (ImGui::Combo("BlendState", reinterpret_cast<int*>(&emBlendState), strBlendState, Graphics::EmBlendState::TypeCount) == true)

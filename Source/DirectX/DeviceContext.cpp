@@ -207,6 +207,11 @@ namespace EastEngine
 			m_pDeviceContext->RSSetViewports(1, viewport.Get11());
 		}
 
+		void DeviceContext::SetViewport(const Math::Viewport* pViewports, uint32_t nCount)
+		{
+			m_pDeviceContext->RSSetViewports(nCount, reinterpret_cast<const D3D11_VIEWPORT*>(pViewports));
+		}
+
 		void DeviceContext::SetDefaultViewport()
 		{
 			const Math::Viewport& viewport = GetDevice()->GetViewport();

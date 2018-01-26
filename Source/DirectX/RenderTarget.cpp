@@ -49,11 +49,6 @@ namespace EastEngine
 				m_renderTargetDesc2D = *pRenderTargetDesc;
 			}
 
-			if (m_renderTargetDesc2D.MipLevels > 1 && (D3D11_BIND_RENDER_TARGET & m_renderTargetDesc2D.BindFlags) != 0)
-			{
-				m_renderTargetDesc2D.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
-			}
-
 			m_pTexture = ITexture::Create(strName, pTexture2D, pRenderTargetDesc);
 			if (m_pTexture == nullptr)
 				return false;

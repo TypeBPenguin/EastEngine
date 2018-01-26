@@ -6,12 +6,6 @@ namespace EastEngine
 {
 	namespace Graphics
 	{
-		class IEffect;
-		class IEffectTech;
-
-		class IRenderTarget;
-		class ISamplerState;
-
 		class HDRFilter : public Singleton<HDRFilter>
 		{
 			friend Singleton<HDRFilter>;
@@ -20,53 +14,70 @@ namespace EastEngine
 			virtual ~HDRFilter();
 
 		public:
-			bool Init();
-			void Release();
+			enum ToneMappingType
+			{
+				eNone = 0,
+				eLogarithmic,
+				eExponential,
+				eDragoLogarithmic,
+				eReinhard,
+				eReinhardModified,
+				eFilmicALU,
+				eFilmicUncharted,
+				eACES,
+
+				NumToneMappingTypes,
+			};
+
+			enum AutoExposureType
+			{
+				eManual = 0,
+				eGeometricMean = 1,
+				eGeometricMeanAutoKey = 2,
+
+				NumAutoExposureTypes,
+			};
+
+			struct Settings
+			{
+				float BloomThreshold{ 2.f };		// 0.f ~ 10.f
+				float BloomMagnitude{ 0.f };		// 0.f ~ 2.f
+				float BloomBlurSigma{ 0.8f };		// 0.5f ~ 1.5f
+				float Tau{ 1.25f };					// 0.f ~ 4.f
+				float TimeDelta{};
+				float ToneMapTechnique{};
+				float Exposure{ 0.f };				// -10.f ~ 10.f
+				float KeyValue{ 0.18f };			// 0.f ~ 1.f
+				float AutoExposure{};
+				float WhiteLevel{ 5.f };			// 0.f ~ 25.f
+				float ShoulderStrength{ 0.22f };	// 0.f ~ 2.f
+				float LinearStrength{ 0.3f };		// 0.f ~ 5.f
+				float LinearAngle{ 0.1f };			// 0.f ~ 1.f
+				float ToeStrength{ 0.2f };			// 0.f ~ 2.f
+				float ToeNumerator{ 0.01f };		// 0.f ~ 0.5f
+				float ToeDenominator{ 0.3f };		// 0.f ~ 2.f
+				float LinearWhite{ 11.2f };			// 0.f ~ 20.f
+				float LuminanceSaturation{ 1.f };	// 0.f ~ 4.f
+				float LumMapMipLevel{ 10.f };		// 0 ~ 10
+				float Bias{ 0.5f };					// 0.f ~ 1.f
+			};
 
 		public:
-			float GetBloomThreshold() const { return m_fBloomThreshold; }
-			void SetBloomThreshold(float fBloomThreshold) { m_fBloomThreshold = fBloomThreshold; }
-
-			float GetBloomMultiplier() const { return m_fBloomMultiplier; }
-			void SetBloomMultiplier(float fBloomMultiplier) { m_fBloomMultiplier = fBloomMultiplier; }
-
-			float GetToneMapKey() const { return m_fToneMapKey; }
-			void SetToneMapKey(float fToneMapKey) { m_fToneMapKey = fToneMapKey; }
-
-			float GetMaxLuminance() const { return m_fMaxLuminance; }
-			void SetMaxLuminance(float fMaxLuminance) { m_fMaxLuminance = fMaxLuminance;; }
-
-			float GetBlurSigma() const { return m_fBlurSigma; }
-			void SetBlurSigma(float fBlurSigma) { m_fBlurSigma = fBlurSigma;; }
-
-			bool IsEnableLensFlare() { return m_isEnableLensFlare; }
-			void SetEnableLensFlare(bool isEnableLensFlare) { m_isEnableLensFlare = isEnableLensFlare; }
+			bool Apply(IRenderTarget* pResult, IRenderTarget* pSource);
 
 		public:
-			bool ToneMap(IRenderTarget* pResult, IRenderTarget* pSource, float fElapsedTime);
+			Settings& GetSettings();
+			void SetSettings(const Settings& settings);
+
+			ToneMappingType GetToneMappingType() const;
+			void SetToneMappingType(ToneMappingType emToneMappingType);
+
+			AutoExposureType GetAutoExposureType() const;
+			void SetAutoExposureType(AutoExposureType emAutoExposureType);
 
 		private:
-			void ClearEffect(IDeviceContext* pd3dDeviceContext, IEffectTech* pEffectTech);
-
-		private:
-			bool m_isInit;
-			bool m_isEnableLensFlare;
-
-			IEffect* m_pEffect;
-
-			float m_fBloomThreshold;
-			float m_fToneMapKey;
-			float m_fMaxLuminance;
-			float m_fBloomMultiplier;
-			float m_fBlurSigma;
-
-			std::vector<IRenderTarget*> m_vecLuminanceChain;
-			IRenderTarget* m_pLuminanceCurrent;
-			IRenderTarget* m_pLuminanceLast;
-			IRenderTarget* m_pAdaptedLuminance;
-
-			ISamplerState* m_pSamplerPoint;
-			ISamplerState* m_pSamplerLinear;
+			class Impl;
+			std::unique_ptr<Impl> m_pImpl;
 		};
 	}
 }

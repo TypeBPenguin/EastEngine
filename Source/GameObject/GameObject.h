@@ -170,6 +170,9 @@ namespace EastEngine
 
 			virtual void SetVisible(bool bVisible) = 0;
 			virtual bool IsVisible() const = 0;
+
+			virtual std::shared_ptr<Graphics::ITexture> GetTexture() const = 0;
+			virtual void SetTexture(const std::shared_ptr<Graphics::ITexture>& pTexture) = 0;
 		};
 	}
 }

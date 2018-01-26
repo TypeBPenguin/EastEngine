@@ -46,7 +46,6 @@ namespace EastEngine
 			SafeRelease(m_pFxaa);
 			FXAA::DestroyInstance();
 
-			SafeRelease(m_pHDRFilter);
 			HDRFilter::DestroyInstance();
 
 			SafeRelease(m_pColorGrading);
@@ -85,8 +84,6 @@ namespace EastEngine
 				return false;
 
 			m_pHDRFilter = HDRFilter::GetInstance();
-			if (m_pHDRFilter->Init() == false)
-				return false;
 
 			//m_pASSAO = ASSAO::GetInstance();
 			//if (m_pASSAO->Init(viewport) == false)
@@ -129,10 +126,9 @@ namespace EastEngine
 
 			if (Config::IsEnable("HDRFilter"_s) == true)
 			{
-				float fElapsedTime = Timer::GetInstance()->GetDeltaTime();
 				IRenderTarget* pHDR = pDevice->GetRenderTarget(pDevice->GetLastUseRenderTarget()->GetDesc2D(), false);
 				IRenderTarget* pSource = pDevice->GetLastUseRenderTarget();
-				m_pHDRFilter->ToneMap(pHDR, pSource, fElapsedTime);
+				m_pHDRFilter->Apply(pHDR, pSource);
 			
 				pDevice->ReleaseRenderTargets(&pHDR);
 			}

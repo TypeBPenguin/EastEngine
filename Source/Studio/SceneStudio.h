@@ -10,6 +10,7 @@ namespace EastEngine
 	namespace GameObject
 	{
 		class SectorMgr;
+		class ISkybox;
 	}
 }
 
@@ -34,6 +35,7 @@ private:
 
 private:
 	void RenderUI();
+	void ShowConfig();
 
 private:
 	SkeletonController* m_pSkeletonController;
@@ -41,4 +43,5 @@ private:
 	EastEngine::GameObject::SectorMgr* m_pSectorMgr;
 
 	std::vector<Contents::Sun*> m_vecSuns;
+	EastEngine::GameObject::ISkybox* m_pSkybox{ nullptr };
 };

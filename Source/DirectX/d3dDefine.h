@@ -389,6 +389,11 @@ namespace EastEngine
 
 			void init()
 			{
+				if (MipLevels > 1 && (D3D11_BIND_RENDER_TARGET & BindFlags) != 0)
+				{
+					MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
+				}
+
 				if (BindFlags & D3D11_BIND_RENDER_TARGET)
 				{
 					vecRTVDesc.clear();

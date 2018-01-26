@@ -54,6 +54,7 @@ namespace EastEngine
 			virtual void SetRenderTargetsAndUnorderedAccessViews(IRenderTarget** ppRenderTarget, uint32_t nSize, IDepthStencil* pDepthStencil, uint32_t nUAVStartSlot, uint32_t nUAVCount, ID3D11UnorderedAccessView* const* ppUnorderedAccessViews, const uint32_t* pUAVInitialCounts) override;
 
 			virtual void SetViewport(const Math::Viewport& viewport) override;
+			virtual void SetViewport(const Math::Viewport* pViewports, uint32_t nCount) override;
 			virtual void SetDefaultViewport() override;
 
 		public:

@@ -22,6 +22,9 @@ namespace EastEngine
 			virtual void SetVisible(bool bVisible) override { m_isVisible = bVisible; }
 			virtual bool IsVisible() const override { return m_isVisible; }
 
+			virtual std::shared_ptr<Graphics::ITexture> GetTexture() const override { return m_pTexture; }
+			virtual void SetTexture(const std::shared_ptr<Graphics::ITexture>& pTexture) override { m_pTexture = pTexture; }
+
 		public:
 			void SetDestroy(bool isDestroy) { m_isDestroy = isDestroy; }
 			bool IsDestroy() const { return m_isDestroy; }
