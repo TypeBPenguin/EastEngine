@@ -19,7 +19,7 @@ namespace EastEngine
 			enum Group
 			{
 				eDeferred = 0,
-				eForward,
+				eAlphaBlend,
 
 				GroupCount,
 			};
@@ -35,8 +35,8 @@ namespace EastEngine
 			virtual void AddRender(const RenderSubsetSkinned& renderSubset) override;
 
 		private:
-			void renderStaticModel(IDevice* pDevice, Camera* pCamera, uint32_t nRenderGroupFlag);
-			void renderSkinnedModel(IDevice* pDevice, Camera* pCamera, uint32_t nRenderGroupFlag);
+			void renderStaticModel(IDevice* pDevice, Camera* pCamera, uint32_t nRenderGroupFlag, uint32_t nRenderTypeFlag);
+			void renderSkinnedModel(IDevice* pDevice, Camera* pCamera, uint32_t nRenderGroupFlag, uint32_t nRenderTypeFlag);
 
 			void renderStaticModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, const Math::Matrix* pMatView, const Math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap);
 			void renderSkinnedModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, const Math::Matrix* pMatView, const Math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap);

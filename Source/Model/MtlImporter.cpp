@@ -206,8 +206,6 @@ namespace EastEngine
 
 					if (strTextureName.empty())
 						continue;
-
-					pMaterial->SetTextureName(EmMaterial::eSpecularColor, strTextureName.substr(1, strTextureName.length()).c_str());
 				}
 				else if (temp == "map_Ns")
 				{
@@ -259,8 +257,6 @@ namespace EastEngine
 
 					if (strTextureName.empty())
 						continue;
-
-					pMaterial->SetTextureName(EmMaterial::eDisplacement, strTextureName.substr(1, strTextureName.length()).c_str());
 				}
 				else if (temp == "decal")
 				{

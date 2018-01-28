@@ -34,14 +34,12 @@ namespace StrID
 
 	RegisterStringID(g_f4AlbedoColor);
 	RegisterStringID(g_f4EmissiveColor);
-	RegisterStringID(g_f4DisRoughMetEmi);
+	RegisterStringID(g_f4PaddingRoughMetEmi);
 	RegisterStringID(g_f4SurSpecTintAniso);
 	RegisterStringID(g_f4SheenTintClearcoatGloss);
 	RegisterStringID(g_texAlbedo);
 	RegisterStringID(g_texMask);
 	RegisterStringID(g_texNormalMap);
-	RegisterStringID(g_texDisplaceMap);
-	RegisterStringID(g_texSpecularColor);
 	RegisterStringID(g_texRoughness);
 	RegisterStringID(g_texMetallic);
 	RegisterStringID(g_texEmissive);
@@ -59,10 +57,10 @@ namespace StrID
 	RegisterStringID(g_f3CameraPos);
 
 	RegisterStringID(g_texIBLMap);
-	RegisterStringID(g_texIrradianceMap);
+	RegisterStringID(g_texDiffuseHDR);
 
-	RegisterStringID(g_samPoint);
-	RegisterStringID(g_samLinearWrap);
+	RegisterStringID(g_texSpecularHDR);
+	RegisterStringID(g_texSpecularBRDF);
 
 	RegisterStringID(g_lightDirectional);
 	RegisterStringID(g_lightPoint);
@@ -84,8 +82,6 @@ namespace EastEngine
 				eUseTexAlbedo = 0,
 				eUseTexMask,
 				eUseTexNormal,
-				eUseTexDisplacement,
-				eUseTexSpecularColor,
 				eUseTexRoughness,
 				eUseTexMetallic,
 				eUseTexEmissive,
@@ -116,8 +112,6 @@ namespace EastEngine
 					"USE_TEX_ALBEDO",
 					"USE_TEX_MASK",
 					"USE_TEX_NORMAL",
-					"USE_TEX_DISPLACEMENT",
-					"USE_TEX_SPECULARCOLOR",
 					"USE_TEX_ROUGHNESS",
 					"USE_TEX_METALLIC",
 					"USE_TEX_EMISSIVE",
@@ -238,9 +232,9 @@ namespace EastEngine
 		bool ModelRenderer::Init(const Math::Viewport& viewport)
 		{
 			m_vecStaticSubsets[eDeferred].resize(512);
-			m_vecStaticSubsets[eForward].resize(512);
+			m_vecStaticSubsets[eAlphaBlend].resize(512);
 			m_vecSkinnedSubsets[eDeferred].resize(128);
-			m_vecSkinnedSubsets[eForward].resize(128);
+			m_vecSkinnedSubsets[eAlphaBlend].resize(128);
 
 			return true;
 		}
@@ -254,7 +248,8 @@ namespace EastEngine
 			eInstancing = 1 << 3,
 			eWriteDepth = 1 << 4,
 			eCubeMap = 1 << 5,
-			eForward = 1 << 6,
+			eAlphaBlend_Pre = 1 << 6,
+			eAlphaBlend_Post = 1 << 7,
 		};
 
 		void ClearEffect(IDeviceContext* pDeviceContext, IEffect* pEffect, IEffectTech* pEffectTech)
@@ -262,8 +257,6 @@ namespace EastEngine
 			pEffect->SetTexture(StrID::g_texAlbedo, nullptr);
 			pEffect->SetTexture(StrID::g_texMask, nullptr);
 			pEffect->SetTexture(StrID::g_texNormalMap, nullptr);
-			pEffect->SetTexture(StrID::g_texDisplaceMap, nullptr);
-			pEffect->SetTexture(StrID::g_texSpecularColor, nullptr);
 			pEffect->SetTexture(StrID::g_texRoughness, nullptr);
 			pEffect->SetTexture(StrID::g_texMetallic, nullptr);
 			pEffect->SetTexture(StrID::g_texEmissive, nullptr);
@@ -281,11 +274,11 @@ namespace EastEngine
 			pEffect->SetStructuredBuffer(StrID::g_lightPoint, nullptr);
 			pEffect->SetStructuredBuffer(StrID::g_lightSpot, nullptr);
 
-			pEffect->SetTexture(StrID::g_texIBLMap, nullptr);
-			pEffect->SetTexture(StrID::g_texIrradianceMap, nullptr);
+			//pEffect->SetTexture(StrID::g_texIBLMap, nullptr);
+			pEffect->SetTexture(StrID::g_texDiffuseHDR, nullptr);
 
-			pEffect->UndoSamplerState(StrID::g_samPoint, 0);
-			pEffect->UndoSamplerState(StrID::g_samLinearWrap, 0);
+			pEffect->SetTexture(StrID::g_texSpecularHDR, nullptr);
+			pEffect->SetTexture(StrID::g_texSpecularBRDF, nullptr);
 
 			pEffect->UndoSamplerState(StrID::g_samplerState, 0);
 
@@ -305,7 +298,8 @@ namespace EastEngine
 			const bool isInstancing = (nRenderType & EmRenderType::eInstancing) != 0;
 			const bool isWriteDepth = (nRenderType & EmRenderType::eWriteDepth) != 0;
 			const bool isCubeMap = (nRenderType & EmRenderType::eCubeMap) != 0;
-			const bool isForward = (nRenderType & EmRenderType::eForward) != 0;
+			const bool isAlphaBlend_Pre = (nRenderType & EmRenderType::eAlphaBlend_Pre) != 0;
+			const bool isAlphaBlend_Post = (nRenderType & EmRenderType::eAlphaBlend_Post) != 0;
 
 			int64_t nMask = 0;
 			if (isInstancing == true)
@@ -328,7 +322,7 @@ namespace EastEngine
 				SetBitMask64(nMask, EmModelShader::eUseCubeMap);
 			}
 
-			if (isForward == true)
+			if (isAlphaBlend_Pre == true || isAlphaBlend_Post == true)
 			{
 				SetBitMask64(nMask, EmModelShader::eUseAlphaBlending);
 			}
@@ -349,8 +343,6 @@ namespace EastEngine
 				SetBitMask64(nMask, IsValidTexture(EmMaterial::eAlbedo) == true ? EmModelShader::eUseTexAlbedo : -1);
 				SetBitMask64(nMask, IsValidTexture(EmMaterial::eMask) == true ? EmModelShader::eUseTexMask : -1);
 				SetBitMask64(nMask, IsValidTexture(EmMaterial::eNormal) == true ? EmModelShader::eUseTexNormal : -1);
-				SetBitMask64(nMask, IsValidTexture(EmMaterial::eDisplacement) == true ? EmModelShader::eUseTexDisplacement : -1);
-				SetBitMask64(nMask, IsValidTexture(EmMaterial::eSpecularColor) == true ? EmModelShader::eUseTexSpecularColor : -1);
 				SetBitMask64(nMask, IsValidTexture(EmMaterial::eRoughness) == true ? EmModelShader::eUseTexRoughness : -1);
 				SetBitMask64(nMask, IsValidTexture(EmMaterial::eMetallic) == true ? EmModelShader::eUseTexMetallic : -1);
 				SetBitMask64(nMask, IsValidTexture(EmMaterial::eEmissive) == true ? EmModelShader::eUseTexEmissive : -1);
@@ -364,7 +356,18 @@ namespace EastEngine
 				SetBitMask64(nMask, IsValidTexture(EmMaterial::eClearcoat) == true ? EmModelShader::eUseTexClearcoat : -1);
 				SetBitMask64(nMask, IsValidTexture(EmMaterial::eClearcoatGloss) == true ? EmModelShader::eUseTexClearcoatGloss : -1);
 
-				SetBitMask64(nMask, pMaterial->IsAlbedoAlphaChannelMaskMap() == true ? EmModelShader::eUseAlbedoAlphaIsMaskMap : -1);
+				if (isAlphaBlend_Post == true)
+				{
+					if (pMaterial->GetDepthStencilState() == EmDepthStencilState::eRead_Write_Off ||
+						pMaterial->GetDepthStencilState() == EmDepthStencilState::eRead_On_Write_Off)
+						return;
+
+					SetBitMask64(nMask, EmModelShader::eUseAlbedoAlphaIsMaskMap);
+				}
+				else
+				{
+					SetBitMask64(nMask, pMaterial->IsAlbedoAlphaChannelMaskMap() == true ? EmModelShader::eUseAlbedoAlphaIsMaskMap : -1);
+				}
 
 				if (Config::IsEnable("Tessellation"_s) == true && Math::IsZero(pMaterial->GetTessellationFactor() - 1.f) == false)
 				{
@@ -390,7 +393,7 @@ namespace EastEngine
 				SetBitMask64(nDefaultMask, isWriteDepth == true ? EmModelShader::eUseWriteDepth : -1);
 				SetBitMask64(nDefaultMask, isCubeMap == true ? EmModelShader::eUseCubeMap : -1);
 				SetBitMask64(nDefaultMask, isEnableTessellation == true ? EmModelShader::eUseTessellation : -1);
-				SetBitMask64(nDefaultMask, isForward == true ? EmModelShader::eUseAlphaBlending : -1);
+				SetBitMask64(nDefaultMask, (isAlphaBlend_Pre == true || isAlphaBlend_Post == true) ? EmModelShader::eUseAlphaBlending : -1);
 
 				pEffect = GetEffect(nDefaultMask);
 				if (pEffect == nullptr || pEffect->IsValid() == false)
@@ -414,17 +417,16 @@ namespace EastEngine
 			if (pDeviceContext->SetInputLayout(pEffectTech->GetLayoutFormat()) == false)
 				return;
 
-			if (isForward == true)
+			if (isAlphaBlend_Pre == true || isAlphaBlend_Post == true)
 			{
 				IImageBasedLight* pIBL = GetImageBasedLight();
 
 				pEffect->SetVector(StrID::g_f3CameraPos, f3CameraPos);
 
-				pEffect->SetTexture(StrID::g_texIBLMap, pIBL->GetCubeMap());
-				pEffect->SetTexture(StrID::g_texIrradianceMap, pIBL->GetIrradianceMap());
+				pEffect->SetTexture(StrID::g_texDiffuseHDR, pIBL->GetDiffuseHDR());
 
-				pEffect->SetSamplerState(StrID::g_samPoint, GetDevice()->GetSamplerState(EmSamplerState::eMinMagMipPointClamp), 0);
-				pEffect->SetSamplerState(StrID::g_samLinearWrap, GetDevice()->GetSamplerState(EmSamplerState::eMinMagMipLinearWrap), 0);
+				pEffect->SetTexture(StrID::g_texSpecularHDR, pIBL->GetSpecularHDR());
+				pEffect->SetTexture(StrID::g_texSpecularBRDF, pIBL->GetSpecularBRDF());
 
 				pEffect->SetStructuredBuffer(StrID::g_lightDirectional, LightManager::GetInstance()->GetLightBuffer(EmLight::eDirectional));
 				pEffect->SetStructuredBuffer(StrID::g_lightPoint, LightManager::GetInstance()->GetLightBuffer(EmLight::ePoint));
@@ -520,15 +522,13 @@ namespace EastEngine
 					pEffect->SetVector(StrID::g_f4AlbedoColor, reinterpret_cast<const Math::Vector4&>(pMaterial->GetAlbedoColor()));
 					pEffect->SetVector(StrID::g_f4EmissiveColor, reinterpret_cast<const Math::Vector4&>(pMaterial->GetEmissiveColor()));
 
-					pEffect->SetVector(StrID::g_f4DisRoughMetEmi, pMaterial->GetDisRoughMetEmi());
+					pEffect->SetVector(StrID::g_f4PaddingRoughMetEmi, pMaterial->GetPaddingRoughMetEmi());
 					pEffect->SetVector(StrID::g_f4SurSpecTintAniso, pMaterial->GetSurSpecTintAniso());
 					pEffect->SetVector(StrID::g_f4SheenTintClearcoatGloss, pMaterial->GetSheenTintClearcoatGloss());
 
 					pEffect->SetTexture(StrID::g_texAlbedo, pMaterial->GetTexture(EmMaterial::eAlbedo));
 					pEffect->SetTexture(StrID::g_texMask, pMaterial->GetTexture(EmMaterial::eMask));
 					pEffect->SetTexture(StrID::g_texNormalMap, pMaterial->GetTexture(EmMaterial::eNormal));
-					pEffect->SetTexture(StrID::g_texDisplaceMap, pMaterial->GetTexture(EmMaterial::eDisplacement));
-					pEffect->SetTexture(StrID::g_texSpecularColor, pMaterial->GetTexture(EmMaterial::eSpecularColor));
 					pEffect->SetTexture(StrID::g_texRoughness, pMaterial->GetTexture(EmMaterial::eRoughness));
 					pEffect->SetTexture(StrID::g_texMetallic, pMaterial->GetTexture(EmMaterial::eMetallic));
 					pEffect->SetTexture(StrID::g_texEmissive, pMaterial->GetTexture(EmMaterial::eEmissive));
@@ -553,38 +553,39 @@ namespace EastEngine
 					{
 						if (isWriteDepth == false)
 						{
-							pDeviceContext->SetDepthStencilState(pMaterial->GetDepthStencilState());
+							EmRasterizerState::Type emRasterizerState = pMaterial->GetRasterizerState();
+							EmDepthStencilState::Type emDepthStencilState = pMaterial->GetDepthStencilState();
+
+							if (isAlphaBlend_Pre == true)
+							{
+								if (pMaterial->GetDepthStencilState() == EmDepthStencilState::eRead_Write_On)
+								{
+									emRasterizerState = EmRasterizerState::eSolidCullNone;
+									emDepthStencilState = EmDepthStencilState::eRead_On_Write_Off;
+								}
+								else if (pMaterial->GetDepthStencilState() == EmDepthStencilState::eRead_Off_Write_On)
+								{
+									emRasterizerState = EmRasterizerState::eSolidCullNone;
+									emDepthStencilState = EmDepthStencilState::eRead_Write_Off;
+								}
+							}
 
 							if (Config::IsEnable("Wireframe"_s) == true)
 							{
-								pDeviceContext->SetRasterizerState(EmRasterizerState::eWireframeCullNone);
+								emRasterizerState = EmRasterizerState::eWireframeCullNone;
 							}
-							else
-							{
-								pDeviceContext->SetRasterizerState(pMaterial->GetRasterizerState());
-							}
+
+							pDeviceContext->SetRasterizerState(emRasterizerState);
+							pDeviceContext->SetDepthStencilState(emDepthStencilState);
 						}
 					}
-					//else
-					//{
-					//	pDeviceContext->SetDepthStencilState(EmDepthStencilState::eRead_Write_Off);
-					//
-					//	if (Config::IsEnable("Wireframe"_s) == true)
-					//	{
-					//		pDeviceContext->SetRasterizerState(EmRasterizerState::eWireframeCullNone);
-					//	}
-					//	else
-					//	{
-					//		pDeviceContext->SetRasterizerState(pMaterial->GetRasterizerState());
-					//	}
-					//}
 				}
 				else
 				{
 					pEffect->SetVector(StrID::g_f4AlbedoColor, reinterpret_cast<const Math::Vector4&>(Math::Color::White));
 					pEffect->SetVector(StrID::g_f4EmissiveColor, reinterpret_cast<const Math::Vector4&>(Math::Color::Black));
 
-					pEffect->SetVector(StrID::g_f4DisRoughMetEmi, reinterpret_cast<const Math::Vector4&>(Math::Color::Transparent));
+					pEffect->SetVector(StrID::g_f4PaddingRoughMetEmi, reinterpret_cast<const Math::Vector4&>(Math::Color::Transparent));
 					pEffect->SetVector(StrID::g_f4SurSpecTintAniso, reinterpret_cast<const Math::Vector4&>(Math::Color::Transparent));
 					pEffect->SetVector(StrID::g_f4SheenTintClearcoatGloss, reinterpret_cast<const Math::Vector4&>(Math::Color::Transparent));
 
@@ -816,7 +817,7 @@ namespace EastEngine
 			//	counter2.End();
 			//}
 
-			const bool isForward = nRenderGroupFlag == eForward;
+			const bool isAlphaBlend = nRenderGroupFlag == eAlphaBlend;
 
 			IDevice* pDevice = GetDevice();
 			IDeviceContext* pDeviceContext = GetDeviceContext();
@@ -830,7 +831,7 @@ namespace EastEngine
 				pDeviceContext->ClearState();
 
 				pDeviceContext->SetDefaultViewport();
-				if (isForward == true)
+				if (isAlphaBlend == true)
 				{
 					IRenderTarget* pRenderTarget = nullptr;
 					if (Config::IsEnable("HDRFilter"_s) == true)
@@ -862,11 +863,16 @@ namespace EastEngine
 				pDeviceContext->SetRenderTargets(ppRenderTarget, nRenderTargetCount, pDevice->GetMainDepthStencil());
 			}
 
-			renderStaticModel(pDevice, pCamera, nRenderGroupFlag);
-			renderSkinnedModel(pDevice, pCamera, nRenderGroupFlag);
+			const uint32_t nForwardFlag = (isAlphaBlend ? EmRenderType::eAlphaBlend_Pre : EmRenderType::eNone);
 
-			if (isForward == true)
+			renderStaticModel(pDevice, pCamera, nRenderGroupFlag, nForwardFlag);
+			renderSkinnedModel(pDevice, pCamera, nRenderGroupFlag, nForwardFlag);
+
+			if (isAlphaBlend == true)
 			{
+				renderStaticModel(pDevice, pCamera, nRenderGroupFlag, EmRenderType::eAlphaBlend_Post);
+				renderSkinnedModel(pDevice, pCamera, nRenderGroupFlag, EmRenderType::eAlphaBlend_Post);
+
 				pDevice->ReleaseRenderTargets(ppRenderTarget, nRenderTargetCount);
 			}
 
@@ -993,7 +999,7 @@ namespace EastEngine
 			}
 			else
 			{
-				group = eForward;
+				group = eAlphaBlend;
 			}
 
 			if (m_nStaticIndex[group] >= m_vecStaticSubsets[group].size())
@@ -1016,7 +1022,7 @@ namespace EastEngine
 			}
 			else
 			{
-				group = eForward;
+				group = eAlphaBlend;
 			}
 
 			if (m_nSkinnedIndex[group] >= m_vecSkinnedSubsets[group].size())
@@ -1028,12 +1034,9 @@ namespace EastEngine
 			++m_nSkinnedIndex[group];
 		}
 
-		void ModelRenderer::renderStaticModel(IDevice* pDevice, Camera* pCamera, uint32_t nRenderGroupFlag)
+		void ModelRenderer::renderStaticModel(IDevice* pDevice, Camera* pCamera, uint32_t nRenderGroupFlag, uint32_t nRenderTypeFlag)
 		{
 			IDeviceContext* pDeviceContext = GetDeviceContext();
-
-			const bool isForward = nRenderGroupFlag == eForward;
-			const uint32_t nForwardFlag = (isForward ? EmRenderType::eForward : EmRenderType::eNone);
 
 			D3D_PROFILING(StaticModel);
 			{
@@ -1081,7 +1084,7 @@ namespace EastEngine
 						else
 						{
 							const RenderSubsetStatic& subset = renderSubsetBatch.pSubset->data;
-							RenderModel(EmRenderType::eStatic | EmRenderType::eInstancing | nForwardFlag,
+							RenderModel(EmRenderType::eStatic | EmRenderType::eInstancing | nRenderTypeFlag,
 								pDevice, pDeviceContext,
 								&pCamera->GetViewMatrix(), pCamera->GetProjMatrix(), pCamera->GetPosition(),
 								subset.pVertexBuffer, subset.pIndexBuffer, subset.pMaterial, subset.nIndexCount, subset.nStartIndex,
@@ -1098,7 +1101,7 @@ namespace EastEngine
 					{
 						const RenderSubsetStatic& renderSubset = pSubset->data;
 
-						RenderModel(EmRenderType::eStatic | nForwardFlag,
+						RenderModel(EmRenderType::eStatic | nRenderTypeFlag,
 							pDevice, pDeviceContext,
 							&pCamera->GetViewMatrix(), pCamera->GetProjMatrix(), pCamera->GetPosition(),
 							renderSubset.pVertexBuffer, renderSubset.pIndexBuffer, renderSubset.pMaterial, renderSubset.nIndexCount, renderSubset.nStartIndex,
@@ -1110,12 +1113,9 @@ namespace EastEngine
 			}
 		}
 
-		void ModelRenderer::renderSkinnedModel(IDevice* pDevice, Camera* pCamera, uint32_t nRenderGroupFlag)
+		void ModelRenderer::renderSkinnedModel(IDevice* pDevice, Camera* pCamera, uint32_t nRenderGroupFlag, uint32_t nRenderTypeFlag)
 		{
 			IDeviceContext* pDeviceContext = GetDeviceContext();
-
-			const bool isForward = nRenderGroupFlag == eForward;
-			const uint32_t nForwardFlag = (isForward ? EmRenderType::eForward : EmRenderType::eNone);
 
 			D3D_PROFILING(SkinnedModel);
 			{
@@ -1157,7 +1157,7 @@ namespace EastEngine
 						if (renderSubsetBatch.vecInstData.size() == 1)
 						{
 							const RenderSubsetSkinned& subset = renderSubsetBatch.pSubset->data;
-							RenderModel(EmRenderType::eSkinned | nForwardFlag,
+							RenderModel(EmRenderType::eSkinned | nRenderTypeFlag,
 								pDevice, pDeviceContext,
 								&pCamera->GetViewMatrix(), pCamera->GetProjMatrix(), pCamera->GetPosition(),
 								subset.pVertexBuffer, subset.pIndexBuffer, subset.pMaterial, subset.nIndexCount, subset.nStartIndex,
@@ -1166,7 +1166,7 @@ namespace EastEngine
 						else
 						{
 							const RenderSubsetSkinned& subset = renderSubsetBatch.pSubset->data;
-							RenderModel(EmRenderType::eSkinned | EmRenderType::eInstancing | nForwardFlag,
+							RenderModel(EmRenderType::eSkinned | EmRenderType::eInstancing | nRenderTypeFlag,
 								pDevice, pDeviceContext,
 								&pCamera->GetViewMatrix(), pCamera->GetProjMatrix(), pCamera->GetPosition(),
 								subset.pVertexBuffer, subset.pIndexBuffer, subset.pMaterial, subset.nIndexCount, subset.nStartIndex,

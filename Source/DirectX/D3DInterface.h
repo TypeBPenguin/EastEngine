@@ -224,11 +224,17 @@ namespace EastEngine
 			virtual ~IImageBasedLight() = default;
 
 		public:
-			virtual const std::shared_ptr<ITexture>& GetCubeMap() = 0;
-			virtual void SetCubeMap(const std::shared_ptr<ITexture>& pTexture) = 0;
+			virtual const std::shared_ptr<ITexture>& GetEnvHDR() const = 0;
+			virtual void SetEnvHDR(const std::shared_ptr<ITexture>& pEnvHDR) = 0;
 
-			virtual const std::shared_ptr<ITexture>& GetIrradianceMap() = 0;
-			virtual void SetIrradianceMap(const std::shared_ptr<ITexture>& pIrradianceMap) = 0;
+			virtual const std::shared_ptr<ITexture>& GetDiffuseHDR() const = 0;
+			virtual void SetDiffuseHDR(const std::shared_ptr<ITexture>& pDiffuseHDR) = 0;
+
+			virtual const std::shared_ptr<ITexture>& GetSpecularHDR() const = 0;
+			virtual void SetSpecularHDR(const std::shared_ptr<ITexture>& pSpecularHDR) = 0;
+
+			virtual const std::shared_ptr<ITexture>& GetSpecularBRDF() const = 0;
+			virtual void SetSpecularBRDF(const std::shared_ptr<ITexture>& pSpecularBRDF) = 0;
 		};
 
 		class ITexture : public Resource
@@ -445,7 +451,7 @@ namespace EastEngine
 			Math::Color colorAlbedo;
 			Math::Color colorEmissive;
 
-			Math::Vector4 f4DisRoughMetEmi;
+			Math::Vector4 f4PaddingRoughMetEmi;
 			Math::Vector4 f4SurSpecTintAniso;
 			Math::Vector4 f4SheenTintClearcoatGloss;
 
@@ -513,8 +519,8 @@ namespace EastEngine
 			virtual EmDepthStencilState::Type GetDepthStencilState() const = 0;
 			virtual void SetDepthStencilState(EmDepthStencilState::Type pDepthStencilState) = 0;
 
-			virtual const Math::Vector4& GetDisRoughMetEmi() const = 0;
-			virtual void SetDisRoughMetEmi(const Math::Vector4& f4DisRoughMetEmi) = 0;
+			virtual const Math::Vector4& GetPaddingRoughMetEmi() const = 0;
+			virtual void SetPaddingRoughMetEmi(const Math::Vector4& f4PaddingRoughMetEmi) = 0;
 			virtual const Math::Vector4& GetSurSpecTintAniso() const = 0;
 			virtual void SetSurSpecTintAniso(const Math::Vector4& f4SurSpecTintAniso) = 0;
 			virtual const Math::Vector4& GetSheenTintClearcoatGloss() const = 0;

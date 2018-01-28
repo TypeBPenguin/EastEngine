@@ -32,12 +32,6 @@ namespace EastEngine
 			void ClearEffect_Shadow(IDeviceContext* pd3dDeviceContext, IEffectTech* pTech);
 
 		private:
-			ISamplerState* m_pSamplerLinearWrap;
-			ISamplerState* m_pSamplerPointClamp;
-			ISamplerState* m_pSamplerComparison;
-
-			IBlendState* m_pBlendStateAdditive;
-
 			IEffect* m_pEffect;
 			IEffect* m_pEffectShadow;
 		};

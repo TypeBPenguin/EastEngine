@@ -185,9 +185,6 @@
     <ClCompile Include="Instancing.cpp">
       <Filter>Instancing</Filter>
     </ClCompile>
-    <ClCompile Include="DeferredRenderer.cpp">
-      <Filter>Renderer\Deferred</Filter>
-    </ClCompile>
     <ClCompile Include="PostProcessingRenderer.cpp">
       <Filter>Renderer\PostProcessing</Filter>
     </ClCompile>
@@ -244,6 +241,9 @@
     </ClCompile>
     <ClCompile Include="BloomFilter.cpp">
       <Filter>Renderer\PostProcessing\BloomFilter</Filter>
+    </ClCompile>
+    <ClCompile Include="DeferredRenderer.cpp">
+      <Filter>Renderer\Deferred</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

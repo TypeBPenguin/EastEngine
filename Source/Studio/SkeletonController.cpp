@@ -148,12 +148,15 @@ bool SkeletonController::Process(float fElapsedTime)
 							float fDist = 0.f;
 							if (rayScreen.Intersects(obb, fDist) == true)
 							{
-								if (fNearDistance > fDist)
+								if (fDist > 0.5f)
 								{
-									pNearBone = pBone;
-									fNearDistance = fDist;
+									if (fNearDistance > fDist)
+									{
+										pNearBone = pBone;
+										fNearDistance = fDist;
+									}
+									isExistsCollisionBone = true;
 								}
-								isExistsCollisionBone = true;
 							}
 						}
 

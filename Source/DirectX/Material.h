@@ -52,22 +52,22 @@ namespace EastEngine
 			virtual EmDepthStencilState::Type GetDepthStencilState() const override { return m_info.emDepthStencilState; }
 			virtual void SetDepthStencilState(EmDepthStencilState::Type emDepthStencilState) override { m_info.emDepthStencilState = emDepthStencilState; }
 
-			virtual const Math::Vector4& GetDisRoughMetEmi() const override { return m_info.f4DisRoughMetEmi; }
-			virtual void SetDisRoughMetEmi(const Math::Vector4& f4DisRoughMetEmi) override { m_info.f4DisRoughMetEmi = f4DisRoughMetEmi; }
+			virtual const Math::Vector4& GetPaddingRoughMetEmi() const override { return m_info.f4PaddingRoughMetEmi; }
+			virtual void SetPaddingRoughMetEmi(const Math::Vector4& f4PaddingRoughMetEmi) override { m_info.f4PaddingRoughMetEmi = f4PaddingRoughMetEmi; }
 			virtual const Math::Vector4& GetSurSpecTintAniso() const override { return m_info.f4SurSpecTintAniso; }
 			virtual void SetSurSpecTintAniso(const Math::Vector4& f4SurSpecTintAniso) override { m_info.f4SurSpecTintAniso = f4SurSpecTintAniso; }
 			virtual const Math::Vector4& GetSheenTintClearcoatGloss() const override { return m_info.f4SheenTintClearcoatGloss; }
 			virtual void SetSheenTintClearcoatGloss(const Math::Vector4& f4SheenTintClearcoatGloss) override { m_info.f4SheenTintClearcoatGloss = f4SheenTintClearcoatGloss; }
 
-			virtual float GetDisplacement() const override { return m_info.f4DisRoughMetEmi.x; }
-			virtual void SetDisplacement(float fDisplacement) override { m_info.f4DisRoughMetEmi.x = fDisplacement; }
+			virtual float GetDisplacement() const override { return m_info.f4PaddingRoughMetEmi.x; }
+			virtual void SetDisplacement(float fDisplacement) override { m_info.f4PaddingRoughMetEmi.x = fDisplacement; }
 
-			virtual float GetRoughness() const override { return m_info.f4DisRoughMetEmi.y; }
-			virtual void SetRoughness(float fRoughness) override { m_info.f4DisRoughMetEmi.y = fRoughness; }
-			virtual float GetMetallic() const override { return m_info.f4DisRoughMetEmi.z; }
-			virtual void SetMetallic(float fMetallic) override { m_info.f4DisRoughMetEmi.z = fMetallic; }
-			virtual float GetEmissive() const override { return m_info.f4DisRoughMetEmi.w; }
-			virtual void SetEmissive(float fEmissive) override { m_info.f4DisRoughMetEmi.w = fEmissive; }
+			virtual float GetRoughness() const override { return m_info.f4PaddingRoughMetEmi.y; }
+			virtual void SetRoughness(float fRoughness) override { m_info.f4PaddingRoughMetEmi.y = fRoughness; }
+			virtual float GetMetallic() const override { return m_info.f4PaddingRoughMetEmi.z; }
+			virtual void SetMetallic(float fMetallic) override { m_info.f4PaddingRoughMetEmi.z = fMetallic; }
+			virtual float GetEmissive() const override { return m_info.f4PaddingRoughMetEmi.w; }
+			virtual void SetEmissive(float fEmissive) override { m_info.f4PaddingRoughMetEmi.w = fEmissive; }
 
 			virtual float GetSubsurface() const override { return m_info.f4SurSpecTintAniso.x; }
 			virtual void SetSubsurface(float fSurface) override { m_info.f4SurSpecTintAniso.x = fSurface; }

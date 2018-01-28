@@ -138,6 +138,22 @@ namespace StrID
 	RegisterStringID(EastEngine_Sun);
 }
 
+const std::array<const char*, 12> IBL_Type =
+{
+	"IceLake",
+	"Milkyway",
+	"SnowMachine",
+	"TropicalBeach",
+	"WinterForest",
+	"Alexs_Apartment",
+	"Chiricahua_Plaza",
+	"GrandCanyon_C_YumaPoint",
+	"Popcorn_Lobby",
+	"Stadium_Center",
+	"Summi_Pool",
+	"Tokyo_BigSight",
+};
+
 SceneStudio::SceneStudio()
 	: SceneInterface(StrID::Studio)
 	, m_pSkeletonController(nullptr)
@@ -184,7 +200,7 @@ void SceneStudio::Enter()
 		config.nBufferSize = 2048;
 		config.fCascadeDistance = 256.f;
 
-		Graphics::ILight* pLight = Graphics::ILight::CreateDirectionalLight("MainLight", f3LightDirection, Math::Color::White, 20000.f, 0.5f, 0.25f, &config);
+		Graphics::ILight* pLight = Graphics::ILight::CreateDirectionalLight("MainLight", f3LightDirection, Math::Color::White, 1.f, 0.5f, 0.25f, &config);
 		pLight->SetEnableShadow(false);
 	}
 	//{
@@ -201,26 +217,32 @@ void SceneStudio::Enter()
 	//}
 	
 	std::string strPath = File::GetPath(File::eTexture);
-
-	Graphics::IImageBasedLight* pIBL = Graphics::GetImageBasedLight();
-
-	std::string strCubeMapPath = strPath;
-	strCubeMapPath.append("IBL\\Summi_Pool\\Summi_PoolEnvHDR.dds");
-	std::shared_ptr<Graphics::ITexture> pTexture = Graphics::ITexture::Create(File::GetFileName(strCubeMapPath).c_str(), strCubeMapPath);
-	pIBL->SetCubeMap(pTexture);
-
-	std::string strIrradiancePath = strPath;
-	strIrradiancePath.append("IBL\\Summi_Pool\\Summi_PoolDiffuseHDR.dds");
-	pTexture = Graphics::ITexture::Create(File::GetFileName(strIrradiancePath).c_str(), strIrradiancePath);
-	pIBL->SetIrradianceMap(pTexture);
-
 	{
+		strPath = String::Format("%sIBL\\%s\\%s", File::GetPath(File::eTexture), IBL_Type[0], IBL_Type[0]);
+
+		Graphics::IImageBasedLight* pIBL = Graphics::GetImageBasedLight();
+
+		std::string strDiffuseHDR = strPath;
+		strDiffuseHDR.append("DiffuseHDR.dds");
+		std::shared_ptr<Graphics::ITexture> pDiffuseHDR = Graphics::ITexture::Create(File::GetFileName(strDiffuseHDR).c_str(), strDiffuseHDR);
+		pIBL->SetDiffuseHDR(pDiffuseHDR);
+
+		std::string strSpecularHDR = strPath;
+		strSpecularHDR.append("SpecularHDR.dds");
+		std::shared_ptr<Graphics::ITexture> pSpecularHDR = Graphics::ITexture::Create(File::GetFileName(strSpecularHDR).c_str(), strSpecularHDR);
+		pIBL->SetSpecularHDR(pSpecularHDR);
+
+		std::string strSpecularBRDF = strPath;
+		strSpecularBRDF.append("Brdf.dds");
+		std::shared_ptr<Graphics::ITexture> pSpecularBRDF = Graphics::ITexture::Create(File::GetFileName(strSpecularBRDF).c_str(), strSpecularBRDF);
+		pIBL->SetSpecularBRDF(pSpecularBRDF);
+
 		GameObject::SkyboxProperty sky;
 
-		sky.strTexSky = File::GetPath(File::eTexture);
-		sky.strTexSky.append("IBL\\Summi_Pool\\Summi_PoolEnvHDR.dds");
+		sky.strTexSky = strPath;
+		sky.strTexSky.append("EnvHDR.dds");
 
-		sky.fBoxSize = 5000.f;
+		sky.fBoxSize = 1.f;
 
 		m_pSkybox = GameObject::ISkybox::Create("BaseSkybox", sky);
 	}
@@ -269,8 +291,8 @@ void SceneStudio::Enter()
 		materialInfo.strTextureNameArray[Graphics::EmMaterial::eRoughness] = "Roughness.tga";
 		materialInfo.strTextureNameArray[Graphics::EmMaterial::eMetallic] = "Metallic.tga";
 
-		materialInfo.f4DisRoughMetEmi.y = 0.5f;
-		materialInfo.f4DisRoughMetEmi.z = 0.5f;
+		materialInfo.f4PaddingRoughMetEmi.y = 0.5f;
+		materialInfo.f4PaddingRoughMetEmi.z = 0.5f;
 
 		materialInfo.emDepthStencilState = Graphics::EmDepthStencilState::eRead_Write_Off;
 
@@ -303,11 +325,11 @@ void SceneStudio::Enter()
 	//		materialInfo.strTextureNameArray[Graphics::EmMaterial::eNormal].Format("Pattern\\pattern_01\\%s", "Normal.tga");
 	//		materialInfo.strTextureNameArray[Graphics::EmMaterial::eSpecularColor].Format("Pattern\\pattern_01\\%s", "specular.tga");
 
-	//		//materialInfo.f4DisRoughMetEmi.y = 0.1f * ((i % 10) + 1);
-	//		//materialInfo.f4DisRoughMetEmi.z = 1.f - 0.1f * ((i % 10) + 1);
+	//		//materialInfo.f4PaddingRoughMetEmi.y = 0.1f * ((i % 10) + 1);
+	//		//materialInfo.f4PaddingRoughMetEmi.z = 1.f - 0.1f * ((i % 10) + 1);
 
-	//		materialInfo.f4DisRoughMetEmi.y = 0.5f;
-	//		materialInfo.f4DisRoughMetEmi.z = 0.5f;
+	//		materialInfo.f4PaddingRoughMetEmi.y = 0.5f;
+	//		materialInfo.f4PaddingRoughMetEmi.z = 0.5f;
 
 	//		//materialInfo.rasterizerStateDesc = Graphics::GetDevice()->GetRasterizerStateDesc(Graphics::EmRasterizerState::eNone);
 	//		//materialInfo.colorAlbedo = Math::Color(Math::Random(0.f, 1.f), Math::Random(0.f, 1.f), Math::Random(0.f, 1.f), 1.f);
@@ -706,6 +728,21 @@ void SceneStudio::Enter()
 		GameObject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
 	}
 
+	//if (false)
+	{
+		String::StringID name;
+		name.Format("Evie_Temptress");
+
+		Math::Vector3 pos;
+		pos.x = 4.f;
+		pos.z = 2.f;
+
+		strPath = File::GetDataPath();
+		strPath.append("Model\\Evie_Temptress\\Evie_Temptress.emod");
+
+		GameObject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
+	}
+
 	{
 		String::StringID name;
 		name.Format("ElementalSwordIce");
@@ -719,6 +756,117 @@ void SceneStudio::Enter()
 
 		GameObject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
 	}
+
+#ifndef _DEBUG
+	for (int i = 0; i < 110; ++i)
+	{
+		const int x = i % 11;
+		const int z = i / 11;
+
+		const float fValue = static_cast<float>(x) / 10.f;
+
+		enum BrdfProperty
+		{
+			eRoughness = 0,
+			eMetallic,
+			eSpecular,
+			eSpecularTint,
+			eSubserface,
+			eAnisotropic,
+			eSheen,
+			eSheenTint,
+			eClearcoat,
+			eClearcoatGloss,
+
+			BrdfPropertyCount,
+		};
+
+		const std::array<const Math::Color, BrdfPropertyCount> color =
+		{
+			Math::Color::White,
+			Math::Color::Gold,
+			Math::Color::Red,
+			Math::Color::Red,
+			Math::Color::Violet,
+			Math::Color::Purple,
+			Math::Color::Brown,
+			Math::Color::Brown,
+			Math::Color::BlueViolet,
+			Math::Color::BlueViolet,
+		};
+
+		const std::array<const std::string, BrdfPropertyCount> propertyName =
+		{
+			"Roughness",
+			"Metallic",
+			"Specular",
+			"SpecularTint",
+			"Subserface",
+			"Anisotropic",
+			"Sheen",
+			"SheenTint",
+			"Clearcoat",
+			"ClearcoatGloss",
+		};
+
+		String::StringID name;
+		name.Format("Standard_Sphere_%s_%.1f", propertyName[z].c_str(), fValue);
+
+		GameObject::IActor* pActor = GameObject::IActor::Create(name);
+		pActor->SetPosition({ -2.5f + (x * 0.6f), 1.f, -4.f - (z * 0.75f) });
+
+		Graphics::MaterialInfo materialInfo;
+		materialInfo.colorAlbedo = color[z];
+
+		switch (z)
+		{
+		case BrdfProperty::eRoughness:
+			materialInfo.f4PaddingRoughMetEmi.y = fValue;
+			break;
+		case BrdfProperty::eMetallic:
+			materialInfo.f4PaddingRoughMetEmi.z = fValue;
+			break;
+		case BrdfProperty::eSpecular:
+			materialInfo.f4PaddingRoughMetEmi.y = 0.3f;
+			materialInfo.f4SurSpecTintAniso.y = fValue;
+			break;
+		case BrdfProperty::eSpecularTint:
+			materialInfo.f4PaddingRoughMetEmi.y = 0.5f;
+			materialInfo.f4SurSpecTintAniso.y = 1.f;
+			materialInfo.f4SurSpecTintAniso.z = fValue;
+			break;
+		case BrdfProperty::eSubserface:
+			materialInfo.f4SurSpecTintAniso.x = fValue;
+			break;
+		case BrdfProperty::eAnisotropic:
+			materialInfo.f4PaddingRoughMetEmi.y = 0.5f;
+			materialInfo.f4PaddingRoughMetEmi.z = 0.5f;
+			materialInfo.f4SurSpecTintAniso.w = fValue;
+			break;
+		case BrdfProperty::eSheen:
+			materialInfo.f4SheenTintClearcoatGloss.x = fValue;
+			break;
+		case BrdfProperty::eSheenTint:
+			materialInfo.f4SheenTintClearcoatGloss.x = 1.f;
+			materialInfo.f4SheenTintClearcoatGloss.y = fValue;
+			break;
+		case BrdfProperty::eClearcoat:
+			materialInfo.f4SheenTintClearcoatGloss.z = fValue;
+			break;
+		case BrdfProperty::eClearcoatGloss:
+			materialInfo.f4SheenTintClearcoatGloss.z = 1.f;
+			materialInfo.f4SheenTintClearcoatGloss.w = fValue;
+			break;
+		}
+
+		Graphics::ModelLoader loader;
+		loader.InitSphere(name, &materialInfo, 0.5f, 32u);
+		loader.SetEnableThreadLoad(false);
+
+		GameObject::ComponentModel* pModel = static_cast<GameObject::ComponentModel*>(pActor->CreateComponent(GameObject::EmComponent::eModel));
+		pModel->Init(&loader);
+	}
+#endif
 
 	m_pSkeletonController = new SkeletonController;
 	m_pMaterialNodeManager = new MaterialNodeManager;
@@ -1247,45 +1395,32 @@ void SceneStudio::ShowConfig()
 
 	if (ImGui::CollapsingHeader("Skybox") == true)
 	{
-		const std::array<const char*, 3> IBL_EnvHDR_Type =
-		{
-			"Summi_Pool",
-			"PaperMill_E",
-			"Default",
-		};
-
-		const std::array<const char*, 3> IBL_EnvHDR = 
-		{
-			"IBL\\Summi_Pool\\Summi_PoolEnvHDR.dds",
-			"IBL\\PaperMill_Ruins_E\\PaperMill_EEnvHDR.dds",
-			"IBL\\Default\\CubeMap.dds",
-		};
-
-		const std::array<const char*, 3> IBL_DiffuseHDR = 
-		{
-			"IBL\\Summi_Pool\\Summi_PoolDiffuseHDR.dds",
-			"IBL\\PaperMill_Ruins_E\\PaperMill_EDiffuseHDR.dds",
-			"IBL\\Default\\Irradiance.dds",
-		};
-
 		static int nSelectedIndex = 0;
-		if (ImGui::Combo("Env", &nSelectedIndex, IBL_EnvHDR_Type.data(), IBL_EnvHDR_Type.size()) == true)
+		if (ImGui::Combo("Env", &nSelectedIndex, IBL_Type.data(), IBL_Type.size()) == true)
 		{
-			std::string strPath = File::GetPath(File::eTexture);
+			std::string strPath = String::Format("%sIBL\\%s\\%s", File::GetPath(File::eTexture), IBL_Type[nSelectedIndex], IBL_Type[nSelectedIndex]);
 
 			Graphics::IImageBasedLight* pIBL = Graphics::GetImageBasedLight();
 
-			std::string strEnvPath = strPath;
-			strEnvPath.append(IBL_EnvHDR[nSelectedIndex]);
-			std::shared_ptr<Graphics::ITexture> pEnvTexture = Graphics::ITexture::Create(File::GetFileName(strEnvPath).c_str(), strEnvPath);
-			pIBL->SetCubeMap(pEnvTexture);
+			std::string strDiffuseHDR = strPath;
+			strDiffuseHDR.append("DiffuseHDR.dds");
+			std::shared_ptr<Graphics::ITexture> pDiffuseHDR = Graphics::ITexture::Create(File::GetFileName(strDiffuseHDR).c_str(), strDiffuseHDR);
+			pIBL->SetDiffuseHDR(pDiffuseHDR);
 
-			std::string strDiffusePath = strPath;
-			strDiffusePath.append(IBL_DiffuseHDR[nSelectedIndex]);
-			std::shared_ptr<Graphics::ITexture> pDiffuseTexture = Graphics::ITexture::Create(File::GetFileName(strDiffusePath).c_str(), strDiffusePath);
-			pIBL->SetIrradianceMap(pDiffuseTexture);
+			std::string strSpecularHDR = strPath;
+			strSpecularHDR.append("SpecularHDR.dds");
+			std::shared_ptr<Graphics::ITexture> pSpecularHDR = Graphics::ITexture::Create(File::GetFileName(strSpecularHDR).c_str(), strSpecularHDR);
+			pIBL->SetSpecularHDR(pSpecularHDR);
 
-			m_pSkybox->SetTexture(pEnvTexture);
+			std::string strSpecularBRDF = strPath;
+			strSpecularBRDF.append("Brdf.dds");
+			std::shared_ptr<Graphics::ITexture> pSpecularBRDF = Graphics::ITexture::Create(File::GetFileName(strSpecularBRDF).c_str(), strSpecularBRDF);
+			pIBL->SetSpecularBRDF(pSpecularBRDF);
+
+			std::string strEnvIBLPath = strPath;
+			strEnvIBLPath.append("EnvHDR.dds");
+			std::shared_ptr<Graphics::ITexture> pEnvIBL = Graphics::ITexture::Create(File::GetFileName(strEnvIBLPath).c_str(), strEnvIBLPath);
+			m_pSkybox->SetTexture(pEnvIBL);
 		}
 	}
 
@@ -1725,6 +1860,8 @@ void ShowMaterial(bool& isShowMaterial, Graphics::IMaterial* pMaterial, int nInd
 		if (ImGui::ColorEdit3("Albedo", reinterpret_cast<float*>(&color)) == true)
 		{
 			pMaterial->SetAlbedoColor(*reinterpret_cast<Math::Color*>(&color));
+
+			LOG_MESSAGE("%.2f, %.2f, %.2f", pMaterial->GetAlbedoColor().r, pMaterial->GetAlbedoColor().g, pMaterial->GetAlbedoColor().b);
 		}
 		TextureInfo(Graphics::EmMaterial::eAlbedo, 1);
 		bool isAlbedoAlphaChannelMaskMap = pMaterial->IsAlbedoAlphaChannelMaskMap();
@@ -1754,9 +1891,6 @@ void ShowMaterial(bool& isShowMaterial, Graphics::IMaterial* pMaterial, int nInd
 		{
 			pMaterial->SetSpecularTint(fSpecularTint);
 		}
-
-		ImGui::Text("Specular Color");
-		TextureInfo(Graphics::EmMaterial::eSpecularColor, 3);
 	}
 
 	ImGui::Separator();

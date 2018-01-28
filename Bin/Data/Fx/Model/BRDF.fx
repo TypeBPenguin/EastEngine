@@ -1,8 +1,6 @@
 #ifndef _BRDF_INTERFACE_
 #define _BRDF_INTERFACE_
 
-static const float3 LUM_CONVERT = float3(0.299f, 0.587f, 0.114f);
-
 #define PI			3.14159265359f
 #define INV_PI		0.31830988618f
 
@@ -23,6 +21,11 @@ float smithG_GGX(float NdV, float alphaG)
 	return 1.f / (NdV + sqrt(a + b - a*b));
 }
 
+float smithG_GGX_aniso(float NdotV, float VdotX, float VdotY, float ax, float ay)
+{
+	return 1 / (NdotV + sqrt(sqr(VdotX * ax) + sqr(VdotY * ay) + sqr(NdotV)));
+}
+
 float GTR1(float NdH, float a)
 {
 	if (a >= 1.f)
@@ -35,11 +38,6 @@ float GTR1(float NdH, float a)
 		float t = 1.f + (a2 - 1.f) * NdH * NdH;
 		return (a2 - 1.f) / (PI * log(a2) * t);
 	}
-}
-
-float3 Diffuse(float3 pAlbedo)
-{
-	return pAlbedo / PI;
 }
 
 float NormalDistribution_GGX(float a, float NdH)
@@ -103,28 +101,6 @@ float3 Specular(float3 specularColor, float3 h, float3 v, float3 l, float a, flo
 	return ((Specular_D(a, NdH) * Specular_G(a, NdV, NdL, NdH, VdH, LdV)) * Specular_F(specularColor, v, h)) / (4.0f * NdL * NdV + 0.0001f);
 }
 
-//class CBaseBRDF : IBRDF
-//{
-//	float3 CalcBRDF(half3 albedoColor, half3 specularColor, float3 normal,
-//		half2 f2RoughMet, half4 f4SurSpecTintAniso, half4 f4SheenTintClearcoatGloss,
-//		float3 lightColor, float3 lightDir, float3 viewDir, float3 X, float3 Y, inout float3 diffuse)
-//	{
-//		// Compute some useful values.
-//		float NdL = saturate(dot(normal, lightDir));
-//		float NdV = saturate(dot(normal, viewDir));
-//		float3 h = normalize(lightDir + viewDir);
-//		float NdH = saturate(dot(normal, h));
-//		float VdH = saturate(dot(viewDir, h));
-//		float LdV = saturate(dot(lightDir, viewDir));
-//		float a = max(0.001f, roughness * roughness);
-//
-//		float3 cDiff = Diffuse(albedoColor);
-//		float3 cSpec = Specular(specularColor, h, viewDir, lightDir, a, NdL, NdV, NdH, VdH, LdV);
-//
-//		return lightColor * NdL * (cDiff * (1.f - cSpec) + cSpec);
-//	}
-//};
-
 void CalcBRDF(in float3 albedoColor, in float3 normal, in float3 tangent, in float3 binormal,
 	in float3 lightDir, in float3 viewDir,
 	float roughness, float metallic,
@@ -135,13 +111,13 @@ void CalcBRDF(in float3 albedoColor, in float3 normal, in float3 tangent, in flo
 	// Compute some useful values.
 	float NdL = saturate(dot(normal, lightDir));
 	float NdV = saturate(dot(normal, viewDir));
-	if (NdL < 0.f || NdV < 0.f)
-		return;
 
 	float3 h = normalize(lightDir + viewDir);
-	float NdH = dot(normal, h);
-	float LdH = dot(lightDir, h);
+	float NdH = saturate(dot(normal, h));
+	float LdH = saturate(dot(lightDir, h));
 
+	// luminance approx.
+	const float3 LUM_CONVERT = float3(0.299f, 0.587f, 0.114f);
 	float luminance = dot(LUM_CONVERT, albedoColor);
 
 	float3 CTint = luminance > 0.0f ? albedoColor / luminance : 1.f.xxx; // Normalize luminance to isolate hue+sat.
@@ -167,11 +143,10 @@ void CalcBRDF(in float3 albedoColor, in float3 normal, in float3 tangent, in flo
 	float ax = max(0.001f, sqr(roughness) / aspect);
 	float ay = max(0.001f, sqr(roughness) * aspect);
 	float Ds = GTR2_aniso(NdH, dot(h, tangent), dot(h, binormal), ax, ay);
-	Ds = isnan(Ds) ? 1e-8 : Ds;
 	float FH = Fresnel_Schlick(LdH);
 	float3 Fs = lerp(CSpec0, 1.f.xxx, FH);
-	float roughg = sqr(roughness * 0.5f + 0.5f);
-	float Gs = smithG_GGX(NdL, roughg) * smithG_GGX(NdV, roughg);
+	float Gs = smithG_GGX_aniso(NdL, dot(lightDir, tangent), dot(lightDir, binormal), ax, ay);
+	Gs *= smithG_GGX_aniso(NdV, dot(viewDir, tangent), dot(viewDir, binormal), ax, ay);
 
 	// Sheen
 	float3 Fsheen = FH * sheen * CSheen;

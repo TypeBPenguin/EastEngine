@@ -41,7 +41,8 @@ namespace EastEngine
 				{
 					Graphics::Camera* pCamera = Graphics::CameraManager::GetInstance()->GetMainCamera();
 
-					Math::Matrix matWorld = Math::Matrix::CreateTranslation(pCamera->GetPosition());
+					//Math::Matrix matWorld = Math::Matrix::CreateTranslation(pCamera->GetPosition());
+					Math::Matrix matWorld = Math::Matrix::CreateTranslation(pCamera->GetViewMatrix().Invert().Translation());
 
 					Graphics::RenderSubsetSkybox subset;
 					subset.pVertexBuffer = m_pVertexBuffer;

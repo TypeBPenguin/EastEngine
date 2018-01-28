@@ -85,9 +85,9 @@ namespace EastEngine
 
 			m_pHDRFilter = HDRFilter::GetInstance();
 
-			//m_pASSAO = ASSAO::GetInstance();
-			//if (m_pASSAO->Init(viewport) == false)
-			//	return false;
+			m_pASSAO = ASSAO::GetInstance();
+			if (m_pASSAO->Init(viewport) == false)
+				return false;
 
 			m_pSSS = SSS::GetInstance();
 			if (m_pSSS->Init() == false)

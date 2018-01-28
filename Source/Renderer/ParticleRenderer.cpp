@@ -29,7 +29,7 @@ namespace StrID
 
 	RegisterStringID(g_f4AlbedoColor);
 	RegisterStringID(g_f4EmissiveColor);
-	RegisterStringID(g_f4DisRoughMetEmi);
+	RegisterStringID(g_f4PaddingRoughMetEmi);
 	RegisterStringID(g_f4SurSpecTintAniso);
 	RegisterStringID(g_f4SheenTintClearcoatGloss);
 	RegisterStringID(g_texAlbedo);
@@ -565,8 +565,6 @@ namespace EastEngine
 						SetBitMask64(nMask, IsValidTexture(EmMaterial::eAlbedo) == true ? EmParticleShader::eUseTexAlbedo : -1);
 						SetBitMask64(nMask, IsValidTexture(EmMaterial::eMask) == true ? EmParticleShader::eUseTexMask : -1);
 						SetBitMask64(nMask, IsValidTexture(EmMaterial::eNormal) == true ? EmParticleShader::eUseTexNormal : -1);
-						SetBitMask64(nMask, IsValidTexture(EmMaterial::eDisplacement) == true ? EmParticleShader::eUseTexDisplacement : -1);
-						SetBitMask64(nMask, IsValidTexture(EmMaterial::eSpecularColor) == true ? EmParticleShader::eUseTexSpecularColor : -1);
 						SetBitMask64(nMask, IsValidTexture(EmMaterial::eRoughness) == true ? EmParticleShader::eUseTexRoughness : -1);
 						SetBitMask64(nMask, IsValidTexture(EmMaterial::eMetallic) == true ? EmParticleShader::eUseTexMetallic : -1);
 						SetBitMask64(nMask, IsValidTexture(EmMaterial::eEmissive) == true ? EmParticleShader::eUseTexEmissive : -1);
@@ -614,15 +612,13 @@ namespace EastEngine
 						pEffect->SetVector(StrID::g_f4AlbedoColor, reinterpret_cast<const Math::Vector4&>(pMaterial->GetAlbedoColor()));
 						pEffect->SetVector(StrID::g_f4EmissiveColor, reinterpret_cast<const Math::Vector4&>(pMaterial->GetEmissiveColor()));
 
-						pEffect->SetVector(StrID::g_f4DisRoughMetEmi, pMaterial->GetDisRoughMetEmi());
+						pEffect->SetVector(StrID::g_f4PaddingRoughMetEmi, pMaterial->GetPaddingRoughMetEmi());
 						pEffect->SetVector(StrID::g_f4SurSpecTintAniso, pMaterial->GetSurSpecTintAniso());
 						pEffect->SetVector(StrID::g_f4SheenTintClearcoatGloss, pMaterial->GetSheenTintClearcoatGloss());
 
 						pEffect->SetTexture(StrID::g_texAlbedo, pMaterial->GetTexture(EmMaterial::eAlbedo));
 						pEffect->SetTexture(StrID::g_texMask, pMaterial->GetTexture(EmMaterial::eMask));
 						pEffect->SetTexture(StrID::g_texNormalMap, pMaterial->GetTexture(EmMaterial::eNormal));
-						pEffect->SetTexture(StrID::g_texDisplaceMap, pMaterial->GetTexture(EmMaterial::eDisplacement));
-						pEffect->SetTexture(StrID::g_texSpecularColor, pMaterial->GetTexture(EmMaterial::eSpecularColor));
 						pEffect->SetTexture(StrID::g_texRoughness, pMaterial->GetTexture(EmMaterial::eRoughness));
 						pEffect->SetTexture(StrID::g_texMetallic, pMaterial->GetTexture(EmMaterial::eMetallic));
 						pEffect->SetTexture(StrID::g_texEmissive, pMaterial->GetTexture(EmMaterial::eEmissive));
@@ -647,7 +643,7 @@ namespace EastEngine
 						pEffect->SetVector(StrID::g_f4AlbedoColor, reinterpret_cast<const Math::Vector4&>(Math::Color::White));
 						pEffect->SetVector(StrID::g_f4EmissiveColor, reinterpret_cast<const Math::Vector4&>(Math::Color::Black));
 
-						pEffect->SetVector(StrID::g_f4DisRoughMetEmi, reinterpret_cast<const Math::Vector4&>(Math::Color::Transparent));
+						pEffect->SetVector(StrID::g_f4PaddingRoughMetEmi, reinterpret_cast<const Math::Vector4&>(Math::Color::Transparent));
 						pEffect->SetVector(StrID::g_f4SurSpecTintAniso, reinterpret_cast<const Math::Vector4&>(Math::Color::Transparent));
 						pEffect->SetVector(StrID::g_f4SheenTintClearcoatGloss, reinterpret_cast<const Math::Vector4&>(Math::Color::Transparent));
 

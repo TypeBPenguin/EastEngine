@@ -34,7 +34,9 @@ namespace StrID
 	RegisterStringID(g_texShadowMap);
 	RegisterStringID(g_texShadowCubeMap);
 	RegisterStringID(g_texIBLMap);
-	RegisterStringID(g_texIrradianceMap);
+	RegisterStringID(g_texDiffuseHDR);
+	RegisterStringID(g_texSpecularHDR);
+	RegisterStringID(g_texSpecularBRDF);
 	RegisterStringID(g_f3CameraPos);
 	RegisterStringID(g_nEnableShadowCount);
 	RegisterStringID(g_matInvView);
@@ -45,8 +47,6 @@ namespace StrID
 	RegisterStringID(g_nDirectionalLightCount);
 	RegisterStringID(g_nPointLightCount);
 	RegisterStringID(g_nSpotLightCount);
-	RegisterStringID(g_samPoint);
-	RegisterStringID(g_samLinearWrap);
 
 	RegisterStringID(g_samShadow);
 	RegisterStringID(g_cascadeShadow);
@@ -59,11 +59,7 @@ namespace EastEngine
 	namespace Graphics
 	{
 		DeferredRenderer::DeferredRenderer()
-			: m_pSamplerLinearWrap(nullptr)
-			, m_pSamplerPointClamp(nullptr)
-			, m_pSamplerComparison(nullptr)
-			, m_pBlendStateAdditive(nullptr)
-			, m_pEffect(nullptr)
+			: m_pEffect(nullptr)
 			, m_pEffectShadow(nullptr)
 		{
 		}
@@ -76,46 +72,6 @@ namespace EastEngine
 
 		bool DeferredRenderer::Init(const Math::Viewport& viewport)
 		{
-			m_pSamplerLinearWrap = GetDevice()->GetSamplerState(EmSamplerState::eMinMagMipLinearWrap);
-			m_pSamplerPointClamp = GetDevice()->GetSamplerState(EmSamplerState::eMinMagMipPointClamp);
-
-			SamplerStateDesc SamDescShad;
-			SamDescShad.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
-			SamDescShad.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
-			SamDescShad.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
-			SamDescShad.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
-			SamDescShad.MipLODBias = 0;
-			SamDescShad.MaxAnisotropy = 0;
-			SamDescShad.ComparisonFunc = D3D11_COMPARISON_LESS;
-			Memory::Clear(&SamDescShad.BorderColor, sizeof(SamDescShad.BorderColor));
-			SamDescShad.MinLOD = 0;
-			SamDescShad.MaxLOD = 0;
-
-			m_pSamplerComparison = ISamplerState::Create(SamDescShad);
-
-			BlendStateDesc blendStateDesc;
-			for (int i = 0; i < 8; ++i)
-			{
-				//blendStateDesc.RenderTarget[i].BlendEnable = true;
-				//blendStateDesc.RenderTarget[i].SrcBlend = D3D11_BLEND_SRC1_COLOR;
-				//blendStateDesc.RenderTarget[i].DestBlend = D3D11_BLEND_ONE;
-				//blendStateDesc.RenderTarget[i].BlendOp = D3D11_BLEND_OP_ADD;
-				//blendStateDesc.RenderTarget[i].SrcBlendAlpha = D3D11_BLEND_ONE;
-				//blendStateDesc.RenderTarget[i].DestBlendAlpha = D3D11_BLEND_ONE;
-				//blendStateDesc.RenderTarget[i].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-				//blendStateDesc.RenderTarget[i].RenderTargetWriteMask = 0x0f;
-
-				blendStateDesc.RenderTarget[i].BlendEnable = true;
-				blendStateDesc.RenderTarget[i].SrcBlend = D3D11_BLEND_ONE;
-				blendStateDesc.RenderTarget[i].DestBlend = D3D11_BLEND_ONE;
-				blendStateDesc.RenderTarget[i].BlendOp = D3D11_BLEND_OP_ADD;
-				blendStateDesc.RenderTarget[i].SrcBlendAlpha = D3D11_BLEND_ONE;
-				blendStateDesc.RenderTarget[i].DestBlendAlpha = D3D11_BLEND_ONE;
-				blendStateDesc.RenderTarget[i].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-				blendStateDesc.RenderTarget[i].RenderTargetWriteMask = 0x0f;
-			}
-			m_pBlendStateAdditive = IBlendState::Create(blendStateDesc);
-
 			std::string strPath(File::GetPath(File::EmPath::eFx));
 
 #if defined(DEBUG) || defined(_DEBUG)
@@ -285,11 +241,10 @@ namespace EastEngine
 				m_pEffect->SetTexture(StrID::g_texAlbedoSpecular, pGBuffers->GetGBuffer(EmGBuffer::eColors)->GetTexture());
 				m_pEffect->SetTexture(StrID::g_texDisneyBRDF, pGBuffers->GetGBuffer(EmGBuffer::eDisneyBRDF)->GetTexture());
 
-				m_pEffect->SetTexture(StrID::g_texIBLMap, pIBL->GetCubeMap());
-				m_pEffect->SetTexture(StrID::g_texIrradianceMap, pIBL->GetIrradianceMap());
+				m_pEffect->SetTexture(StrID::g_texDiffuseHDR, pIBL->GetDiffuseHDR());
 
-				m_pEffect->SetSamplerState(StrID::g_samPoint, m_pSamplerPointClamp, 0);
-				m_pEffect->SetSamplerState(StrID::g_samLinearWrap, m_pSamplerLinearWrap, 0);
+				m_pEffect->SetTexture(StrID::g_texSpecularHDR, pIBL->GetSpecularHDR());
+				m_pEffect->SetTexture(StrID::g_texSpecularBRDF, pIBL->GetSpecularBRDF());
 
 				uint32_t nPassCount = pEffectTech->GetPassCount();
 				for (uint32_t p = 0; p < nPassCount; ++p)
@@ -347,8 +302,7 @@ namespace EastEngine
 			pDeviceContext->ClearState();
 
 			pDeviceContext->SetDefaultViewport();
-			pDeviceContext->SetBlendState(m_pBlendStateAdditive);
-			//pDeviceContext->SetBlendState(EmBlendState::eMultiplicative);
+			pDeviceContext->SetBlendState(EmBlendState::eAdditive);
 			pDeviceContext->SetRasterizerState(EmRasterizerState::eSolidCCW);
 			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eRead_Write_Off);
 
@@ -555,8 +509,6 @@ namespace EastEngine
 
 							m_pEffectShadow->SetTexture(StrID::g_texDepth, pDevice->GetMainDepthStencil()->GetTexture());
 
-							m_pEffectShadow->SetSamplerState(StrID::g_samPoint, m_pSamplerPointClamp, 0);
-
 							++nShadowCount;
 
 							if (pEffectTech != nullptr)
@@ -589,13 +541,13 @@ namespace EastEngine
 			m_pEffect->SetTexture(StrID::g_texAlbedoSpecular, nullptr);
 			m_pEffect->SetTexture(StrID::g_texDisneyBRDF, nullptr);
 
-			m_pEffect->SetTexture(StrID::g_texIBLMap, nullptr);
-			m_pEffect->SetTexture(StrID::g_texIrradianceMap, nullptr);
+			//m_pEffect->SetTexture(StrID::g_texIBLMap, nullptr);
+			m_pEffect->SetTexture(StrID::g_texDiffuseHDR, nullptr);
+
+			m_pEffect->SetTexture(StrID::g_texSpecularHDR, nullptr);
+			m_pEffect->SetTexture(StrID::g_texSpecularBRDF, nullptr);
 
 			m_pEffect->SetTexture(StrID::g_texShadowMap, nullptr);
-
-			m_pEffect->UndoSamplerState(StrID::g_samPoint, 0);
-			m_pEffect->UndoSamplerState(StrID::g_samLinearWrap, 0);
 
 			m_pEffect->ClearState(pd3dDeviceContext, pTech);
 		}
@@ -604,9 +556,6 @@ namespace EastEngine
 		{
 			m_pEffectShadow->SetTexture(StrID::g_texDepth, nullptr);
 			m_pEffectShadow->SetTexture(StrID::g_texShadowMap, nullptr);
-
-			m_pEffectShadow->UndoSamplerState(StrID::g_samPoint, 0);
-			m_pEffectShadow->UndoSamplerState(StrID::g_samShadow, 0);
 
 			m_pEffectShadow->ClearState(pd3dDeviceContext, pTech);
 		}

@@ -50,7 +50,7 @@ namespace EastEngine
 				SetTextureName(emType, pInfo->strTextureNameArray[i]);
 			}
 
-			SetDisRoughMetEmi(pInfo->f4DisRoughMetEmi);
+			SetPaddingRoughMetEmi(pInfo->f4PaddingRoughMetEmi);
 			SetSurSpecTintAniso(pInfo->f4SurSpecTintAniso);
 			SetSheenTintClearcoatGloss(pInfo->f4SheenTintClearcoatGloss);
 
@@ -89,7 +89,7 @@ namespace EastEngine
 				SetTextureName(emType, pSource->GetTextureName(emType));
 			}
 
-			SetDisRoughMetEmi(pSource->GetDisRoughMetEmi());
+			SetPaddingRoughMetEmi(pSource->GetPaddingRoughMetEmi());
 			SetSurSpecTintAniso(pSource->GetSurSpecTintAniso());
 			SetSheenTintClearcoatGloss(pSource->GetSheenTintClearcoatGloss());
 

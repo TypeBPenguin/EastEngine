@@ -119,9 +119,11 @@ namespace EastEngine
 				eMask,
 
 				eNormal,
-				eDisplacement,
 
-				eSpecularColor,
+				// 기존 데이터와의 호환성을 위해, 제거가 아닌 빈공간으로 처리
+				// 나중에 수정할것
+				ePadding1,
+				ePadding2,
 
 				eRoughness,
 				eMetallic,

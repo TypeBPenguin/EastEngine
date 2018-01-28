@@ -283,13 +283,7 @@ namespace EastEngine
 				return false;
 			}
 
-			ImageBasedLight* pIBL = new ImageBasedLight;
-			m_pImageBasedLight = pIBL;
-			if (pIBL->Init() == false)
-			{
-				Release();
-				return false;
-			}
+			m_pImageBasedLight = new ImageBasedLight;
 
 			hr = m_pd3dImmediateContext->GetInterface()->QueryInterface(__uuidof(ID3DUserDefinedAnnotation), reinterpret_cast<void**>(&m_pUserDefineAnnotation));
 			if (FAILED(hr))

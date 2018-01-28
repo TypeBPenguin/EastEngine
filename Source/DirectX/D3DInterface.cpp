@@ -399,7 +399,7 @@ namespace EastEngine
 			colorAlbedo = Math::Color(1.f, 1.f, 1.f, 1.f);
 			colorEmissive = Math::Color(0.f, 0.f, 0.f, 1.f);
 
-			f4DisRoughMetEmi = Math::Vector4::Zero;
+			f4PaddingRoughMetEmi = Math::Vector4::Zero;
 			f4SurSpecTintAniso = Math::Vector4::Zero;
 			f4SheenTintClearcoatGloss = Math::Vector4::Zero;
 
@@ -493,7 +493,7 @@ namespace EastEngine
 			file.Read(&materialInfo.colorAlbedo.r, 4);
 			file.Read(&materialInfo.colorEmissive.r, 4);
 
-			file.Read(&materialInfo.f4DisRoughMetEmi.x, 4);
+			file.Read(&materialInfo.f4PaddingRoughMetEmi.x, 4);
 			file.Read(&materialInfo.f4SurSpecTintAniso.x, 4);
 			file.Read(&materialInfo.f4SheenTintClearcoatGloss.x, 4);
 
@@ -557,7 +557,7 @@ namespace EastEngine
 			file.Write(&pMaterial->GetAlbedoColor().r, 4);
 			file.Write(&pMaterial->GetEmissiveColor().r, 4);
 
-			file.Write(&pMaterial->GetDisRoughMetEmi().x, 4);
+			file.Write(&pMaterial->GetPaddingRoughMetEmi().x, 4);
 			file.Write(&pMaterial->GetSurSpecTintAniso().x, 4);
 			file.Write(&pMaterial->GetSheenTintClearcoatGloss().x, 4);
 

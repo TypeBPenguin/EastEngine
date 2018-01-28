@@ -7,11 +7,25 @@
 #include "BRDF.fx"
 #include "Light.fx"
 
-TextureCube g_texIBLMap;
-TextureCube g_texIrradianceMap;
+TextureCube g_texDiffuseHDR;
+TextureCube g_texSpecularHDR;
+Texture2D g_texSpecularBRDF;
 
-SamplerState g_samPoint : register(s0);
-SamplerState g_samLinearWrap : register(s1);
+SamplerState SamplerPointClamp
+{
+	Filter = MIN_MAG_MIP_POINT;
+	AddressU = Clamp;
+	AddressV = Clamp;
+	BorderColor = float4(10000, 10000, 10000, 10000);
+};
+
+SamplerState SamplerClamp
+{
+	Filter = MIN_MAG_MIP_LINEAR;
+	AddressU = Clamp;
+	AddressV = Clamp;
+	BorderColor = float4(10000, 10000, 10000, 10000);
+};
 
 Texture2D<float2> g_texShadowMap;
 
@@ -23,7 +37,7 @@ cbuffer cbCommonContents
 
 float4 CalcColor(in float3 posW, 
 	in float3 normal, in float3 tangent, in float3 binormal, 
-	in float3 albedo, in float3 specularColor, in float3 emissive, in float emissiveIntensity, 
+	in float3 albedo, in float3 emissive, in float emissiveIntensity, 
 	in float roughness, in float metallic, 
 	in float subsourface, in float specular, in float specularTint,
 	in float anisotropic, in float sheen, in float sheenTint,
@@ -34,21 +48,12 @@ float4 CalcColor(in float3 posW,
 	float3 realAlbedo = albedo - albedo * metallic;
 
 	float3 viewDir = normalize(g_f3CameraPos - posW);
-	float3 reflectVector = reflect(-viewDir, normal);
-
-	float mipIndex = roughness * roughness * 8.0f;
-
-	float3 envColor = pow(abs(g_texIBLMap.SampleLevel(g_samLinearWrap, reflectVector, mipIndex)), 2.2f).xyz;
-
-	//float3 irradiance = pow(abs(g_texIrradianceMap.Sample(g_samLinearWrap, normal)), 2.2f).xyz;
-	float3 irradiance = g_texIrradianceMap.Sample(g_samLinearWrap, normal).xyz;
-
-	float3 envFresnel = Specular_F_Roughness(specularColor, roughness * roughness, normal, viewDir);
 
 	float3 color = (emissive * emissiveIntensity) * realAlbedo;
 
 	float3 diffuse = 0.f;
-	float3 ambient = 0.f;
+	float3 ambient = realAlbedo;
+	float3 finalSpecular = 0.f;
 	float sumReflectionIntensity = 0.f;
 
 	uint i = 0;
@@ -57,13 +62,14 @@ float4 CalcColor(in float3 posW,
 	for (i = 0; i < g_nDirectionalLightCount; ++i)
 	{
 		float3 lightColor = g_lightDirectional[i].GetColor();
-		float3 lightDir = -g_lightDirectional[i].GetDir();
+		float3 lightDir = normalize(-g_lightDirectional[i].GetDir());
 	
 		float lightIntensity = g_lightDirectional[i].GetIntensity();
 		float ambientIntensity = g_lightDirectional[i].GetAmbientIntensity();
 		float reflectionIntensity = g_lightDirectional[i].GetReflectionIntensity();
 	
-		float attenuation = 0.001f * 0.1f;
+		//float attenuation = 0.001f * 0.1f;
+		float attenuation = 1.f;
 	
 		float3 albedo = float3(0.f, 0.f, 0.f);
 		float3 diffuseColor = float3(0.f, 0.f, 0.f);
@@ -76,7 +82,7 @@ float4 CalcColor(in float3 posW,
 			albedo, diffuseColor);
 	
 		diffuse += diffuseColor * attenuation * lightIntensity;
-		sumReflectionIntensity += reflectionIntensity * 0.1f;
+		sumReflectionIntensity += reflectionIntensity;
 		ambient += albedo * ambientIntensity;
 	}
 
@@ -162,7 +168,7 @@ float4 CalcColor(in float3 posW,
 	float shadow = 1.f;
 	if (g_nEnableShadowCount > 0)
 	{
-		float2 shadowData = g_texShadowMap.Sample(g_samPoint, shadowTexUV);
+		float2 shadowData = g_texShadowMap.Sample(SamplerClamp, shadowTexUV);
 		float fMask = shadowData.y * 100.f;
 		if (fMask > 0.f)
 		{
@@ -175,7 +181,22 @@ float4 CalcColor(in float3 posW,
 		}
 	}
 
-	color += ((diffuse + (envFresnel * envColor * sumReflectionIntensity)) * shadow) + (irradiance * ambient);
+	float3 reflectVector = normalize(reflect(-viewDir, normal));
+
+	float4 diffuseIBL = g_texDiffuseHDR.SampleLevel(SamplerClamp, normal, 0) / PI;
+
+	float mipIndex = roughness * roughness * 8.0f;
+	float3 specularIBL = g_texSpecularHDR.SampleLevel(SamplerClamp, reflectVector, mipIndex).xyz;
+
+	float vdotn = dot(viewDir, normal);
+	float4 brdfTerm = g_texSpecularBRDF.SampleLevel(SamplerClamp, float2(vdotn, 1.f - roughness), 0);
+	float3 metalSpecularIBL = specularIBL.rgb;
+
+	float3 specColor = lerp(0.03f.xxx, albedo, metallic);
+
+	float3 envFresnel = Specular_F_Roughness(specColor, roughness * roughness, normal, viewDir);
+
+	color = (diffuse + (envFresnel * metalSpecularIBL * (specColor * brdfTerm.x + (brdfTerm.y))) + (ambient * diffuseIBL.rgb));
 
 	return float4(pow(abs(color), 1.f / 2.2f), subsourface);
 }

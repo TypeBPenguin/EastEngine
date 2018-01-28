@@ -126,7 +126,8 @@ namespace EastEngine
 				pDeviceContext->SetVertexBuffers(renderSubset.pVertexBuffer, renderSubset.pVertexBuffer->GetFormatSize(), 0);
 				pDeviceContext->SetIndexBuffer(renderSubset.pIndexBuffer, 0);
 
-				m_pEffect->SetMatrix(StrID::g_matWVP, renderSubset.matWorld * pCamera->GetViewMatrix() * pCamera->GetProjMatrix());
+				Math::Matrix matWorld = Math::Matrix::CreateTranslation(pCamera->GetViewMatrix().Invert().Translation());
+				m_pEffect->SetMatrix(StrID::g_matWVP, matWorld * pCamera->GetViewMatrix() * pCamera->GetProjMatrix());
 
 				m_pEffect->SetTexture(StrID::g_texSkyCubemap, renderSubset.pTexSkyCubemap);
 

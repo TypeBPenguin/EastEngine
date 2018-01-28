@@ -461,7 +461,7 @@ namespace EastEngine
 
 		//					WriteVector4(nodeData, pMaterial->GetAlbedoColor());
 		//					WriteVector4(nodeData, pMaterial->GetEmissiveColor());
-		//					WriteVector4(nodeData, pMaterial->GetDisRoughMetEmi());
+		//					WriteVector4(nodeData, pMaterial->GetPaddingRoughMetEmi());
 		//					WriteVector4(nodeData, pMaterial->GetSurSpecTintAniso());
 		//					WriteVector4(nodeData, pMaterial->GetSheenTintClearcoatGloss());
 

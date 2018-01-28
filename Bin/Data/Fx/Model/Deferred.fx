@@ -31,12 +31,12 @@ PS_INPUT VS(uint id : SV_VertexID)
 
 float4 PS(PS_INPUT input) : SV_Target0
 {
-	float depth = g_texDepth.Sample(g_samPoint, input.tex);
+	float depth = g_texDepth.Sample(SamplerPointClamp, input.tex);
 	clip((1.f - 1e-5f) - depth);
 
-	float4 colors = g_texAlbedoSpecular.Sample(g_samPoint, input.tex);
-	float4 normals = g_texNormal.Sample(g_samPoint, input.tex);
-	float4 disneyBRDF = g_texDisneyBRDF.Sample(g_samPoint, input.tex);
+	float4 colors = g_texAlbedoSpecular.Sample(SamplerPointClamp, input.tex);
+	float4 normals = g_texNormal.Sample(SamplerPointClamp, input.tex);
+	float4 disneyBRDF = g_texDisneyBRDF.Sample(SamplerPointClamp, input.tex);
 
 	float4 posWV = 0.f;
 	float3 posW = CalcWorldSpacePosFromDepth(depth, input.tex, g_matInvView, g_matInvProj, posWV);
@@ -57,7 +57,7 @@ float4 PS(PS_INPUT input) : SV_Target0
 
 	return CalcColor(posW,
 		normal, tangent, binormal,
-		albedo, specular, emissiveColor, emissiveIntensity,
+		albedo, emissiveColor, emissiveIntensity,
 		RM.x, RM.y,
 		SST.x, SST.y, SST.z,
 		AST.x, AST.y, AST.z,

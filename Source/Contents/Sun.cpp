@@ -33,7 +33,7 @@ namespace Contents
 		material.strName = pLight->GetName();
 		material.colorAlbedo = pLight->GetColor();
 		material.colorEmissive = pLight->GetColor();
-		material.f4DisRoughMetEmi.w = pLight->GetIntensity() / 10.f;
+		material.f4PaddingRoughMetEmi.w = pLight->GetIntensity() / 10.f;
 
 		Graphics::ModelLoader loader;
 		loader.InitSphere(pLight->GetName(), &material, fRadius * 2.f, 32);

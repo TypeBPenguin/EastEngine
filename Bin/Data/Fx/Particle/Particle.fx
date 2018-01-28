@@ -147,7 +147,7 @@ cbuffer cbMaterial
 	float4 g_f4AlbedoColor;
 	float4 g_f4EmissiveColor;
 
-	float4 g_f4DisRoughMetEmi;
+	float4 g_f4PaddingRoughMetEmi;
 	float4 g_f4SurSpecTintAniso;
 	float4 g_f4SheenTintClearcoatGloss;
 };
@@ -230,7 +230,7 @@ PS_OUTPUT PS_DECAL(PS_INPUT_DECAL input)
 	output.normals.xy = CompressNormal(normal);
 	output.normals.zw = CompressNormal(tangent);
 
-	float3 RM = float3(g_f4DisRoughMetEmi.yz, 0.f);
+	float3 RM = float3(g_f4PaddingRoughMetEmi.yz, 0.f);
 #ifdef USE_TEX_ROUGHNESS
 	RM.x = g_texRoughness.Sample(g_samplerState, f2DecalUV).x;
 #endif
@@ -239,7 +239,7 @@ PS_OUTPUT PS_DECAL(PS_INPUT_DECAL input)
 	RM.y = g_texMetallic.Sample(g_samplerState, f2DecalUV).x;
 #endif
 
-	float emissiveIntensity = g_f4DisRoughMetEmi.w;
+	float emissiveIntensity = g_f4PaddingRoughMetEmi.w;
 #ifdef USE_TEX_EMISSIVE
 	emissiveIntensity = g_texEmissive.Sample(g_samplerState, f2DecalUV).x;
 #endif

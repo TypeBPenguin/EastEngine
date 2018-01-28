@@ -144,7 +144,7 @@ cbuffer cbMatrix
 	float4 g_f4AlbedoColor;
 	float4 g_f4EmissiveColor;
 
-	float4 g_f4DisRoughMetEmi;
+	float4 g_f4PaddingRoughMetEmi;
 	float4 g_f4SurSpecTintAniso;
 	float4 g_f4SheenTintClearcoatGloss;
 
@@ -171,14 +171,6 @@ Texture2D g_texMask;
 
 #ifdef USE_TEX_NORMAL
 Texture2D g_texNormalMap;
-#endif
-
-#ifdef USE_TEX_DISPLACEMENT
-Texture2D g_texDisplaceMap;
-#endif
-
-#ifdef USE_TEX_SPECULARCOLOR
-Texture2D g_texSpecularColor;
 #endif
 
 #ifdef USE_TEX_ROUGHNESS
@@ -460,11 +452,6 @@ PS_INPUT DS(HS_ConstantOutput input,
 	float3 normal = inputPatch[0].normal * coordinates.z + inputPatch[1].normal * coordinates.x + inputPatch[2].normal * coordinates.y;
 	normal = normalize(normal);
 
-	#ifdef USE_TEX_DISPLACEMENT
-		float offset = g_texDisplaceMap.SampleLevel(g_samplerState, texCoord, 0).x;
-		position += normal * offset;
-	#endif
-
 	#ifdef USE_INSTANCING
 		float4x4 matWorld = ComputeWorldMatrix(g_Instances[inputPatch[0].instanceID]);
 	#else
@@ -628,16 +615,20 @@ PS_OUTPUT D_PS(PS_INPUT input)
 	if (g_fStippleTransparencyFactor > 0.f)
 	{
 		float2 screenPos = 0.f;
-		screenPos = floor(input.pos * g_fStippleTransparencyFactor) * 0.5f;
+		screenPos = floor(input.pos * g_fStippleTransparencyFactor.xxxx) * 0.5f;
 
 		float checker = -frac(screenPos.r + screenPos.g);
 		clip(checker);
 	}
 
+	float alpha = 1.f;
 #ifdef USE_TEX_ALBEDO
-	float4 albedo = saturate(g_f4AlbedoColor * pow(abs(g_texAlbedo.Sample(g_samplerState, input.tex)), 2.2f) * 2.f);
+	float4 texAlbedo = g_texAlbedo.Sample(g_samplerState, input.tex);
+	float4 albedo = saturate(g_f4AlbedoColor * pow(abs(texAlbedo), 2.2f));
+	alpha = texAlbedo.a;
 #else
 	float4 albedo = g_f4AlbedoColor;
+	alpha = albedo.a;
 #endif
 
 #ifdef USE_TEX_MASK
@@ -655,7 +646,17 @@ PS_OUTPUT D_PS(PS_INPUT input)
 	float3 normal = input.normal;
 #endif
 
-	float3 RM = float3(g_f4DisRoughMetEmi.yz, 0.f);
+#ifdef USE_ALPHABLENDING
+	// 검증 필요
+	float3 dir = normalize(input.posW - g_f3CameraPos);
+	float fdot = dot(normal, dir);
+	if (fdot > 0.f)
+	{
+		normal = -normal;
+	}
+#endif
+
+	float3 RM = float3(g_f4PaddingRoughMetEmi.yz, 0.f);
 #ifdef USE_TEX_ROUGHNESS
 	RM.x = g_texRoughness.Sample(g_samplerState, input.tex).x;
 #endif
@@ -664,15 +665,9 @@ PS_OUTPUT D_PS(PS_INPUT input)
 	RM.y = g_texMetallic.Sample(g_samplerState, input.tex).x;
 #endif
 
-	float emissiveIntensity = g_f4DisRoughMetEmi.w;
+	float emissiveIntensity = g_f4PaddingRoughMetEmi.w;
 #ifdef USE_TEX_EMISSIVE
 	emissiveIntensity = g_texEmissive.Sample(g_samplerState, input.tex).x;
-#endif
-
-#ifdef USE_TEX_SPECULARCOLOR
-	float3 specular = g_texSpecularColor.Sample(g_samplerState, input.tex).xyz;
-#else
-	float3 specular = lerp(0.03f, albedo.xyz, RM.y);
 #endif
 
 #ifdef USE_TEX_EMISSIVECOLOR
@@ -715,20 +710,20 @@ PS_OUTPUT D_PS(PS_INPUT input)
 #ifdef USE_ALPHABLENDING
 	output = CalcColor(input.posW,
 		normal, input.tangent, input.binormal,
-		saturate(albedo), specular, emissiveColor, emissiveIntensity,
+		saturate(albedo), emissiveColor, emissiveIntensity,
 		RM.x, RM.y,
 		SST.x, SST.y, SST.z,
 		AST.x, AST.y, AST.z,
 		CG.x, CG.y,
 		float2(0.f, 0.f));
 
-	output.w = albedo.w;
+	output.w = alpha;
 #else
 	output.normals.xy = CompressNormal(normal);
 	output.normals.zw = CompressNormal(input.tangent);
 
 	output.colors.x = Pack3PNForFP32(saturate(albedo));
-	output.colors.y = Pack3PNForFP32(specular);
+	output.colors.y = 0.f;	// padding
 	output.colors.z = Pack3PNForFP32(emissiveColor);
 	output.colors.w = emissiveIntensity;
 
@@ -760,15 +755,6 @@ PS_OUTPUT D_PS(PS_INPUT input)
 		}
 	}
 	#endif
-#endif
-
-#ifdef USE_ALPHABLENDING
-	DepthStencilState DepthEnabling
-	{
-		DepthEnable = TRUE;
-		DepthWriteMask = ALL;
-		DepthFunc = LESS_EQUAL;
-	};
 #endif
 
 #ifdef USE_TESSELLATION
@@ -820,19 +806,6 @@ PS_OUTPUT D_PS(PS_INPUT input)
 			SetPixelShader(CompileShader(ps_5_0, D_PS()));
 	#endif
 		}
-
-#ifdef USE_ALPHABLENDING
-		pass Pass_1
-		{
-			SetDepthStencilState(DepthEnabling, 0);
-
-			SetVertexShader(CompileShader(vs_5_0, VS()));
-			SetHullShader(NULL);
-			SetDomainShader(NULL);
-			SetGeometryShader(NULL);
-			SetPixelShader(CompileShader(ps_5_0, D_PS()));
-		}
-#endif
 	}
 #endif
 
