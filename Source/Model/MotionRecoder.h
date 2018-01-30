@@ -26,7 +26,7 @@ namespace EastEngine
 			struct MotionData
 			{
 				struct keyframeCachingT {};
-				using KeyframeCaching = Type<keyframeCachingT, size_t>;
+				using KeyframeCaching = PhantomType<keyframeCachingT, size_t>;
 
 				KeyframeCaching caching;
 				IMotion::Keyframe keyframe;

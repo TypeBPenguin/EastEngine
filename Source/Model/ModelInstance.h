@@ -2,6 +2,9 @@
 
 #include "ModelInterface.h"
 
+#include "Skeleton.h"
+#include "MotionSystem.h"
+
 namespace EastEngine
 {
 	namespace Graphics
@@ -55,8 +58,6 @@ namespace EastEngine
 			virtual ~ModelInstance();
 
 		public:
-			void Ready();
-
 			void UpdateTransformations();
 			void UpdateModel();
 
@@ -71,19 +72,19 @@ namespace EastEngine
 			virtual bool Dettachment(IModelInstance* pInstance) override;
 
 		public:
-			virtual bool IsLoadComplete() override;
+			virtual bool IsLoadComplete() const override;
 
 			virtual void SetVisible(bool isVisible) { m_isVisible = isVisible; }
-			virtual bool IsVisible() { return m_isVisible; }
+			virtual bool IsVisible() const { return m_isVisible; }
 
 			virtual void ChangeMaterial(const String::StringID& strNodeName, uint32_t nIndex, IMaterial* pMaterial);
 
 		public:
 			virtual IModel* GetModel() override { return m_pModel; }
-			virtual IMotionSystem* GetMotionSystem() override { return m_pMotionSystem; }
-			virtual ISkeletonInstance* GetSkeleton() override { return m_pSkeletonInstance; }
+			virtual IMotionSystem* GetMotionSystem() override { return &m_motionSystem; }
+			virtual ISkeletonInstance* GetSkeleton() override { return &m_skeletonInstance; }
 
-			virtual const Math::Matrix& GetWorldMatrix() { return m_matWorld; }
+			virtual const Math::Matrix& GetWorldMatrix() const { return m_matWorld; }
 
 		public:
 			void LoadCompleteCallback(bool bSuccess);
@@ -93,19 +94,18 @@ namespace EastEngine
 			bool m_isVisible;
 			bool m_isAttachment;
 
+			IModel* m_pModel;
+
 			float m_fElapsedTime;
 			Math::Matrix m_matParent;
 
 			Math::Matrix m_matWorld;
 
-			IModel* m_pModel;
-			IMotionSystem* m_pMotionSystem;
-
-			ISkeletonInstance* m_pSkeletonInstance;
-			MaterialInstance* m_pMaterialInstance;
+			MotionSystem m_motionSystem;
+			SkeletonInstance m_skeletonInstance;
+			MaterialInstance m_materialInstance;
 
 			std::vector<AttachmentNode> m_vecAttachmentNode;
-			std::list<AttachmentNode> m_listRequestAttachmentNode;
 		};
 	}
 }

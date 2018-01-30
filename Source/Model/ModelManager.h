@@ -1,7 +1,6 @@
 #pragma once
 
 #include "CommonLib/Singleton.h"
-#include "CommonLib/plf_colony.h"
 
 #include "ModelLoader.h"
 
@@ -10,9 +9,9 @@ namespace EastEngine
 	namespace Graphics
 	{
 		class Model;
-		class ModelInstance;
 		class IModel;
-		class ModelLoader;
+		class ModelInstance;
+		class IModelInstance;
 
 		class ModelManager : public Singleton<ModelManager>
 		{
@@ -21,53 +20,24 @@ namespace EastEngine
 			ModelManager();
 			virtual ~ModelManager();
 
-			struct RequestLoadModelInfo
-			{
-				ModelLoader loader;
-				IModel* pModel_out = nullptr;
-
-				RequestLoadModelInfo();
-				RequestLoadModelInfo(const ModelLoader& loader, IModel* pModel_out);
-				RequestLoadModelInfo(const RequestLoadModelInfo& source);
-			};
-
-			struct ResultLoadModelInfo
-			{
-				bool isSuccess = false;
-				IModel* pModel_out = nullptr;
-
-				ResultLoadModelInfo();
-				ResultLoadModelInfo(bool isSuccess, IModel* pModel_out);
-			};
-
 		public:
-			bool Init();
-			void Release();
-
 			void Update();
 			void Flush();
 
-			void ProcessRequestModelLoader(const RequestLoadModelInfo& loader);
-
-			void LoadModelSync(IModel* pModel, const ModelLoader& loader);
-
-			IModel* AllocateModel(uint32_t nReserveInstance);
-			void DestroyModel(IModel** ppModel);
-
-			IModel* GetModel(const String::StringID& strModelName);
-
 		public:
-			void PushJobUpdateModels(ModelInstance* pModelInstance) { m_vecJobUpdateModels.emplace_back(pModelInstance); }
+			void AsyncLoadModel(IModel* pModel, const ModelLoader& loader);
+
+			// FilePath or ModelName
+			IModel* AllocateModel(const std::string& strKey);
+			IModelInstance* AllocateModelInstance(Model* pModel);
+			bool DestroyModelInstance(Model* pModel, ModelInstance** ppModelInstance);
+
+			// FilePath or ModelName
+			IModel* GetModel(const std::string& strKey) const;
 
 		private:
-			bool m_isInit;
-			bool m_isLoading;
-
-			plf::colony<Model> m_clnModel;
-			std::vector<ModelInstance*> m_vecJobUpdateModels;
-
-			Concurrency::concurrent_queue<RequestLoadModelInfo> m_conQueueRequestModelLoader;
-			Concurrency::concurrent_queue<ResultLoadModelInfo> m_conFuncLoadCompleteCallback;
+			class Impl;
+			std::unique_ptr<Impl> m_pImpl;
 		};
 	}
 }

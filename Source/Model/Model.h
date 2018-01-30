@@ -1,7 +1,5 @@
 #pragma once
 
-#include "CommonLib/plf_colony.h"
-
 #include "ModelInterface.h"
 
 namespace EastEngine
@@ -13,12 +11,16 @@ namespace EastEngine
 		class Model : public IModel
 		{
 		public:
-			Model(size_t nReserveInstance);
+			Model(Key key);
 			virtual ~Model();
 
 		public:
-			IModelInstance* CreateInstance();
-			void DestroyInstance(IModelInstance** ppModelInstance);
+			virtual Key GetKey() const override { return m_key; }
+
+		public:
+			void AddInstance(ModelInstance* pModelInstance);
+			bool RemoveInstance(ModelInstance* pModelInstance);
+			bool IsHasInstance() const;
 
 			void Ready();
 
@@ -72,6 +74,8 @@ namespace EastEngine
 			void SetFilePath(const std::string& strFilePath) { m_strFilePath = strFilePath; }
 
 		private:
+			Key m_key;
+
 			bool m_isVisible;
 			bool m_isDirtyLocalMatrix;
 
@@ -91,7 +95,7 @@ namespace EastEngine
 			std::vector<IModelNode*> m_vecHierarchyModelNodes;	// 계층 구조 노드
 			std::vector<IModelNode*> m_vecModelNodes;			// 모든 노드
 
-			plf::colony<ModelInstance> m_clnModelInstance;
+			std::vector<ModelInstance*> m_vecModelInstances;
 		};
 	}
 }

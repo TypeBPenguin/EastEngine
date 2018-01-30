@@ -1,31 +1,28 @@
 #pragma once
 
-namespace EastEngine
+template <typename T>
+class Singleton
 {
-	template <typename T>
-	class Singleton
+public:
+	static T* GetInstance()
 	{
-	public:
-		static T* GetInstance()
+		if (m_pInstance == nullptr)
+			m_pInstance = new T;
+
+		return m_pInstance;
+	}
+
+	static void DestroyInstance()
+	{
+		if (m_pInstance != nullptr)
 		{
-			if (m_Instance == nullptr)
-				m_Instance = new T;
-
-			return m_Instance;
+			delete m_pInstance;
+			m_pInstance = nullptr;
 		}
+	}
 
-		static void DestroyInstance()
-		{
-			if (m_Instance != nullptr)
-			{
-				delete m_Instance;
-				m_Instance = nullptr;
-			}
-		}
+private:
+	static T* m_pInstance;
+};
 
-	private:
-		static T* m_Instance;
-	};
-
-	template <typename T> T* Singleton<T>::m_Instance = nullptr;
-}
+template <typename T> T* Singleton<T>::m_pInstance = nullptr;

@@ -5,11 +5,10 @@ namespace EastEngine
 {
 	namespace Graphics
 	{
-		MotionSystem::MotionSystem(ISkeletonInstance* pSkeletonInstance)
+		MotionSystem::MotionSystem()
 			: m_fBlemdTime(0.f)
-			, m_pSkeletonInstance(pSkeletonInstance)
+			, m_pSkeletonInstance(nullptr)
 		{
-			Initialize();
 		}
 
 		MotionSystem::~MotionSystem()
@@ -64,8 +63,9 @@ namespace EastEngine
 			m_motionPlayers[emLayer].Stop(fStopTime);
 		}
 
-		void MotionSystem::Initialize()
+		void MotionSystem::Initialize(ISkeletonInstance* pSkeletonInstance)
 		{
+			m_pSkeletonInstance = pSkeletonInstance;
 			m_pSkeletonInstance->SetIdentity();
 
 			ISkeleton* pSkeleton = m_pSkeletonInstance->GetSkeleton();

@@ -88,37 +88,9 @@ namespace EastEngine
 
 		Skeleton::~Skeleton()
 		{
-			m_clnSkeletonInstance.clear();
-
 			SafeDelete(m_pRootBone);
 			m_vecBones.clear();
 			m_vecSkinnedList.clear();
-		}
-
-		ISkeletonInstance* Skeleton::CreateInstance()
-		{
-			auto iter_result = m_clnSkeletonInstance.emplace(this);
-
-			return &(*iter_result);
-		}
-
-		void Skeleton::DestroyInstance(ISkeletonInstance** ppSkeletonInstance)
-		{
-			if (ppSkeletonInstance == nullptr || *ppSkeletonInstance == nullptr)
-				return;
-
-			SkeletonInstance* pInstance = static_cast<SkeletonInstance*>(*ppSkeletonInstance);
-
-			auto iter = std::find_if(m_clnSkeletonInstance.begin(), m_clnSkeletonInstance.end(), [&pInstance](const SkeletonInstance& instance)
-			{
-				return &instance == pInstance;
-			});
-
-			if (iter == m_clnSkeletonInstance.end())
-				return;
-
-			m_clnSkeletonInstance.erase(iter);
-			*ppSkeletonInstance = nullptr;
 		}
 
 		ISkeleton::IBone* Skeleton::GetBone(const String::StringID& strBoneName) const
@@ -311,11 +283,29 @@ namespace EastEngine
 			});
 		}
 
-		SkeletonInstance::SkeletonInstance(ISkeleton* pSkeleton)
-			: m_pSkeleton(pSkeleton)
-			, m_isDirty(true)
-			, m_pRootBone(new RootBone(pSkeleton->GetRootBone()))
+		SkeletonInstance::SkeletonInstance()
+			: m_isDirty(true)
+			, m_pSkeleton(nullptr)
+			, m_pRootBone(nullptr)
 		{
+		}
+
+		SkeletonInstance::~SkeletonInstance()
+		{
+			m_pSkeleton = nullptr;
+
+			SafeDelete(m_pRootBone);
+
+			m_vecBones.clear();
+			m_umapBone.clear();
+			m_umapSkinnendData.clear();
+		}
+
+		void SkeletonInstance::Initialize(ISkeleton* pSkeleton)
+		{
+			m_pSkeleton = pSkeleton;
+			m_pRootBone = new RootBone(pSkeleton->GetRootBone());
+
 			m_vecBones.reserve(pSkeleton->GetBoneCount());
 			m_umapBone.reserve(pSkeleton->GetBoneCount());
 
@@ -325,16 +315,6 @@ namespace EastEngine
 			SetIdentity();
 
 			Update(Math::Matrix::Identity);
-		}
-
-		SkeletonInstance::~SkeletonInstance()
-		{
-			m_pSkeleton = nullptr;
-
-			SafeDelete(m_pRootBone);
-			m_vecBones.clear();
-			m_umapBone.clear();
-			m_umapSkinnendData.clear();
 		}
 
 		void SkeletonInstance::Update(const Math::Matrix& matWorld)

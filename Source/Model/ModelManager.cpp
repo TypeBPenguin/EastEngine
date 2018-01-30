@@ -2,10 +2,10 @@
 #include "ModelManager.h"
 
 #include "CommonLib/ThreadPool.h"
+#include "CommonLib/plf_colony.h"
 
 #include "Model.h"
 #include "ModelInstance.h"
-
 #include "ModelNodeStatic.h"
 #include "GeometryModel.h"
 
@@ -16,71 +16,69 @@ namespace EastEngine
 {
 	namespace Graphics
 	{
-		ModelManager::RequestLoadModelInfo::RequestLoadModelInfo()
-			: pModel_out(nullptr)
+		class ModelManager::Impl
 		{
-		}
+		public:
+			Impl();
+			~Impl();
 
-		ModelManager::RequestLoadModelInfo::RequestLoadModelInfo(const ModelLoader& loader, IModel* pModel_out)
-			: loader(loader)
-			, pModel_out(pModel_out)
+		public:
+			void Update();
+			void Flush();
+
+		public:
+			void AsyncLoadModel(IModel* pModel, const ModelLoader& loader);
+
+			IModel* AllocateModel(const IModel::Key& key);
+			IModelInstance* AllocateModelInstance(Model* pModel);
+			bool DestroyModelInstance(Model* pModel, ModelInstance** ppModelInstance);
+
+			IModel* GetModel(const IModel::Key& key) const;
+
+		private:
+			struct RequestLoadModelInfo
+			{
+				ModelLoader loader;
+				IModel* pModel_out{ nullptr };
+			};
+
+			struct ResultLoadModelInfo
+			{
+				bool isSuccess = false;
+				IModel* pModel_out = nullptr;
+			};
+
+			void ProcessRequestModelLoader(const RequestLoadModelInfo& loader);
+
+		private:
+			bool m_isLoading;
+
+			plf::colony<Model> m_clnModel;
+			plf::colony<ModelInstance> m_clnModelInstance;
+
+			std::unordered_map<Model::Key, Model*> m_umapModelCaching;
+
+			Concurrency::concurrent_queue<RequestLoadModelInfo> m_conQueueRequestModelLoader;
+			Concurrency::concurrent_queue<ResultLoadModelInfo> m_conFuncLoadCompleteCallback;
+		};
+
+		ModelManager::Impl::Impl()
+			: m_isLoading(false)
 		{
-		}
-
-		ModelManager::RequestLoadModelInfo::RequestLoadModelInfo(const RequestLoadModelInfo& source)
-			: loader(source.loader)
-			, pModel_out(source.pModel_out)
-		{
-		}
-
-		ModelManager::ResultLoadModelInfo::ResultLoadModelInfo()
-			: isSuccess(false)
-		{
-		}
-
-		ModelManager::ResultLoadModelInfo::ResultLoadModelInfo(bool isSuccess, IModel* pModel_out)
-			: isSuccess(isSuccess)
-			, pModel_out(pModel_out)
-		{
-		}
-
-		ModelManager::ModelManager()
-			: m_isInit(false)
-			, m_isLoading(false)
-		{
-		}
-
-		ModelManager::~ModelManager()
-		{
-			Release();
-		}
-
-		bool ModelManager::Init()
-		{
-			if (m_isInit == true)
-				return true;
-
-			m_isInit = true;
-
-			m_clnModel.reserve(128);
-			m_vecJobUpdateModels.reserve(1024);
-
 			if (GeometryModel::Initialize() == false)
 			{
-				Release();
-				return false;
+				assert(false);
+				return;
 			}
 
-			SObjImporter::GetInstance();
+			m_clnModel.reserve(128);
+			m_clnModelInstance.reserve(1024);
 
-			return true;
+			SObjImporter::GetInstance();
 		}
 
-		void ModelManager::Release()
+		ModelManager::Impl::~Impl()
 		{
-			if (m_isInit == false)
-				return;
-
 			FBXImport::GetInstance()->Release();
 			FBXImport::DestroyInstance();
 
@@ -88,13 +86,12 @@ namespace EastEngine
 			SObjImporter::DestroyInstance();
 
 			m_clnModel.clear();
+			m_clnModelInstance.clear();
 
 			GeometryModel::Release();
-
-			m_isInit = false;
 		}
 
-		void ModelManager::Update()
+		void ModelManager::Impl::Update()
 		{
 			if (m_conQueueRequestModelLoader.empty() == false && m_isLoading == false)
 			{
@@ -139,18 +136,17 @@ namespace EastEngine
 				model.Ready();
 			});
 
-			Concurrency::parallel_for_each(m_vecJobUpdateModels.begin(), m_vecJobUpdateModels.end(), [](ModelInstance* pModelInstance)
+			Concurrency::parallel_for_each(m_clnModelInstance.begin(), m_clnModelInstance.end(), [](ModelInstance& mModelInstance)
 			{
-				if (pModelInstance->GetSkeleton() != nullptr)
+				if (mModelInstance.GetSkeleton() != nullptr)
 				{
-					pModelInstance->UpdateTransformations();
+					mModelInstance.UpdateTransformations();
 				}
-				pModelInstance->UpdateModel();
+				mModelInstance.UpdateModel();
 			});
-			m_vecJobUpdateModels.clear();
 		}
 
-		void ModelManager::Flush()
+		void ModelManager::Impl::Flush()
 		{
 			auto iter = m_clnModel.begin();
 			while (iter != m_clnModel.end())
@@ -173,6 +169,8 @@ namespace EastEngine
 
 				if (model.IsAlive() == false)
 				{
+					auto iter_find = m_umapModelCaching.find(model.GetKey());
+
 					iter = m_clnModel.erase(iter);
 					continue;
 				}
@@ -182,60 +180,132 @@ namespace EastEngine
 			}
 		}
 
-		void ModelManager::ProcessRequestModelLoader(const RequestLoadModelInfo& loader)
+		void ModelManager::Impl::ProcessRequestModelLoader(const RequestLoadModelInfo& loader)
 		{
 			Model* pModel = static_cast<Model*>(loader.pModel_out);
 			bool isSuccess = pModel->Load(loader.loader);
 
-			m_conFuncLoadCompleteCallback.push(ResultLoadModelInfo(isSuccess, loader.pModel_out));
+			m_conFuncLoadCompleteCallback.push({ isSuccess, loader.pModel_out });
 
 			m_isLoading = false;
 		}
 
-		void ModelManager::LoadModelSync(IModel* pModel, const ModelLoader& loader)
+		void ModelManager::Impl::AsyncLoadModel(IModel* pModel, const ModelLoader& loader)
 		{
 			pModel->SetAlive(true);
 
-			m_conQueueRequestModelLoader.push(RequestLoadModelInfo(loader, pModel));
+			m_conQueueRequestModelLoader.push({ loader, pModel });
 		}
 
-		IModel* ModelManager::AllocateModel(uint32_t nReserveInstance)
+		IModel* ModelManager::Impl::AllocateModel(const IModel::Key& key)
 		{
-			auto iter = m_clnModel.emplace(nReserveInstance);
+			auto iter_find = m_umapModelCaching.find(key);
+			if (iter_find != m_umapModelCaching.end())
+			{
+				assert(false);
+				return iter_find->second;
+			}
+
+			auto iter = m_clnModel.emplace(key);
 			if (iter != m_clnModel.end())
-				return &(*iter);
+			{
+				Model* pModel = &(*iter);
+				m_umapModelCaching.emplace(key, pModel);
+
+				return pModel;
+			}
 
 			return nullptr;
 		}
 
-		void ModelManager::DestroyModel(IModel** ppModel)
+		IModelInstance* ModelManager::Impl::AllocateModelInstance(Model* pModel)
 		{
-			if (ppModel == nullptr || *ppModel == nullptr)
-				return;
+			auto iter = m_clnModelInstance.emplace(pModel);
+			if (iter == m_clnModelInstance.end())
+				return nullptr;
 
-			auto iter = std::find_if(m_clnModel.begin(), m_clnModel.end(), [ppModel](Model& model)
-			{
-				return &model == *ppModel;
-			});
+			ModelInstance* pModelInstance = &(*iter);
 
-			if (iter == m_clnModel.end())
-				return;
+			pModel->AddInstance(pModelInstance);
 
-			m_clnModel.erase(iter);
-			*ppModel = nullptr;
+			return pModelInstance;
 		}
 
-		IModel* ModelManager::GetModel(const String::StringID& strModelName)
+		bool ModelManager::Impl::DestroyModelInstance(Model* pModel, ModelInstance** ppModelInstance)
 		{
-			auto iter = std::find_if(m_clnModel.begin(), m_clnModel.end(), [&strModelName](Model& model)
+			if (ppModelInstance == nullptr || *ppModelInstance == nullptr)
+				return false;
+
+			auto iter = std::find_if(m_clnModelInstance.begin(), m_clnModelInstance.end(), [ppModelInstance](ModelInstance& modelInstance)
 			{
-				return model.GetName() == strModelName;
+				return &modelInstance == *ppModelInstance;
 			});
 
-			if (iter != m_clnModel.end())
-				return &(*iter);
+			if (iter == m_clnModelInstance.end())
+				return false;
+
+			if (pModel->RemoveInstance(*ppModelInstance) == false)
+				return false;
+
+			m_clnModelInstance.erase(iter);
+			*ppModelInstance = nullptr;
+
+			return true;
+		}
+
+		IModel* ModelManager::Impl::GetModel(const IModel::Key& key) const
+		{
+			auto iter = m_umapModelCaching.find(key);
+			if (iter != m_umapModelCaching.end())
+				return iter->second;
 
 			return nullptr;
+		}
+
+		ModelManager::ModelManager()
+			: m_pImpl{ std::make_unique<Impl>() }
+		{
+		}
+
+		ModelManager::~ModelManager()
+		{
+		}
+
+		void ModelManager::Update()
+		{
+			m_pImpl->Update();
+		}
+
+		void ModelManager::Flush()
+		{
+			m_pImpl->Flush();
+		}
+
+		void ModelManager::AsyncLoadModel(IModel* pModel, const ModelLoader& loader)
+		{
+			m_pImpl->AsyncLoadModel(pModel, loader);
+		}
+
+		IModel* ModelManager::AllocateModel(const std::string& strKey)
+		{
+			IModel::Key key(String::GetKey(strKey.c_str()));
+			return m_pImpl->AllocateModel(key);
+		}
+
+		IModelInstance* ModelManager::AllocateModelInstance(Model* pModel)
+		{
+			return m_pImpl->AllocateModelInstance(pModel);
+		}
+
+		bool ModelManager::DestroyModelInstance(Model* pModel, ModelInstance** ppModelInstance)
+		{
+			return m_pImpl->DestroyModelInstance(pModel, ppModelInstance);
+		}
+
+		IModel* ModelManager::GetModel(const std::string& strKey) const
+		{
+			IModel::Key key(String::GetKey(strKey.c_str()));
+			return m_pImpl->GetModel(key);
 		}
 	}
 }

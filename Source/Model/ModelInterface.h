@@ -140,9 +140,9 @@ namespace EastEngine
 			virtual float GetEndTime() const = 0;
 
 		public:
-			virtual const String::StringID& GetName() = 0;
+			virtual const String::StringID& GetName() const = 0;
 
-			virtual size_t GetBoneCount() = 0;
+			virtual size_t GetBoneCount() const = 0;
 			virtual const IBone* GetBone(size_t nIndex) const = 0;
 			virtual const IBone* GetBone(const String::StringID& strBoneName) const = 0;
 
@@ -246,12 +246,6 @@ namespace EastEngine
 			virtual ~IMotionSystem() = default;
 
 		public:
-			static IMotionSystem* Create(ISkeletonInstance* pSkeletonInstance);
-			static void Destroy(IMotionSystem** ppMotionSystem);
-
-		public:
-			virtual void Update(float fElapsedTime) = 0;
-
 			virtual void Play(EmMotion::Layers emLayer, IMotion* pMotion, const MotionPlaybackInfo* pPlayback = nullptr) = 0;
 			virtual void Stop(EmMotion::Layers emLayer, float fStopTime) = 0;
 
@@ -289,40 +283,45 @@ namespace EastEngine
 			virtual const String::StringID& GetName() const = 0;
 			virtual const String::StringID& GetAttachedBoneName() const = 0;
 
-			virtual IModelNode* GetParentNode() = 0;
+			virtual IModelNode* GetParentNode() const = 0;
 
-			virtual IVertexBuffer* GetVertexBuffer(uint32_t nLOD = 0) = 0;
-			virtual IIndexBuffer* GetIndexBuffer(uint32_t nLOD = 0) = 0;
+			virtual IVertexBuffer* GetVertexBuffer(uint32_t nLOD = 0) const = 0;
+			virtual IIndexBuffer* GetIndexBuffer(uint32_t nLOD = 0) const = 0;
 
 			virtual size_t GetChildNodeCount() const = 0;
-			virtual IModelNode* GetChildNode(size_t nIndex) = 0;
+			virtual IModelNode* GetChildNode(size_t nIndex) const = 0;
 
 			virtual size_t GetMaterialCount() const = 0;
-			virtual IMaterial* GetMaterial(size_t nIndex) = 0;
-			virtual IMaterial* GetMaterial(const String::StringID& strMaterialName, uint32_t& nMaterialID_out) = 0;
+			virtual IMaterial* GetMaterial(size_t nIndex) const = 0;
+			virtual IMaterial* GetMaterial(const String::StringID& strMaterialName, uint32_t& nMaterialID_out) const = 0;
 
 			virtual size_t GetModelSubsetCount(uint32_t nLOD = 0) const = 0;
-			virtual ModelSubset* GetModelSubset(size_t nIndex, uint32_t nLOD = 0) = 0;
+			virtual const ModelSubset* GetModelSubset(size_t nIndex, uint32_t nLOD = 0) const = 0;
 
 			virtual void SetOriginAABB(const Collision::AABB& aabb) = 0;
 			virtual const Collision::AABB& GetOriginAABB() const = 0;
 
-			virtual uint32_t GetLOD() = 0;
+			virtual uint32_t GetLOD() const = 0;
 			virtual void SetLOD(uint32_t nLOD) = 0;
 		};
 
 		class IModel : public Resource
 		{
+		public:
+			struct tKey {};
+			using Key = PhantomType<tKey, const String::StringKey>;
+
+			virtual Key GetKey() const = 0;
+
 		protected:
 			IModel() = default;
 			virtual ~IModel() = default;
 
 		public:
-			static IModel* Create(const ModelLoader& loader, bool isThreadLoad = true, size_t nReserveInstance = 8);
-			static void Destroy(IModel** ppModel);
+			static IModel* Create(const ModelLoader& loader, bool isThreadLoad = true);
 
 			static IModelInstance* CreateInstance(const ModelLoader& loader, bool isThreadLoad = true);
-			static IModelInstance* CreateInstance(IModel* pModel);
+			static IModelInstance* CreateInstance(IModel* pIModel);
 			static void DestroyInstance(IModelInstance** ppModelInstance);
 
 			static bool SaveToFile(IModel* pModel, const char* strFilePath);
@@ -377,10 +376,10 @@ namespace EastEngine
 			virtual bool Dettachment(IModelInstance* pInstance) = 0;
 
 		public:
-			virtual bool IsLoadComplete() = 0;
+			virtual bool IsLoadComplete() const = 0;
 
 			virtual void SetVisible(bool isVisible) = 0;
-			virtual bool IsVisible() = 0;
+			virtual bool IsVisible() const = 0;
 
 			virtual void ChangeMaterial(const String::StringID& strNodeName, uint32_t nIndex, IMaterial* pMaterial) = 0;
 
@@ -389,7 +388,7 @@ namespace EastEngine
 			virtual IMotionSystem* GetMotionSystem() = 0;
 			virtual ISkeletonInstance* GetSkeleton() = 0;
 
-			virtual const Math::Matrix& GetWorldMatrix() = 0;
+			virtual const Math::Matrix& GetWorldMatrix() const = 0;
 		};
 
 		class ISkeleton
@@ -422,9 +421,6 @@ namespace EastEngine
 		public:
 			static ISkeleton* Create();
 			static void Destroy(ISkeleton** ppSkeleton);
-
-			static ISkeletonInstance* CreateInstance(ISkeleton* pSkeleton);
-			static void DestroyInstance(ISkeletonInstance** ppSkeletonInstance);
 
 		public:
 			virtual IBone* GetRootBone() const = 0;
@@ -464,9 +460,6 @@ namespace EastEngine
 				virtual const Math::Transform& GetMotionTransform() const = 0;
 				virtual void ClearMotionTransform() = 0;
 
-				//virtual const Math::Transform& GetUserOffsetTransform() const = 0;
-				//virtual void SetUserOffsetTransform(const Math::Transform& userOffsetTransform) = 0;
-
 				virtual const Math::Vector3& GetUserOffsetScale() const = 0;
 				virtual void SetUserOffsetScale(const Math::Vector3& f3Scale) = 0;
 
@@ -487,9 +480,7 @@ namespace EastEngine
 			virtual ~ISkeletonInstance() = default;
 
 		public:
-			virtual void Update(const Math::Matrix& matWorld) = 0;
-
-			virtual ISkeleton* GetSkeleton() = 0;
+			virtual ISkeleton* GetSkeleton() const = 0;
 
 			virtual size_t GetBoneCount() const = 0;
 			virtual IBone* GetBone(size_t nIndex) const = 0;
@@ -498,7 +489,20 @@ namespace EastEngine
 			virtual void GetSkinnedData(const String::StringID& strSkinnedName, const Math::Matrix*** pppMatrixList_out, uint32_t& nElementCount_out) = 0;
 			virtual void SetIdentity() = 0;
 			virtual void SetDirty() = 0;
-			virtual bool IsDirty() = 0;
+			virtual bool IsDirty() const = 0;
+			virtual bool IsValid() const = 0;
 		};
 	}
+}
+
+namespace std
+{
+	template <>
+	struct hash<EastEngine::Graphics::IModel::Key>
+	{
+		std::uint64_t operator()(const EastEngine::Graphics::IModel::Key& key) const
+		{
+			return key.value.value;
+		}
+	};
 }

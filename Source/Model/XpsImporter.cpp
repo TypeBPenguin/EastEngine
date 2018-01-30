@@ -353,7 +353,6 @@ namespace EastEngine
 							materianInfo.strName.Format("%s_%d", strFileName.c_str(), nIndex);
 							materianInfo.strTextureNameArray[EmMaterial::eAlbedo] = std::get<0>(key).c_str();
 							materianInfo.strTextureNameArray[EmMaterial::eNormal] = std::get<1>(key).c_str();
-							materianInfo.strTextureNameArray[EmMaterial::eSpecularColor] = std::get<2>(key).c_str();
 							vecMaterial[nIndex] = IMaterial::Create(&materianInfo);
 
 							++nIndex;
@@ -436,7 +435,6 @@ namespace EastEngine
 							{
 								materianInfo.strTextureNameArray[EmMaterial::eAlbedo] = File::GetFileName(mesh.textures[0].filename).c_str();
 								materianInfo.strTextureNameArray[EmMaterial::eNormal] = File::GetFileName(mesh.textures[2].filename).c_str();
-								materianInfo.strTextureNameArray[EmMaterial::eSpecularColor] = File::GetFileName(mesh.textures[3].filename).c_str();
 							}
 
 							vecMaterial[i] = IMaterial::Create(&materianInfo);

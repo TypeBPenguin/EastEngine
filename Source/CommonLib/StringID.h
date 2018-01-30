@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Type.h"
+#include "PhantomType.h"
 
 #ifndef CHECK_DUPLICATE_STRING_KEY
 #define CHECK_DUPLICATE_STRING_KEY 0
@@ -10,8 +10,8 @@ namespace EastEngine
 {
 	namespace String
 	{
-		struct stringKeyT {};
-		using StringKey = Type<stringKeyT, std::uint64_t>;
+		struct tStringKey {};
+		using StringKey = PhantomType<tStringKey, std::uint64_t>;
 		
 		static const StringKey UnregisteredKey(1);	// '\0'
 

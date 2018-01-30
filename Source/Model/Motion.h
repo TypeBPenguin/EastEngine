@@ -59,9 +59,9 @@ namespace EastEngine
 			virtual float GetEndTime() const override { return m_fEndTime; }
 
 		public:
-			virtual const String::StringID& GetName() override { return m_strName; }
+			virtual const String::StringID& GetName() const override { return m_strName; }
 
-			virtual size_t GetBoneCount() override { return m_clnBones.size(); }
+			virtual size_t GetBoneCount() const override { return m_clnBones.size(); }
 			virtual const IBone* GetBone(size_t nIndex) const override { return m_vecBonesIndexing[nIndex]; }
 			virtual const IBone* GetBone(const String::StringID& strBoneName) const override;
 

@@ -8,8 +8,6 @@ namespace EastEngine
 {
 	namespace Graphics
 	{
-		class SkeletonInstance;
-
 		class Skeleton : public ISkeleton
 		{
 		public:
@@ -60,10 +58,6 @@ namespace EastEngine
 			virtual ~Skeleton();
 
 		public:
-			ISkeletonInstance* CreateInstance();
-			void DestroyInstance(ISkeletonInstance** ppSkeleton);
-
-		public:
 			virtual IBone* GetRootBone() const override { return m_pRootBone; }
 
 			virtual size_t GetBoneCount() const override { return m_vecBones.size(); }
@@ -95,8 +89,6 @@ namespace EastEngine
 				SkinnedData(const String::StringID& strName);
 			};
 			std::vector<SkinnedData> m_vecSkinnedList;
-
-			plf::colony<SkeletonInstance> m_clnSkeletonInstance;
 		};
 
 		class SkeletonInstance : public ISkeletonInstance
@@ -126,9 +118,6 @@ namespace EastEngine
 				virtual const Math::Transform& GetMotionTransform() const override { return m_motionTransform; }
 				virtual void ClearMotionTransform() override { m_motionTransform = m_pBoneHierarchy->GetDefaultMotionData(); }
 
-				//virtual const Math::Transform& GetUserOffsetTransform() const override { return m_userOffsetTransform; }
-				//virtual void SetUserOffsetTransform(const Math::Transform& userOffsetTransform) override { m_userOffsetTransform = userOffsetTransform; }
-
 				virtual const Math::Vector3& GetUserOffsetScale() const override { return m_userOffsetScale; }
 				virtual void SetUserOffsetScale(const Math::Vector3& f3Scale) override { m_userOffsetScale = f3Scale; }
 
@@ -151,7 +140,6 @@ namespace EastEngine
 
 			protected:
 				Math::Transform m_motionTransform;
-				//Math::Transform m_userOffsetTransform;
 
 				Math::Vector3 m_userOffsetScale;
 				Math::Vector3 m_userOffsetRotation;
@@ -181,13 +169,11 @@ namespace EastEngine
 			};
 
 		public:
-			SkeletonInstance(ISkeleton* pSkeleton);
+			SkeletonInstance();
 			virtual ~SkeletonInstance();
 
 		public:
-			virtual void Update(const Math::Matrix& matWorld) override;
-
-			virtual ISkeleton* GetSkeleton() override { return m_pSkeleton; }
+			virtual ISkeleton* GetSkeleton() const override { return m_pSkeleton; }
 
 			virtual size_t GetBoneCount() const override { return m_vecBones.size(); }
 			virtual IBone* GetBone(size_t nIndex) const override { return m_vecBones[nIndex]; }
@@ -196,7 +182,12 @@ namespace EastEngine
 			virtual void GetSkinnedData(const String::StringID& strSkinnedName, const Math::Matrix*** pppMatrixList_out, size_t& nElementCount_out) override;
 			virtual void SetIdentity() override;
 			virtual void SetDirty() override { m_isDirty = true; }
-			virtual bool IsDirty() override { return m_isDirty; }
+			virtual bool IsDirty() const override { return m_isDirty; }
+			virtual bool IsValid() const override { return m_pSkeleton != nullptr; }
+
+		public:
+			void Initialize(ISkeleton* pSkeleton);
+			void Update(const Math::Matrix& matWorld);
 
 		private:
 			void CreateBone(Skeleton::IBone* pBoneHierarchy, BoneInstance* pParentBone);
@@ -204,8 +195,8 @@ namespace EastEngine
 
 		private:
 			bool m_isDirty;
-			ISkeleton* m_pSkeleton;
 
+			ISkeleton* m_pSkeleton;
 			RootBone* m_pRootBone;
 
 			std::vector<BoneInstance*> m_vecBones;

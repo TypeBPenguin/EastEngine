@@ -133,7 +133,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="Timer.h" />
-    <ClInclude Include="Type.h" />
+    <ClInclude Include="PhantomType.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CommandLine.cpp" />
@@ -163,7 +163,7 @@
     <ClCompile Include="StringUtil.cpp" />
     <ClCompile Include="ThreadPool.cpp" />
     <ClCompile Include="Timer.cpp" />
-    <ClCompile Include="Type.cpp" />
+    <ClCompile Include="PhantomType.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Math.inl" />

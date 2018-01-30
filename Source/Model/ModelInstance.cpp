@@ -61,21 +61,15 @@ namespace EastEngine
 			, m_isAttachment(false)
 			, m_fElapsedTime(0.f)
 			, m_pModel(pModel)
-			, m_pMotionSystem(nullptr)
-			, m_pSkeletonInstance(nullptr)
-			, m_pMaterialInstance(new MaterialInstance)
 		{
 		}
 
 		ModelInstance::~ModelInstance()
 		{
-			IMotionSystem::Destroy(&m_pMotionSystem);
-			ISkeleton::DestroyInstance(&m_pSkeletonInstance);
-			SafeDelete(m_pMaterialInstance);
 			m_pModel = nullptr;
 		}
 
-		void ModelInstance::Ready()
+		void ModelInstance::UpdateTransformations()
 		{
 			if (m_isVisible == false)
 				return;
@@ -86,31 +80,45 @@ namespace EastEngine
 			if (IsAttachment() == true)
 				return;
 
-			ModelManager::GetInstance()->PushJobUpdateModels(this);
-		}
-
-		void ModelInstance::UpdateTransformations()
-		{
-			m_pMotionSystem->Update(m_fElapsedTime);
-			m_pSkeletonInstance->Update(m_matParent);
-
-			for (const auto& node : m_vecAttachmentNode)
+			if (m_skeletonInstance.IsValid() == true)
 			{
+				m_motionSystem.Update(m_fElapsedTime);
+				m_skeletonInstance.Update(m_matParent);
+			}
+
+			for (auto iter = m_vecAttachmentNode.begin(); iter != m_vecAttachmentNode.end();)
+			{
+				AttachmentNode& node = *iter;
 				if (node.emAttachNodeType == AttachmentNode::EmAttachNodeType::eBone)
 				{
-					ISkeletonInstance::IBone* pBone = m_pSkeletonInstance->GetBone(node.strNodeName);
+					ISkeletonInstance::IBone* pBone = m_skeletonInstance.GetBone(node.strNodeName);
 					if (pBone != nullptr)
 					{
 						node.pInstance->Update(m_fElapsedTime, node.matOffset * pBone->GetGlobalMatrix());
 						node.pInstance->UpdateModel();
+
+						++iter;
+
+						continue;
 					}
 				}
+
+				iter = m_vecAttachmentNode.erase(iter);
 			}
 		}
 
 		void ModelInstance::UpdateModel()
 		{
-			m_pModel->Update(m_fElapsedTime, m_matParent, m_pSkeletonInstance, m_pMaterialInstance);
+			if (m_isVisible == false)
+				return;
+
+			if (IsLoadComplete() == false)
+				return;
+
+			if (IsAttachment() == true)
+				return;
+
+			m_pModel->Update(m_fElapsedTime, m_matParent, &m_skeletonInstance, &m_materialInstance);
 		}
 
 		void ModelInstance::Update(float fElapsedTime, const Math::Matrix& matParent)
@@ -122,70 +130,38 @@ namespace EastEngine
 		bool ModelInstance::Attachment(IModelInstance* pInstance, const String::StringID& strNodeName, const Math::Matrix& matOffset)
 		{
 			if (IsLoadComplete() == false)
+				return false;
+
+			ISkeletonInstance::IBone* pBone = m_skeletonInstance.GetBone(strNodeName);
+			if (pBone != nullptr)
 			{
 				ModelInstance* pModelInstance = static_cast<ModelInstance*>(pInstance);
 				pModelInstance->SetAttachment(true);
 
-				m_listRequestAttachmentNode.emplace_back(pModelInstance, strNodeName, matOffset, AttachmentNode::EmAttachNodeType::eNone);
+				m_vecAttachmentNode.emplace_back(pModelInstance, strNodeName, matOffset, AttachmentNode::EmAttachNodeType::eBone);
 
 				return true;
 			}
-			else
-			{
-				if (m_pSkeletonInstance != nullptr)
-				{
-					ISkeletonInstance::IBone* pBone =  m_pSkeletonInstance->GetBone(strNodeName);
-					if (pBone != nullptr)
-					{
-						ModelInstance* pModelInstance = static_cast<ModelInstance*>(pInstance);
-						pModelInstance->SetAttachment(true);
 
-						m_vecAttachmentNode.emplace_back(pModelInstance, strNodeName, matOffset, AttachmentNode::EmAttachNodeType::eBone);
-
-						return true;
-					}
-				}
-
-				return true;
-			}
+			return false;
 		}
 
 		bool ModelInstance::Dettachment(IModelInstance* pInstance)
 		{
-			if (IsLoadComplete() == false)
+			auto iter = std::find_if(m_vecAttachmentNode.begin(), m_vecAttachmentNode.end(), [&pInstance](const AttachmentNode& attachmentNode)
 			{
-				auto iter = std::find_if(m_listRequestAttachmentNode.begin(), m_listRequestAttachmentNode.end(), [&pInstance](const AttachmentNode& requestAttachmentNode)
-				{
-					return requestAttachmentNode.pInstance == pInstance;
-				});
+				return attachmentNode.pInstance == pInstance;
+			});
 
-				if (iter != m_listRequestAttachmentNode.end())
-				{
-					iter->pInstance->SetAttachment(false);
-
-					m_listRequestAttachmentNode.erase(iter);
-					return true;
-				}
-
-				return false;
-			}
-			else
+			if (iter != m_vecAttachmentNode.end())
 			{
-				auto iter = std::find_if(m_vecAttachmentNode.begin(), m_vecAttachmentNode.end(), [&pInstance](const AttachmentNode& attachmentNode)
-				{
-					return attachmentNode.pInstance == pInstance;
-				});
+				iter->pInstance->SetAttachment(false);
 
-				if (iter != m_vecAttachmentNode.end())
-				{
-					iter->pInstance->SetAttachment(false);
-
-					m_vecAttachmentNode.erase(iter);
-					return true;
-				}
-
-				return false;
+				m_vecAttachmentNode.erase(iter);
+				return true;
 			}
+
+			return false;
 		}
 
 		void ModelInstance::LoadCompleteCallback(bool isSuccess)
@@ -194,29 +170,20 @@ namespace EastEngine
 			{
 				if (m_pModel->GetSkeleton() != nullptr)
 				{
-					m_pSkeletonInstance = ISkeleton::CreateInstance(m_pModel->GetSkeleton());
-					m_pMotionSystem = IMotionSystem::Create(m_pSkeletonInstance);
+					m_skeletonInstance.Initialize(m_pModel->GetSkeleton());
+					m_motionSystem.Initialize(&m_skeletonInstance);
 				}
-
-				for (const auto& node : m_listRequestAttachmentNode)
-				{
-					Attachment(node.pInstance, node.strNodeName, node.matOffset);
-				}
-				m_listRequestAttachmentNode.clear();
 			}
 		}
 
-		bool ModelInstance::IsLoadComplete()
+		bool ModelInstance::IsLoadComplete() const
 		{
 			return m_pModel->GetLoadState() == EmLoadState::eComplete;
 		}
 
 		void ModelInstance::ChangeMaterial(const String::StringID& strNodeName, uint32_t nIndex, IMaterial* pMaterial)
 		{
-			if (m_pMaterialInstance == nullptr)
-				return;
-
-			m_pMaterialInstance->AddMaterial(strNodeName, nIndex, pMaterial);
+			m_materialInstance.AddMaterial(strNodeName, nIndex, pMaterial);
 		}
 	}
 }

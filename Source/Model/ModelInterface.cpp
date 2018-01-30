@@ -5,7 +5,9 @@
 #include "CommonLib/FileStream.h"
 
 #include "ModelManager.h"
+
 #include "Model.h"
+#include "ModelInstance.h"
 
 #include "ModelNodeSkinned.h"
 
@@ -23,8 +25,6 @@ namespace EastEngine
 	namespace Graphics
 	{
 		static boost::object_pool<Motion> s_poolMotion;
-		static boost::object_pool<MotionSystem> s_poolMotionSystem;
-
 		static boost::object_pool<Skeleton> s_poolSkeleton;
 
 		LODReductionRate::LODReductionRate()
@@ -194,32 +194,14 @@ namespace EastEngine
 			return true;
 		}
 
-		IMotionSystem* IMotionSystem::Create(ISkeletonInstance* pSkeletonInstance)
+		IModel* IModel::Create(const ModelLoader& loader, bool isThreadLoad)
 		{
-			if (pSkeletonInstance == nullptr)
-				return nullptr;
-
-			return s_poolMotionSystem.construct(pSkeletonInstance);
-		}
-
-		void IMotionSystem::Destroy(IMotionSystem** ppMotionSystem)
-		{
-			if (ppMotionSystem == nullptr || *ppMotionSystem == nullptr)
-				return;
-
-			MotionSystem* pMotionSystem = static_cast<MotionSystem*>(*ppMotionSystem);
-
-			s_poolMotionSystem.destroy(pMotionSystem);
-			*ppMotionSystem = nullptr;
-		}
-
-		IModel* IModel::Create(const ModelLoader& loader, bool isThreadLoad, size_t nReserveInstance)
-		{
-			IModel* pIModel = ModelManager::GetInstance()->GetModel(loader.GetModelName());
+			std::string strKey = loader.GetFilePath().empty() ? loader.GetModelName().c_str() : loader.GetFilePath();
+			IModel* pIModel = ModelManager::GetInstance()->GetModel(strKey);
 			if (pIModel != nullptr)
 				return pIModel;
 
-			Model* pModel = static_cast<Model*>(ModelManager::GetInstance()->AllocateModel(nReserveInstance));
+			Model* pModel = static_cast<Model*>(ModelManager::GetInstance()->AllocateModel(strKey));
 			pModel->SetName(loader.GetModelName());
 			pModel->SetFilePath(loader.GetFilePath());
 			pModel->SetLocalPosition(loader.GetLocalPosition());
@@ -229,7 +211,7 @@ namespace EastEngine
 
 			if (isThreadLoad == true)
 			{
-				ModelManager::GetInstance()->LoadModelSync(pModel, loader);
+				ModelManager::GetInstance()->AsyncLoadModel(pModel, loader);
 			}
 			else
 			{
@@ -252,30 +234,22 @@ namespace EastEngine
 			return pModel;
 		}
 
-		void IModel::Destroy(IModel** ppModel)
-		{
-			if (ppModel == nullptr || *ppModel == nullptr)
-				return;
-
-			ModelManager::GetInstance()->DestroyModel(ppModel);
-		}
-
 		IModelInstance* IModel::CreateInstance(const ModelLoader& loader, bool isThreadLoad)
 		{
 			Model* pModel = static_cast<Model*>(IModel::Create(loader, isThreadLoad));
 			if (pModel == nullptr)
 				return nullptr;
 
-			return pModel->CreateInstance();
+			return CreateInstance(pModel);
 		}
 
-		IModelInstance* IModel::CreateInstance(IModel* pModel)
+		IModelInstance* IModel::CreateInstance(IModel* pIModel)
 		{
-			if (pModel == nullptr)
+			if (pIModel == nullptr)
 				return nullptr;
 
-			Model* pRealModel = static_cast<Model*>(pModel);
-			return pRealModel->CreateInstance();
+			Model* pModel = static_cast<Model*>(pIModel);
+			return ModelManager::GetInstance()->AllocateModelInstance(pModel);
 		}
 
 		void IModel::DestroyInstance(IModelInstance** ppModelInst)
@@ -287,7 +261,11 @@ namespace EastEngine
 			if (pModel == nullptr)
 				return;
 
-			pModel->DestroyInstance(ppModelInst);
+			ModelInstance* pModelInstance = static_cast<ModelInstance*>(*ppModelInst);
+			if (ModelManager::GetInstance()->DestroyModelInstance(pModel, &pModelInstance) == true)
+			{
+				*ppModelInst = nullptr;
+			}
 		}
 
 		bool IModel::SaveToFile(IModel* pModel, const char* strFilePath)
@@ -357,7 +335,7 @@ namespace EastEngine
 
 				for (uint32_t j = 0; j < nSubsetCount; ++j)
 				{
-					ModelSubset* pModelSubset = pNode->GetModelSubset(j);
+					const ModelSubset* pModelSubset = pNode->GetModelSubset(j);
 					file << pModelSubset->strName.c_str();
 					file << pModelSubset->nStartIndex;
 					file << pModelSubset->nIndexCount;
@@ -510,25 +488,6 @@ namespace EastEngine
 			s_poolSkeleton.destroy(pSkeleton);
 
 			*ppSkeleton = nullptr;
-		}
-
-		ISkeletonInstance* ISkeleton::CreateInstance(ISkeleton* pSkeleton)
-		{
-			if (pSkeleton == nullptr)
-				return nullptr;
-
-			Skeleton* pRealSkeleton = static_cast<Skeleton*>(pSkeleton);
-
-			return pRealSkeleton->CreateInstance();
-		}
-
-		void ISkeleton::DestroyInstance(ISkeletonInstance** ppSkeletonInstance)
-		{
-			if (ppSkeletonInstance == nullptr || *ppSkeletonInstance == nullptr)
-				return;
-
-			Skeleton* pRealSkeleton = static_cast<Skeleton*>((*ppSkeletonInstance)->GetSkeleton());
-			pRealSkeleton->DestroyInstance(ppSkeletonInstance);
 		}
 	}
 }

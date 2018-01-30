@@ -53,7 +53,7 @@ namespace EastEngine
 			m_vecChildModelNode.clear();
 		}
 
-		IVertexBuffer* ModelNode::GetVertexBuffer(uint32_t nLod)
+		IVertexBuffer* ModelNode::GetVertexBuffer(uint32_t nLod) const
 		{
 			return m_pVertexBuffer[Math::Min(nLod, m_nLodMax)];
 		}
@@ -63,7 +63,7 @@ namespace EastEngine
 			m_pVertexBuffer[Math::Min(nLod, m_nLodMax)] = pVertexBuffer;
 		}
 
-		IIndexBuffer* ModelNode::GetIndexBuffer(uint32_t nLod)
+		IIndexBuffer* ModelNode::GetIndexBuffer(uint32_t nLod) const
 		{
 			return m_pIndexBuffer[Math::Min(nLod, m_nLodMax)];
 		}
@@ -100,7 +100,7 @@ namespace EastEngine
 			std::copy(vecModelPiece.begin(), vecModelPiece.end(), std::back_inserter(m_vecModelSubsets[Math::Min(nLod, m_nLodMax)]));
 		}
 
-		IMaterial* ModelNode::GetMaterial(const String::StringID& strMaterialName, uint32_t& nMaterialID_out)
+		IMaterial* ModelNode::GetMaterial(const String::StringID& strMaterialName, uint32_t& nMaterialID_out) const
 		{
 			const size_t nSize = m_vecMaterial.size();
 			for (size_t i = 0; i < nSize; ++i)

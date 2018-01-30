@@ -70,19 +70,19 @@ namespace EastEngine
 			return strGeometryType[emGeometryType];
 		}
 
-		Model::Model(size_t nReserveInstance)
-			: m_isVisible(true)
+		Model::Model(Key key)
+			: m_key(key)
+			, m_isVisible(true)
 			, m_isDirtyLocalMatrix(false)
 			, m_nReferenceCount(0)
 			, m_pSkeleton(nullptr)
 			, m_f3Scale(Math::Vector3::One)
 		{
-			m_clnModelInstance.reserve(nReserveInstance);
 		}
 
 		Model::~Model()
 		{
-			m_clnModelInstance.clear();
+			m_vecModelInstances.clear();
 			ISkeleton::Destroy(&m_pSkeleton);
 
 			std::for_each(m_vecHierarchyModelNodes.begin(), m_vecHierarchyModelNodes.end(), [](IModelNode* pNode)
@@ -95,13 +95,10 @@ namespace EastEngine
 			m_vecModelNodes.clear();
 		}
 
-		IModelInstance* Model::CreateInstance()
+		void Model::AddInstance(ModelInstance* pModelInstance)
 		{
-			auto iter = m_clnModelInstance.emplace(this);
-			if (iter == m_clnModelInstance.end())
-				return nullptr;
+			m_vecModelInstances.emplace_back(pModelInstance);
 
-			ModelInstance* pModelInstance = &(*iter);
 			IncreaseReference();
 
 			if (GetLoadState() == EmLoadState::eComplete)
@@ -112,27 +109,24 @@ namespace EastEngine
 			{
 				pModelInstance->LoadCompleteCallback(false);
 			}
-
-			return pModelInstance;
 		}
 
-		void Model::DestroyInstance(IModelInstance** ppModelInstance)
+		bool Model::RemoveInstance(ModelInstance* pModelInstance)
 		{
-			if (ppModelInstance == nullptr || *ppModelInstance == nullptr)
-				return;
+			auto iter = std::find(m_vecModelInstances.begin(), m_vecModelInstances.end(), pModelInstance);
+			if (iter == m_vecModelInstances.end())
+				return false;
 
-			auto iter = std::find_if(m_clnModelInstance.begin(), m_clnModelInstance.end(), [ppModelInstance](ModelInstance& instance)
-			{
-				return &instance == *ppModelInstance;
-			});
-
-			if (iter == m_clnModelInstance.end())
-				return;
-
-			m_clnModelInstance.erase(iter);
-			*ppModelInstance = nullptr;
+			m_vecModelInstances.erase(iter);
 
 			DecreaseReference();
+
+			return true;
+		}
+
+		bool Model::IsHasInstance() const
+		{
+			return m_vecModelInstances.empty() == false;
 		}
 
 		void Model::Ready()
@@ -145,11 +139,6 @@ namespace EastEngine
 				m_matLocal = Math::Matrix::Compose(m_f3Scale, m_quat, m_f3Pos);
 				m_isDirtyLocalMatrix = false;
 			}
-
-			std::for_each(m_clnModelInstance.begin(), m_clnModelInstance.end(), [](ModelInstance& instance)
-			{
-				instance.Ready();
-			});
 		}
 
 		void Model::Update(float fElapsedTime, const Math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance)
@@ -177,9 +166,9 @@ namespace EastEngine
 		{
 			SetLoadState(isSuccess == true ? EmLoadState::eComplete : EmLoadState::eInvalid);
 
-			std::for_each(m_clnModelInstance.begin(), m_clnModelInstance.end(), [isSuccess](ModelInstance& instance)
+			std::for_each(m_vecModelInstances.begin(), m_vecModelInstances.end(), [isSuccess](ModelInstance* pInstance)
 			{
-				instance.LoadCompleteCallback(isSuccess);
+				pInstance->LoadCompleteCallback(isSuccess);
 			});
 		}
 

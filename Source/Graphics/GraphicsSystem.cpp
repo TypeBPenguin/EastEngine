@@ -92,12 +92,6 @@ namespace EastEngine
 			}
 
 			s_pModelMgr = ModelManager::GetInstance();
-			if (s_pModelMgr->Init() == false)
-			{
-				LOG_ERROR("Failed ModelManager Initialize, s_pModelMgr");
-				Release();
-				return false;
-			}
 
 			s_pMotionMgr = MotionManager::GetInstance();
 			if (s_pMotionMgr->Init() == false)
@@ -160,11 +154,11 @@ namespace EastEngine
 			SafeRelease(s_pParticleMgr);
 			ParticleManager::DestroyInstance();
 
+			ModelManager::DestroyInstance();
+			s_pModelMgr = nullptr;
+
 			SafeRelease(s_pMotionMgr);
 			MotionManager::DestroyInstance();
-
-			SafeRelease(s_pModelMgr);
-			ModelManager::DestroyInstance();
 
 			SafeRelease(s_pCameraManager);
 			CameraManager::DestroyInstance();

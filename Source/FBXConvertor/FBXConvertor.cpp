@@ -88,7 +88,7 @@ int main(int argn, char** argc)
 		std::cout << "초기화 실패" << std::endl;
 	}
 
-	Graphics::ModelManager::GetInstance()->Init();
+	Graphics::ModelManager::GetInstance();
 	Graphics::MotionManager::GetInstance()->Init();
 
 	std::cout << "추출 시작 : S(성공), F(실패)" << std::endl;
@@ -176,7 +176,6 @@ int main(int argn, char** argc)
 		std::cout << "모션 : S(" << listMotion.size() << "), F(" << nMotionFailedCount << ")" << std::endl;
 	}
 
-	Graphics::ModelManager::GetInstance()->Release();
 	Graphics::ModelManager::DestroyInstance();
 
 	Graphics::MotionManager::GetInstance()->Release();

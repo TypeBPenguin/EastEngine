@@ -32,25 +32,25 @@ namespace EastEngine
 			virtual const String::StringID& GetName() const override { return m_strNodeName; }
 			virtual const String::StringID& GetAttachedBoneName() const override { return m_strAttachedBoneName; }
 
-			virtual IModelNode* GetParentNode() override { return m_pParentNode; }
+			virtual IModelNode* GetParentNode() const override { return m_pParentNode; }
 
-			virtual IVertexBuffer* GetVertexBuffer(uint32_t nLod = 0) override;
-			virtual IIndexBuffer* GetIndexBuffer(uint32_t nLod = 0) override;
+			virtual IVertexBuffer* GetVertexBuffer(uint32_t nLod = 0) const override;
+			virtual IIndexBuffer* GetIndexBuffer(uint32_t nLod = 0) const override;
 
 			virtual size_t GetChildNodeCount() const override { return m_vecChildModelNode.size(); }
-			virtual IModelNode* GetChildNode(size_t nIndex) override { return m_vecChildModelNode[nIndex]; }
+			virtual IModelNode* GetChildNode(size_t nIndex) const override { return m_vecChildModelNode[nIndex]; }
 
 			virtual size_t GetMaterialCount() const override { return m_vecMaterial.size(); }
-			virtual IMaterial* GetMaterial(size_t nIndex) override { return m_vecMaterial[nIndex]; }
-			virtual IMaterial* GetMaterial(const String::StringID& strMaterialName, uint32_t& nMaterialID_out) override;
+			virtual IMaterial* GetMaterial(size_t nIndex) const override { return m_vecMaterial[nIndex]; }
+			virtual IMaterial* GetMaterial(const String::StringID& strMaterialName, uint32_t& nMaterialID_out) const override;
 
 			virtual size_t GetModelSubsetCount(uint32_t nLod = 0) const override { return m_vecModelSubsets[nLod].size(); }
-			virtual ModelSubset* GetModelSubset(size_t nIndex, uint32_t nLod = 0) override { return &m_vecModelSubsets[nLod][nIndex]; }
+			virtual const ModelSubset* GetModelSubset(size_t nIndex, uint32_t nLod = 0) const override { return &m_vecModelSubsets[nLod][nIndex]; }
 
 			virtual void SetOriginAABB(const Collision::AABB& aabb) override;
 			virtual const Collision::AABB& GetOriginAABB() const override { return m_originAABB; }
 
-			virtual uint32_t GetLOD() override { return m_nLod; }
+			virtual uint32_t GetLOD() const override { return m_nLod; }
 			virtual void SetLOD(uint32_t nLod) override { m_nLod = nLod; }
 
 			void SetNodeName(const String::StringID& strNodeName) { m_strNodeName = strNodeName; }

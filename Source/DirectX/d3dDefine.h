@@ -147,8 +147,8 @@ namespace EastEngine
 		//////////////////
 		// SamplerState //
 		//////////////////
-		struct samplerStateKeyT {};
-		using SamplerStateKey = Type<samplerStateKeyT, String::StringKey>;
+		struct tSamplerStateKey {};
+		using SamplerStateKey = PhantomType<tSamplerStateKey, String::StringKey>;
 
 		struct SamplerStateDesc : public CD3D11_SAMPLER_DESC
 		{
@@ -167,8 +167,8 @@ namespace EastEngine
 		////////////////
 		// BlendState //
 		////////////////
-		struct blendStateKeyT {};
-		using BlendStateKey = Type<blendStateKeyT, String::StringKey>;
+		struct tBlendStateKeyT {};
+		using BlendStateKey = PhantomType<tBlendStateKeyT, String::StringKey>;
 
 		struct BlendStateDesc : public CD3D11_BLEND_DESC
 		{
@@ -186,8 +186,8 @@ namespace EastEngine
 		///////////////////////
 		// DepthStencilState //
 		///////////////////////
-		struct depthStencilStateKeyT {};
-		using DepthStencilStateKey = Type<depthStencilStateKeyT, String::StringKey>;
+		struct tDepthStencilStateKey {};
+		using DepthStencilStateKey = PhantomType<tDepthStencilStateKey, String::StringKey>;
 
 		struct DepthStencilStateDesc : public CD3D11_DEPTH_STENCIL_DESC
 		{
@@ -205,8 +205,8 @@ namespace EastEngine
 		/////////////////////
 		// RasterizerState //
 		/////////////////////
-		struct rasterizerStateKeyT {};
-		using RasterizerStateKey = Type<rasterizerStateKeyT, String::StringKey>;
+		struct tRasterizerStateKeyT {};
+		using RasterizerStateKey = PhantomType<tRasterizerStateKeyT, String::StringKey>;
 
 		struct RasterizerStateDesc : public CD3D11_RASTERIZER_DESC
 		{
@@ -311,8 +311,8 @@ namespace EastEngine
 		//////////////////
 		// RenderTarget //
 		//////////////////
-		struct renderTargetKeyT {};
-		using RenderTargetKey = Type<renderTargetKeyT, String::StringKey>;
+		struct tRenderTargetKeyT {};
+		using RenderTargetKey = PhantomType<tRenderTargetKeyT, String::StringKey>;
 
 		struct RenderTargetDesc1D : public TextureDesc1D
 		{

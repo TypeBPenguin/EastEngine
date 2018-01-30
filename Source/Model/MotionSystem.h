@@ -9,19 +9,20 @@ namespace EastEngine
 		class MotionSystem : public IMotionSystem
 		{
 		public:
-			MotionSystem(ISkeletonInstance* pSkeletonInstance);
+			MotionSystem();
 			virtual ~MotionSystem();
 
 		public:
-			virtual void Update(float fElapsedTime) override;
-
 			virtual void Play(EmMotion::Layers emLayer, IMotion* pMotion, const MotionPlaybackInfo* pMotionState = nullptr) override;
 			virtual void Stop(EmMotion::Layers emLayer, float fStopTime) override;
 
-			IMotionPlayer* GetPlayer(EmMotion::Layers emLayer) { return &m_motionPlayers[emLayer]; }
+			virtual IMotionPlayer* GetPlayer(EmMotion::Layers emLayer) override { return &m_motionPlayers[emLayer]; }
+
+		public:
+			void Initialize(ISkeletonInstance* pSkeletonInstance);
+			void Update(float fElapsedTime);
 
 		private:
-			void Initialize();
 			void SetIdentity(bool isMotionUpdated);
 			void BlendingLayers(const MotionPlayer& player);
 			void Binding();
