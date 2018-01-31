@@ -394,6 +394,11 @@ namespace EastEngine
 		class ISkeleton
 		{
 		public:
+			enum : uint32_t
+			{
+				eInvalidBoneIndex = std::numeric_limits<uint32_t>::max(),
+			};
+
 			class IBone
 			{
 			protected:
@@ -405,13 +410,8 @@ namespace EastEngine
 				virtual const Math::Matrix& GetMotionOffsetMatrix() const = 0;
 				virtual const Math::Matrix& GetDefaultMotionData() const = 0;
 
-				virtual IBone* GetParent() const = 0;
-
-				virtual size_t GetChildBoneCount() const = 0;
-				virtual IBone* GetChildBone(size_t nIndex) const = 0;
-				virtual IBone* GetChildBone(const String::StringID& strBoneName, bool isFindInAllDepth = false) const = 0;
-
-				virtual bool IsRootBone() const = 0;
+				virtual uint32_t GetIndex() const = 0;
+				virtual uint32_t GetParentIndex() const = 0;
 			};
 
 		protected:
@@ -423,11 +423,9 @@ namespace EastEngine
 			static void Destroy(ISkeleton** ppSkeleton);
 
 		public:
-			virtual IBone* GetRootBone() const = 0;
-
 			virtual size_t GetBoneCount() const = 0;
-			virtual IBone* GetBone(size_t nIndex) const = 0;
-			virtual IBone* GetBone(const String::StringID& strBoneName) const = 0;
+			virtual IBone* GetBone(size_t nIndex) = 0;
+			virtual IBone* GetBone(const String::StringID& strBoneName) = 0;
 
 			virtual size_t GetSkinnedListCount() const = 0;
 			virtual void GetSkinnedList(size_t nIndex, String::StringID& strSkinnedName_out, const String::StringID** ppBoneNames_out, uint32_t& nElementCount_out) = 0;
@@ -443,16 +441,10 @@ namespace EastEngine
 				virtual ~IBone() = default;
 
 			public:
-				virtual void Update(const Math::Matrix& matWorld, const Math::Matrix& matParent) = 0;
-
-			public:
+				virtual uint32_t GetIndex() const = 0;
 				virtual const String::StringID& GetName() const = 0;
 
 				virtual IBone* GetParent() const = 0;
-
-				virtual size_t GetChildBoneCount() const = 0;
-				virtual IBone* GetChildBone(size_t nIndex) const = 0;
-				virtual IBone* GetChildBone(const String::StringID& strBoneName, bool isFindInAllDepth = false) const = 0;
 
 				virtual const Math::Matrix& GetSkinningMatrix() const = 0;
 
@@ -471,8 +463,6 @@ namespace EastEngine
 
 				virtual const Math::Matrix& GetLocalMatrix() const = 0;
 				virtual const Math::Matrix& GetGlobalMatrix() const = 0;
-
-				virtual bool IsRootBone() const = 0;
 			};
 
 		protected:
@@ -480,11 +470,11 @@ namespace EastEngine
 			virtual ~ISkeletonInstance() = default;
 
 		public:
-			virtual ISkeleton* GetSkeleton() const = 0;
+			virtual ISkeleton* GetSkeleton() = 0;
 
 			virtual size_t GetBoneCount() const = 0;
-			virtual IBone* GetBone(size_t nIndex) const = 0;
-			virtual IBone* GetBone(const String::StringID& strBoneName) const = 0;
+			virtual IBone* GetBone(size_t nIndex) = 0;
+			virtual IBone* GetBone(const String::StringID& strBoneName) = 0;
 
 			virtual void GetSkinnedData(const String::StringID& strSkinnedName, const Math::Matrix*** pppMatrixList_out, uint32_t& nElementCount_out) = 0;
 			virtual void SetIdentity() = 0;

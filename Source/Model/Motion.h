@@ -50,7 +50,7 @@ namespace EastEngine
 
 		public:
 			Motion(const String::StringID& strName, const char* strFilePath);
-			virtual ~Motion();
+			virtual ~Motion() = default;
 
 		public:
 			virtual void Update(IMotionRecoder* pRecoder, float fPlayTime, bool isInverse) override;
@@ -61,8 +61,8 @@ namespace EastEngine
 		public:
 			virtual const String::StringID& GetName() const override { return m_strName; }
 
-			virtual size_t GetBoneCount() const override { return m_clnBones.size(); }
-			virtual const IBone* GetBone(size_t nIndex) const override { return m_vecBonesIndexing[nIndex]; }
+			virtual size_t GetBoneCount() const override { return m_vecBones.size(); }
+			virtual const IBone* GetBone(size_t nIndex) const override { return &m_vecBones[nIndex]; }
 			virtual const IBone* GetBone(const String::StringID& strBoneName) const override;
 
 		public:
@@ -81,18 +81,17 @@ namespace EastEngine
 			void SetInfo(float fStartTime, float fEndTime, float fFrameInterval);
 
 		private:
-			int m_nReferenceCount;
+			int m_nReferenceCount{ 0 };
 
 			String::StringID m_strName;
 			std::string m_strFilePath;
 
-			plf::colony<Bone> m_clnBones;
-			std::vector<Bone*> m_vecBonesIndexing;
+			std::vector<Bone> m_vecBones;
 			std::unordered_map<String::StringID, Bone*> m_umapBones;
 
-			float m_fStartTime;
-			float m_fEndTime;
-			float m_fFrameInterval;
+			float m_fStartTime{ 0.f };
+			float m_fEndTime{ 0.f };
+			float m_fFrameInterval{ 0.f };
 		};
 	}
 }

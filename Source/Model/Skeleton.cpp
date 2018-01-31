@@ -6,11 +6,6 @@
 #include "CommonLib/Config.h"
 #include "Renderer/RendererManager.h"
 
-namespace StrID
-{
-	RegisterStringID(EastEngine_RootBone);
-}
-
 namespace EastEngine
 {
 	namespace Graphics
@@ -20,88 +15,53 @@ namespace EastEngine
 		{
 		}
 
-		Skeleton::Bone::Bone(const String::StringID& strBoneName, const Math::Matrix& matMotionOffset, const Math::Matrix& matDefaultMotionData, Bone* pParentBone)
+		Skeleton::Bone::Bone(const String::StringID& strBoneName, const Math::Matrix& matMotionOffset, const Math::Matrix& matDefaultMotionData, uint32_t nIndex, uint32_t nParentIndex)
 			: m_strBoneName(strBoneName)
 			, m_matMotionOffset(matMotionOffset)
 			, m_matDefaultMotionData(matDefaultMotionData)
-			, m_pParentBone(pParentBone)
-		{
-			m_clnChildBones.reserve(32);
-			m_vecChildBonesIndexing.reserve(32);
-		}
-
-		Skeleton::Bone::~Bone()
-		{
-			m_vecChildBonesIndexing.clear();
-			m_clnChildBones.clear();
-
-			m_pParentBone = nullptr;
-		}
-
-		ISkeleton::IBone* Skeleton::Bone::GetChildBone(const String::StringID& strBoneName, bool isFindInAllDepth) const
-		{
-			if (isFindInAllDepth == true)
-			{
-				auto iter = std::find_if(m_clnChildBones.begin(), m_clnChildBones.end(), [&strBoneName](const Bone& bone)
-				{
-					return bone.GetName() == strBoneName;
-				});
-
-				if (iter != m_clnChildBones.end())
-					return &(*iter);
-			}
-			else
-			{
-				for (auto& childBone : m_clnChildBones)
-				{
-					if (childBone.GetName() == strBoneName)
-						return &childBone;
-
-					ISkeleton::IBone* pBone = childBone.GetChildBone(strBoneName, isFindInAllDepth);
-					if (pBone != nullptr)
-						return pBone;
-				}
-			}
-
-			return nullptr;
-		}
-
-		Skeleton::Bone* Skeleton::Bone::AddChildBone(const String::StringID& strBoneName, const Math::Matrix& matMotionOffset, const Math::Matrix& matDefaultMotionData)
-		{
-			auto iter_result = m_clnChildBones.emplace(strBoneName, matMotionOffset, matDefaultMotionData, this);
-			Bone* pNewBone = &(*iter_result);
-
-			m_vecChildBonesIndexing.emplace_back(pNewBone);
-
-			return pNewBone;
-		}
-
-		Skeleton::RootBone::RootBone()
-			: Bone(StrID::EastEngine_RootBone, Math::Matrix::Identity, Math::Matrix::Identity, nullptr)
+			, m_nIndex(nIndex)
+			, m_nParentIndex(nParentIndex)
 		{
 		}
 
-		Skeleton::Skeleton()
-			: m_pRootBone(new RootBone)
+		Skeleton::Bone::Bone(Skeleton::Bone&& other) noexcept
+			: m_strBoneName(std::move(other.m_strBoneName))
+			, m_matMotionOffset(std::move(other.m_matMotionOffset))
+			, m_matDefaultMotionData(std::move(other.m_matDefaultMotionData))
+			, m_nIndex(std::move(other.m_nIndex))
+			, m_nParentIndex(std::move(other.m_nParentIndex))
 		{
+		}
+
+		Skeleton::Bone::Bone(const Skeleton::Bone&& other) noexcept
+			: m_strBoneName(std::move(other.m_strBoneName))
+			, m_matMotionOffset(std::move(other.m_matMotionOffset))
+			, m_matDefaultMotionData(std::move(other.m_matDefaultMotionData))
+			, m_nIndex(std::move(other.m_nIndex))
+			, m_nParentIndex(std::move(other.m_nParentIndex))
+		{
+		}
+
+		Skeleton::Skeleton(uint32_t nBoneCount)
+		{
+			m_vecBones.reserve(nBoneCount);
 		}
 
 		Skeleton::~Skeleton()
 		{
-			SafeDelete(m_pRootBone);
 			m_vecBones.clear();
 			m_vecSkinnedList.clear();
 		}
 
-		ISkeleton::IBone* Skeleton::GetBone(const String::StringID& strBoneName) const
+		ISkeleton::IBone* Skeleton::GetBone(const String::StringID& strBoneName)
 		{
-			auto iter = std::find_if(m_vecBones.begin(), m_vecBones.end(), [&](Skeleton::Bone* pBone)
+			auto iter = std::find_if(m_vecBones.begin(), m_vecBones.end(), [&](Skeleton::Bone& bone)
 			{
-				return pBone->GetName() == strBoneName;
+				return bone.GetName() == strBoneName;
 			});
 
 			if (iter != m_vecBones.end())
-				return *iter;
+				return &(*iter);
 
 			return nullptr;
 		}
@@ -126,11 +86,10 @@ namespace EastEngine
 			if (strBoneName.empty() == true)
 				return nullptr;
 
-			ISkeleton::IBone* pChildBone = m_pRootBone->GetChildBone(strBoneName);
-			if (pChildBone != nullptr)
-				return static_cast<Bone*>(pChildBone);
+			const uint32_t nNodeIndex = m_vecBones.size();
+			m_vecBones.emplace_back(strBoneName, matMotionOffset, matDefaultMotionData, nNodeIndex, eInvalidBoneIndex);
 
-			return CreateChildBone(m_pRootBone, strBoneName, matMotionOffset, matDefaultMotionData);
+			return &m_vecBones.back();
 		}
 
 		Skeleton::Bone* Skeleton::CreateBone(const String::StringID& strParentBoneName, const String::StringID& strBoneName, const Math::Matrix& matMotionOffset, const Math::Matrix& matDefaultMotionData)
@@ -138,17 +97,14 @@ namespace EastEngine
 			if (strParentBoneName.empty() == true || strBoneName.empty() == true)
 				return nullptr;
 
-			ISkeleton::IBone* pBone = GetBone(strParentBoneName);
-			if (pBone == nullptr)
+			ISkeleton::IBone* pParentBone = GetBone(strParentBoneName);
+			if (pParentBone == nullptr)
 				return nullptr;
 
-			Bone* pParentBone = static_cast<Bone*>(pBone);
+			const uint32_t nNodeIndex = m_vecBones.size();
+			m_vecBones.emplace_back(strBoneName, matMotionOffset, matDefaultMotionData, nNodeIndex, pParentBone->GetIndex());
 
-			ISkeleton::IBone* pChildBone = pParentBone->GetChildBone(strBoneName);
-			if (pChildBone != nullptr)
-				return static_cast<Bone*>(pChildBone);
-
-			return CreateChildBone(pParentBone, strBoneName, matMotionOffset, matDefaultMotionData);
+			return &m_vecBones.back();
 		}
 
 		void Skeleton::SetSkinnedList(const String::StringID& strSkinnedName, const String::StringID* pBoneNames, size_t nNameCount)
@@ -172,144 +128,57 @@ namespace EastEngine
 			vecNames.insert(vecNames.end(), pBoneNames, pBoneNames + nNameCount);
 		}
 
-		Skeleton::Bone* Skeleton::CreateChildBone(Bone* pParentBone, const String::StringID& strBoneName, const Math::Matrix& matMotionOffset, const Math::Matrix& matDefaultMotionData)
-		{
-			if (pParentBone == nullptr || strBoneName.empty() == true)
-				return nullptr;
-
-			Bone* pChildBone = pParentBone->AddChildBone(strBoneName, matMotionOffset, matDefaultMotionData);
-			if (pChildBone == nullptr)
-				return nullptr;
-
-			m_vecBones.emplace_back(pChildBone);
-
-			return pChildBone;
-		}
-
-		SkeletonInstance::BoneInstance::BoneInstance(Skeleton::IBone* pBoneHierarchy, BoneInstance* pParentBone)
-			: m_pParentBone(pParentBone)
-			, m_pBoneHierarchy(pBoneHierarchy)
-			, m_userOffsetScale(Math::Vector3::One)
+		SkeletonInstance::BoneInstance::BoneInstance(Skeleton::IBone* pBoneOrigin, BoneInstance* pParentBone)
+			: m_strBoneName(pBoneOrigin->GetName())
+			, m_pParentBone(pParentBone)
+			, m_pBoneOrigin(pBoneOrigin)
+			, m_matMotionOffset(pBoneOrigin->GetMotionOffsetMatrix())
 		{
 		}
 
-		SkeletonInstance::BoneInstance::~BoneInstance()
-		{
-			m_vecChildBonesIndexing.clear();
-			m_clnChildBones.clear();
-
-			m_pParentBone = nullptr;
-			m_pBoneHierarchy = nullptr;
-		}
-
-		void SkeletonInstance::BoneInstance::Update(const Math::Matrix& matWorld, const Math::Matrix& matParent)
+		void SkeletonInstance::BoneInstance::Update(const Math::Matrix& matWorld)
 		{
 			Math::Quaternion quatUserOffset = Math::Quaternion::CreateFromYawPitchRoll(m_userOffsetRotation.y, m_userOffsetRotation.x, m_userOffsetRotation.z);
 			Math::Matrix matUserOffset = Math::Matrix::Compose(m_userOffsetScale, quatUserOffset, m_userOffsetPosition);
 
-			m_matLocal = matUserOffset * m_motionTransform.Compose() * matParent;
-			m_matSkinning = m_pBoneHierarchy->GetMotionOffsetMatrix() * m_matLocal;
+			if (m_pParentBone != nullptr)
+			{
+				m_matLocal = matUserOffset * m_motionTransform.Compose() * m_pParentBone->GetLocalMatrix();
+			}
+			else
+			{
+				m_matLocal = matUserOffset * m_motionTransform.Compose();
+			}
+
+			m_matSkinning = m_matMotionOffset * m_matLocal;
 
 			m_matGlobal = m_matLocal * matWorld;
-
-			RenderBone();
-
-			std::for_each(m_clnChildBones.begin(), m_clnChildBones.end(), [&](BoneInstance& childBone)
-			{
-				childBone.Update(matWorld, m_matLocal);
-			});
-		}
-
-		void SkeletonInstance::BoneInstance::RenderBone()
-		{
-			return;
-
-			if (Config::IsEnable("VisibleSkeleton"_s))
-			{
-				RenderSubsetVertex aabb;
-				aabb.matWorld = Math::Matrix::CreateScale(0.02f) * GetGlobalMatrix();
-				aabb.isWireframe = true;
-				aabb.isIgnoreDepth = true;
-				GeometryModel::GetDebugModel(GeometryModel::EmDebugModel::eBox, &aabb.pVertexBuffer, &aabb.pIndexBuffer);
-				RendererManager::GetInstance()->AddRender(aabb);
-
-				if (m_pParentBone->IsRootBone() == false)
-				{
-					const Math::Vector3* pStartPos = reinterpret_cast<const Math::Vector3*>(&m_pParentBone->GetGlobalMatrix()._41);
-					const Math::Vector3* pEndPos = reinterpret_cast<const Math::Vector3*>(&GetGlobalMatrix()._41);
-					RenderSubsetLineSegment line(*pStartPos, Math::Color::Blue, *pEndPos, Math::Color::Blue, true);
-					RendererManager::GetInstance()->AddRender(line);
-				}
-			}
-		}
-
-		SkeletonInstance::IBone* SkeletonInstance::BoneInstance::GetChildBone(const String::StringID& strBoneName, bool isFindInAllDepth) const
-		{
-			auto iter = std::find_if(m_clnChildBones.begin(), m_clnChildBones.end(), [&](const BoneInstance& bone)
-			{
-				return bone.GetName() == strBoneName;
-			});
-
-			if (iter != m_clnChildBones.end())
-				return &(*iter);
-
-			return nullptr;
-		}
-
-		SkeletonInstance::BoneInstance* SkeletonInstance::BoneInstance::AddChildBone(Skeleton::IBone* pBoneHierarchy)
-		{
-			auto iter_result = m_clnChildBones.emplace(pBoneHierarchy, this);
-			BoneInstance* pNewBone = &(*iter_result);
-
-			m_vecChildBonesIndexing.emplace_back(pNewBone);
-
-			return pNewBone;
-		}
-
-		SkeletonInstance::RootBone::RootBone(Skeleton::IBone* pBoneHierarchy)
-			: BoneInstance(pBoneHierarchy, nullptr)
-		{
-		}
-
-		SkeletonInstance::RootBone::~RootBone()
-		{
-		}
-
-		void SkeletonInstance::RootBone::Update(const Math::Matrix& matWorld, const Math::Matrix& matParent)
-		{
-			std::for_each(m_clnChildBones.begin(), m_clnChildBones.end(), [&](BoneInstance& boneInstance)
-			{
-				boneInstance.Update(matWorld, matParent);
-			});
-		}
-
-		SkeletonInstance::SkeletonInstance()
-			: m_isDirty(true)
-			, m_pSkeleton(nullptr)
-			, m_pRootBone(nullptr)
-		{
-		}
-
-		SkeletonInstance::~SkeletonInstance()
-		{
-			m_pSkeleton = nullptr;
-
-			SafeDelete(m_pRootBone);
-
-			m_vecBones.clear();
-			m_umapBone.clear();
-			m_umapSkinnendData.clear();
 		}
 
 		void SkeletonInstance::Initialize(ISkeleton* pSkeleton)
 		{
 			m_pSkeleton = pSkeleton;
-			m_pRootBone = new RootBone(pSkeleton->GetRootBone());
 
-			m_vecBones.reserve(pSkeleton->GetBoneCount());
-			m_umapBone.reserve(pSkeleton->GetBoneCount());
+			const size_t nBoneCount = pSkeleton->GetBoneCount();
+			m_vecBones.reserve(nBoneCount);
+			m_umapBones.reserve(nBoneCount);
 
-			CreateBone(pSkeleton->GetRootBone(), m_pRootBone);
+			for (size_t i = 0; i < nBoneCount; ++i)
+			{
+				Skeleton::IBone* pBoneOrigin = pSkeleton->GetBone(i);
+				if (pBoneOrigin->GetParentIndex() != ISkeleton::eInvalidBoneIndex)
+				{
+					BoneInstance* pParentBone = &m_vecBones[pBoneOrigin->GetParentIndex()];
+					m_vecBones.emplace_back(pBoneOrigin, pParentBone);
+				}
+				else
+				{
+					m_vecBones.emplace_back(pBoneOrigin, nullptr);
+				}
+
+				m_umapBones.emplace(pBoneOrigin->GetName(), &m_vecBones.back());
+			}
+
 			CreateSkinnedData(pSkeleton);
 
 			SetIdentity();
@@ -319,16 +188,16 @@ namespace EastEngine
 
 		void SkeletonInstance::Update(const Math::Matrix& matWorld)
 		{
-			if (m_vecBones.empty() == false)
+			std::for_each(m_vecBones.begin(), m_vecBones.end(), [&matWorld](BoneInstance& boneInstance)
 			{
-				m_pRootBone->Update(matWorld, Math::Matrix::Identity);
-			}
+				boneInstance.Update(matWorld);
+			});
 		}
 
-		SkeletonInstance::IBone* SkeletonInstance::GetBone(const String::StringID& strBoneName) const
+		SkeletonInstance::IBone* SkeletonInstance::GetBone(const String::StringID& strBoneName)
 		{
-			auto iter = m_umapBone.find(strBoneName);
-			if (iter != m_umapBone.end())
+			auto iter = m_umapBones.find(strBoneName);
+			if (iter != m_umapBones.end())
 				return iter->second;
 
 			return nullptr;
@@ -353,27 +222,12 @@ namespace EastEngine
 			if (m_isDirty == false)
 				return;
 
-			std::for_each(m_vecBones.begin(), m_vecBones.end(), [](BoneInstance* pBone)
+			std::for_each(m_vecBones.begin(), m_vecBones.end(), [](BoneInstance& boneInstance)
 			{
-				pBone->ClearMotionTransform();
+				boneInstance.ClearMotionTransform();
 			});
 
 			m_isDirty = false;
-		}
-
-		void SkeletonInstance::CreateBone(Skeleton::IBone* pBoneHierarchy, BoneInstance* pParentBone)
-		{
-			uint32_t nChildCount = pBoneHierarchy->GetChildBoneCount();
-			for (uint32_t i = 0; i < nChildCount; ++i)
-			{
-				Skeleton::IBone* pChildBoneHierarchy = pBoneHierarchy->GetChildBone(i);
-
-				BoneInstance* pChildBone = pParentBone->AddChildBone(pChildBoneHierarchy);
-				m_vecBones.emplace_back(pChildBone);
-				m_umapBone.emplace(pChildBone->GetName(), pChildBone);
-
-				CreateBone(pChildBoneHierarchy, pChildBone);
-			}
 		}
 
 		void SkeletonInstance::CreateSkinnedData(ISkeleton* pSkeleton)
@@ -400,8 +254,8 @@ namespace EastEngine
 				vecSkinnedData.resize(nBoneCount);
 				for (size_t j = 0; j < nBoneCount; ++j)
 				{
-					auto iter_find = m_umapBone.find(pBoneNames[j]);
-					if (iter_find != m_umapBone.end())
+					auto iter_find = m_umapBones.find(pBoneNames[j]);
+					if (iter_find != m_umapBones.end())
 					{
 						vecSkinnedData[j] = &iter_find->second->GetSkinningMatrix();
 					}

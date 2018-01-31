@@ -169,13 +169,10 @@ bool SkeletonController::Process(float fElapsedTime)
 							Graphics::GeometryModel::GetDebugModel(Graphics::GeometryModel::EmDebugModel::eBox, &aabb.pVertexBuffer, &aabb.pIndexBuffer);
 							Graphics::RendererManager::GetInstance()->AddRender(aabb);
 
-							if (pBone->GetParent()->IsRootBone() == false)
-							{
-								const Math::Vector3* pStartPos = reinterpret_cast<const Math::Vector3*>(&pBone->GetParent()->GetGlobalMatrix()._41);
-								const Math::Vector3* pEndPos = reinterpret_cast<const Math::Vector3*>(&pBone->GetGlobalMatrix()._41);
-								Graphics::RenderSubsetLineSegment line(*pStartPos, Math::Color::Blue, *pEndPos, Math::Color::Blue, true);
-								Graphics::RendererManager::GetInstance()->AddRender(line);
-							}
+							const Math::Vector3* pStartPos = reinterpret_cast<const Math::Vector3*>(&pBone->GetParent()->GetGlobalMatrix()._41);
+							const Math::Vector3* pEndPos = reinterpret_cast<const Math::Vector3*>(&pBone->GetGlobalMatrix()._41);
+							Graphics::RenderSubsetLineSegment line(*pStartPos, Math::Color::Blue, *pEndPos, Math::Color::Blue, true);
+							Graphics::RendererManager::GetInstance()->AddRender(line);
 						}
 					}
 				}

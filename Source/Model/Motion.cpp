@@ -116,25 +116,14 @@ namespace EastEngine
 		}
 
 		Motion::Motion(const String::StringID& strName, const char* strFilePath)
-			: m_nReferenceCount(0)
-			, m_strName(strName)
+			: m_strName(strName)
 			, m_strFilePath(strFilePath)
-			, m_fStartTime(0.f)
-			, m_fEndTime(0.f)
-			, m_fFrameInterval(0.f)
 		{
-		}
-
-		Motion::~Motion()
-		{
-			m_vecBonesIndexing.clear();
-			m_umapBones.clear();
-			m_clnBones.clear();
 		}
 
 		void Motion::Update(IMotionRecoder* pRecoder, float fPlayTime, bool isInverse)
 		{
-			std::for_each(m_clnBones.begin(), m_clnBones.end(), [&](Bone& bone)
+			std::for_each(m_vecBones.begin(), m_vecBones.end(), [&](Bone& bone)
 			{
 				bone.Update(pRecoder, fPlayTime, isInverse);
 			});
@@ -151,10 +140,8 @@ namespace EastEngine
 
 		void Motion::AddBoneKeyframes(const String::StringID& strBoneName, const std::vector<Keyframe>& vecKeyframes)
 		{
-			auto iter_result = m_clnBones.emplace(strBoneName, vecKeyframes, m_fFrameInterval);
-			Bone* pBone = &(*iter_result);
-			m_vecBonesIndexing.emplace_back(pBone);
-			m_umapBones.emplace(strBoneName, pBone);
+			m_vecBones.emplace_back(strBoneName, vecKeyframes, m_fFrameInterval);
+			m_umapBones.emplace(strBoneName, &m_vecBones.back());
 		}
 
 		void Motion::SetInfo(float fStartTime, float fEndTime, float fFrameInterval)

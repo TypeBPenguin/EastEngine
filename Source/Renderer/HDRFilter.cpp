@@ -205,7 +205,6 @@ namespace EastEngine
 					return f2Result;
 				};
 
-				Math::Vector2 InputSize[4];
 				Math::Vector2 OutputSize;
 
 				for (size_t i = 0; i < nSourceCount; ++i)

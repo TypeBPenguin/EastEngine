@@ -196,7 +196,16 @@ namespace EastEngine
 
 		IModel* IModel::Create(const ModelLoader& loader, bool isThreadLoad)
 		{
-			std::string strKey = loader.GetFilePath().empty() ? loader.GetModelName().c_str() : loader.GetFilePath();
+			std::string strKey;
+			if (loader.GetLoadModelType() == EmModelLoader::LoadType::eGeometry)
+			{
+				strKey = loader.GetModelName().c_str();
+			}
+			else
+			{
+				strKey = loader.GetFilePath();
+			}
+
 			IModel* pIModel = ModelManager::GetInstance()->GetModel(strKey);
 			if (pIModel != nullptr)
 				return pIModel;
@@ -431,17 +440,20 @@ namespace EastEngine
 			{
 				file << true;
 
-				file << pSkeleton->GetBoneCount();
+				const size_t nBoneCount = pSkeleton->GetBoneCount();
 
-				ISkeleton::IBone* pRootBone = pSkeleton->GetRootBone();
+				file << nBoneCount;
 
-				std::function<void(ISkeleton::IBone*)> WriteBone = [&](ISkeleton::IBone* pBone)
+				for (size_t i = 0; i < nBoneCount; ++i)
 				{
+					ISkeleton::IBone* pBone = pSkeleton->GetBone(i);
+
 					file << pBone->GetName().c_str();
 
-					if (pBone->GetParent() != nullptr && pBone->GetParent()->IsRootBone() == false)
+					if (pBone->GetParentIndex() != ISkeleton::eInvalidBoneIndex)
 					{
-						file << pBone->GetParent()->GetName().c_str();
+						ISkeleton::IBone* pParentBone = pSkeleton->GetBone(pBone->GetParentIndex());
+						file << pParentBone->GetName().c_str();
 					}
 					else
 					{
@@ -450,20 +462,6 @@ namespace EastEngine
 
 					file.Write(&pBone->GetMotionOffsetMatrix()._11, 16);
 					file.Write(&pBone->GetDefaultMotionData()._11, 16);
-
-					uint32_t nChildBoneCount = pBone->GetChildBoneCount();
-					for (uint32_t i = 0; i < nChildBoneCount; ++i)
-					{
-						ISkeleton::IBone* pChildBone = pBone->GetChildBone(i);
-						WriteBone(pChildBone);
-					}
-				};
-
-				uint32_t nChildBoneCount = pRootBone->GetChildBoneCount();
-				for (uint32_t i = 0; i < nChildBoneCount; ++i)
-				{
-					ISkeleton::IBone* pChildBone = pRootBone->GetChildBone(i);
-					WriteBone(pChildBone);
 				}
 			}
 			else
