@@ -99,6 +99,12 @@ namespace EastEngine
 		class IMotion : public Resource
 		{
 		public:
+			struct tKey {};
+			using Key = PhantomType<tKey, const String::StringKey>;
+
+			virtual Key GetKey() const = 0;
+
+		public:
 			struct Keyframe
 			{
 				float fTime = 0.f;
@@ -141,6 +147,7 @@ namespace EastEngine
 
 		public:
 			virtual const String::StringID& GetName() const = 0;
+			virtual const std::string& GetFilePath() const = 0;
 
 			virtual size_t GetBoneCount() const = 0;
 			virtual const IBone* GetBone(size_t nIndex) const = 0;
@@ -351,7 +358,7 @@ namespace EastEngine
 			virtual bool IsVisible() const = 0;
 			virtual void SetVisible(bool bVisible) = 0;
 
-			virtual ISkeleton* GetSkeleton() const = 0;
+			virtual ISkeleton* GetSkeleton() = 0;
 
 		public:
 			virtual int GetReferenceCount() const = 0;
@@ -368,7 +375,8 @@ namespace EastEngine
 		public:
 			virtual void Update(float fElapsedTime, const Math::Matrix& matParent) = 0;
 
-			virtual bool Attachment(IModelInstance* pInstance, const String::StringID& strNodeName, const Math::Matrix& matOffset) = 0;
+			virtual bool Attachment(IModelInstance* pInstance, const String::StringID& strNodeName, const Math::Matrix& matOffset = Math::Matrix::Identity) = 0;
+			virtual bool Attachment(IModelInstance* pInstance, const Math::Matrix& matOffset = Math::Matrix::Identity) = 0;
 			virtual IModelInstance* GetAttachment(size_t nIndex) const = 0;
 			virtual size_t GetAttachmentCount() const = 0;
 			virtual bool IsAttachment() const = 0;
@@ -417,10 +425,6 @@ namespace EastEngine
 		protected:
 			ISkeleton() = default;
 			virtual ~ISkeleton() = default;
-
-		public:
-			static ISkeleton* Create();
-			static void Destroy(ISkeleton** ppSkeleton);
 
 		public:
 			virtual size_t GetBoneCount() const = 0;
@@ -491,6 +495,15 @@ namespace std
 	struct hash<EastEngine::Graphics::IModel::Key>
 	{
 		std::uint64_t operator()(const EastEngine::Graphics::IModel::Key& key) const
+		{
+			return key.value.value;
+		}
+	};
+
+	template <>
+	struct hash<EastEngine::Graphics::IMotion::Key>
+	{
+		std::uint64_t operator()(const EastEngine::Graphics::IMotion::Key& key) const
 		{
 			return key.value.value;
 		}

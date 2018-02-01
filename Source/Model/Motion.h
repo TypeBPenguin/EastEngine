@@ -49,8 +49,11 @@ namespace EastEngine
 			};
 
 		public:
-			Motion(const String::StringID& strName, const char* strFilePath);
+			Motion(Key key);
 			virtual ~Motion() = default;
+
+		public:
+			virtual Key GetKey() const override { return m_key; }
 
 		public:
 			virtual void Update(IMotionRecoder* pRecoder, float fPlayTime, bool isInverse) override;
@@ -60,6 +63,7 @@ namespace EastEngine
 
 		public:
 			virtual const String::StringID& GetName() const override { return m_strName; }
+			virtual const std::string& GetFilePath() const override { return m_strFilePath; }
 
 			virtual size_t GetBoneCount() const override { return m_vecBones.size(); }
 			virtual const IBone* GetBone(size_t nIndex) const override { return &m_vecBones[nIndex]; }
@@ -77,10 +81,13 @@ namespace EastEngine
 			virtual int DecreaseReference() override { return --m_nReferenceCount; }
 
 		public:
+			void SetName(const String::StringID& strName) { m_strName; }
+			void SetFilePath(const std::string& strFilePath) { m_strFilePath = strFilePath; }
 			void AddBoneKeyframes(const String::StringID& strBoneName, const std::vector<Keyframe>& vecKeyframes);
 			void SetInfo(float fStartTime, float fEndTime, float fFrameInterval);
 
 		private:
+			const Key m_key;
 			int m_nReferenceCount{ 0 };
 
 			String::StringID m_strName;

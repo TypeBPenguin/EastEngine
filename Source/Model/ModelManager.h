@@ -30,7 +30,7 @@ namespace EastEngine
 			// FilePath or ModelName
 			IModel* AllocateModel(const std::string& strKey);
 			IModelInstance* AllocateModelInstance(Model* pModel);
-			bool DestroyModelInstance(Model* pModel, ModelInstance** ppModelInstance);
+			bool DestroyModelInstance(ModelInstance** ppModelInstance);
 
 			// FilePath or ModelName
 			IModel* GetModel(const std::string& strKey) const;

@@ -13,8 +13,9 @@ namespace EastEngine
 			{
 			public:
 				Bone(const String::StringID& strBoneName, const Math::Matrix& matMotionOffset, const Math::Matrix& matDefaultMotionData, uint32_t nIndex, uint32_t nParentIndex);
-				Bone(Bone&& other) noexcept;
+				Bone(const Bone& other);
 				Bone(const Bone&& other) noexcept;
+
 				virtual ~Bone() = default;
 
 			public:
@@ -35,7 +36,7 @@ namespace EastEngine
 			};
 
 		public:
-			Skeleton(uint32_t nBoneCount = 0);
+			Skeleton();
 			virtual ~Skeleton();
 
 		public:

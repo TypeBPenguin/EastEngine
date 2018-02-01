@@ -8,6 +8,7 @@ namespace EastEngine
 {
 	namespace Graphics
 	{
+		class Motion;
 		class IMotion;
 
 		class MotionManager : public Singleton<MotionManager>
@@ -18,23 +19,22 @@ namespace EastEngine
 			virtual ~MotionManager();
 
 		public:
-			bool Init();
-			void Release();
-
 			void Update();
 			void Flush();
 
-			void ProcessRequestMotionLoader();
+		public:
+			// FilePath
+			IMotion* AllocateMotion(const std::string& strKey);
 
-			bool AddMotion(const String::StringID& strMotionName, IMotion* pModel);
-			IMotion* GetMotion(const String::StringID& strName);
+			// FilePath
+			IMotion* GetMotion(const std::string& strKey);
+			IMotion* GetMotion(const size_t nIndex);
 
-			const std::unordered_map<String::StringID, IMotion*>& GetMotions() { return m_umapMotion; }
+			size_t GetMotionCount() const;
 
 		private:
-			bool m_isInit;
-
-			std::unordered_map<String::StringID, IMotion*> m_umapMotion;
+			class Impl;
+			std::unique_ptr<Impl> m_pImpl;
 		};
 	}
 }

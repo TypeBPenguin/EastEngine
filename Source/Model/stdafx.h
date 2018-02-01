@@ -17,7 +17,5 @@
 
 #include <boost/pool/object_pool.hpp>
 
-#include <ppltasks.h>
-
 #include "CommonLib/CommonLib.h"
 #include "DirectX/D3DInterface.h"

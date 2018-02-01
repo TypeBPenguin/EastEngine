@@ -39,18 +39,18 @@ namespace EastEngine
 		private:
 			struct AttachmentNode
 			{
-				enum EmAttachNodeType
+				enum Type
 				{
 					eNone = 0,
 					eBone,
 				};
 
-				ModelInstance* pInstance = nullptr;
+				ModelInstance* pInstance{ nullptr };
 				String::StringID strNodeName;
-				EmAttachNodeType emAttachNodeType = EmAttachNodeType::eNone;
+				Type emType = Type::eNone;
 				Math::Matrix matOffset;
 
-				AttachmentNode(ModelInstance* pInstance, const String::StringID& strNodeName, const Math::Matrix& matOffset, EmAttachNodeType emAttachNodeType);
+				AttachmentNode(ModelInstance* pInstance, const String::StringID& strNodeName, const Math::Matrix& matOffset, Type emAttachNodeType);
 			};
 
 		public:
@@ -64,7 +64,8 @@ namespace EastEngine
 		public:
 			virtual void Update(float fElapsedTime, const Math::Matrix& matParent) override;
 
-			virtual bool Attachment(IModelInstance* pInstance, const String::StringID& strNodeName, const Math::Matrix& matOffset) override;
+			virtual bool Attachment(IModelInstance* pInstance, const String::StringID& strNodeName, const Math::Matrix& matOffset = Math::Matrix::Identity) override;
+			virtual bool Attachment(IModelInstance* pInstance, const Math::Matrix& matOffset = Math::Matrix::Identity) override;
 			virtual IModelInstance* GetAttachment(size_t nIndex) const override { return m_vecAttachmentNode[nIndex].pInstance; }
 			virtual size_t GetAttachmentCount() const override { return m_vecAttachmentNode.size(); }
 			virtual bool IsAttachment() const override { return m_isAttachment; }

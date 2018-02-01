@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ModelInterface.h"
+#include "Skeleton.h"
 
 namespace EastEngine
 {
@@ -51,7 +52,7 @@ namespace EastEngine
 			virtual bool IsVisible() const override { return m_isVisible; }
 			virtual void SetVisible(bool bVisible) override { m_isVisible = bVisible; }
 
-			virtual ISkeleton* GetSkeleton() const override { return m_pSkeleton; }
+			virtual ISkeleton* GetSkeleton() override { return &m_skeleton; }
 
 		public:
 			virtual int GetReferenceCount() const override { return m_nReferenceCount; }
@@ -67,21 +68,19 @@ namespace EastEngine
 		public:
 			void AddNode(IModelNode* pNode, const String::StringID& strNodeName, bool isRootNode);
 
-			void SetSkeleton(ISkeleton* pSkeleton) { m_pSkeleton = pSkeleton; }
 			bool Load(const ModelLoader& loader);
 			bool LoadToFile(const char* strFilePath);
 			void SetName(const String::StringID& strModelName) { m_strModelName = strModelName; }
 			void SetFilePath(const std::string& strFilePath) { m_strFilePath = strFilePath; }
 
 		private:
-			Key m_key;
+			const Key m_key;
+			int m_nReferenceCount;
 
 			bool m_isVisible;
 			bool m_isDirtyLocalMatrix;
 
-			int m_nReferenceCount;
-
-			ISkeleton* m_pSkeleton;
+			Skeleton m_skeleton;
 
 			Math::Vector3 m_f3Pos;
 			Math::Vector3 m_f3Scale;
