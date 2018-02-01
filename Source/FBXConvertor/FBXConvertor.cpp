@@ -89,7 +89,7 @@ int main(int argn, char** argc)
 	}
 
 	Graphics::ModelManager::GetInstance();
-	Graphics::MotionManager::GetInstance()->Init();
+	Graphics::MotionManager::GetInstance();
 
 	std::cout << "추출 시작 : S(성공), F(실패)" << std::endl;
 	std::cout << "추출 타입 : " << strLoadType.c_str() << ", 스케일 : " << fScale << std::endl;
@@ -177,8 +177,6 @@ int main(int argn, char** argc)
 	}
 
 	Graphics::ModelManager::DestroyInstance();
-
-	Graphics::MotionManager::GetInstance()->Release();
 	Graphics::MotionManager::DestroyInstance();
 
 	Graphics::Device::GetInstance()->Release();

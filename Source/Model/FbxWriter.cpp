@@ -368,8 +368,7 @@ namespace EastEngine
 			{
 				if (pSkeleton == nullptr)
 				{
-					pSkeleton = static_cast<Skeleton*>(ISkeleton::Create());
-					pModel->SetSkeleton(pSkeleton);
+					pSkeleton = static_cast<Skeleton*>(pModel->GetSkeleton());
 				}
 
 				strBoneName = pFrame->GetName().SafeString();

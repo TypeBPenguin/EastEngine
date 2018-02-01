@@ -1,110 +1,167 @@
 #include "stdafx.h"
 #include "MotionManager.h"
 
-#include "ModelInterface.h"
-#include "CommonLib/FileStream.h"
+#include "CommonLib/plf_colony.h"
+
+#include "Motion.h"
 
 namespace EastEngine
 {
 	namespace Graphics
 	{
+		class MotionManager::Impl
+		{
+		public:
+			Impl();
+			~Impl();
+
+		public:
+			void Update();
+			void Flush();
+
+		public:
+			// FilePath or ModelName
+			IMotion* AllocateMotion(const Motion::Key& key);
+
+			// FilePath or ModelName
+			IMotion* GetMotion(const Motion::Key& key);
+			IMotion* GetMotion(const size_t nIndex);
+
+			size_t GetMotionCount() const;
+
+		private:
+			plf::colony<Motion> m_clnMotions;
+
+			std::unordered_map<Motion::Key, Motion*> m_umapMotions;
+		};
+
+		MotionManager::Impl::Impl()
+		{
+			m_clnMotions.reserve(128);
+		}
+
+		MotionManager::Impl::~Impl()
+		{
+			m_clnMotions.clear();
+		}
+
+		void MotionManager::Impl::Update()
+		{
+		}
+
+		void MotionManager::Impl::Flush()
+		{
+			auto iter = m_clnMotions.begin();
+			while (iter != m_clnMotions.end())
+			{
+				Motion& motion = *iter;
+
+				if (motion.GetLoadState() == EmLoadState::eReady ||
+					motion.GetLoadState() == EmLoadState::eLoading)
+				{
+					++iter;
+					continue;
+				}
+
+				if (motion.GetReferenceCount() > 0)
+				{
+					motion.SetAlive(true);
+					++iter;
+					continue;
+				}
+
+				if (motion.IsAlive() == false)
+				{
+					auto iter_find = m_umapMotions.find(motion.GetKey());
+					if (iter_find != m_umapMotions.end())
+					{
+						m_umapMotions.erase(iter_find);
+					}
+
+					iter = m_clnMotions.erase(iter);
+					continue;
+				}
+
+				motion.SubtractLife();
+				++iter;
+			}
+		}
+
+		IMotion* MotionManager::Impl::AllocateMotion(const Motion::Key& key)
+		{
+			auto iter_find = m_umapMotions.find(key);
+			if (iter_find != m_umapMotions.end())
+			{
+				assert(false);
+				return iter_find->second;
+			}
+
+			auto iter = m_clnMotions.emplace(key);
+			if (iter != m_clnMotions.end())
+			{
+				Motion* pMotion = &(*iter);
+				m_umapMotions.emplace(key, pMotion);
+
+				return pMotion;
+			}
+
+			return nullptr;
+		}
+
+		IMotion* MotionManager::Impl::GetMotion(const Motion::Key& key)
+		{
+			auto iter = m_umapMotions.find(key);
+			if (iter != m_umapMotions.end())
+				return iter->second;
+
+			return nullptr;
+		}
+
+		IMotion* MotionManager::Impl::GetMotion(const size_t nIndex)
+		{
+			auto iter = m_clnMotions.begin();
+			m_clnMotions.advance(iter, nIndex);
+
+			if (iter != m_clnMotions.end())
+				return &(*iter);
+
+			return nullptr;
+		}
+
+		size_t MotionManager::Impl::GetMotionCount() const
+		{
+			return m_clnMotions.size();
+		}
+
 		MotionManager::MotionManager()
-			: m_isInit(false)
+			: m_pImpl{ std::make_unique<Impl>() }
 		{
 		}
 
 		MotionManager::~MotionManager()
 		{
-			Release();
 		}
 
-		bool MotionManager::Init()
+		IMotion* MotionManager::AllocateMotion(const std::string& strKey)
 		{
-			if (m_isInit == true)
-				return true;
-
-			m_isInit = true;
-
-			return true;
+			IMotion::Key key(String::GetKey(strKey.c_str()));
+			return m_pImpl->AllocateMotion(key);
 		}
 
-		void MotionManager::Release()
+		IMotion* MotionManager::GetMotion(const std::string& strKey)
 		{
-			if (m_isInit == false)
-				return;
-
-			for (auto& iter : m_umapMotion)
-			{
-				IMotion* pMotion = iter.second;
-				IMotion::Destroy(&pMotion);
-			}
-			m_umapMotion.clear();
-
-			m_isInit = false;
+			IMotion::Key key(String::GetKey(strKey.c_str()));
+			return m_pImpl->GetMotion(key);
 		}
 
-		void MotionManager::Update()
+		IMotion* MotionManager::GetMotion(const size_t nIndex)
 		{
+			return m_pImpl->GetMotion(nIndex);
 		}
 
-		void MotionManager::Flush()
+		size_t MotionManager::GetMotionCount() const
 		{
-			auto iter = m_umapMotion.begin();
-			while (iter != m_umapMotion.end())
-			{
-				IMotion* pMotion = iter->second;
-
-				if (pMotion->GetLoadState() == EmLoadState::eReady ||
-					pMotion->GetLoadState() == EmLoadState::eLoading)
-				{
-					++iter;
-					continue;
-				}
-
-				if (pMotion->GetReferenceCount() > 0)
-				{
-					pMotion->SetAlive(true);
-					++iter;
-					continue;
-				}
-
-				if (pMotion->IsAlive() == false)
-				{
-					IMotion::Destroy(&pMotion);
-					iter = m_umapMotion.erase(iter);
-					continue;
-				}
-
-				pMotion->SubtractLife();
-				++iter;
-			}
-		}
-
-		void MotionManager::ProcessRequestMotionLoader()
-		{
-		}
-
-		bool MotionManager::AddMotion(const String::StringID& strMotionName, IMotion* pModel)
-		{
-			if (pModel == nullptr)
-				return false;
-
-			auto iter = m_umapMotion.find(strMotionName);
-			if (iter != m_umapMotion.end())
-				return false;
-
-			m_umapMotion.emplace(strMotionName, pModel);
-
-			return true;
-		}
-
-		IMotion* MotionManager::GetMotion(const String::StringID& strName)
-		{
-			auto iter = m_umapMotion.find(strName);
-			if (iter != m_umapMotion.end())
-				return iter->second;
-
-			return nullptr;
+			return m_pImpl->GetMotionCount();
 		}
 	}
 }

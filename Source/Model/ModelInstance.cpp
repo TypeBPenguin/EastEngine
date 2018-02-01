@@ -48,11 +48,11 @@ namespace EastEngine
 		{
 		}
 
-		ModelInstance::AttachmentNode::AttachmentNode(ModelInstance* pInstance, const String::StringID& strNodeName, const Math::Matrix& matOffset, EmAttachNodeType emAttachNodeType)
+		ModelInstance::AttachmentNode::AttachmentNode(ModelInstance* pInstance, const String::StringID& strNodeName, const Math::Matrix& matOffset, Type emType)
 			: pInstance(pInstance)
 			, strNodeName(strNodeName)
 			, matOffset(matOffset)
-			, emAttachNodeType(emAttachNodeType)
+			, emType(emType)
 		{
 		}
 
@@ -89,7 +89,18 @@ namespace EastEngine
 			for (auto iter = m_vecAttachmentNode.begin(); iter != m_vecAttachmentNode.end();)
 			{
 				AttachmentNode& node = *iter;
-				if (node.emAttachNodeType == AttachmentNode::EmAttachNodeType::eBone)
+				switch (node.emType)
+				{
+				case AttachmentNode::Type::eNone:
+				{
+					node.pInstance->Update(m_fElapsedTime, node.matOffset * m_matParent);
+					node.pInstance->UpdateModel();
+
+					++iter;
+					continue;
+				}
+				break;
+				case AttachmentNode::Type::eBone:
 				{
 					ISkeletonInstance::IBone* pBone = m_skeletonInstance.GetBone(node.strNodeName);
 					if (pBone != nullptr)
@@ -101,6 +112,8 @@ namespace EastEngine
 
 						continue;
 					}
+				}
+				break;
 				}
 
 				iter = m_vecAttachmentNode.erase(iter);
@@ -138,12 +151,25 @@ namespace EastEngine
 				ModelInstance* pModelInstance = static_cast<ModelInstance*>(pInstance);
 				pModelInstance->SetAttachment(true);
 
-				m_vecAttachmentNode.emplace_back(pModelInstance, strNodeName, matOffset, AttachmentNode::EmAttachNodeType::eBone);
+				m_vecAttachmentNode.emplace_back(pModelInstance, strNodeName, matOffset, AttachmentNode::Type::eBone);
 
 				return true;
 			}
 
 			return false;
+		}
+
+		bool ModelInstance::Attachment(IModelInstance* pInstance, const Math::Matrix& matOffset)
+		{
+			if (IsLoadComplete() == false)
+				return false;
+
+			ModelInstance* pModelInstance = static_cast<ModelInstance*>(pInstance);
+			pModelInstance->SetAttachment(true);
+
+			m_vecAttachmentNode.emplace_back(pModelInstance, StrID::Unregistered, matOffset, AttachmentNode::Type::eNone);
+
+			return true;
 		}
 
 		bool ModelInstance::Dettachment(IModelInstance* pInstance)

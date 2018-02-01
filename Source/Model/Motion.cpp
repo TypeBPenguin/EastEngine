@@ -115,9 +115,8 @@ namespace EastEngine
 			pRecoder->SetKeyframe(m_strBoneName, keyframe);
 		}
 
-		Motion::Motion(const String::StringID& strName, const char* strFilePath)
-			: m_strName(strName)
-			, m_strFilePath(strFilePath)
+		Motion::Motion(Key key)
+			: m_key(key)
 		{
 		}
 

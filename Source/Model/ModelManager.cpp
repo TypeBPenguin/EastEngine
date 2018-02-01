@@ -31,7 +31,7 @@ namespace EastEngine
 
 			IModel* AllocateModel(const IModel::Key& key);
 			IModelInstance* AllocateModelInstance(Model* pModel);
-			bool DestroyModelInstance(Model* pModel, ModelInstance** ppModelInstance);
+			bool DestroyModelInstance(ModelInstance** ppModelInstance);
 
 			IModel* GetModel(const IModel::Key& key) const;
 
@@ -170,6 +170,10 @@ namespace EastEngine
 				if (model.IsAlive() == false)
 				{
 					auto iter_find = m_umapModelCaching.find(model.GetKey());
+					if (iter_find != m_umapModelCaching.end())
+					{
+						m_umapModelCaching.erase(iter_find);
+					}
 
 					iter = m_clnModel.erase(iter);
 					continue;
@@ -231,10 +235,12 @@ namespace EastEngine
 			return pModelInstance;
 		}
 
-		bool ModelManager::Impl::DestroyModelInstance(Model* pModel, ModelInstance** ppModelInstance)
+		bool ModelManager::Impl::DestroyModelInstance(ModelInstance** ppModelInstance)
 		{
 			if (ppModelInstance == nullptr || *ppModelInstance == nullptr)
 				return false;
+
+			Model* pModel = static_cast<Model*>((*ppModelInstance)->GetModel());
 
 			auto iter = std::find_if(m_clnModelInstance.begin(), m_clnModelInstance.end(), [ppModelInstance](ModelInstance& modelInstance)
 			{
@@ -297,9 +303,9 @@ namespace EastEngine
 			return m_pImpl->AllocateModelInstance(pModel);
 		}
 
-		bool ModelManager::DestroyModelInstance(Model* pModel, ModelInstance** ppModelInstance)
+		bool ModelManager::DestroyModelInstance(ModelInstance** ppModelInstance)
 		{
-			return m_pImpl->DestroyModelInstance(pModel, ppModelInstance);
+			return m_pImpl->DestroyModelInstance(ppModelInstance);
 		}
 
 		IModel* ModelManager::GetModel(const std::string& strKey) const

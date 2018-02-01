@@ -24,12 +24,12 @@ namespace EastEngine
 		{
 		}
 
-		Skeleton::Bone::Bone(Skeleton::Bone&& other) noexcept
-			: m_strBoneName(std::move(other.m_strBoneName))
-			, m_matMotionOffset(std::move(other.m_matMotionOffset))
-			, m_matDefaultMotionData(std::move(other.m_matDefaultMotionData))
-			, m_nIndex(std::move(other.m_nIndex))
-			, m_nParentIndex(std::move(other.m_nParentIndex))
+		Skeleton::Bone::Bone(const Skeleton::Bone& other)
+			: m_strBoneName(other.m_strBoneName)
+			, m_matMotionOffset(other.m_matMotionOffset)
+			, m_matDefaultMotionData(other.m_matDefaultMotionData)
+			, m_nIndex(other.m_nIndex)
+			, m_nParentIndex(other.m_nParentIndex)
 		{
 		}
 
@@ -42,15 +42,12 @@ namespace EastEngine
 		{
 		}
 
-		Skeleton::Skeleton(uint32_t nBoneCount)
+		Skeleton::Skeleton()
 		{
-			m_vecBones.reserve(nBoneCount);
 		}
 
 		Skeleton::~Skeleton()
 		{
-			m_vecBones.clear();
-			m_vecSkinnedList.clear();
 		}
 
 		ISkeleton::IBone* Skeleton::GetBone(const String::StringID& strBoneName)

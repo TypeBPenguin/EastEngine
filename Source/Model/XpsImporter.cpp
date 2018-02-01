@@ -486,8 +486,7 @@ namespace EastEngine
 					std::vector<String::StringID> vecBoneNames;
 					vecBoneNames.resize(nBoneCount);
 
-					Skeleton* pSkeleton = static_cast<Skeleton*>(ISkeleton::Create());
-					pModel->SetSkeleton(pSkeleton);
+					Skeleton* pSkeleton = static_cast<Skeleton*>(pModel->GetSkeleton());
 
 					for (uint32_t i = 0; i < nBoneCount; ++i)
 					{

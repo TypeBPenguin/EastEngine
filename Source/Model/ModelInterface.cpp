@@ -24,9 +24,6 @@ namespace EastEngine
 {
 	namespace Graphics
 	{
-		static boost::object_pool<Motion> s_poolMotion;
-		static boost::object_pool<Skeleton> s_poolSkeleton;
-
 		LODReductionRate::LODReductionRate()
 		{
 			fLv[0] = 1.f;
@@ -47,17 +44,21 @@ namespace EastEngine
 
 		IMotion* IMotion::Create(const MotionLoader& loader)
 		{
-			IMotion* pIMotion = MotionManager::GetInstance()->GetMotion(loader.GetName());
+			std::string strKey = loader.GetFilePath();
+
+			IMotion* pIMotion = MotionManager::GetInstance()->GetMotion(strKey);
 			if (pIMotion != nullptr)
 				return pIMotion;
+
+			Motion* pMotion = static_cast<Motion*>(MotionManager::GetInstance()->AllocateMotion(strKey));
+			pMotion->SetName(loader.GetName());
+			pMotion->SetFilePath(loader.GetFilePath());
 
 			switch (loader.GetLoadMotionType())
 			{
 			case EmMotionLoader::eFbx:
 			{
 				String::StringID strMotionName = File::GetFileNameWithoutExtension(loader.GetFilePath().c_str()).c_str();
-
-				Motion* pMotion = s_poolMotion.construct(strMotionName, loader.GetFilePath().c_str());
 
 				if (FBXImport::GetInstance()->LoadMotion(pMotion, loader.GetFilePath().c_str(), loader.GetScaleFactor()) == false)
 				{
@@ -67,16 +68,12 @@ namespace EastEngine
 
 				pMotion->SetLoadState(EmLoadState::eComplete);
 
-				MotionManager::GetInstance()->AddMotion(loader.GetName(), pMotion);
-
 				return pMotion;
 			}
 			break;
 			case EmMotionLoader::eXps:
 			{
 				String::StringID strMotionName = File::GetFileNameWithoutExtension(loader.GetFilePath().c_str()).c_str();
-
-				Motion* pMotion = s_poolMotion.construct(strMotionName, loader.GetFilePath().c_str());
 
 				if (XPSImport::LoadMotion(pMotion, loader.GetFilePath().c_str()) == false)
 				{
@@ -85,8 +82,6 @@ namespace EastEngine
 				}
 
 				pMotion->SetLoadState(EmLoadState::eComplete);
-
-				MotionManager::GetInstance()->AddMotion(loader.GetName(), pMotion);
 
 				return pMotion;
 			}
@@ -102,8 +97,6 @@ namespace EastEngine
 
 				std::string strBuf;
 				file >> strBuf;
-
-				Motion* pMotion = s_poolMotion.construct(strBuf.c_str(), loader.GetFilePath().c_str());
 
 				uint32_t nBoneCount = 0;
 				file >> nBoneCount;
@@ -131,8 +124,6 @@ namespace EastEngine
 
 				pMotion->SetLoadState(EmLoadState::eComplete);
 
-				MotionManager::GetInstance()->AddMotion(loader.GetName(), pMotion);
-
 				file.Close();
 			}
 			break;
@@ -148,9 +139,7 @@ namespace EastEngine
 			if (ppMotion == nullptr || *ppMotion == nullptr)
 				return;
 
-			Motion* pMotion = static_cast<Motion*>(*ppMotion);
-			s_poolMotion.destroy(pMotion);
-
+			// 모션 리소스는 매니저의 Flush 함수에서 자원해제 있는데, 여기서도 뭔가 해줄수있는게 있는지 생각해보자
 			*ppMotion = nullptr;
 		}
 
@@ -266,12 +255,8 @@ namespace EastEngine
 			if (ppModelInst == nullptr || *ppModelInst == nullptr)
 				return;
 
-			Model* pModel = static_cast<Model*>((*ppModelInst)->GetModel());
-			if (pModel == nullptr)
-				return;
-
 			ModelInstance* pModelInstance = static_cast<ModelInstance*>(*ppModelInst);
-			if (ModelManager::GetInstance()->DestroyModelInstance(pModel, &pModelInstance) == true)
+			if (ModelManager::GetInstance()->DestroyModelInstance(&pModelInstance) == true)
 			{
 				*ppModelInst = nullptr;
 			}
@@ -470,22 +455,6 @@ namespace EastEngine
 			}
 
 			return true;
-		}
-
-		ISkeleton* ISkeleton::Create()
-		{
-			return s_poolSkeleton.construct();
-		}
-
-		void ISkeleton::Destroy(ISkeleton** ppSkeleton)
-		{
-			if (ppSkeleton == nullptr || *ppSkeleton == nullptr)
-				return;
-
-			Skeleton* pSkeleton = static_cast<Skeleton*>(*ppSkeleton);
-			s_poolSkeleton.destroy(pSkeleton);
-
-			*ppSkeleton = nullptr;
 		}
 	}
 }

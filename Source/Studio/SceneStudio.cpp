@@ -1535,14 +1535,15 @@ void ShowMotion(bool& isShowMotionMenu, GameObject::ComponentModel* pCompModel)
 		}
 	}
 
-	auto& umapMotions = Graphics::MotionManager::GetInstance()->GetMotions();
+	const size_t nMotionCount = Graphics::MotionManager::GetInstance()->GetMotionCount();
 
 	std::vector<const char*> vecMotionNames;
-	vecMotionNames.reserve(umapMotions.size());
+	vecMotionNames.reserve(nMotionCount);
 
-	for (auto iter : umapMotions)
+	for (size_t i = 0; i < nMotionCount; ++i)
 	{
-		vecMotionNames.emplace_back(iter.first.c_str());
+		Graphics::IMotion* pMotion = Graphics::MotionManager::GetInstance()->GetMotion(i);
+		vecMotionNames.emplace_back(pMotion->GetName().c_str());
 	}
 
 	static int nSelectedIndex = 0;
@@ -1554,7 +1555,7 @@ void ShowMotion(bool& isShowMotionMenu, GameObject::ComponentModel* pCompModel)
 	Graphics::IMotion* pMotion = nullptr;
 	if (0 <= nSelectedIndex && nSelectedIndex < static_cast<int>(vecMotionNames.size()))
 	{
-		pMotion = Graphics::MotionManager::GetInstance()->GetMotion(vecMotionNames[nSelectedIndex]);
+		pMotion = Graphics::MotionManager::GetInstance()->GetMotion(nSelectedIndex);
 	}
 
 	if (pMotion != nullptr)

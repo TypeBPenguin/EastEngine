@@ -17,8 +17,6 @@
 #include "ObjImporter.h"
 #include "XpsImporter.h"
 
-#include "Skeleton.h"
-
 namespace StrID
 {
 	RegisterStringID(EastEngine_CustomStaticModel);
@@ -75,7 +73,6 @@ namespace EastEngine
 			, m_isVisible(true)
 			, m_isDirtyLocalMatrix(false)
 			, m_nReferenceCount(0)
-			, m_pSkeleton(nullptr)
 			, m_f3Scale(Math::Vector3::One)
 		{
 		}
@@ -83,7 +80,6 @@ namespace EastEngine
 		Model::~Model()
 		{
 			m_vecModelInstances.clear();
-			ISkeleton::Destroy(&m_pSkeleton);
 
 			std::for_each(m_vecHierarchyModelNodes.begin(), m_vecHierarchyModelNodes.end(), [](IModelNode* pNode)
 			{
@@ -685,12 +681,8 @@ namespace EastEngine
 			bool isHasSkeleton = false;
 			file >> isHasSkeleton;
 
-			Skeleton* pSkeleton = nullptr;
 			if (isHasSkeleton == true)
 			{
-				pSkeleton = static_cast<Skeleton*>(ISkeleton::Create());
-				SetSkeleton(pSkeleton);
-
 				uint32_t nBoneCount = 0;
 				file >> nBoneCount;
 				
@@ -710,42 +702,43 @@ namespace EastEngine
 
 					if (strParentName == "NoParent")
 					{
-						pSkeleton->CreateBone(strName.c_str(), matMotionOffset, matDefaultMotionData);
+						m_skeleton.CreateBone(strName.c_str(), matMotionOffset, matDefaultMotionData);
 					}
 					else
 					{
-						pSkeleton->CreateBone(strParentName.c_str(), strName.c_str(), matMotionOffset, matDefaultMotionData);
+						m_skeleton.CreateBone(strParentName.c_str(), strName.c_str(), matMotionOffset, matDefaultMotionData);
 					}
 				}
 			}
 
 			for (const auto& pNode : m_vecModelNodes)
 			{
-				uint32_t nMaterialCount = pNode->GetMaterialCount();
+				const uint32_t nMaterialCount = pNode->GetMaterialCount();
 				for (uint32_t i = 0; i < nMaterialCount; ++i)
 				{
 					IMaterial* pMaterial = pNode->GetMaterial(i);
 					pMaterial->LoadTexture();
 				}
 
-				if (pSkeleton != nullptr)
+				const uint32_t nBoneCount = m_skeleton.GetBoneCount();
+				if (nBoneCount > 0)
 				{
 					if (pNode->GetType() != EmModelNode::eSkinned)
 						continue;
 
 					ModelNodeSkinned* pNodeSkinned = static_cast<ModelNodeSkinned*>(pNode);
 
-					size_t nBoneCount = pNodeSkinned->GetBoneCount();
+					size_t nIncludBoneCount = pNodeSkinned->GetBoneCount();
 
 					std::vector<String::StringID> vecBoneNames;
-					vecBoneNames.resize(nBoneCount);
+					vecBoneNames.resize(nIncludBoneCount);
 
-					for (size_t j = 0; j < nBoneCount; ++j)
+					for (size_t j = 0; j < nIncludBoneCount; ++j)
 					{
 						vecBoneNames[j] = pNodeSkinned->GetBoneName(j);
 					}
 
-					pSkeleton->SetSkinnedList(pNodeSkinned->GetName(), &vecBoneNames.front(), vecBoneNames.size());
+					m_skeleton.SetSkinnedList(pNodeSkinned->GetName(), &vecBoneNames.front(), vecBoneNames.size());
 				}
 			}
 
