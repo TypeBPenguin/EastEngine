@@ -126,16 +126,15 @@ namespace EastEngine
 				if (pBone == nullptr)
 					continue;
 				
-				const IMotion::Keyframe* pSrcKeyframe = player.GetKeyframe(pBone->GetName());
-				if (pSrcKeyframe != nullptr)
+				const Math::Transform* pSourceTransform = player.GetTransform(pBone->GetName());
+				if (pSourceTransform != nullptr)
 				{
 					KeyframeTemp& destKeyframe = m_umapKeyframe[pBone->GetName()];
-					const Math::Transform& sourceTransform = pSrcKeyframe->transform;
 					Math::Transform& motionTransform = destKeyframe.motionTransform;
 
-					Math::Vector3::Lerp(motionTransform.scale, sourceTransform.scale, fWeight, motionTransform.scale);
-					Math::Quaternion::Lerp(motionTransform.rotation, sourceTransform.rotation, fWeight, motionTransform.rotation);
-					Math::Vector3::Lerp(motionTransform.position, sourceTransform.position, fWeight, motionTransform.position);
+					Math::Vector3::Lerp(motionTransform.scale, pSourceTransform->scale, fWeight, motionTransform.scale);
+					Math::Quaternion::Lerp(motionTransform.rotation, pSourceTransform->rotation, fWeight, motionTransform.rotation);
+					Math::Vector3::Lerp(motionTransform.position, pSourceTransform->position, fWeight, motionTransform.position);
 				}
 			}
 		}
@@ -155,7 +154,7 @@ namespace EastEngine
 					continue;
 
 				const KeyframeTemp& keyframe = m_umapKeyframe[pBone->GetName()];
-				pBone->SetMotionTransform(keyframe.motionTransform);
+				pBone->SetMotionMatrix(keyframe.motionTransform.Compose());
 			}
 		}
 	}

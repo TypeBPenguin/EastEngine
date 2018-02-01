@@ -15,7 +15,7 @@ namespace EastEngine
 		class ISkeleton;
 		class ISkeletonInstance;
 		class IMotionPlayer;
-		class IMotionRecoder;
+		class IMotionRecorder;
 		class MotionLoader;
 
 		class IVertexBuffer;
@@ -122,7 +122,7 @@ namespace EastEngine
 				virtual float GetStartTime() const = 0;
 				virtual float GetEndTime() const = 0;
 
-				virtual void Update(IMotionRecoder* pRecoder, float fPlayTime, bool isInverse) = 0;
+				virtual void Update(float fInterval, IMotionRecorder* pRecorder, float fPlayTime, bool isInverse) const = 0;
 
 			public:
 				virtual uint32_t GetKeyframeCount() const = 0;
@@ -140,7 +140,7 @@ namespace EastEngine
 			static bool SaveToFile(IMotion* pMotion, const char* strFilePath);
 
 		public:
-			virtual void Update(IMotionRecoder* pRecoder, float fPlayTime, bool isInverse) = 0;
+			virtual void Update(IMotionRecorder* pRecorder, float fPlayTime, bool isInverse) const = 0;
 
 			virtual float GetStartTime() const = 0;
 			virtual float GetEndTime() const = 0;
@@ -226,24 +226,15 @@ namespace EastEngine
 			virtual bool IsPlaying() const = 0;
 		};
 
-		class IMotionRecoder
+		class IMotionRecorder
 		{
 		protected:
-			IMotionRecoder() = default;
-			virtual ~IMotionRecoder() = default;
+			IMotionRecorder() = default;
+			virtual ~IMotionRecorder() = default;
 
 		public:
-			enum : size_t
-			{
-				eInvalidCachingIndex = std::numeric_limits<size_t>::max(),
-			};
-
-		public:
-			virtual void SetCaching(const String::StringID& strBoneName, size_t nIndex) = 0;
-			virtual size_t GetCaching(const String::StringID& strBoneName) const = 0;
-
-			virtual void SetKeyframe(const String::StringID& strBoneName, const IMotion::Keyframe& keyframe) = 0;
-			virtual const IMotion::Keyframe* GetKeyframe(const String::StringID& strBoneName) const = 0;
+			virtual void SetTransform(const String::StringID& strBoneName, const Math::Transform& keyframe) = 0;
+			virtual const Math::Transform* GetTransform(const String::StringID& strBoneName) const = 0;
 		};
 
 		class IMotionSystem
@@ -452,18 +443,12 @@ namespace EastEngine
 
 				virtual const Math::Matrix& GetSkinningMatrix() const = 0;
 
-				virtual void SetMotionTransform(const Math::Transform& transform) = 0;
-				virtual const Math::Transform& GetMotionTransform() const = 0;
-				virtual void ClearMotionTransform() = 0;
+				virtual void SetMotionMatrix(const Math::Matrix& matrix) = 0;
+				virtual const Math::Matrix& GetMotionMatrix() const = 0;
+				virtual void ClearMotionMatrix() = 0;
 
-				virtual const Math::Vector3& GetUserOffsetScale() const = 0;
-				virtual void SetUserOffsetScale(const Math::Vector3& f3Scale) = 0;
-
-				virtual const Math::Vector3& GetUserOffsetRotation() const = 0;
-				virtual void SetUserOffsetRotation(const Math::Vector3& f3Rotation) = 0;
-
-				virtual const Math::Vector3& GetUserOffsetPosition() const = 0;
-				virtual void SetUserOffsetPosition(const Math::Vector3& f3Position) = 0;
+				virtual const Math::Matrix& GetUserOffsetMatrix() const = 0;
+				virtual void SetUserOffsetMatrix(const Math::Matrix& matrix) = 0;
 
 				virtual const Math::Matrix& GetLocalMatrix() const = 0;
 				virtual const Math::Matrix& GetGlobalMatrix() const = 0;

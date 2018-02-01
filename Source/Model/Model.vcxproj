@@ -175,7 +175,7 @@
     <ClInclude Include="MotionLoader.h" />
     <ClInclude Include="MotionManager.h" />
     <ClInclude Include="MotionPlayer.h" />
-    <ClInclude Include="MotionRecoder.h" />
+    <ClInclude Include="MotionRecorder.h" />
     <ClInclude Include="MotionSystem.h" />
     <ClInclude Include="MtlImporter.h" />
     <ClInclude Include="ObjImporter.h" />
@@ -200,7 +200,7 @@
     <ClCompile Include="MotionLoader.cpp" />
     <ClCompile Include="MotionManager.cpp" />
     <ClCompile Include="MotionPlayer.cpp" />
-    <ClCompile Include="MotionRecoder.cpp" />
+    <ClCompile Include="MotionRecorder.cpp" />
     <ClCompile Include="MotionSystem.cpp" />
     <ClCompile Include="MtlImporter.cpp" />
     <ClCompile Include="ObjImporter.cpp" />

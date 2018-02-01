@@ -16,103 +16,156 @@ namespace EastEngine
 		{
 		}
 
-		void Motion::Bone::Update(IMotionRecoder* pRecoder, float fPlayTime, bool isInverse)
+		void Motion::Bone::Update(float fInterval, IMotionRecorder* pRecorder, float fPlayTime, bool isInverse) const
 		{
 			if (m_vecKeyframes.empty() == true)
 				return;
 
-			Keyframe keyframe;
+			Math::Transform transform;
 
 			if (fPlayTime <= m_vecKeyframes.front().fTime)
 			{
 				if (isInverse == true)
 				{
-					keyframe = m_vecKeyframes.back();
-
-					pRecoder->SetCaching(m_strBoneName, m_vecKeyframes.size() - 1);
+					transform = m_vecKeyframes.back().transform;
 				}
 				else
 				{
-					keyframe = m_vecKeyframes.back();
-
-					pRecoder->SetCaching(m_strBoneName, 0);
+					transform = m_vecKeyframes.front().transform;
 				}
 			}
 			else if (fPlayTime >= m_vecKeyframes.back().fTime)
 			{
 				if (isInverse == true)
 				{
-					keyframe = m_vecKeyframes.back();
-
-					pRecoder->SetCaching(m_strBoneName, m_vecKeyframes.size() - 1);
+					transform = m_vecKeyframes.front().transform;
 				}
 				else
 				{
-					keyframe = m_vecKeyframes.back();
-
-					pRecoder->SetCaching(m_strBoneName, 0);
+					transform = m_vecKeyframes.back().transform;
 				}
 			}
 			else
 			{
+				const size_t nSize = m_vecKeyframes.size() - 1;
+				const float fDiffTime = fPlayTime - m_vecKeyframes.front().fTime;
+				uint32_t nIntervalCount = static_cast<uint32_t>(fDiffTime / fInterval);
+
 				if (isInverse == true)
 				{
-					size_t nKeyframeIndex = pRecoder->GetCaching(m_strBoneName);
-					if (nKeyframeIndex == IMotionRecoder::eInvalidCachingIndex || nKeyframeIndex <= 1 || nKeyframeIndex >= m_vecKeyframes.size())
+					bool isSuccess = false;
+					while (0 < nIntervalCount && nIntervalCount <= nSize)
 					{
-						nKeyframeIndex = m_vecKeyframes.size() - 1;
-					}
-					
-					for (size_t i = nKeyframeIndex; i >= 1; --i)
-					{
-						const Keyframe& keyframe1 = m_vecKeyframes[i - 1];
-						const Keyframe& keyframe2 = m_vecKeyframes[i];
+						const Keyframe& keyframe1 = m_vecKeyframes[nIntervalCount - 1];
+						const Keyframe& keyframe2 = m_vecKeyframes[nIntervalCount];
 
 						if (keyframe1.fTime <= fPlayTime && fPlayTime <= keyframe2.fTime)
 						{
 							float lerpPercent = (fPlayTime - keyframe1.fTime) / (keyframe2.fTime - keyframe1.fTime);
 
-							Math::Vector3::Lerp(keyframe1.transform.scale, keyframe2.transform.scale, lerpPercent, keyframe.transform.scale);
-							Math::Quaternion::Lerp(keyframe1.transform.rotation, keyframe2.transform.rotation, lerpPercent, keyframe.transform.rotation);
-							Math::Vector3::Lerp(keyframe1.transform.position, keyframe2.transform.position, lerpPercent, keyframe.transform.position);
+							Math::Vector3::Lerp(keyframe1.transform.scale, keyframe2.transform.scale, lerpPercent, transform.scale);
+							Math::Quaternion::Lerp(keyframe1.transform.rotation, keyframe2.transform.rotation, lerpPercent, transform.rotation);
+							Math::Vector3::Lerp(keyframe1.transform.position, keyframe2.transform.position, lerpPercent, transform.position);
 
-							pRecoder->SetCaching(m_strBoneName, i);
+							isSuccess = true;
 
 							break;
+						}
+						else if (fPlayTime < keyframe1.fTime)
+						{
+							--nIntervalCount;
+						}
+						else if (keyframe2.fTime < fPlayTime)
+						{
+							++nIntervalCount;
+						}
+						else
+						{
+							break;
+						}
+					}
+
+					if (isSuccess == false)
+					{
+						LOG_WARNING("Performance Warning, Please Check Motion Update Algorithm[Inverse]");
+
+						for (size_t i = nSize; i >= 1; --i)
+						{
+							const Keyframe& keyframe1 = m_vecKeyframes[i - 1];
+							const Keyframe& keyframe2 = m_vecKeyframes[i];
+
+							if (keyframe1.fTime <= fPlayTime && fPlayTime <= keyframe2.fTime)
+							{
+								float lerpPercent = (fPlayTime - keyframe1.fTime) / (keyframe2.fTime - keyframe1.fTime);
+
+								Math::Vector3::Lerp(keyframe1.transform.scale, keyframe2.transform.scale, lerpPercent, transform.scale);
+								Math::Quaternion::Lerp(keyframe1.transform.rotation, keyframe2.transform.rotation, lerpPercent, transform.rotation);
+								Math::Vector3::Lerp(keyframe1.transform.position, keyframe2.transform.position, lerpPercent, transform.position);
+
+								break;
+							}
 						}
 					}
 				}
 				else
 				{
-					size_t nKeyframeIndex = pRecoder->GetCaching(m_strBoneName);
-					if (nKeyframeIndex == IMotionRecoder::eInvalidCachingIndex)
+					bool isSuccess = false;
+					while (nIntervalCount < nSize)
 					{
-						nKeyframeIndex = 0;
-					}
-
-					size_t nSize = m_vecKeyframes.size() - 1;
-					for (size_t i = nKeyframeIndex; i < nSize; ++i)
-					{
-						const Keyframe& keyframe1 = m_vecKeyframes[i];
-						const Keyframe& keyframe2 = m_vecKeyframes[i + 1];
+						const Keyframe& keyframe1 = m_vecKeyframes[nIntervalCount];
+						const Keyframe& keyframe2 = m_vecKeyframes[nIntervalCount + 1];
 
 						if (keyframe1.fTime <= fPlayTime && fPlayTime <= keyframe2.fTime)
 						{
 							float lerpPercent = (fPlayTime - keyframe1.fTime) / (keyframe2.fTime - keyframe1.fTime);
 
-							Math::Vector3::Lerp(keyframe1.transform.scale, keyframe2.transform.scale, lerpPercent, keyframe.transform.scale);
-							Math::Quaternion::Lerp(keyframe1.transform.rotation, keyframe2.transform.rotation, lerpPercent, keyframe.transform.rotation);
-							Math::Vector3::Lerp(keyframe1.transform.position, keyframe2.transform.position, lerpPercent, keyframe.transform.position);
+							Math::Vector3::Lerp(keyframe1.transform.scale, keyframe2.transform.scale, lerpPercent, transform.scale);
+							Math::Quaternion::Lerp(keyframe1.transform.rotation, keyframe2.transform.rotation, lerpPercent, transform.rotation);
+							Math::Vector3::Lerp(keyframe1.transform.position, keyframe2.transform.position, lerpPercent, transform.position);
 
-							pRecoder->SetCaching(m_strBoneName, i);
+							isSuccess = true;
 
 							break;
+						}
+						else if (fPlayTime < keyframe1.fTime)
+						{
+							--nIntervalCount;
+						}
+						else if (keyframe2.fTime < fPlayTime)
+						{
+							++nIntervalCount;
+						}
+						else
+						{
+							break;
+						}
+					}
+
+					if (isSuccess == false)
+					{
+						LOG_WARNING("Performance Warning, Please Check Motion Update Algorithm");
+
+						for (size_t i = 0; i < nSize; ++i)
+						{
+							const Keyframe& keyframe1 = m_vecKeyframes[i];
+							const Keyframe& keyframe2 = m_vecKeyframes[i + 1];
+
+							if (keyframe1.fTime <= fPlayTime && fPlayTime <= keyframe2.fTime)
+							{
+								float lerpPercent = (fPlayTime - keyframe1.fTime) / (keyframe2.fTime - keyframe1.fTime);
+
+								Math::Vector3::Lerp(keyframe1.transform.scale, keyframe2.transform.scale, lerpPercent, transform.scale);
+								Math::Quaternion::Lerp(keyframe1.transform.rotation, keyframe2.transform.rotation, lerpPercent, transform.rotation);
+								Math::Vector3::Lerp(keyframe1.transform.position, keyframe2.transform.position, lerpPercent, transform.position);
+
+								break;
+							}
 						}
 					}
 				}
 			}
 
-			pRecoder->SetKeyframe(m_strBoneName, keyframe);
+			pRecorder->SetTransform(m_strBoneName, transform);
 		}
 
 		Motion::Motion(Key key)
@@ -120,11 +173,11 @@ namespace EastEngine
 		{
 		}
 
-		void Motion::Update(IMotionRecoder* pRecoder, float fPlayTime, bool isInverse)
+		void Motion::Update(IMotionRecorder* pRecorder, float fPlayTime, bool isInverse) const
 		{
-			std::for_each(m_vecBones.begin(), m_vecBones.end(), [&](Bone& bone)
+			std::for_each(m_vecBones.begin(), m_vecBones.end(), [&](const Bone& bone)
 			{
-				bone.Update(pRecoder, fPlayTime, isInverse);
+				bone.Update(m_fFrameInterval, pRecorder, fPlayTime, isInverse);
 			});
 		}
 

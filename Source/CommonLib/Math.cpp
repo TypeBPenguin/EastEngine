@@ -3610,7 +3610,7 @@ namespace EastEngine
 			matrix.Decompose(scale, rotation, position);
 		}
 
-		Matrix Transform::Compose()
+		Matrix Transform::Compose() const
 		{
 			return Matrix::Compose(scale, rotation, position);
 		}

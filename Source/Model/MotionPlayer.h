@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ModelInterface.h"
-#include "MotionRecoder.h"
+#include "MotionRecorder.h"
 
 namespace EastEngine
 {
@@ -45,7 +45,7 @@ namespace EastEngine
 
 			void Reset();
 
-			const IMotion::Keyframe* GetKeyframe(const String::StringID& strBoneName) const;
+			const Math::Transform* GetTransform(const String::StringID& strBoneName) const;
 
 		private:
 			bool m_isStop;
@@ -64,7 +64,7 @@ namespace EastEngine
 			IMotion* m_pMotion;
 
 			MotionPlaybackInfo m_playBackInfo;
-			MotionRecoder m_motionRecoder;
+			MotionRecorder m_motionRecorder;
 		};
 	}
 }

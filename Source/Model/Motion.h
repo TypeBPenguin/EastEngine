@@ -36,7 +36,7 @@ namespace EastEngine
 					return m_vecKeyframes.back().fTime;
 				}
 
-				virtual void Update(IMotionRecoder* pRecoder, float fPlayTime, bool isInverse) override;
+				virtual void Update(float fInterval, IMotionRecorder* pRecorder, float fPlayTime, bool isInverse) const override;
 
 			public:
 				virtual size_t GetKeyframeCount() const override { return m_vecKeyframes.size(); }
@@ -56,7 +56,7 @@ namespace EastEngine
 			virtual Key GetKey() const override { return m_key; }
 
 		public:
-			virtual void Update(IMotionRecoder* pRecoder, float fPlayTime, bool isInverse) override;
+			virtual void Update(IMotionRecorder* pRecorder, float fPlayTime, bool isInverse) const override;
 
 			virtual float GetStartTime() const override { return m_fStartTime; }
 			virtual float GetEndTime() const override { return m_fEndTime; }

@@ -68,7 +68,7 @@ namespace EastEngine
 					{
 						m_fPlayTime -= fEndTime;
 
-						m_motionRecoder.Clear();
+						m_motionRecorder.Clear();
 					}
 					else
 					{
@@ -86,14 +86,12 @@ namespace EastEngine
 						fPlayTime = m_pMotion->GetEndTime() - m_fPlayTime;
 					}
 
-					m_pMotion->Update(&m_motionRecoder, fPlayTime, m_playBackInfo.isInverse);
+					m_pMotion->Update(&m_motionRecorder, fPlayTime, m_playBackInfo.isInverse);
 				}
 
 				if (Math::IsZero(m_playBackInfo.fBlendTime) == false && m_fBlendTime <= m_playBackInfo.fBlendTime)
 				{
 					m_fBlendWeight = (m_fBlendTime / m_playBackInfo.fBlendTime) * m_playBackInfo.fWeight;
-
-					LOG_MESSAGE("%f", m_fBlendWeight);
 
 					m_fBlendTime += fElapsedTime;
 				}
@@ -161,12 +159,12 @@ namespace EastEngine
 			}
 
 			m_playBackInfo.Reset();
-			m_motionRecoder.Clear();
+			m_motionRecorder.Clear();
 		}
 
-		const IMotion::Keyframe* MotionPlayer::GetKeyframe(const String::StringID& strBoneName) const
+		const Math::Transform* MotionPlayer::GetTransform(const String::StringID& strBoneName) const
 		{
-			return m_motionRecoder.GetKeyframe(strBoneName);
+			return m_motionRecorder.GetTransform(strBoneName);
 		}
 	}
 }

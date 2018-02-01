@@ -83,18 +83,12 @@ namespace EastEngine
 
 				virtual const Math::Matrix& GetSkinningMatrix() const override { return m_matSkinning; }
 
-				virtual void SetMotionTransform(const Math::Transform& transform) override { m_motionTransform = transform; }
-				virtual const Math::Transform& GetMotionTransform() const override { return m_motionTransform; }
-				virtual void ClearMotionTransform() override { m_motionTransform = m_pBoneOrigin->GetDefaultMotionData(); }
+				virtual void SetMotionMatrix(const Math::Matrix& matrix) override { m_matMotion = matrix; }
+				virtual const Math::Matrix& GetMotionMatrix() const override { return m_matMotion; }
+				virtual void ClearMotionMatrix() override { m_matMotion = m_pBoneOrigin->GetDefaultMotionData(); }
 
-				virtual const Math::Vector3& GetUserOffsetScale() const override { return m_userOffsetScale; }
-				virtual void SetUserOffsetScale(const Math::Vector3& f3Scale) override { m_userOffsetScale = f3Scale; }
-
-				virtual const Math::Vector3& GetUserOffsetRotation() const override { return m_userOffsetRotation; }
-				virtual void SetUserOffsetRotation(const Math::Vector3& f3Rotation) override { m_userOffsetRotation = f3Rotation; }
-
-				virtual const Math::Vector3& GetUserOffsetPosition() const override { return m_userOffsetPosition; }
-				virtual void SetUserOffsetPosition(const Math::Vector3& f3Position) override { m_userOffsetPosition = f3Position; }
+				virtual const Math::Matrix& GetUserOffsetMatrix() const override { return m_matUserOffset; }
+				virtual void SetUserOffsetMatrix(const Math::Matrix& matrix) override { m_matUserOffset = matrix; }
 
 				virtual const Math::Matrix& GetLocalMatrix() const override { return m_matLocal; }
 				virtual const Math::Matrix& GetGlobalMatrix() const override { return m_matGlobal; }
@@ -108,11 +102,8 @@ namespace EastEngine
 				BoneInstance* m_pParentBone{ nullptr };
 				Skeleton::IBone* m_pBoneOrigin{ nullptr };
 
-				Math::Transform m_motionTransform;
-
-				Math::Vector3 m_userOffsetScale{ Math::Vector3::One };
-				Math::Vector3 m_userOffsetRotation;
-				Math::Vector3 m_userOffsetPosition;
+				Math::Matrix m_matUserOffset;
+				Math::Matrix m_matMotion;
 
 				Math::Matrix m_matSkinning;
 				Math::Matrix m_matLocal;

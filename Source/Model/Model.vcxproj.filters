@@ -132,11 +132,11 @@
     <ClInclude Include="MotionPlayer.h">
       <Filter>Motion\Player</Filter>
     </ClInclude>
-    <ClInclude Include="MotionRecoder.h">
-      <Filter>Motion\Recoder</Filter>
-    </ClInclude>
     <ClInclude Include="XpsImporter.h">
       <Filter>Model\Importer\XPS</Filter>
+    </ClInclude>
+    <ClInclude Include="MotionRecorder.h">
+      <Filter>Motion\Recoder</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -200,11 +200,11 @@
     <ClCompile Include="MotionPlayer.cpp">
       <Filter>Motion\Player</Filter>
     </ClCompile>
-    <ClCompile Include="MotionRecoder.cpp">
-      <Filter>Motion\Recoder</Filter>
-    </ClCompile>
     <ClCompile Include="XpsImporter.cpp">
       <Filter>Model\Importer\XPS</Filter>
+    </ClCompile>
+    <ClCompile Include="MotionRecorder.cpp">
+      <Filter>Motion\Recoder</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

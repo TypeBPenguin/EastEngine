@@ -135,16 +135,13 @@ namespace EastEngine
 
 		void SkeletonInstance::BoneInstance::Update(const Math::Matrix& matWorld)
 		{
-			Math::Quaternion quatUserOffset = Math::Quaternion::CreateFromYawPitchRoll(m_userOffsetRotation.y, m_userOffsetRotation.x, m_userOffsetRotation.z);
-			Math::Matrix matUserOffset = Math::Matrix::Compose(m_userOffsetScale, quatUserOffset, m_userOffsetPosition);
-
 			if (m_pParentBone != nullptr)
 			{
-				m_matLocal = matUserOffset * m_motionTransform.Compose() * m_pParentBone->GetLocalMatrix();
+				m_matLocal = m_matUserOffset * m_matMotion * m_pParentBone->GetLocalMatrix();
 			}
 			else
 			{
-				m_matLocal = matUserOffset * m_motionTransform.Compose();
+				m_matLocal = m_matUserOffset * m_matMotion;
 			}
 
 			m_matSkinning = m_matMotionOffset * m_matLocal;
@@ -221,7 +218,7 @@ namespace EastEngine
 
 			std::for_each(m_vecBones.begin(), m_vecBones.end(), [](BoneInstance& boneInstance)
 			{
-				boneInstance.ClearMotionTransform();
+				boneInstance.ClearMotionMatrix();
 			});
 
 			m_isDirty = false;

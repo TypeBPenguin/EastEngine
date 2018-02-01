@@ -981,7 +981,7 @@ namespace EastEngine
 			Transform(const Vector3& scale, const Quaternion& rotation, const Vector3& position);
 			Transform(const Matrix& matrix);
 
-			Matrix Compose();
+			Matrix Compose() const;
 		};
 
 		//------------------------------------------------------------------------------

@@ -218,8 +218,8 @@ bool SkeletonController::Process(float fElapsedTime)
 			Math::Vector3 sideward = matInvView.Right() * fDist * 0.001f * static_cast<float>(Input::Mouse::GetMoveX());
 			Math::Vector3 upward = matInvView.Up() * fDist * 0.001f * -static_cast<float>(Input::Mouse::GetMoveY());
 
-			Math::Vector3 f3Position = m_pSelectedBone->GetUserOffsetPosition() + sideward + upward;
-			m_pSelectedBone->SetUserOffsetPosition(f3Position);
+			//Math::Vector3 f3Position = m_pSelectedBone->GetUserOffsetPosition() + sideward + upward;
+			//m_pSelectedBone->SetUserOffsetPosition(f3Position);
 
 			isExistsCollisionBone = true;
 		}
@@ -334,76 +334,76 @@ void SkeletonController::RenderUI()
 		{
 		case 0:
 		{
-			Math::Vector3 f3Scale = m_pSelectedBone->GetUserOffsetScale();
-			Math::Vector3 f3Rotation = m_pSelectedBone->GetUserOffsetRotation();
-			Math::Vector3 f3Position = m_pSelectedBone->GetUserOffsetPosition();
+			//Math::Vector3 f3Scale = m_pSelectedBone->GetUserOffsetScale();
+			//Math::Vector3 f3Rotation = m_pSelectedBone->GetUserOffsetRotation();
+			//Math::Vector3 f3Position = m_pSelectedBone->GetUserOffsetPosition();
 
-			f3Rotation.x = Math::ToDegrees(f3Rotation.x);
-			f3Rotation.y = Math::ToDegrees(f3Rotation.y);
-			f3Rotation.z = Math::ToDegrees(f3Rotation.z);
+			//f3Rotation.x = Math::ToDegrees(f3Rotation.x);
+			//f3Rotation.y = Math::ToDegrees(f3Rotation.y);
+			//f3Rotation.z = Math::ToDegrees(f3Rotation.z);
 
-			static float values[7] = { 0.0f, 0.60f, 0.35f, 0.9f, 0.70f, 0.20f, 0.0f };
-			ImGui::PushID("SelectedBone");
+			//static float values[7] = { 0.0f, 0.60f, 0.35f, 0.9f, 0.70f, 0.20f, 0.0f };
+			//ImGui::PushID("SelectedBone");
 
-			ImGui::Text("%s", m_pSelectedBone->GetName().c_str());
+			//ImGui::Text("%s", m_pSelectedBone->GetName().c_str());
 
-			ImGui::BeginGroup();
-			ImGui::PushID("Scale");
-			ImGui::Text("Scale");
-			ImGui::DragFloat("x", &f3Scale.x, 0.01f, 0.f, 100.f);
-			ImGui::DragFloat("y", &f3Scale.y, 0.01f, 0.f, 100.f);
-			ImGui::DragFloat("z", &f3Scale.z, 0.01f, 0.f, 100.f);
-			ImGui::PopID();
-			ImGui::EndGroup();
+			//ImGui::BeginGroup();
+			//ImGui::PushID("Scale");
+			//ImGui::Text("Scale");
+			//ImGui::DragFloat("x", &f3Scale.x, 0.01f, 0.f, 100.f);
+			//ImGui::DragFloat("y", &f3Scale.y, 0.01f, 0.f, 100.f);
+			//ImGui::DragFloat("z", &f3Scale.z, 0.01f, 0.f, 100.f);
+			//ImGui::PopID();
+			//ImGui::EndGroup();
 
-			ImGui::BeginGroup();
-			ImGui::PushID("Position");
-			ImGui::Text("Position");
-			ImGui::DragFloat("x", &f3Position.x, 0.01f, -1000.f, 1000.f);
-			ImGui::DragFloat("y", &f3Position.y, 0.01f, -1000.f, 1000.f);
-			ImGui::DragFloat("z", &f3Position.z, 0.01f, -1000.f, 1000.f);
-			ImGui::PopID();
-			ImGui::EndGroup();
+			//ImGui::BeginGroup();
+			//ImGui::PushID("Position");
+			//ImGui::Text("Position");
+			//ImGui::DragFloat("x", &f3Position.x, 0.01f, -1000.f, 1000.f);
+			//ImGui::DragFloat("y", &f3Position.y, 0.01f, -1000.f, 1000.f);
+			//ImGui::DragFloat("z", &f3Position.z, 0.01f, -1000.f, 1000.f);
+			//ImGui::PopID();
+			//ImGui::EndGroup();
 
-			ImGui::BeginGroup();
-			ImGui::PushID("Rotation");
-			ImGui::Text("Rotation");
-			//ImGui::DragFloat("x", &f3Rotation.x, 0.001f, -Math::PI, Math::PI, "%.3f");
-			//ImGui::DragFloat("y", &f3Rotation.y, 0.001f, -Math::PI, Math::PI, "%.3f");
-			//ImGui::DragFloat("z", &f3Rotation.z, 0.001f, -Math::PI, Math::PI, "%.3f");
-			ImGui::DragFloat("x", &f3Rotation.x, 0.1f, -360.f, 360.f, "%.3f");
-			ImGui::DragFloat("y", &f3Rotation.y, 0.1f, -360.f, 360.f, "%.3f");
-			ImGui::DragFloat("z", &f3Rotation.z, 0.1f, -360.f, 360.f, "%.3f");
-			ImGui::PopID();
-			ImGui::EndGroup();
+			//ImGui::BeginGroup();
+			//ImGui::PushID("Rotation");
+			//ImGui::Text("Rotation");
+			////ImGui::DragFloat("x", &f3Rotation.x, 0.001f, -Math::PI, Math::PI, "%.3f");
+			////ImGui::DragFloat("y", &f3Rotation.y, 0.001f, -Math::PI, Math::PI, "%.3f");
+			////ImGui::DragFloat("z", &f3Rotation.z, 0.001f, -Math::PI, Math::PI, "%.3f");
+			//ImGui::DragFloat("x", &f3Rotation.x, 0.1f, -360.f, 360.f, "%.3f");
+			//ImGui::DragFloat("y", &f3Rotation.y, 0.1f, -360.f, 360.f, "%.3f");
+			//ImGui::DragFloat("z", &f3Rotation.z, 0.1f, -360.f, 360.f, "%.3f");
+			//ImGui::PopID();
+			//ImGui::EndGroup();
 
-			ImGui::PopID();
+			//ImGui::PopID();
 
-			bool isReset = ImGui::Button("Reset");
+			//bool isReset = ImGui::Button("Reset");
 
-			ImGui::End();
+			//ImGui::End();
 
-			if (isReset == true)
-			{
-				m_pSelectedBone->SetUserOffsetScale(Math::Vector3::One);
-				m_pSelectedBone->SetUserOffsetRotation(Math::Vector3::Zero);
-				m_pSelectedBone->SetUserOffsetPosition(Math::Vector3::Zero);
-			}
-			else
-			{
-				f3Rotation.x = Math::ToRadians(f3Rotation.x);
-				f3Rotation.y = Math::ToRadians(f3Rotation.y);
-				f3Rotation.z = Math::ToRadians(f3Rotation.z);
+			//if (isReset == true)
+			//{
+			//	m_pSelectedBone->SetUserOffsetScale(Math::Vector3::One);
+			//	m_pSelectedBone->SetUserOffsetRotation(Math::Vector3::Zero);
+			//	m_pSelectedBone->SetUserOffsetPosition(Math::Vector3::Zero);
+			//}
+			//else
+			//{
+			//	f3Rotation.x = Math::ToRadians(f3Rotation.x);
+			//	f3Rotation.y = Math::ToRadians(f3Rotation.y);
+			//	f3Rotation.z = Math::ToRadians(f3Rotation.z);
 
-				m_pSelectedBone->SetUserOffsetScale(f3Scale);
-				m_pSelectedBone->SetUserOffsetRotation(f3Rotation);
-				m_pSelectedBone->SetUserOffsetPosition(f3Position);
-			}
+			//	m_pSelectedBone->SetUserOffsetScale(f3Scale);
+			//	m_pSelectedBone->SetUserOffsetRotation(f3Rotation);
+			//	m_pSelectedBone->SetUserOffsetPosition(f3Position);
+			//}
 		}
 		break;
 		case 1:
 		{
-			Math::Transform transform = m_pSelectedBone->GetMotionTransform();
+			//Math::Transform transform = m_pSelectedBone->GetMotionMatrix();
 		}
 		break;
 		}

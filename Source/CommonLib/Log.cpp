@@ -22,14 +22,16 @@ namespace EastEngine
 				}
 			}
 
-			void Output(const char* msg, WORD textColor = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY)
+			void Output(const char* msg, int length, WORD textColor = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY)
 			{
+				std::lock_guard<std::mutex> lock(m_mutex);
+
 				createConsole();
 
 				SetConsoleTextAttribute(m_hConsole, textColor | m_wBackgroundAttributes);
 
 				DWORD len = 0;
-				WriteConsoleA(m_hConsole, msg, strlen(msg), &len, nullptr);
+				WriteConsoleA(m_hConsole, msg, length, &len, nullptr);
 
 				SetConsoleTextAttribute(m_hConsole, m_wDefaultConsoleTextAttributes);
 			}
@@ -51,7 +53,7 @@ namespace EastEngine
 			}
 
 		private:
-			std::mutex mutex;
+			std::mutex m_mutex;
 			HANDLE m_hConsole;
 			WORD m_wDefaultConsoleTextAttributes;
 			WORD m_wBackgroundAttributes;
@@ -71,7 +73,7 @@ namespace EastEngine
 			std::vsnprintf(buf.get(), size, msg, args);
 			va_end(args);
 
-			s_consoleLog.Output(buf.get());
+			s_consoleLog.Output(buf.get(), size);
 		}
 
 		void Warning(const char* msg, ...)
@@ -86,7 +88,7 @@ namespace EastEngine
 			std::vsnprintf(buf.get(), size, msg, args);
 			va_end(args);
 
-			s_consoleLog.Output(buf.get(), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+			s_consoleLog.Output(buf.get(), size, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
 		}
 
 		void Error(const char* msg, ...)
@@ -101,7 +103,7 @@ namespace EastEngine
 			std::vsnprintf(buf.get(), size, msg, args);
 			va_end(args);
 
-			s_consoleLog.Output(buf.get(), FOREGROUND_RED | FOREGROUND_INTENSITY);
+			s_consoleLog.Output(buf.get(), size, FOREGROUND_RED | FOREGROUND_INTENSITY);
 		}
 	}
 }
