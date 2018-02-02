@@ -9,18 +9,6 @@ namespace EastEngine
 {
 	namespace Graphics
 	{
-		class OcclusionCulling : public Singleton<OcclusionCulling>
-		{
-			friend Singleton<OcclusionCulling>;
-		private:
-			OcclusionCulling();
-			virtual ~OcclusionCulling();
-
-		private:
-			class Impl;
-			std::unique_ptr<Impl> m_pImpl;
-		};
-
 		struct VertexPos;
 		struct VertexClipSpace;
 
