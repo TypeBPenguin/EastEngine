@@ -327,7 +327,7 @@ namespace EastEngine
 				std::string strFullPath = strFilePath;
 				strFullPath.append(strFileName.c_str());
 
-				std::shared_ptr<Graphics::ITexture> pTexture = Graphics::ITexture::Create(strFileName, strFullPath, false);
+				std::shared_ptr<Graphics::ITexture> pTexture = Graphics::ITexture::Create(strFullPath, false);
 				if (pTexture == nullptr)
 					continue;
 

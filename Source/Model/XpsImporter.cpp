@@ -122,22 +122,22 @@ namespace EastEngine
 					file.Read(strTemp.data(), length);
 
 					int nReadSize = 0;
-					if (strTemp.back() != -68)
-					{
-						nReadSize = 1029;
-
-						while (true)
-						{
-							file.Read(&byte);
-
-							if (byte == -68)
-							{
-								file.Read(&nTemp16);
-								break;
-							}
-						}
-					}
-					else
+					//if (strTemp.back() != -68)
+					//{
+					//	nReadSize = 1029;
+					//
+					//	while (true)
+					//	{
+					//		file.Read(&byte);
+					//
+					//		if (byte == -68)
+					//		{
+					//			file.Read(&nTemp16);
+					//			break;
+					//		}
+					//	}
+					//}
+					//else
 					{
 						nReadSize = 1028;
 
@@ -480,7 +480,7 @@ namespace EastEngine
 
 					pModel->AddNode(pSkinnedNode, pSkinnedNode->GetName(), true);
 
-					std::unordered_map<uint16_t, std::pair<Skeleton::Bone*, Math::Matrix>> umapBones;
+					std::unordered_map<uint16_t, std::pair<String::StringID, Math::Matrix>> umapBones;
 					umapBones.reserve(nBoneCount);
 
 					std::vector<String::StringID> vecBoneNames;
@@ -497,28 +497,28 @@ namespace EastEngine
 						Math::Matrix matDefaultMotionData = Math::Matrix::CreateTranslation(bone.defaultPositionX, bone.defaultPositionY, bone.defaultPositionZ);
 						Math::Matrix matParent;
 
-						Skeleton::Bone* pParentBone = nullptr;
+						String::StringID strParentBoneName;
 						auto iter = umapBones.find(bone.parentIndex);
 						if (iter != umapBones.end())
 						{
-							pParentBone = iter->second.first;
+							strParentBoneName = iter->second.first;
 							matParent = iter->second.second;
 						}
 
 						Math::Matrix matDefault = matParent.Invert() * matDefaultMotionData;
 						Math::Matrix matMotionOffset = matDefaultMotionData.Invert();
 
-						Skeleton::Bone* pBone = nullptr;
-						if (pParentBone != nullptr)
+						String::StringID strBoneName = bone.name.c_str();
+						if (strParentBoneName.empty() == false)
 						{
-							pBone = pSkeleton->CreateBone(pParentBone->GetName(), bone.name.c_str(), matMotionOffset, matDefault);
+							pSkeleton->CreateBone(strParentBoneName, strBoneName, matMotionOffset, matDefault);
 						}
 						else
 						{
-							pBone = pSkeleton->CreateBone(bone.name.c_str(), matMotionOffset, matDefault);
+							pSkeleton->CreateBone(strBoneName, matMotionOffset, matDefault);
 						}
 
-						umapBones.emplace(static_cast<uint16_t>(i), std::make_pair(pBone, matDefaultMotionData));
+						umapBones.emplace(static_cast<uint16_t>(i), std::make_pair(strBoneName, matDefaultMotionData));
 					}
 
 					pSkinnedNode->SetBoneNameList(vecBoneNames);

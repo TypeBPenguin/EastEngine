@@ -805,11 +805,11 @@ namespace EastEngine
 		{
 			std::string strPerlinPath = File::GetPath(File::eTexture);
 			strPerlinPath.append("perlin_noise.dds");
-			m_pSRV_Perlin = ITexture::Create("perlin_noise.dds", strPerlinPath.c_str(), false);
+			m_pSRV_Perlin = ITexture::Create(strPerlinPath.c_str(), false);
 
 			std::string strReflectCubePath = File::GetPath(File::eTexture);
 			strReflectCubePath.append("reflect_cube.dds");
-			m_pSRV_ReflectCube = ITexture::Create("reflect_cube.dds", strReflectCubePath.c_str(), false);
+			m_pSRV_ReflectCube = ITexture::Create(strReflectCubePath.c_str(), false);
 		}
 
 #define MESH_INDEX_2D(x, y)	(((y) + vert_rect.bottom) * (m_nMeshDim + 1) + (x) + vert_rect.left)

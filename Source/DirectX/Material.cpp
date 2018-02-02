@@ -119,7 +119,7 @@ namespace EastEngine
 				}
 				else
 				{
-					std::shared_ptr<ITexture> pTexture = ITexture::Create(GetTextureName(emType), strTexPath);
+					std::shared_ptr<ITexture> pTexture = ITexture::Create(strTexPath);
 
 					this->SetTexture(emType, pTexture);
 				}

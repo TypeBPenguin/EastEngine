@@ -65,8 +65,8 @@ namespace EastEngine
 			if (initTerrain() == false)
 				return false;
 
-			m_pTexDetailMap = Graphics::ITexture::Create(File::GetFileName(m_property.strTexDetailMap).c_str(), m_property.strTexDetailMap, true);
-			m_pTexDetailNormalMap = Graphics::ITexture::Create(File::GetFileName(m_property.strTexDetailNormalMap).c_str(), m_property.strTexDetailNormalMap, true);
+			m_pTexDetailMap = Graphics::ITexture::Create(m_property.strTexDetailMap, true);
+			m_pTexDetailNormalMap = Graphics::ITexture::Create(m_property.strTexDetailNormalMap, true);
 
 			m_property.rigidBodyProperty.fMass = 0.f;
 			m_property.rigidBodyProperty.strName = StrID::Terrain_Physics;
@@ -258,7 +258,7 @@ namespace EastEngine
 
 		bool Terrain::loadColorMap(const char* strFilePath)
 		{
-			m_pTexColorMap = Graphics::ITexture::Create(File::GetFileName(strFilePath).c_str(), strFilePath, false);
+			m_pTexColorMap = Graphics::ITexture::Create(strFilePath, false);
 
 			return true;
 		}

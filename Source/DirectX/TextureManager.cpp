@@ -156,11 +156,11 @@ namespace EastEngine
 
 			std::string strUVCheckerPath = File::GetPath(File::eTexture);
 			strUVCheckerPath.append("uv_checker.png");
-			m_pUvCheckerTexture = ITexture::Create("uv_checker.png", strUVCheckerPath.c_str(), false);
+			m_pUvCheckerTexture = ITexture::Create(strUVCheckerPath.c_str(), false);
 
 			std::string strEmptyTexPath = File::GetPath(File::eTexture);
 			strEmptyTexPath.append("EmptyTexture_Red.dds");
-			m_pEmptyTextureRed = ITexture::Create("EmptyTexture_Red.dds", strEmptyTexPath.c_str(), false);
+			m_pEmptyTextureRed = ITexture::Create(strEmptyTexPath.c_str(), false);
 
 			//initAtlasPool();
 
@@ -340,14 +340,11 @@ namespace EastEngine
 			return false;
 		}
 
-		const std::shared_ptr<ITexture>& TextureManager::GetTexture(const String::StringID& strFileName)
+		std::shared_ptr<ITexture> TextureManager::GetTexture(const String::StringID& strFileName)
 		{
 			auto iter = m_umapTexture.find(strFileName);
 			if (iter == m_umapTexture.end())
-			{
-				static std::shared_ptr<ITexture> pNullptr;
-				return pNullptr;
-			}
+				return nullptr;
 
 			return iter->second;
 		}

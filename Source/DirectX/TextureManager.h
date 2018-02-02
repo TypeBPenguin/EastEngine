@@ -92,8 +92,8 @@ namespace EastEngine
 			void LoadTextureSync(const std::shared_ptr<ITexture>& pTexture, const String::StringID& strName, const std::string& strFilePath);
 
 			bool AddTexture(const String::StringID& strFileName, const std::shared_ptr<ITexture>& pTexture);
-			const std::shared_ptr<ITexture>& GetTexture(const String::StringID& strFileName);
-			const std::shared_ptr<ITexture>& GetUVCheckerTexture() { return m_pUvCheckerTexture; }
+			std::shared_ptr<ITexture> GetTexture(const String::StringID& strFileName);
+			std::shared_ptr<ITexture> GetUVCheckerTexture() { return m_pUvCheckerTexture; }
 			//const std::shared_ptr<ITexture>& GetTextureAtlas() { return m_pTextureAtlas; }
 
 			//void WriteTextureAtlas(const std::shared_ptr<ITexture>& pTexture) { m_conQueueTextureAtlas.push(pTexture); }

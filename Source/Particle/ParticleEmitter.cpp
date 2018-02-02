@@ -77,11 +77,10 @@ namespace EastEngine
 			if (attributes.strTexFile.empty() == false)
 				return false;
 
-			String::StringID strTexName = File::GetFileName(attributes.strTexFile.c_str()).c_str();
 			std::string strPath = File::GetDataPath();
 			strPath.append(attributes.strTexFile);
 
-			std::shared_ptr<ITexture> pTexture = ITexture::Create(strTexName, strPath);
+			std::shared_ptr<ITexture> pTexture = ITexture::Create(strPath);
 
 			if (pTexture == nullptr)
 				return false;

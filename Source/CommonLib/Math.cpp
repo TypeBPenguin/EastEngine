@@ -3432,7 +3432,7 @@ namespace EastEngine
 				return Math::Vector3
 				(
 					std::atan2(2 * x * w - 2 * y * z, 1 - 2 * x * x - 2 * z * z),
-					std::asin(2 * check),
+					static_cast<float>(std::asin(2 * check)),
 					std::atan2(2 * y * w - 2 * x * z, 1 - 2 * y * y - 2 * z * z)
 				);
 			}

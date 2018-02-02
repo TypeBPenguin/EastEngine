@@ -30,7 +30,7 @@ namespace EastEngine
 
 			Graphics::GeometryModel::CreateBox(&m_pVertexBuffer, &m_pIndexBuffer, Math::Vector3(property.fBoxSize, property.fBoxSize, property.fBoxSize), false, true);
 
-			m_pTexture = Graphics::ITexture::Create(File::GetFileName(property.strTexSky).c_str(), property.strTexSky.c_str());
+			m_pTexture = Graphics::ITexture::Create(property.strTexSky.c_str());
 		}
 
 		void Skybox::Update(float fElapsedTime)

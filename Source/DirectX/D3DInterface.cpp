@@ -2,6 +2,7 @@
 #include "D3DInterface.h"
 
 #include "CommonLib/FileStream.h"
+#include "CommonLib/FileUtil.h"
 
 #include "Device.h"
 
@@ -179,11 +180,12 @@ namespace EastEngine
 			return pTexture;
 		}
 
-		std::shared_ptr<ITexture> ITexture::Create(const String::StringID& strName, const std::string& strFilePath, bool isThreadLoad)
+		std::shared_ptr<ITexture> ITexture::Create(const std::string& strFilePath, bool isThreadLoad)
 		{
-			if (strName.empty() == true && strFilePath.empty() == true)
+			if (strFilePath.empty() == true)
 				return nullptr;
 
+			String::StringID strName = strFilePath.c_str();
 			std::shared_ptr<ITexture> pITexture = TextureManager::GetInstance()->GetTexture(strName);
 			if (pITexture != nullptr)
 				return pITexture;

@@ -224,17 +224,17 @@ void SceneStudio::Enter()
 
 		std::string strDiffuseHDR = strPath;
 		strDiffuseHDR.append("DiffuseHDR.dds");
-		std::shared_ptr<Graphics::ITexture> pDiffuseHDR = Graphics::ITexture::Create(File::GetFileName(strDiffuseHDR).c_str(), strDiffuseHDR);
+		std::shared_ptr<Graphics::ITexture> pDiffuseHDR = Graphics::ITexture::Create(strDiffuseHDR);
 		pIBL->SetDiffuseHDR(pDiffuseHDR);
 
 		std::string strSpecularHDR = strPath;
 		strSpecularHDR.append("SpecularHDR.dds");
-		std::shared_ptr<Graphics::ITexture> pSpecularHDR = Graphics::ITexture::Create(File::GetFileName(strSpecularHDR).c_str(), strSpecularHDR);
+		std::shared_ptr<Graphics::ITexture> pSpecularHDR = Graphics::ITexture::Create(strSpecularHDR);
 		pIBL->SetSpecularHDR(pSpecularHDR);
 
 		std::string strSpecularBRDF = strPath;
 		strSpecularBRDF.append("Brdf.dds");
-		std::shared_ptr<Graphics::ITexture> pSpecularBRDF = Graphics::ITexture::Create(File::GetFileName(strSpecularBRDF).c_str(), strSpecularBRDF);
+		std::shared_ptr<Graphics::ITexture> pSpecularBRDF = Graphics::ITexture::Create(strSpecularBRDF);
 		pIBL->SetSpecularBRDF(pSpecularBRDF);
 
 		GameObject::SkyboxProperty sky;
@@ -1404,22 +1404,22 @@ void SceneStudio::ShowConfig()
 
 			std::string strDiffuseHDR = strPath;
 			strDiffuseHDR.append("DiffuseHDR.dds");
-			std::shared_ptr<Graphics::ITexture> pDiffuseHDR = Graphics::ITexture::Create(File::GetFileName(strDiffuseHDR).c_str(), strDiffuseHDR);
+			std::shared_ptr<Graphics::ITexture> pDiffuseHDR = Graphics::ITexture::Create(strDiffuseHDR);
 			pIBL->SetDiffuseHDR(pDiffuseHDR);
 
 			std::string strSpecularHDR = strPath;
 			strSpecularHDR.append("SpecularHDR.dds");
-			std::shared_ptr<Graphics::ITexture> pSpecularHDR = Graphics::ITexture::Create(File::GetFileName(strSpecularHDR).c_str(), strSpecularHDR);
+			std::shared_ptr<Graphics::ITexture> pSpecularHDR = Graphics::ITexture::Create(strSpecularHDR);
 			pIBL->SetSpecularHDR(pSpecularHDR);
 
 			std::string strSpecularBRDF = strPath;
 			strSpecularBRDF.append("Brdf.dds");
-			std::shared_ptr<Graphics::ITexture> pSpecularBRDF = Graphics::ITexture::Create(File::GetFileName(strSpecularBRDF).c_str(), strSpecularBRDF);
+			std::shared_ptr<Graphics::ITexture> pSpecularBRDF = Graphics::ITexture::Create(strSpecularBRDF);
 			pIBL->SetSpecularBRDF(pSpecularBRDF);
 
 			std::string strEnvIBLPath = strPath;
 			strEnvIBLPath.append("EnvHDR.dds");
-			std::shared_ptr<Graphics::ITexture> pEnvIBL = Graphics::ITexture::Create(File::GetFileName(strEnvIBLPath).c_str(), strEnvIBLPath);
+			std::shared_ptr<Graphics::ITexture> pEnvIBL = Graphics::ITexture::Create(strEnvIBLPath);
 			m_pSkybox->SetTexture(pEnvIBL);
 		}
 	}
@@ -1801,7 +1801,7 @@ void ShowMaterial(bool& isShowMaterial, Graphics::IMaterial* pMaterial, int nInd
 			ofn.nMaxFile = 256;
 			if (GetOpenFileName(&ofn) != 0)
 			{
-				std::shared_ptr<Graphics::ITexture> pTexture = Graphics::ITexture::Create(ofn.lpstrFile, ofn.lpstrFile);
+				std::shared_ptr<Graphics::ITexture> pTexture = Graphics::ITexture::Create(ofn.lpstrFile);
 				pMaterial->SetTextureName(emType, File::GetFileName(ofn.lpstrFile).c_str());
 				pMaterial->SetTexture(emType, pTexture);
 			}

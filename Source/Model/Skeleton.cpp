@@ -78,30 +78,30 @@ namespace EastEngine
 			nElementCount_out = m_vecSkinnedList[nIndex].vecBoneNames.size();
 		}
 
-		Skeleton::Bone* Skeleton::CreateBone(const String::StringID& strBoneName, const Math::Matrix& matMotionOffset, const Math::Matrix& matDefaultMotionData)
+		bool Skeleton::CreateBone(const String::StringID& strBoneName, const Math::Matrix& matMotionOffset, const Math::Matrix& matDefaultMotionData)
 		{
 			if (strBoneName.empty() == true)
-				return nullptr;
+				return false;
 
 			const uint32_t nNodeIndex = m_vecBones.size();
 			m_vecBones.emplace_back(strBoneName, matMotionOffset, matDefaultMotionData, nNodeIndex, eInvalidBoneIndex);
 
-			return &m_vecBones.back();
+			return true;
 		}
 
-		Skeleton::Bone* Skeleton::CreateBone(const String::StringID& strParentBoneName, const String::StringID& strBoneName, const Math::Matrix& matMotionOffset, const Math::Matrix& matDefaultMotionData)
+		bool Skeleton::CreateBone(const String::StringID& strParentBoneName, const String::StringID& strBoneName, const Math::Matrix& matMotionOffset, const Math::Matrix& matDefaultMotionData)
 		{
 			if (strParentBoneName.empty() == true || strBoneName.empty() == true)
-				return nullptr;
+				return false;
 
 			ISkeleton::IBone* pParentBone = GetBone(strParentBoneName);
 			if (pParentBone == nullptr)
-				return nullptr;
+				return false;
 
 			const uint32_t nNodeIndex = m_vecBones.size();
 			m_vecBones.emplace_back(strBoneName, matMotionOffset, matDefaultMotionData, nNodeIndex, pParentBone->GetIndex());
 
-			return &m_vecBones.back();
+			return true;
 		}
 
 		void Skeleton::SetSkinnedList(const String::StringID& strSkinnedName, const String::StringID* pBoneNames, size_t nNameCount)

@@ -248,7 +248,7 @@ namespace EastEngine
 			static std::shared_ptr<ITexture> Create(const String::StringID& strName, const TextureDesc1D& desc, D3D11_SUBRESOURCE_DATA* pData = nullptr);
 			static std::shared_ptr<ITexture> Create(const String::StringID& strName, const TextureDesc2D& desc, D3D11_SUBRESOURCE_DATA* pData = nullptr);
 			static std::shared_ptr<ITexture> Create(const String::StringID& strName, const TextureDesc3D& desc, D3D11_SUBRESOURCE_DATA* pData = nullptr);
-			static std::shared_ptr<ITexture> Create(const String::StringID& strName, const std::string& strFilePath, bool isThreadLoad = true);
+			static std::shared_ptr<ITexture> Create(const std::string& strFilePath, bool isThreadLoad = true);
 
 		public:
 			virtual void CopySubresourceRegion(uint32_t DstSubresource, uint32_t DstX, uint32_t DstY, uint32_t DstZ, ITexture* pSrcResource, uint32_t SrcSubresource, const D3D11_BOX* pSrcBox) = 0;
