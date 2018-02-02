@@ -108,17 +108,17 @@ namespace EastEngine
 
 			if (Config::IsEnable("SSS"_s) == true)
 			{
-				IRenderTarget* pDepthOfField = pDevice->GetRenderTarget(pDevice->GetMainRenderTarget()->GetDesc2D(), false);
+				IRenderTarget* pSSS = pDevice->GetRenderTarget(pDevice->GetMainRenderTarget()->GetDesc2D(), false);
 				IRenderTarget* pSource = pDevice->GetLastUseRenderTarget();
 				const std::shared_ptr<ITexture>& pDepth = pDevice->GetMainDepthStencil()->GetTexture();
-				m_pSSS->Apply(pDepthOfField, pSource, pDepth);
+				m_pSSS->Apply(pSSS, pSource, pDepth);
 
-				pDevice->ReleaseRenderTargets(&pDepthOfField);
+				pDevice->ReleaseRenderTargets(&pSSS);
 			}
 
 			if (Config::IsEnable("SSAO"_s) == true)
 			{
-				IRenderTarget* pRenderTarget = pDevice->GetRenderTarget(pDevice->GetLastUseRenderTarget()->GetDesc2D());
+				IRenderTarget* pRenderTarget = pDevice->GetLastUseRenderTarget();
 				m_pASSAO->Apply(pRenderTarget);
 
 				pDevice->ReleaseRenderTargets(&pRenderTarget);

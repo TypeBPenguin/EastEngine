@@ -58,20 +58,20 @@ namespace EastEngine
 			float DetailShadowStrength;               // [0.0, 5.0] Used for high-res detail AO using neighboring depth pixels: adds a lot of detail but also reduces temporal stability (adds aliasing).
 
 			ASSAO_Settings()
-				: Radius(1.2f)
-				, ShadowMultiplier(1.f)
+				: Radius(1.5f)
+				, ShadowMultiplier(0.5f)
 				, ShadowPower(1.50f)
 				, ShadowClamp(0.98f)
 				, HorizonAngleThreshold(0.06f)
 				, FadeOutFrom(50.f)
 				, FadeOutTo(300.f)
 				, AdaptiveQualityLimit(0.45f)
-				, QualityLevel(0)
-				, BlurPassCount(2)
+				, QualityLevel(3)
+				, BlurPassCount(6)
 				, Sharpness(0.98f)
 				, TemporalSupersamplingAngleOffset(0.f)
 				, TemporalSupersamplingRadiusOffset(1.f)
-				, DetailShadowStrength(0.5f)
+				, DetailShadowStrength(3.f)
 			{
 			}
 		};
