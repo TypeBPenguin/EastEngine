@@ -43,6 +43,7 @@ namespace EastEngine
 			SetStippleTransparencyFactor(pInfo->fStippleTransparencyFactor);
 			SetTessellationFactor(pInfo->fTessellationFactor);
 			SetAlbedoAlphaChannelMaskMap(pInfo->isAlbedoAlphaChannelMaskMap);
+			m_info.isInsideTextureForder = pInfo->isInsideTextureForder;
 
 			for (uint32_t i = 0; i < EmMaterial::TypeCount; ++i)
 			{
@@ -110,7 +111,10 @@ namespace EastEngine
 				EmMaterial::Type emType = static_cast<EmMaterial::Type>(i);
 
 				std::string strTexPath = GetPath();
-				strTexPath.append("Texture\\");
+				if (m_info.isInsideTextureForder == true)
+				{
+					strTexPath.append("Texture\\");
+				}
 				strTexPath.append(GetTextureName(emType).c_str());
 
 				if (GetTextureName(emType).empty() == true)

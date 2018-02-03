@@ -409,6 +409,7 @@ namespace EastEngine
 			fTessellationFactor = 256.f;
 			isAlbedoAlphaChannelMaskMap = false;
 			isVisible = true;
+			isInsideTextureForder = true;
 
 			for (auto& strTexName : strTextureNameArray)
 			{

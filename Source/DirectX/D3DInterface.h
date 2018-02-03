@@ -460,6 +460,7 @@ namespace EastEngine
 			float fTessellationFactor;
 			bool isAlbedoAlphaChannelMaskMap;
 			bool isVisible;
+			bool isInsideTextureForder{ true };
 
 			std::array<String::StringID, EmMaterial::TypeCount> strTextureNameArray;
 

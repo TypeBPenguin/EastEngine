@@ -253,6 +253,7 @@ void SceneStudio::Enter()
 	
 		Graphics::MaterialInfo material;
 		material.strName = StrID::Studio_Ground;
+
 		Graphics::ModelLoader loader;
 		loader.InitPlane(StrID::Studio_Ground, 1.f, 1.f, 100, 100, &material);
 	
@@ -814,7 +815,7 @@ void SceneStudio::Enter()
 		name.Format("Standard_Sphere_%s_%.1f", propertyName[z].c_str(), fValue);
 
 		GameObject::IActor* pActor = GameObject::IActor::Create(name);
-		pActor->SetPosition({ -2.5f + (x * 0.6f), 1.f, -4.f - (z * 0.75f) });
+		pActor->SetPosition({ -2.5f + (x * 0.6f), 0.25f, -4.f - (z * 0.75f) });
 
 		Graphics::MaterialInfo materialInfo;
 		materialInfo.colorAlbedo = color[z];
@@ -877,7 +878,7 @@ void SceneStudio::Enter()
 		name.Format("PBR_MetalPlates_%d", i);
 
 		GameObject::IActor* pActor = GameObject::IActor::Create(name);
-		pActor->SetPosition({ -2.5f + (x * 0.6f), 1.f, -13.f - (z * 0.75f) });
+		pActor->SetPosition({ -2.5f + (x * 0.6f), 0.25f, -13.f - (z * 0.75f) });
 
 		Graphics::MaterialInfo materialInfo;
 		materialInfo.strPath = File::GetDataPath();
