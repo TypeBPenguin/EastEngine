@@ -141,7 +141,6 @@ namespace EastEngine
 		void RendererManager::Render()
 		{
 			m_pRenderer[EmRenderer::eModel]->Render(ModelRenderer::Group::eDeferred);
-			//m_pRenderer[EmRenderer::eModelShadow]->Render(0);
 			m_pRenderer[EmRenderer::eTerrain]->Render(0);
 
 			//m_pRenderer[EmRenderer::eParticle]->Render(EmParticleGroup::eDecal);

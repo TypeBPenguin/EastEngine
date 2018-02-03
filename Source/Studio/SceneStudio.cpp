@@ -867,6 +867,38 @@ void SceneStudio::Enter()
 		GameObject::ComponentModel* pModel = static_cast<GameObject::ComponentModel*>(pActor->CreateComponent(GameObject::EmComponent::eModel));
 		pModel->Init(&loader);
 	}
+
+	for (int i = 0; i < 36; ++i)
+	{
+		const int x = i % 6;
+		const int z = i / 6;
+
+		String::StringID name;
+		name.Format("PBR_MetalPlates_%d", i);
+
+		GameObject::IActor* pActor = GameObject::IActor::Create(name);
+		pActor->SetPosition({ -2.5f + (x * 0.6f), 1.f, -13.f - (z * 0.75f) });
+
+		Graphics::MaterialInfo materialInfo;
+		materialInfo.strPath = File::GetDataPath();
+		materialInfo.strPath.append("Model\\MetalPlates\\");
+		materialInfo.strTextureNameArray[Graphics::EmMaterial::eAlbedo] = "MetalPlates_Diffuse.tga";
+		materialInfo.strTextureNameArray[Graphics::EmMaterial::eNormal].Format("MetalPlates_Normal_%02d.tga", i + 1);
+		materialInfo.strTextureNameArray[Graphics::EmMaterial::eMetallic] = "MetalPlates_Metalness.tga";
+		materialInfo.f4PaddingRoughMetEmi.y = 0.25f;
+		materialInfo.f4PaddingRoughMetEmi.z = 1.f;
+		materialInfo.f4SurSpecTintAniso.y = 1.f;
+		materialInfo.f4SurSpecTintAniso.z = 1.f;
+		materialInfo.f4SheenTintClearcoatGloss.z = 1.f;
+		materialInfo.f4SheenTintClearcoatGloss.w = 1.f;
+
+		Graphics::ModelLoader loader;
+		loader.InitSphere(name, &materialInfo, 0.5f, 32u);
+		loader.SetEnableThreadLoad(false);
+
+		GameObject::ComponentModel* pModel = static_cast<GameObject::ComponentModel*>(pActor->CreateComponent(GameObject::EmComponent::eModel));
+		pModel->Init(&loader);
+	}
 #endif
 
 	m_pSkeletonController = new SkeletonController;
