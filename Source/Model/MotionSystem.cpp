@@ -70,7 +70,7 @@ namespace EastEngine
 
 			ISkeleton* pSkeleton = m_pSkeletonInstance->GetSkeleton();
 			size_t nBoneCount = pSkeleton->GetBoneCount();
-			m_umapKeyframe.reserve(nBoneCount);
+			m_vecMotionTransforms.reserve(nBoneCount);
 
 			for (size_t i = 0; i < nBoneCount; ++i)
 			{
@@ -79,7 +79,7 @@ namespace EastEngine
 				{
 					const Math::Matrix& matDefaultMotionData = pBone->GetDefaultMotionData();
 
-					KeyframeTemp& keyframe = m_umapKeyframe[pBone->GetName()];
+					MotionTransform& keyframe = m_vecMotionTransforms[i];
 
 					Math::Transform& motionTransform = keyframe.motionTransform;
 					Math::Transform& defaultTransform = keyframe.defaultTransform;
@@ -94,9 +94,9 @@ namespace EastEngine
 		{
 			if (isMotionUpdated == true)
 			{
-				for (auto& iter : m_umapKeyframe)
+				for (MotionTransform& keyframe : m_vecMotionTransforms)
 				{
-					iter.second.motionTransform = iter.second.defaultTransform;
+					keyframe.motionTransform = keyframe.defaultTransform;
 				}
 			}
 			else
@@ -105,9 +105,9 @@ namespace EastEngine
 				{
 					m_pSkeletonInstance->SetIdentity();
 
-					for (auto& iter : m_umapKeyframe)
+					for (MotionTransform& keyframe : m_vecMotionTransforms)
 					{
-						iter.second.motionTransform = iter.second.defaultTransform;
+						keyframe.motionTransform = keyframe.defaultTransform;
 					}
 				}
 			}
@@ -118,8 +118,8 @@ namespace EastEngine
 			if (player.IsPlaying() == false || Math::IsZero(player.GetBlendWeight()) == true)
 				return;
 
-			float fWeight = player.GetBlendWeight();
-			size_t nBoneCount = m_pSkeletonInstance->GetBoneCount();
+			const float fWeight = player.GetBlendWeight();
+			const size_t nBoneCount = m_pSkeletonInstance->GetBoneCount();
 			for (size_t i = 0; i < nBoneCount; ++i)
 			{
 				ISkeletonInstance::IBone* pBone =  m_pSkeletonInstance->GetBone(i);
@@ -129,7 +129,7 @@ namespace EastEngine
 				const Math::Transform* pSourceTransform = player.GetTransform(pBone->GetName());
 				if (pSourceTransform != nullptr)
 				{
-					KeyframeTemp& destKeyframe = m_umapKeyframe[pBone->GetName()];
+					MotionTransform& destKeyframe = m_vecMotionTransforms[i];
 					Math::Transform& motionTransform = destKeyframe.motionTransform;
 
 					Math::Vector3::Lerp(motionTransform.scale, pSourceTransform->scale, fWeight, motionTransform.scale);
@@ -141,7 +141,7 @@ namespace EastEngine
 
 		void MotionSystem::Binding()
 		{
-			size_t nBoneCount = m_pSkeletonInstance->GetBoneCount();
+			const size_t nBoneCount = m_pSkeletonInstance->GetBoneCount();
 			if (nBoneCount == 0)
 				return;
 
@@ -153,7 +153,7 @@ namespace EastEngine
 				if (pBone == nullptr)
 					continue;
 
-				const KeyframeTemp& keyframe = m_umapKeyframe[pBone->GetName()];
+				const MotionTransform& keyframe = m_vecMotionTransforms[i];
 				pBone->SetMotionMatrix(keyframe.motionTransform.Compose());
 			}
 		}

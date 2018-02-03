@@ -32,12 +32,12 @@ namespace EastEngine
 
 			std::array<MotionPlayer, EmMotion::eLayerCount> m_motionPlayers;
 
-			struct KeyframeTemp
+			struct MotionTransform
 			{
 				Math::Transform motionTransform;
 				Math::Transform defaultTransform;
 			};
-			std::unordered_map<String::StringID, KeyframeTemp> m_umapKeyframe;
+			std::vector<MotionTransform> m_vecMotionTransforms;
 
 			ISkeletonInstance* m_pSkeletonInstance;
 		};
