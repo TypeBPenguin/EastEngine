@@ -485,6 +485,9 @@
     <ClCompile Include="ShadowCube.cpp">
       <Filter>Shadow</Filter>
     </ClCompile>
+    <ClCompile Include="MaskedOcclusionCullingAVX512.cpp">
+      <Filter>PreProcessing\MaskedOcclusionCulling\Library</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\..\Bin\Data\Fx\UI\UI.fx">
@@ -572,6 +575,9 @@
     </None>
     <None Include="..\..\Bin\Data\Fx\Model\Common.fx">
       <Filter>DirectX\Shader\Fx\Model</Filter>
+    </None>
+    <None Include="CompilerSpecific.inl">
+      <Filter>PreProcessing\MaskedOcclusionCulling\Library</Filter>
     </None>
   </ItemGroup>
 </Project>

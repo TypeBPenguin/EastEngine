@@ -564,7 +564,6 @@ float3 LoadNormal(int2 pos)
 #endif
 
 	normal = normalize(normal);
-	normal.z = -normal.z;
 
 	return normal;
 
@@ -582,7 +581,6 @@ float3 LoadNormal(int2 pos, int2 offset)
 #endif
 
 	normal = normalize(normal);
-	normal.z = -normal.z;
 
 	return normal;
 

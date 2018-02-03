@@ -3,6 +3,8 @@
 
 #include "Vertex.h"
 
+#include "OcclusionCulling.h"
+
 namespace EastEngine
 {
 	namespace Graphics
@@ -74,7 +76,7 @@ namespace EastEngine
 
 				/*if ((nOptions & Option::eSaveVertexClipSpace) != 0)
 				{
-					m_vecVertexClipSpace.resize(bufferData.dataCount);
+					m_vecVertexClipSpace.resize(nElementCount);
 
 					const byte* pValue = static_cast<const byte*>(pData);
 

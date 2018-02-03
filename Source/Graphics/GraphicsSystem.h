@@ -17,7 +17,7 @@ namespace EastEngine
 		class ModelManager;
 		class MotionManager;
 		class ParticleManager;
-		class SOcclusionCulling;
+		class OcclusionCulling;
 		class VTFManager;
 
 		typedef std::function<void()> FuncAfterRender;
@@ -57,7 +57,7 @@ namespace EastEngine
 			ModelManager* GetModelMgr() { return s_pModelMgr; }
 			MotionManager* GetMotionMgr() { return s_pMotionMgr; }
 			ParticleManager* GetEffectMgr() { return s_pParticleMgr; }
-			SOcclusionCulling* GetOcclusionCulling() { return s_pOcclusionCulling; }
+			OcclusionCulling* GetOcclusionCulling() { return s_pOcclusionCulling; }
 			VTFManager* GetVTFMgr() { return s_pVTFMgr; }
 
 		private:
@@ -70,7 +70,7 @@ namespace EastEngine
 			ModelManager* s_pModelMgr;
 			MotionManager* s_pMotionMgr;
 			ParticleManager* s_pParticleMgr;
-			SOcclusionCulling* s_pOcclusionCulling;
+			OcclusionCulling* s_pOcclusionCulling;
 			VTFManager* s_pVTFMgr;
 
 			float m_fFlushTime;

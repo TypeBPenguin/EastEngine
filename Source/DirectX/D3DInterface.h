@@ -295,6 +295,7 @@ namespace EastEngine
 
 			virtual const void* GetRawValuePtr() const = 0;
 			virtual const VertexPos* GetVertexPosPtr() const = 0;
+			//virtual const VertexClipSpace* GetVertexClipSpace() const = 0;
 		};
 
 		class IIndexBuffer

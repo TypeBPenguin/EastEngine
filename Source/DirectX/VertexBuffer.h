@@ -12,7 +12,7 @@ namespace EastEngine
 			VertexBuffer();
 			virtual ~VertexBuffer();
 
-			bool Init(EmVertexFormat::Type emVertexFormat, uint32_t nElementCount, const void* pData, D3D11_USAGE emUsage = D3D11_USAGE_DEFAULT, uint32_t nOptions = IVertexBuffer::Option::eNone);
+			bool Init(EmVertexFormat::Type emVertexFormat, size_t nElementCount, const void* pData, D3D11_USAGE emUsage = D3D11_USAGE_DEFAULT, uint32_t nOptions = IVertexBuffer::Option::eNone);
 
 		public:
 			virtual ID3D11Buffer* const* GetBufferPtr() const override { return &m_pVertexBuffer; }
@@ -39,7 +39,13 @@ namespace EastEngine
 				return &m_vecVertexPos.front();
 			}
 
-			//const std::vector<VertexClipSpace>& GetVertexClipSpaceVector() const { return m_vecVertexClipSpace; }
+			/*virtual const VertexClipSpace* GetVertexClipSpace() const override
+			{
+				if (m_vecVertexClipSpace.empty() == true)
+					return nullptr;
+
+				return &m_vecVertexClipSpace.front();
+			}*/
 
 		private:
 			ID3D11Buffer* m_pVertexBuffer;

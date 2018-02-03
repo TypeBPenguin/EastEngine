@@ -1,30 +1,18 @@
-/*
- * Copyright (c) 2016, Intel Corporation
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * - Redistributions of source code must retain the above copyright notice,
- *   this list of conditions and the following disclaimer.
- * - Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
- * - Neither the name of Intel Corporation nor the names of its contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- */
+////////////////////////////////////////////////////////////////////////////////
+// Copyright 2017 Intel Corporation
+//
+// Licensed under the Apache License, Version 2.0 (the "License"); you may not
+// use this file except in compliance with the License.  You may obtain a copy
+// of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+// WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+// License for the specific language governing permissions and limitations
+// under the License.
+////////////////////////////////////////////////////////////////////////////////
 #include "stdafx.h"
 #include <assert.h>
 #include "CullingThreadpool.h"
@@ -33,8 +21,8 @@
 #define SAFE_DELETE_ARRAY(X) {if (X != nullptr) delete[] X; X = nullptr;}
 
 template<class T> CullingThreadpool::StateData<T>::StateData(unsigned int maxJobs) :
-	mCurrentIdx(~0u),
-	mMaxJobs(maxJobs)
+	mMaxJobs(maxJobs),
+	mCurrentIdx(std::numeric_limits<unsigned int>::max())
 {
 	mData = new T[mMaxJobs];
 }
@@ -124,7 +112,8 @@ inline void CullingThreadpool::RenderJobQueue::AdvanceRenderJob(int binIdx)
 inline unsigned int CullingThreadpool::RenderJobQueue::GetBestGlobalQueue() const
 {
 	// Find least advanced queue
-	unsigned int bestBin = ~0u, bestPtr = mWritePtr;
+	unsigned int bestBin = std::numeric_limits<unsigned int>::max();
+	unsigned int bestPtr = mWritePtr;
 	for (unsigned int i = 0; i < mNumBins; ++i)
 	{
 		if (mRenderPtrs[i] < bestPtr && mBinMutexes[i] == 0)
@@ -143,17 +132,12 @@ inline bool CullingThreadpool::RenderJobQueue::IsPipelineEmpty() const
 
 inline bool CullingThreadpool::RenderJobQueue::CanWrite() const
 {
-	return mWritePtr - mBinningCompletedPtr < mMaxJobs;
+	return mWritePtr - GetMinRenderPtr() < mMaxJobs;
 }
 
 inline bool CullingThreadpool::RenderJobQueue::CanBin() const
 {
 	return mBinningPtr < mWritePtr && mBinningPtr - GetMinRenderPtr() < mMaxJobs;
-}
-
-inline bool CullingThreadpool::RenderJobQueue::CanRender(int binIdx) const
-{
-	return mRenderPtrs[binIdx] < mBinningCompletedPtr;
 }
 
 inline CullingThreadpool::RenderJobQueue::Job *CullingThreadpool::RenderJobQueue::GetWriteJob()
@@ -182,14 +166,7 @@ inline CullingThreadpool::RenderJobQueue::Job *CullingThreadpool::RenderJobQueue
 
 inline void CullingThreadpool::RenderJobQueue::FinishedBinningJob(Job *job)
 {
-	// Increment pointer until all finished jobs are accounted for
 	job->mBinningJobCompletedIdx = job->mBinningJobStartedIdx;
-	unsigned int completedPtr = mBinningCompletedPtr;
-	while (completedPtr < mBinningPtr && mJobs[completedPtr % mMaxJobs].mBinningJobCompletedIdx == completedPtr)
-	{
-		mBinningCompletedPtr.compare_exchange_strong(completedPtr, completedPtr + 1);
-		completedPtr = mBinningCompletedPtr;
-	}
 }
 
 inline CullingThreadpool::RenderJobQueue::Job *CullingThreadpool::RenderJobQueue::GetRenderJob(int binIdx)
@@ -200,7 +177,7 @@ inline CullingThreadpool::RenderJobQueue::Job *CullingThreadpool::RenderJobQueue
 		return nullptr;
 
 	// Check any items in the queue, and bail if empty
-	if (mRenderPtrs[binIdx] >= mBinningCompletedPtr.load())
+	if (mRenderPtrs[binIdx] != mJobs[mRenderPtrs[binIdx] % mMaxJobs].mBinningJobCompletedIdx)
 	{
 		mBinMutexes[binIdx] = 0;
 		return nullptr;
@@ -212,7 +189,6 @@ inline CullingThreadpool::RenderJobQueue::Job *CullingThreadpool::RenderJobQueue
 void CullingThreadpool::RenderJobQueue::Reset()
 {
 	mWritePtr = 0;
-	mBinningCompletedPtr = 0;
 	mBinningPtr = 0;
 
 	for (unsigned int i = 0; i < mNumBins; ++i)
@@ -220,8 +196,8 @@ void CullingThreadpool::RenderJobQueue::Reset()
 
 	for (unsigned int i = 0; i < mMaxJobs; ++i)
 	{
-		mJobs[i].mBinningJobCompletedIdx = std::numeric_limits<uint32_t>::max();
-		mJobs[i].mBinningJobStartedIdx = std::numeric_limits<uint32_t>::max();
+		mJobs[i].mBinningJobCompletedIdx = std::numeric_limits<unsigned int>::max();
+		mJobs[i].mBinningJobStartedIdx = std::numeric_limits<unsigned int>::max();
 	}
 }
 
@@ -234,12 +210,9 @@ void CullingThreadpool::SetupScissors()
 	unsigned int width, height;
 	mMOC->GetResolution(width, height);
 
-	// Scissor box of masked occlusion culling library must be a multiple of 32x8 
-	const unsigned int BIN_WIDTH_CLAMP = 32;
-	const unsigned int BIN_HEIGHT_CLAMP = 8;
-
-	unsigned int binWidth = (width / mBinsW) - ((width / mBinsW) % BIN_WIDTH_CLAMP);
-	unsigned int binHeight = (height / mBinsH) - ((height / mBinsH) % BIN_HEIGHT_CLAMP);
+	unsigned int binWidth;
+	unsigned int binHeight;
+	mMOC->ComputeBinWidthHeight(mBinsW, mBinsH, binWidth, binHeight);
 
 	for (unsigned int ty = 0; ty < mBinsH; ++ty)
 	{
@@ -300,14 +273,14 @@ void CullingThreadpool::ThreadMain(unsigned int threadIdx)
 			if (mRenderQueue->CanBin())
 			{
 				// If no more rasterization jobs, get next binning job
-				RenderJobQueue::Job *benningJob = mRenderQueue->GetBinningJob();
-				if (benningJob != nullptr)
+				RenderJobQueue::Job *binningJob = mRenderQueue->GetBinningJob();
+				if (binningJob != nullptr)
 				{
-					RenderJobQueue::BinningJob &sjob = benningJob->mBinningJob;
+					RenderJobQueue::BinningJob &sjob = binningJob->mBinningJob;
 					for (unsigned int i = 0; i < mNumBins; ++i)
-						benningJob->mRenderJobs[i].mTriIdx = 0;
-					mMOC->BinTriangles(sjob.mVerts, sjob.mTris, sjob.nTris, benningJob->mRenderJobs, mBinsW, mBinsH, sjob.mMatrix, sjob.mClipPlanes, *sjob.mVtxLayout);
-					mRenderQueue->FinishedBinningJob(benningJob);
+						binningJob->mRenderJobs[i].mTriIdx = 0;
+					mMOC->BinTriangles(sjob.mVerts, sjob.mTris, sjob.nTris, binningJob->mRenderJobs, mBinsW, mBinsH, sjob.mMatrix, sjob.mBfWinding, sjob.mClipPlanes, *sjob.mVtxLayout);
+					mRenderQueue->FinishedBinningJob(binningJob);
 				}
 				continue;
 			}
@@ -318,11 +291,11 @@ void CullingThreadpool::ThreadMain(unsigned int threadIdx)
 				binIdx = mRenderQueue->GetBestGlobalQueue();
 				if (binIdx < mRenderQueue->mNumBins)
 				{
-					RenderJobQueue::Job *benningJob = mRenderQueue->GetRenderJob(binIdx);
-					if (benningJob != nullptr)
+					RenderJobQueue::Job *renderJob = mRenderQueue->GetRenderJob(binIdx);
+					if (renderJob != nullptr)
 					{
-						if (benningJob->mRenderJobs[binIdx].mTriIdx > 0)
-							mMOC->RenderTrilist(benningJob->mRenderJobs[binIdx], &mRects[binIdx]);
+						if (renderJob->mRenderJobs[binIdx].mTriIdx > 0)
+							mMOC->RenderTrilist(renderJob->mRenderJobs[binIdx], &mRects[binIdx]);
 
 						mRenderQueue->AdvanceRenderJob(binIdx);
 					}
@@ -343,15 +316,15 @@ void CullingThreadpool::ThreadMain(unsigned int threadIdx)
 
 CullingThreadpool::CullingThreadpool(unsigned int numThreads, unsigned int binsW, unsigned int binsH, unsigned int maxJobs) :
 	mNumThreads(numThreads),
+	mMaxJobs(maxJobs),
+	mBinsW(binsW),
+	mBinsH(binsH),
 	mKillThreads(false),
 	mSuspendThreads(true),
 	mNumSuspendedThreads(0),
-	mBinsW(binsW),
-	mBinsH(binsH),
-	mMOC(nullptr),
-	mVertexLayouts(maxJobs),
 	mModelToClipMatrices(maxJobs),
-	mMaxJobs(maxJobs)
+	mVertexLayouts(maxJobs),
+	mMOC(nullptr)
 {
 	mNumBins = mBinsW*mBinsH;
 	assert(mNumBins >= mNumThreads);	// Having less bins than threads is a bad idea!
@@ -374,8 +347,8 @@ CullingThreadpool::~CullingThreadpool()
 	// Wait for threads to terminate
 	if (mThreads != nullptr || !mKillThreads)
 	{
-		mKillThreads = true;
 		WakeThreads();
+		mKillThreads = true;
 		for (unsigned int i = 0; i < mNumThreads; ++i)
 			mThreads[i].join();
 
@@ -459,9 +432,13 @@ void CullingThreadpool::ClearBuffer()
 	mMOC->ClearBuffer();
 }
 
-void CullingThreadpool::RenderTriangles(const float *inVtx, const unsigned int *inTris, int nTris, ClipPlanes clipPlaneMask)
+void CullingThreadpool::RenderTriangles(const float *inVtx, const unsigned int *inTris, int nTris, BackfaceWinding bfWinding, ClipPlanes clipPlaneMask)
 {
-	for (int i = 0; i < nTris; i += TRIS_PER_JOB)
+#if MOC_RECORDER_ENABLE != 0
+    mMOC->RecordRenderTriangles( inVtx, inTris, nTris, mCurrentMatrix, clipPlaneMask, bfWinding, *mVertexLayouts.GetData( ) );
+#endif
+
+    for (int i = 0; i < nTris; i += TRIS_PER_JOB)
 	{
 		// Yield if work queue is full 
 		while (!mRenderQueue->CanWrite())
@@ -474,6 +451,7 @@ void CullingThreadpool::RenderTriangles(const float *inVtx, const unsigned int *
 		job->mBinningJob.nTris = nTris - i < TRIS_PER_JOB ? nTris - i : TRIS_PER_JOB;
 		job->mBinningJob.mMatrix = mCurrentMatrix;
 		job->mBinningJob.mClipPlanes = clipPlaneMask;
+		job->mBinningJob.mBfWinding = bfWinding;
 		job->mBinningJob.mVtxLayout = mVertexLayouts.GetData();
 		mRenderQueue->AdvanceWriteJob();
 	}
@@ -484,13 +462,13 @@ CullingThreadpool::CullingResult CullingThreadpool::TestRect(float xmin, float y
 	return mMOC->TestRect(xmin, ymin, xmax, ymax, wmin);
 }
 
-CullingThreadpool::CullingResult CullingThreadpool::TestTriangles(const float *inVtx, const unsigned int *inTris, int nTris, ClipPlanes clipPlaneMask)
+CullingThreadpool::CullingResult CullingThreadpool::TestTriangles(const float *inVtx, const unsigned int *inTris, int nTris, BackfaceWinding bfWinding, ClipPlanes clipPlaneMask)
 {
-	return mMOC->TestTriangles(inVtx, inTris, nTris, mCurrentMatrix, clipPlaneMask, nullptr, *mVertexLayouts.GetData());
+	return mMOC->TestTriangles(inVtx, inTris, nTris, mCurrentMatrix, bfWinding, clipPlaneMask, *mVertexLayouts.GetData());
 }
 
-void CullingThreadpool::ComputePixelDepthBuffer(float *depthData)
+void CullingThreadpool::ComputePixelDepthBuffer(float *depthData, bool flipY)
 {
 	Flush();
-	mMOC->ComputePixelDepthBuffer(depthData);
+	mMOC->ComputePixelDepthBuffer(depthData, flipY);
 }

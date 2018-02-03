@@ -2,9 +2,6 @@
 
 #include "CommonLib/Singleton.h"
 
-class MaskedOcclusionCulling;
-class CullingThreadpool;
-
 namespace EastEngine
 {
 	namespace Graphics
@@ -12,42 +9,43 @@ namespace EastEngine
 		struct VertexPos;
 		struct VertexClipSpace;
 
-		namespace EmOcclusionCulling
+		class OcclusionCulling : public Singleton<OcclusionCulling>
 		{
+			friend Singleton<OcclusionCulling>;
+		private:
+			OcclusionCulling();
+			virtual ~OcclusionCulling();
+
+		public:
 			enum Result
 			{
 				eVisible = 0,
 				eOccluded = 1,
 				eViewCulled = 2,
 			};
-		}
-
-		class SOcclusionCulling : public Singleton<SOcclusionCulling>
-		{
-			friend Singleton<SOcclusionCulling>;
-		private:
-			SOcclusionCulling();
-			virtual ~SOcclusionCulling();
 
 		public:
-			bool Init(uint32_t nWidth, uint32_t nHeight, float fNearClipPlane);
-			void Release();
+			void Initialize(uint32_t nWidth, uint32_t nHeight, float fNearClipPlane);
 
+		public:
 			void ClearBuffer();
 			void Flush();
 			void Start();
 			void End();
 
+		public:
 			void TransformVertices(const Math::Matrix& matWorld, const VertexPos* pVertexPos, VertexClipSpace* pVertexClipSpace_out, uint32_t nVertexCount);
-			EmOcclusionCulling::Result RenderTriangles(const VertexClipSpace* pVertexClipSpace, const uint32_t* pIndexData, uint32_t nIndexCount, const Math::Matrix* pMatModelToClipSpace = nullptr);
-			EmOcclusionCulling::Result TestTriangles(const VertexClipSpace* pVertexClipSpace, const uint32_t* pIndexData, uint32_t nIndexCount, const Math::Matrix* pMatModelToClipSpace = nullptr);
+			Result RenderTriangles(const Math::Matrix& matWorld, const VertexPos* pVertexPos, size_t nVertexCount, const uint32_t* pIndexData, uint32_t nIndexCount);
+			Result RenderTriangles(const Math::Matrix& matWorld, const VertexClipSpace* pVertexClipSpace, const uint32_t* pIndexData, uint32_t nIndexCount);
+			Result TestTriangles(const Math::Matrix& matWorld, const VertexPos* pVertexPos, size_t nVertexCount, const uint32_t* pIndexData, uint32_t nIndexCount);
+			Result TestTriangles(const Math::Matrix& matWorld, const VertexClipSpace* pVertexClipSpace, const uint32_t* pIndexData, uint32_t nIndexCount);
 
-			void Write();
+		public:
+			void Write(const char* strPath = "C:\\image.bmp");
 
 		private:
-			bool m_bInit;
-			MaskedOcclusionCulling* m_pMaskedOcclusionCulling;
-			CullingThreadpool* m_pCullingThreadPool;
+			class Impl;
+			std::unique_ptr<Impl> m_pImpl;
 		};
 	}
 }

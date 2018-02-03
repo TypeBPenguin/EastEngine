@@ -165,6 +165,7 @@
     <ClCompile Include="d3dDefine.cpp" />
     <ClCompile Include="DeviceContext.cpp" />
     <ClCompile Include="EffectInterface.cpp" />
+    <ClCompile Include="MaskedOcclusionCullingAVX512.cpp" />
     <ClCompile Include="Resource.cpp" />
     <ClCompile Include="Shadow.cpp" />
     <ClCompile Include="ShadowCube.cpp" />
@@ -423,6 +424,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Effect</ShaderType>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)\Bin\Data\Fx\UI\%(Filename).cso</ObjectFileOutput>
     </FxCompile>
+    <None Include="CompilerSpecific.inl" />
     <None Include="MaskedOcclusionCullingCommon.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

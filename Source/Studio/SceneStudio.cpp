@@ -7,6 +7,7 @@
 #include "DirectX/CameraManager.h"
 #include "DirectX/Light.h"
 #include "DirectX/MaterialNode.h"
+#include "DirectX/OcclusionCulling.h"
 
 #include "Renderer/ASSAO.h"
 #include "Renderer/DepthOfField.h"
@@ -1071,6 +1072,26 @@ void SceneStudio::ShowConfig()
 
 	if (ImGui::CollapsingHeader("Debug") == true)
 	{
+		if (ImGui::TreeNode("OcclusionCulling"))
+		{
+			ImGui::PushID("OcclusionCulling");
+
+			bool isEnableOcclusionCulling = Config::IsEnable("OcclusionCulling"_s);
+			if (ImGui::Checkbox("Apply", &isEnableOcclusionCulling) == true)
+			{
+				Config::SetEnable("OcclusionCulling"_s, isEnableOcclusionCulling);
+			}
+
+			if (ImGui::Button("SaveImageFile") == true)
+			{
+				Graphics::OcclusionCulling::GetInstance()->Write("image.bmp");
+			}
+
+			ImGui::PopID();
+
+			ImGui::TreePop();
+		}
+
 		if (ImGui::TreeNode("CollisionMesh"))
 		{
 			ImGui::PushID("CollisionMesh");

@@ -102,13 +102,8 @@ namespace EastEngine
 				return false;
 			}
 
-			s_pOcclusionCulling = SOcclusionCulling::GetInstance();
-			if (s_pOcclusionCulling->Init(n2ScreenSize.x, n2ScreenSize.y, s_fScreenNear) == false)
-			{
-				LOG_ERROR("Failed SOcclusionCulling Initialize, s_pOcclusionCulling");
-				Release();
-				return false;
-			}
+			//s_pOcclusionCulling = OcclusionCulling::GetInstance();
+			//s_pOcclusionCulling->Initialize(n2ScreenSize.x, n2ScreenSize.y, s_fScreenNear);
 
 			s_pVTFMgr = VTFManager::GetInstance();
 			if (s_pVTFMgr->Init() == false)
@@ -141,8 +136,8 @@ namespace EastEngine
 			SafeRelease(s_pVTFMgr);
 			VTFManager::DestroyInstance();
 
-			SafeRelease(s_pOcclusionCulling);
-			SOcclusionCulling::DestroyInstance();
+			OcclusionCulling::DestroyInstance();
+			s_pOcclusionCulling = nullptr;
 
 			SafeRelease(s_pParticleMgr);
 			ParticleManager::DestroyInstance();
@@ -228,7 +223,7 @@ namespace EastEngine
 		{
 			s_pd3dObject->BeginScene(r, g, b, a);
 
-			s_pOcclusionCulling->ClearBuffer();
+			//s_pOcclusionCulling->ClearBuffer();
 		}
 
 		void GraphicsSystem::EndScene()

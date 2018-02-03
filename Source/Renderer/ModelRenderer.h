@@ -35,11 +35,13 @@ namespace EastEngine
 			virtual void AddRender(const RenderSubsetSkinned& renderSubset) override;
 
 		private:
-			void renderStaticModel(IDevice* pDevice, Camera* pCamera, uint32_t nRenderGroupFlag, uint32_t nRenderTypeFlag);
-			void renderSkinnedModel(IDevice* pDevice, Camera* pCamera, uint32_t nRenderGroupFlag, uint32_t nRenderTypeFlag);
+			void OcclusionCulling(Camera* pCamera, uint32_t nRenderGroupFlag);
 
-			void renderStaticModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, const Math::Matrix* pMatView, const Math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap);
-			void renderSkinnedModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, const Math::Matrix* pMatView, const Math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap);
+			void RenderStaticModel(IDevice* pDevice, Camera* pCamera, uint32_t nRenderGroupFlag, uint32_t nRenderTypeFlag);
+			void RenderSkinnedModel(IDevice* pDevice, Camera* pCamera, uint32_t nRenderGroupFlag, uint32_t nRenderTypeFlag);
+
+			void RenderStaticModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, const Math::Matrix* pMatView, const Math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap);
+			void RenderSkinnedModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, const Math::Matrix* pMatView, const Math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap);
 
 		private:
 			struct StaticSubset
@@ -47,6 +49,7 @@ namespace EastEngine
 				std::pair<const void*, IMaterial*> pairKey;
 				RenderSubsetStatic data;
 				bool isCulling = false;
+				std::vector<VertexClipSpace> vecVertexClipSpace;
 
 				void Set(const RenderSubsetStatic& source)
 				{

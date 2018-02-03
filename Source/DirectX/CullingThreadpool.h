@@ -1,30 +1,18 @@
-/*
- * Copyright (c) 2016, Intel Corporation
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * - Redistributions of source code must retain the above copyright notice,
- *   this list of conditions and the following disclaimer.
- * - Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
- * - Neither the name of Intel Corporation nor the names of its contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- */
+////////////////////////////////////////////////////////////////////////////////
+// Copyright 2017 Intel Corporation
+//
+// Licensed under the Apache License, Version 2.0 (the "License"); you may not
+// use this file except in compliance with the License.  You may obtain a copy
+// of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+// WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+// License for the specific language governing permissions and limitations
+// under the License.
+////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
  /*!
@@ -56,11 +44,12 @@ class CullingThreadpool
 protected:
 	static const int TRIS_PER_JOB = 1024; // Maximum number of triangles per job (bigger drawcalls are split), affects memory requirements
 
-	typedef MaskedOcclusionCulling::CullingResult	CullingResult;
-	typedef MaskedOcclusionCulling::ClipPlanes		ClipPlanes;
-	typedef MaskedOcclusionCulling::ScissorRect		ScissorRect;
-	typedef MaskedOcclusionCulling::VertexLayout	VertexLayout;
-	typedef MaskedOcclusionCulling::TriList			TriList;
+	typedef MaskedOcclusionCulling::CullingResult   CullingResult;
+	typedef MaskedOcclusionCulling::ClipPlanes      ClipPlanes;
+	typedef MaskedOcclusionCulling::BackfaceWinding BackfaceWinding;
+	typedef MaskedOcclusionCulling::ScissorRect     ScissorRect;
+	typedef MaskedOcclusionCulling::VertexLayout    VertexLayout;
+	typedef MaskedOcclusionCulling::TriList         TriList;
 
 	// Small utility class for 4x4 matrices
 	struct Matrix4x4
@@ -79,34 +68,34 @@ protected:
 	{
 		struct BinningJob
 		{
-			const float*		mVerts;
-			const unsigned int*	mTris;
-			unsigned int		nTris;
+			const float*        mVerts;
+			const unsigned int* mTris;
+			unsigned int        nTris;
 
-			const float*		mMatrix;
-			ClipPlanes			mClipPlanes;
+			const float*        mMatrix;
+			ClipPlanes          mClipPlanes;
+			BackfaceWinding     mBfWinding;
 			const VertexLayout* mVtxLayout;
 		};
 
 		struct Job
 		{
-			volatile unsigned int	mBinningJobStartedIdx;
-			volatile unsigned int	mBinningJobCompletedIdx;
-			BinningJob				mBinningJob;
-			TriList					*mRenderJobs;
+			volatile unsigned int mBinningJobStartedIdx;
+			volatile unsigned int mBinningJobCompletedIdx;
+			BinningJob            mBinningJob;
+			TriList               *mRenderJobs;
 		};
 
-		unsigned int			mNumBins;
-		unsigned int			mMaxJobs;
+		unsigned int          mNumBins;
+		unsigned int          mMaxJobs;
 
-		volatile unsigned int	mWritePtr;
-		std::atomic_uint		mBinningPtr;
-		std::atomic_uint		mBinningCompletedPtr;
-		std::atomic_uint		*mRenderPtrs;
-		std::atomic_uint		*mBinMutexes;
+		volatile unsigned int mWritePtr;
+		std::atomic_uint      mBinningPtr;
+		std::atomic_uint      *mRenderPtrs;
+		std::atomic_uint      *mBinMutexes;
 
-		float					*mTrilistData;
-		Job						*mJobs;
+		float                 *mTrilistData;
+		Job                   *mJobs;
 
 		RenderJobQueue(unsigned int nBins, unsigned int maxJobs);
 		~RenderJobQueue();
@@ -117,7 +106,6 @@ protected:
 
 		bool CanWrite() const;
 		bool CanBin() const;
-		bool CanRender(int binIdx) const;
 
 		Job *GetWriteJob();
 		void AdvanceWriteJob();
@@ -134,9 +122,9 @@ protected:
 	// Internal utility class for state (matrix / vertex layout)
 	template<class T> struct StateData
 	{
-		unsigned int	mMaxJobs;
-		unsigned int	mCurrentIdx;
-		T				*mData;
+		unsigned int mMaxJobs;
+		unsigned int mCurrentIdx;
+		T            *mData;
 
 		StateData(unsigned int maxJobs);
 		~StateData();
@@ -145,29 +133,29 @@ protected:
 	};
 
 	// Number of worker threads and bins
-	unsigned int					mNumThreads;
-	unsigned int					mNumBins;
-	unsigned int					mMaxJobs;
-	unsigned int					mBinsW;
-	unsigned int					mBinsH;
+	unsigned int            mNumThreads;
+	unsigned int            mNumBins;
+	unsigned int            mMaxJobs;
+	unsigned int            mBinsW;
+	unsigned int            mBinsH;
 
 	// Threads and control variables
-	std::mutex						mSuspendedMutex;
-	std::condition_variable			mSuspendedCV;
-	volatile bool					mKillThreads;
-	volatile bool					mSuspendThreads;
-	volatile unsigned int			mNumSuspendedThreads;
-	std::thread						*mThreads;
+	std::mutex              mSuspendedMutex;
+	std::condition_variable mSuspendedCV;
+	volatile bool           mKillThreads;
+	volatile bool           mSuspendThreads;
+	volatile unsigned int   mNumSuspendedThreads;
+	std::thread             *mThreads;
 
 	// State variables and command queue
-	const float						*mCurrentMatrix;
-	StateData<Matrix4x4>			mModelToClipMatrices;
-	StateData<VertexLayout>			mVertexLayouts;
-	RenderJobQueue					*mRenderQueue;
+	const float             *mCurrentMatrix;
+	StateData<Matrix4x4>    mModelToClipMatrices;
+	StateData<VertexLayout> mVertexLayouts;
+	RenderJobQueue          *mRenderQueue;
 
 	// Occlusion culling object and related scissor rectangles
-	ScissorRect						*mRects;
-	MaskedOcclusionCulling			*mMOC;
+	ScissorRect             *mRects;
+	MaskedOcclusionCulling  *mMOC;
 
 	void SetupScissors();
 
@@ -237,7 +225,7 @@ public:
 	void SetBuffer(MaskedOcclusionCulling *moc);
 
 	/*
-	 * \brief Changes the resolution of the occlusion buffer, see MaskedOcclusionCulling::SetResolution(). 
+	 * \brief Changes the resolution of the occlusion buffer, see MaskedOcclusionCulling::SetResolution().
 	 *        This method causes a Flush() to ensure that all unfinished rendering is completed.
 	 */
 	void SetResolution(unsigned int width, unsigned int height);
@@ -287,7 +275,7 @@ public:
 	 * is finished, or make sure to rotate between more buffers than the maximum number of outstanding
 	 * render jobs (see the CullingThreadpool() constructor).
 	 */
-	void RenderTriangles(const float *inVtx, const unsigned int *inTris, int nTris, ClipPlanes clipPlaneMask = MaskedOcclusionCulling::CLIP_PLANE_ALL);
+	void RenderTriangles(const float *inVtx, const unsigned int *inTris, int nTris, BackfaceWinding bfWinding = MaskedOcclusionCulling::BACKFACE_CW, ClipPlanes clipPlaneMask = MaskedOcclusionCulling::CLIP_PLANE_ALL);
 
 	/*
 	 * \brief Occlusion query for a rectangle with a given depth, see MaskedOcclusionCulling::TestRect().
@@ -310,12 +298,12 @@ public:
 	 * <B>Important:</B> See the TestRect() method for a brief discussion about asynchronous occlusion 
 	 * queries.
 	 */
-	CullingResult TestTriangles(const float *inVtx, const unsigned int *inTris, int nTris, ClipPlanes clipPlaneMask = MaskedOcclusionCulling::CLIP_PLANE_ALL);
+	CullingResult TestTriangles(const float *inVtx, const unsigned int *inTris, int nTris, BackfaceWinding bfWinding = MaskedOcclusionCulling::BACKFACE_CW, ClipPlanes clipPlaneMask = MaskedOcclusionCulling::CLIP_PLANE_ALL);
 
 	/*!
 	 * \brief Creates a per-pixel depth buffer from the hierarchical z buffer representation, see
 	 *        MaskedOcclusionCulling::ComputePixelDepthBuffer(). This method causes a Flush() to 
 	 *        ensure that all unfinished rendering is completed.
 	 */
-	void ComputePixelDepthBuffer(float *depthData);
+	void ComputePixelDepthBuffer(float *depthData, bool flipY);
 };

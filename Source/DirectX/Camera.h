@@ -58,7 +58,7 @@ namespace EastEngine
 			Collision::EmContainment::Type IsFrustumContains(const Collision::OBB& box) { return m_frustum.Contains(box); }
 			Collision::EmContainment::Type IsFrustumContains(const Collision::Sphere& sphere) { return m_frustum.Contains(sphere); }
 			Collision::EmContainment::Type IsFrustumContains(const Math::Vector3& vPos) { return m_frustum.Contains(vPos); }
-			const Collision::Frustum& GetFrustum() { return m_frustum; }
+			const Collision::Frustum& GetFrustum() const { return m_frustum; }
 
 			float GetFarClip() const { return m_frustum.Far; }
 			float GetNearClip() const { return m_frustum.Near; }

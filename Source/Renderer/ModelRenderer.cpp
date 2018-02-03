@@ -715,107 +715,7 @@ namespace EastEngine
 				return;
 			}
 
-			/*const Math::Vector3& f3CameraPos = pCamera->GetPosition();
-			{
-				D3D_PROFILING(SortStaticModel);
-				std::sort(m_vecStaticSubsets.begin(), m_vecStaticSubsets.end(), [&f3CameraPos](const StaticSubset& a, const StaticSubset& b) -> bool
-				{
-					return a.fDepth < b.fDepth;
-				});
-			}*/
-
-			//{
-			//	std::vector<int> check, check2;
-			//	check.resize(3);
-			//	check2.resize(3);
-
-			//	Performance::Counter counter1;
-
-			//	//uint32_t nVertexTotalCount = 0;
-			//	//uint32_t nIndexTotalCount = 0;
-
-			//	static const Math::Matrix matViewport
-			//	(
-			//		1.0f, 0.0f, 0.0f, 0.0f,
-			//		0.0f, -1.0f, 0.0f, 0.0f,
-			//		0.0f, 0.0f, 1.0f, 0.0f,
-			//		0.0f, 0.0f, 0.0f, 1.0f
-			//	);
-
-			//	Math::Matrix matViewProjPort = pCamera->GetViewMatrix() * pCamera->GetProjMatrix() * matViewport;
-
-			//	counter1.Start();
-			//	{
-			//		D3D_PROFILING(OcclusionCulling_Render);
-
-			//		if (Config::IsEnable(String::StringKey("OcclusionCulling"_s)) == true)
-			//		{
-			//			SOcclusionCulling::GetInstance()->Start();
-			//			std::for_each(m_vecStaticSubsets.begin(), m_vecStaticSubsets.end(), [&](StaticSubset& subset)
-			//			{
-			//				const RenderSubsetStatic& renderSubset = *subset.pRenderSubset;
-			//			
-			//				const std::vector<VertexClipSpace>& vecClipSpace = renderSubset.pVertexBuffer->GetVertexClipSpaceVector();
-			//				const VertexPos* pVertexPos = renderSubset.pVertexBuffer->GetVertexPosPtr();
-			//				if (pVertexPos != nullptr)
-			//				{
-			//					nVertexTotalCount += renderSubset.pVertexBuffer->GetVertexNum();
-			//					nIndexTotalCount += renderSubset.pIndexBuffer->GetIndexNum();
-			//			
-			//					Math::Matrix matClipSpace = subset.matWorld * matViewProjPort;
-			//			
-			//					const uint32_t* pIndexData = reinterpret_cast<const uint32_t*>(renderSubset.pIndexBuffer->GetRawValuePtr());
-			//					EmOcclusionCulling::Result result = SOcclusionCulling::GetInstance()->RenderTriangles(&vecClipSpace.front(), pIndexData, renderSubset.pIndexBuffer->GetIndexNum(), &matClipSpace);
-			//			
-			//					check[result]++;
-			//			
-			//					if (result != EmOcclusionCulling::eVisible)
-			//					{
-			//						subset.isCulling = true;
-			//					}
-			//				}
-			//			});
-			//			SOcclusionCulling::GetInstance()->Flush();
-			//			SOcclusionCulling::GetInstance()->End();
-			//		}
-			//	}
-			//	counter1.End();
-
-			//	Performance::Counter counter2;
-			//	counter2.Start();
-			//	{
-			//		D3D_PROFILING(OcclusionCulling_Test);
-
-			//		if (Config::IsEnable(String::StringKey("OcclusionCulling"_s)) == true)
-			//		{
-			//			//Concurrency::parallel_for_each(m_vecStaticSubsets.begin(), m_vecStaticSubsets.end(), [&](RenderSubset& subset)
-			//			std::for_each(m_vecStaticSubsets.begin(), m_vecStaticSubsets.end(), [&](StaticSubset& subset)
-			//			{
-			//				const RenderSubsetStatic& renderSubset = *subset.pRenderSubset;
-			//				if (subset.isCulling == false)
-			//				{
-			//					const std::vector<VertexClipSpace>& vecClipSpace = renderSubset.pVertexBuffer->GetVertexClipSpaceVector();
-			//					const VertexPos* pVertexPos = renderSubset.pVertexBuffer->GetVertexPosPtr();
-			//					if (pVertexPos != nullptr)
-			//					{
-			//						Math::Matrix matClipSpace = subset.matWorld * matViewProjPort;
-			//			
-			//						const uint32_t* pIndexData = reinterpret_cast<const uint32_t*>(renderSubset.pIndexBuffer->GetRawValuePtr());
-			//						EmOcclusionCulling::Result result = SOcclusionCulling::GetInstance()->TestTriangles(&vecClipSpace.front(), pIndexData, renderSubset.pIndexBuffer->GetIndexNum(), &matClipSpace);
-			//			
-			//						check2[result]++;
-			//			
-			//						if (result != EmOcclusionCulling::eVisible)
-			//						{
-			//							subset.isCulling = true;
-			//						}
-			//					}
-			//				}
-			//			});
-			//		}
-			//	}
-			//	counter2.End();
-			//}
+			OcclusionCulling(pCamera, nRenderGroupFlag);
 
 			const bool isAlphaBlend = nRenderGroupFlag == eAlphaBlend;
 
@@ -865,13 +765,13 @@ namespace EastEngine
 
 			const uint32_t nForwardFlag = (isAlphaBlend ? EmRenderType::eAlphaBlend_Pre : EmRenderType::eNone);
 
-			renderStaticModel(pDevice, pCamera, nRenderGroupFlag, nForwardFlag);
-			renderSkinnedModel(pDevice, pCamera, nRenderGroupFlag, nForwardFlag);
+			RenderStaticModel(pDevice, pCamera, nRenderGroupFlag, nForwardFlag);
+			RenderSkinnedModel(pDevice, pCamera, nRenderGroupFlag, nForwardFlag);
 
 			if (isAlphaBlend == true)
 			{
-				renderStaticModel(pDevice, pCamera, nRenderGroupFlag, EmRenderType::eAlphaBlend_Post);
-				renderSkinnedModel(pDevice, pCamera, nRenderGroupFlag, EmRenderType::eAlphaBlend_Post);
+				RenderStaticModel(pDevice, pCamera, nRenderGroupFlag, EmRenderType::eAlphaBlend_Post);
+				RenderSkinnedModel(pDevice, pCamera, nRenderGroupFlag, EmRenderType::eAlphaBlend_Post);
 
 				pDevice->ReleaseRenderTargets(ppRenderTarget, nRenderTargetCount);
 			}
@@ -910,8 +810,8 @@ namespace EastEngine
 
 										const Collision::Frustum& frustum = pCascadedShadows->GetFrustum(nCascadeLevel);
 
-										renderStaticModel_Shadow(pDevice, pDeviceContext, pCamera, nRenderGroupFlag, &matView, matProj, frustum, false);
-										renderSkinnedModel_Shadow(pDevice, pDeviceContext, pCamera, nRenderGroupFlag, &matView, matProj, frustum, false);
+										RenderStaticModel_Shadow(pDevice, pDeviceContext, pCamera, nRenderGroupFlag, &matView, matProj, frustum, false);
+										RenderSkinnedModel_Shadow(pDevice, pDeviceContext, pCamera, nRenderGroupFlag, &matView, matProj, frustum, false);
 									}
 								}
 							}
@@ -941,8 +841,8 @@ namespace EastEngine
 
 									const Collision::Frustum& frustum = pShadowCubeMap->GetFrustum(IShadowCubeMap::EmDirection::eFront);
 
-									renderStaticModel_Shadow(pDevice, pDeviceContext, pCamera, nRenderGroupFlag, matViews.data(), matProj, frustum, true);
-									renderSkinnedModel_Shadow(pDevice, pDeviceContext, pCamera, nRenderGroupFlag, matViews.data(), matProj, frustum, true);
+									RenderStaticModel_Shadow(pDevice, pDeviceContext, pCamera, nRenderGroupFlag, matViews.data(), matProj, frustum, true);
+									RenderSkinnedModel_Shadow(pDevice, pDeviceContext, pCamera, nRenderGroupFlag, matViews.data(), matProj, frustum, true);
 								}
 							}
 							break;
@@ -965,8 +865,8 @@ namespace EastEngine
 
 									const Collision::Frustum& frustum = pShadowMap->GetFrustum();
 
-									renderStaticModel_Shadow(pDevice, pDeviceContext, pCamera, nRenderGroupFlag, &matView, matProj, frustum, false);
-									renderSkinnedModel_Shadow(pDevice, pDeviceContext, pCamera, nRenderGroupFlag, &matView, matProj, frustum, false);
+									RenderStaticModel_Shadow(pDevice, pDeviceContext, pCamera, nRenderGroupFlag, &matView, matProj, frustum, false);
+									RenderSkinnedModel_Shadow(pDevice, pDeviceContext, pCamera, nRenderGroupFlag, &matView, matProj, frustum, false);
 								}
 							}
 							break;
@@ -1034,7 +934,70 @@ namespace EastEngine
 			++m_nSkinnedIndex[group];
 		}
 
-		void ModelRenderer::renderStaticModel(IDevice* pDevice, Camera* pCamera, uint32_t nRenderGroupFlag, uint32_t nRenderTypeFlag)
+		void ModelRenderer::OcclusionCulling(Camera* pCamera, uint32_t nRenderGroupFlag)
+		{
+			//if (Config::IsEnable("OcclusionCulling"_s) == true && nRenderGroupFlag == eDeferred)
+			//{
+			//	const Math::Matrix matViewport
+			//	(
+			//		1.f, 0.f, 0.f, 0.f,
+			//		0.f, -1.f, 0.f, 0.f,
+			//		0.f, 0.f, 1.f, 0.f,
+			//		0.f, 0.f, 0.f, 1.f
+			//	);
+
+			//	const Math::Matrix matClipSpace = pCamera->GetViewMatrix() * pCamera->GetProjMatrix() * matViewport;
+
+			//	const Collision::Frustum& frustum = pCamera->GetFrustum();
+
+			//	OcclusionCulling::GetInstance()->Start();
+			//	for (size_t i = 0; i < m_nStaticIndex[nRenderGroupFlag]; ++i)
+			//	{
+			//		StaticSubset& subset = m_vecStaticSubsets[nRenderGroupFlag][i];
+			//		const RenderSubsetStatic& renderSubset = subset.data;
+
+			//		if (frustum.Contains(subset.data.boundingSphere) == Collision::EmContainment::eDisjoint)
+			//		{
+			//			subset.isCulling = true;
+			//			continue;
+			//		}
+
+			//		subset.vecVertexClipSpace.clear();
+			//		subset.vecVertexClipSpace.resize(renderSubset.pVertexBuffer->GetVertexNum());
+
+			//		OcclusionCulling::GetInstance()->TransformVertices(renderSubset.matWorld, renderSubset.pVertexBuffer->GetVertexPosPtr(), subset.vecVertexClipSpace.data(), subset.vecVertexClipSpace.size());
+
+			//		//const VertexClipSpace* pVertexClipSpace = renderSubset.pVertexBuffer->GetVertexClipSpace();
+			//		const uint32_t* pIndices = renderSubset.pIndexBuffer->GetRawValuePtr();
+			//		const size_t nIndexCount = renderSubset.pIndexBuffer->GetIndexNum();
+			//		//OcclusionCulling::GetInstance()->RenderTriangles(renderSubset.matWorld * matClipSpace, pVertexClipSpace, pIndices, nIndexCount);
+			//		OcclusionCulling::GetInstance()->RenderTriangles(Math::Matrix::Identity, subset.vecVertexClipSpace.data(), pIndices, nIndexCount);
+			//	}
+			//	OcclusionCulling::GetInstance()->Flush();
+			//	OcclusionCulling::GetInstance()->End();
+
+			//	for (size_t i = 0; i < m_nStaticIndex[nRenderGroupFlag]; ++i)
+			//	{
+			//		StaticSubset& subset = m_vecStaticSubsets[nRenderGroupFlag][i];
+			//		const RenderSubsetStatic& renderSubset = subset.data;
+
+			//		if (subset.isCulling == true)
+			//			continue;
+
+			//		//const VertexClipSpace* pVertexClipSpace = renderSubset.pVertexBuffer->GetVertexClipSpace();
+			//		const uint32_t* pIndices = renderSubset.pIndexBuffer->GetRawValuePtr();
+			//		const size_t nIndexCount = renderSubset.pIndexBuffer->GetIndexNum();
+			//		//OcclusionCulling::Result emResult = OcclusionCulling::GetInstance()->TestTriangles(renderSubset.matWorld * matClipSpace, pVertexClipSpace, pIndices, nIndexCount);
+			//		OcclusionCulling::Result emResult = OcclusionCulling::GetInstance()->RenderTriangles(Math::Matrix::Identity, subset.vecVertexClipSpace.data(), pIndices, nIndexCount);
+			//		if (emResult != OcclusionCulling::eVisible)
+			//		{
+			//			subset.isCulling = true;
+			//		}
+			//	}
+			//}
+		}
+
+		void ModelRenderer::RenderStaticModel(IDevice* pDevice, Camera* pCamera, uint32_t nRenderGroupFlag, uint32_t nRenderTypeFlag)
 		{
 			IDeviceContext* pDeviceContext = GetDeviceContext();
 
@@ -1113,7 +1076,7 @@ namespace EastEngine
 			}
 		}
 
-		void ModelRenderer::renderSkinnedModel(IDevice* pDevice, Camera* pCamera, uint32_t nRenderGroupFlag, uint32_t nRenderTypeFlag)
+		void ModelRenderer::RenderSkinnedModel(IDevice* pDevice, Camera* pCamera, uint32_t nRenderGroupFlag, uint32_t nRenderTypeFlag)
 		{
 			IDeviceContext* pDeviceContext = GetDeviceContext();
 
@@ -1178,7 +1141,7 @@ namespace EastEngine
 				mapSkinned.clear();
 			}
 		}
-		void ModelRenderer::renderStaticModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, const Math::Matrix* pMatView, const Math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap)
+		void ModelRenderer::RenderStaticModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, const Math::Matrix* pMatView, const Math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap)
 		{
 			D3D_PROFILING(StaticModel_ShadowDepth);
 
@@ -1243,7 +1206,7 @@ namespace EastEngine
 			mapStatic.clear();
 		}
 
-		void ModelRenderer::renderSkinnedModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, const Math::Matrix* pMatView, const Math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap)
+		void ModelRenderer::RenderSkinnedModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, const Math::Matrix* pMatView, const Math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap)
 		{
 			D3D_PROFILING(SkinnedModel_ShadowDepth);
 
