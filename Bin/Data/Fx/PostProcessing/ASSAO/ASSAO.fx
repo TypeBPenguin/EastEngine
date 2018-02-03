@@ -160,7 +160,7 @@ Texture2D           g_BlurInput                 : register(t2);   // corresponds
 
 Texture2DArray      g_FinalSSAO                 : register(t4);   // corresponds to SSAO_TEXTURE_SLOT4
 
-RWTexture2D<float4> g_NormalsOutputUAV          : register(u4);   // corresponds to SSAO_NORMALMAP_OUT_UAV_SLOT
+RWTexture2D<unorm float4> g_NormalsOutputUAV    : register(u4);   // corresponds to SSAO_NORMALMAP_OUT_UAV_SLOT
 RWTexture1D<uint>   g_LoadCounterOutputUAV      : register(u4);   // corresponds to SSAO_LOAD_COUNTER_UAV_SLOT 
 
 
@@ -262,14 +262,9 @@ float4 CalculateEdges(const float centerZ, const float leftZ, const float rightZ
 }
 
 // pass-through vertex shader
-void VSMain(in float4 Pos : POSITION, in float2 Uv : TEXCOORD0,
-	out float4 Pos_out : SV_Position, out float2 Uv_out : TEXCOORD0)
-{
-	Pos_out = Pos;
-	Uv_out = Uv;
-}
+void VSMain(inout float4 Pos : SV_POSITION, inout float2 Uv : TEXCOORD0) { }
 
-void PSPrepareDepths(in float4 inPos : SV_POSITION, in float2 inUv : TEXCOORD0, out float out0 : SV_Target0, out float out1 : SV_Target1, out float out2 : SV_Target2, out float out3 : SV_Target3)
+void PSPrepareDepths(in float4 inPos : SV_POSITION, out float out0 : SV_Target0, out float out1 : SV_Target1, out float out2 : SV_Target2, out float out3 : SV_Target3)
 {
 #if 0   // gather can be a bit faster but doesn't work with input depth buffers that don't match the working viewport
 	float2 gatherUV = inPos.xy * g_ASSAOConsts.Viewport2xPixelSize;
@@ -292,7 +287,7 @@ void PSPrepareDepths(in float4 inPos : SV_POSITION, in float2 inUv : TEXCOORD0, 
 	out3 = ScreenSpaceToViewSpaceDepth(d);
 }
 
-void PSPrepareDepthsHalf(in float4 inPos : SV_POSITION, in float2 inUv : TEXCOORD0, out float out0 : SV_Target0, out float out1 : SV_Target1)
+void PSPrepareDepthsHalf(in float4 inPos : SV_POSITION, out float out0 : SV_Target0, out float out1 : SV_Target1)
 {
 	int3 baseCoord = int3(int2(inPos.xy) * 2, 0);
 	float a = g_DepthSource.Load(baseCoord, int2(0, 0)).x;
@@ -322,7 +317,7 @@ float3 CalculateNormal(const float4 edgesLRTB, float3 pixCenterPos, float3 pixLP
 	return pixelNormal;
 }
 
-void PSPrepareDepthsAndNormals(in float4 inPos : SV_POSITION, in float2 inUv : TEXCOORD0, out float out0 : SV_Target0, out float out1 : SV_Target1, out float out2 : SV_Target2, out float out3 : SV_Target3)
+void PSPrepareDepthsAndNormals(in float4 inPos : SV_POSITION, out float out0 : SV_Target0, out float out1 : SV_Target1, out float out2 : SV_Target2, out float out3 : SV_Target3)
 {
 	int2 baseCoords = ((int2)inPos.xy) * 2;
 	float2 upperLeftUV = (inPos.xy - 0.25) * g_ASSAOConsts.Viewport2xPixelSize;
@@ -397,7 +392,7 @@ void PSPrepareDepthsAndNormals(in float4 inPos : SV_POSITION, in float2 inUv : T
 	g_NormalsOutputUAV[baseCoords + int2(1, 1)] = float4(norm3 * 0.5 + 0.5, 0.0);
 }
 
-void PSPrepareDepthsAndNormalsHalf(in float4 inPos : SV_POSITION, in float2 inUv : TEXCOORD0, out float out0 : SV_Target0, out float out1 : SV_Target1)
+void PSPrepareDepthsAndNormalsHalf(in float4 inPos : SV_POSITION, out float out0 : SV_Target0, out float out1 : SV_Target1)
 {
 	int2 baseCoords = ((int2)inPos.xy) * 2;
 	float2 upperLeftUV = (inPos.xy - 0.25) * g_ASSAOConsts.Viewport2xPixelSize;
@@ -497,7 +492,7 @@ void PrepareDepthMip(const float4 inPos/*, const float2 inUV*/, int mipLevel, ou
 	float dummyUnused2;
 	float falloffCalcMulSq, falloffCalcAdd;
 
-
+	[unroll]
 	for (int i = 0; i < 4; i++)
 	{
 		float4 depths = depthsArr[i];
@@ -508,7 +503,7 @@ void PrepareDepthMip(const float4 inPos/*, const float2 inUV*/, int mipLevel, ou
 
 		float4 dists = depths - closest.xxxx;
 
-		float4 weights = saturate(dot(dists, dists) * falloffCalcMulSq.xxxx + 1.0.xxxx);
+		float4 weights = saturate(dists * dists * falloffCalcMulSq + 1.0);
 
 		float smartAvg = dot(weights, depths) / dot(weights, float4(1.0, 1.0, 1.0, 1.0));
 
@@ -525,17 +520,17 @@ void PrepareDepthMip(const float4 inPos/*, const float2 inUV*/, int mipLevel, ou
 	outD3 = depthsOutArr[3];
 }
 
-void PSPrepareDepthMip1(in float4 inPos : SV_POSITION, in float2 inUV : TEXCOORD0, out float out0 : SV_Target0, out float out1 : SV_Target1, out float out2 : SV_Target2, out float out3 : SV_Target3)
+void PSPrepareDepthMip1(in float4 inPos : SV_POSITION/*, in float2 inUV : TEXCOORD0*/, out float out0 : SV_Target0, out float out1 : SV_Target1, out float out2 : SV_Target2, out float out3 : SV_Target3)
 {
 	PrepareDepthMip(inPos/*, inUV*/, 1, out0, out1, out2, out3);
 }
 
-void PSPrepareDepthMip2(in float4 inPos : SV_POSITION, in float2 inUV : TEXCOORD0, out float out0 : SV_Target0, out float out1 : SV_Target1, out float out2 : SV_Target2, out float out3 : SV_Target3)
+void PSPrepareDepthMip2(in float4 inPos : SV_POSITION/*, in float2 inUV : TEXCOORD0*/, out float out0 : SV_Target0, out float out1 : SV_Target1, out float out2 : SV_Target2, out float out3 : SV_Target3)
 {
 	PrepareDepthMip(inPos/*, inUV*/, 2, out0, out1, out2, out3);
 }
 
-void PSPrepareDepthMip3(in float4 inPos : SV_POSITION, in float2 inUV : TEXCOORD0, out float out0 : SV_Target0, out float out1 : SV_Target1, out float out2 : SV_Target2, out float out3 : SV_Target3)
+void PSPrepareDepthMip3(in float4 inPos : SV_POSITION/*, in float2 inUV : TEXCOORD0*/, out float out0 : SV_Target0, out float out1 : SV_Target1, out float out2 : SV_Target2, out float out3 : SV_Target3)
 {
 	PrepareDepthMip(inPos/*, inUV*/, 3, out0, out1, out2, out3);
 }
@@ -563,7 +558,8 @@ float3 LoadNormal(int2 pos)
 	normal = mul(normal, (float3x3)g_ASSAOConsts.NormalsWorldToViewspaceMatrix).xyz;
 #endif
 
-	normal = normalize(normal);
+	// normal = normalize(normal);    // normalize adds around 2.5% cost on High settings but makes little (PSNR 66.7) visual difference when normals are as in the sample (stored in R8G8B8A8_UNORM,
+	//                                  // decoded in the shader), however it will likely be required if using different encoding/decoding or the inputs are not normalized, etc.
 
 	return normal;
 
@@ -580,7 +576,8 @@ float3 LoadNormal(int2 pos, int2 offset)
 	normal = mul(normal, (float3x3)g_ASSAOConsts.NormalsWorldToViewspaceMatrix).xyz;
 #endif
 
-	normal = normalize(normal);
+	// normal = normalize(normal);    // normalize adds around 2.5% cost on High settings but makes little (PSNR 66.7) visual difference when normals are as in the sample (stored in R8G8B8A8_UNORM,
+	//                                  // decoded in the shader), however it will likely be required if using different encoding/decoding or the inputs are not normalized, etc.
 
 	return normal;
 
@@ -911,7 +908,7 @@ void GenerateSSAOShadowsInternal(out float outShadowTerm, out float4 outEdges, o
 	outWeight = weightSum;
 }
 
-void PSGenerateQ0(in float4 inPos : SV_POSITION, in float2 inUV : TEXCOORD0, out float2 out0 : SV_Target0)
+void PSGenerateQ0(in float4 inPos : SV_POSITION/*, in float2 inUV : TEXCOORD0*/, out float2 out0 : SV_Target0)
 {
 	float   outShadowTerm;
 	float   outWeight;
@@ -921,7 +918,7 @@ void PSGenerateQ0(in float4 inPos : SV_POSITION, in float2 inUV : TEXCOORD0, out
 	out0.y = PackEdges(float4(1, 1, 1, 1)); // no edges in low quality
 }
 
-void PSGenerateQ1(in float4 inPos : SV_POSITION, in float2 inUV : TEXCOORD0, out float2 out0 : SV_Target0)
+void PSGenerateQ1(in float4 inPos : SV_POSITION/*, in float2 inUV : TEXCOORD0*/, out float2 out0 : SV_Target0)
 {
 	float   outShadowTerm;
 	float   outWeight;
@@ -931,7 +928,7 @@ void PSGenerateQ1(in float4 inPos : SV_POSITION, in float2 inUV : TEXCOORD0, out
 	out0.y = PackEdges(outEdges);
 }
 
-void PSGenerateQ2(in float4 inPos : SV_POSITION, in float2 inUV : TEXCOORD0, out float2 out0 : SV_Target0)
+void PSGenerateQ2(in float4 inPos : SV_POSITION/*, in float2 inUV : TEXCOORD0*/, out float2 out0 : SV_Target0)
 {
 	float   outShadowTerm;
 	float   outWeight;
@@ -941,7 +938,7 @@ void PSGenerateQ2(in float4 inPos : SV_POSITION, in float2 inUV : TEXCOORD0, out
 	out0.y = PackEdges(outEdges);
 }
 
-void PSGenerateQ3Base(in float4 inPos : SV_POSITION, in float2 inUV : TEXCOORD0, out float2 out0 : SV_Target0)
+void PSGenerateQ3Base(in float4 inPos : SV_POSITION/*, in float2 inUV : TEXCOORD0*/, out float2 out0 : SV_Target0)
 {
 	float   outShadowTerm;
 	float   outWeight;
@@ -951,7 +948,7 @@ void PSGenerateQ3Base(in float4 inPos : SV_POSITION, in float2 inUV : TEXCOORD0,
 	out0.y = outWeight / ((float)SSAO_ADAPTIVE_TAP_BASE_COUNT * 4.0); //0.0; //frac(outWeight / 6.0);// / (float)(SSAO_MAX_TAPS * 4.0);
 }
 
-void PSGenerateQ3(in float4 inPos : SV_POSITION, in float2 inUV : TEXCOORD0, out float2 out0 : SV_Target0)
+void PSGenerateQ3(in float4 inPos : SV_POSITION/*, in float2 inUV : TEXCOORD0*/, out float2 out0 : SV_Target0)
 {
 	float   outShadowTerm;
 	float   outWeight;
@@ -1050,58 +1047,58 @@ float2 PSSmartBlurWide(in float4 inPos : SV_POSITION, in float2 inUV : TEXCOORD0
 	return SampleBlurredWide(inPos, inUV);
 }
 
-float4 PSApply(in float4 inPos : SV_POSITION, in float2 inUV : TEXCOORD0) : SV_Target
+float4 PSApply(in float4 inPos : SV_POSITION/*, in float2 inUV : TEXCOORD0*/) : SV_Target
 {
 	float ao;
-	uint2 pixPos = (uint2)inPos.xy;
-	uint2 pixPosHalf = pixPos / uint2(2, 2);
+uint2 pixPos = (uint2)inPos.xy;
+uint2 pixPosHalf = pixPos / uint2(2, 2);
 
-	// calculate index in the four deinterleaved source array texture
-	int mx = (pixPos.x % 2);
-	int my = (pixPos.y % 2);
-	int ic = mx + my * 2;       // center index
-	int ih = (1 - mx) + my * 2;   // neighbouring, horizontal
-	int iv = mx + (1 - my) * 2;   // neighbouring, vertical
-	int id = (1 - mx) + (1 - my) * 2; // diagonal
+// calculate index in the four deinterleaved source array texture
+int mx = (pixPos.x % 2);
+int my = (pixPos.y % 2);
+int ic = mx + my * 2;       // center index
+int ih = (1 - mx) + my * 2;   // neighbouring, horizontal
+int iv = mx + (1 - my) * 2;   // neighbouring, vertical
+int id = (1 - mx) + (1 - my) * 2; // diagonal
 
-	float2 centerVal = g_FinalSSAO.Load(int4(pixPosHalf, ic, 0)).xy;
+float2 centerVal = g_FinalSSAO.Load(int4(pixPosHalf, ic, 0)).xy;
 
-	ao = centerVal.x;
+ao = centerVal.x;
 
-	#if 1   // for debugging - set to 0 to disable last pass high-res blur
-	float4 edgesLRTB = UnpackEdges(centerVal.y);
+#if 1   // change to 0 if you want to disable last pass high-res blur (for debugging purposes, etc.)
+float4 edgesLRTB = UnpackEdges(centerVal.y);
 
-	// return 1.0 - float4( edgesLRTB.x, edgesLRTB.y * 0.5 + edgesLRTB.w * 0.5, edgesLRTB.z, 0.0 ); // debug show edges
+// return 1.0 - float4( edgesLRTB.x, edgesLRTB.y * 0.5 + edgesLRTB.w * 0.5, edgesLRTB.z, 0.0 ); // debug show edges
 
-	// convert index shifts to sampling offsets
-	float fmx = (float)mx;
-	float fmy = (float)my;
+// convert index shifts to sampling offsets
+float fmx = (float)mx;
+float fmy = (float)my;
 
-	// in case of an edge, push sampling offsets away from the edge (towards pixel center)
-	float fmxe = (edgesLRTB.y - edgesLRTB.x);
-	float fmye = (edgesLRTB.w - edgesLRTB.z);
+// in case of an edge, push sampling offsets away from the edge (towards pixel center)
+float fmxe = (edgesLRTB.y - edgesLRTB.x);
+float fmye = (edgesLRTB.w - edgesLRTB.z);
 
-	// calculate final sampling offsets and sample using bilinear filter
-	float2  uvH = (inPos.xy + float2(fmx + fmxe - 0.5, 0.5 - fmy)) * 0.5 * g_ASSAOConsts.HalfViewportPixelSize;
-	float   aoH = g_FinalSSAO.SampleLevel(g_LinearClampSampler, float3(uvH, ih), 0).x;
-	float2  uvV = (inPos.xy + float2(0.5 - fmx, fmy - 0.5 + fmye)) * 0.5 * g_ASSAOConsts.HalfViewportPixelSize;
-	float   aoV = g_FinalSSAO.SampleLevel(g_LinearClampSampler, float3(uvV, iv), 0).x;
-	float2  uvD = (inPos.xy + float2(fmx - 0.5 + fmxe, fmy - 0.5 + fmye)) * 0.5 * g_ASSAOConsts.HalfViewportPixelSize;
-	float   aoD = g_FinalSSAO.SampleLevel(g_LinearClampSampler, float3(uvD, id), 0).x;
+// calculate final sampling offsets and sample using bilinear filter
+float2  uvH = (inPos.xy + float2(fmx + fmxe - 0.5, 0.5 - fmy)) * 0.5 * g_ASSAOConsts.HalfViewportPixelSize;
+float   aoH = g_FinalSSAO.SampleLevel(g_LinearClampSampler, float3(uvH, ih), 0).x;
+float2  uvV = (inPos.xy + float2(0.5 - fmx, fmy - 0.5 + fmye)) * 0.5 * g_ASSAOConsts.HalfViewportPixelSize;
+float   aoV = g_FinalSSAO.SampleLevel(g_LinearClampSampler, float3(uvV, iv), 0).x;
+float2  uvD = (inPos.xy + float2(fmx - 0.5 + fmxe, fmy - 0.5 + fmye)) * 0.5 * g_ASSAOConsts.HalfViewportPixelSize;
+float   aoD = g_FinalSSAO.SampleLevel(g_LinearClampSampler, float3(uvD, id), 0).x;
 
-	// reduce weight for samples near edge - if the edge is on both sides, weight goes to 0
-	float4 blendWeights;
-	blendWeights.x = 1.0;
-	blendWeights.y = (edgesLRTB.x + edgesLRTB.y) * 0.5;
-	blendWeights.z = (edgesLRTB.z + edgesLRTB.w) * 0.5;
-	blendWeights.w = (blendWeights.y + blendWeights.z) * 0.5;
+// reduce weight for samples near edge - if the edge is on both sides, weight goes to 0
+float4 blendWeights;
+blendWeights.x = 1.0;
+blendWeights.y = (edgesLRTB.x + edgesLRTB.y) * 0.5;
+blendWeights.z = (edgesLRTB.z + edgesLRTB.w) * 0.5;
+blendWeights.w = (blendWeights.y + blendWeights.z) * 0.5;
 
-	// calculate weighted average
-	float blendWeightsSum = dot(blendWeights, float4(1.0, 1.0, 1.0, 1.0));
-	ao = dot(float4(ao, aoH, aoV, aoD), blendWeights) / blendWeightsSum;
-	#endif
+// calculate weighted average
+float blendWeightsSum = dot(blendWeights, float4(1.0, 1.0, 1.0, 1.0));
+ao = dot(float4(ao, aoH, aoV, aoD), blendWeights) / blendWeightsSum;
+#endif
 
-	return float4(ao.xxx, 0);
+return float4(ao.xxx, 0);
 }
 
 // edge-ignorant blur in x and y directions, 9 pixels touched (for the lowest quality level 0)
@@ -1152,6 +1149,7 @@ float PSGenerateImportanceMap(in float4 inPos : SV_POSITION, in float2 inUV : TE
 	float avg = 0.0;
 	float minV = 1.0;
 	float maxV = 0.0;
+	[unroll]
 	for (int i = 0; i < 4; i++)
 	{
 		float4 vals = g_FinalSSAO.GatherRed(g_PointClampSampler, float3(gatherUV, i));

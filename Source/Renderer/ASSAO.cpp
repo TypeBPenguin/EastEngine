@@ -30,24 +30,24 @@
 #define SSA_STRINGIZIZER_( x ) #x
 
 // ** WARNING ** if changing any of the slot numbers, please remember to update the corresponding shader code!
-#define SSAO_SAMPLERS_SLOT0 0
-#define SSAO_SAMPLERS_SLOT1 1
-#define SSAO_SAMPLERS_SLOT2 2
-#define SSAO_SAMPLERS_SLOT3 3
-#define SSAO_NORMALMAP_OUT_UAV_SLOT 4
-#define SSAO_CONSTANTS_BUFFERSLOT 0
-#define SSAO_TEXTURE_SLOT0 0
-#define SSAO_TEXTURE_SLOT1 1
-#define SSAO_TEXTURE_SLOT2 2
-#define SSAO_TEXTURE_SLOT3 3
-#define SSAO_TEXTURE_SLOT4 4
-#define SSAO_LOAD_COUNTER_UAV_SLOT 4
+#define SSAO_SAMPLERS_SLOT0				0
+#define SSAO_SAMPLERS_SLOT1				1
+#define SSAO_SAMPLERS_SLOT2				2
+#define SSAO_SAMPLERS_SLOT3				3
+#define SSAO_NORMALMAP_OUT_UAV_SLOT		4
+#define SSAO_CONSTANTS_BUFFERSLOT		0
+#define SSAO_TEXTURE_SLOT0				0
+#define SSAO_TEXTURE_SLOT1				1
+#define SSAO_TEXTURE_SLOT2				2
+#define SSAO_TEXTURE_SLOT3				3
+#define SSAO_TEXTURE_SLOT4				4
+#define SSAO_LOAD_COUNTER_UAV_SLOT		4
 
-#define SSAO_MAX_TAPS 32
-#define SSAO_MAX_REF_TAPS 512
-#define SSAO_ADAPTIVE_TAP_BASE_COUNT 5
+#define SSAO_MAX_TAPS					32
+#define SSAO_MAX_REF_TAPS				512
+#define SSAO_ADAPTIVE_TAP_BASE_COUNT	5
 #define SSAO_ADAPTIVE_TAP_FLEXIBLE_COUNT (SSAO_MAX_TAPS-SSAO_ADAPTIVE_TAP_BASE_COUNT)
-#define SSAO_DEPTH_MIP_LEVELS 4
+#define SSAO_DEPTH_MIP_LEVELS			4
 
 #ifdef INTEL_SSAO_ENABLE_NORMAL_WORLD_TO_VIEW_CONVERSION
 #define SSAO_ENABLE_NORMAL_WORLD_TO_VIEW_CONVERSION 1
@@ -1840,7 +1840,7 @@ namespace EastEngine
 			inputs.MatricesRowMajorOrder = true;
 			inputs.DrawOpaque = false;
 #if SSAO_ENABLE_NORMAL_WORLD_TO_VIEW_CONVERSION
-			inputs.NormalsWorldToViewspaceMatrix = CameraManager::GetInstance()->GetMainCamera()->GetViewMatrix();
+			inputs.NormalsWorldToViewspaceMatrix = CameraManager::GetInstance()->GetMainCamera()->GetViewMatrix().Transpose();
 #endif
 
 			GetDeviceContext()->SetRenderTargets(&pResult, 1, nullptr);

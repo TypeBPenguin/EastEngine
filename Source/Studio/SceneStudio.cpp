@@ -1072,6 +1072,49 @@ void SceneStudio::ShowConfig()
 
 	if (ImGui::CollapsingHeader("Debug") == true)
 	{
+		if (ImGui::TreeNode("GBuffer"))
+		{
+			ImGui::PushID("GBuffer");
+
+			auto ShowGBuffer = [](const String::StringID& strName, std::shared_ptr<Graphics::ITexture> pTexture)
+			{
+				static std::unordered_map<String::StringID, bool> umapIsShowBigTexture;
+
+				bool& isVisible = umapIsShowBigTexture[pTexture->GetName()];
+
+				ImGui::Text(strName.c_str());
+
+				ImTextureID textureID = pTexture->GetShaderResourceView();
+				if (ImGui::ImageButton(textureID, ImVec2(128, 128)) == true)
+				{
+					isVisible = !isVisible;
+				}
+
+				if (isVisible == true)
+				{
+					ImVec2 f2Size(static_cast<float>(pTexture->GetSize().x), static_cast<float>(pTexture->GetSize().y));
+					f2Size.x = Math::Min(f2Size.x, 512.f);
+					f2Size.y = Math::Min(f2Size.y, 512.f);
+
+					ImGui::SetNextWindowSize(f2Size, ImGuiSetCond_FirstUseEver);
+					ImGui::Begin(pTexture->GetName().c_str(), &isVisible, ImGuiWindowFlags_AlwaysAutoResize);
+					ImGui::Image(textureID, f2Size);
+					ImGui::End();
+				}
+			};
+
+			ShowGBuffer("Depth", Graphics::GetDevice()->GetMainDepthStencil()->GetTexture());
+
+			//Graphics::IGBuffers* pGBuffer = Graphics::GetDevice()->GetGBuffers();
+			//ShowGBuffer("Normals : rg(normal), ba(tangent)", pGBuffer->GetGBuffer(Graphics::EmGBuffer::eNormals)->GetTexture());
+			//ShowGBuffer("Colors : r(position), g(none), ba(emissive)", pGBuffer->GetGBuffer(Graphics::EmGBuffer::eColors)->GetTexture());
+			//ShowGBuffer("DisneyBRDF", pGBuffer->GetGBuffer(Graphics::EmGBuffer::eDisneyBRDF)->GetTexture());
+
+			ImGui::PopID();
+
+			ImGui::TreePop();
+		}
+
 		if (ImGui::TreeNode("OcclusionCulling"))
 		{
 			ImGui::PushID("OcclusionCulling");
