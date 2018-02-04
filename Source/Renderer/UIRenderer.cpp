@@ -91,7 +91,7 @@ namespace EastEngine
 
 		void UIRenderer::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
 		{
-			D3D_PROFILING(UIRenderer);
+			D3D_PROFILING(pDeviceContext, UIRenderer);
 
 			if (m_vecRPUIPanel.empty())
 				return;

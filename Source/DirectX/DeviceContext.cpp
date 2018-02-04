@@ -8,11 +8,18 @@ namespace EastEngine
 		DeviceContext::DeviceContext(ID3D11DeviceContext* pDeviceContext)
 			: m_pDeviceContext(pDeviceContext)
 		{
+			HRESULT hr = m_pDeviceContext->QueryInterface(__uuidof(ID3DUserDefinedAnnotation), reinterpret_cast<void**>(&m_pUserDefineAnnotation));
+			if (FAILED(hr))
+			{
+				assert(false);
+			}
 		}
 
 		DeviceContext::~DeviceContext()
 		{
 			ClearState();
+			SafeRelease(m_pUserDefineAnnotation);
+			SafeRelease(m_pDeviceContext);
 		}
 
 		void DeviceContext::ClearState()

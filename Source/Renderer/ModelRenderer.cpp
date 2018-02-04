@@ -712,7 +712,7 @@ namespace EastEngine
 
 		void ModelRenderer::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
 		{
-			D3D_PROFILING(ModelRenderer);
+			D3D_PROFILING(pDeviceContext, ModelRenderer);
 
 			OcclusionCulling(pCamera, nRenderGroupFlag);
 
@@ -723,7 +723,7 @@ namespace EastEngine
 			IRenderTarget** ppRenderTarget = nullptr;
 			uint32_t nRenderTargetCount = 0;
 			{
-				D3D_PROFILING(Ready);
+				D3D_PROFILING(pDeviceContext, Ready);
 				pDeviceContext->ClearState();
 
 				pDeviceContext->SetDefaultViewport();
@@ -1000,7 +1000,7 @@ namespace EastEngine
 
 		void ModelRenderer::RenderStaticModel(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, uint32_t nRenderTypeFlag)
 		{
-			D3D_PROFILING(StaticModel);
+			D3D_PROFILING(pDeviceContext, StaticModel);
 			{
 				int nThreadID = GetThreadID(ThreadType::eRender);
 				const Math::Matrix& matView = pCamera->GetViewMatrix(nThreadID);
@@ -1010,7 +1010,7 @@ namespace EastEngine
 
 				std::map<std::pair<const void*, IMaterial*>, RenderSubsetStaticBatch> mapStatic;
 				{
-					D3D_PROFILING(Ready);
+					D3D_PROFILING(pDeviceContext, Ready);
 
 					for (size_t i = 0; i < m_nStaticIndex[nThreadID][nRenderGroupFlag]; ++i)
 					{
@@ -1037,7 +1037,7 @@ namespace EastEngine
 				std::vector<const StaticSubset*> vecSubsetStatic;
 				vecSubsetStatic.reserve(m_nStaticIndex[nThreadID][nRenderGroupFlag]);
 				{
-					D3D_PROFILING(Render);
+					D3D_PROFILING(pDeviceContext, Render);
 
 					for (auto& iter : mapStatic)
 					{
@@ -1081,7 +1081,7 @@ namespace EastEngine
 
 		void ModelRenderer::RenderSkinnedModel(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, uint32_t nRenderTypeFlag)
 		{
-			D3D_PROFILING(SkinnedModel);
+			D3D_PROFILING(pDeviceContext, SkinnedModel);
 			{
 				int nThreadID = GetThreadID(ThreadType::eRender);
 				const Math::Matrix& matView = pCamera->GetViewMatrix(nThreadID);
@@ -1091,7 +1091,7 @@ namespace EastEngine
 
 				std::map<std::pair<const void*, IMaterial*>, RenderSubsetSkinnedBatch> mapSkinned;
 				{
-					D3D_PROFILING(Ready);
+					D3D_PROFILING(pDeviceContext, Ready);
 
 					for (uint32_t i = 0; i < m_nSkinnedIndex[nThreadID][nRenderGroupFlag]; ++i)
 					{
@@ -1118,7 +1118,7 @@ namespace EastEngine
 				}
 
 				{
-					D3D_PROFILING(Render);
+					D3D_PROFILING(pDeviceContext, Render);
 
 					for (auto& iter : mapSkinned)
 					{
@@ -1150,7 +1150,7 @@ namespace EastEngine
 		}
 		void ModelRenderer::RenderStaticModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, const Math::Matrix* pMatView, const Math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap)
 		{
-			D3D_PROFILING(StaticModel_ShadowDepth);
+			D3D_PROFILING(pDeviceContext, StaticModel_ShadowDepth);
 
 			int nThreadID = GetThreadID(ThreadType::eRender);
 
@@ -1217,13 +1217,13 @@ namespace EastEngine
 
 		void ModelRenderer::RenderSkinnedModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, const Math::Matrix* pMatView, const Math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap)
 		{
-			D3D_PROFILING(SkinnedModel_ShadowDepth);
+			D3D_PROFILING(pDeviceContext, SkinnedModel_ShadowDepth);
 
 			int nThreadID = GetThreadID(ThreadType::eRender);
 
 			std::map<std::pair<const void*, IMaterial*>, RenderSubsetSkinnedBatch> mapSkinned;
 			{
-				D3D_PROFILING(Ready);
+				D3D_PROFILING(pDeviceContext, Ready);
 
 				for (uint32_t i = 0; i < m_nSkinnedIndex[nThreadID][nRenderGroupFlag]; ++i)
 				{
@@ -1253,7 +1253,7 @@ namespace EastEngine
 			}
 
 			{
-				D3D_PROFILING(Render);
+				D3D_PROFILING(pDeviceContext, Render);
 
 				for (auto& iter : mapSkinned)
 				{

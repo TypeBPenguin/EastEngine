@@ -279,7 +279,7 @@ namespace EastEngine
 
 		void RendererManager::CopyToMainRenderTarget(IDevice* pDevice, IDeviceContext* pDeviceContext)
 		{
-			D3D_PROFILING(CopyToMainRenderTarget);
+			D3D_PROFILING(pDeviceContext, CopyToMainRenderTarget);
 
 			IRenderTarget* pSource = pDevice->GetLastUseRenderTarget();
 			if (pSource == nullptr)

@@ -172,7 +172,7 @@ namespace EastEngine
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 			{
-				D3D_PROFILING(DeferredRendering);
+				D3D_PROFILING(pDeviceContext, DeferredRendering);
 				IEffectTech* pEffectTech = m_pEffect->GetTechnique(StrID::Deferred);
 				if (pEffectTech == nullptr)
 				{
@@ -296,7 +296,7 @@ namespace EastEngine
 
 			int nShadowCount = 0;
 			{
-				D3D_PROFILING(DeferredShdaow);
+				D3D_PROFILING(pDeviceContext, DeferredShdaow);
 
 				pDeviceContext->SetRenderTargets(&pRenderTarget, 1, nullptr);
 
@@ -325,7 +325,7 @@ namespace EastEngine
 							{
 							case EmLight::eDirectional:
 							{
-								D3D_PROFILING(Deferred_CascadedShadow);
+								D3D_PROFILING(pDeviceContext, Deferred_CascadedShadow);
 								pEffectTech = m_pEffectShadow->GetTechnique(StrID::Deferred_CascadedShadow);
 								if (pEffectTech == nullptr)
 								{
@@ -389,7 +389,7 @@ namespace EastEngine
 							break;
 							case EmLight::ePoint:
 							{
-								D3D_PROFILING(Deferred_ShadowCubeMap);
+								D3D_PROFILING(pDeviceContext, Deferred_ShadowCubeMap);
 								pEffectTech = m_pEffectShadow->GetTechnique(StrID::Deferred_ShadowCubeMap);
 								if (pEffectTech == nullptr)
 								{
@@ -438,7 +438,7 @@ namespace EastEngine
 							break;
 							case EmLight::eSpot:
 							{
-								D3D_PROFILING(Deferred_ShadowMap);
+								D3D_PROFILING(pDeviceContext, Deferred_ShadowMap);
 								pEffectTech = m_pEffectShadow->GetTechnique(StrID::Deferred_ShadowMap);
 								if (pEffectTech == nullptr)
 								{

@@ -113,7 +113,7 @@ namespace EastEngine
 			if (pSource == nullptr || pSource->GetTexture() == nullptr)
 				return false;
 
-			D3D_PROFILING(GaussianBlur);
+			D3D_PROFILING(pDeviceContext, GaussianBlur);
 
 			pDeviceContext->ClearState();
 			pDeviceContext->SetDefaultViewport();
@@ -134,7 +134,7 @@ namespace EastEngine
 			const RenderTargetDesc2D& desc = pSource->GetDesc2D();
 			IRenderTarget* pGaussianBlur = pDevice->GetRenderTarget(desc, false);
 			{
-				D3D_PROFILING(GaussianBlurH);
+				D3D_PROFILING(pDeviceContext, GaussianBlurH);
 
 				m_pEffect->SetSamplerState(StrID::g_samplerPoint, m_pSamplerPoint, 0);
 
@@ -153,7 +153,7 @@ namespace EastEngine
 			}
 
 			{
-				D3D_PROFILING(GaussianBlurV);
+				D3D_PROFILING(pDeviceContext, GaussianBlurV);
 
 				m_pEffect->SetSamplerState(StrID::g_samplerPoint, m_pSamplerPoint, 0);
 
@@ -196,7 +196,7 @@ namespace EastEngine
 			const RenderTargetDesc2D& desc = pSource->GetDesc2D();
 			IRenderTarget* pGaussianBlur = pDevice->GetRenderTarget(desc, false);
 			{
-				D3D_PROFILING(GaussianDepthBlurH);
+				D3D_PROFILING(pDeviceContext, GaussianDepthBlurH);
 
 				m_pEffect->SetTexture(StrID::g_texDepth, pDepth->GetTexture());
 				m_pEffect->SetSamplerState(StrID::g_samplerPoint, m_pSamplerPoint, 0);
@@ -216,7 +216,7 @@ namespace EastEngine
 			}
 
 			{
-				D3D_PROFILING(GaussianDepthBlurV);
+				D3D_PROFILING(pDeviceContext, GaussianDepthBlurV);
 
 				m_pEffect->SetTexture(StrID::g_texDepth, pDepth->GetTexture());
 				m_pEffect->SetSamplerState(StrID::g_samplerPoint, m_pSamplerPoint, 0);

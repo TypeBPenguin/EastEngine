@@ -112,7 +112,7 @@ namespace EastEngine
 			if (pSource == nullptr || pSource->GetTexture() == nullptr)
 				return false;
 
-			D3D_PROFILING(Downscale);
+			D3D_PROFILING(pDeviceContext, Downscale);
 
 			pDeviceContext->ClearState();
 			pDeviceContext->SetDefaultViewport();
@@ -144,7 +144,7 @@ namespace EastEngine
 			if (pSource == nullptr || pSource->GetTexture() == nullptr)
 				return false;
 
-			D3D_PROFILING(Downscale);
+			D3D_PROFILING(pDeviceContext, Downscale);
 
 			pDeviceContext->ClearState();
 			pDeviceContext->SetDefaultViewport();
@@ -190,7 +190,7 @@ namespace EastEngine
 			if (pSource == nullptr || pSource->GetTexture() == nullptr)
 				return false;
 
-			D3D_PROFILING(Downscale);
+			D3D_PROFILING(pDeviceContext, Downscale);
 
 			pDeviceContext->ClearState();
 			pDeviceContext->SetDefaultViewport();
@@ -219,7 +219,7 @@ namespace EastEngine
 			if (pSource == nullptr || pSource->GetTexture() == nullptr)
 				return false;
 
-			D3D_PROFILING(Downscale);
+			D3D_PROFILING(pDeviceContext, Downscale);
 
 			pDeviceContext->ClearState();
 			pDeviceContext->SetDefaultViewport();

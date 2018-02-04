@@ -23,7 +23,6 @@ namespace EastEngine
 			, m_isFullScreen(false)
 			, m_pd3dDevice(nullptr)
 			, m_pd3dImmediateContext(nullptr)
-			, m_pUserDefineAnnotation(nullptr)
 			, m_pMainRenderTarget(nullptr)
 			, m_pRenderTargetLastUse(nullptr)
 			, m_pDepthStencil(nullptr)
@@ -282,13 +281,6 @@ namespace EastEngine
 
 			m_pImageBasedLight = new ImageBasedLight;
 
-			hr = m_pd3dImmediateContext->GetInterface()->QueryInterface(__uuidof(ID3DUserDefinedAnnotation), reinterpret_cast<void**>(&m_pUserDefineAnnotation));
-			if (FAILED(hr))
-			{
-				Release();
-				return false;
-			}
-
 			for (int i = 0; i < ThreadCount; ++i)
 			{
 				ID3D11DeviceContext* pd3dDeferredContext = nullptr;
@@ -315,8 +307,6 @@ namespace EastEngine
 			{
 				m_pSwapChain->SetFullscreenState(false, nullptr);
 			}
-
-			SafeRelease(m_pUserDefineAnnotation);
 
 			for (auto pInputLayout : m_pInputLayout)
 			{

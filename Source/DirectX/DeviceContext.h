@@ -67,8 +67,12 @@ namespace EastEngine
 
 			virtual void GenerateMips(ID3D11ShaderResourceView* pShaderResourceView) override;
 
+		public:
+			virtual ID3DUserDefinedAnnotation* GetUserDefineAnnotation() override { return m_pUserDefineAnnotation; };
+
 		private:
-			ID3D11DeviceContext* m_pDeviceContext;
+			ID3D11DeviceContext* m_pDeviceContext{ nullptr };
+			ID3DUserDefinedAnnotation* m_pUserDefineAnnotation{ nullptr };
 		};
 	}
 }

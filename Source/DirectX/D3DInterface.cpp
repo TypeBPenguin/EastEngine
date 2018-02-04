@@ -74,20 +74,20 @@ namespace EastEngine
 			return Device::GetInstance()->GetThreadID(emThreadType);
 		}
 
-		D3DProfiler::D3DProfiler(ID3DUserDefinedAnnotation* pProfiler, const wchar_t* str)
-			: m_pProfiler(pProfiler)
+		D3DProfiler::D3DProfiler(IDeviceContext* pDeviceContext, const wchar_t* str)
+			: m_pDeviceContext(pDeviceContext)
 		{
-			m_pProfiler->BeginEvent(str);
+			m_pDeviceContext->GetUserDefineAnnotation()->BeginEvent(str);
 		}
 
 		D3DProfiler::~D3DProfiler()
 		{
-			m_pProfiler->EndEvent();
+			m_pDeviceContext->GetUserDefineAnnotation()->EndEvent();
 		}
 
-		D3DProfiler D3DProfiling(const wchar_t* strBeginEvent)
+		D3DProfiler D3DProfiling(IDeviceContext* pDeviceContext, const wchar_t* strBeginEvent)
 		{
-			return { GetDevice()->GetUserDefineAnnotation(), strBeginEvent };
+			return { pDeviceContext, strBeginEvent };
 		}
 
 		std::shared_ptr<ITexture> ITexture::Create(const String::StringID& strName, ID3D11Texture2D* pTexture2D, const TextureDesc2D* pCustomDesc2D)

@@ -75,7 +75,7 @@ namespace EastEngine
 			if (pSource == nullptr || pSource->GetTexture() == nullptr)
 				return false;
 
-			D3D_PROFILING(ColorGrading);
+			D3D_PROFILING(pDeviceContext, ColorGrading);
 
 			IEffectTech* pEffectTech = m_pEffect->GetTechnique(StrID::ColorGrading);
 			if (pEffectTech == nullptr)

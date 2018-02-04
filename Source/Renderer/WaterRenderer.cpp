@@ -197,7 +197,7 @@ namespace EastEngine
 
 		void WaterRenderer::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
 		{
-			D3D_PROFILING(Water);
+			D3D_PROFILING(pDeviceContext, Water);
 
 			double dGameTime = Timer::GetInstance()->GetGameTime();
 
@@ -229,14 +229,14 @@ namespace EastEngine
 
 		void WaterRenderer::Simulate(IDevice* pDevice, IDeviceContext* pDeviceContext, float fTime)
 		{
-			D3D_PROFILING(Simulate);
+			D3D_PROFILING(pDeviceContext, Simulate);
 
 			m_pWaterSimulator->UpdateDisplacementMap(pDevice, pDeviceContext, fTime);
 		}
 
 		void WaterRenderer::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, float fTime)
 		{
-			D3D_PROFILING(Render);
+			D3D_PROFILING(pDeviceContext, Render);
 			IEffectTech* pEffectTech = m_pEffect->GetTechnique(StrID::Water);
 			if (pEffectTech == nullptr)
 			{

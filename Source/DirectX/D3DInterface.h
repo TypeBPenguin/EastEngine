@@ -128,7 +128,6 @@ namespace EastEngine
 
 		public:
 			virtual void SetDebugName(ID3D11DeviceChild* pResource, const std::string& strName) = 0;
-			virtual ID3DUserDefinedAnnotation* GetUserDefineAnnotation() = 0;
 
 		public:
 			virtual HWND GetHWND() = 0;
@@ -200,7 +199,22 @@ namespace EastEngine
 			virtual void Unmap(ID3D11Resource* pResource, uint32_t Subresource) = 0;
 
 			virtual void GenerateMips(ID3D11ShaderResourceView* pShaderResourceView) = 0;
+
+		public:
+			virtual ID3DUserDefinedAnnotation* GetUserDefineAnnotation() = 0;
 		};
+		
+		class D3DProfiler
+		{
+		public:
+			D3DProfiler(IDeviceContext* pDeviceContext, const wchar_t* str);
+			~D3DProfiler();
+
+		private:
+			IDeviceContext* m_pDeviceContext;
+		};
+		D3DProfiler D3DProfiling(IDeviceContext* pDeviceContext, const wchar_t* strBeginEvent);
+#define D3D_PROFILING(pDeviceContext, name)	auto profiler_##name = EastEngine::Graphics::D3DProfiling(pDeviceContext, L#name)
 
 		class IDeferredContext
 		{
@@ -212,18 +226,6 @@ namespace EastEngine
 			virtual bool FinishCommandList() = 0;
 			virtual void ExecuteCommandList(IDeviceContext* pImmediateContext) = 0;
 		};
-
-		class D3DProfiler
-		{
-		public:
-			D3DProfiler(ID3DUserDefinedAnnotation* pProfiler, const wchar_t* str);
-			~D3DProfiler();
-
-		private:
-			ID3DUserDefinedAnnotation* m_pProfiler;
-		};
-		D3DProfiler D3DProfiling(const wchar_t* strBeginEvent);
-#define D3D_PROFILING(name)	auto profiler_##name = EastEngine::Graphics::D3DProfiling(L#name)
 
 		class IGBuffers
 		{

@@ -307,7 +307,7 @@ namespace EastEngine
 
 		void ParticleRenderer::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
 		{
-			D3D_PROFILING(EffectRenderer);
+			D3D_PROFILING(pDeviceContext, EffectRenderer);
 
 			if ((nRenderGroupFlag & EmParticleGroup::eDecal) != 0)
 			{
@@ -328,7 +328,7 @@ namespace EastEngine
 
 		void ParticleRenderer::RenderEmitter(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera)
 		{
-			D3D_PROFILING(Particle);
+			D3D_PROFILING(pDeviceContext, Particle);
 
 			if (m_queueEmitter.empty())
 				return;
@@ -336,7 +336,7 @@ namespace EastEngine
 			std::map<std::shared_ptr<ITexture>, ClassifyParticle> mapClassifyParticle;
 
 			{
-				D3D_PROFILING(Classify);
+				D3D_PROFILING(pDeviceContext, Classify);
 
 				std::list<RenderSubsetParticleEmitter>	listParticle;
 				while (m_queueEmitter.empty() == false)
@@ -398,7 +398,7 @@ namespace EastEngine
 			}
 
 			{
-				D3D_PROFILING(Render);
+				D3D_PROFILING(pDeviceContext, Render);
 
 				IEffect* pEffect = GetEffect(0);
 				if (pEffect == nullptr)
@@ -478,7 +478,7 @@ namespace EastEngine
 
 		void ParticleRenderer::RenderDecal(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera)
 		{
-			D3D_PROFILING(Decal);
+			D3D_PROFILING(pDeviceContext, Decal);
 
 			if (m_listDecal.empty())
 				return;
@@ -490,7 +490,7 @@ namespace EastEngine
 			std::map<IMaterial*, ClassifyDecal> mapClassifyDecal;
 
 			{
-				D3D_PROFILING(Classify);
+				D3D_PROFILING(pDeviceContext, Classify);
 
 				for (auto& iter : m_listDecal)
 				{
@@ -518,7 +518,7 @@ namespace EastEngine
 			}
 
 			{
-				D3D_PROFILING(Render);
+				D3D_PROFILING(pDeviceContext, Render);
 
 				pDeviceContext->ClearState();
 				pDeviceContext->SetDefaultViewport();

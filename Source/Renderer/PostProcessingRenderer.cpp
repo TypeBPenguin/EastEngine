@@ -102,7 +102,7 @@ namespace EastEngine
 
 		void PostProcessingRenderer::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
 		{
-			D3D_PROFILING(PostProcessing);
+			D3D_PROFILING(pDeviceContext, PostProcessing);
 
 			if (Config::IsEnable("SSS"_s) == true)
 			{

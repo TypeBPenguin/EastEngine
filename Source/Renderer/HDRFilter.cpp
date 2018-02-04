@@ -144,7 +144,7 @@ namespace EastEngine
 
 		bool HDRFilter::Impl::Apply(IDevice* pDevice, IDeviceContext* pDeviceContext, IRenderTarget* pResult, IRenderTarget* pSource)
 		{
-			D3D_PROFILING(HDRFilter);
+			D3D_PROFILING(pDeviceContext, HDRFilter);
 
 			pDeviceContext->ClearState();
 

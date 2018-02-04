@@ -70,7 +70,7 @@ namespace EastEngine
 			if (m_vecTerrain.empty())
 				return;
 
-			D3D_PROFILING(TerrainRenderer);
+			D3D_PROFILING(pDeviceContext, TerrainRenderer);
 
 			IGBuffers* pGBuffers = GetGBuffers();
 

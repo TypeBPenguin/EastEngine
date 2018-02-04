@@ -76,7 +76,7 @@ namespace EastEngine
 
 		void VertexRenderer::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
 		{
-			D3D_PROFILING(VertexRenderer);
+			D3D_PROFILING(pDeviceContext, VertexRenderer);
 
 			pDeviceContext->ClearState();
 
@@ -124,7 +124,7 @@ namespace EastEngine
 
 		void VertexRenderer::RenderVertex(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera)
 		{
-			D3D_PROFILING(Vertex);
+			D3D_PROFILING(pDeviceContext, Vertex);
 
 			if (m_vecVertexSubset.empty())
 				return;
@@ -266,7 +266,7 @@ namespace EastEngine
 
 		void VertexRenderer::RenderLine(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera)
 		{
-			D3D_PROFILING(Line);
+			D3D_PROFILING(pDeviceContext, Line);
 
 			if (m_vecLineSubset.empty())
 				return;
@@ -309,7 +309,7 @@ namespace EastEngine
 
 		void VertexRenderer::RenderLineSegment(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera)
 		{
-			D3D_PROFILING(LineSegment);
+			D3D_PROFILING(pDeviceContext, LineSegment);
 
 			if (m_vecLineSegmentSubset.empty())
 				return;

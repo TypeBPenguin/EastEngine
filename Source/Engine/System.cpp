@@ -10,7 +10,6 @@
 #include "CommonLib/ThreadPool.h"
 #include "CommonLib/Timer.h"
 #include "CommonLib/CrashHandler.h"
-#include "CommonLib/Performance.h"
 
 #include "CommonLib/PipeStream.h"
 

@@ -82,7 +82,7 @@ namespace EastEngine
 			if (pResult == nullptr || pSource == nullptr)
 				return false;
 
-			D3D_PROFILING(FXAA);
+			D3D_PROFILING(pDeviceContext, FXAA);
 
 			IEffectTech* pEffectTech = m_pEffect->GetTechnique(StrID::FXAA);
 			if (pEffectTech == nullptr)

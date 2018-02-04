@@ -98,8 +98,6 @@ namespace EastEngine
 #endif // _DEBUG
 			}
 
-			virtual ID3DUserDefinedAnnotation* GetUserDefineAnnotation() override { return m_pUserDefineAnnotation; }
-
 		public:
 			virtual HWND GetHWND() override { return m_hWnd; }
 			virtual const Math::UInt2& GetScreenSize() const override { return m_n2ScreenSize; }
@@ -145,8 +143,6 @@ namespace EastEngine
 
 			std::array<int, ThreadCount> m_nThreadID{ 0, 1 };
 			std::array<DeferredContext*, ThreadCount> m_pd3dDeferredContext{ nullptr };
-
-			ID3DUserDefinedAnnotation* m_pUserDefineAnnotation;
 
 			IRenderTarget* m_pMainRenderTarget;
 			IRenderTarget* m_pRenderTargetLastUse;

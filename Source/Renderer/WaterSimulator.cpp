@@ -538,7 +538,7 @@ namespace EastEngine
 			uint32_t thread_count,
 			uint32_t istride)
 		{
-			D3D_PROFILING(WaterFFT);
+			D3D_PROFILING(pDeviceContext, WaterFFT);
 			IEffectTech* pEffectTech = m_pEffect_FFT->GetTechnique(istride > 1 ? StrID::WaterFFT_CS : StrID::WaterFFT_CS2);
 			if (pEffectTech == nullptr)
 			{

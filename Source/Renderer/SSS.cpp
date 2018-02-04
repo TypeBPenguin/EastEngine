@@ -71,7 +71,7 @@ namespace EastEngine
 			if (pSource == nullptr || pSource->GetTexture() == nullptr)
 				return false;
 
-			D3D_PROFILING(SSS);
+			D3D_PROFILING(pDeviceContext, SSS);
 
 			pDeviceContext->ClearState();
 

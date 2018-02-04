@@ -1098,12 +1098,12 @@ namespace EastEngine
 			}
 #endif
 			{
-				D3D_PROFILING(UpdateTextures);
+				D3D_PROFILING(inputs->DeviceContext, UpdateTextures);
 				UpdateTextures(inputs);
 			}
 
 			{
-				D3D_PROFILING(UpdateConstants);
+				D3D_PROFILING(inputs->DeviceContext, UpdateConstants);
 				UpdateConstants(settings, inputs, 0);
 			}
 
@@ -1115,7 +1115,7 @@ namespace EastEngine
 
 				if (m_requiresClear)
 				{
-					D3D_PROFILING(Clear);
+					D3D_PROFILING(inputs->DeviceContext, Clear);
 					float fourZeroes[4] = { 0, 0, 0, 0 };
 					float fourOnes[4] = { 1, 1, 1, 1 };
 					dx11Context->GetInterface()->ClearRenderTargetView(m_halfDepths[0].RTV, fourZeroes);
@@ -1158,7 +1158,7 @@ namespace EastEngine
 
 				// Generate depths
 				{
-					D3D_PROFILING(PrepareDepths);
+					D3D_PROFILING(inputs->DeviceContext, PrepareDepths);
 					PrepareDepths(settings, inputs);
 				}
 
@@ -1168,13 +1168,13 @@ namespace EastEngine
 				{
 					// Generate simple quality SSAO
 					{
-						D3D_PROFILING(GenerateSSAO);
+						D3D_PROFILING(inputs->DeviceContext, GenerateSSAO);
 						GenerateSSAO(settings, inputs, true);
 					}
 
 					// Generate importance map
 					{
-						D3D_PROFILING(GenerateImportanceMap);
+						D3D_PROFILING(inputs->DeviceContext, GenerateImportanceMap);
 						CD3D11_VIEWPORT viewport = CD3D11_VIEWPORT(0.0f, 0.0f, (float)m_quarterSize.x, (float)m_quarterSize.y);
 						CD3D11_RECT rect = CD3D11_RECT(0, 0, m_quarterSize.x, m_quarterSize.y);
 						dx11Context->GetInterface()->RSSetViewports(1, &viewport);
@@ -1208,7 +1208,7 @@ namespace EastEngine
 #endif
 				// Generate SSAO
 				{
-					D3D_PROFILING(GenerateSSAO);
+					D3D_PROFILING(inputs->DeviceContext, GenerateSSAO);
 					GenerateSSAO(settings, inputs, false);
 				}
 
@@ -1225,7 +1225,7 @@ namespace EastEngine
 
 				// Apply
 				{
-					D3D_PROFILING(Apply);
+					D3D_PROFILING(inputs->DeviceContext, Apply);
 					// select 4 deinterleaved AO textures (texture array)
 					dx11Context->GetInterface()->PSSetShaderResources(SSAO_TEXTURE_SLOT4, 1, &m_finalResults.SRV);
 
@@ -1824,7 +1824,7 @@ namespace EastEngine
 
 		void ASSAO::Apply(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, IRenderTarget* pResult)
 		{
-			D3D_PROFILING(SSAO);
+			D3D_PROFILING(pDeviceContext, SSAO);
 
 			int nThreadID = GetThreadID(ThreadType::eRender);
 
