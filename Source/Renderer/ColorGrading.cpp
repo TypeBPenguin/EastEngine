@@ -67,7 +67,7 @@ namespace EastEngine
 			m_isInit = false;
 		}
 
-		bool ColorGrading::Apply(IRenderTarget* pResult, IRenderTarget* pSource)
+		bool ColorGrading::Apply(IDevice* pDevice, IDeviceContext* pDeviceContext, IRenderTarget* pResult, IRenderTarget* pSource)
 		{
 			if (pResult == nullptr || pResult->GetTexture() == nullptr)
 				return false;
@@ -83,8 +83,6 @@ namespace EastEngine
 				LOG_ERROR("Not Exist EffectTech !!");
 				return false;
 			}
-
-			IDeviceContext* pDeviceContext = GetDeviceContext();
 
 			pDeviceContext->ClearState();
 

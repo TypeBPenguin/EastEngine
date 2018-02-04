@@ -3,9 +3,6 @@
 
 #include "DebugUtil.h"
 
-#include "D3DInterface.h"
-#include "DeviceContext.h"
-
 #include "GBuffers.h"
 #include "ImageBasedLight.h"
 
@@ -292,6 +289,13 @@ namespace EastEngine
 				return false;
 			}
 
+			for (int i = 0; i < ThreadCount; ++i)
+			{
+				ID3D11DeviceContext* pd3dDeferredContext = nullptr;
+				GetInterface()->CreateDeferredContext(0, &pd3dDeferredContext);
+				m_pd3dDeferredContext[i] = new DeferredContext(pd3dDeferredContext);
+			}
+
 			Debug::Init();
 
 			return true;
@@ -353,9 +357,13 @@ namespace EastEngine
 
 			SafeRelease(m_pSwapChain);
 
-			DeviceContext* pDeviceContext = static_cast<DeviceContext*>(m_pd3dImmediateContext);
-			SafeDelete(pDeviceContext);
-			m_pd3dImmediateContext = nullptr;
+			std::for_each(m_pd3dDeferredContext.begin(), m_pd3dDeferredContext.end(), [](DeferredContext* pDeferredContext)
+			{
+				SafeDelete(pDeferredContext);
+			});
+			m_pd3dDeferredContext.fill(nullptr);
+
+			SafeDelete(m_pd3dImmediateContext);
 
 #if defined(DEBUG) || defined(_DEBUG)
 			m_pd3dDebug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
@@ -475,15 +483,18 @@ namespace EastEngine
 			if (IsInit() == false)
 				return;
 
+			int nThreadID = GetThreadID(ThreadType::eRender);
+
 			// 백버퍼의 내용을 지웁니다.
-			m_pd3dImmediateContext->ClearRenderTargetView(m_pMainRenderTarget, Math::Color(r, g, b, a));
+			m_pd3dDeferredContext[nThreadID]->ClearRenderTargetView(m_pMainRenderTarget, Math::Color(r, g, b, a));
 
 			// 깊이 버퍼를 지웁니다.
-			m_pd3dImmediateContext->ClearDepthStencilView(m_pDepthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL);
+			m_pd3dDeferredContext[nThreadID]->ClearDepthStencilView(m_pDepthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL);
 
 			for (uint32_t i = 0; i < EmGBuffer::Count; ++i)
 			{
-				m_pd3dImmediateContext->ClearRenderTargetView(m_pGBuffers->GetGBuffer((EmGBuffer::Type)i), Math::Color::Transparent);
+				EmGBuffer::Type emType = static_cast<EmGBuffer::Type>(i);
+				m_pd3dDeferredContext[nThreadID]->ClearRenderTargetView(m_pGBuffers->GetGBuffer(emType), Math::Color::Transparent);
 			}
 		}
 
@@ -491,6 +502,14 @@ namespace EastEngine
 		{
 			if (IsInit() == false)
 				return;
+
+			int nThreadID = GetThreadID(ThreadType::eRender);
+			if (m_pd3dDeferredContext[nThreadID]->FinishCommandList() == false)
+			{
+				assert(false);
+			}
+			
+			m_pd3dDeferredContext[nThreadID]->ExecuteCommandList(m_pd3dImmediateContext);
 
 			DXGI_PRESENT_PARAMETERS  presentParam;
 			Memory::Clear(&presentParam, sizeof(DXGI_PRESENT_PARAMETERS));
@@ -501,6 +520,11 @@ namespace EastEngine
 
 				HandleDeviceLost();
 			}
+		}
+
+		void Device::Flush()
+		{
+			std::swap(m_nThreadID[ThreadType::eUpdate], m_nThreadID[ThreadType::eRender]);
 		}
 
 		HRESULT Device::CreateInputLayout(EmVertexFormat::Type emInputLayout, const uint8_t* pIAInputSignature, std::size_t IAInputSignatureSize, ID3D11InputLayout** ppInputLayout)

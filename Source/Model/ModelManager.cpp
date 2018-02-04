@@ -24,7 +24,7 @@ namespace EastEngine
 
 		public:
 			void Update();
-			void Flush();
+			void Flush(bool isEnableGarbageCollector);
 
 		public:
 			void AsyncLoadModel(IModel* pModel, const ModelLoader& loader);
@@ -93,6 +93,23 @@ namespace EastEngine
 
 		void ModelManager::Impl::Update()
 		{
+			std::for_each(m_clnModel.begin(), m_clnModel.end(), [](Model& model)
+			{
+				model.Ready();
+			});
+
+			Concurrency::parallel_for_each(m_clnModelInstance.begin(), m_clnModelInstance.end(), [](ModelInstance& mModelInstance)
+			{
+				if (mModelInstance.GetSkeleton() != nullptr)
+				{
+					mModelInstance.UpdateTransformations();
+				}
+				mModelInstance.UpdateModel();
+			});
+		}
+
+		void ModelManager::Impl::Flush(bool isEnableGarbageCollector)
+		{
 			if (m_conQueueRequestModelLoader.empty() == false && m_isLoading == false)
 			{
 				RequestLoadModelInfo loader;
@@ -131,56 +148,42 @@ namespace EastEngine
 				}
 			}
 
-			std::for_each(m_clnModel.begin(), m_clnModel.end(), [](Model& model)
+			if (isEnableGarbageCollector == true)
 			{
-				model.Ready();
-			});
-
-			Concurrency::parallel_for_each(m_clnModelInstance.begin(), m_clnModelInstance.end(), [](ModelInstance& mModelInstance)
-			{
-				if (mModelInstance.GetSkeleton() != nullptr)
+				auto iter = m_clnModel.begin();
+				while (iter != m_clnModel.end())
 				{
-					mModelInstance.UpdateTransformations();
-				}
-				mModelInstance.UpdateModel();
-			});
-		}
+					Model& model = *iter;
 
-		void ModelManager::Impl::Flush()
-		{
-			auto iter = m_clnModel.begin();
-			while (iter != m_clnModel.end())
-			{
-				Model& model = *iter;
-
-				if (model.GetLoadState() == EmLoadState::eReady ||
-					model.GetLoadState() == EmLoadState::eLoading)
-				{
-					++iter;
-					continue;
-				}
-
-				if (model.GetReferenceCount() > 0)
-				{
-					model.SetAlive(true);
-					++iter;
-					continue;
-				}
-
-				if (model.IsAlive() == false)
-				{
-					auto iter_find = m_umapModelCaching.find(model.GetKey());
-					if (iter_find != m_umapModelCaching.end())
+					if (model.GetLoadState() == EmLoadState::eReady ||
+						model.GetLoadState() == EmLoadState::eLoading)
 					{
-						m_umapModelCaching.erase(iter_find);
+						++iter;
+						continue;
 					}
 
-					iter = m_clnModel.erase(iter);
-					continue;
-				}
+					if (model.GetReferenceCount() > 0)
+					{
+						model.SetAlive(true);
+						++iter;
+						continue;
+					}
 
-				model.SubtractLife();
-				++iter;
+					if (model.IsAlive() == false)
+					{
+						auto iter_find = m_umapModelCaching.find(model.GetKey());
+						if (iter_find != m_umapModelCaching.end())
+						{
+							m_umapModelCaching.erase(iter_find);
+						}
+
+						iter = m_clnModel.erase(iter);
+						continue;
+					}
+
+					model.SubtractLife();
+					++iter;
+				}
 			}
 		}
 
@@ -282,9 +285,9 @@ namespace EastEngine
 			m_pImpl->Update();
 		}
 
-		void ModelManager::Flush()
+		void ModelManager::Flush(bool isEnableGarbageCollector)
 		{
-			m_pImpl->Flush();
+			m_pImpl->Flush(isEnableGarbageCollector);
 		}
 
 		void ModelManager::AsyncLoadModel(IModel* pModel, const ModelLoader& loader)

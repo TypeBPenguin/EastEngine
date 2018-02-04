@@ -24,8 +24,6 @@
 #include <string>
 #include <future>
 
-#include <chrono>
-
 #include <ppl.h>
 #include <concurrent_queue.h>
 

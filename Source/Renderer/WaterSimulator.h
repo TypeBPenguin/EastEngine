@@ -75,7 +75,7 @@ namespace EastEngine
 			void Release();
 
 			// Update ocean wave when tick arrives.
-			void UpdateDisplacementMap(float fTime);
+			void UpdateDisplacementMap(IDevice* pDevice, IDeviceContext* pDeviceContext, float fTime);
 
 			// Texture access
 			const std::shared_ptr<ITexture>& GetTextureDisplacementMap();
@@ -90,7 +90,8 @@ namespace EastEngine
 			void ClearEffect(IDeviceContext* pd3dDeviceContext, IEffectTech* pEffectTech);
 			void ClearEffect_FFT(IDeviceContext* pd3dDeviceContext, IEffectTech* pEffectTech);
 			
-			void radix008A(IStructuredBuffer* pUAV_Dst,
+			void radix008A(IDevice* pDevice, IDeviceContext* pDeviceContext, 
+				IStructuredBuffer* pUAV_Dst,
 				IStructuredBuffer* pSRV_Src,
 				CB_Structure& structure,
 				uint32_t thread_count,
@@ -99,7 +100,8 @@ namespace EastEngine
 			bool fft512x512_create_plan(CSFFT512x512_Plan* plan, uint32_t slices);
 			void fft512x512_destroy_plan(CSFFT512x512_Plan* plan);
 
-			void fft_512x512_c2c(CSFFT512x512_Plan* fft_plan,
+			void fft_512x512_c2c(IDevice* pDevice, IDeviceContext* pDeviceContext,
+				CSFFT512x512_Plan* fft_plan,
 				IStructuredBuffer* pUAV_Dst,
 				IStructuredBuffer* pSRV_Dst,
 				IStructuredBuffer* pSRV_Src);

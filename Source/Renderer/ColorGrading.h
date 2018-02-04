@@ -22,7 +22,7 @@ namespace EastEngine
 			bool Init();
 			void Release();
 
-			bool Apply(IRenderTarget* pResult, IRenderTarget* pSource);
+			bool Apply(IDevice* pDevice, IDeviceContext* pDeviceContext, IRenderTarget* pResult, IRenderTarget* pSource);
 
 		public:
 			void SetColorGuide(const Math::Vector3& f3ColorGuide) { m_f3ColorGuide = f3ColorGuide; }

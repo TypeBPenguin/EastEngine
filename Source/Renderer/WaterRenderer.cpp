@@ -6,7 +6,7 @@
 #include "CommonLib/FileUtil.h"
 #include "CommonLib/Timer.h"
 
-#include "DirectX/CameraManager.h"
+#include "DirectX/Camera.h"
 
 #define FRESNEL_TEX_SIZE			256
 #define PERLIN_TEX_SIZE				64
@@ -133,7 +133,7 @@ namespace EastEngine
 			}
 
 			// Update the simulation for the first time.
-			m_pWaterSimulator->UpdateDisplacementMap(0.f);
+			m_pWaterSimulator->UpdateDisplacementMap(GetDevice(), Graphics::GetImmediateContext(), 0.f);
 
 			// Init D3D11 resources for rendering
 			m_fPatchLength = ocean_param.patch_length;
@@ -195,15 +195,15 @@ namespace EastEngine
 			return true;
 		}
 
-		void WaterRenderer::Render(uint32_t nRenderGroupFlag)
+		void WaterRenderer::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
 		{
 			D3D_PROFILING(Water);
 
 			double dGameTime = Timer::GetInstance()->GetGameTime();
 
-			simulate((float)(dGameTime));
+			Simulate(pDevice, pDeviceContext, (float)(dGameTime));
 
-			render((float)(dGameTime));
+			Render(pDevice, pDeviceContext, pCamera, (float)(dGameTime));
 		}
 
 		void WaterRenderer::Flush()
@@ -227,14 +227,14 @@ namespace EastEngine
 			m_pEffect->ClearState(pd3dDeviceContext, pEffectTech);
 		}
 
-		void WaterRenderer::simulate(float fTime)
+		void WaterRenderer::Simulate(IDevice* pDevice, IDeviceContext* pDeviceContext, float fTime)
 		{
 			D3D_PROFILING(Simulate);
 
-			m_pWaterSimulator->UpdateDisplacementMap(fTime);
+			m_pWaterSimulator->UpdateDisplacementMap(pDevice, pDeviceContext, fTime);
 		}
 
-		void WaterRenderer::render(float fTime)
+		void WaterRenderer::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, float fTime)
 		{
 			D3D_PROFILING(Render);
 			IEffectTech* pEffectTech = m_pEffect->GetTechnique(StrID::Water);
@@ -244,29 +244,21 @@ namespace EastEngine
 				return;
 			}
 
-			Camera* pCamera = CameraManager::GetInstance()->GetMainCamera();
-			if (pCamera == nullptr)
-			{
-				LOG_ERROR("Not Exist Main Camera !!");
-				return;
-			}
+			int nThreadID = GetThreadID(ThreadType::eRender);
 
 			// Build rendering list
 			float ocean_extent = m_fPatchLength * (1 << m_nFurthestCover);
 			QuadNode root_node = { Math::Vector2(-ocean_extent * 0.5f, -ocean_extent * 0.5f), ocean_extent, 0,{ -1,-1,-1,-1 } };
 
-			buildNodeList(root_node, pCamera);
+			buildNodeList(pDevice, pDeviceContext, root_node, pCamera);
 
 			// Matrices
 			//const Matrix& matView = pCamera->GetViewMatrix();
 			const Math::Matrix matView = Math::Matrix(1.f, 0.f, 0.f, 0.f,
 				0.f, 0.f, 1.f, 0.f,
 				0.f, 1.f, 0.f, 0.f,
-				0.f, 0.f, 0.f, 1.f) * pCamera->GetViewMatrix();
-			const Math::Matrix& matProj = pCamera->GetProjMatrix();
-
-			IDevice* pDevice = GetDevice();
-			IDeviceContext* pDeviceContext = GetDeviceContext();
+				0.f, 0.f, 0.f, 1.f) * pCamera->GetViewMatrix(nThreadID);
+			const Math::Matrix& matProj = pCamera->GetProjMatrix(nThreadID);
 
 			pDeviceContext->ClearState();
 
@@ -384,7 +376,7 @@ namespace EastEngine
 			pDevice->ReleaseRenderTargets(&pRenderTarget);
 		}
 
-		int WaterRenderer::buildNodeList(QuadNode& quad_node, Camera* pCamera)
+		int WaterRenderer::buildNodeList(IDevice* pDevice, IDeviceContext* pDeviceContext, QuadNode& quad_node, Camera* pCamera)
 		{
 			// Check against view frustum
 			if (!checkNodeVisibility(quad_node, pCamera))
@@ -393,7 +385,7 @@ namespace EastEngine
 			// Estimate the min grid coverage
 			uint32_t num_vps = 1;
 			D3D11_VIEWPORT vp;
-			GetDeviceContext()->GetInterface()->RSGetViewports(&num_vps, &vp);
+			pDeviceContext->GetInterface()->RSGetViewports(&num_vps, &vp);
 			float min_coverage = estimateGridCoverage(quad_node, pCamera, vp.Width * vp.Height);
 
 			// Recursively attatch sub-nodes.
@@ -402,16 +394,16 @@ namespace EastEngine
 			{
 				// Recursive rendering for sub-quads.
 				QuadNode sub_node_0 = { quad_node.bottom_left, quad_node.length / 2, 0,{ -1, -1, -1, -1 } };
-				quad_node.sub_node[0] = buildNodeList(sub_node_0, pCamera);
+				quad_node.sub_node[0] = buildNodeList(pDevice, pDeviceContext, sub_node_0, pCamera);
 
 				QuadNode sub_node_1 = { quad_node.bottom_left + Math::Vector2(quad_node.length / 2, 0), quad_node.length / 2, 0,{ -1, -1, -1, -1 } };
-				quad_node.sub_node[1] = buildNodeList(sub_node_1, pCamera);
+				quad_node.sub_node[1] = buildNodeList(pDevice, pDeviceContext, sub_node_1, pCamera);
 
 				QuadNode sub_node_2 = { quad_node.bottom_left + Math::Vector2(quad_node.length / 2, quad_node.length / 2), quad_node.length / 2, 0,{ -1, -1, -1, -1 } };
-				quad_node.sub_node[2] = buildNodeList(sub_node_2, pCamera);
+				quad_node.sub_node[2] = buildNodeList(pDevice, pDeviceContext, sub_node_2, pCamera);
 
 				QuadNode sub_node_3 = { quad_node.bottom_left + Math::Vector2(0, quad_node.length / 2), quad_node.length / 2, 0,{ -1, -1, -1, -1 } };
-				quad_node.sub_node[3] = buildNodeList(sub_node_3, pCamera);
+				quad_node.sub_node[3] = buildNodeList(pDevice, pDeviceContext, sub_node_3, pCamera);
 
 				visible = !isLeaf(quad_node);
 			}
@@ -441,13 +433,15 @@ namespace EastEngine
 
 		bool WaterRenderer::checkNodeVisibility(const QuadNode& quad_node, Camera* pCamera)
 		{
+			int nThreadID = GetThreadID(ThreadType::eRender);
+
 			// Plane equation setup
 			//const Matrix& matView = pCamera->GetViewMatrix();
 			const Math::Matrix matView = Math::Matrix(1.f, 0.f, 0.f, 0.f,
 				0.f, 0.f, 1.f, 0.f,
 				0.f, 1.f, 0.f, 0.f,
-				0.f, 0.f, 0.f, 1.f) * pCamera->GetViewMatrix();
-			const Math::Matrix& matProj = pCamera->GetProjMatrix();
+				0.f, 0.f, 0.f, 1.f) * pCamera->GetViewMatrix(nThreadID);
+			const Math::Matrix& matProj = pCamera->GetProjMatrix(nThreadID);
 
 			// Left plane
 			float fov_x = std::atan(1.0f / matProj.m[0][0]);
@@ -537,8 +531,11 @@ namespace EastEngine
 				{ 0.1875f, 0.148f },
 			};
 
-			const Math::Matrix& matProj = pCamera->GetProjMatrix();
-			const Math::Vector3& eye_point = pCamera->GetPosition();
+			int nThreadID = GetThreadID(ThreadType::eRender);
+			const Math::Matrix& matView = pCamera->GetViewMatrix(nThreadID);
+			const Math::Matrix& matProj = pCamera->GetProjMatrix(nThreadID);
+
+			const Math::Vector3& eye_point = matView.Invert().Translation();
 			//eye_point = Vector3(eye_point.x, eye_point.z, eye_point.y);
 			float grid_len_world = quad_node.length / m_nMeshDim;
 

@@ -42,18 +42,18 @@ namespace EastEngine
 		public:
 			virtual bool Init(const Math::Viewport& viewport) override;
 
-			virtual void Render(uint32_t nRenderGroupFlag) override;
+			virtual void Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag) override;
 			virtual void Flush() override;
 
 		private:
 			void ClearEffect(IDeviceContext* pd3dDeviceContext, IEffectTech* pEffectTech);
 
-			void simulate(float fTime);
-			void render(float fTime);
+			void Simulate(IDevice* pDevice, IDeviceContext* pDeviceContext, float fTime);
+			void Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, float fTime);
 
 		private:
 			bool isLeaf(const QuadNode& quad_node) { return (quad_node.sub_node[0] == -1 && quad_node.sub_node[1] == -1 && quad_node.sub_node[2] == -1 && quad_node.sub_node[3] == -1); }
-			int buildNodeList(QuadNode& quad_node, Camera* pCamera);
+			int buildNodeList(IDevice* pDevice, IDeviceContext* pDeviceContext, QuadNode& quad_node, Camera* pCamera);
 			bool checkNodeVisibility(const QuadNode& quad_node, Camera* pCamera);
 			float estimateGridCoverage(const QuadNode& quad_node, Camera* pCamera, float screen_area);
 

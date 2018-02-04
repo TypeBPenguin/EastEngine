@@ -105,7 +105,7 @@ namespace EastEngine
 			}
 		}
 
-		bool GaussianBlur::Apply(IRenderTarget* pResult, IRenderTarget* pSource, float fSigma)
+		bool GaussianBlur::Apply(IDevice* pDevice, IDeviceContext* pDeviceContext, IRenderTarget* pResult, IRenderTarget* pSource, float fSigma)
 		{
 			if (pResult == nullptr || pResult->GetTexture() == nullptr)
 				return false;
@@ -115,8 +115,6 @@ namespace EastEngine
 
 			D3D_PROFILING(GaussianBlur);
 
-			IDevice* pDevice = GetDevice();
-			IDeviceContext* pDeviceContext = GetDeviceContext();
 			pDeviceContext->ClearState();
 			pDeviceContext->SetDefaultViewport();
 			pDeviceContext->SetRasterizerState(EmRasterizerState::eSolidCCW);
@@ -168,7 +166,7 @@ namespace EastEngine
 			return true;
 		}
 
-		bool GaussianBlur::Apply(IRenderTarget* pResult, IRenderTarget* pSource, IRenderTarget* pDepth, float fSigma)
+		bool GaussianBlur::Apply(IDevice* pDevice, IDeviceContext* pDeviceContext, IRenderTarget* pResult, IRenderTarget* pSource, IRenderTarget* pDepth, float fSigma)
 		{
 			if (pResult == nullptr || pResult->GetTexture() == nullptr)
 				return false;
@@ -179,8 +177,6 @@ namespace EastEngine
 			if (pDepth == nullptr || pDepth->GetTexture() == nullptr)
 				return false;
 
-			IDevice* pDevice = GetDevice();
-			IDeviceContext* pDeviceContext = GetDeviceContext();
 			pDeviceContext->ClearState();
 			pDeviceContext->SetDefaultViewport();
 			pDeviceContext->SetRasterizerState(EmRasterizerState::eSolidCCW);

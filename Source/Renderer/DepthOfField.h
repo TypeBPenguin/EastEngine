@@ -6,6 +6,8 @@ namespace EastEngine
 {
 	namespace Graphics
 	{
+		class Camera;
+
 		class IEffect;
 		class IEffectTech;
 
@@ -30,7 +32,7 @@ namespace EastEngine
 			void Release();
 
 		public:
-			bool Apply(IRenderTarget* pResult, IRenderTarget* pSource, const std::shared_ptr<ITexture>& pDepth);
+			bool Apply(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, IRenderTarget* pResult, IRenderTarget* pSource, const std::shared_ptr<ITexture>& pDepth);
 
 		public:
 			Setting& GetSetting() { return m_setting; }

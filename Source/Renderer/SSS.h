@@ -18,7 +18,7 @@ namespace EastEngine
 			void Release();
 
 		public:
-			bool Apply(IRenderTarget* pResult, IRenderTarget* pSource, const std::shared_ptr<ITexture>& pDepth);
+			bool Apply(IDevice* pDevice, IDeviceContext* pDeviceContext, IRenderTarget* pResult, IRenderTarget* pSource, const std::shared_ptr<ITexture>& pDepth);
 
 			void SetSSSWidth(float fSSSWidth) { m_fSSSWidth = fSSSWidth; }
 			float GetSSSWidth() const { return m_fSSSWidth; }

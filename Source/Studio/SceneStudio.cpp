@@ -4,7 +4,7 @@
 #include "CommonLib/FileUtil.h"
 #include "CommonLib/Config.h"
 
-#include "DirectX/CameraManager.h"
+#include "DirectX/Camera.h"
 #include "DirectX/Light.h"
 #include "DirectX/MaterialNode.h"
 #include "DirectX/OcclusionCulling.h"
@@ -156,7 +156,7 @@ const std::array<const char*, 12> IBL_Type =
 };
 
 SceneStudio::SceneStudio()
-	: SceneInterface(StrID::Studio)
+	: IScene(StrID::Studio)
 	, m_pSkeletonController(nullptr)
 	, m_pMaterialNodeManager(nullptr)
 	, m_pSectorMgr(nullptr)
@@ -175,7 +175,7 @@ void SceneStudio::Enter()
 
 	HWND hWnd = Windows::GetHwnd();
 	ID3D11Device* pd3dDevice = Graphics::GetDevice()->GetInterface();
-	ID3D11DeviceContext* pd3dDeviceContext = Graphics::GetDeviceContext()->GetInterface();
+	ID3D11DeviceContext* pd3dDeviceContext = Graphics::GetImmediateContext()->GetInterface();
 	ImGui_ImplDX11_Init(hWnd, pd3dDevice, pd3dDeviceContext);
 
 	Graphics::GraphicsSystem::GetInstance()->AddFuncAfterRender([&]()
@@ -188,8 +188,7 @@ void SceneStudio::Enter()
 	ImGuiIO& io = ImGui::GetIO();
 	io.Fonts->AddFontFromFileTTF(strFontPath.c_str(), 16.f, nullptr, io.Fonts->GetGlyphRangesKorean());
 
-	//Graphics::CameraManager::GetInstance()->CreateCamera("MainCamera", Math::Vector3(0.f, 50.f, -100.f), Math::Vector3(0.f, 50.f, 0.f), Math::Vector3(0.f, 1.f, 0.f));
-	Graphics::CameraManager::GetInstance()->CreateCamera("MainCamera", Math::Vector3(0.f, 1.f, -10.f), Math::Vector3(0.f, 50.f, 0.f), Math::Vector3(0.f, 1.f, 0.f));
+	Graphics::Camera::GetInstance()->SetView(Math::Vector3(0.f, 1.f, -10.f), Math::Vector3(0.f, 50.f, 0.f), Math::Vector3(0.f, 1.f, 0.f));
 
 	{
 		Math::Vector3 f3LightPosition(0.f, 500.f, -500.f);
@@ -282,6 +281,7 @@ void SceneStudio::Enter()
 		m_pSectorMgr = CreateSectorMgr(sectorInitInfo);*/
 	}
 
+	if (false)
 	{
 		Graphics::MaterialInfo materialInfo;
 		materialInfo.strName = "TestDecal";
@@ -485,7 +485,7 @@ void SceneStudio::Enter()
 		return pActor;
 	};
 
-	for (int i = 0; i < 1; ++i)
+	for (int i = 0; i < 100; ++i)
 	{
 		String::StringID name;
 		name.Format("UnityChan%d", i);
@@ -494,14 +494,14 @@ void SceneStudio::Enter()
 		strPath.append("Actor\\UnityChan\\unitychan.emod");
 
 		Math::Vector3 pos;
-		//pos.x = -10.f + (2.f * (i % 10));
-		//pos.z = 0.f + (2.f * (i / 10));
+		pos.x = -10.f + (2.f * (i % 10));
+		pos.z = 0.f + (2.f * (i / 10));
 
 		GameObject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
 		GameObject::ComponentModel* pModel = static_cast<GameObject::ComponentModel*>(pActor->CreateComponent(GameObject::EmComponent::eModel));
 		Graphics::IModelInstance* pModelInstance = pModel->GetModelInstance();
 
-		if (false)
+		//if (false)
 		{
 			const std::vector<const char*> vecAnim =
 			{
@@ -663,6 +663,48 @@ void SceneStudio::Enter()
 
 		strPath = File::GetDataPath();
 		strPath.append("Model\\Delia\\Delia.emod");
+
+		GameObject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
+	}
+
+	//if (false)
+	{
+		String::StringID name;
+		name.Format("Misaki");
+
+		Math::Vector3 pos;
+		pos.x = 6.f;
+
+		strPath = File::GetDataPath();
+		strPath.append("Model\\Misaki\\Misaki.emod");
+
+		GameObject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
+	}
+
+	//if (false)
+	{
+		String::StringID name;
+		name.Format("Naotora");
+
+		Math::Vector3 pos;
+		pos.x = 8.f;
+
+		strPath = File::GetDataPath();
+		strPath.append("Model\\Naotora\\Naotora.emod");
+
+		GameObject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
+	}
+
+	//if (false)
+	{
+		String::StringID name;
+		name.Format("Naotora_ShirtDress");
+
+		Math::Vector3 pos;
+		pos.x = 10.f;
+
+		strPath = File::GetDataPath();
+		strPath.append("Model\\Naotora_ShirtDress\\Naotora_ShirtDress.emod");
 
 		GameObject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
 	}
@@ -940,7 +982,7 @@ void SceneStudio::Update(float fElapsedTime)
 
 void SceneStudio::ProcessInput(float fElapsedTime)
 {
-	Graphics::Camera* pCamera = Graphics::CameraManager::GetInstance()->GetMainCamera();
+	Graphics::Camera* pCamera = Graphics::Camera::GetInstance();
 	if (pCamera == nullptr)
 		return;
 
@@ -1361,8 +1403,8 @@ void SceneStudio::ShowConfig()
 				Config::SetEnable("DepthOfField"_s, isApplyDepthOfField);
 			}
 
-			float fNear = Graphics::CameraManager::GetInstance()->GetNear();
-			float fFar = Graphics::CameraManager::GetInstance()->GetFar();
+			float fNear = Graphics::Camera::GetInstance()->GetNearClip(Graphics::eUpdate);
+			float fFar = Graphics::Camera::GetInstance()->GetFarClip(Graphics::eUpdate);
 
 			auto& setting = Graphics::DepthOfField::GetInstance()->GetSetting();
 
@@ -1567,7 +1609,7 @@ void SceneStudio::ShowConfig()
 
 	if (ImGui::CollapsingHeader("Camera") == true)
 	{
-		Graphics::Camera* pCamera = Graphics::CameraManager::GetInstance()->GetMainCamera();
+		Graphics::Camera* pCamera = Graphics::Camera::GetInstance();
 
 		Math::Vector3 f3CameraPos = pCamera->GetPosition();
 		if (ImGui::DragFloat3("Camera Position", reinterpret_cast<float*>(&f3CameraPos.x), 0.01f, -1000000.f, 1000000.f) == true)
@@ -2144,6 +2186,9 @@ void ShowMaterial(bool& isShowMaterial, Graphics::IMaterial* pMaterial, int nInd
 
 void SceneStudio::RenderUI()
 {
+	int nThreadID = Graphics::GetThreadID(Graphics::eRender);
+
+	ImGui_ImplDX11_DeviceContextChange(Graphics::GetDeferredContext(nThreadID)->GetInterface());
 	ImGui_ImplDX11_NewFrame();
 
 	ShowConfig();

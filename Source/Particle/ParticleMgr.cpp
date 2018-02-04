@@ -3,7 +3,8 @@
 
 #include "ParticleInterface.h"
 
-#include "DirectX/CameraManager.h"
+#include "DirectX/D3DInterface.h"
+#include "DirectX/Camera.h"
 
 namespace EastEngine
 {
@@ -44,13 +45,14 @@ namespace EastEngine
 
 		void ParticleManager::Update(float fElapsedTime)
 		{
-			Camera* pCamera = CameraManager::GetInstance()->GetMainCamera();
+			Camera* pCamera = Camera::GetInstance();
 			if (pCamera == nullptr)
 				return;
 
-			const Math::Matrix& matView = pCamera->GetViewMatrix();
-			Math::Matrix matViewProjection = matView * pCamera->GetProjMatrix();
-			Collision::Frustum frustum = pCamera->GetFrustum();
+			int nThreadID = GetThreadID(ThreadType::eUpdate);
+			const Math::Matrix& matView = pCamera->GetViewMatrix(nThreadID);
+			Math::Matrix matViewProjection = matView * pCamera->GetProjMatrix(nThreadID);
+			Collision::Frustum frustum = pCamera->GetFrustum(nThreadID);
 
 			auto iter = m_listParticle.begin();
 			while (iter != m_listParticle.end())

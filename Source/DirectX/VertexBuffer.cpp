@@ -107,7 +107,7 @@ namespace EastEngine
 			D3D11_MAPPED_SUBRESOURCE map;
 			Memory::Clear(&map, sizeof(D3D11_MAPPED_SUBRESOURCE));
 
-			HRESULT hr = GetDeviceContext()->Map(m_pVertexBuffer, nSubresource, static_cast<D3D11_MAP>(emMap), 0, &map);
+			HRESULT hr = GetImmediateContext()->Map(m_pVertexBuffer, nSubresource, static_cast<D3D11_MAP>(emMap), 0, &map);
 			if (FAILED(hr))
 			{
 				*ppData = nullptr;
@@ -120,7 +120,7 @@ namespace EastEngine
 
 		void VertexBuffer::Unmap(uint32_t nSubresource) const
 		{
-			GetDeviceContext()->Unmap(m_pVertexBuffer, nSubresource);
+			GetImmediateContext()->Unmap(m_pVertexBuffer, nSubresource);
 		}
 	}
 }

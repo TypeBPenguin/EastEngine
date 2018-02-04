@@ -27,7 +27,7 @@ namespace EastEngine
 		public:
 			virtual bool Init(const Math::Viewport& viewport) override;
 
-			virtual void Render(uint32_t nRenderGroupFlag) override;
+			virtual void Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag) override;
 			virtual void Flush() override;
 
 		public:
@@ -37,8 +37,8 @@ namespace EastEngine
 		private:
 			void OcclusionCulling(Camera* pCamera, uint32_t nRenderGroupFlag);
 
-			void RenderStaticModel(IDevice* pDevice, Camera* pCamera, uint32_t nRenderGroupFlag, uint32_t nRenderTypeFlag);
-			void RenderSkinnedModel(IDevice* pDevice, Camera* pCamera, uint32_t nRenderGroupFlag, uint32_t nRenderTypeFlag);
+			void RenderStaticModel(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, uint32_t nRenderTypeFlag);
+			void RenderSkinnedModel(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, uint32_t nRenderTypeFlag);
 
 			void RenderStaticModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, const Math::Matrix* pMatView, const Math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap);
 			void RenderSkinnedModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, const Math::Matrix* pMatView, const Math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap);
@@ -49,7 +49,7 @@ namespace EastEngine
 				std::pair<const void*, IMaterial*> pairKey;
 				RenderSubsetStatic data;
 				bool isCulling = false;
-				std::vector<VertexClipSpace> vecVertexClipSpace;
+				//std::vector<VertexClipSpace> vecVertexClipSpace;
 
 				void Set(const RenderSubsetStatic& source)
 				{
@@ -58,8 +58,8 @@ namespace EastEngine
 					isCulling = false;
 				}
 			};
-			std::array<std::vector<StaticSubset>, GroupCount> m_vecStaticSubsets;
-			std::array<size_t, GroupCount> m_nStaticIndex;
+			std::array<std::array<std::vector<StaticSubset>, GroupCount>, ThreadCount> m_vecStaticSubsets;
+			std::array<std::array<size_t, GroupCount>, ThreadCount> m_nStaticIndex;
 
 			struct SkinnedSubset
 			{
@@ -73,8 +73,8 @@ namespace EastEngine
 					data = source;;
 				}
 			};
-			std::array<std::vector<SkinnedSubset>, GroupCount> m_vecSkinnedSubsets;
-			std::array<size_t, GroupCount> m_nSkinnedIndex;
+			std::array<std::array<std::vector<SkinnedSubset>, GroupCount>, 2> m_vecSkinnedSubsets;
+			std::array<std::array<size_t, GroupCount>, 2> m_nSkinnedIndex;
 
 			struct RenderSubsetStaticBatch
 			{

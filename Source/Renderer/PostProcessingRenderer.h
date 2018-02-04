@@ -25,7 +25,7 @@ namespace EastEngine
 		public:
 			virtual bool Init(const Math::Viewport& viewport) override;
 
-			virtual void Render(uint32_t nRenderGroupFlag) override;
+			virtual void Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag) override;
 			virtual void Flush() override;
 
 		private:

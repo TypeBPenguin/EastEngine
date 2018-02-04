@@ -39,7 +39,7 @@ namespace EastEngine
 			void Release();
 
 		public:
-			bool Apply(IRenderTarget* pSource);
+			bool Apply(IDevice* pDevice, IDeviceContext* pDeviceContext, IRenderTarget* pSource);
 
 			Settings& GetSettings() { return m_settings; }
 			void SetSettings(const Settings& settings) { m_settings = settings; }

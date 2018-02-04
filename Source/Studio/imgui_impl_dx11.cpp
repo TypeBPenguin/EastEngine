@@ -583,3 +583,8 @@ void ImGui_ImplDX11_NewFrame()
     // Start the frame
     ImGui::NewFrame();
 }
+
+void ImGui_ImplDX11_DeviceContextChange(ID3D11DeviceContext* device_context)
+{
+	g_pd3dDeviceContext = device_context;
+}

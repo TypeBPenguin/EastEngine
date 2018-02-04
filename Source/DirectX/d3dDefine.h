@@ -4,6 +4,14 @@ namespace EastEngine
 {
 	namespace Graphics
 	{
+		enum ThreadType
+		{
+			eUpdate = 0,
+			eRender,
+
+			ThreadCount,
+		};
+
 		namespace EmRasterizerState
 		{
 			enum Type

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Engine/SceneMgr.h"
+#include "Engine/SceneManager.h"
 
-class SceneWorld : public EastEngine::SceneInterface
+class SceneWorld : public EastEngine::IScene
 {
 public:
 	SceneWorld(const EastEngine::String::StringID& strSceneName);

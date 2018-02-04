@@ -21,7 +21,7 @@
 
 #include "CommonLib/FileUtil.h"
 
-#include "DirectX/CameraManager.h"
+#include "DirectX/Camera.h"
 #include "DirectX/Vertex.h"
 
 #include <d3dcompiler.h>
@@ -369,7 +369,7 @@ namespace EastEngine
 			void UpdateTextures(const ASSAO_InputsDX11* inputs);
 			void UpdateConstants(const ASSAO_Settings& settings, const ASSAO_InputsDX11* inputs, int pass);
 			//void FullscreenPassDraw(ID3D11DeviceContext* context, ID3D11PixelShader* pixelShader, ID3D11BlendState* blendState = nullptr, ID3D11DepthStencilState* depthStencilState = nullptr, UINT stencilRef = 0);
-			void FullscreenPassDraw(ID3D11DeviceContext* context, ID3D11PixelShader* pixelShader, IBlendState* pBlendState = nullptr, IDepthStencilState* pDepthStencilState = nullptr, UINT stencilRef = 0);
+			void FullscreenPassDraw(IDeviceContext* context, ID3D11PixelShader* pixelShader, IBlendState* pBlendState = nullptr, IDepthStencilState* pDepthStencilState = nullptr, UINT stencilRef = 0);
 			void PrepareDepths(const ASSAO_Settings& settings, const ASSAO_InputsDX11* inputs);
 			void GenerateSSAO(const ASSAO_Settings& settings, const ASSAO_InputsDX11* inputs, bool adaptiveBasePass);
 		};
@@ -847,46 +847,46 @@ namespace EastEngine
 		//	context->Draw(3, 0);
 		//}
 
-		void ASSAODX11::FullscreenPassDraw(ID3D11DeviceContext* context, ID3D11PixelShader* pixelShader, IBlendState* pBlendState, IDepthStencilState* pDepthStencilState, UINT stencilRef)
+		void ASSAODX11::FullscreenPassDraw(IDeviceContext* pDeviceContext, ID3D11PixelShader* pixelShader, IBlendState* pBlendState, IDepthStencilState* pDepthStencilState, UINT stencilRef)
 		{
 			if (pBlendState == nullptr) pBlendState = m_pBlendStateOpaque;
 			if (pDepthStencilState == nullptr) pDepthStencilState = m_pDepthStencilState;
 
 			// Topology
-			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 			// Vertex buffer
-			GetDeviceContext()->SetVertexBuffers(m_pFullScreenVB, m_pFullScreenVB->GetFormatSize(), 0);
-			GetDeviceContext()->SetInputLayout(EmVertexFormat::ePosTex);
+			pDeviceContext->SetVertexBuffers(m_pFullScreenVB, m_pFullScreenVB->GetFormatSize(), 0);
+			pDeviceContext->SetInputLayout(EmVertexFormat::ePosTex);
 
 			// Shaders and input layout
 			//context->IASetInputLayout(m_inputLayout);
-			context->VSSetShader(m_vertexShader, nullptr, 0);
-			context->PSSetShader(pixelShader, nullptr, 0);
+			pDeviceContext->GetInterface()->VSSetShader(m_vertexShader, nullptr, 0);
+			pDeviceContext->GetInterface()->PSSetShader(pixelShader, nullptr, 0);
 			
-			GetDeviceContext()->SetBlendState(pBlendState, Math::Vector4::Zero, 0xFFFFFFFF);
-			GetDeviceContext()->SetDepthStencilState(pDepthStencilState, stencilRef);
+			pDeviceContext->SetBlendState(pBlendState, Math::Vector4::Zero, 0xFFFFFFFF);
+			pDeviceContext->SetDepthStencilState(pDepthStencilState, stencilRef);
 			//float blendFactor[4] = { 0, 0, 0, 0 };
 			//context->OMSetBlendState(blendState, blendFactor, 0xFFFFFFFF);
 			//context->OMSetDepthStencilState(depthStencilState, stencilRef);
-			GetDeviceContext()->SetRasterizerState(m_pRasterizerState);
+			pDeviceContext->SetRasterizerState(m_pRasterizerState);
 
-			context->Draw(3, 0);
+			pDeviceContext->Draw(3, 0);
 		}
 
 		void ASSAODX11::PrepareDepths(const ASSAO_Settings& settings, const ASSAO_InputsDX11* inputs)
 		{
 			bool generateNormals = inputs->NormalSRV == nullptr;
 
-			ID3D11DeviceContext* dx11Context = inputs->DeviceContext;
+			IDeviceContext* dx11Context = inputs->DeviceContext;
 
-			dx11Context->PSSetShaderResources(SSAO_TEXTURE_SLOT0, 1, &inputs->DepthSRV);
+			dx11Context->GetInterface()->PSSetShaderResources(SSAO_TEXTURE_SLOT0, 1, &inputs->DepthSRV);
 
 			{
 				CD3D11_VIEWPORT viewport = CD3D11_VIEWPORT(0.0f, 0.0f, (float)m_halfSize.x, (float)m_halfSize.y);
 				CD3D11_RECT rect = CD3D11_RECT(0, 0, m_halfSize.x, m_halfSize.y);
-				dx11Context->RSSetViewports(1, &viewport);
-				dx11Context->RSSetScissorRects(1, &rect); // no scissor for this
+				dx11Context->GetInterface()->RSSetViewports(1, &viewport);
+				dx11Context->GetInterface()->RSSetScissorRects(1, &rect); // no scissor for this
 			}
 
 			ID3D11RenderTargetView* fourDepths[] = { m_halfDepths[0].RTV, m_halfDepths[1].RTV, m_halfDepths[2].RTV, m_halfDepths[3].RTV };
@@ -897,12 +897,12 @@ namespace EastEngine
 
 				if (settings.QualityLevel < 0)
 				{
-					dx11Context->OMSetRenderTargets(_countof(twoDepths), twoDepths, nullptr);
+					dx11Context->GetInterface()->OMSetRenderTargets(_countof(twoDepths), twoDepths, nullptr);
 					FullscreenPassDraw(dx11Context, m_pixelShaderPrepareDepthsHalf);
 				}
 				else
 				{
-					dx11Context->OMSetRenderTargets(_countof(fourDepths), fourDepths, nullptr);
+					dx11Context->GetInterface()->OMSetRenderTargets(_countof(fourDepths), fourDepths, nullptr);
 					FullscreenPassDraw(dx11Context, m_pixelShaderPrepareDepths);
 				}
 			}
@@ -913,12 +913,12 @@ namespace EastEngine
 				ID3D11UnorderedAccessView* UAVs[] = { m_normals.UAV };
 				if (settings.QualityLevel < 0)
 				{
-					dx11Context->OMSetRenderTargetsAndUnorderedAccessViews(_countof(twoDepths), twoDepths, nullptr, SSAO_NORMALMAP_OUT_UAV_SLOT, 1, UAVs, nullptr);
+					dx11Context->GetInterface()->OMSetRenderTargetsAndUnorderedAccessViews(_countof(twoDepths), twoDepths, nullptr, SSAO_NORMALMAP_OUT_UAV_SLOT, 1, UAVs, nullptr);
 					FullscreenPassDraw(dx11Context, m_pixelShaderPrepareDepthsAndNormalsHalf);
 				}
 				else
 				{
-					dx11Context->OMSetRenderTargetsAndUnorderedAccessViews(_countof(fourDepths), fourDepths, nullptr, SSAO_NORMALMAP_OUT_UAV_SLOT, 1, UAVs, nullptr);
+					dx11Context->GetInterface()->OMSetRenderTargetsAndUnorderedAccessViews(_countof(fourDepths), fourDepths, nullptr, SSAO_NORMALMAP_OUT_UAV_SLOT, 1, UAVs, nullptr);
 					FullscreenPassDraw(dx11Context, m_pixelShaderPrepareDepthsAndNormals);
 				}
 			}
@@ -933,12 +933,12 @@ namespace EastEngine
 					ID3D11RenderTargetView* fourDepthMips[] = { m_halfDepthsMipViews[0][i].RTV, m_halfDepthsMipViews[1][i].RTV, m_halfDepthsMipViews[2][i].RTV, m_halfDepthsMipViews[3][i].RTV };
 
 					CD3D11_VIEWPORT viewport = CD3D11_VIEWPORT(0.0f, 0.0f, (float)m_halfDepthsMipViews[0][i].Size.x, (float)m_halfDepthsMipViews[0][i].Size.y);
-					dx11Context->RSSetViewports(1, &viewport);
+					dx11Context->GetInterface()->RSSetViewports(1, &viewport);
 
 					ID3D11ShaderResourceView* fourSRVs[] = { m_halfDepthsMipViews[0][i - 1].SRV, m_halfDepthsMipViews[1][i - 1].SRV, m_halfDepthsMipViews[2][i - 1].SRV, m_halfDepthsMipViews[3][i - 1].SRV };
 
-					dx11Context->OMSetRenderTargets(4, fourDepthMips, nullptr);
-					dx11Context->PSSetShaderResources(SSAO_TEXTURE_SLOT0, 4, fourSRVs);
+					dx11Context->GetInterface()->OMSetRenderTargets(4, fourDepthMips, nullptr);
+					dx11Context->GetInterface()->PSSetShaderResources(SSAO_TEXTURE_SLOT0, 4, fourSRVs);
 					FullscreenPassDraw(dx11Context, m_pixelShaderPrepareDepthMip[i - 1]);
 				}
 			}
@@ -948,13 +948,13 @@ namespace EastEngine
 		{
 			ID3D11ShaderResourceView* normalmapSRV = (inputs->NormalSRV == nullptr) ? (m_normals.SRV) : (inputs->NormalSRV);
 
-			ID3D11DeviceContext* dx11Context = inputs->DeviceContext;
+			IDeviceContext* dx11Context = inputs->DeviceContext;
 
 			{
 				CD3D11_VIEWPORT viewport = CD3D11_VIEWPORT(0.0f, 0.0f, (float)m_halfSize.x, (float)m_halfSize.y);
 				CD3D11_RECT rect = CD3D11_RECT(m_halfResOutScissorRect.x, m_halfResOutScissorRect.y, m_halfResOutScissorRect.z, m_halfResOutScissorRect.w);
-				dx11Context->RSSetViewports(1, &viewport);
-				dx11Context->RSSetScissorRects(1, &rect);
+				dx11Context->GetInterface()->RSSetViewports(1, &viewport);
+				dx11Context->GetInterface()->RSSetScissorRects(1, &rect);
 			}
 
 			if (adaptiveBasePass)
@@ -1007,7 +1007,7 @@ namespace EastEngine
 					//VA_SCOPE_CPUGPU_TIMER_NAMED( Generate, vaStringTools::Format( "Generate_pass%d", pass ), drawContext.APIContext );
 
 					// remove textures from slots 0, 1, 2, 3 to avoid API complaints
-					dx11Context->PSSetShaderResources(SSAO_TEXTURE_SLOT0, 5, zeroSRVs);
+					dx11Context->GetInterface()->PSSetShaderResources(SSAO_TEXTURE_SLOT0, 5, zeroSRVs);
 
 					ID3D11RenderTargetView* rts[] = { pPingRT->RTV };
 
@@ -1015,7 +1015,7 @@ namespace EastEngine
 					if (blurPasses == 0)
 						rts[0] = m_finalResultsArrayViews[pass].RTV;
 
-					dx11Context->OMSetRenderTargets(_countof(rts), rts, nullptr);
+					dx11Context->GetInterface()->OMSetRenderTargets(_countof(rts), rts, nullptr);
 
 					ID3D11ShaderResourceView* SRVs[] = { m_halfDepths[pass].SRV, normalmapSRV, nullptr, nullptr, nullptr }; // m_loadCounterSRV used only for quality level 3
 #ifdef INTEL_SSAO_ENABLE_ADAPTIVE_QUALITY
@@ -1026,13 +1026,13 @@ namespace EastEngine
 						SRVs[4] = m_finalResults.SRV;
 					}
 #endif
-					dx11Context->PSSetShaderResources(SSAO_TEXTURE_SLOT0, 5, SRVs);
+					dx11Context->GetInterface()->PSSetShaderResources(SSAO_TEXTURE_SLOT0, 5, SRVs);
 
 					int shaderIndex = Math::Max(0, (!adaptiveBasePass) ? (settings.QualityLevel) : (4));
 					FullscreenPassDraw(dx11Context, m_pixelShaderGenerate[shaderIndex]);
 
 					// remove textures from slots 0, 1, 2, 3 to avoid API complaints
-					dx11Context->PSSetShaderResources(SSAO_TEXTURE_SLOT0, 5, zeroSRVs);
+					dx11Context->GetInterface()->PSSetShaderResources(SSAO_TEXTURE_SLOT0, 5, zeroSRVs);
 				}
 
 				// Blur
@@ -1043,7 +1043,7 @@ namespace EastEngine
 					for (int i = 0; i < blurPasses; i++)
 					{
 						// remove textures to avoid API complaints
-						dx11Context->PSSetShaderResources(SSAO_TEXTURE_SLOT0, _countof(zeroSRVs), zeroSRVs);
+						dx11Context->GetInterface()->PSSetShaderResources(SSAO_TEXTURE_SLOT0, _countof(zeroSRVs), zeroSRVs);
 
 						ID3D11RenderTargetView* rts[] = { pPongRT->RTV };
 
@@ -1051,10 +1051,10 @@ namespace EastEngine
 						if (i == (blurPasses - 1))
 							rts[0] = m_finalResultsArrayViews[pass].RTV;
 
-						dx11Context->OMSetRenderTargets(_countof(rts), rts, nullptr);
+						dx11Context->GetInterface()->OMSetRenderTargets(_countof(rts), rts, nullptr);
 
 						ID3D11ShaderResourceView* SRVs[] = { pPingRT->SRV };
-						dx11Context->PSSetShaderResources(SSAO_TEXTURE_SLOT2, _countof(SRVs), SRVs);
+						dx11Context->GetInterface()->PSSetShaderResources(SSAO_TEXTURE_SLOT2, _countof(SRVs), SRVs);
 
 						if (settings.QualityLevel > 0)
 						{
@@ -1078,7 +1078,7 @@ namespace EastEngine
 				}
 
 				// remove textures to avoid API complaints
-				dx11Context->PSSetShaderResources(SSAO_TEXTURE_SLOT0, _countof(zeroSRVs), zeroSRVs);
+				dx11Context->GetInterface()->PSSetShaderResources(SSAO_TEXTURE_SLOT0, _countof(zeroSRVs), zeroSRVs);
 			}
 		}
 
@@ -1107,31 +1107,31 @@ namespace EastEngine
 				UpdateConstants(settings, inputs, 0);
 			}
 
-			ID3D11DeviceContext* dx11Context = inputs->DeviceContext;
+			IDeviceContext* dx11Context = inputs->DeviceContext;
 
 			{
 				// Backup D3D11 states (will be restored when it goes out of scope)
-				D3D11SSAOStateBackupRAII d3d11StatesBackup(dx11Context);
+				D3D11SSAOStateBackupRAII d3d11StatesBackup(dx11Context->GetInterface());
 
 				if (m_requiresClear)
 				{
 					D3D_PROFILING(Clear);
 					float fourZeroes[4] = { 0, 0, 0, 0 };
 					float fourOnes[4] = { 1, 1, 1, 1 };
-					dx11Context->ClearRenderTargetView(m_halfDepths[0].RTV, fourZeroes);
-					dx11Context->ClearRenderTargetView(m_halfDepths[1].RTV, fourZeroes);
-					dx11Context->ClearRenderTargetView(m_halfDepths[2].RTV, fourZeroes);
-					dx11Context->ClearRenderTargetView(m_halfDepths[3].RTV, fourZeroes);
-					dx11Context->ClearRenderTargetView(m_pingPongHalfResultA.RTV, fourOnes);
-					dx11Context->ClearRenderTargetView(m_pingPongHalfResultB.RTV, fourZeroes);
-					dx11Context->ClearRenderTargetView(m_finalResultsArrayViews[0].RTV, fourOnes);
-					dx11Context->ClearRenderTargetView(m_finalResultsArrayViews[1].RTV, fourOnes);
-					dx11Context->ClearRenderTargetView(m_finalResultsArrayViews[2].RTV, fourOnes);
-					dx11Context->ClearRenderTargetView(m_finalResultsArrayViews[3].RTV, fourOnes);
-					if (m_normals.RTV != nullptr) dx11Context->ClearRenderTargetView(m_normals.RTV, fourZeroes);
+					dx11Context->GetInterface()->ClearRenderTargetView(m_halfDepths[0].RTV, fourZeroes);
+					dx11Context->GetInterface()->ClearRenderTargetView(m_halfDepths[1].RTV, fourZeroes);
+					dx11Context->GetInterface()->ClearRenderTargetView(m_halfDepths[2].RTV, fourZeroes);
+					dx11Context->GetInterface()->ClearRenderTargetView(m_halfDepths[3].RTV, fourZeroes);
+					dx11Context->GetInterface()->ClearRenderTargetView(m_pingPongHalfResultA.RTV, fourOnes);
+					dx11Context->GetInterface()->ClearRenderTargetView(m_pingPongHalfResultB.RTV, fourZeroes);
+					dx11Context->GetInterface()->ClearRenderTargetView(m_finalResultsArrayViews[0].RTV, fourOnes);
+					dx11Context->GetInterface()->ClearRenderTargetView(m_finalResultsArrayViews[1].RTV, fourOnes);
+					dx11Context->GetInterface()->ClearRenderTargetView(m_finalResultsArrayViews[2].RTV, fourOnes);
+					dx11Context->GetInterface()->ClearRenderTargetView(m_finalResultsArrayViews[3].RTV, fourOnes);
+					if (m_normals.RTV != nullptr) dx11Context->GetInterface()->ClearRenderTargetView(m_normals.RTV, fourZeroes);
 #ifdef INTEL_SSAO_ENABLE_ADAPTIVE_QUALITY
-					dx11Context->ClearRenderTargetView(m_importanceMap.RTV, fourZeroes);
-					dx11Context->ClearRenderTargetView(m_importanceMapPong.RTV, fourZeroes);
+					dx11Context->GetInterface()->ClearRenderTargetView(m_importanceMap.RTV, fourZeroes);
+					dx11Context->GetInterface()->ClearRenderTargetView(m_importanceMapPong.RTV, fourZeroes);
 #endif
 
 					m_requiresClear = false;
@@ -1151,10 +1151,10 @@ namespace EastEngine
 				samplers[2] = m_pSamplerStatePointMirror->GetInterface();
 				samplers[3] = m_pSamplerStateViewspaceDepthTap->GetInterface();
 
-				dx11Context->PSSetSamplers(0, _countof(samplers), samplers);
+				dx11Context->GetInterface()->PSSetSamplers(0, _countof(samplers), samplers);
 
 				// Set constant buffer
-				dx11Context->PSSetConstantBuffers(SSAO_CONSTANTS_BUFFERSLOT, 1, &m_constantsBuffer);
+				dx11Context->GetInterface()->PSSetConstantBuffers(SSAO_CONSTANTS_BUFFERSLOT, 1, &m_constantsBuffer);
 
 				// Generate depths
 				{
@@ -1177,32 +1177,32 @@ namespace EastEngine
 						D3D_PROFILING(GenerateImportanceMap);
 						CD3D11_VIEWPORT viewport = CD3D11_VIEWPORT(0.0f, 0.0f, (float)m_quarterSize.x, (float)m_quarterSize.y);
 						CD3D11_RECT rect = CD3D11_RECT(0, 0, m_quarterSize.x, m_quarterSize.y);
-						dx11Context->RSSetViewports(1, &viewport);
-						dx11Context->RSSetScissorRects(1, &rect);
+						dx11Context->GetInterface()->RSSetViewports(1, &viewport);
+						dx11Context->GetInterface()->RSSetScissorRects(1, &rect);
 
 						ID3D11ShaderResourceView* zeroSRVs[] = { nullptr, nullptr, nullptr, nullptr, nullptr };
 
 						// drawing into importanceMap
-						dx11Context->OMSetRenderTargets(1, &m_importanceMap.RTV, nullptr);
+						dx11Context->GetInterface()->OMSetRenderTargets(1, &m_importanceMap.RTV, nullptr);
 
 						// select 4 deinterleaved AO textures (texture array)
-						dx11Context->PSSetShaderResources(SSAO_TEXTURE_SLOT4, 1, &m_finalResults.SRV);
+						dx11Context->GetInterface()->PSSetShaderResources(SSAO_TEXTURE_SLOT4, 1, &m_finalResults.SRV);
 						FullscreenPassDraw(dx11Context, m_pixelShaderGenerateImportanceMap, m_pBlendStateOpaque);
 
 						// postprocess A
-						dx11Context->OMSetRenderTargets(1, &m_importanceMapPong.RTV, nullptr);
-						dx11Context->PSSetShaderResources(SSAO_TEXTURE_SLOT3, 1, &m_importanceMap.SRV);
+						dx11Context->GetInterface()->OMSetRenderTargets(1, &m_importanceMapPong.RTV, nullptr);
+						dx11Context->GetInterface()->PSSetShaderResources(SSAO_TEXTURE_SLOT3, 1, &m_importanceMap.SRV);
 						FullscreenPassDraw(dx11Context, m_pixelShaderPostprocessImportanceMapA, m_pBlendStateOpaque);
-						dx11Context->PSSetShaderResources(SSAO_TEXTURE_SLOT3, 1, zeroSRVs);
+						dx11Context->GetInterface()->PSSetShaderResources(SSAO_TEXTURE_SLOT3, 1, zeroSRVs);
 
 						// postprocess B
 						UINT fourZeroes[4] = { 0, 0, 0, 0 };
-						dx11Context->ClearUnorderedAccessViewUint(m_loadCounterUAV, fourZeroes);
-						dx11Context->OMSetRenderTargetsAndUnorderedAccessViews(1, &m_importanceMap.RTV, nullptr, SSAO_LOAD_COUNTER_UAV_SLOT, 1, &m_loadCounterUAV, nullptr);
+						dx11Context->GetInterface()->ClearUnorderedAccessViewUint(m_loadCounterUAV, fourZeroes);
+						dx11Context->GetInterface()->OMSetRenderTargetsAndUnorderedAccessViews(1, &m_importanceMap.RTV, nullptr, SSAO_LOAD_COUNTER_UAV_SLOT, 1, &m_loadCounterUAV, nullptr);
 						// select previous pass input importance map
-						dx11Context->PSSetShaderResources(SSAO_TEXTURE_SLOT3, 1, &m_importanceMapPong.SRV);
+						dx11Context->GetInterface()->PSSetShaderResources(SSAO_TEXTURE_SLOT3, 1, &m_importanceMapPong.SRV);
 						FullscreenPassDraw(dx11Context, m_pixelShaderPostprocessImportanceMapB, m_pBlendStateOpaque);
-						dx11Context->PSSetShaderResources(SSAO_TEXTURE_SLOT3, 1, zeroSRVs);
+						dx11Context->GetInterface()->PSSetShaderResources(SSAO_TEXTURE_SLOT3, 1, zeroSRVs);
 					}
 				}
 #endif
@@ -1215,7 +1215,7 @@ namespace EastEngine
 				if (inputs->OverrideOutputRTV != nullptr)
 				{
 					// drawing into OverrideOutputRTV
-					dx11Context->OMSetRenderTargets(1, &inputs->OverrideOutputRTV, nullptr);
+					dx11Context->GetInterface()->OMSetRenderTargets(1, &inputs->OverrideOutputRTV, nullptr);
 				}
 				else
 				{
@@ -1227,12 +1227,12 @@ namespace EastEngine
 				{
 					D3D_PROFILING(Apply);
 					// select 4 deinterleaved AO textures (texture array)
-					dx11Context->PSSetShaderResources(SSAO_TEXTURE_SLOT4, 1, &m_finalResults.SRV);
+					dx11Context->GetInterface()->PSSetShaderResources(SSAO_TEXTURE_SLOT4, 1, &m_finalResults.SRV);
 
 					CD3D11_VIEWPORT viewport = CD3D11_VIEWPORT(0.0f, 0.0f, (float)m_size.x, (float)m_size.y);
 					CD3D11_RECT rect = CD3D11_RECT(m_fullResOutScissorRect.x, m_fullResOutScissorRect.y, m_fullResOutScissorRect.z, m_fullResOutScissorRect.w);
-					dx11Context->RSSetViewports(1, &viewport);
-					dx11Context->RSSetScissorRects(1, &rect);
+					dx11Context->GetInterface()->RSSetViewports(1, &viewport);
+					dx11Context->GetInterface()->RSSetScissorRects(1, &rect);
 
 					IBlendState* pBlendState = (inputs->DrawOpaque) ? (m_pBlendStateOpaque) : (m_pBlendStateMultiply);
 
@@ -1400,7 +1400,7 @@ namespace EastEngine
 
 		void ASSAODX11::UpdateConstants(const ASSAO_Settings& settings, const ASSAO_InputsDX11* inputs, int pass)
 		{
-			ID3D11DeviceContext* dx11Context = inputs->DeviceContext;
+			IDeviceContext* dx11Context = inputs->DeviceContext;
 			bool generateNormals = inputs->NormalSRV == nullptr;
 
 			// update constants
@@ -1822,17 +1822,19 @@ namespace EastEngine
 			m_pEffect = nullptr;
 		}
 
-		void ASSAO::Apply(IRenderTarget* pResult)
+		void ASSAO::Apply(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, IRenderTarget* pResult)
 		{
 			D3D_PROFILING(SSAO);
+
+			int nThreadID = GetThreadID(ThreadType::eRender);
 
 			ASSAO_InputsDX11 inputs;
 			inputs.ScissorLeft = 0;
 			inputs.ScissorTop = 0;
 			inputs.ScissorRight = static_cast<int>(m_viewport.width);
 			inputs.ScissorBottom = static_cast<int>(m_viewport.height);
-			inputs.DeviceContext = GetDeviceContext()->GetInterface();
-			inputs.ProjectionMatrix = CameraManager::GetInstance()->GetMainCamera()->GetProjMatrix();
+			inputs.DeviceContext = pDeviceContext;
+			inputs.ProjectionMatrix = pCamera->GetProjMatrix(nThreadID);
 			inputs.ViewportWidth = static_cast<int>(m_viewport.width);
 			inputs.ViewportHeight = static_cast<int>(m_viewport.height);
 			inputs.DepthSRV = GetDevice()->GetMainDepthStencil()->GetTexture()->GetShaderResourceView();
@@ -1840,11 +1842,11 @@ namespace EastEngine
 			inputs.MatricesRowMajorOrder = true;
 			inputs.DrawOpaque = false;
 #if SSAO_ENABLE_NORMAL_WORLD_TO_VIEW_CONVERSION
-			inputs.NormalsWorldToViewspaceMatrix = CameraManager::GetInstance()->GetMainCamera()->GetViewMatrix().Transpose();
+			inputs.NormalsWorldToViewspaceMatrix = pCamera->GetViewMatrix(nThreadID).Transpose();
 #endif
 
-			GetDeviceContext()->SetRenderTargets(&pResult, 1, nullptr);
-			GetDeviceContext()->SetDepthStencilState(EmDepthStencilState::eRead_Write_Off);
+			pDeviceContext->SetRenderTargets(&pResult, 1, nullptr);
+			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eRead_Write_Off);
 
 			m_pEffect->Draw(m_settings, &inputs);
 		}

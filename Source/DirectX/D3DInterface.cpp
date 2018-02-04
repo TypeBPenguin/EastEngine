@@ -49,9 +49,14 @@ namespace EastEngine
 			return Device::GetInstance();
 		}
 
-		IDeviceContext* GetDeviceContext()
+		IDeviceContext* GetImmediateContext()
 		{
 			return Device::GetInstance()->GetImmediateContext();
+		}
+
+		IDeviceContext* GetDeferredContext(int nThreadID)
+		{
+			return Device::GetInstance()->GetDeferredContext(nThreadID);
 		}
 
 		IGBuffers* GetGBuffers()
@@ -62,6 +67,11 @@ namespace EastEngine
 		IImageBasedLight* GetImageBasedLight()
 		{
 			return Device::GetInstance()->GetImageBasedLight();
+		}
+
+		int GetThreadID(ThreadType emThreadType)
+		{
+			return Device::GetInstance()->GetThreadID(emThreadType);
 		}
 
 		D3DProfiler::D3DProfiler(ID3DUserDefinedAnnotation* pProfiler, const wchar_t* str)

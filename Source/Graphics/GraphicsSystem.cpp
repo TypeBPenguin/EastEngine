@@ -1,20 +1,20 @@
 #include "stdafx.h"
 #include "GraphicsSystem.h"
 
-#include "../DirectX/Device.h"
-#include "../DirectX/ShaderMgr.h"
-#include "../DirectX/TextureManager.h"
-#include "../DirectX/LightMgr.h"
-#include "../DirectX/CameraManager.h"
-#include "../DirectX/OcclusionCulling.h"
-#include "../DirectX/VTFMgr.h"
+#include "DirectX/Device.h"
+#include "DirectX/ShaderMgr.h"
+#include "DirectX/TextureManager.h"
+#include "DirectX/LightMgr.h"
+#include "DirectX/Camera.h"
+#include "DirectX/OcclusionCulling.h"
+#include "DirectX/VTFManager.h"
 
-#include "../Model/ModelManager.h"
-#include "../Model/MotionManager.h"
+#include "Model/ModelManager.h"
+#include "Model/MotionManager.h"
 
-#include "../Particle/ParticleMgr.h"
+#include "Particle/ParticleMgr.h"
 
-#include "../Renderer/RendererManager.h"
+#include "Renderer/RendererManager.h"
 
 namespace EastEngine
 {
@@ -26,14 +26,14 @@ namespace EastEngine
 			, s_pRendererMgr(nullptr)
 			, s_pTextureMgr(nullptr)
 			, s_pLightMgr(nullptr)
-			, s_pCameraManager(nullptr)
+			, s_pCamera(nullptr)
 			, s_pModelMgr(nullptr)
 			, s_pMotionMgr(nullptr)
 			, s_pParticleMgr(nullptr)
 			, s_pOcclusionCulling(nullptr)
 			, s_pVTFMgr(nullptr)
 			, m_fFlushTime(0.f)
-			, m_fFlushCycleTime(60.f)
+			, m_fFlushCycleTime(30.f)
 			, m_isInit(false)
 		{
 		}
@@ -83,13 +83,8 @@ namespace EastEngine
 			}
 
 			const Math::UInt2& n2ScreenSize = s_pd3dObject->GetScreenSize();
-			s_pCameraManager = CameraManager::GetInstance();
-			if (s_pCameraManager->Init(n2ScreenSize.x, n2ScreenSize.y, Math::PIDIV4, s_fScreenNear, s_fScreenDepth) == false)
-			{
-				LOG_ERROR("Failed CameraManager Initialize, s_pCameraManager");
-				Release();
-				return false;
-			}
+			s_pCamera = Camera::GetInstance();
+			s_pCamera->SetProjection(n2ScreenSize.x, n2ScreenSize.y, Math::PIDIV4, s_fScreenNear, s_fScreenDepth);
 
 			s_pModelMgr = ModelManager::GetInstance();
 			s_pMotionMgr = MotionManager::GetInstance();
@@ -148,8 +143,8 @@ namespace EastEngine
 			MotionManager::DestroyInstance();
 			s_pMotionMgr = nullptr;
 
-			SafeRelease(s_pCameraManager);
-			CameraManager::DestroyInstance();
+			Camera::DestroyInstance();
+			s_pCamera = nullptr;
 
 			SafeRelease(s_pLightMgr);
 			LightManager::DestroyInstance();
@@ -176,9 +171,7 @@ namespace EastEngine
 
 		void GraphicsSystem::Update(float fElapsedTime)
 		{
-			s_pCameraManager->Update(fElapsedTime);
-
-			s_pShaderMgr->Update();
+			s_pCamera->Update(fElapsedTime);
 
 			s_pModelMgr->Update();
 			s_pTextureMgr->Update(fElapsedTime);
@@ -205,18 +198,24 @@ namespace EastEngine
 
 		void GraphicsSystem::Flush(float fElapsedTime)
 		{
+			bool isEnableGarbageCollector = false;
+			m_fFlushTime += fElapsedTime;
+			if (m_fFlushTime >= m_fFlushCycleTime)
+			{
+				isEnableGarbageCollector = true;
+				m_fFlushTime -= m_fFlushCycleTime;
+			}
+
+			s_pTextureMgr->Flush(isEnableGarbageCollector);
+			s_pModelMgr->Flush(isEnableGarbageCollector);
+
 			s_pVTFMgr->Flush();
 
+			s_pShaderMgr->Flush();
+
 			s_pRendererMgr->Flush();
-			s_pModelMgr->Flush();
 
-			m_fFlushTime += fElapsedTime;
-			if (m_fFlushTime < m_fFlushCycleTime)
-				return;
-
-			m_fFlushTime = 0.f;
-
-			s_pTextureMgr->Flush();
+			s_pd3dObject->Flush();
 		}
 
 		void GraphicsSystem::BeginScene(float r, float g, float b, float a)

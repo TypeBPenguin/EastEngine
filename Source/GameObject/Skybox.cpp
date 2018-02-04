@@ -3,7 +3,7 @@
 
 #include "CommonLib/FileUtil.h"
 
-#include "DirectX/CameraManager.h"
+#include "DirectX/Camera.h"
 #include "Model/GeometryModel.h"
 
 namespace EastEngine
@@ -39,10 +39,10 @@ namespace EastEngine
 			{
 				if (m_pTexture->GetLoadState() == Graphics::EmLoadState::eComplete)
 				{
-					Graphics::Camera* pCamera = Graphics::CameraManager::GetInstance()->GetMainCamera();
+					Graphics::Camera* pCamera = Graphics::Camera::GetInstance();
 
 					//Math::Matrix matWorld = Math::Matrix::CreateTranslation(pCamera->GetPosition());
-					Math::Matrix matWorld = Math::Matrix::CreateTranslation(pCamera->GetViewMatrix().Invert().Translation());
+					Math::Matrix matWorld = Math::Matrix::CreateTranslation(pCamera->GetViewMatrix(Graphics::GetThreadID(Graphics::eUpdate)).Invert().Translation());
 
 					Graphics::RenderSubsetSkybox subset;
 					subset.pVertexBuffer = m_pVertexBuffer;

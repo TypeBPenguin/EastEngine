@@ -1,8 +1,6 @@
 #include "stdafx.h"
 #include "ComponentPhysics.h"
 
-#include "DirectX/CameraManager.h"
-
 #include "Model/ModelInterface.h"
 #include "Model/ModelLoader.h"
 
@@ -141,9 +139,6 @@ namespace EastEngine
 				break;
 				}
 			}
-
-			Graphics::Camera* pCamera = Graphics::CameraManager::GetInstance()->GetMainCamera();
-			const Math::Vector3& f3CameraPos = pCamera->GetPosition();
 
 			if (m_pRagDoll != nullptr)
 			{

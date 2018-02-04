@@ -845,7 +845,7 @@ namespace EastEngine
 		void CUIEditBox::ResetCaretBlink()
 		{
 			m_bCaretOn = true;
-			m_dfLastBlink = Timer::GetInstance()->GetDeltaTime();
+			m_dfLastBlink = Timer::GetInstance()->GetElapsedTime();
 
 			Invalidate();
 		}

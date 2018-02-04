@@ -63,7 +63,7 @@ namespace EastEngine
 			m_isInit = false;
 		}
 
-		bool SSS::Apply(IRenderTarget* pResult, IRenderTarget* pSource, const std::shared_ptr<ITexture>& pDepth)
+		bool SSS::Apply(IDevice* pDevice, IDeviceContext* pDeviceContext, IRenderTarget* pResult, IRenderTarget* pSource, const std::shared_ptr<ITexture>& pDepth)
 		{
 			if (pResult == nullptr || pResult->GetTexture() == nullptr)
 				return false;
@@ -73,7 +73,6 @@ namespace EastEngine
 
 			D3D_PROFILING(SSS);
 
-			IDeviceContext* pDeviceContext = GetDeviceContext();
 			pDeviceContext->ClearState();
 
 			pDeviceContext->SetRasterizerState(EmRasterizerState::eSolidCCW);

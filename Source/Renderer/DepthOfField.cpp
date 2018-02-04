@@ -3,7 +3,7 @@
 
 #include "CommonLib/FileUtil.h"
 
-#include "DirectX/CameraManager.h"
+#include "DirectX/Camera.h"
 
 #include "GaussianBlur.h"
 #include "Downscale.h"
@@ -80,7 +80,7 @@ namespace EastEngine
 			m_isInit = false;
 		}
 
-		bool DepthOfField::Apply(IRenderTarget* pResult, IRenderTarget* pSource, const std::shared_ptr<ITexture>& pDepth)
+		bool DepthOfField::Apply(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, IRenderTarget* pResult, IRenderTarget* pSource, const std::shared_ptr<ITexture>& pDepth)
 		{
 			if (pResult == nullptr || pResult->GetTexture() == nullptr)
 				return false;
@@ -90,11 +90,8 @@ namespace EastEngine
 
 			D3D_PROFILING(DepthOfField);
 
-			Camera* pCamera = CameraManager::GetInstance()->GetMainCamera();
-			if (pCamera == nullptr)
-				return false;
-			
-			IDeviceContext* pDeviceContext = GetDeviceContext();
+			int nThreadID = GetThreadID(ThreadType::eRender);
+
 			pDeviceContext->ClearState();
 
 			pDeviceContext->SetRasterizerState(EmRasterizerState::eSolidCCW);
@@ -104,7 +101,7 @@ namespace EastEngine
 			m_pEffect->SetFloat(StrID::g_fFocalDistance, m_setting.fFocalDistnace);
 			m_pEffect->SetFloat(StrID::g_fFocalWidth, m_setting.fFocalWidth * 0.5f);
 
-			m_pEffect->SetMatrix(StrID::g_matInvProj, pCamera->GetProjMatrix().Invert());
+			m_pEffect->SetMatrix(StrID::g_matInvProj, pCamera->GetProjMatrix(nThreadID).Invert());
 
 			m_pEffect->SetSamplerState(StrID::g_samplerPoint, m_pSamplerPoint, 0);
 			m_pEffect->SetSamplerState(StrID::g_samplerLinear, m_pSamplerLinear, 0);

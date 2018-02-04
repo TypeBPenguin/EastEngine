@@ -4,7 +4,7 @@
 #include "CommonLib/FileUtil.h"
 #include "CommonLib/Config.h"
 
-#include "DirectX/CameraManager.h"
+#include "DirectX/Camera.h"
 
 namespace StrID
 {
@@ -32,10 +32,6 @@ namespace EastEngine
 
 		VertexRenderer::~VertexRenderer()
 		{
-			m_vecVertexSubset.clear();
-			m_vecLineSubset.clear();
-			m_vecLineSegmentSubset.clear();
-
 			SafeDelete(m_pLineSegmentVertexBuffer);
 
 			IEffect::Destroy(&m_pEffect);
@@ -78,12 +74,9 @@ namespace EastEngine
 			return true;
 		}
 
-		void VertexRenderer::Render(uint32_t nRenderGroupFlag)
+		void VertexRenderer::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
 		{
 			D3D_PROFILING(VertexRenderer);
-
-			IDevice* pDevice = GetDevice();
-			IDeviceContext* pDeviceContext = pDevice->GetImmediateContext();
 
 			pDeviceContext->ClearState();
 
@@ -102,21 +95,22 @@ namespace EastEngine
 			IRenderTarget* pRenderTarget = pDevice->GetRenderTarget(desc);
 			pDeviceContext->SetRenderTargets(&pRenderTarget, 1, pDevice->GetMainDepthStencil());
 
-			RenderVertex(pDevice, pDeviceContext);
+			RenderVertex(pDevice, pDeviceContext, pCamera);
 
 			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eRead_Write_On);
 
-			RenderLine(pDevice, pDeviceContext);
-			RenderLineSegment(pDevice, pDeviceContext);
+			RenderLine(pDevice, pDeviceContext, pCamera);
+			RenderLineSegment(pDevice, pDeviceContext, pCamera);
 
 			pDevice->ReleaseRenderTargets(&pRenderTarget);
 		}
 
 		void VertexRenderer::Flush()
 		{
-			m_vecVertexSubset.clear();
-			m_vecLineSubset.clear();
-			m_vecLineSegmentSubset.clear();
+			int nThreadID = GetThreadID(ThreadType::eRender);
+			m_vecVertexSubset[nThreadID].clear();
+			m_vecLineSubset[nThreadID].clear();
+			m_vecLineSegmentSubset[nThreadID].clear();
 		}
 
 		void VertexRenderer::SetRenderState(IDevice* pDevice, IDeviceContext* pDeviceContext)
@@ -128,32 +122,27 @@ namespace EastEngine
 			m_pEffect->ClearState(pDeviceContext, pTech);
 		}
 
-		void VertexRenderer::RenderVertex(IDevice* pDevice, IDeviceContext* pDeviceContext)
+		void VertexRenderer::RenderVertex(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera)
 		{
 			D3D_PROFILING(Vertex);
 
 			if (m_vecVertexSubset.empty())
 				return;
 
-			Camera* pCamera = CameraManager::GetInstance()->GetMainCamera();
-			if (pCamera == nullptr)
-			{
-				LOG_ERROR("Not Exist Main Camera !!");
-				return;
-			}
+			int nThreadID = GetThreadID(ThreadType::eRender);
 
 			IEffectTech* pEffectTech = nullptr;
 
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-			const Math::Matrix matViewProjection = pCamera->GetViewMatrix() * pCamera->GetProjMatrix();
+			const Math::Matrix matViewProjection = pCamera->GetViewMatrix(nThreadID) * pCamera->GetProjMatrix(nThreadID);
 
 			std::map<std::tuple<IVertexBuffer*, IIndexBuffer*, bool>, RenderSubsetVertexBatch> mapVertex;
 			{
-				const size_t nSize = m_vecVertexSubset.size();
+				const size_t nSize = m_vecVertexSubset[nThreadID].size();
 				for (size_t i = 0; i < nSize; ++i)
 				{
-					RenderSubsetVertex& renderSubset = m_vecVertexSubset[i];
+					RenderSubsetVertex& renderSubset = m_vecVertexSubset[nThreadID][i];
 
 					std::tuple<IVertexBuffer*, IIndexBuffer*, bool> key = std::make_tuple(renderSubset.pVertexBuffer, renderSubset.pIndexBuffer, renderSubset.isWireframe);
 					auto iter = mapVertex.find(key);
@@ -208,7 +197,7 @@ namespace EastEngine
 						if (pDeviceContext->SetInputLayout(pEffectTech->GetLayoutFormat()) == false)
 							continue;
 
-						m_pEffect->SetMatrix(StrID::g_matWVP, pRenderSubset->matWorld * pCamera->GetViewMatrix() * pCamera->GetProjMatrix());
+						m_pEffect->SetMatrix(StrID::g_matWVP, pRenderSubset->matWorld * pCamera->GetViewMatrix(nThreadID) * pCamera->GetProjMatrix(nThreadID));
 						m_pEffect->SetVector(StrID::g_color, *reinterpret_cast<const Math::Vector4*>(&pRenderSubset->color));
 
 						uint32_t nPassCount = pEffectTech->GetPassCount();
@@ -275,7 +264,7 @@ namespace EastEngine
 			ClearEffect(pDeviceContext, pEffectTech);
 		}
 
-		void VertexRenderer::RenderLine(IDevice* pDevice, IDeviceContext* pDeviceContext)
+		void VertexRenderer::RenderLine(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera)
 		{
 			D3D_PROFILING(Line);
 
@@ -289,27 +278,22 @@ namespace EastEngine
 				return;
 			}
 
-			Camera* pCamera = CameraManager::GetInstance()->GetMainCamera();
-			if (pCamera == nullptr)
-			{
-				LOG_ERROR("Not Exist Main Camera !!");
-				return;
-			}
-
 			if (pDeviceContext->SetInputLayout(pEffectTech->GetLayoutFormat()) == false)
 				return;
 
+			int nThreadID = GetThreadID(ThreadType::eRender);
+
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 
-			const size_t nSize = m_vecLineSubset.size();
+			const size_t nSize = m_vecLineSubset[nThreadID].size();
 			for (size_t i= 0; i < nSize; ++i)
 			{
-				RenderSubsetLine& renderSubset = m_vecLineSubset[i];
+				RenderSubsetLine& renderSubset = m_vecLineSubset[nThreadID][i];
 
 				pDeviceContext->SetVertexBuffers(renderSubset.pVertexBuffer, renderSubset.pVertexBuffer->GetFormatSize(), 0);
 				pDeviceContext->SetIndexBuffer(renderSubset.pIndexBuffer, 0);
 
-				m_pEffect->SetMatrix(StrID::g_matWVP, renderSubset.matWorld * pCamera->GetViewMatrix() * pCamera->GetProjMatrix());
+				m_pEffect->SetMatrix(StrID::g_matWVP, renderSubset.matWorld * pCamera->GetViewMatrix(nThreadID) * pCamera->GetProjMatrix(nThreadID));
 
 				uint32_t nPassCount = pEffectTech->GetPassCount();
 				for (uint32_t p = 0; p < nPassCount; ++p)
@@ -323,7 +307,7 @@ namespace EastEngine
 			ClearEffect(pDeviceContext, pEffectTech);
 		}
 
-		void VertexRenderer::RenderLineSegment(IDevice* pDevice, IDeviceContext* pDeviceContext)
+		void VertexRenderer::RenderLineSegment(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera)
 		{
 			D3D_PROFILING(LineSegment);
 
@@ -337,22 +321,17 @@ namespace EastEngine
 				return;
 			}
 
-			Camera* pCamera = CameraManager::GetInstance()->GetMainCamera();
-			if (pCamera == nullptr)
-			{
-				LOG_ERROR("Not Exist Main Camera !!");
-				return;
-			}
-
 			if (pDeviceContext->SetInputLayout(pEffectTech->GetLayoutFormat()) == false)
 				return;
 
+			int nThreadID = GetThreadID(ThreadType::eRender);
+
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 
-			const size_t nSize = m_vecLineSegmentSubset.size();
+			const size_t nSize = m_vecLineSegmentSubset[nThreadID].size();
 			for (size_t i= 0; i < nSize; ++i)
 			{
-				RenderSubsetLineSegment& renderSubset = m_vecLineSegmentSubset[i];
+				RenderSubsetLineSegment& renderSubset = m_vecLineSegmentSubset[nThreadID][i];
 
 				VertexPosCol* pVertices = nullptr;
 				if (m_pLineSegmentVertexBuffer->Map(0, D3D11_MAP_WRITE_DISCARD, reinterpret_cast<void**>(&pVertices)) == false)
@@ -375,7 +354,7 @@ namespace EastEngine
 				pDeviceContext->SetVertexBuffers(m_pLineSegmentVertexBuffer, m_pLineSegmentVertexBuffer->GetFormatSize(), 0);
 				pDeviceContext->SetIndexBuffer(nullptr, 0);
 
-				m_pEffect->SetMatrix(StrID::g_matWVP, pCamera->GetViewMatrix() * pCamera->GetProjMatrix());
+				m_pEffect->SetMatrix(StrID::g_matWVP, pCamera->GetViewMatrix(nThreadID) * pCamera->GetProjMatrix(nThreadID));
 
 				uint32_t nPassCount = pEffectTech->GetPassCount();
 				for (uint32_t p = 0; p < nPassCount; ++p)

@@ -2,7 +2,7 @@
 #include "System.h"
 
 #include "FpsChecker.h"
-#include "SceneMgr.h"
+#include "SceneManager.h"
 
 #include "CommonLib/CommandLine.h"
 #include "CommonLib/FileUtil.h"
@@ -10,6 +10,7 @@
 #include "CommonLib/ThreadPool.h"
 #include "CommonLib/Timer.h"
 #include "CommonLib/CrashHandler.h"
+#include "CommonLib/Performance.h"
 
 #include "CommonLib/PipeStream.h"
 
@@ -27,173 +28,70 @@
 
 namespace EastEngine
 {
-	MainSystem::MainSystem()
-		: m_pFpsChecker(nullptr)
-		, s_pDirectoryMonitor(nullptr)
-		, s_pTimer(nullptr)
-		, s_pLuaSystem(nullptr)
-		, s_pSceneMgr(nullptr)
-		, s_pActorMgr(nullptr)
-		, s_pTerrainManager(nullptr)
-		, m_pSkyManager(nullptr)
-		, s_pWindows(nullptr)
-		, s_pGraphicsSystem(nullptr)
-		, s_pInputDevice(nullptr)
-		, s_pPhysicsSystem(nullptr)
-		, s_pSoundSystem(nullptr)
-		, s_pUIMgr(nullptr)
-		, m_isFullScreen(false)
-		, m_isVsync(false)
-		, m_isInit(false)
-	{	
+	class MainSystem::Impl
+	{
+	public:
+		Impl();
+		~Impl();
+
+	public:
+		bool Init(const String::StringID& strApplicationName, uint32_t nScreenWidth, uint32_t nScreenHeight, bool isFullScreen, bool isVsync);
+
+	public:
+		void Run();
+
+		bool HandleMsg(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam);
+
+	public:
+		float GetFPS() const { return m_pFpsChecker->GetFps(); }
+
+	public:
+		const String::StringID& GetApplicationName() const { return m_strApplicationName; }
+		const Math::Int2& GetScreenSize() const { return m_n2ScreenSize; }
+		bool IsFullScreen() const { return m_isFullScreen; }
+
+	private:
+		void Flush(float fElapsedTime);
+		void Update(float fElapsedTime);
+		void Render();
+
+	private:
+		std::unique_ptr<FpsChecker> m_pFpsChecker;
+		SceneManager* s_pSceneManager{ nullptr };
+
+		Timer* s_pTimer{ nullptr };
+
+		Config::SCommandLine* s_pCommandLine{ nullptr };
+		File::DirectoryMonitor* s_pDirectoryMonitor{ nullptr };
+		Lua::LuaSystem* s_pLuaSystem{ nullptr };
+		Windows::WindowsManager* s_pWindows{ nullptr };
+		Graphics::GraphicsSystem* s_pGraphicsSystem{ nullptr };
+		Input::Device* s_pInputDevice{ nullptr };
+		Physics::PhysicsSystem* s_pPhysicsSystem{ nullptr };
+		Sound::SoundSystem* s_pSoundSystem{ nullptr };
+		UI::UIManager* s_pUIMgr{ nullptr };
+		GameObject::ActorManager* s_pActorMgr{ nullptr };
+		GameObject::TerrainManager* s_pTerrainManager{ nullptr };
+		GameObject::SkyManager* m_pSkyManager{ nullptr };
+
+		String::StringID m_strApplicationName;
+		Math::Int2 m_n2ScreenSize;
+		bool m_isFullScreen{ false };
+		bool m_isVsync{ false };
+	};
+
+	MainSystem::Impl::Impl()
+		: m_pFpsChecker{ std::make_unique<FpsChecker>() }
+	{
 	}
 
-	MainSystem::~MainSystem()
+	MainSystem::Impl::~Impl()
 	{
-		Release();
-	}
-
-	bool MainSystem::Init(const String::StringID& strApplicationName, uint32_t nScreenWidth, uint32_t nScreenHeight, bool isFullScreen, bool isVsync)
-	{
-		if (m_isInit == true)
-			return true;
-
-		m_isInit = true;
-
-		std::string strDumpPath = File::GetBinPath();
-		strDumpPath.append("Dump\\");
-		if (CrashHandler::Initialize(strDumpPath.c_str()) == false)
-		{
-			Release();
-			return false;
-		}
-
-		s_pDirectoryMonitor = File::DirectoryMonitor::GetInstance();
-		if (s_pDirectoryMonitor->Init() == false)
-		{
-			Release();
-			return false;
-		}
-
-		m_strApplicationName = strApplicationName;
-		m_n2ScreenSize = Math::Int2(nScreenWidth, nScreenHeight);
-		m_isFullScreen = isFullScreen;;
-		m_isVsync = isVsync;;
-
-		s_pCommandLine = Config::SCommandLine::GetInstance();
-		if (s_pCommandLine->Init() == false)
-		{
-			Release();
-			return false;
-		}
-
-		Thread::ThreadPool::GetInstance()->Init(std::thread::hardware_concurrency() - 1);
-
-		s_pTimer = Timer::GetInstance();
-
-		s_pWindows = Windows::WindowsManager::GetInstance();
-
-		if (s_pWindows->Init(strApplicationName.c_str(), nScreenWidth, nScreenHeight, isFullScreen) == false)
-		{
-			Release();
-			return false;
-		}
-
-		HWND hWnd = s_pWindows->GetHwnd();
-		HINSTANCE hInstance = s_pWindows->GetHInstance();
-
-		//s_pPipeStream = PipeStreamInst;
-		//if (s_pPipeStream->InitServer("neEngine_A", 1) == false)
-		//{
-		//	Release();
-		//	return false;
-		//}
-
-		s_pGraphicsSystem = Graphics::GraphicsSystem::GetInstance();
-		if (s_pGraphicsSystem->Init(hWnd, m_n2ScreenSize.x, m_n2ScreenSize.y, m_isFullScreen, m_isVsync, 1.f) == false)
-		{
-			Release();
-			return false;
-		}
-
-		s_pWindows->AddMessageHandler([](HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam) -> bool
-		{
-			return Graphics::GraphicsSystem::GetInstance()->GetD3D()->HandleMsg(hWnd, nMsg, wParam, lParam);
-		});
-		
-		s_pInputDevice = Input::Device::GetInstance();
-		if (s_pInputDevice->Init(hInstance, hWnd) == false)
-		{
-			Release();
-			return false;
-		}
-
-		s_pWindows->AddMessageHandler([](HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam) -> bool
-		{
-			return Input::Device::GetInstance()->HandleMsg(hWnd, nMsg, wParam, lParam);
-		});
-
-		s_pPhysicsSystem = Physics::PhysicsSystem::GetInstance();
-		if (s_pPhysicsSystem->Init() == false)
-		{
-			Release();
-			return false;
-		}
-
-		s_pSoundSystem = Sound::SoundSystem::GetInstance();
-		if (s_pSoundSystem->Init() == false)
-		{
-			Release();
-			return false;
-		}
-
-		//s_pLuaSystem = LuaSystemInst;
-		//if (s_pLuaSystem->Init() == false)
-		//{
-		//	Release();
-		//	return false;
-		//}
-
-		s_pSceneMgr = SSceneMgr::GetInstance();
-		if (s_pSceneMgr->Init() == false)
-		{
-			Release();
-			return false;
-		}
-
-		s_pUIMgr = UI::UIManager::GetInstance();
-		if (s_pUIMgr->Init(s_pWindows->GetHwnd()) == false)
-		{
-			Release();
-			return false;
-		}
-		
-		s_pWindows->AddMessageHandler([](HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam) -> bool
-		{
-			return UI::UIManager::GetInstance()->HandleMsg(hWnd, nMsg, wParam, lParam);
-		});
-
-		s_pActorMgr = GameObject::ActorManager::GetInstance();
-		s_pTerrainManager = GameObject::TerrainManager::GetInstance();
-		m_pSkyManager = GameObject::SkyManager::GetInstance();
-
-		m_pFpsChecker = new FpsChecker;
-		
-		return true;
-	}
-
-	void MainSystem::Release()
-	{
-		if (m_isInit == false)
-			return;
-
 		Thread::ThreadPool::GetInstance()->Release();
 		Thread::ThreadPool::DestroyInstance();
 
-		SafeDelete(m_pFpsChecker);
-
-		SafeRelease(s_pSceneMgr);
-		SSceneMgr::DestroyInstance();
+		SceneManager::DestroyInstance();
+		s_pSceneManager = nullptr;
 
 		SafeRelease(s_pActorMgr);
 		GameObject::ActorManager::DestroyInstance();
@@ -222,15 +120,6 @@ namespace EastEngine
 		SafeRelease(s_pLuaSystem);
 		Lua::LuaSystem::DestroyInstance();
 
-		//if (s_pPipeStream != nullptr)
-		//{
-		//	CPipeData data(EmPipeStream::PIPE_AS_CLOSE);
-		//	s_pPipeStream->PushMessage(data);
-		//}
-		//
-		//SafeRelease(s_pPipeStream);
-		//PipeStreamRelease;
-
 		SafeRelease(s_pWindows);
 		Windows::WindowsManager::DestroyInstance();
 
@@ -245,19 +134,98 @@ namespace EastEngine
 
 		String::Release();
 		CrashHandler::Release();
-
-		m_isInit = true;
 	}
 
-	void MainSystem::Run()
+	bool MainSystem::Impl::Init(const String::StringID& strApplicationName, uint32_t nScreenWidth, uint32_t nScreenHeight, bool isFullScreen, bool isVsync)
+	{
+		std::string strDumpPath = File::GetBinPath();
+		strDumpPath.append("Dump\\");
+		if (CrashHandler::Initialize(strDumpPath.c_str()) == false)
+			return false;
+
+		s_pDirectoryMonitor = File::DirectoryMonitor::GetInstance();
+		if (s_pDirectoryMonitor->Init() == false)
+			return false;
+
+		m_strApplicationName = strApplicationName;
+		m_n2ScreenSize = Math::Int2(nScreenWidth, nScreenHeight);
+		m_isFullScreen = isFullScreen;;
+		m_isVsync = isVsync;;
+
+		s_pCommandLine = Config::SCommandLine::GetInstance();
+		if (s_pCommandLine->Init() == false)
+			return false;
+
+		Thread::ThreadPool::GetInstance()->Init(std::thread::hardware_concurrency() - 1);
+
+		s_pTimer = Timer::GetInstance();
+
+		s_pWindows = Windows::WindowsManager::GetInstance();
+
+		if (s_pWindows->Init(strApplicationName.c_str(), nScreenWidth, nScreenHeight, isFullScreen) == false)
+			return false;
+
+		HWND hWnd = s_pWindows->GetHwnd();
+		HINSTANCE hInstance = s_pWindows->GetHInstance();
+
+		s_pGraphicsSystem = Graphics::GraphicsSystem::GetInstance();
+		if (s_pGraphicsSystem->Init(hWnd, m_n2ScreenSize.x, m_n2ScreenSize.y, m_isFullScreen, m_isVsync, 1.f) == false)
+			return false;
+
+		s_pWindows->AddMessageHandler([](HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam) -> bool
+		{
+			return Graphics::GraphicsSystem::GetInstance()->GetD3D()->HandleMsg(hWnd, nMsg, wParam, lParam);
+		});
+
+		s_pInputDevice = Input::Device::GetInstance();
+		if (s_pInputDevice->Init(hInstance, hWnd) == false)
+			return false;
+
+		s_pWindows->AddMessageHandler([](HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam) -> bool
+		{
+			return Input::Device::GetInstance()->HandleMsg(hWnd, nMsg, wParam, lParam);
+		});
+
+		s_pPhysicsSystem = Physics::PhysicsSystem::GetInstance();
+		if (s_pPhysicsSystem->Init() == false)
+			return false;
+
+		s_pSoundSystem = Sound::SoundSystem::GetInstance();
+		if (s_pSoundSystem->Init() == false)
+			return false;
+
+		//s_pLuaSystem = LuaSystemInst;
+		//if (s_pLuaSystem->Init() == false)
+		//{
+		//	Release();
+		//	return false;
+		//}
+
+		s_pSceneManager = SceneManager::GetInstance();
+
+		s_pUIMgr = UI::UIManager::GetInstance();
+		if (s_pUIMgr->Init(s_pWindows->GetHwnd()) == false)
+			return false;
+
+		s_pWindows->AddMessageHandler([](HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam) -> bool
+		{
+			return UI::UIManager::GetInstance()->HandleMsg(hWnd, nMsg, wParam, lParam);
+		});
+
+		s_pActorMgr = GameObject::ActorManager::GetInstance();
+		s_pTerrainManager = GameObject::TerrainManager::GetInstance();
+		m_pSkyManager = GameObject::SkyManager::GetInstance();
+
+		return true;
+	}
+
+	void MainSystem::Impl::Run()
 	{
 		MSG msg;
 		Memory::Clear(&msg, sizeof(msg));
 
-		bool isDone = false;
-
 		// 유저로부터 종료 메세지를 받을 때까지 루프
-		while (isDone == false)
+		while (true)
 		{
 			if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
 			{
@@ -267,59 +235,46 @@ namespace EastEngine
 
 			// 윈도우에서 어플리케이션의 종료를 요청하는 경우 종료
 			if (msg.message == WM_QUIT)
-			{
-				isDone = true;
-			}
-			else
-			{
-				s_pTimer->Tick();
-				float fElapsedTime = s_pTimer->GetDeltaTime();
-				
-				m_pFpsChecker->Update(fElapsedTime);
+				break;
 
-				s_pWindows->ProcessMessages();
+			s_pTimer->Tick();
+			float fElapsedTime = s_pTimer->GetElapsedTime();
 
-				flush(fElapsedTime);
+			m_pFpsChecker->Update(fElapsedTime);
 
-				update(fElapsedTime);
-				render();
-			}
+			s_pWindows->ProcessMessages();
+
+			Flush(fElapsedTime);
+
+			Concurrency::parallel_invoke
+			(
+				[&] { Update(fElapsedTime); },
+				[&] { Render(); }
+			);
 		}
 	}
 
-	bool MainSystem::HandleMsg(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
+	bool MainSystem::Impl::HandleMsg(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
 	{
 		return false;
 	}
 
-	float MainSystem::GetFPS()
+	void MainSystem::Impl::Flush(float fElapsedTime)
 	{
-		return m_pFpsChecker->GetFps();
-	}
-
-	void MainSystem::flush(float fElapsedTime)
-	{
+		s_pSceneManager->Flush();
 		s_pGraphicsSystem->Flush(fElapsedTime);
 	}
 
-	void MainSystem::update(float fElapsedTime)
+	void MainSystem::Impl::Update(float fElapsedTime)
 	{
 		s_pDirectoryMonitor->Update();
-		
+
 		s_pInputDevice->Update(fElapsedTime);
-		
+
 		s_pSoundSystem->Update(fElapsedTime);
 		s_pPhysicsSystem->Update(fElapsedTime);
 
-		//Concurrency::parallel_invoke
-		//(
-		//	[&] { s_pDirectoryMonitor->Update(); },
-		//	[&] { s_pInputDevice->Update(fElapsedTime); },
-		//	[&] { s_pSoundSystem->Update(fElapsedTime); },
-		//	[&] { s_pPhysicsSystem->Update(fElapsedTime); }
-		//);
-
-		s_pSceneMgr->Update(fElapsedTime);
+		s_pSceneManager->Update(fElapsedTime);
 
 		s_pTerrainManager->Update(fElapsedTime);
 		m_pSkyManager->Update(fElapsedTime);
@@ -329,7 +284,7 @@ namespace EastEngine
 		s_pUIMgr->Update(fElapsedTime);
 	}
 
-	void MainSystem::render()
+	void MainSystem::Impl::Render()
 	{
 		s_pGraphicsSystem->BeginScene(0.f, 0.f, 0.f, 1.f);
 
@@ -337,208 +292,48 @@ namespace EastEngine
 
 		s_pGraphicsSystem->EndScene();
 	}
-	
-	void MainSystem::processPipeMessage()
+
+	MainSystem::MainSystem()
+		: m_pImpl{ std::make_unique<Impl>() }
+	{	
+	}
+
+	MainSystem::~MainSystem()
 	{
-		//CPipeData pipeData;
-		//if (s_pPipeStream->PopMessage(pipeData) == true)
-		//{
-		//	switch (pipeData.GetHeader().nDataType)
-		//	{
-		//	case EmPipeStream::PIPE_SA_CONNECT:
-		//	{
-		//		const char* strClientName = pipeData.ReadString();
+	}
 
-		//		if (s_pPipeStream->InitClient() == false)
-		//		{
-		//			_LOG("실패닷");
-		//		}
-		//		else
-		//		{
-		//			CPipeData data(EmPipeStream::PIPE_AS_CONNECT);
-		//			s_pPipeStream->PushMessage(data);
+	bool MainSystem::Init(const String::StringID& strApplicationName, uint32_t nScreenWidth, uint32_t nScreenHeight, bool isFullScreen, bool isVsync)
+	{
+		return m_pImpl->Init(strApplicationName, nScreenWidth, nScreenHeight, isFullScreen, isVsync);
+	}
 
-		//			_LOG("Connect PipeClient : %s", strClientName);
-		//		}
-		//	}
-		//	break;
-		//	case EmPipeStream::PIPE_SA_DISCONNECT:
-		//	{
-		//		_LOG("DisConnect PipeClient");
+	void MainSystem::Run()
+	{
+		m_pImpl->Run();
+	}
 
-		//		s_pPipeStream->CloseClient();
-		//	}
-		//	break;
-		//	case EmPipeStream::PIPE_SA_REQUEST_ACTOR_LIST:
-		//	{
-		//		_LOG("Request Actor List");
+	bool MainSystem::HandleMsg(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
+	{
+		return m_pImpl->HandleMsg(hWnd, nMsg, wParam, lParam);
+	}
 
-		//		CPipeData actorListData(EmPipeStream::PIPE_AS_ANSWER_ACTOR_LIST, 4096);
-		//		auto& listActor = s_pActorMgr->GetActorList();
-		//		actorListData.Write(listActor.size());
+	float MainSystem::GetFPS() const
+	{
+		return m_pImpl->GetFPS();
+	}
 
-		//		for (auto& pActor : listActor)
-		//		{
-		//			actorListData.WriteString(pActor->GetActorName().c_str());
-		//		}
-		//		s_pPipeStream->PushMessage(actorListData);
-		//	}
-		//	break;
-		//	case EmPipeStream::PIPE_SA_REQUEST_ACTOR_DATA:
-		//	{
-		//		const char* strName = pipeData.ReadString();
-		//		auto pActor = s_pActorMgr->GetActor(strName);
-		//		if (pActor == nullptr)
-		//			return;
+	const String::StringID& MainSystem::GetApplicationName() const
+	{
+		return m_pImpl->GetApplicationName();
+	}
 
-		//		GameObject::CComponentModel* pCompModel = nullptr;
-		//		pActor->GetComponent(pCompModel);
+	const Math::Int2& MainSystem::GetScreenSize() const
+	{
+		return m_pImpl->GetScreenSize();
+	}
 
-		//		if (pCompModel == nullptr || pCompModel->GetModel()->IsLoadComplete() == true)
-		//			return;
-
-		//		Graphics::VecModelNode& vecNode = pCompModel->GetModel()->GetModelNodeList();
-		//		if (vecNode.empty())
-		//			break;
-
-		//		auto pModel = pCompModel->GetModel();
-		//		
-		//		auto WriteVector3 = [](CPipeData& pipeData, const Vector3& f3)
-		//		{
-		//			pipeData.Write(f3.x);
-		//			pipeData.Write(f3.y);
-		//			pipeData.Write(f3.z);
-		//		};
-
-		//		auto WriteVector4 = [](CPipeData& pipeData, const Vector4& f4)
-		//		{
-		//			pipeData.Write(f4.x);
-		//			pipeData.Write(f4.y);
-		//			pipeData.Write(f4.z);
-		//			pipeData.Write(f4.w);
-		//		};
-
-		//		auto WriteQuat = [](CPipeData& pipeData, const Quaternion& quat)
-		//		{
-		//			pipeData.Write(quat.x);
-		//			pipeData.Write(quat.y);
-		//			pipeData.Write(quat.z);
-		//			pipeData.Write(quat.w);
-		//		};
-
-		//		CPipeData nodeData(EmPipeStream::PIPE_AS_ANSWER_ACTOR_DATA);
-		//		WriteVector3(nodeData, pModel->GetBasePos());
-		//		WriteVector3(nodeData, pModel->GetBaseScale());
-		//		WriteQuat(nodeData, pModel->GetBaseRot());
-
-		//		nodeData.WriteString(pModel->GetModelName().c_str());
-		//		nodeData.WriteString(pModel->GetFilePath().c_str());
-
-		//		std::function<void(VecModelNode&, CPipeData&)> SetModelNodeInfo = [&](VecModelNode& vecNode, CPipeData& nodeData)
-		//		{
-		//			if (vecNode.empty())
-		//			{
-		//				nodeData.Write(-1);
-		//				return;
-		//			}
-
-		//			uint32_t nSize = vecNode.size();
-		//			nodeData.Write(nSize);
-
-		//			for (uint32_t i = 0; i < nSize; ++i)
-		//			{
-		//				nodeData.Write((int)(vecNode[i]->GetType()));
-		//				nodeData.Write(vecNode[i]->IsVisible());
-
-		//				/*nodeData.WriteString(vecNode[i]->GetNodeName().c_str());
-		//				nodeData.WriteString(vecNode[i]->GetParentNodeName().c_str());
-		//				nodeData.Write(vecNode[i]->GetMaterial().size());
-
-		//				for (auto& pMaterial : vecNode[i]->GetMaterial())
-		//				{
-		//					nodeData.WriteString(pMaterial->GetName().c_str());
-		//					nodeData.WriteString(pMaterial->GetTexPath());
-
-		//					WriteVector4(nodeData, pMaterial->GetAlbedoColor());
-		//					WriteVector4(nodeData, pMaterial->GetEmissiveColor());
-		//					WriteVector4(nodeData, pMaterial->GetPaddingRoughMetEmi());
-		//					WriteVector4(nodeData, pMaterial->GetSurSpecTintAniso());
-		//					WriteVector4(nodeData, pMaterial->GetSheenTintClearcoatGloss());
-
-		//					nodeData.Write(pMaterial->IsTessellation());
-
-		//					nodeData.WriteString(pMaterial->GetTexAlbedoName().c_str());
-		//					nodeData.WriteString(pMaterial->GetTexMaskName().c_str());
-		//					nodeData.WriteString(pMaterial->GetTexNormalMapName().c_str());
-		//					nodeData.WriteString(pMaterial->GetTexSpecularColorName().c_str());
-		//					nodeData.WriteString(pMaterial->GetTexDisplacementName().c_str());
-		//					nodeData.WriteString(pMaterial->GetTexRoughnessName().c_str());
-		//					nodeData.WriteString(pMaterial->GetTexMetalicName().c_str());
-		//					nodeData.WriteString(pMaterial->GetTexEmissiveName().c_str());
-		//					nodeData.WriteString(pMaterial->GetTexSurfaceName().c_str());
-		//					nodeData.WriteString(pMaterial->GetTexSpecularName().c_str());
-		//					nodeData.WriteString(pMaterial->GetTexSpecularTintName().c_str());
-		//					nodeData.WriteString(pMaterial->GetTexAnisotropicName().c_str());
-		//					nodeData.WriteString(pMaterial->GetTexSheenName().c_str());
-		//					nodeData.WriteString(pMaterial->GetTexSheenTintName().c_str());
-		//					nodeData.WriteString(pMaterial->GetTexClearcoatName().c_str());
-		//					nodeData.WriteString(pMaterial->GetTexClearcoatGlossName().c_str());
-
-		//					nodeData.Write(pMaterial->GetMaterialType());
-		//					nodeData.Write(pMaterial->GetRenderType());
-		//				}*/
-
-		//				SetModelNodeInfo(vecNode[i]->GetChildList(), nodeData);
-		//			}
-		//		};
-
-		//		SetModelNodeInfo(vecNode, nodeData);
-
-		//		s_pPipeStream->PushMessage(nodeData);
-		//	}
-		//	break;
-		//	case EmPipeStream::PIPE_SA_REQUEST_MODEL_DATA:
-		//	{
-		//		const char* strActorName = pipeData.ReadString();
-		//		const char* strNodeName = pipeData.ReadString();
-
-		//	}
-		//	break;
-		//	case EmPipeStream::PIPE_SA_MODELLOAD:
-		//	{
-		//		const char* strFileName = pipeData.ReadString();
-		//	
-		//		std::shared_ptr<GameObject::Actor> pActor = ActorMgrInst->CreateActor(File::GetFileNameWithoutExtension(strFileName).c_str());
-		//		GameObject::CComponentModel* pCompModel = nullptr;
-		//		pActor->AddComponent(pCompModel);
-		//	
-		//		std::shared_ptr<IModel> pModel = ModelMgrInst->LoadModelFromFBXFile(pActor->GetActorName(), strFileName, 100.f);
-		//		pCompModel->Init(pModel);
-
-		//		if (pModel->IsLoadComplete() == false)
-		//		{
-		//			pActor->SetNeedDelete(true);
-		//		}
-		//	}
-		//	break;
-		//	case EmPipeStream::PIPE_SA_TEST:
-		//	{
-		//		int n1 = pipeData.Read<int>();
-		//		int n2 = pipeData.Read<int>();
-		//		int n3 = pipeData.Read<int>();
-
-		//		_LOG("%d, %d, %d", n1, n2, n3);
-
-		//		CPipeData data(EmPipeStream::PIPE_AS_TEST);
-		//		data.Write(123);
-		//		data.Write(2345);
-		//		data.Write(34567);
-		//		data.Write(456789);
-		//		data.Write(5678901);
-		//		s_pPipeStream->PushMessage(data);
-		//	}
-		//	break;
-		//	}
-		//}
+	bool MainSystem::IsFullScreen() const
+	{
+		return m_pImpl->IsFullScreen();
 	}
 }

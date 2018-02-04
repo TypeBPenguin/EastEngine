@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "ModelNodeSkinned.h"
 
-#include "DirectX/VTFMgr.h"
+#include "DirectX/VTFManager.h"
 #include "Renderer/RendererManager.h"
 
 namespace EastEngine

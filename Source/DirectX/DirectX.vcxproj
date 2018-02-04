@@ -109,10 +109,10 @@
   <ItemGroup>
     <ClInclude Include="BlendState.h" />
     <ClInclude Include="Camera.h" />
-    <ClInclude Include="CameraManager.h" />
     <ClInclude Include="CascadedShadows.h" />
     <ClInclude Include="CullingThreadpool.h" />
     <ClInclude Include="D3DInterface.h" />
+    <ClInclude Include="DeferredContext.h" />
     <ClInclude Include="Device.h" />
     <ClInclude Include="d3dDefine.h" />
     <ClInclude Include="DeviceContext.h" />
@@ -144,7 +144,7 @@
     <ClInclude Include="SamplerState.h" />
     <ClInclude Include="ShaderMgr.h" />
     <ClInclude Include="SpotLight.h" />
-    <ClInclude Include="VTFMgr.h" />
+    <ClInclude Include="VTFManager.h" />
     <ClInclude Include="_SpriteBatch.h" />
     <ClInclude Include="_SpriteFont.h" />
     <ClInclude Include="stdafx.h" />
@@ -157,10 +157,10 @@
   <ItemGroup>
     <ClCompile Include="BlendState.cpp" />
     <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="CameraManager.cpp" />
     <ClCompile Include="CascadedShadows.cpp" />
     <ClCompile Include="CullingThreadpool.cpp" />
     <ClCompile Include="D3DInterface.cpp" />
+    <ClCompile Include="DeferredContext.cpp" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="d3dDefine.cpp" />
     <ClCompile Include="DeviceContext.cpp" />
@@ -197,7 +197,7 @@
     <ClCompile Include="SamplerState.cpp" />
     <ClCompile Include="ShaderMgr.cpp" />
     <ClCompile Include="SpotLight.cpp" />
-    <ClCompile Include="VTFMgr.cpp" />
+    <ClCompile Include="VTFManager.cpp" />
     <ClCompile Include="_SpriteBatch.cpp" />
     <ClCompile Include="_SpriteFont.cpp" />
     <ClCompile Include="stdafx.cpp">

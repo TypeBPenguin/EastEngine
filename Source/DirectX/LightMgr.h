@@ -35,7 +35,7 @@ namespace EastEngine
 			uint32_t GetLightCountInView(EmLight::Type emType) { return m_nLightCountInView[emType]; }
 
 		private:
-			void updateLightBuffer();
+			void UpdateLightBuffer();
 
 		private:
 			bool m_isInit;

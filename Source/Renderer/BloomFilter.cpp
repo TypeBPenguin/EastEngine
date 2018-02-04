@@ -99,7 +99,7 @@ namespace EastEngine
 			}
 		}
 
-		bool BloomFilter::Apply(IRenderTarget* pSource)
+		bool BloomFilter::Apply(IDevice* pDevice, IDeviceContext* pDeviceContext, IRenderTarget* pSource)
 		{
 			if (pSource == nullptr || pSource->GetTexture() == nullptr)
 				return false;
@@ -108,7 +108,6 @@ namespace EastEngine
 
 			SetBloomPreset(m_settings.emPreset);
 
-			IDeviceContext* pDeviceContext = GetDeviceContext();
 			pDeviceContext->ClearState();
 
 			pDeviceContext->SetRasterizerState(EmRasterizerState::eSolidCCW);
@@ -123,14 +122,14 @@ namespace EastEngine
 			{
 				if (m_nDownsamplePasses > nPass)
 				{
-					int nPassFactor = std::pow(2, nPass);
+					int nPassFactor = static_cast<int>(std::pow(2, nPass));
 					if (pResult == nullptr)
 					{
 						RenderTargetDesc2D desc = pSource->GetDesc2D();
 						desc.Width = nWidth / (nPassFactor * (isResult ? 1 : 2));
 						desc.Height = nHeight / (nPassFactor * (isResult ? 1 : 2));
 						desc.Build();
-						pResult = GetDevice()->GetRenderTarget(desc, false);
+						pResult = pDevice->GetRenderTarget(desc, false);
 					}
 
 					{
@@ -182,12 +181,12 @@ namespace EastEngine
 
 			Sampling(true, n2TargetSize.x, n2TargetSize.y, 0, f2InverseResolution, pMip0, StrID::Apply, pSource);
 
-			GetDevice()->ReleaseRenderTargets(&pMip0, 1, false);
-			GetDevice()->ReleaseRenderTargets(&pMip1, 1, false);
-			GetDevice()->ReleaseRenderTargets(&pMip2, 1, false);
-			GetDevice()->ReleaseRenderTargets(&pMip3, 1, false);
-			GetDevice()->ReleaseRenderTargets(&pMip4, 1, false);
-			GetDevice()->ReleaseRenderTargets(&pMip5, 1, false);
+			pDevice->ReleaseRenderTargets(&pMip0, 1, false);
+			pDevice->ReleaseRenderTargets(&pMip1, 1, false);
+			pDevice->ReleaseRenderTargets(&pMip2, 1, false);
+			pDevice->ReleaseRenderTargets(&pMip3, 1, false);
+			pDevice->ReleaseRenderTargets(&pMip4, 1, false);
+			pDevice->ReleaseRenderTargets(&pMip5, 1, false);
 
 			return true;
 		}

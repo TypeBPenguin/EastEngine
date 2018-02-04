@@ -20,8 +20,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pScmdLine,
 
 	if (EastEngine::MainSystem::GetInstance()->Init(StrID::EastEngine, 1600, 900, false, true) == true)
 	{
-		EastEngine::SSceneMgr::GetInstance()->AddScene(new SceneStudio);
-		EastEngine::SSceneMgr::GetInstance()->ChangeScene(StrID::Studio);
+		EastEngine::SceneManager::GetInstance()->AddScene(new SceneStudio);
+		EastEngine::SceneManager::GetInstance()->ChangeScene(StrID::Studio);
 
 		EastEngine::MainSystem::GetInstance()->Run();
 	}
@@ -34,7 +34,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pScmdLine,
 	LOG_ERROR("1..");
 	Sleep(1000);
 
-	EastEngine::MainSystem::GetInstance()->Release();
 	EastEngine::MainSystem::DestroyInstance();
 
     return 0;

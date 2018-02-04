@@ -287,7 +287,7 @@ namespace EastEngine
 			fft512x512_destroy_plan(&m_fft_plan);
 		}
 
-		void WaterSimulator::UpdateDisplacementMap(float fTime)
+		void WaterSimulator::UpdateDisplacementMap(IDevice* pDevice, IDeviceContext* pDeviceContext, float fTime)
 		{
 			// ---------------------------- H(0) -> H(t), D(x, t), D(y, t) --------------------------------
 			// Compute shader
@@ -297,8 +297,6 @@ namespace EastEngine
 				LOG_ERROR("Not Exist EffectTech !! : %s", StrID::WaterSimulator_SpectrumCS.c_str());
 				return;
 			}
-
-			IDeviceContext* pDeviceContext = GetDeviceContext();
 
 			// Buffers
 			m_pEffect->SetStructuredBuffer(StrID::g_InputH0, m_pBuffer_Float2_H0);
@@ -342,7 +340,7 @@ namespace EastEngine
 			ClearEffect(pDeviceContext, pEffectTech);
 
 			// ------------------------------------ Perform FFT -------------------------------------------
-			fft_512x512_c2c(&m_fft_plan, m_pBuffer_Float_Dxyz, m_pBuffer_Float_Dxyz, m_pBuffer_Float2_Ht);
+			fft_512x512_c2c(pDevice, pDeviceContext, &m_fft_plan, m_pBuffer_Float_Dxyz, m_pBuffer_Float_Dxyz, m_pBuffer_Float2_Ht);
 
 			// --------------------------------- Wrap Dx, Dy and Dz ---------------------------------------
 			// Push RT
@@ -533,7 +531,8 @@ namespace EastEngine
 			m_pEffect_FFT->ClearState(pd3dDeviceContext, pEffectTech);
 		}
 
-		void WaterSimulator::radix008A(IStructuredBuffer* pUAV_Dst,
+		void WaterSimulator::radix008A(IDevice* pDevice, IDeviceContext* pDeviceContext, 
+			IStructuredBuffer* pUAV_Dst,
 			IStructuredBuffer* pSRV_Src,
 			CB_Structure& structure,
 			uint32_t thread_count,
@@ -546,8 +545,6 @@ namespace EastEngine
 				LOG_ERROR("Not Exist EffectTech !!");
 				return;
 			}
-
-			IDeviceContext* pDeviceContext = GetDeviceContext();
 
 			// Setup execution configuration
 			uint32_t grid = thread_count / COHERENCY_GRANULARITY;
@@ -574,7 +571,8 @@ namespace EastEngine
 			ClearEffect_FFT(pDeviceContext, pEffectTech);
 		}
 
-		void WaterSimulator::fft_512x512_c2c(CSFFT512x512_Plan* fft_plan,
+		void WaterSimulator::fft_512x512_c2c(IDevice* pDevice, IDeviceContext* pDeviceContext,
+			CSFFT512x512_Plan* fft_plan,
 			IStructuredBuffer* pUAV_Dst,
 			IStructuredBuffer* pSRV_Dst,
 			IStructuredBuffer* pSRV_Src)
@@ -582,22 +580,22 @@ namespace EastEngine
 			const uint32_t thread_count = fft_plan->slices * (512 * 512) / 8;
 
 			uint32_t istride = 512 * 512 / 8;
-			radix008A(fft_plan->pBuffer_Tmp, pSRV_Src, fft_plan->radix008A_CB[0], thread_count, istride);
+			radix008A(pDevice, pDeviceContext, fft_plan->pBuffer_Tmp, pSRV_Src, fft_plan->radix008A_CB[0], thread_count, istride);
 
 			istride /= 8;
-			radix008A(pUAV_Dst, fft_plan->pBuffer_Tmp, fft_plan->radix008A_CB[1], thread_count, istride);
+			radix008A(pDevice, pDeviceContext, pUAV_Dst, fft_plan->pBuffer_Tmp, fft_plan->radix008A_CB[1], thread_count, istride);
 
 			istride /= 8;
-			radix008A(fft_plan->pBuffer_Tmp, pSRV_Dst, fft_plan->radix008A_CB[2], thread_count, istride);
+			radix008A(pDevice, pDeviceContext, fft_plan->pBuffer_Tmp, pSRV_Dst, fft_plan->radix008A_CB[2], thread_count, istride);
 
 			istride /= 8;
-			radix008A(pUAV_Dst, fft_plan->pBuffer_Tmp, fft_plan->radix008A_CB[3], thread_count, istride);
+			radix008A(pDevice, pDeviceContext, pUAV_Dst, fft_plan->pBuffer_Tmp, fft_plan->radix008A_CB[3], thread_count, istride);
 
 			istride /= 8;
-			radix008A(fft_plan->pBuffer_Tmp, pSRV_Dst, fft_plan->radix008A_CB[4], thread_count, istride);
+			radix008A(pDevice, pDeviceContext, fft_plan->pBuffer_Tmp, pSRV_Dst, fft_plan->radix008A_CB[4], thread_count, istride);
 
 			istride /= 8;
-			radix008A(pUAV_Dst, fft_plan->pBuffer_Tmp, fft_plan->radix008A_CB[5], thread_count, istride);
+			radix008A(pDevice, pDeviceContext, pUAV_Dst, fft_plan->pBuffer_Tmp, fft_plan->radix008A_CB[5], thread_count, istride);
 		}
 
 		void create_cbuffers_512x512(CSFFT512x512_Plan* plan, uint32_t slices)

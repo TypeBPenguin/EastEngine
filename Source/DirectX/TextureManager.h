@@ -85,7 +85,7 @@ namespace EastEngine
 			void Release();
 
 			void Update(float fElapsedTime);
-			void Flush(bool isForceFlush = false);
+			void Flush(bool isEnableGarbageCollector);
 
 			void ProcessRequestTexture(const RequestLoadTextureInfo& loader);
 

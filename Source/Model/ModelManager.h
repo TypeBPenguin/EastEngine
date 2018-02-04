@@ -22,7 +22,7 @@ namespace EastEngine
 
 		public:
 			void Update();
-			void Flush();
+			void Flush(bool isEnableGarbageCollector);
 
 		public:
 			void AsyncLoadModel(IModel* pModel, const ModelLoader& loader);

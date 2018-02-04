@@ -19,7 +19,7 @@ namespace EastEngine
 			bool Init();
 			void Release();
 
-			void Update();
+			void Flush();
 
 			static void CALLBACK DirectoryMonitorCallback(const char* strPath, DWORD dwAction, LPARAM lParam);
 

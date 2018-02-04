@@ -4,7 +4,7 @@
 #include "CommonLib/FileUtil.h"
 #include "CommonLib/Config.h"
 
-#include "DirectX/CameraManager.h"
+#include "DirectX/Camera.h"
 
 namespace StrID
 {
@@ -305,18 +305,18 @@ namespace EastEngine
 			return true;
 		}
 
-		void ParticleRenderer::Render(uint32_t nRenderGroupFlag)
+		void ParticleRenderer::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
 		{
 			D3D_PROFILING(EffectRenderer);
 
 			if ((nRenderGroupFlag & EmParticleGroup::eDecal) != 0)
 			{
-				renderDecal();
+				RenderDecal(pDevice, pDeviceContext, pCamera);
 			}
 
 			if ((nRenderGroupFlag & EmParticleGroup::eEmitter) != 0)
 			{
-				renderEmitter();
+				RenderEmitter(pDevice, pDeviceContext, pCamera);
 			}
 		}
 
@@ -326,7 +326,7 @@ namespace EastEngine
 			m_nEmitterVertexCount = 0;
 		}
 
-		void ParticleRenderer::renderEmitter()
+		void ParticleRenderer::RenderEmitter(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera)
 		{
 			D3D_PROFILING(Particle);
 
@@ -411,8 +411,6 @@ namespace EastEngine
 					return;
 				}
 
-				IDevice* pDevice = GetDevice();
-				IDeviceContext* pDeviceContext = GetDeviceContext();
 				if (pDeviceContext->SetInputLayout(pEffectTech->GetLayoutFormat()) == false)
 					return;
 
@@ -478,16 +476,16 @@ namespace EastEngine
 			}
 		}
 
-		void ParticleRenderer::renderDecal()
+		void ParticleRenderer::RenderDecal(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera)
 		{
 			D3D_PROFILING(Decal);
 
 			if (m_listDecal.empty())
 				return;
 
-			Camera* pCamera = CameraManager::GetInstance()->GetMainCamera();
-			if (pCamera == nullptr)
-				return;
+			int nThreadID = GetThreadID(ThreadType::eRender);
+			const Math::Matrix& matView = pCamera->GetViewMatrix(nThreadID);
+			const Math::Matrix& matProj = pCamera->GetProjMatrix(nThreadID);
 
 			std::map<IMaterial*, ClassifyDecal> mapClassifyDecal;
 
@@ -512,8 +510,7 @@ namespace EastEngine
 					mapClassifyDecal[iter.pMaterial].vecInstMatWVP.emplace_back(iter.matWVP);
 					mapClassifyDecal[iter.pMaterial].vecInstMatWorld.emplace_back(iter.matWorld);
 
-					Math::Matrix matInvWorldView = iter.matWorld * pCamera->GetViewMatrix();
-					//Math::Matrix matInvWorldView = iter.matWorld;
+					Math::Matrix matInvWorldView = iter.matWorld * matView;
 					matInvWorldView = matInvWorldView.Invert();
 
 					mapClassifyDecal[iter.pMaterial].vecInstMatInvWorldView.emplace_back(matInvWorldView);
@@ -522,9 +519,6 @@ namespace EastEngine
 
 			{
 				D3D_PROFILING(Render);
-
-				IDevice* pDevice = GetDevice();
-				IDeviceContext* pDeviceContext = GetDeviceContext();
 
 				pDeviceContext->ClearState();
 				pDeviceContext->SetDefaultViewport();
@@ -542,7 +536,7 @@ namespace EastEngine
 				pDeviceContext->SetIndexBuffer(m_pDecalIB, 0);
 
 				Math::Vector4 f4CornersTopRight(Math::Vector4::One);
-				f4CornersTopRight = Math::Vector4::Transform(f4CornersTopRight, pCamera->GetProjMatrix().Invert());
+				f4CornersTopRight = Math::Vector4::Transform(f4CornersTopRight, matProj.Invert());
 				f4CornersTopRight /= f4CornersTopRight.w;
 
 				for (auto& iter : mapClassifyDecal)
@@ -602,10 +596,10 @@ namespace EastEngine
 					pEffect->SetVector(StrID::g_f3CameraTopRight, Math::Vector3(f4CornersTopRight.x, -f4CornersTopRight.y, f4CornersTopRight.z));
 					pEffect->SetVector(StrID::g_f3CameraPos, pCamera->GetPosition());
 
-					pEffect->SetMatrix(StrID::g_matView, pCamera->GetViewMatrix());
-					pEffect->SetMatrix(StrID::g_matProj, pCamera->GetProjMatrix());
-					pEffect->SetMatrix(StrID::g_matInvView, pCamera->GetViewMatrix().Invert());
-					pEffect->SetMatrix(StrID::g_matInvProj, pCamera->GetProjMatrix().Invert());
+					pEffect->SetMatrix(StrID::g_matView, matView);
+					pEffect->SetMatrix(StrID::g_matProj, matProj);
+					pEffect->SetMatrix(StrID::g_matInvView, matView.Invert());
+					pEffect->SetMatrix(StrID::g_matInvProj, matProj.Invert());
 
 					if (pMaterial != nullptr)
 					{

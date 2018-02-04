@@ -1,25 +1,24 @@
 #include "stdafx.h"
 #include "Scene.h"
 
-#include "SceneMgr.h"
+#include "SceneManager.h"
 
 #include "GameObject/SectorMgr.h"
 
 namespace EastEngine
 {
-	SceneInterface::SceneInterface(String::StringID strName)
+	IScene::IScene(const String::StringID& strName)
 		: m_strName(strName)
-		, m_pSceneMgr(nullptr)
 		, m_pSectorMgr(nullptr)
 	{
 	}
 
-	SceneInterface::~SceneInterface()
+	IScene::~IScene()
 	{
 		SafeReleaseDelete(m_pSectorMgr);
 	}
 
-	GameObject::SectorMgr* SceneInterface::CreateSectorMgr(GameObject::SectorInitInfo& sectorInitInfo)
+	GameObject::SectorMgr* IScene::CreateSectorMgr(GameObject::SectorInitInfo& sectorInitInfo)
 	{
 		if (m_pSectorMgr != nullptr)
 			return m_pSectorMgr;
@@ -34,10 +33,5 @@ namespace EastEngine
 		m_pSectorMgr = pNewSectorMgr;
 
 		return pNewSectorMgr;
-	}
-
-	void SceneInterface::ChangeScene(const char* strSceneName)
-	{
-		m_pSceneMgr->ChangeScene(strSceneName);
 	}
 }

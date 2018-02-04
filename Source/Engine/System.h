@@ -59,7 +59,7 @@ namespace EastEngine
 	}
 
 	class FpsChecker;
-	class SSceneMgr;
+	class SceneManager;
 
 	class MainSystem : public Singleton<MainSystem>
 	{
@@ -70,52 +70,21 @@ namespace EastEngine
 
 	public:
 		bool Init(const String::StringID& strApplicationName, uint32_t nScreenWidth, uint32_t nScreenHeight, bool isFullScreen, bool isVsync);
-		void Release();
 
 		void Run();
 
 		bool HandleMsg(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam);
 
 	public:
-		float GetFPS();
+		float GetFPS() const;
 
 	public:
-		const String::StringID& GetApplicationName() { return m_strApplicationName; }
-		const Math::Int2& GetScreenSize() { return m_n2ScreenSize; }
-		bool IsFullScreen() { return m_isFullScreen; }
+		const String::StringID& GetApplicationName() const;
+		const Math::Int2& GetScreenSize() const;
+		bool IsFullScreen() const;
 
 	private:
-		void flush(float fElapsedTime);
-		void update(float fElapsedTime);
-		void render();
-
-	private:
-		void processPipeMessage();
-
-	private:
-		FpsChecker* m_pFpsChecker;
-		SSceneMgr* s_pSceneMgr;
-
-		//SPipeStream* s_pPipeStream;
-
-		Config::SCommandLine* s_pCommandLine;
-		File::DirectoryMonitor* s_pDirectoryMonitor;
-		Timer* s_pTimer;
-		Lua::LuaSystem* s_pLuaSystem;
-		Windows::WindowsManager* s_pWindows;
-		Graphics::GraphicsSystem* s_pGraphicsSystem;
-		Input::Device* s_pInputDevice;
-		Physics::PhysicsSystem* s_pPhysicsSystem;
-		Sound::SoundSystem* s_pSoundSystem;
-		UI::UIManager* s_pUIMgr;
-		GameObject::ActorManager* s_pActorMgr;
-		GameObject::TerrainManager* s_pTerrainManager;
-		GameObject::SkyManager* m_pSkyManager;
-
-		String::StringID m_strApplicationName;
-		Math::Int2 m_n2ScreenSize;
-		bool m_isFullScreen;
-		bool m_isVsync;
-		bool m_isInit;
+		class Impl;
+		std::unique_ptr<Impl> m_pImpl;
 	};
 }

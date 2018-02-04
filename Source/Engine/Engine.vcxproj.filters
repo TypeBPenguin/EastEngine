@@ -33,9 +33,6 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="SceneMgr.cpp">
-      <Filter>Engine\Scene</Filter>
-    </ClCompile>
     <ClCompile Include="FpsChecker.cpp">
       <Filter>Engine\FPS</Filter>
     </ClCompile>
@@ -43,6 +40,9 @@
       <Filter>Engine\System</Filter>
     </ClCompile>
     <ClCompile Include="Scene.cpp">
+      <Filter>Engine\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneManager.cpp">
       <Filter>Engine\Scene</Filter>
     </ClCompile>
   </ItemGroup>
@@ -53,9 +53,6 @@
     <ClInclude Include="targetver.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="SceneMgr.h">
-      <Filter>Engine\Scene</Filter>
-    </ClInclude>
     <ClInclude Include="FpsChecker.h">
       <Filter>Engine\FPS</Filter>
     </ClInclude>
@@ -63,6 +60,9 @@
       <Filter>Engine\System</Filter>
     </ClInclude>
     <ClInclude Include="Scene.h">
+      <Filter>Engine\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneManager.h">
       <Filter>Engine\Scene</Filter>
     </ClInclude>
   </ItemGroup>

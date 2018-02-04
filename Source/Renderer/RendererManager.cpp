@@ -12,6 +12,7 @@
 #include "VertexRenderer.h"
 
 #include "CommonLib/FileUtil.h"
+#include "DirectX/Camera.h"
 
 namespace StrID
 {
@@ -140,27 +141,39 @@ namespace EastEngine
 
 		void RendererManager::Render()
 		{
-			m_pRenderer[EmRenderer::eModel]->Render(ModelRenderer::Group::eDeferred);
-			m_pRenderer[EmRenderer::eTerrain]->Render(0);
+			int nThreadID = GetThreadID(ThreadType::eRender);
+
+			IDevice* pDevice = GetDevice();
+			IDeviceContext* pDeviceContext = GetDeferredContext(nThreadID);
+
+			Camera* pCamera = Camera::GetInstance();
+			if (pCamera == nullptr)
+			{
+				LOG_ERROR("Not Exist Main Camera !!");
+				return;
+			}
+
+			m_pRenderer[EmRenderer::eModel]->Render(pDevice, pDeviceContext, pCamera, ModelRenderer::Group::eDeferred);
+			m_pRenderer[EmRenderer::eTerrain]->Render(pDevice, pDeviceContext, pCamera, 0);
 
 			//m_pRenderer[EmRenderer::eParticle]->Render(EmParticleGroup::eDecal);
 
-			m_pRenderer[EmRenderer::eSky]->Render(0);
-			m_pRenderer[EmRenderer::eDeferred]->Render(0);
+			m_pRenderer[EmRenderer::eSky]->Render(pDevice, pDeviceContext, pCamera, 0);
+			m_pRenderer[EmRenderer::eDeferred]->Render(pDevice, pDeviceContext, pCamera, 0);
 
-			m_pRenderer[EmRenderer::eModel]->Render(ModelRenderer::Group::eAlphaBlend);
+			m_pRenderer[EmRenderer::eModel]->Render(pDevice, pDeviceContext, pCamera, ModelRenderer::Group::eAlphaBlend);
 
 			//m_pRenderer[EmRenderer::eWater]->Render(0);
 
-			m_pRenderer[EmRenderer::eVertex]->Render(0);
+			m_pRenderer[EmRenderer::eVertex]->Render(pDevice, pDeviceContext, pCamera, 0);
 
 			//m_pRenderer[EmRenderer::eParticle]->Render(EmParticleGroup::eEmitter);
 
-			m_pRenderer[EmRenderer::ePostProcessing]->Render(0);
+			m_pRenderer[EmRenderer::ePostProcessing]->Render(pDevice, pDeviceContext, pCamera, 0);
 
-			m_pRenderer[EmRenderer::eUI]->Render(0);
+			//m_pRenderer[EmRenderer::eUI]->Render(pDevice, pDeviceContext, pCamera, 0);
 
-			CopyToMainRenderTarget();
+			CopyToMainRenderTarget(pDevice, pDeviceContext);
 		}
 
 		void RendererManager::Flush()
@@ -264,11 +277,9 @@ namespace EastEngine
 			m_pRenderer[EmRenderer::eUI]->AddRender(renderSubset);
 		}
 
-		void RendererManager::CopyToMainRenderTarget()
+		void RendererManager::CopyToMainRenderTarget(IDevice* pDevice, IDeviceContext* pDeviceContext)
 		{
 			D3D_PROFILING(CopyToMainRenderTarget);
-			IDevice* pDevice = GetDevice();
-			IDeviceContext* pDeviceContext = GetDeviceContext();
 
 			IRenderTarget* pSource = pDevice->GetLastUseRenderTarget();
 			if (pSource == nullptr)
@@ -280,9 +291,6 @@ namespace EastEngine
 				LOG_ERROR("Not Exist EffectTech !!");
 				return;
 			}
-
-			if (pDeviceContext->SetInputLayout(EmVertexFormat::ePos) == false)
-				return;
 
 			pDeviceContext->ClearState();
 			pDeviceContext->SetDefaultViewport();

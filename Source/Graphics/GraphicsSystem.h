@@ -13,7 +13,7 @@ namespace EastEngine
 		class RendererManager;
 		class TextureManager;
 		class LightManager;
-		class CameraManager;
+		class Camera;
 		class ModelManager;
 		class MotionManager;
 		class ParticleManager;
@@ -48,12 +48,12 @@ namespace EastEngine
 			void AddFuncAfterRender(FuncAfterRender func) { if (func != nullptr) { m_vecFuncAfterRender.emplace_back(func); } }
 
 		public:
-			Device* GetD3D() { return s_pd3dObject; }
+			Device * GetD3D() { return s_pd3dObject; }
 			ShaderManager* GetShaderMgr() { return s_pShaderMgr; }
 			RendererManager* GetRendererMgr() { return s_pRendererMgr; }
 			TextureManager* GetTextureMgr() { return s_pTextureMgr; }
 			LightManager* GetLightMgr() { return s_pLightMgr; }
-			CameraManager* GetCameraManager() { return s_pCameraManager; }
+			Camera* GetCameraManager() { return s_pCamera; }
 			ModelManager* GetModelMgr() { return s_pModelMgr; }
 			MotionManager* GetMotionMgr() { return s_pMotionMgr; }
 			ParticleManager* GetEffectMgr() { return s_pParticleMgr; }
@@ -66,7 +66,7 @@ namespace EastEngine
 			RendererManager* s_pRendererMgr;
 			TextureManager* s_pTextureMgr;
 			LightManager* s_pLightMgr;
-			CameraManager* s_pCameraManager;
+			Camera* s_pCamera;
 			ModelManager* s_pModelMgr;
 			MotionManager* s_pMotionMgr;
 			ParticleManager* s_pParticleMgr;

@@ -24,8 +24,8 @@ namespace EastEngine
 			void Release();
 
 		public:
-			bool Apply(IRenderTarget* pResult, IRenderTarget* pSource, float fSigma);
-			bool Apply(IRenderTarget* pResult, IRenderTarget* pSource, IRenderTarget* pDepth, float fSigma);
+			bool Apply(IDevice* pDevice, IDeviceContext* pDeviceContext, IRenderTarget* pResult, IRenderTarget* pSource, float fSigma);
+			bool Apply(IDevice* pDevice, IDeviceContext* pDeviceContext, IRenderTarget* pResult, IRenderTarget* pSource, IRenderTarget* pDepth, float fSigma);
 
 		private:
 			void ClearEffect(IDeviceContext* pd3dDeviceContext, IEffectTech* pTech);

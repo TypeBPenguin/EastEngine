@@ -1,19 +1,18 @@
 #include "stdafx.h"
 #include "SceneWorld.h"
 
-#include "DirectX/CameraManager.h"
+#include "DirectX/Camera.h"
 #include "DirectX/Light.h"
 
 using namespace EastEngine;
 
 namespace StrID
 {
-	RegisterStringID(MainCamera);
 	RegisterStringID(MainLight);
 }
 
 SceneWorld::SceneWorld(const EastEngine::String::StringID& strSceneName)
-	: SceneInterface(strSceneName)
+	: IScene(strSceneName)
 {
 }
 
@@ -23,7 +22,7 @@ SceneWorld::~SceneWorld()
 
 void SceneWorld::Enter()
 {
-	Graphics::CameraManager::GetInstance()->CreateCamera(StrID::MainCamera, Math::Vector3(0.f, 0.f, -10.f), Math::Vector3(0.f, 0.f, 0.f), Math::Vector3(0.f, 1.f, 0.f));
+	Graphics::Camera::GetInstance()->SetView(Math::Vector3(0.f, 0.f, -10.f), Math::Vector3(0.f, 0.f, 0.f), Math::Vector3(0.f, 1.f, 0.f));
 
 	Math::Vector3 f3LightDirection(Math::Vector3::Zero - Math::Vector3(0.f, 500.f, -500.f));
 	f3LightDirection.Normalize();

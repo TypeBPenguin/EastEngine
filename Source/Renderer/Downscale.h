@@ -24,11 +24,11 @@ namespace EastEngine
 			void Release();
 
 		public:
-			bool Apply4SW(IRenderTarget* pResult, IRenderTarget* pSource, bool isLuminance = false);
-			bool Apply16SW(IRenderTarget* pResult, IRenderTarget* pSource);
+			bool Apply4SW(IDevice* pDevice, IDeviceContext* pDeviceContext, IRenderTarget* pResult, IRenderTarget* pSource, bool isLuminance = false);
+			bool Apply16SW(IDevice* pDevice, IDeviceContext* pDeviceContext, IRenderTarget* pResult, IRenderTarget* pSource);
 
-			bool ApplyHW(IRenderTarget* pResult, IRenderTarget* pSource);
-			bool Apply16HW(IRenderTarget* pResult, IRenderTarget* pSource);
+			bool ApplyHW(IDevice* pDevice, IDeviceContext* pDeviceContext, IRenderTarget* pResult, IRenderTarget* pSource);
+			bool Apply16HW(IDevice* pDevice, IDeviceContext* pDeviceContext, IRenderTarget* pResult, IRenderTarget* pSource);
 
 		private:
 			void ClearEffect(IDeviceContext* pd3dDeviceContext, IEffectTech* pTech);

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Engine/SceneMgr.h"
+#include "Engine/SceneManager.h"
 
 class SkeletonController;
 class MaterialNodeManager;
@@ -19,7 +19,7 @@ namespace Contents
 	class Sun;
 }
 
-class SceneStudio : public EastEngine::SceneInterface
+class SceneStudio : public EastEngine::IScene
 {
 public:
 	SceneStudio();

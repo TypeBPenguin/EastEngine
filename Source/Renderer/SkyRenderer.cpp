@@ -4,7 +4,7 @@
 #include "CommonLib/FileUtil.h"
 #include "CommonLib/Config.h"
 
-#include "DirectX/CameraManager.h"
+#include "DirectX/Camera.h"
 
 namespace StrID
 {
@@ -63,7 +63,7 @@ namespace EastEngine
 			return true;
 		}
 
-		void SkyRenderer::Render(uint32_t nRenderGroupFlag)
+		void SkyRenderer::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
 		{
 			D3D_PROFILING(SkyRenderer);
 
@@ -74,15 +74,7 @@ namespace EastEngine
 				return;
 			}
 
-			Camera* pCamera = CameraManager::GetInstance()->GetMainCamera();
-			if (pCamera == nullptr)
-			{
-				LOG_ERROR("Not Exist Main Camera !!");
-				return;
-			}
-
-			IDevice* pDevice = GetDevice();
-			IDeviceContext* pDeviceContext = GetDeviceContext();
+			int nThreadID = GetThreadID(ThreadType::eRender);
 
 			pDeviceContext->ClearState();
 
@@ -118,16 +110,16 @@ namespace EastEngine
 
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-			size_t nSize = m_vecRenderSubsetSkybox.size();
+			size_t nSize = m_vecRenderSubsetSkybox[nThreadID].size();
 			for (size_t i = 0; i < nSize; ++i)
 			{
-				RenderSubsetSkybox& renderSubset = m_vecRenderSubsetSkybox[i];
+				RenderSubsetSkybox& renderSubset = m_vecRenderSubsetSkybox[nThreadID][i];
 
 				pDeviceContext->SetVertexBuffers(renderSubset.pVertexBuffer, renderSubset.pVertexBuffer->GetFormatSize(), 0);
 				pDeviceContext->SetIndexBuffer(renderSubset.pIndexBuffer, 0);
 
-				Math::Matrix matWorld = Math::Matrix::CreateTranslation(pCamera->GetViewMatrix().Invert().Translation());
-				m_pEffect->SetMatrix(StrID::g_matWVP, matWorld * pCamera->GetViewMatrix() * pCamera->GetProjMatrix());
+				Math::Matrix matWorld = Math::Matrix::CreateTranslation(pCamera->GetViewMatrix(nThreadID).Invert().Translation());
+				m_pEffect->SetMatrix(StrID::g_matWVP, matWorld * pCamera->GetViewMatrix(nThreadID) * pCamera->GetProjMatrix(nThreadID));
 
 				m_pEffect->SetTexture(StrID::g_texSkyCubemap, renderSubset.pTexSkyCubemap);
 
@@ -236,6 +228,16 @@ namespace EastEngine
 			ClearEffect(pDeviceContext, pEffectTech);*/
 
 			pDevice->ReleaseRenderTargets(&pRenderTarget, 1);
+		}
+
+		void SkyRenderer::Flush()
+		{
+			int nThreadID = GetThreadID(ThreadType::eRender);
+
+			m_vecRenderSubsetSky[nThreadID].clear();
+			m_vecRenderSubsetSkybox[nThreadID].clear();
+			m_vecRenderSubsetSkyEffect[nThreadID].clear();
+			m_vecRenderSubsetSkyCloud[nThreadID].clear();
 		}
 
 		void SkyRenderer::ClearEffect(IDeviceContext* pd3dDeviceContext, IEffectTech* pEffectTech)

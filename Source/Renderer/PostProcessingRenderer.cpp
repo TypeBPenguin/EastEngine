@@ -100,18 +100,16 @@ namespace EastEngine
 			return true;
 		}
 
-		void PostProcessingRenderer::Render(uint32_t nRenderGroupFlag)
+		void PostProcessingRenderer::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
 		{
 			D3D_PROFILING(PostProcessing);
-
-			IDevice* pDevice = GetDevice();
 
 			if (Config::IsEnable("SSS"_s) == true)
 			{
 				IRenderTarget* pSSS = pDevice->GetRenderTarget(pDevice->GetMainRenderTarget()->GetDesc2D(), false);
 				IRenderTarget* pSource = pDevice->GetLastUseRenderTarget();
 				const std::shared_ptr<ITexture>& pDepth = pDevice->GetMainDepthStencil()->GetTexture();
-				m_pSSS->Apply(pSSS, pSource, pDepth);
+				m_pSSS->Apply(pDevice, pDeviceContext, pSSS, pSource, pDepth);
 
 				pDevice->ReleaseRenderTargets(&pSSS);
 			}
@@ -119,7 +117,7 @@ namespace EastEngine
 			if (Config::IsEnable("SSAO"_s) == true)
 			{
 				IRenderTarget* pRenderTarget = pDevice->GetLastUseRenderTarget();
-				m_pASSAO->Apply(pRenderTarget);
+				m_pASSAO->Apply(pDevice, pDeviceContext, pCamera, pRenderTarget);
 
 				pDevice->ReleaseRenderTargets(&pRenderTarget);
 			}
@@ -128,7 +126,7 @@ namespace EastEngine
 			{
 				IRenderTarget* pHDR = pDevice->GetRenderTarget(pDevice->GetLastUseRenderTarget()->GetDesc2D(), false);
 				IRenderTarget* pSource = pDevice->GetLastUseRenderTarget();
-				m_pHDRFilter->Apply(pHDR, pSource);
+				m_pHDRFilter->Apply(pDevice, pDeviceContext, pHDR, pSource);
 			
 				pDevice->ReleaseRenderTargets(&pHDR);
 			}
@@ -136,14 +134,14 @@ namespace EastEngine
 			if (Config::IsEnable("BloomFilter"_s) == true)
 			{
 				IRenderTarget* pSource = pDevice->GetLastUseRenderTarget();
-				m_pBloomFilter->Apply(pSource);
+				m_pBloomFilter->Apply(pDevice, pDeviceContext, pSource);
 			}
 
 			if (Config::IsEnable("ColorGrading"_s) == true)
 			{
 				IRenderTarget* pColorGrading = pDevice->GetRenderTarget(pDevice->GetLastUseRenderTarget()->GetDesc2D(), false);
 				IRenderTarget* pSource = pDevice->GetLastUseRenderTarget();
-				m_pColorGrading->Apply(pColorGrading, pSource);
+				m_pColorGrading->Apply(pDevice, pDeviceContext, pColorGrading, pSource);
 
 				pDevice->ReleaseRenderTargets(&pColorGrading);
 			}
@@ -153,7 +151,7 @@ namespace EastEngine
 				IRenderTarget* pDepthOfField = pDevice->GetRenderTarget(pDevice->GetMainRenderTarget()->GetDesc2D(), false);
 				IRenderTarget* pSource = pDevice->GetLastUseRenderTarget();
 				const std::shared_ptr<ITexture>& pDepth = pDevice->GetMainDepthStencil()->GetTexture();
-				m_pDepthOfField->Apply(pDepthOfField, pSource, pDepth);
+				m_pDepthOfField->Apply(pDevice, pDeviceContext, pCamera, pDepthOfField, pSource, pDepth);
 
 				pDevice->ReleaseRenderTargets(&pDepthOfField);
 			}
@@ -162,7 +160,7 @@ namespace EastEngine
 			{
 				IRenderTarget* pFxaa = pDevice->GetRenderTarget(pDevice->GetMainRenderTarget()->GetDesc2D(), false);
 				IRenderTarget* pSource = pDevice->GetLastUseRenderTarget();
-				m_pFxaa->Apply(pFxaa, pSource);
+				m_pFxaa->Apply(pDevice, pDeviceContext, pFxaa, pSource);
 
 				pDevice->ReleaseRenderTargets(&pFxaa);
 			}

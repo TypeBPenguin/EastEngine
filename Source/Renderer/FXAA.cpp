@@ -77,7 +77,7 @@ namespace EastEngine
 			m_isInit = false;
 		}
 
-		bool FXAA::Apply(IRenderTarget* pResult, IRenderTarget* pSource)
+		bool FXAA::Apply(IDevice* pDevice, IDeviceContext* pDeviceContext, IRenderTarget* pResult, IRenderTarget* pSource)
 		{
 			if (pResult == nullptr || pSource == nullptr)
 				return false;
@@ -91,8 +91,6 @@ namespace EastEngine
 				return false;
 			}
 
-			IDevice* pDevice = GetDevice();
-			IDeviceContext* pDeviceContext = GetDeviceContext();
 			if (pDeviceContext->SetInputLayout(EmVertexFormat::ePos) == false)
 				return false;
 

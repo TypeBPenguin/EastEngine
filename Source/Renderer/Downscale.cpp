@@ -104,7 +104,7 @@ namespace EastEngine
 			}
 		}
 
-		bool Downscale::Apply4SW(IRenderTarget* pResult, IRenderTarget* pSource, bool isLuminance)
+		bool Downscale::Apply4SW(IDevice* pDevice, IDeviceContext* pDeviceContext, IRenderTarget* pResult, IRenderTarget* pSource, bool isLuminance)
 		{
 			if (pResult == nullptr || pResult->GetTexture() == nullptr)
 				return false;
@@ -114,7 +114,6 @@ namespace EastEngine
 
 			D3D_PROFILING(Downscale);
 
-			IDeviceContext* pDeviceContext = GetDeviceContext();
 			pDeviceContext->ClearState();
 			pDeviceContext->SetDefaultViewport();
 			pDeviceContext->SetRasterizerState(EmRasterizerState::eSolidCCW);
@@ -137,7 +136,7 @@ namespace EastEngine
 			return true;
 		}
 
-		bool Downscale::Apply16SW(IRenderTarget* pResult, IRenderTarget* pSource)
+		bool Downscale::Apply16SW(IDevice* pDevice, IDeviceContext* pDeviceContext, IRenderTarget* pResult, IRenderTarget* pSource)
 		{
 			if (pResult == nullptr || pResult->GetTexture() == nullptr)
 				return false;
@@ -147,8 +146,6 @@ namespace EastEngine
 
 			D3D_PROFILING(Downscale);
 
-			IDevice* pd3d = GetDevice();
-			IDeviceContext* pDeviceContext = GetDeviceContext();
 			pDeviceContext->ClearState();
 			pDeviceContext->SetDefaultViewport();
 			pDeviceContext->SetRasterizerState(EmRasterizerState::eSolidCCW);
@@ -166,7 +163,7 @@ namespace EastEngine
 			desc.Width /= 4;
 			desc.Height /= 4;
 			desc.Build();
-			IRenderTarget* pDownscale = pd3d->GetRenderTarget(desc, false);
+			IRenderTarget* pDownscale = pDevice->GetRenderTarget(desc, false);
 
 			m_pEffect->SetSamplerState(StrID::g_samplerPoint, m_pSamplerPoint, 0);
 			m_pEffect->SetSamplerState(StrID::g_samplerLinear, m_pSamplerLinear, 0);
@@ -180,12 +177,12 @@ namespace EastEngine
 			ApplyDownscale(pDeviceContext, m_pEffect, pTech, pResult, pDownscale);
 			ClearEffect(pDeviceContext, pTech);
 
-			pd3d->ReleaseRenderTargets(&pDownscale);
+			pDevice->ReleaseRenderTargets(&pDownscale);
 
 			return true;
 		}
 
-		bool Downscale::ApplyHW(IRenderTarget* pResult, IRenderTarget* pSource)
+		bool Downscale::ApplyHW(IDevice* pDevice, IDeviceContext* pDeviceContext, IRenderTarget* pResult, IRenderTarget* pSource)
 		{
 			if (pResult == nullptr || pResult->GetTexture() == nullptr)
 				return false;
@@ -195,7 +192,6 @@ namespace EastEngine
 
 			D3D_PROFILING(Downscale);
 
-			IDeviceContext* pDeviceContext = GetDeviceContext();
 			pDeviceContext->ClearState();
 			pDeviceContext->SetDefaultViewport();
 			pDeviceContext->SetRasterizerState(EmRasterizerState::eSolidCCW);
@@ -215,7 +211,7 @@ namespace EastEngine
 			return true;
 		}
 
-		bool Downscale::Apply16HW(IRenderTarget* pResult, IRenderTarget* pSource)
+		bool Downscale::Apply16HW(IDevice* pDevice, IDeviceContext* pDeviceContext, IRenderTarget* pResult, IRenderTarget* pSource)
 		{
 			if (pResult == nullptr || pResult->GetTexture() == nullptr)
 				return false;
@@ -225,8 +221,6 @@ namespace EastEngine
 
 			D3D_PROFILING(Downscale);
 
-			IDevice* pd3d = GetDevice();
-			IDeviceContext* pDeviceContext = GetDeviceContext();
 			pDeviceContext->ClearState();
 			pDeviceContext->SetDefaultViewport();
 			pDeviceContext->SetRasterizerState(EmRasterizerState::eSolidCCW);
@@ -245,7 +239,7 @@ namespace EastEngine
 			desc.Width /= 2;
 			desc.Height /= 2;
 			desc.Build();
-			IRenderTarget* pDownscale1 = pd3d->GetRenderTarget(desc, false);
+			IRenderTarget* pDownscale1 = pDevice->GetRenderTarget(desc, false);
 
 			m_pEffect->SetSamplerState(StrID::g_samplerPoint, m_pSamplerPoint, 0);
 			m_pEffect->SetSamplerState(StrID::g_samplerLinear, m_pSamplerLinear, 0);
@@ -257,27 +251,27 @@ namespace EastEngine
 			desc.Width /= 2;
 			desc.Height /= 2;
 			desc.Build();
-			IRenderTarget* pDownscale2 = pd3d->GetRenderTarget(desc, false);
+			IRenderTarget* pDownscale2 = pDevice->GetRenderTarget(desc, false);
 
 			m_pEffect->SetSamplerState(StrID::g_samplerPoint, m_pSamplerPoint, 0);
 			m_pEffect->SetSamplerState(StrID::g_samplerLinear, m_pSamplerLinear, 0);
 
 			ApplyDownscale(pDeviceContext, m_pEffect, pTech, pDownscale2, pDownscale1);
 			ClearEffect(pDeviceContext, pTech);
-			pd3d->ReleaseRenderTargets(&pDownscale1);
+			pDevice->ReleaseRenderTargets(&pDownscale1);
 
 			// 8
 			desc.Width /= 2;
 			desc.Height /= 2;
 			desc.Build();
-			IRenderTarget* pDownscale3 = pd3d->GetRenderTarget(desc, false);
+			IRenderTarget* pDownscale3 = pDevice->GetRenderTarget(desc, false);
 
 			m_pEffect->SetSamplerState(StrID::g_samplerPoint, m_pSamplerPoint, 0);
 			m_pEffect->SetSamplerState(StrID::g_samplerLinear, m_pSamplerLinear, 0);
 
 			ApplyDownscale(pDeviceContext, m_pEffect, pTech, pDownscale3, pDownscale2);
 			ClearEffect(pDeviceContext, pTech);
-			pd3d->ReleaseRenderTargets(&pDownscale2);
+			pDevice->ReleaseRenderTargets(&pDownscale2);
 
 			// 16
 			m_pEffect->SetSamplerState(StrID::g_samplerPoint, m_pSamplerPoint, 0);
@@ -285,7 +279,7 @@ namespace EastEngine
 
 			ApplyDownscale(pDeviceContext, m_pEffect, pTech, pResult, pDownscale3);
 			ClearEffect(pDeviceContext, pTech);
-			pd3d->ReleaseRenderTargets(&pDownscale3);
+			pDevice->ReleaseRenderTargets(&pDownscale3);
 
 			return true;
 		}

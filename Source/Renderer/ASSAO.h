@@ -37,6 +37,7 @@ namespace EastEngine
 {
 	namespace Graphics
 	{
+		class Camera;
 		class IRenderTarget;
 
 		// effect visual settings
@@ -123,7 +124,7 @@ namespace EastEngine
 		// 
 		struct ASSAO_InputsDX11 : ASSAO_Inputs
 		{
-			ID3D11DeviceContext* DeviceContext;
+			IDeviceContext* DeviceContext{ nullptr };
 
 			// Hardware screen depths
 			//  - R32_FLOAT (R32_TYPELESS) or R24_UNORM_X8_TYPELESS (R24G8_TYPELESS) texture formats are supported.
@@ -194,7 +195,7 @@ namespace EastEngine
 			void Release();
 		
 		public:
-			void Apply(IRenderTarget* pResult);
+			void Apply(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, IRenderTarget* pResult);
 
 			ASSAO_Settings& GetSettings() { return m_settings; }
 

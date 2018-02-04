@@ -7,6 +7,8 @@ namespace EastEngine
 {
 	namespace Graphics
 	{
+		class Camera;
+
 		class IRenderer
 		{
 		public:
@@ -32,7 +34,7 @@ namespace EastEngine
 			virtual void AddRender(const RenderSubsetUISprite&) {}
 			virtual void AddRender(const RenderSubsetUIPanel&) {}
 
-			virtual void Render(uint32_t nRenderGroupFlag) = 0;
+			virtual void Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag) = 0;
 			virtual void Flush() = 0;
 		};
 	}

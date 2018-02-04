@@ -5,10 +5,10 @@
 #include "CommonLib/Performance.h"
 #include "CommonLib/Config.h"
 
-#include "DirectX/CameraManager.h"
+#include "DirectX/Camera.h"
 #include "DirectX/LightMgr.h"
 #include "DirectX/OcclusionCulling.h"
-#include "DirectX/VTFMgr.h"
+#include "DirectX/VTFManager.h"
 
 namespace StrID
 {
@@ -221,8 +221,11 @@ namespace EastEngine
 
 		ModelRenderer::ModelRenderer()
 		{
-			m_nStaticIndex.fill(0);
-			m_nSkinnedIndex.fill(0);
+			for (int i = 0; i < ThreadCount; ++i)
+			{
+				m_nStaticIndex[i].fill(0);
+				m_nSkinnedIndex[i].fill(0);
+			}
 		}
 
 		ModelRenderer::~ModelRenderer()
@@ -231,10 +234,13 @@ namespace EastEngine
 
 		bool ModelRenderer::Init(const Math::Viewport& viewport)
 		{
-			m_vecStaticSubsets[eDeferred].resize(512);
-			m_vecStaticSubsets[eAlphaBlend].resize(512);
-			m_vecSkinnedSubsets[eDeferred].resize(128);
-			m_vecSkinnedSubsets[eAlphaBlend].resize(128);
+			for (int i = 0; i < ThreadCount; ++i)
+			{
+				m_vecStaticSubsets[i][eDeferred].resize(512);
+				m_vecStaticSubsets[i][eAlphaBlend].resize(512);
+				m_vecSkinnedSubsets[i][eDeferred].resize(128);
+				m_vecSkinnedSubsets[i][eAlphaBlend].resize(128);
+			}
 
 			return true;
 		}
@@ -704,23 +710,13 @@ namespace EastEngine
 			ClearEffect(pDeviceContext, pEffect, pEffectTech);
 		}
 
-		void ModelRenderer::Render(uint32_t nRenderGroupFlag)
+		void ModelRenderer::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
 		{
 			D3D_PROFILING(ModelRenderer);
-
-			Camera* pCamera = CameraManager::GetInstance()->GetMainCamera();
-			if (pCamera == nullptr)
-			{
-				LOG_ERROR("ModelRenderer::Render() : Not Exist Main Camera !!");
-				return;
-			}
 
 			OcclusionCulling(pCamera, nRenderGroupFlag);
 
 			const bool isAlphaBlend = nRenderGroupFlag == eAlphaBlend;
-
-			IDevice* pDevice = GetDevice();
-			IDeviceContext* pDeviceContext = GetDeviceContext();
 
 			IGBuffers* pGBuffers = GetGBuffers();
 
@@ -765,13 +761,13 @@ namespace EastEngine
 
 			const uint32_t nForwardFlag = (isAlphaBlend ? EmRenderType::eAlphaBlend_Pre : EmRenderType::eNone);
 
-			RenderStaticModel(pDevice, pCamera, nRenderGroupFlag, nForwardFlag);
-			RenderSkinnedModel(pDevice, pCamera, nRenderGroupFlag, nForwardFlag);
+			RenderStaticModel(pDevice, pDeviceContext, pCamera, nRenderGroupFlag, nForwardFlag);
+			RenderSkinnedModel(pDevice, pDeviceContext, pCamera, nRenderGroupFlag, nForwardFlag);
 
 			if (isAlphaBlend == true)
 			{
-				RenderStaticModel(pDevice, pCamera, nRenderGroupFlag, EmRenderType::eAlphaBlend_Post);
-				RenderSkinnedModel(pDevice, pCamera, nRenderGroupFlag, EmRenderType::eAlphaBlend_Post);
+				RenderStaticModel(pDevice, pDeviceContext, pCamera, nRenderGroupFlag, EmRenderType::eAlphaBlend_Post);
+				RenderSkinnedModel(pDevice, pDeviceContext, pCamera, nRenderGroupFlag, EmRenderType::eAlphaBlend_Post);
 
 				pDevice->ReleaseRenderTargets(ppRenderTarget, nRenderTargetCount);
 			}
@@ -884,8 +880,9 @@ namespace EastEngine
 
 		void ModelRenderer::Flush()
 		{
-			m_nStaticIndex.fill(0);
-			m_nSkinnedIndex.fill(0);
+			int nThreadID = GetThreadID(ThreadType::eRender);
+			m_nStaticIndex[nThreadID].fill(0);
+			m_nSkinnedIndex[nThreadID].fill(0);
 		}
 
 		void ModelRenderer::AddRender(const RenderSubsetStatic& renderSubset)
@@ -902,13 +899,15 @@ namespace EastEngine
 				group = eAlphaBlend;
 			}
 
-			if (m_nStaticIndex[group] >= m_vecStaticSubsets[group].size())
+			int nThreadID = GetThreadID(ThreadType::eUpdate);
+			size_t nIndex = m_nStaticIndex[nThreadID][group];
+			if (nIndex >= m_vecStaticSubsets[nThreadID][group].size())
 			{
-				m_vecStaticSubsets[group].resize(m_vecStaticSubsets[group].size() * 2);
+				m_vecStaticSubsets[nThreadID][group].resize(m_vecStaticSubsets[nThreadID][group].size() * 2);
 			}
 
-			m_vecStaticSubsets[group][m_nStaticIndex[group]].Set(renderSubset);
-			++m_nStaticIndex[group];
+			m_vecStaticSubsets[nThreadID][group][nIndex].Set(renderSubset);
+			++m_nStaticIndex[nThreadID][group];
 		}
 
 		void ModelRenderer::AddRender(const RenderSubsetSkinned& renderSubset)
@@ -925,13 +924,15 @@ namespace EastEngine
 				group = eAlphaBlend;
 			}
 
-			if (m_nSkinnedIndex[group] >= m_vecSkinnedSubsets[group].size())
+			int nThreadID = GetThreadID(ThreadType::eUpdate);
+			size_t nIndex = m_nSkinnedIndex[nThreadID][group];
+			if (nIndex >= m_vecSkinnedSubsets[nThreadID][group].size())
 			{
-				m_vecSkinnedSubsets[group].resize(m_vecSkinnedSubsets[group].size() * 2);
+				m_vecSkinnedSubsets[nThreadID][group].resize(m_vecSkinnedSubsets[nThreadID][group].size() * 2);
 			}
 
-			m_vecSkinnedSubsets[group][m_nSkinnedIndex[group]].Set(renderSubset);
-			++m_nSkinnedIndex[group];
+			m_vecSkinnedSubsets[nThreadID][group][nIndex].Set(renderSubset);
+			++m_nSkinnedIndex[nThreadID][group];
 		}
 
 		void ModelRenderer::OcclusionCulling(Camera* pCamera, uint32_t nRenderGroupFlag)
@@ -997,21 +998,23 @@ namespace EastEngine
 			//}
 		}
 
-		void ModelRenderer::RenderStaticModel(IDevice* pDevice, Camera* pCamera, uint32_t nRenderGroupFlag, uint32_t nRenderTypeFlag)
+		void ModelRenderer::RenderStaticModel(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, uint32_t nRenderTypeFlag)
 		{
-			IDeviceContext* pDeviceContext = GetDeviceContext();
-
 			D3D_PROFILING(StaticModel);
 			{
-				const Collision::Frustum& frustum = pCamera->GetFrustum();
+				int nThreadID = GetThreadID(ThreadType::eRender);
+				const Math::Matrix& matView = pCamera->GetViewMatrix(nThreadID);
+				const Math::Matrix& matProj = pCamera->GetProjMatrix(nThreadID);
+				const Collision::Frustum& frustum = pCamera->GetFrustum(nThreadID);
+				const Math::Vector3 f3Position = matView.Invert().Translation();
 
 				std::map<std::pair<const void*, IMaterial*>, RenderSubsetStaticBatch> mapStatic;
 				{
 					D3D_PROFILING(Ready);
 
-					for (size_t i = 0; i < m_nStaticIndex[nRenderGroupFlag]; ++i)
+					for (size_t i = 0; i < m_nStaticIndex[nThreadID][nRenderGroupFlag]; ++i)
 					{
-						auto& subset = m_vecStaticSubsets[nRenderGroupFlag][i];
+						auto& subset = m_vecStaticSubsets[nThreadID][nRenderGroupFlag][i];
 
 						if (subset.isCulling == true)
 							continue;
@@ -1032,7 +1035,7 @@ namespace EastEngine
 				}
 
 				std::vector<const StaticSubset*> vecSubsetStatic;
-				vecSubsetStatic.reserve(m_nStaticIndex[nRenderGroupFlag]);
+				vecSubsetStatic.reserve(m_nStaticIndex[nThreadID][nRenderGroupFlag]);
 				{
 					D3D_PROFILING(Render);
 
@@ -1049,7 +1052,7 @@ namespace EastEngine
 							const RenderSubsetStatic& subset = renderSubsetBatch.pSubset->data;
 							RenderModel(EmRenderType::eStatic | EmRenderType::eInstancing | nRenderTypeFlag,
 								pDevice, pDeviceContext,
-								&pCamera->GetViewMatrix(), pCamera->GetProjMatrix(), pCamera->GetPosition(),
+								&matView, matProj, f3Position,
 								subset.pVertexBuffer, subset.pIndexBuffer, subset.pMaterial, subset.nIndexCount, subset.nStartIndex,
 								&renderSubsetBatch.vecInstData);
 						}
@@ -1066,7 +1069,7 @@ namespace EastEngine
 
 						RenderModel(EmRenderType::eStatic | nRenderTypeFlag,
 							pDevice, pDeviceContext,
-							&pCamera->GetViewMatrix(), pCamera->GetProjMatrix(), pCamera->GetPosition(),
+							&matView, matProj, f3Position,
 							renderSubset.pVertexBuffer, renderSubset.pIndexBuffer, renderSubset.pMaterial, renderSubset.nIndexCount, renderSubset.nStartIndex,
 							&pSubset->data.matWorld);
 					}
@@ -1076,19 +1079,23 @@ namespace EastEngine
 			}
 		}
 
-		void ModelRenderer::RenderSkinnedModel(IDevice* pDevice, Camera* pCamera, uint32_t nRenderGroupFlag, uint32_t nRenderTypeFlag)
+		void ModelRenderer::RenderSkinnedModel(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, uint32_t nRenderTypeFlag)
 		{
-			IDeviceContext* pDeviceContext = GetDeviceContext();
-
 			D3D_PROFILING(SkinnedModel);
 			{
+				int nThreadID = GetThreadID(ThreadType::eRender);
+				const Math::Matrix& matView = pCamera->GetViewMatrix(nThreadID);
+				const Math::Matrix& matProj = pCamera->GetProjMatrix(nThreadID);
+				const Collision::Frustum& frustum = pCamera->GetFrustum(nThreadID);
+				const Math::Vector3 f3Position = matView.Invert().Translation();
+
 				std::map<std::pair<const void*, IMaterial*>, RenderSubsetSkinnedBatch> mapSkinned;
 				{
 					D3D_PROFILING(Ready);
 
-					for (uint32_t i = 0; i < m_nSkinnedIndex[nRenderGroupFlag]; ++i)
+					for (uint32_t i = 0; i < m_nSkinnedIndex[nThreadID][nRenderGroupFlag]; ++i)
 					{
-						auto& subset = m_vecSkinnedSubsets[nRenderGroupFlag][i];
+						auto& subset = m_vecSkinnedSubsets[nThreadID][nRenderGroupFlag][i];
 						if (subset.isCulling == true)
 							continue;
 
@@ -1122,7 +1129,7 @@ namespace EastEngine
 							const RenderSubsetSkinned& subset = renderSubsetBatch.pSubset->data;
 							RenderModel(EmRenderType::eSkinned | nRenderTypeFlag,
 								pDevice, pDeviceContext,
-								&pCamera->GetViewMatrix(), pCamera->GetProjMatrix(), pCamera->GetPosition(),
+								&matView, matProj, f3Position,
 								subset.pVertexBuffer, subset.pIndexBuffer, subset.pMaterial, subset.nIndexCount, subset.nStartIndex,
 								&subset.matWorld, subset.nVTFID);
 						}
@@ -1131,7 +1138,7 @@ namespace EastEngine
 							const RenderSubsetSkinned& subset = renderSubsetBatch.pSubset->data;
 							RenderModel(EmRenderType::eSkinned | EmRenderType::eInstancing | nRenderTypeFlag,
 								pDevice, pDeviceContext,
-								&pCamera->GetViewMatrix(), pCamera->GetProjMatrix(), pCamera->GetPosition(),
+								&matView, matProj, f3Position,
 								subset.pVertexBuffer, subset.pIndexBuffer, subset.pMaterial, subset.nIndexCount, subset.nStartIndex,
 								&renderSubsetBatch.vecInstData);
 						}
@@ -1145,10 +1152,12 @@ namespace EastEngine
 		{
 			D3D_PROFILING(StaticModel_ShadowDepth);
 
+			int nThreadID = GetThreadID(ThreadType::eRender);
+
 			std::map<std::pair<const void*, IMaterial*>, RenderSubsetStaticBatch> mapStatic;
-			for (size_t i = 0; i < m_nStaticIndex[nRenderGroupFlag]; ++i)
+			for (size_t i = 0; i < m_nStaticIndex[nThreadID][nRenderGroupFlag]; ++i)
 			{
-				auto& subset = m_vecStaticSubsets[nRenderGroupFlag][i];
+				auto& subset = m_vecStaticSubsets[nThreadID][nRenderGroupFlag][i];
 
 				if (subset.isCulling == true)
 					continue;
@@ -1171,7 +1180,7 @@ namespace EastEngine
 			}
 
 			std::vector<const RenderSubsetStatic*> vecSubsetStatic;
-			vecSubsetStatic.reserve(m_nStaticIndex[nRenderGroupFlag]);
+			vecSubsetStatic.reserve(m_nStaticIndex[nThreadID][nRenderGroupFlag]);
 
 			for (auto& iter : mapStatic)
 			{
@@ -1210,13 +1219,15 @@ namespace EastEngine
 		{
 			D3D_PROFILING(SkinnedModel_ShadowDepth);
 
+			int nThreadID = GetThreadID(ThreadType::eRender);
+
 			std::map<std::pair<const void*, IMaterial*>, RenderSubsetSkinnedBatch> mapSkinned;
 			{
 				D3D_PROFILING(Ready);
 
-				for (uint32_t i = 0; i < m_nSkinnedIndex[nRenderGroupFlag]; ++i)
+				for (uint32_t i = 0; i < m_nSkinnedIndex[nThreadID][nRenderGroupFlag]; ++i)
 				{
-					auto& subset = m_vecSkinnedSubsets[nRenderGroupFlag][i];
+					auto& subset = m_vecSkinnedSubsets[nThreadID][nRenderGroupFlag][i];
 					if (subset.isCulling == true)
 						continue;
 

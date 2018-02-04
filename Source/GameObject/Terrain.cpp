@@ -5,8 +5,6 @@
 #include "CommonLib/FileUtil.h"
 #include "CommonLib/ThreadPool.h"
 
-#include "DirectX/CameraManager.h"
-
 namespace StrID
 {
 	RegisterStringID(Terrain_Physics);

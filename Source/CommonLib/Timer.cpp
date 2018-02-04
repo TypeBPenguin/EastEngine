@@ -3,6 +3,149 @@
 
 namespace EastEngine
 {
+	class Timer::Impl
+	{
+	public:
+		Impl();
+		~Impl();
+
+	public:
+		void Reset();
+		void Start();
+		void Stop();
+		void Tick();
+
+		double GetGameTime() const;
+		float GetElapsedTime() const { return static_cast<float>(m_dDeltaTime); };
+
+	public:
+		void StartTimeAction(std::function<void(uint32_t, float, float)> funcCallback, uint32_t nTimerID, uint32_t nInterval, uint32_t nLifeTime = TimeAction::eUnlimitedTime);
+		void StopTimeAction(uint32_t nTimerID);
+
+	private:
+		bool m_isStopped{ false };
+		double m_dDeltaTime{ 0.0 };
+
+		std::chrono::system_clock::time_point m_baseTime;
+		std::chrono::system_clock::time_point m_stopTime;
+		std::chrono::system_clock::time_point m_prevTime;
+		std::chrono::system_clock::time_point m_curTime;
+
+		std::chrono::milliseconds m_pausedTime;
+
+		std::list<TimeAction> m_listTimeActions;
+	};
+
+	Timer::Impl::Impl()
+	{
+		Reset();
+	}
+
+	Timer::Impl::~Impl()
+	{
+	}
+
+	void Timer::Impl::Reset()
+	{
+		std::chrono::system_clock::time_point curTime = std::chrono::system_clock::now();
+		m_baseTime = curTime;
+		m_prevTime = curTime;
+		m_curTime = curTime;
+		m_stopTime = curTime;
+
+		m_pausedTime = std::chrono::milliseconds::zero();
+
+		m_isStopped = false;
+	}
+
+	void Timer::Impl::Start()
+	{
+		if (m_isStopped == false)
+			return;
+
+		std::chrono::system_clock::time_point curTime = std::chrono::system_clock::now();
+
+		std::chrono::duration<double> diffTime = std::chrono::duration_cast<std::chrono::duration<double>>(curTime - m_stopTime);
+
+		m_pausedTime += std::chrono::duration_cast<std::chrono::milliseconds>(diffTime);
+		m_prevTime = curTime;
+		m_stopTime = curTime;
+
+		m_isStopped = false;
+	}
+
+	void Timer::Impl::Stop()
+	{
+		if (m_isStopped == true)
+			return;
+
+		std::chrono::system_clock::time_point curTime = std::chrono::system_clock::now();
+
+		m_stopTime = curTime;
+		m_isStopped = true;
+	}
+
+	void Timer::Impl::Tick()
+	{
+		std::chrono::system_clock::time_point curTime = std::chrono::system_clock::now();
+
+		std::chrono::duration<double> diffTime = std::chrono::duration_cast<std::chrono::duration<double>>(m_stopTime - curTime);
+		if (std::abs(diffTime.count()) <= std::numeric_limits<double>::epsilon())
+		{
+			m_dDeltaTime = 0.0;
+			return;
+		}
+
+		m_curTime = curTime;
+
+		m_dDeltaTime = std::chrono::duration_cast<std::chrono::duration<double>>(m_curTime - m_prevTime).count();
+
+		m_prevTime = m_curTime;
+
+		m_dDeltaTime = std::max(m_dDeltaTime, 0.0);
+
+		float fElapsedTime = GetElapsedTime();
+		for (auto iter = m_listTimeActions.begin(); iter != m_listTimeActions.end();)
+		{
+			Timer::TimeAction& timeAction = *iter;
+
+			bool isContinue = timeAction.Update(fElapsedTime);
+			if (isContinue == true)
+			{
+				++iter;
+				continue;
+			}
+
+			iter = m_listTimeActions.erase(iter);
+		}
+	}
+
+	double Timer::Impl::GetGameTime() const
+	{
+		if (m_isStopped)
+			return std::chrono::duration_cast<std::chrono::duration<double>>((m_stopTime - m_pausedTime) - m_baseTime).count();
+
+		return std::chrono::duration_cast<std::chrono::duration<double>>((m_curTime - m_pausedTime) - m_baseTime).count();
+	}
+
+	void Timer::Impl::StartTimeAction(std::function<void(uint32_t, float, float)> funcCallback, uint32_t nTimerID, uint32_t nInterval, uint32_t nLifeTime)
+	{
+		m_listTimeActions.emplace_back(funcCallback, nTimerID, nInterval, nLifeTime);
+	}
+
+	void Timer::Impl::StopTimeAction(uint32_t nTimerID)
+	{
+		auto iter = std::find_if(m_listTimeActions.begin(), m_listTimeActions.end(), [nTimerID](const TimeAction& timeAction)
+		{
+			return timeAction.nTimerID == nTimerID;
+		});
+
+		if (iter != m_listTimeActions.end())
+		{
+			m_listTimeActions.erase(iter);
+		}
+	}
+
 	Timer::TimeAction::TimeAction(std::function<void(uint32_t, float, float)> funcCallback, uint32_t nTimerID, uint32_t nInterval, uint32_t nLifeTime)
 		: funcCallback(funcCallback)
 		, nTimerID(nTimerID)
@@ -35,10 +178,8 @@ namespace EastEngine
 	}
 
 	Timer::Timer()
-		: m_dDeltaTime(0.0)
-		, m_isStopped(false)
+		: m_pImpl{ std::make_unique<Impl>() }
 	{
-		Reset();
 	}
 
 	Timer::~Timer()
@@ -47,84 +188,41 @@ namespace EastEngine
 
 	void Timer::Reset()
 	{
-		std::chrono::system_clock::time_point curTime = std::chrono::system_clock::now();
-		m_baseTime = curTime;
-		m_prevTime = curTime;
-		m_curTime = curTime;
-		m_stopTime = curTime;
-
-		m_pausedTime = std::chrono::milliseconds::zero();
-
-		m_isStopped = false;
+		m_pImpl->Reset();
 	}
 
 	void Timer::Start()
 	{
-		if (m_isStopped == false)
-			return;
-
-		std::chrono::system_clock::time_point curTime = std::chrono::system_clock::now();
-
-		std::chrono::duration<double> diffTime = std::chrono::duration_cast<std::chrono::duration<double>>(curTime - m_stopTime);
-
-		m_pausedTime += std::chrono::duration_cast<std::chrono::milliseconds>(diffTime);
-		m_prevTime = curTime;
-		m_stopTime = curTime;
-
-		m_isStopped = false;
+		m_pImpl->Start();
 	}
 
 	void Timer::Stop()
 	{
-		if (m_isStopped == true)
-			return;
-
-		std::chrono::system_clock::time_point curTime = std::chrono::system_clock::now();
-
-		m_stopTime = curTime;
-		m_isStopped = true;
+		m_pImpl->Stop();
 	}
 
 	void Timer::Tick()
 	{
-		std::chrono::system_clock::time_point curTime = std::chrono::system_clock::now();
-
-		std::chrono::duration<double> diffTime = std::chrono::duration_cast<std::chrono::duration<double>>(m_stopTime - curTime);
-		if (std::abs(diffTime.count()) <= std::numeric_limits<double>::epsilon())
-		{
-			m_dDeltaTime = 0.0;
-			return;
-		}
-
-		m_curTime = curTime;
-
-		m_dDeltaTime = std::chrono::duration_cast<std::chrono::duration<double>>(m_curTime - m_prevTime).count();
-
-		m_prevTime = m_curTime;
-
-		m_dDeltaTime = std::max(m_dDeltaTime, 0.0);
-
-		float fElapsedTime = GetDeltaTime();
-		for (auto iter = m_listTimeActions.begin(); iter != m_listTimeActions.end();)
-		{
-			Timer::TimeAction& timeAction = *iter;
-
-			bool isContinue = timeAction.Update(fElapsedTime);
-			if (isContinue == true)
-			{
-				++iter;
-				continue;
-			}
-
-			iter = m_listTimeActions.erase(iter);
-		}
+		m_pImpl->Tick();
 	}
 
 	double Timer::GetGameTime() const
 	{
-		if (m_isStopped)
-			return std::chrono::duration_cast<std::chrono::duration<double>>((m_stopTime - m_pausedTime) - m_baseTime).count();
+		return m_pImpl->GetGameTime();
+	}
 
-		return std::chrono::duration_cast<std::chrono::duration<double>>((m_curTime - m_pausedTime) - m_baseTime).count();
+	float Timer::GetElapsedTime() const
+	{
+		return m_pImpl->GetElapsedTime();
+	}
+
+	void Timer::StartTimeAction(std::function<void(uint32_t, float, float)> funcCallback, uint32_t nTimerID, uint32_t nInterval, uint32_t nLifeTime)
+	{
+		m_pImpl->StartTimeAction(funcCallback, nTimerID, nInterval, nLifeTime);
+	}
+
+	void Timer::StopTimeAction(uint32_t nTimerID)
+	{
+		m_pImpl->StopTimeAction(nTimerID);
 	}
 }

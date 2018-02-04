@@ -21,13 +21,13 @@ namespace EastEngine
 			virtual void AddRender(const RenderSubsetUISprite& renderSubset) override;
 			virtual void AddRender(const RenderSubsetUIPanel& renderSubset) override;
 
-			virtual void Render(uint32_t nRenderGroupFlag) override;
+			virtual void Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag) override;
 			virtual void Flush() override;
 
 		private:
-			void renderSprtie(ISpriteBatch* pSpriteBatch, std::vector<RenderSubsetUISprite>& vecRenderSubsetSprite);
-			void renderText(ISpriteBatch* pSpriteBatch, std::vector<RenderSubsetUIText>& vecRenderSubsetText);
-			void renderPanel(ISpriteBatch* pSpriteBatch);
+			void RenderSprtie(ISpriteBatch* pSpriteBatch, std::vector<RenderSubsetUISprite>& vecRenderSubsetSprite);
+			void RenderText(ISpriteBatch* pSpriteBatch, std::vector<RenderSubsetUIText>& vecRenderSubsetText);
+			void RenderPanel(ISpriteBatch* pSpriteBatch);
 
 		private:
 			ISpriteBatch* m_pSpriteBatch;

@@ -61,7 +61,14 @@ namespace EastEngine
 
 		SLog s_consoleLog;
 
-		void Message(const char* msg, ...)
+		const char s_strMessage[] = "[Message] ";
+		const char s_strWarning[] = "[Warning] ";
+		const char s_strError[] = "[Error] ";
+		const char s_strInfo1[] = " -> [";
+		const char s_strInfo2[] = " <";
+		const char s_strInfo3[] = ">]\n";
+
+		void Message(const char* file, int line, const char* msg, ...)
 		{
 			va_list args;
 			va_start(args, msg);
@@ -73,10 +80,24 @@ namespace EastEngine
 			std::vsnprintf(buf.get(), size, msg, args);
 			va_end(args);
 
-			s_consoleLog.Output(buf.get(), size);
+			const int nInfoLength = static_cast<int>(sizeof(s_strMessage) + sizeof(s_strInfo1) + sizeof(s_strInfo2) + sizeof(s_strInfo3));
+			std::string strLine = std::to_string(line);
+
+			std::string strBuffer;
+			strBuffer.resize(size + nInfoLength + strlen(file) + strLine.size());
+
+			strBuffer = s_strMessage;
+			strBuffer.append(buf.get());
+			strBuffer.append(s_strInfo1);
+			strBuffer.append(file);
+			strBuffer.append(s_strInfo2);
+			strBuffer.append(strLine);
+			strBuffer.append(s_strInfo3);
+
+			s_consoleLog.Output(strBuffer.c_str(), strBuffer.size());
 		}
 
-		void Warning(const char* msg, ...)
+		void Warning(const char* file, int line, const char* msg, ...)
 		{
 			va_list args;
 			va_start(args, msg);
@@ -88,10 +109,24 @@ namespace EastEngine
 			std::vsnprintf(buf.get(), size, msg, args);
 			va_end(args);
 
-			s_consoleLog.Output(buf.get(), size, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+			const int nInfoLength = static_cast<int>(sizeof(s_strWarning) + sizeof(s_strInfo1) + sizeof(s_strInfo2) + sizeof(s_strInfo3));
+			std::string strLine = std::to_string(line);
+
+			std::string strBuffer;
+			strBuffer.resize(size + nInfoLength + strlen(file) + strLine.size());
+
+			strBuffer = s_strWarning;
+			strBuffer.append(buf.get());
+			strBuffer.append(s_strInfo1);
+			strBuffer.append(file);
+			strBuffer.append(s_strInfo2);
+			strBuffer.append(strLine);
+			strBuffer.append(s_strInfo3);
+
+			s_consoleLog.Output(strBuffer.c_str(), strBuffer.size(), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
 		}
 
-		void Error(const char* msg, ...)
+		void Error(const char* file, int line, const char* msg, ...)
 		{
 			va_list args;
 			va_start(args, msg);
@@ -103,7 +138,21 @@ namespace EastEngine
 			std::vsnprintf(buf.get(), size, msg, args);
 			va_end(args);
 
-			s_consoleLog.Output(buf.get(), size, FOREGROUND_RED | FOREGROUND_INTENSITY);
+			const int nInfoLength = static_cast<int>(sizeof(s_strError) + sizeof(s_strInfo1) + sizeof(s_strInfo2) + sizeof(s_strInfo3));
+			std::string strLine = std::to_string(line);
+
+			std::string strBuffer;
+			strBuffer.resize(size + nInfoLength + strlen(file) + strLine.size());
+
+			strBuffer = s_strError;
+			strBuffer.append(buf.get());
+			strBuffer.append(s_strInfo1);
+			strBuffer.append(file);
+			strBuffer.append(s_strInfo2);
+			strBuffer.append(strLine);
+			strBuffer.append(s_strInfo3);
+
+			s_consoleLog.Output(strBuffer.c_str(), strBuffer.size(), FOREGROUND_RED | FOREGROUND_INTENSITY);
 		}
 	}
 }

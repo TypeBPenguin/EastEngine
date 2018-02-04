@@ -55,12 +55,12 @@ namespace EastEngine
 
 			virtual void AddRender(const RenderSubsetParticleDecal& renderSubset) override { m_listDecal.emplace_back(renderSubset); }
 
-			virtual void Render(uint32_t nRenderGroupFlag) override;
+			virtual void Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag) override;
 			virtual void Flush() override;
 
 		private:
-			void renderEmitter();
-			void renderDecal();
+			void RenderEmitter(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera);
+			void RenderDecal(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera);
 
 		private:
 			IEffect* m_pEffect;

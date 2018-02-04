@@ -190,40 +190,6 @@ namespace EastEngine
 
 		void TextureManager::Update(float fElapsedTime)
 		{
-			bool isLoading = m_isLoading.load();
-			if (m_conQueueRequestLoadTexture.empty() == false && isLoading == false)
-			{
-				RequestLoadTextureInfo loader;
-				if (m_conQueueRequestLoadTexture.try_pop(loader) == true)
-				{
-					if (loader.pTexture_out != nullptr)
-					{
-						m_isLoading.store(true);
-						loader.pTexture_out->SetLoadState(EmLoadState::eLoading);
-
-						Thread::CreateTask([this, loader]() { this->ProcessRequestTexture(loader); });
-					}
-				}
-			}
-
-			while (m_conQueueCompleteTexture.empty() == false)
-			{
-				ResultLoadTextureInfo result;
-				if (m_conQueueCompleteTexture.try_pop(result) == true)
-				{
-					if (result.isSuccess == true)
-					{
-						result.pTexture_out->SetLoadState(EmLoadState::eComplete);
-						result.pTexture_out->SetAlive(true);
-					}
-					else
-					{
-						result.pTexture_out->SetLoadState(EmLoadState::eInvalid);
-						result.pTexture_out->SetAlive(false);
-					}
-				}
-			}
-
 			//while (m_conQueueTextureAtlas.empty() == false)
 			//{
 			//	std::shared_ptr<ITexture> pTexture;
@@ -272,39 +238,76 @@ namespace EastEngine
 			//}
 		}
 
-		void TextureManager::Flush(bool isForceFlush)
+		void TextureManager::Flush(bool isEnableGarbageCollector)
 		{
-			auto iter = m_umapTexture.begin();
-			while (iter != m_umapTexture.end())
+			bool isLoading = m_isLoading.load();
+			if (m_conQueueRequestLoadTexture.empty() == false && isLoading == false)
 			{
-				std::shared_ptr<ITexture>& pTexture = iter->second;
-
-				if (pTexture->GetLoadState() == EmLoadState::eReady ||
-					pTexture->GetLoadState() == EmLoadState::eLoading)
+				RequestLoadTextureInfo loader;
+				if (m_conQueueRequestLoadTexture.try_pop(loader) == true)
 				{
+					if (loader.pTexture_out != nullptr)
+					{
+						m_isLoading.store(true);
+						loader.pTexture_out->SetLoadState(EmLoadState::eLoading);
+
+						Thread::CreateTask([this, loader]() { this->ProcessRequestTexture(loader); });
+					}
+				}
+			}
+
+			while (m_conQueueCompleteTexture.empty() == false)
+			{
+				ResultLoadTextureInfo result;
+				if (m_conQueueCompleteTexture.try_pop(result) == true)
+				{
+					if (result.isSuccess == true)
+					{
+						result.pTexture_out->SetLoadState(EmLoadState::eComplete);
+						result.pTexture_out->SetAlive(true);
+					}
+					else
+					{
+						result.pTexture_out->SetLoadState(EmLoadState::eInvalid);
+						result.pTexture_out->SetAlive(false);
+					}
+				}
+			}
+
+			if (isEnableGarbageCollector == true)
+			{
+				auto iter = m_umapTexture.begin();
+				while (iter != m_umapTexture.end())
+				{
+					std::shared_ptr<ITexture>& pTexture = iter->second;
+
+					if (pTexture->GetLoadState() == EmLoadState::eReady ||
+						pTexture->GetLoadState() == EmLoadState::eLoading)
+					{
+						++iter;
+						continue;
+					}
+
+					if (pTexture.use_count() > 0)
+					{
+						pTexture->SetAlive(true);
+						++iter;
+						continue;
+					}
+
+					if (pTexture->IsAlive() == false)
+					{
+						pTexture.reset();
+
+						std::lock_guard<std::mutex> lock(m_mutex);
+						iter = m_umapTexture.erase(iter);
+
+						continue;
+					}
+
+					pTexture->SubtractLife();
 					++iter;
-					continue;
 				}
-
-				if (pTexture.use_count() > 0)
-				{
-					pTexture->SetAlive(true);
-					++iter;
-					continue;
-				}
-
-				if (pTexture->IsAlive() == false || isForceFlush == true)
-				{
-					pTexture.reset();
-
-					std::lock_guard<std::mutex> lock(m_mutex);
-					iter = m_umapTexture.erase(iter);
-
-					continue;
-				}
-
-				pTexture->SubtractLife();
-				++iter;
 			}
 		}
 

@@ -21,27 +21,27 @@ namespace EastEngine
 		public:
 			virtual bool Init(const Math::Viewport& viewport) override;
 
-			virtual void AddRender(const RenderSubsetVertex& renderSubset) override { m_vecVertexSubset.emplace_back(renderSubset); }
-			virtual void AddRender(const RenderSubsetLine& renderSubset) override { m_vecLineSubset.emplace_back(renderSubset); }
-			virtual void AddRender(const RenderSubsetLineSegment& renderSubset) override { m_vecLineSegmentSubset.emplace_back(renderSubset); }
+			virtual void AddRender(const RenderSubsetVertex& renderSubset) override { m_vecVertexSubset[GetThreadID(ThreadType::eUpdate)].emplace_back(renderSubset); }
+			virtual void AddRender(const RenderSubsetLine& renderSubset) override { m_vecLineSubset[GetThreadID(ThreadType::eUpdate)].emplace_back(renderSubset); }
+			virtual void AddRender(const RenderSubsetLineSegment& renderSubset) override { m_vecLineSegmentSubset[GetThreadID(ThreadType::eUpdate)].emplace_back(renderSubset); }
 
-			virtual void Render(uint32_t nRenderGroupFlag) override;
+			virtual void Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag) override;
 			virtual void Flush() override;
 
 		private:
 			void SetRenderState(IDevice* pDevice, IDeviceContext* pDeviceContext);
 			void ClearEffect(IDeviceContext* pDeviceContext, IEffectTech* pTech);
 
-			void RenderVertex(IDevice* pDevice, IDeviceContext* pDeviceContext);
-			void RenderLine(IDevice* pDevice, IDeviceContext* pDeviceContext);
-			void RenderLineSegment(IDevice* pDevice, IDeviceContext* pDeviceContext);
+			void RenderVertex(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera);
+			void RenderLine(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera);
+			void RenderLineSegment(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera);
 
 		private:
 			IEffect* m_pEffect;
 
-			std::vector<RenderSubsetVertex> m_vecVertexSubset;
-			std::vector<RenderSubsetLine> m_vecLineSubset;
-			std::vector<RenderSubsetLineSegment> m_vecLineSegmentSubset;
+			std::array<std::vector<RenderSubsetVertex>, ThreadCount> m_vecVertexSubset;
+			std::array<std::vector<RenderSubsetLine>, ThreadCount> m_vecLineSubset;
+			std::array<std::vector<RenderSubsetLineSegment>, ThreadCount> m_vecLineSegmentSubset;
 
 			IVertexBuffer* m_pLineSegmentVertexBuffer;
 

@@ -46,7 +46,7 @@ namespace Contents
 		pCompModel->GetModelInstance()->SetVisible(false);
 
 		auto pCompTimer = static_cast<GameObject::ComponentTimer*>(m_pActor->CreateComponent(GameObject::EmComponent::eTimer));
-		pCompTimer->StartTimer([&](uint32_t nEventID, float fElapsedTime, float fProcessTime)
+		pCompTimer->StartTimeAction([&](uint32_t nEventID, float fElapsedTime, float fProcessTime)
 		{
 			Update(fElapsedTime);
 		}, 0, 0);

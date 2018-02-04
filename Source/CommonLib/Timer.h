@@ -15,12 +15,12 @@ namespace EastEngine
 				eUnlimitedTime = std::numeric_limits<uint32_t>::max(),
 			};
 
-			uint32_t nTimerID = 0;
-			uint32_t nInterval = 0;
-			uint32_t nLifeTime = 0;
-			float fIntervalCheckTime = 0.f;
-			float fProcessTime = 0.f;
-			std::function<void(uint32_t, float, float)> funcCallback = nullptr;
+			uint32_t nTimerID{ 0 };
+			uint32_t nInterval{ 0 };
+			uint32_t nLifeTime{ 0 };
+			float fIntervalCheckTime{ 0.f };
+			float fProcessTime{ 0.f };
+			std::function<void(uint32_t, float, float)> funcCallback;
 
 			TimeAction(std::function<void(uint32_t, float, float)> funcCallback, uint32_t nTimerID, uint32_t nInterval, uint32_t nLifeTime);
 
@@ -32,45 +32,30 @@ namespace EastEngine
 		virtual ~Timer();
 
 	public:
-		void Reset();	// 시간 초기화 함수, 루프 이전에 호출
-		void Start();	// 타이머 시작 또는 재개 시 호출
-		void Stop();	// 일시정지
-		void Tick();	// 매 프레임마다 호출
+		// 시간 초기화 함수, 루프 이전에 호출
+		void Reset();
+
+		// 타이머 시작 또는 재개 시 호출
+		void Start();
+
+		// 일시정지
+		void Stop();
+
+		// 매 프레임마다 호출
+		void Tick();
 
 		// 초단위
 		double GetGameTime() const;
-		float GetDeltaTime() const { return static_cast<float>(m_dDeltaTime); };
+
+		float GetElapsedTime() const;
 
 	public:
-		void StartTimer(std::function<void(uint32_t, float, float)> funcCallback, uint32_t nTimerID, uint32_t nInterval, uint32_t nLifeTime = TimeAction::eUnlimitedTime)
-		{
-			m_listTimeActions.emplace_back(funcCallback, nTimerID, nInterval, nLifeTime);
-		}
-
-		void EndTimer(uint32_t nTimerID)
-		{
-			auto iter = std::find_if(m_listTimeActions.begin(), m_listTimeActions.end(), [nTimerID](const TimeAction& timeAction)
-			{
-				return timeAction.nTimerID == nTimerID;
-			});
-
-			if (iter != m_listTimeActions.end())
-			{
-				m_listTimeActions.erase(iter);
-			}
-		}
+		// Callback Function Parameter : nTimerID(uint32_t), fElapsedTime(float), fProcessTime(float)
+		void StartTimeAction(std::function<void(uint32_t, float, float)> funcCallback, uint32_t nTimerID, uint32_t nInterval, uint32_t nLifeTime = TimeAction::eUnlimitedTime);
+		void StopTimeAction(uint32_t nTimerID);
 
 	private:
-		bool m_isStopped;
-		double m_dDeltaTime;
-
-		std::chrono::system_clock::time_point m_baseTime;
-		std::chrono::system_clock::time_point m_stopTime;
-		std::chrono::system_clock::time_point m_prevTime;
-		std::chrono::system_clock::time_point m_curTime;
-
-		std::chrono::milliseconds m_pausedTime;
-
-		std::list<TimeAction> m_listTimeActions;
+		class Impl;
+		std::unique_ptr<Impl> m_pImpl;
 	};
 }

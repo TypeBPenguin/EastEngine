@@ -64,7 +64,7 @@ namespace EastEngine
 			~Impl();
 
 		public:
-			bool Apply(IRenderTarget* pResult, IRenderTarget* pSource);
+			bool Apply(IDevice* pDevice, IDeviceContext* pDeviceContext, IRenderTarget* pResult, IRenderTarget* pSource);
 
 		private:
 			void ClearEffect(IDeviceContext* pd3dDeviceContext, IEffectTech* pTech);
@@ -142,19 +142,17 @@ namespace EastEngine
 			SafeDelete(m_pInitialLuminances);
 		}
 
-		bool HDRFilter::Impl::Apply(IRenderTarget* pResult, IRenderTarget* pSource)
+		bool HDRFilter::Impl::Apply(IDevice* pDevice, IDeviceContext* pDeviceContext, IRenderTarget* pResult, IRenderTarget* pSource)
 		{
 			D3D_PROFILING(HDRFilter);
 
-			IDevice* pDevice = GetDevice();
-			IDeviceContext* pDeviceContext = GetDeviceContext();
 			pDeviceContext->ClearState();
 
 			pDeviceContext->SetRasterizerState(EmRasterizerState::eSolidCCW);
 			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eRead_Write_Off);
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-			m_settings.TimeDelta = Timer::GetInstance()->GetDeltaTime();
+			m_settings.TimeDelta = Timer::GetInstance()->GetElapsedTime();
 			m_settings.ToneMapTechnique = static_cast<float>(m_emToneMappingType);
 			m_settings.AutoExposure = static_cast<float>(m_emAutoExposureType);
 
@@ -353,7 +351,7 @@ namespace EastEngine
 		{
 		}
 
-		bool HDRFilter::Apply(IRenderTarget* pResult, IRenderTarget* pSource)
+		bool HDRFilter::Apply(IDevice* pDevice, IDeviceContext* pDeviceContext, IRenderTarget* pResult, IRenderTarget* pSource)
 		{
 			if (pResult == nullptr || pResult->GetTexture() == nullptr)
 				return false;
@@ -361,7 +359,7 @@ namespace EastEngine
 			if (pSource == nullptr || pSource->GetTexture() == nullptr)
 				return false;
 
-			return m_pImpl->Apply(pResult, pSource);
+			return m_pImpl->Apply(pDevice, pDeviceContext, pResult, pSource);
 		}
 
 		HDRFilter::Settings& HDRFilter::GetSettings()

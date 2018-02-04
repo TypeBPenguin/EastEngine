@@ -202,6 +202,9 @@
     <Filter Include="DirectX\Shader\Fx\Model\Deferred\Shadow">
       <UniqueIdentifier>{4c63acca-1f05-4dd5-bc77-3c31ef5d3109}</UniqueIdentifier>
     </Filter>
+    <Filter Include="DirectX\D3D\Device\DeviceContext\DeferredContext">
+      <UniqueIdentifier>{62777c14-77be-4f63-82ee-c7882b272051}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -285,17 +288,11 @@
     <ClInclude Include="DepthStencilState.h">
       <Filter>DirectX\OutputMergeState\DepthStencilState</Filter>
     </ClInclude>
-    <ClInclude Include="VTFMgr.h">
-      <Filter>VTF</Filter>
-    </ClInclude>
     <ClInclude Include="CascadedShadows.h">
       <Filter>Shadow\CSM</Filter>
     </ClInclude>
     <ClInclude Include="GBuffers.h">
       <Filter>DirectX\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="CameraManager.h">
-      <Filter>Camera</Filter>
     </ClInclude>
     <ClInclude Include="Light.h">
       <Filter>Light</Filter>
@@ -344,6 +341,12 @@
     </ClInclude>
     <ClInclude Include="d3dDefine.h">
       <Filter>DirectX\D3D</Filter>
+    </ClInclude>
+    <ClInclude Include="DeferredContext.h">
+      <Filter>DirectX\D3D\Device\DeviceContext\DeferredContext</Filter>
+    </ClInclude>
+    <ClInclude Include="VTFManager.h">
+      <Filter>VTF</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -428,17 +431,11 @@
     <ClCompile Include="d3dDefine.cpp">
       <Filter>DirectX\D3D</Filter>
     </ClCompile>
-    <ClCompile Include="VTFMgr.cpp">
-      <Filter>VTF</Filter>
-    </ClCompile>
     <ClCompile Include="CascadedShadows.cpp">
       <Filter>Shadow\CSM</Filter>
     </ClCompile>
     <ClCompile Include="GBuffers.cpp">
       <Filter>DirectX\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="CameraManager.cpp">
-      <Filter>Camera</Filter>
     </ClCompile>
     <ClCompile Include="Light.cpp">
       <Filter>Light</Filter>
@@ -487,6 +484,12 @@
     </ClCompile>
     <ClCompile Include="MaskedOcclusionCullingAVX512.cpp">
       <Filter>PreProcessing\MaskedOcclusionCulling\Library</Filter>
+    </ClCompile>
+    <ClCompile Include="DeferredContext.cpp">
+      <Filter>DirectX\D3D\Device\DeviceContext\DeferredContext</Filter>
+    </ClCompile>
+    <ClCompile Include="VTFManager.cpp">
+      <Filter>VTF</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

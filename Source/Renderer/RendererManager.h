@@ -66,7 +66,7 @@ namespace EastEngine
 			void AddRender(const RenderSubsetUIPanel& renderSubset);
 
 		private:
-			void CopyToMainRenderTarget();
+			void CopyToMainRenderTarget(IDevice* pDevice, IDeviceContext* pDeviceContext);
 			void ClearEffect(IDeviceContext* pd3dDeviceContext, IEffectTech* pEffectTech);
 
 		private:

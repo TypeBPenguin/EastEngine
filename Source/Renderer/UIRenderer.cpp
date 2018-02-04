@@ -26,7 +26,7 @@ namespace EastEngine
 
 		bool UIRenderer::Init(const Math::Viewport& viewport)
 		{
-			m_pSpriteBatch = ISpriteBatch::Create(GetDeviceContext()->GetInterface());
+			m_pSpriteBatch = ISpriteBatch::Create(GetImmediateContext()->GetInterface());
 			m_pSpriteBatch->SetRotation(DXGI_MODE_ROTATION_IDENTITY);
 			m_pSpriteBatch->SetViewport(viewport);
 
@@ -89,15 +89,12 @@ namespace EastEngine
 			++m_nPanelIndex;
 		}
 
-		void UIRenderer::Render(uint32_t nRenderGroupFlag)
+		void UIRenderer::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
 		{
 			D3D_PROFILING(UIRenderer);
 
 			if (m_vecRPUIPanel.empty())
 				return;
-
-			IDevice* pDevice = GetDevice();
-			IDeviceContext* pDeviceContext = GetDeviceContext();
 
 			pDeviceContext->ClearState();
 
@@ -113,8 +110,8 @@ namespace EastEngine
 
 					m_pSpriteBatch->Begin(EmSprite::eDeferred);
 
-					renderSprtie(m_pSpriteBatch, renderGroup.vecSprite);
-					renderText(m_pSpriteBatch, renderGroup.vecText);
+					RenderSprtie(m_pSpriteBatch, renderGroup.vecSprite);
+					RenderText(m_pSpriteBatch, renderGroup.vecText);
 
 					m_pSpriteBatch->End();
 				}
@@ -125,7 +122,7 @@ namespace EastEngine
 
 			m_pSpriteBatch->Begin(EmSprite::eBackToFront);
 
-			renderPanel(m_pSpriteBatch);
+			RenderPanel(m_pSpriteBatch);
 
 			m_pSpriteBatch->End();
 
@@ -138,7 +135,7 @@ namespace EastEngine
 			m_nPanelIndex = 0;
 		}
 
-		void UIRenderer::renderSprtie(ISpriteBatch* pSpriteBatch, std::vector<RenderSubsetUISprite>& vecRenderSubsetSprite)
+		void UIRenderer::RenderSprtie(ISpriteBatch* pSpriteBatch, std::vector<RenderSubsetUISprite>& vecRenderSubsetSprite)
 		{
 			if (vecRenderSubsetSprite.empty())
 				return;
@@ -165,7 +162,7 @@ namespace EastEngine
 			}
 		}
 
-		void UIRenderer::renderText(ISpriteBatch* pSpriteBatch, std::vector<RenderSubsetUIText>& vecRenderSubsetText)
+		void UIRenderer::RenderText(ISpriteBatch* pSpriteBatch, std::vector<RenderSubsetUIText>& vecRenderSubsetText)
 		{
 			if (vecRenderSubsetText.empty())
 				return;
@@ -190,7 +187,7 @@ namespace EastEngine
 			}
 		}
 
-		void UIRenderer::renderPanel(ISpriteBatch* pSpriteBatch)
+		void UIRenderer::RenderPanel(ISpriteBatch* pSpriteBatch)
 		{
 			if (m_vecRPUIPanel.empty())
 				return;

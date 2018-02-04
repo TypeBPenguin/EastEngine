@@ -70,7 +70,7 @@ namespace EastEngine
 
 			ISkeleton* pSkeleton = m_pSkeletonInstance->GetSkeleton();
 			size_t nBoneCount = pSkeleton->GetBoneCount();
-			m_vecMotionTransforms.reserve(nBoneCount);
+			m_vecMotionTransforms.resize(nBoneCount);
 
 			for (size_t i = 0; i < nBoneCount; ++i)
 			{

@@ -97,7 +97,7 @@ namespace EastEngine
 			box.top = 0;
 			box.bottom = 1;
 
-			GetDeviceContext()->UpdateSubresource(m_pBuffer, DstSubresource, &box, pSrcData, SrcRowPitch, 0);
+			GetImmediateContext()->UpdateSubresource(m_pBuffer, DstSubresource, &box, pSrcData, SrcRowPitch, 0);
 		}
 	}
 }

@@ -139,7 +139,7 @@ namespace EastEngine
 		{
 			if (m_pTexture2D != nullptr && pSrcResource != nullptr)
 			{
-				GetDeviceContext()->CopySubresourceRegion(m_pTexture2D, DstSubresource, DstX, DstY, DstZ, pSrcResource->GetTexture2D(), SrcSubresource, pSrcBox);
+				GetImmediateContext()->CopySubresourceRegion(m_pTexture2D, DstSubresource, DstX, DstY, DstZ, pSrcResource->GetTexture2D(), SrcSubresource, pSrcBox);
 			}
 		}
 
@@ -148,7 +148,7 @@ namespace EastEngine
 			D3D11_MAPPED_SUBRESOURCE map;
 			Memory::Clear(&map, sizeof(D3D11_MAPPED_SUBRESOURCE));
 			
-			HRESULT hr = GetDeviceContext()->Map(m_pTexture2D, Subresource, emMap, 0, &map);
+			HRESULT hr = GetImmediateContext()->Map(m_pTexture2D, Subresource, emMap, 0, &map);
 			if (FAILED(hr))
 			{
 				*ppData = nullptr;
@@ -161,7 +161,7 @@ namespace EastEngine
 
 		void Texture::Unmap(uint32_t Subresource) const
 		{
-			GetDeviceContext()->Unmap(m_pTexture2D, Subresource);
+			GetImmediateContext()->Unmap(m_pTexture2D, Subresource);
 		}
 	}
 }

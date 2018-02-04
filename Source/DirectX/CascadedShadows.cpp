@@ -2,7 +2,7 @@
 #include "CascadedShadows.h"
 
 #include "D3DInterface.h"
-#include "CameraManager.h"
+#include "Camera.h"
 
 #include "DirectionalLight.h"
 
@@ -104,21 +104,22 @@ namespace EastEngine
 
 		void CascadedShadows::Update()
 		{
-			Camera* pCamera = CameraManager::GetInstance()->GetMainCamera();
+			Camera* pCamera = Camera::GetInstance();
 			if (pCamera == nullptr)
 				return;
 
 			RefreshShadowResource();
 
-			const float fNearClip = pCamera->GetNearClip();
-			const float fFarClip = pCamera->GetFarClip();
+			int nThreadID = GetThreadID(ThreadType::eUpdate);
+			const float fNearClip = pCamera->GetNearClip(nThreadID);
+			const float fFarClip = pCamera->GetFarClip(nThreadID);
 
-			const Math::Matrix matInvCameraView = pCamera->GetViewMatrix().Invert();
+			const Math::Matrix matInvCameraView = pCamera->GetViewMatrix(nThreadID).Invert();
 
 			Math::Matrix matCameraWorld = Math::Matrix::CreateTranslation(pCamera->GetPosition());
 
 			Collision::Frustum frustum;
-			Collision::Frustum::CreateFromMatrix(frustum, pCamera->GetProjMatrix());
+			Collision::Frustum::CreateFromMatrix(frustum, pCamera->GetProjMatrix(nThreadID));
 
 			Math::Vector3 f3Corners[Collision::CornerCount];
 			frustum.GetCorners(f3Corners);

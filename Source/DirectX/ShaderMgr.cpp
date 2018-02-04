@@ -48,7 +48,7 @@ namespace EastEngine
 			m_isInit = false;
 		}
 
-		void ShaderManager::Update()
+		void ShaderManager::Flush()
 		{
 			while (m_conQueueCompleteEffectAsyncLoader.empty() == false)
 			{

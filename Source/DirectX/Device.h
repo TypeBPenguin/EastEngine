@@ -4,24 +4,13 @@
 
 #include "D3DInterface.h"
 
+#include "DeviceContext.h"
+#include "DeferredContext.h"
+
 namespace EastEngine
 {
 	namespace Graphics
 	{
-		class IDeviceContext;
-		class IVertexBuffer;
-		class IIndexBuffer;
-		class IStructuredBuffer;
-		class IRenderTarget;
-		class IDepthStencil;
-		class ISamplerState;
-		class IBlendState;
-		class IRasterizerState;
-		class IDepthStencilState;
-
-		class IGBuffers;
-		class IImageBasedLight;
-		
 		class Device : public IDevice, public Singleton<Device>
 		{
 			friend Singleton<Device>;
@@ -43,6 +32,8 @@ namespace EastEngine
 			void BeginScene(float r, float g, float b, float a);
 			void EndScene();
 
+			void Flush();
+
 		public:
 			virtual HRESULT CreateInputLayout(EmVertexFormat::Type emInputLayout, const uint8_t* pIAInputSignature, std::size_t IAInputSignatureSize, ID3D11InputLayout** ppInputLayout = nullptr) override;
 			virtual HRESULT CreateBuffer(const D3D11_BUFFER_DESC* pDesc, const D3D11_SUBRESOURCE_DATA* pInitialData, ID3D11Buffer** ppBuffer) override;
@@ -60,6 +51,10 @@ namespace EastEngine
 
 		public:
 			virtual IDeviceContext* GetImmediateContext() override { return m_pd3dImmediateContext; }
+
+			virtual int GetThreadID(ThreadType emThreadType) const override { return m_nThreadID[emThreadType]; }
+			virtual IDeviceContext* GetDeferredContext(int nThreadID) override { return m_pd3dDeferredContext[nThreadID]; }
+
 			virtual IGBuffers* GetGBuffers() override { return m_pGBuffers; }
 			virtual IImageBasedLight* GetImageBasedLight() override { return m_pImageBasedLight; }
 			virtual IRenderTarget* GetMainRenderTarget() override { return m_pMainRenderTarget; }
@@ -122,7 +117,6 @@ namespace EastEngine
 			void AddDepthStencilState(IDepthStencilState* pDepthStencilState);
 
 		private:
-
 			IRenderTarget* createRenderTarget(const RenderTargetDesc2D& renderTargetInfo);
 			
 			bool createDepthStencil();
@@ -147,7 +141,10 @@ namespace EastEngine
 
 			IDXGISwapChain1* m_pSwapChain;
 			ID3D11Device* m_pd3dDevice;
-			IDeviceContext* m_pd3dImmediateContext;
+			DeviceContext* m_pd3dImmediateContext{ nullptr };
+
+			std::array<int, ThreadCount> m_nThreadID{ 0, 1 };
+			std::array<DeferredContext*, ThreadCount> m_pd3dDeferredContext{ nullptr };
 
 			ID3DUserDefinedAnnotation* m_pUserDefineAnnotation;
 

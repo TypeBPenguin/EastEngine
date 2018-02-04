@@ -4,7 +4,6 @@
 #include "CommonLib/FileStream.h"
 
 #include "CullingThreadpool.h"
-#include "CameraManager.h"
 #include "Vertex.h"
 
 namespace EastEngine
@@ -35,7 +34,6 @@ namespace EastEngine
 
 		private:
 			Result CastResult(MaskedOcclusionCulling::CullingResult emResult);
-			Math::Matrix GetClipSpaceMatrix(const Math::Matrix& matWorld) const;
 
 		private:
 			std::mutex m_mutex;
@@ -242,21 +240,6 @@ namespace EastEngine
 			}
 
 			return OcclusionCulling::eViewCulled;
-		}
-
-		Math::Matrix OcclusionCulling::Impl::GetClipSpaceMatrix(const Math::Matrix& matWorld) const
-		{
-			Camera* pCamera = CameraManager::GetInstance()->GetMainCamera();
-
-			const Math::Matrix matViewport
-			(
-				1.f, 0.f, 0.f, 0.f,
-				0.f, -1.f, 0.f, 0.f,
-				0.f, 0.f, 1.f, 0.f,
-				0.f, 0.f, 0.f, 1.f
-			);
-
-			return matWorld * pCamera->GetViewMatrix() * pCamera->GetProjMatrix() * matViewport;
 		}
 
 		OcclusionCulling::OcclusionCulling()

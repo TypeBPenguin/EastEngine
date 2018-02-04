@@ -79,8 +79,6 @@ namespace EastEngine
 			{
 				m_pMainCamera->AddDistance(-dz);
 			}
-
-			m_pMainCamera->UpdateView();
 		}
 	}
 }

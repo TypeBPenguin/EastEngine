@@ -5,7 +5,7 @@
 
 #include "Physics/RigidBody.h"
 
-#include "DirectX/CameraManager.h"
+#include "DirectX/Camera.h"
 
 #include "Renderer/RendererManager.h"
 #include "Model/GeometryModel.h"
@@ -103,14 +103,15 @@ SkeletonController::~SkeletonController()
 
 bool SkeletonController::Process(float fElapsedTime)
 {
-	Graphics::Camera* pCamera = Graphics::CameraManager::GetInstance()->GetMainCamera();
+	Graphics::Camera* pCamera = Graphics::Camera::GetInstance();
 	if (pCamera == nullptr)
 		return false;
 
+	int nThreadID = Graphics::GetThreadID(Graphics::eUpdate);
 	const Math::Int2 n2MousePoint(Input::Mouse::GetX(), Input::Mouse::GetY());
 	const Math::UInt2 n2ScreenSize = Graphics::GetDevice()->GetScreenSize();
-	const Math::Matrix& matView = pCamera->GetViewMatrix();
-	const Math::Matrix& matProjection = pCamera->GetProjMatrix();
+	const Math::Matrix& matView = pCamera->GetViewMatrix(nThreadID);
+	const Math::Matrix& matProjection = pCamera->GetProjMatrix(nThreadID);
 
 	const Collision::Ray rayScreen = Collision::Ray::CreateFromScreenCoordinates(n2MousePoint, n2ScreenSize, matView, matProjection);
 

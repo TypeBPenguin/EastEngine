@@ -106,7 +106,7 @@
     <ClCompile Include="System.cpp" />
     <ClCompile Include="FpsChecker.cpp" />
     <ClCompile Include="Scene.cpp" />
-    <ClCompile Include="SceneMgr.cpp" />
+    <ClCompile Include="SceneManager.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -116,7 +116,7 @@
     <ClInclude Include="System.h" />
     <ClInclude Include="FpsChecker.h" />
     <ClInclude Include="Scene.h" />
-    <ClInclude Include="SceneMgr.h" />
+    <ClInclude Include="SceneManager.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>

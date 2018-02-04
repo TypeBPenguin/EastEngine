@@ -23,11 +23,11 @@ namespace EastEngine
 		public:
 			virtual bool Init(const Math::Viewport& viewport) override;
 
-			virtual void Render(uint32_t nRenderGroupFlag) override;
+			virtual void Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag) override;
 			virtual void Flush() override;
 
 		private:
-			int RenderShadowMap(IDevice* pDevice, IDeviceContext* pDeviceContext, IRenderTarget* pRenderTarget);
+			int RenderShadowMap(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, IRenderTarget* pRenderTarget);
 			void ClearEffect(IDeviceContext* pd3dDeviceContext, IEffectTech* pTech);
 			void ClearEffect_Shadow(IDeviceContext* pd3dDeviceContext, IEffectTech* pTech);
 

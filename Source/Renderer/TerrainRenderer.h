@@ -20,7 +20,7 @@ namespace EastEngine
 
 			virtual void AddRender(const RenderSubsetTerrain& renderPiece) override { m_vecTerrain.emplace_back(renderPiece); }
 
-			virtual void Render(uint32_t nRenderGroupFlag) override;
+			virtual void Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag) override;
 			virtual void Flush() override { m_vecTerrain.clear(); }
 
 		private:

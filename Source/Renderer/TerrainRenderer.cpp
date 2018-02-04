@@ -4,7 +4,7 @@
 #include "CommonLib/FileUtil.h"
 #include "CommonLib/Config.h"
 
-#include "DirectX/CameraManager.h"
+#include "DirectX/Camera.h"
 
 namespace StrID
 {
@@ -65,23 +65,18 @@ namespace EastEngine
 			return true;
 		}
 
-		void TerrainRenderer::Render(uint32_t nRenderGroupFlag)
+		void TerrainRenderer::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
 		{
 			if (m_vecTerrain.empty())
 				return;
 
 			D3D_PROFILING(TerrainRenderer);
 
-			Camera* pCamera = CameraManager::GetInstance()->GetMainCamera();
-			if (pCamera == nullptr)
-			{
-				LOG_ERROR("Not Exist Main Camera !!");
-				return;
-			}
-
-			IDevice* pDevice = GetDevice();
-			IDeviceContext* pDeviceContext = GetDeviceContext();
 			IGBuffers* pGBuffers = GetGBuffers();
+
+			int nThreadID = GetThreadID(ThreadType::eRender);
+			const Math::Matrix& matView = pCamera->GetViewMatrix(nThreadID);
+			const Math::Matrix& matProj = pCamera->GetProjMatrix(nThreadID);
 
 			pDeviceContext->ClearState();
 			pDeviceContext->SetDefaultViewport();
@@ -91,8 +86,8 @@ namespace EastEngine
 			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eRead_Write_On);
 			pDeviceContext->SetBlendState(EmBlendState::eOff);
 
-			Math::Matrix matViewProj = pCamera->GetViewMatrix() * pCamera->GetProjMatrix();
-			m_pEffect->SetVector(StrID::g_CameraPosition, pCamera->GetPosition());
+			Math::Matrix matViewProj = matView * matProj;
+			m_pEffect->SetVector(StrID::g_CameraPosition, matView.Invert().Translation());
 			m_pEffect->SetVector(StrID::g_CameraDirection, pCamera->GetDir());
 
 			if (Config::IsEnable("Wireframe"_s) == true)

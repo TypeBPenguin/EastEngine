@@ -40,6 +40,7 @@ namespace EastEngine
 
 		class IDevice;
 		class IDeviceContext;
+		class IDeferredContext;
 		class IGBuffers;
 		class IImageBasedLight;
 		class ITexture;
@@ -53,9 +54,12 @@ namespace EastEngine
 		class IDepthStencilState;
 
 		IDevice* GetDevice();
-		IDeviceContext* GetDeviceContext();
+		IDeviceContext* GetImmediateContext();
+		IDeviceContext* GetDeferredContext(int nThreadID);
 		IGBuffers* GetGBuffers();
 		IImageBasedLight* GetImageBasedLight();
+
+		int GetThreadID(ThreadType emThreadType);
 
 		class IDevice
 		{
@@ -83,6 +87,10 @@ namespace EastEngine
 
 		public:
 			virtual IDeviceContext* GetImmediateContext() = 0;
+
+			virtual int GetThreadID(ThreadType emThreadType) const = 0;
+			virtual IDeviceContext* GetDeferredContext(int nThreadID) = 0;
+
 			virtual IGBuffers* GetGBuffers() = 0;
 			virtual IImageBasedLight* GetImageBasedLight() = 0;
 			virtual IRenderTarget* GetMainRenderTarget() = 0;
@@ -192,6 +200,17 @@ namespace EastEngine
 			virtual void Unmap(ID3D11Resource* pResource, uint32_t Subresource) = 0;
 
 			virtual void GenerateMips(ID3D11ShaderResourceView* pShaderResourceView) = 0;
+		};
+
+		class IDeferredContext
+		{
+		protected:
+			IDeferredContext() = default;
+			virtual ~IDeferredContext() = default;
+
+		public:
+			virtual bool FinishCommandList() = 0;
+			virtual void ExecuteCommandList(IDeviceContext* pImmediateContext) = 0;
 		};
 
 		class D3DProfiler

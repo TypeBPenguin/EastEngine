@@ -63,7 +63,7 @@ namespace EastEngine
 			};
 
 		public:
-			bool Apply(IRenderTarget* pResult, IRenderTarget* pSource);
+			bool Apply(IDevice* pDevice, IDeviceContext* pDeviceContext, IRenderTarget* pResult, IRenderTarget* pSource);
 
 		public:
 			Settings& GetSettings();

@@ -4,7 +4,7 @@
 #include "CommonLib/FileUtil.h"
 #include "CommonLib/Config.h"
 
-#include "DirectX/CameraManager.h"
+#include "DirectX/Camera.h"
 
 #include "DirectX/LightMgr.h"
 #include "DirectX/PointLight.h"
@@ -133,30 +133,19 @@ namespace EastEngine
 			return true;
 		}
 
-		void DeferredRenderer::Render(uint32_t nRenderGroupFlag)
+		void DeferredRenderer::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
 		{
-			Camera* pCamera = CameraManager::GetInstance()->GetMainCamera();
-			if (pCamera == nullptr)
-			{
-				LOG_ERROR("Not Exist Main Camera !!");
-				return;
-			}
-
-			IDevice* pDevice = GetDevice();
-			IDeviceContext* pDeviceContext = GetDeviceContext();
-
 			int nEnableShadowCount = 0;
 			IRenderTarget* pRenderTargetShadow = nullptr;
 			if (Config::IsEnable("Shadow"_s) == true)
 			{
 				auto desc = pDevice->GetMainRenderTarget()->GetDesc2D();
 				desc.Format = DXGI_FORMAT_R16G16_FLOAT;
-				//desc.Format = DXGI_FORMAT_R32_FLOAT;
 				desc.Build();
 
 				pRenderTargetShadow = pDevice->GetRenderTarget(desc);
 
-				nEnableShadowCount = RenderShadowMap(pDevice, pDeviceContext, pRenderTargetShadow);
+				nEnableShadowCount = RenderShadowMap(pDevice, pDeviceContext, pCamera, pRenderTargetShadow);
 
 				/*if (nEnableShadowCount > 0)
 				{
@@ -212,7 +201,11 @@ namespace EastEngine
 
 				pDeviceContext->SetRenderTargets(&pRenderTarget, 1, nullptr);
 
-				m_pEffect->SetVector(StrID::g_f3CameraPos, pCamera->GetPosition());
+				int nThreadID = GetThreadID(ThreadType::eRender);
+				const Math::Matrix& matInvView = pCamera->GetViewMatrix(nThreadID).Invert();
+				const Math::Matrix& matInvProj = pCamera->GetProjMatrix(nThreadID).Invert();
+
+				m_pEffect->SetVector(StrID::g_f3CameraPos, matInvView.Translation());
 
 				if (nEnableShadowCount > 0)
 				{
@@ -225,8 +218,8 @@ namespace EastEngine
 					m_pEffect->SetTexture(StrID::g_texShadowMap, nullptr);
 				}
 
-				m_pEffect->SetMatrix(StrID::g_matInvView, pCamera->GetViewMatrix().Invert());
-				m_pEffect->SetMatrix(StrID::g_matInvProj, pCamera->GetProjMatrix().Invert());
+				m_pEffect->SetMatrix(StrID::g_matInvView, matInvView);
+				m_pEffect->SetMatrix(StrID::g_matInvProj, matInvProj);
 
 				m_pEffect->SetStructuredBuffer(StrID::g_lightDirectional, LightManager::GetInstance()->GetLightBuffer(EmLight::eDirectional));
 				m_pEffect->SetStructuredBuffer(StrID::g_lightPoint, LightManager::GetInstance()->GetLightBuffer(EmLight::ePoint));
@@ -266,7 +259,7 @@ namespace EastEngine
 		{
 		}
 
-		int DeferredRenderer::RenderShadowMap(IDevice* pDevice, IDeviceContext* pDeviceContext, IRenderTarget* pRenderTarget)
+		int DeferredRenderer::RenderShadowMap(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, IRenderTarget* pRenderTarget)
 		{
 			pDeviceContext->ClearRenderTargetView(pRenderTarget, Math::Color::Black);
 
@@ -292,13 +285,6 @@ namespace EastEngine
 			if (isEnableShadow == false)
 				return 0;
 
-			Camera* pCamera = CameraManager::GetInstance()->GetMainCamera();
-			if (pCamera == nullptr)
-			{
-				LOG_ERROR("Not Exist Main Camera !!");
-				return 0;
-			}
-
 			pDeviceContext->ClearState();
 
 			pDeviceContext->SetDefaultViewport();
@@ -314,10 +300,14 @@ namespace EastEngine
 
 				pDeviceContext->SetRenderTargets(&pRenderTarget, 1, nullptr);
 
-				m_pEffectShadow->SetVector(StrID::g_f3CameraPos, pCamera->GetPosition());
+				int nThreadID = GetThreadID(ThreadType::eRender);
+				const Math::Matrix& matInvView = pCamera->GetViewMatrix(nThreadID).Invert();
+				const Math::Matrix& matInvProj = pCamera->GetProjMatrix(nThreadID).Invert();
 
-				m_pEffectShadow->SetMatrix(StrID::g_matInvView, pCamera->GetViewMatrix().Invert());
-				m_pEffectShadow->SetMatrix(StrID::g_matInvProj, pCamera->GetProjMatrix().Invert());
+				m_pEffectShadow->SetVector(StrID::g_f3CameraPos, matInvView.Translation());
+
+				m_pEffectShadow->SetMatrix(StrID::g_matInvView, matInvView);
+				m_pEffectShadow->SetMatrix(StrID::g_matInvProj, matInvProj);
 
 				IEffectTech* pEffectTech = nullptr;
 				uint32_t nPassCount = 0;
