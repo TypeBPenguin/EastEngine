@@ -16,6 +16,12 @@ namespace EastEngine
 		{
 		}
 
+		SimpleProfiler::SimpleProfiler(const std::string& strName, std::function<void(float)> func)
+			: strName(strName)
+			, func(func)
+		{
+		}
+
 		void SimpleProfiler::Update()
 		{
 			double dGameTime = Timer::GetInstance()->GetGameTime();

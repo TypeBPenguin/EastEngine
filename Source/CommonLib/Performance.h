@@ -33,12 +33,7 @@ namespace EastEngine
 			float fTime{ 0.f };
 			int nFrame{ 0 };
 
-			SimpleProfiler(std::string strName, std::function<void(float)> func)
-				: strName(strName)
-				, func(func)
-			{
-			}
-
+			SimpleProfiler(const std::string& strName, std::function<void(float)> func);
 			void Update();
 		};
 	}
