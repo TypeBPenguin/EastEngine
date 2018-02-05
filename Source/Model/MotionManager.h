@@ -19,15 +19,14 @@ namespace EastEngine
 			virtual ~MotionManager();
 
 		public:
-			void Update();
-			void Flush();
+			void Flush(bool isEnableGarbageCollector);
 
 		public:
 			// FilePath
-			IMotion* AllocateMotion(const std::string& strKey);
+			IMotion* AllocateMotion(const String::StringID& strKey);
 
 			// FilePath
-			IMotion* GetMotion(const std::string& strKey);
+			IMotion* GetMotion(const String::StringID& strKey);
 			IMotion* GetMotion(const size_t nIndex);
 
 			size_t GetMotionCount() const;

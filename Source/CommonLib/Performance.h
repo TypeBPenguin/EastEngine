@@ -22,5 +22,26 @@ namespace EastEngine
 			std::chrono::system_clock::time_point m_timeStart;
 			std::chrono::system_clock::time_point m_timeEnd;
 		};
+
+		struct SimpleProfiler
+		{
+			std::string strName;
+			std::function<void(float)> func;
+
+			double dPrevTime{ 0.0 };
+			float fTotalTime{ 0.f };
+			float fTime{ 0.f };
+			int nFrame{ 0 };
+
+			SimpleProfiler(std::string strName, std::function<void(float)> func)
+				: strName(strName)
+				, func(func)
+			{
+			}
+
+			void Update();
+		};
 	}
 }
+
+#define SIMPLE_PROFILING(name, func) static EastEngine::Performance::SimpleProfiler name(#name, func); name.Update();

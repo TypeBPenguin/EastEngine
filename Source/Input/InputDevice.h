@@ -29,27 +29,21 @@ namespace EastEngine
 			virtual ~Device();
 
 		public:
-			bool Init(HINSTANCE hInstance, HWND hWnd, DWORD keyboardCoopFlag = eNoneExclusive | eForeGround, DWORD mouseCoopFlag = eNoneExclusive | eForeGround);
-			void Release();
-
-			void Update(float fElapsedTime);
-
-			bool HandleMsg(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam);
+			bool Initialize(HINSTANCE hInstance, HWND hWnd, DWORD keyboardCoopFlag = eNoneExclusive | eForeGround, DWORD mouseCoopFlag = eNoneExclusive | eForeGround);
 
 		public:
-			MouseInstance* GetMouse() const { return m_pMouse; }
-			KeyboardInstance* GetKeyboard() const { return m_pKeyboard; }
-			GamePadInstance* GetGamePad() const { return m_pGamePad; }
+			void Update(float fElapsedTime);
+
+			bool HandleMessage(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam);
+
+		public:
+			MouseInstance* GetMouse();
+			KeyboardInstance* GetKeyboard();
+			GamePadInstance* GetGamePad();
 
 		private:
-			struct IDirectInput8A* m_pInput;	// ¥Ÿ¿Ã∑∫∆Æ ¿Œ«≤ ∞¥√º
-
-			MouseInstance* m_pMouse;
-			KeyboardInstance* m_pKeyboard;
-			GamePadInstance* m_pGamePad;
-
-			bool m_isInit;
-			bool m_isFocus;
+			class Impl;
+			std::unique_ptr<Impl> m_pImpl;
 		};
 	}
 }

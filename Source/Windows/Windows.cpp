@@ -5,32 +5,106 @@ namespace EastEngine
 {
 	namespace Windows
 	{
-		MessageData::MessageData(HWND _hWnd, uint32_t _nMsg, WPARAM _wParam, LPARAM _lParam)
-			: hWnd(_hWnd)
-			, nMsg(_nMsg)
-			, wParam(_wParam)
-			, lParam(_lParam)
+		LRESULT CALLBACK WndProc(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
+		{
+			static bool isImeSetting = false;
+			if (nMsg == WM_IME_SETCONTEXT && isImeSetting == false)
+			{
+				lParam &= ~(ISC_SHOWUICOMPOSITIONWINDOW | ISC_SHOWUIALLCANDIDATEWINDOW);
+				lParam = 0;
+
+				isImeSetting = true;
+
+				return ImmIsUIMessage(hWnd, nMsg, wParam, lParam);
+			}
+
+			switch (nMsg)
+			{
+				// 윈도우가 제거되었는지 확인합니다.
+			case WM_DESTROY:
+			{
+				PostQuitMessage(0);
+				return 0;
+			}
+			// 윈도우가 닫히는지 확인합니다.
+			case WM_CLOSE:
+			{
+				PostQuitMessage(0);
+				return 0;
+			}
+			// 다른 모든 메세지들은 등록된 MessageHandler 에 전달합니다.
+			default:
+			{
+				WindowsManager::GetInstance()->HandleMessage(hWnd, nMsg, wParam, lParam);
+			}
+			}
+
+			return DefWindowProc(hWnd, nMsg, wParam, lParam);
+		}
+
+		class WindowsManager::Impl
+		{
+		public:
+			Impl();
+			~Impl();
+
+		public:
+			bool Initialize(const char* strApplicationName, uint32_t nScreenWidth, uint32_t nScreenHeight, bool isFullScreen);
+
+		public:
+			void ProcessMessages();
+
+			bool AddMessageHandler(FuncMessageHandler funcMessageHandler);
+
+			void HandleMessage(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam);
+
+		public:
+			HWND GetHwnd() { return m_hWnd; }
+			HINSTANCE GetHInstance() { return m_hInstance; }
+
+		private:
+			bool m_isInitialized{ false };
+			bool m_isFullScreen{ false };
+
+			std::string m_strApplicationName;
+			HINSTANCE m_hInstance{ nullptr };
+			HWND m_hWnd{ nullptr };
+
+			uint32_t m_nScreenWidth{ 0 };
+			uint32_t m_nScreenHeight{ 0 };
+
+			std::mutex m_mutex;
+			std::vector<FuncMessageHandler> m_vecFuncMessageHandler;
+			std::queue<MessageData> m_queueMessageData;
+		};
+
+		WindowsManager::Impl::Impl()
 		{
 		}
 
-		WindowsManager::WindowsManager()
-			: m_hInstance(nullptr)
-			, m_hWnd(nullptr)
-			, m_nScreenWidth(0)
-			, m_nScreenHeight(0)
-			, m_isFullScreen(false)
-			, m_isInit(false)
+		WindowsManager::Impl::~Impl()
 		{
+			// 풀스크린 모드를 빠져나올 때 디스플레이 설정 바꿈
+			if (m_isFullScreen)
+			{
+				ChangeDisplaySettings(NULL, 0);
+			}
+
+			// 창을 제거
+			DestroyWindow(m_hWnd);
+
+			// 어플리케이션 인스턴스를 제거
+			UnregisterClass(m_strApplicationName.c_str(), m_hInstance);
+
+			m_hInstance = nullptr;
+			m_hWnd = nullptr;
+
+			m_vecFuncMessageHandler.clear();
 		}
 
-		WindowsManager::~WindowsManager()
+		bool WindowsManager::Impl::Initialize(const char* strApplicationName, uint32_t nScreenWidth, uint32_t nScreenHeight, bool isFullScreen)
 		{
-			Release();
-		}
-
-		bool WindowsManager::Init(const char* strApplicationName, uint32_t nScreenWidth, uint32_t nScreenHeight, bool isFullScreen)
-		{
-			if (m_isInit == true)
+			if (m_isInitialized == true)
 				return true;
 
 			m_isFullScreen = isFullScreen;
@@ -109,46 +183,23 @@ namespace EastEngine
 			ShowWindow(m_hWnd, SW_SHOW);
 			UpdateWindow(m_hWnd);
 
-			m_isInit = true;
+			m_isInitialized = true;
 
 			return true;
 		}
 
-		void WindowsManager::Release()
+		void WindowsManager::Impl::ProcessMessages()
 		{
-			if (m_isInit == false)
+			std::lock_guard<std::mutex> lock(m_mutex);
+
+			if (m_queueMessageData.empty() == true)
 				return;
 
-			// 풀스크린 모드를 빠져나올 때 디스플레이 설정 바꿈
-			if (m_isFullScreen)
-			{
-				ChangeDisplaySettings(NULL, 0);
-			}
-
-			// 창을 제거
-			DestroyWindow(m_hWnd);
-
-			// 어플리케이션 인스턴스를 제거
-			UnregisterClass(m_strApplicationName.c_str(), m_hInstance);
-
-			m_hInstance = nullptr;
-			m_hWnd = nullptr;
-
-			m_vecFuncMessageHandler.clear();
-
-			m_isInit = true;
-		}
-
-		void WindowsManager::ProcessMessages()
-		{
-			if (m_vecFuncMessageHandler.empty() || m_queueMessageData.empty())
-				return;
-
-			size_t nSize = m_vecFuncMessageHandler.size();
+			const size_t nSize = m_vecFuncMessageHandler.size();
 
 			while (m_queueMessageData.empty() == false)
 			{
-				MessageData& messageData = m_queueMessageData.front();
+				const MessageData& messageData = m_queueMessageData.front();
 
 				for (size_t i = 0; i < nSize; ++i)
 				{
@@ -159,58 +210,70 @@ namespace EastEngine
 			}
 		}
 
-		bool WindowsManager::AddMessageHandler(FuncMessageHandler funcMessageHandler)
+		bool WindowsManager::Impl::AddMessageHandler(FuncMessageHandler funcMessageHandler)
 		{
 			if (funcMessageHandler == nullptr)
 				return false;
+
+			std::lock_guard<std::mutex> lock(m_mutex);
 
 			m_vecFuncMessageHandler.push_back(funcMessageHandler);
 
 			return true;
 		}
 
-		LRESULT WindowsManager::HandleMsg(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
+		void WindowsManager::Impl::HandleMessage(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
 		{
-			static bool isImeSetting = false;
-			if (nMsg == WM_IME_SETCONTEXT && isImeSetting == false)
-			{
-				lParam &= ~(ISC_SHOWUICOMPOSITIONWINDOW | ISC_SHOWUIALLCANDIDATEWINDOW);
-				lParam = 0;
-
-				isImeSetting = true;
-
-				return ImmIsUIMessage(hWnd, nMsg, wParam, lParam);
-			}
+			std::lock_guard<std::mutex> lock(m_mutex);
 
 			m_queueMessageData.emplace(hWnd, nMsg, wParam, lParam);
-
-			return DefWindowProc(hWnd, nMsg, wParam, lParam);
 		}
 
-		LRESULT CALLBACK WndProc(HWND hwnd, uint32_t umessage, WPARAM wparam, LPARAM lparam)
+		MessageData::MessageData(HWND _hWnd, uint32_t _nMsg, WPARAM _wParam, LPARAM _lParam)
+			: hWnd(_hWnd)
+			, nMsg(_nMsg)
+			, wParam(_wParam)
+			, lParam(_lParam)
 		{
-			switch (umessage)
-			{
-				// 윈도우가 제거되었는지 확인합니다.
-			case WM_DESTROY:
-			{
-				PostQuitMessage(0);
-				return 0;
-			}
+		}
 
-			// 윈도우가 닫히는지 확인합니다.
-			case WM_CLOSE:
-			{
-				PostQuitMessage(0);
-				return 0;
-			}
+		WindowsManager::WindowsManager()
+			: m_pImpl{ std::make_unique<Impl>() }
+		{
+		}
 
-			// 다른 모든 메세지들은 system 클래스의 메세지 처리기에 전달합니다.
-			default:
-			{
-				return WindowsManager::GetInstance()->HandleMsg(hwnd, umessage, wparam, lparam);
-			}
-			}
+		WindowsManager::~WindowsManager()
+		{
+		}
+
+		bool WindowsManager::Initialize(const char* strApplicationName, uint32_t nScreenWidth, uint32_t nScreenHeight, bool isFullScreen)
+		{
+			return m_pImpl->Initialize(strApplicationName, nScreenWidth, nScreenHeight, isFullScreen);
+		}
+
+		void WindowsManager::ProcessMessages()
+		{
+			m_pImpl->ProcessMessages();
+		}
+
+		bool WindowsManager::AddMessageHandler(FuncMessageHandler funcMessageHandler)
+		{
+			return m_pImpl->AddMessageHandler(funcMessageHandler);
+		}
+
+		void WindowsManager::HandleMessage(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
+		{
+			m_pImpl->HandleMessage(hWnd, nMsg, wParam, lParam);
+		}
+
+		HWND WindowsManager::GetHwnd()
+		{
+			return m_pImpl->GetHwnd();
+		}
+
+		HINSTANCE WindowsManager::GetHInstance()
+		{
+			return m_pImpl->GetHInstance();
 		}
 	}
 }

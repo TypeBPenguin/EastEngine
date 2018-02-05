@@ -2,25 +2,11 @@
 
 #include "CommonLib/Singleton.h"
 
-#include "DirectX/D3DInterface.h"
-
 namespace EastEngine
 {
 	namespace Graphics
 	{
-		class Device;
-		class ShaderManager;
-		class RendererManager;
-		class TextureManager;
-		class LightManager;
-		class Camera;
-		class ModelManager;
-		class MotionManager;
-		class ParticleManager;
-		class OcclusionCulling;
-		class VTFManager;
-
-		typedef std::function<void()> FuncAfterRender;
+		using FuncAfterRender = std::function<void()>;
 
 		static const float s_fScreenDepth = 10000.f;
 		static const float s_fScreenNear = 0.1f;
@@ -33,9 +19,12 @@ namespace EastEngine
 			virtual ~GraphicsSystem();
 
 		public:
-			bool Init(HWND hWnd, uint32_t nScreenWidth, uint32_t nScreenHeight, bool isFullScreen, bool isVsync, float fFlushCycleTime);
-			void Release();
+			bool Initialize(HWND hWnd, uint32_t nScreenWidth, uint32_t nScreenHeight, bool isFullScreen, bool isVsync, float fFlushCycleTime);
 
+		public:
+			bool HandleMessage(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam);
+
+		public:
 			void Update(float fElapsedTime);
 			void Render();
 
@@ -45,40 +34,11 @@ namespace EastEngine
 			void BeginScene(float r, float g, float b, float a);
 			void EndScene();
 
-			void AddFuncAfterRender(FuncAfterRender func) { if (func != nullptr) { m_vecFuncAfterRender.emplace_back(func); } }
-
-		public:
-			Device * GetD3D() { return s_pd3dObject; }
-			ShaderManager* GetShaderMgr() { return s_pShaderMgr; }
-			RendererManager* GetRendererMgr() { return s_pRendererMgr; }
-			TextureManager* GetTextureMgr() { return s_pTextureMgr; }
-			LightManager* GetLightMgr() { return s_pLightMgr; }
-			Camera* GetCameraManager() { return s_pCamera; }
-			ModelManager* GetModelMgr() { return s_pModelMgr; }
-			MotionManager* GetMotionMgr() { return s_pMotionMgr; }
-			ParticleManager* GetEffectMgr() { return s_pParticleMgr; }
-			OcclusionCulling* GetOcclusionCulling() { return s_pOcclusionCulling; }
-			VTFManager* GetVTFMgr() { return s_pVTFMgr; }
+			void AddFuncAfterRender(FuncAfterRender func);
 
 		private:
-			Device* s_pd3dObject;
-			ShaderManager* s_pShaderMgr;
-			RendererManager* s_pRendererMgr;
-			TextureManager* s_pTextureMgr;
-			LightManager* s_pLightMgr;
-			Camera* s_pCamera;
-			ModelManager* s_pModelMgr;
-			MotionManager* s_pMotionMgr;
-			ParticleManager* s_pParticleMgr;
-			OcclusionCulling* s_pOcclusionCulling;
-			VTFManager* s_pVTFMgr;
-
-			float m_fFlushTime;
-			float m_fFlushCycleTime;
-
-			bool m_isInit;
-
-			std::vector<FuncAfterRender> m_vecFuncAfterRender;
+			class Impl;
+			std::unique_ptr<Impl> m_pImpl;
 		};
 	}
 }

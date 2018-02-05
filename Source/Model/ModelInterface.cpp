@@ -44,7 +44,7 @@ namespace EastEngine
 
 		IMotion* IMotion::Create(const MotionLoader& loader)
 		{
-			std::string strKey = loader.GetFilePath();
+			String::StringID strKey = loader.GetFilePath().c_str();
 
 			IMotion* pIMotion = MotionManager::GetInstance()->GetMotion(strKey);
 			if (pIMotion != nullptr)
@@ -185,14 +185,14 @@ namespace EastEngine
 
 		IModel* IModel::Create(const ModelLoader& loader, bool isThreadLoad)
 		{
-			std::string strKey;
+			String::StringID strKey;
 			if (loader.GetLoadModelType() == EmModelLoader::LoadType::eGeometry)
 			{
-				strKey = loader.GetModelName().c_str();
+				strKey = loader.GetModelName();
 			}
 			else
 			{
-				strKey = loader.GetFilePath();
+				strKey = loader.GetFilePath().c_str();
 			}
 
 			IModel* pIModel = ModelManager::GetInstance()->GetModel(strKey);

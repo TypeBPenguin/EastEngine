@@ -11,234 +11,89 @@ namespace EastEngine
 {
 	namespace Graphics
 	{
-		/*int TextureManager::TextureAtlasNode::s_nFilledPixelCount = 0;
-		int TextureManager::TextureAtlasNode::s_nTotalPixelCount = 0;
-
-		TextureManager::TextureAtlasNode::TextureAtlasNode(const Math::Rect& rect)
-			: m_nAtlasNodeID(0)
-			, m_pLeft(nullptr)
-			, m_pRight(nullptr)
-			, m_rect(rect)
-			, m_isFilled(false)
+		class TextureManager::Impl
 		{
-			static int AtalasNodeID = 0;
-			m_nAtlasNodeID = AtalasNodeID++;
+		public:
+			Impl();
+			~Impl();
 
-			int nAllocatePixelCount = rect.GetWidth() * rect.GetHeight();
-			if (nAllocatePixelCount > s_nTotalPixelCount)
+		private:
+			struct RequestLoadTextureInfo
 			{
-				s_nTotalPixelCount = nAllocatePixelCount;
-			}
-		}
+				String::StringID strName;
+				std::string strFilePath;
+				std::shared_ptr<ITexture> pTexture_out;
 
-		TextureManager::TextureAtlasNode::~TextureAtlasNode()
-		{
-			SafeDelete(m_pLeft);
-			SafeDelete(m_pRight);
-		}
-
-		TextureManager::TextureAtlasNode* TextureManager::TextureAtlasNode::Insert(const Math::Rect& rect)
-		{
-			if (m_pLeft != nullptr && m_pRight != nullptr)
-			{
-				TextureAtlasNode* pNode = m_pLeft->Insert(rect);
-				if (pNode != nullptr)
-					return pNode;
-
-				pNode = m_pRight->Insert(rect);
-				if (pNode != nullptr)
-					return pNode;
-
-				return nullptr;
-			}
-			else
-			{
-				if (m_isFilled == true)
-					return nullptr;
-
-				if (m_rect.IsFitsIn(rect) == false)
-					return nullptr;
-
-				if (m_rect.IsSameSize(rect) == true)
+				RequestLoadTextureInfo()
 				{
-					s_nFilledPixelCount += rect.GetWidth() * rect.GetHeight();
-					m_isFilled = true;
-					return this;
 				}
 
-				int nRemainWidth = m_rect.GetWidth() - rect.GetWidth();
-				int nRemainHeight = m_rect.GetHeight() - rect.GetHeight();
-
-				if (nRemainWidth > nRemainHeight)
+				RequestLoadTextureInfo(const String::StringID& strName, const std::string& strFilePath, const std::shared_ptr<ITexture>& pTexture_out)
+					: strName(strName)
+					, strFilePath(strFilePath)
+					, pTexture_out(pTexture_out)
 				{
-					m_pLeft = new TextureAtlasNode(Math::Rect(m_rect.left, m_rect.top, m_rect.left + rect.GetWidth(), m_rect.bottom));
-					m_pRight = new TextureAtlasNode(Math::Rect(m_rect.left + rect.GetWidth(), m_rect.top, m_rect.right, m_rect.bottom));
-				}
-				else
-				{
-					m_pLeft = new TextureAtlasNode(Math::Rect(m_rect.left, m_rect.top, m_rect.right, m_rect.top + rect.GetHeight()));
-					m_pRight = new TextureAtlasNode(Math::Rect(m_rect.left, m_rect.top + rect.GetHeight(), m_rect.right, m_rect.bottom));
 				}
 
-				return m_pLeft->Insert(rect);
-			}
-		}
+				RequestLoadTextureInfo(const RequestLoadTextureInfo& source)
+				{
+					strName = source.strName;
+					strFilePath = source.strFilePath;
+					pTexture_out = source.pTexture_out;
+				}
+			};
 
-		bool TextureManager::TextureAtlasNode::Delete(int nAtalasNodeID)
-		{
-			if (m_nAtlasNodeID == nAtalasNodeID)
+			struct ResultLoadTextureInfo
 			{
-				s_nFilledPixelCount -= m_rect.GetWidth() * m_rect.GetHeight();
-				m_isFilled = false;
-				return true;
-			}
+				std::shared_ptr<ITexture> pTexture_out = nullptr;
+				bool isSuccess = false;
+			};
 
-			if (m_pLeft != nullptr)
-			{
-				bool isDeleted = m_pLeft->Delete(nAtalasNodeID);
-				if (isDeleted == true)
-					return true;
-			}
+		public:
+			void Flush(bool isEnableGarbageCollector);
 
-			if (m_pRight != nullptr)
-			{
-				bool isDeleted = m_pRight->Delete(nAtalasNodeID);
-				if (isDeleted == true)
-					return true;
-			}
+			void AsyncLoadTexture(const std::shared_ptr<ITexture>& pTexture, const String::StringID& strName, const std::string& strFilePath);
 
-			return false;
-		}
+			bool LoadFromFile(const std::shared_ptr<ITexture>& pTexture, const String::StringID& strName, const char* strFilePath);
 
-		TextureManager::TextureAtlasNode* TextureManager::TextureAtlasNode::GetNode(int nAtalasNodeID)
-		{
-			if (m_nAtlasNodeID == nAtalasNodeID)
-				return this;
+		public:
+			std::shared_ptr<ITexture> AllocateTexture(const ITexture::Key& key);
+			std::shared_ptr<ITexture> GetTexture(const ITexture::Key& key);
 
-			if (m_pLeft != nullptr)
-			{
-				TextureAtlasNode* pNode = m_pLeft->GetNode(nAtalasNodeID);
-				if (pNode != nullptr)
-					return pNode;
-			}
+		public:
+			void ProcessRequestTexture(const RequestLoadTextureInfo& loader);
 
-			if (m_pRight != nullptr)
-			{
-				TextureAtlasNode* pNode = m_pRight->GetNode(nAtalasNodeID);
-				if (pNode != nullptr)
-					return pNode;
-			}
+		private:
+			bool m_isInitialized{ false };
 
-			return nullptr;
-		}*/
+			std::atomic<bool> m_isLoading{ false };
 
-		TextureManager::TextureManager()
-			: m_isInit(false)
-			, m_isLoading(false)
-			, m_pUvCheckerTexture(nullptr)
-			, m_pEmptyTextureRed(nullptr)
-			//, m_pTextureAtlas(nullptr)
-			//, m_pTextureAtlasNode(nullptr)
+			std::mutex m_mutex;
+
+			Concurrency::concurrent_queue<RequestLoadTextureInfo> m_conQueueRequestLoadTexture;
+			Concurrency::concurrent_queue<ResultLoadTextureInfo> m_conQueueCompleteTexture;
+			std::unordered_map<ITexture::Key, std::shared_ptr<ITexture>> m_umapTexture;
+
+			boost::object_pool<Texture> m_poolTexture;
+			std::mutex m_mutexTexture;
+			uint32_t m_nTextureCount{ 0 };
+		};
+
+		TextureManager::Impl::Impl()
 		{
 		}
 
-		TextureManager::~TextureManager()
+		TextureManager::Impl::~Impl()
 		{
-			Release();
-		}
-
-		bool TextureManager::Init()
-		{
-			if (m_isInit == true)
-				return true;
-
-			m_isInit = true;
-
-			std::string strUVCheckerPath = File::GetPath(File::eTexture);
-			strUVCheckerPath.append("uv_checker.png");
-			m_pUvCheckerTexture = ITexture::Create(strUVCheckerPath.c_str(), false);
-
-			std::string strEmptyTexPath = File::GetPath(File::eTexture);
-			strEmptyTexPath.append("EmptyTexture_Red.dds");
-			m_pEmptyTextureRed = ITexture::Create(strEmptyTexPath.c_str(), false);
-
-			//initAtlasPool();
-
-			return true;
-		}
-
-		void TextureManager::Release()
-		{
-			if (m_isInit == false)
-				return;
-
-			m_pUvCheckerTexture.reset();
-			m_pEmptyTextureRed.reset();
-
-			//m_pTextureAtlas.reset();
-			//SafeDelete(m_pTextureAtlasNode);
-
 			for (auto& iter : m_umapTexture)
 			{
 				std::shared_ptr<ITexture>& pTexture = iter.second;
 				pTexture.reset();
 			}
 			m_umapTexture.clear();
-
-			m_isInit = false;
 		}
 
-		void TextureManager::Update(float fElapsedTime)
-		{
-			//while (m_conQueueTextureAtlas.empty() == false)
-			//{
-			//	std::shared_ptr<ITexture> pTexture;
-			//	if (m_conQueueTextureAtlas.try_pop(pTexture) == true)
-			//	{
-			//		Graphics::TextureDesc2D desc1;
-			//		m_pTextureAtlas->GetTexture2D()->GetDesc(&desc1);
-			//
-			//		Graphics::TextureDesc2D desc2;
-			//		pTexture->GetTexture2D()->GetDesc(&desc2);
-			//
-			//		if (desc1.Format == desc2.Format)
-			//		{
-			//			Math::Rect rect(pTexture->GetWidth(), pTexture->GetHeight());
-			//			TextureAtlasNode* pNode = m_pTextureAtlasNode->Insert(rect);
-			//			if (pNode != nullptr)
-			//			{
-			//				D3D11_BOX box;
-			//				box.front = 0;
-			//				box.back = 1;
-			//				box.left = 0;
-			//				box.right = pTexture->GetWidth();
-			//				box.top = 0;
-			//				box.bottom = pTexture->GetHeight();
-			//
-			//				const Math::Rect& rectDest = pNode->GetRect();
-			//				m_pTextureAtlas->CopySubresourceRegion(0, rectDest.left, rectDest.top, 0, pTexture, 0, &box);
-			//
-			//				Math::Vector4 f4Rect(rectDest.left, rectDest.top, rectDest.right, rectDest.bottom);
-			//				pTexture->SetAtlasRect(f4Rect);
-			//			}
-			//		}
-			//	}
-			//}
-
-			//while (m_conQueueTextureAtlasRemove.empty() == false)
-			//{
-			//	int nAtlasNodeID = -1;
-			//	if (m_conQueueTextureAtlasRemove.try_pop(nAtlasNodeID) == true)
-			//	{
-			//		if (nAtlasNodeID != -1)
-			//		{
-			//			m_pTextureAtlasNode->Delete(nAtlasNodeID);
-			//		}
-			//	}
-			//}
-		}
-
-		void TextureManager::Flush(bool isEnableGarbageCollector)
+		void TextureManager::Impl::Flush(bool isEnableGarbageCollector)
 		{
 			bool isLoading = m_isLoading.load();
 			if (m_conQueueRequestLoadTexture.empty() == false && isLoading == false)
@@ -311,48 +166,41 @@ namespace EastEngine
 			}
 		}
 
-		void TextureManager::ProcessRequestTexture(const RequestLoadTextureInfo& loader)
-		{
-			ResultLoadTextureInfo result;
-			result.pTexture_out = loader.pTexture_out;
-			result.isSuccess = LoadFromFile(loader.pTexture_out, loader.strName, loader.strFilePath.c_str());
-
-			m_conQueueCompleteTexture.push(result);
-
-			m_isLoading.store(false);
-		}
-		
-		void TextureManager::LoadTextureSync(const std::shared_ptr<ITexture>& pTexture, const String::StringID& strName, const std::string& strFilePath)
+		void TextureManager::Impl::AsyncLoadTexture(const std::shared_ptr<ITexture>& pTexture, const String::StringID& strName, const std::string& strFilePath)
 		{
 			pTexture->SetAlive(true);
-			
+
 			m_conQueueRequestLoadTexture.push(RequestLoadTextureInfo(strName, strFilePath, pTexture));
 		}
 
-		bool TextureManager::AddTexture(const String::StringID& strFileName, const std::shared_ptr<ITexture>& pTexture)
+		std::shared_ptr<ITexture> TextureManager::Impl::AllocateTexture(const ITexture::Key& key)
 		{
-			if (GetTexture(strFileName) != nullptr)
-				return false;
+			std::lock_guard<std::mutex> lock(m_mutexTexture);
+			++m_nTextureCount;
 
-			std::lock_guard<std::mutex> lock(m_mutex);
+			std::shared_ptr<Texture> pTexture =  std::shared_ptr<Texture>(m_poolTexture.construct(key), [&](Texture* pTexture)
+			{
+				std::lock_guard<std::mutex> lock(m_mutexTexture);
+				m_poolTexture.destroy(pTexture);
 
-			auto iter_result = m_umapTexture.emplace(strFileName, pTexture);
-			if (iter_result.second == true)
-				return true;
+				--m_nTextureCount;
+			});
 
-			return false;
+			m_umapTexture.emplace(key, pTexture);
+
+			return pTexture;
 		}
 
-		std::shared_ptr<ITexture> TextureManager::GetTexture(const String::StringID& strFileName)
+		std::shared_ptr<ITexture> TextureManager::Impl::GetTexture(const ITexture::Key& key)
 		{
-			auto iter = m_umapTexture.find(strFileName);
+			auto iter = m_umapTexture.find(key);
 			if (iter == m_umapTexture.end())
 				return nullptr;
 
 			return iter->second;
 		}
-		
-		bool TextureManager::LoadFromFile(const std::shared_ptr<ITexture>& pTexture, const String::StringID& strName, const char* strFilePath)
+
+		bool TextureManager::Impl::LoadFromFile(const std::shared_ptr<ITexture>& pTexture, const String::StringID& strName, const char* strFilePath)
 		{
 			HRESULT hr;
 			DirectX::ScratchImage image;
@@ -492,19 +340,51 @@ namespace EastEngine
 			return pRealTexture->Load(pTexture2D, pShaderResourceView);
 		}
 
-		//bool TextureManager::initAtlasPool()
-		//{
-		//	Graphics::TextureDesc2D desc(DXGI_FORMAT_R8G8B8A8_UNORM, eTextureAtlasWidth, eTextureAtlasHeight);
-		//	desc.Build();
-		//
-		//	m_pTextureAtlas = Graphics::Texture::Create("EastEngine_TextureAtlas", desc, nullptr);
-		//
-		//	if (m_pTextureAtlas == nullptr)
-		//		return false;
-		//
-		//	m_pTextureAtlasNode = new TextureAtlasNode(Math::Rect(0, 0, eTextureAtlasWidth, eTextureAtlasHeight));
-		//
-		//	return true;
-		//}
+		void TextureManager::Impl::ProcessRequestTexture(const RequestLoadTextureInfo& loader)
+		{
+			ResultLoadTextureInfo result;
+			result.pTexture_out = loader.pTexture_out;
+			result.isSuccess = LoadFromFile(loader.pTexture_out, loader.strName, loader.strFilePath.c_str());
+
+			m_conQueueCompleteTexture.push(result);
+
+			m_isLoading.store(false);
+		}
+
+		TextureManager::TextureManager()
+			: m_pImpl{ std::make_unique<Impl>() }
+		{
+		}
+
+		TextureManager::~TextureManager()
+		{
+		}
+
+		void TextureManager::Flush(bool isEnableGarbageCollector)
+		{
+			m_pImpl->Flush(isEnableGarbageCollector);
+		}
+
+		void TextureManager::AsyncLoadTexture(const std::shared_ptr<ITexture>& pTexture, const String::StringID& strName, const std::string& strFilePath)
+		{
+			m_pImpl->AsyncLoadTexture(pTexture, strName, strFilePath);
+		}
+
+		bool TextureManager::LoadFromFile(const std::shared_ptr<ITexture>& pTexture, const String::StringID& strName, const char* strFilePath)
+		{
+			return m_pImpl->LoadFromFile(pTexture, strName, strFilePath);
+		}
+
+		std::shared_ptr<ITexture> TextureManager::AllocateTexture(const String::StringID& strFileName)
+		{
+			ITexture::Key key(strFileName.Key());
+			return m_pImpl->AllocateTexture(key);
+		}
+
+		std::shared_ptr<ITexture> TextureManager::GetTexture(const String::StringID& strFileName)
+		{
+			ITexture::Key key(strFileName.Key());
+			return m_pImpl->GetTexture(key);
+		}
 	}
 }

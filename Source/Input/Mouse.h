@@ -42,21 +42,21 @@ namespace EastEngine
 			void HandleMouse(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam);
 
 		public:
-			bool IsButtonEvent(Mouse::Button emMouseButton) { return CurMouseDown(emMouseButton); }
-			bool IsButtonDown(Mouse::Button emMouseButton) { return !OldMouseDown(emMouseButton) && CurMouseDown(emMouseButton); }
-			bool IsButtonPressed(Mouse::Button emMouseButton) { return OldMouseDown(emMouseButton) && CurMouseDown(emMouseButton); }
-			bool IsButtonUp(Mouse::Button emMouseButton) { return OldMouseDown(emMouseButton) && !CurMouseDown(emMouseButton); }
+			bool IsButtonEvent(Mouse::Button emMouseButton) const { return CurMouseDown(emMouseButton); }
+			bool IsButtonDown(Mouse::Button emMouseButton) const { return !OldMouseDown(emMouseButton) && CurMouseDown(emMouseButton); }
+			bool IsButtonPressed(Mouse::Button emMouseButton) const { return OldMouseDown(emMouseButton) && CurMouseDown(emMouseButton); }
+			bool IsButtonUp(Mouse::Button emMouseButton) const { return OldMouseDown(emMouseButton) && !CurMouseDown(emMouseButton); }
 
-			int	GetX() { return m_nX; }
-			int GetY() { return m_nY; }
+			int	GetX() const { return m_nX; }
+			int GetY() const { return m_nY; }
 
-			long GetMoveX() { return m_CurMouseState.moveX; }				// 마우스 X 이동거리
-			long GetMoveY() { return m_CurMouseState.moveY; }				// 마우스 Y 이동거리
-			long GetMoveWheel() { return m_CurMouseState.moveWheel; }	// 휠 이동거리
+			long GetMoveX() const { return m_CurMouseState.moveX; }				// 마우스 X 이동거리
+			long GetMoveY() const { return m_CurMouseState.moveY; }				// 마우스 Y 이동거리
+			long GetMoveWheel() const { return m_CurMouseState.moveWheel; }	// 휠 이동거리
 
 		private:
-			bool CurMouseDown(Mouse::Button emMouseButton) { return (m_CurMouseState.rgbButtonArr[static_cast<int>(emMouseButton)] & 0x80) != 0; }
-			bool OldMouseDown(Mouse::Button emMouseButton) { return (m_OldMouseState.rgbButtonArr[static_cast<int>(emMouseButton)] & 0x80) != 0; }
+			bool CurMouseDown(Mouse::Button emMouseButton) const { return (m_CurMouseState.rgbButtonArr[static_cast<int>(emMouseButton)] & 0x80) != 0; }
+			bool OldMouseDown(Mouse::Button emMouseButton) const { return (m_OldMouseState.rgbButtonArr[static_cast<int>(emMouseButton)] & 0x80) != 0; }
 
 		private:
 			struct IDirectInputDevice8A* m_pMouse;	// 마우스 디바이스

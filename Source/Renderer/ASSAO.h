@@ -25,6 +25,9 @@ struct ID3D11DeviceContext;
 struct ID3D11ShaderResourceView;
 struct ID3D11RenderTargetView;
 
+class IDevice;
+class IDeviceContext;
+
 #pragma pack( push, 8 ) // Make sure we have consistent structure packings
 
 // Disabling adaptive quality uses a tiny bit less memory (21.75Mb instead of 22Mb at 1920x1080) and makes it easier to port

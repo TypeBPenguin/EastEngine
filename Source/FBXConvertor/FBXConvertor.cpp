@@ -76,14 +76,14 @@ int main(int argn, char** argc)
 
 	std::cout << "초기화 중..." << std::endl;
 
-	if (Windows::WindowsManager::GetInstance()->Init("FBXConvertor", 800, 600, false) == false)
+	if (Windows::WindowsManager::GetInstance()->Initialize("FBXConvertor", 800, 600, false) == false)
 	{
 		std::cout << "초기화 실패" << std::endl;
 	}
 
 	ShowWindow(Windows::GetHwnd(), SW_HIDE);
 
-	if (Graphics::Device::GetInstance()->Init(Windows::GetHwnd(), 800, 600, false, true) == false)
+	if (Graphics::Device::GetInstance()->Initialize(Windows::GetHwnd(), 800, 600, false, true) == false)
 	{
 		std::cout << "초기화 실패" << std::endl;
 	}
@@ -182,7 +182,6 @@ int main(int argn, char** argc)
 	Graphics::Device::GetInstance()->Release();
 	Graphics::Device::DestroyInstance();
 
-	Windows::WindowsManager::GetInstance()->Release();
 	Windows::WindowsManager::DestroyInstance();
 
 	String::Release();

@@ -10,6 +10,7 @@
 #include "CommonLib/ThreadPool.h"
 #include "CommonLib/Timer.h"
 #include "CommonLib/CrashHandler.h"
+#include "CommonLib/Performance.h"
 
 #include "CommonLib/PipeStream.h"
 
@@ -34,7 +35,7 @@ namespace EastEngine
 		~Impl();
 
 	public:
-		bool Init(const String::StringID& strApplicationName, uint32_t nScreenWidth, uint32_t nScreenHeight, bool isFullScreen, bool isVsync);
+		bool Initialize(const String::StringID& strApplicationName, uint32_t nScreenWidth, uint32_t nScreenHeight, bool isFullScreen, bool isVsync);
 
 	public:
 		void Run();
@@ -110,17 +111,17 @@ namespace EastEngine
 		SafeRelease(s_pPhysicsSystem);
 		Physics::PhysicsSystem::DestroyInstance();
 
-		SafeRelease(s_pInputDevice);
 		Input::Device::DestroyInstance();
+		s_pInputDevice = nullptr;
 
-		SafeRelease(s_pGraphicsSystem);
 		Graphics::GraphicsSystem::DestroyInstance();
+		s_pGraphicsSystem = nullptr;
 
 		SafeRelease(s_pLuaSystem);
 		Lua::LuaSystem::DestroyInstance();
 
-		SafeRelease(s_pWindows);
 		Windows::WindowsManager::DestroyInstance();
+		s_pWindows = nullptr;
 
 		s_pTimer = nullptr;
 		Timer::DestroyInstance();
@@ -135,7 +136,7 @@ namespace EastEngine
 		CrashHandler::Release();
 	}
 
-	bool MainSystem::Impl::Init(const String::StringID& strApplicationName, uint32_t nScreenWidth, uint32_t nScreenHeight, bool isFullScreen, bool isVsync)
+	bool MainSystem::Impl::Initialize(const String::StringID& strApplicationName, uint32_t nScreenWidth, uint32_t nScreenHeight, bool isFullScreen, bool isVsync)
 	{
 		std::string strDumpPath = File::GetBinPath();
 		strDumpPath.append("Dump\\");
@@ -161,28 +162,28 @@ namespace EastEngine
 
 		s_pWindows = Windows::WindowsManager::GetInstance();
 
-		if (s_pWindows->Init(strApplicationName.c_str(), nScreenWidth, nScreenHeight, isFullScreen) == false)
+		if (s_pWindows->Initialize(strApplicationName.c_str(), nScreenWidth, nScreenHeight, isFullScreen) == false)
 			return false;
 
 		HWND hWnd = s_pWindows->GetHwnd();
 		HINSTANCE hInstance = s_pWindows->GetHInstance();
 
 		s_pGraphicsSystem = Graphics::GraphicsSystem::GetInstance();
-		if (s_pGraphicsSystem->Init(hWnd, m_n2ScreenSize.x, m_n2ScreenSize.y, m_isFullScreen, m_isVsync, 1.f) == false)
+		if (s_pGraphicsSystem->Initialize(hWnd, m_n2ScreenSize.x, m_n2ScreenSize.y, m_isFullScreen, m_isVsync, 1.f) == false)
 			return false;
 
 		s_pWindows->AddMessageHandler([](HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam) -> bool
 		{
-			return Graphics::GraphicsSystem::GetInstance()->GetD3D()->HandleMsg(hWnd, nMsg, wParam, lParam);
+			return Graphics::GraphicsSystem::GetInstance()->HandleMessage(hWnd, nMsg, wParam, lParam);
 		});
 
 		s_pInputDevice = Input::Device::GetInstance();
-		if (s_pInputDevice->Init(hInstance, hWnd) == false)
+		if (s_pInputDevice->Initialize(hInstance, hWnd) == false)
 			return false;
 
 		s_pWindows->AddMessageHandler([](HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam) -> bool
 		{
-			return Input::Device::GetInstance()->HandleMsg(hWnd, nMsg, wParam, lParam);
+			return Input::Device::GetInstance()->HandleMessage(hWnd, nMsg, wParam, lParam);
 		});
 
 		s_pPhysicsSystem = Physics::PhysicsSystem::GetInstance();
@@ -244,7 +245,7 @@ namespace EastEngine
 			s_pWindows->ProcessMessages();
 
 			Flush(fElapsedTime);
-
+			
 			Concurrency::parallel_invoke
 			(
 				[&] { Update(fElapsedTime); },
@@ -267,18 +268,13 @@ namespace EastEngine
 	void MainSystem::Impl::Update(float fElapsedTime)
 	{
 		s_pDirectoryMonitor->Update();
-
 		s_pInputDevice->Update(fElapsedTime);
-
 		s_pSoundSystem->Update(fElapsedTime);
 		s_pPhysicsSystem->Update(fElapsedTime);
-
 		s_pSceneManager->Update(fElapsedTime);
-
 		s_pTerrainManager->Update(fElapsedTime);
 		m_pSkyManager->Update(fElapsedTime);
 		s_pActorMgr->Update(fElapsedTime);
-
 		s_pGraphicsSystem->Update(fElapsedTime);
 		s_pUIMgr->Update(fElapsedTime);
 	}
@@ -286,9 +282,7 @@ namespace EastEngine
 	void MainSystem::Impl::Render()
 	{
 		s_pGraphicsSystem->BeginScene(0.f, 0.f, 0.f, 1.f);
-
 		s_pGraphicsSystem->Render();
-
 		s_pGraphicsSystem->EndScene();
 	}
 
@@ -301,9 +295,9 @@ namespace EastEngine
 	{
 	}
 
-	bool MainSystem::Init(const String::StringID& strApplicationName, uint32_t nScreenWidth, uint32_t nScreenHeight, bool isFullScreen, bool isVsync)
+	bool MainSystem::Initialize(const String::StringID& strApplicationName, uint32_t nScreenWidth, uint32_t nScreenHeight, bool isFullScreen, bool isVsync)
 	{
-		return m_pImpl->Init(strApplicationName, nScreenWidth, nScreenHeight, isFullScreen, isVsync);
+		return m_pImpl->Initialize(strApplicationName, nScreenWidth, nScreenHeight, isFullScreen, isVsync);
 	}
 
 	void MainSystem::Run()

@@ -69,8 +69,9 @@ namespace EastEngine
 		virtual ~MainSystem();
 
 	public:
-		bool Init(const String::StringID& strApplicationName, uint32_t nScreenWidth, uint32_t nScreenHeight, bool isFullScreen, bool isVsync);
+		bool Initialize(const String::StringID& strApplicationName, uint32_t nScreenWidth, uint32_t nScreenHeight, bool isFullScreen, bool isVsync);
 
+	public:
 		void Run();
 
 		bool HandleMsg(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam);

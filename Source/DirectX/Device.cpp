@@ -1,6 +1,9 @@
 #include "stdafx.h"
 #include "Device.h"
 
+#include "DeviceContext.h"
+#include "DeferredContext.h"
+
 #include "DebugUtil.h"
 
 #include "GBuffers.h"
@@ -41,7 +44,7 @@ namespace EastEngine
 			Release();
 		}
 
-		bool Device::Init(HWND hWnd, uint32_t nScreenWidth, uint32_t nScreenHeight, bool isFullScreen, bool isVsync)
+		bool Device::Initialize(HWND hWnd, uint32_t nScreenWidth, uint32_t nScreenHeight, bool isFullScreen, bool isVsync)
 		{
 			if (m_isInit == true)
 				return true;
@@ -386,7 +389,7 @@ namespace EastEngine
 			SafeDelete(m_pMainRenderTarget);
 		}
 
-		bool Device::HandleMsg(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
+		bool Device::HandleMessage(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
 		{
 			if (IsInit() == false)
 				return false;
@@ -434,10 +437,6 @@ namespace EastEngine
 					SafeRelease(pBackBuffer);
 				}
 				break;
-			case WM_KEYDOWN:
-				break;
-			case WM_KEYUP:
-				break;
 			}
 
 			return false;
@@ -456,7 +455,7 @@ namespace EastEngine
 			});
 
 			Release();
-			Init(m_hWnd, m_n2ScreenSize.x, m_n2ScreenSize.y, m_isFullScreen, m_isVsync);
+			Initialize(m_hWnd, m_n2ScreenSize.x, m_n2ScreenSize.y, m_isFullScreen, m_isVsync);
 
 			std::for_each(listDeviceLostHandler.begin(), listDeviceLostHandler.end(), [](IDeviceLost* pHandler)
 			{
@@ -696,6 +695,21 @@ namespace EastEngine
 				return E_FAIL;
 
 			return m_pd3dDevice->CreateDepthStencilState(pDepthStencilDesc, ppDepthStencilState);
+		}
+
+		IDeviceContext* Device::GetImmediateContext()
+		{
+			return m_pd3dImmediateContext;
+		}
+
+		int Device::GetThreadID(ThreadType emThreadType) const
+		{
+			return m_nThreadID[emThreadType];
+		}
+
+		IDeviceContext* Device::GetDeferredContext(int nThreadID)
+		{
+			return m_pd3dDeferredContext[nThreadID];
 		}
 
 		const SamplerStateDesc& Device::GetSamplerStateDesc(EmSamplerState::Type emSamplerState)

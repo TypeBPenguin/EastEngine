@@ -4,62 +4,7 @@
 #include "D3DInterface.h"
 #include "Vertex.h"
 
-#include "Light.h"
-
 #include <D3DCompiler.h>
-
-namespace StrID
-{
-	RegisterStringID(OcclusionCulling);
-	RegisterStringID(OcclusionCullingCS);
-	RegisterStringID(ScreenQuad);
-	
-	RegisterStringID(Color);
-	RegisterStringID(Vertex);
-	RegisterStringID(ModelStatic);
-	RegisterStringID(ModelSkinned);
-
-	RegisterStringID(Sky);
-	RegisterStringID(SkyEffect);
-	RegisterStringID(SkyCloud);
-
-	RegisterStringID(Water);
-	RegisterStringID(WaterWireframe);
-	RegisterStringID(WaterSimulator_SpectrumCS);
-	RegisterStringID(WaterSimulator_Displacement);
-	RegisterStringID(WaterSimulator_Gradient);
-	RegisterStringID(WaterFFT_CS);
-	RegisterStringID(WaterFFT_CS2);
-
-	RegisterStringID(Light);
-	RegisterStringID(Material);
-	RegisterStringID(Shadow);
-
-	RegisterStringID(AO);
-	RegisterStringID(FXAA);
-	RegisterStringID(ColorGrading);
-
-	RegisterStringID(ToneMapWithBloom);
-	RegisterStringID(Add);
-	RegisterStringID(BlurVertical);
-	RegisterStringID(BlurHorizontal);
-	RegisterStringID(Bright);
-	RegisterStringID(CalcLuminance);
-	RegisterStringID(AvgLuminance);
-
-	RegisterStringID(MotionBlur);
-
-	RegisterStringID(Deferred);
-
-	RegisterStringID(BlurPass);
-	RegisterStringID(BlurPassWithDiffuse);
-	RegisterStringID(BlurPassSupersampling);
-	RegisterStringID(BlurPassWithDiffuseSupersampling);
-	RegisterStringID(BlurPassthrough);
-	RegisterStringID(BlurEdgeDetection);
-
-	RegisterStringID(UI);
-}
 
 namespace EastEngine
 {

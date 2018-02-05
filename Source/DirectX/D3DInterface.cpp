@@ -24,23 +24,6 @@ namespace EastEngine
 {
 	namespace Graphics
 	{
-		static boost::object_pool<Texture> s_poolTexture;
-		static std::mutex s_mutexTexture;
-		static std::atomic<uint32_t> s_nTextureCount;
-		inline std::shared_ptr<Texture> AllocateTexture()
-		{
-			std::lock_guard<std::mutex> lock(s_mutexTexture);
-			s_nTextureCount.fetch_add(1);
-
-			return std::shared_ptr<Texture>(s_poolTexture.construct(), [&](Texture* pTexture)
-			{
-				std::lock_guard<std::mutex> lock(s_mutexTexture);
-				s_poolTexture.destroy(pTexture);
-
-				s_nTextureCount.fetch_sub(1);
-			});
-		}
-
 		static boost::object_pool<Material> s_poolMaterial;
 		static std::mutex s_mutexMaterial;
 
@@ -97,15 +80,9 @@ namespace EastEngine
 			if (pITexture != nullptr)
 				return pITexture;
 
-			std::shared_ptr<Texture> pTexture = AllocateTexture();
+			std::shared_ptr<Texture> pTexture = std::static_pointer_cast<Texture>(TextureManager::GetInstance()->AllocateTexture(strName));
 
 			if (pTexture->Load(strName, pTexture2D, pCustomDesc2D) == false)
-			{
-				pTexture.reset();
-				return nullptr;
-			}
-
-			if (TextureManager::GetInstance()->AddTexture(strName, pTexture) == false)
 			{
 				pTexture.reset();
 				return nullptr;
@@ -122,15 +99,9 @@ namespace EastEngine
 			if (pITexture != nullptr)
 				return pITexture;
 
-			std::shared_ptr<Texture> pTexture = AllocateTexture();
+			std::shared_ptr<Texture> pTexture = std::static_pointer_cast<Texture>(TextureManager::GetInstance()->AllocateTexture(strName));
 
 			if (pTexture->Load(strName, desc, pData) == false)
-			{
-				pTexture.reset();
-				return nullptr;
-			}
-
-			if (TextureManager::GetInstance()->AddTexture(strName, pTexture) == false)
 			{
 				pTexture.reset();
 				return nullptr;
@@ -147,15 +118,9 @@ namespace EastEngine
 			if (pITexture != nullptr)
 				return pITexture;
 
-			std::shared_ptr<Texture> pTexture = AllocateTexture();
+			std::shared_ptr<Texture> pTexture = std::static_pointer_cast<Texture>(TextureManager::GetInstance()->AllocateTexture(strName));
 
 			if (pTexture->Load(strName, desc, pData) == false)
-			{
-				pTexture.reset();
-				return nullptr;
-			}
-
-			if (TextureManager::GetInstance()->AddTexture(strName, pTexture) == false)
 			{
 				pTexture.reset();
 				return nullptr;
@@ -172,15 +137,9 @@ namespace EastEngine
 			if (pITexture != nullptr)
 				return pITexture;
 
-			std::shared_ptr<Texture> pTexture = AllocateTexture();
+			std::shared_ptr<Texture> pTexture = std::static_pointer_cast<Texture>(TextureManager::GetInstance()->AllocateTexture(strName));
 
 			if (pTexture->Load(strName, desc, pData) == false)
-			{
-				pTexture.reset();
-				return nullptr;
-			}
-
-			if (TextureManager::GetInstance()->AddTexture(strName, pTexture) == false)
 			{
 				pTexture.reset();
 				return nullptr;
@@ -201,19 +160,13 @@ namespace EastEngine
 			if (pITexture != nullptr)
 				return pITexture;
 
-			std::shared_ptr<Texture> pTexture = AllocateTexture();
-
-			if (TextureManager::GetInstance()->AddTexture(strName, pTexture) == false)
-			{
-				pTexture.reset();
-				return nullptr;
-			}
+			std::shared_ptr<Texture> pTexture = std::static_pointer_cast<Texture>(TextureManager::GetInstance()->AllocateTexture(strName));
 
 			pTexture->SetName(strName);
 
 			if (isThreadLoad == true)
 			{
-				TextureManager::GetInstance()->LoadTextureSync(pTexture, strName, strFilePath);
+				TextureManager::GetInstance()->AsyncLoadTexture(pTexture, strName, strFilePath);
 			}
 			else
 			{

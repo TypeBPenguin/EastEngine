@@ -4,13 +4,13 @@
 
 #include "D3DInterface.h"
 
-#include "DeviceContext.h"
-#include "DeferredContext.h"
-
 namespace EastEngine
 {
 	namespace Graphics
 	{
+		class DeviceContext;
+		class DeferredContext;
+
 		class Device : public IDevice, public Singleton<Device>
 		{
 			friend Singleton<Device>;
@@ -22,11 +22,11 @@ namespace EastEngine
 			virtual ID3D11Device* GetInterface() override { return m_pd3dDevice; }
 
 		public:
-			bool Init(HWND hWnd, uint32_t nScreenWidth, uint32_t nScreenHeight, bool isFullScreen, bool isVsync);
+			bool Initialize(HWND hWnd, uint32_t nScreenWidth, uint32_t nScreenHeight, bool isFullScreen, bool isVsync);
 			void Release();
 			void PreRelease();
 
-			bool HandleMsg(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam);
+			bool HandleMessage(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam);
 			void HandleDeviceLost();
 
 			void BeginScene(float r, float g, float b, float a);
@@ -50,10 +50,10 @@ namespace EastEngine
 			virtual HRESULT CreateDepthStencilState(const D3D11_DEPTH_STENCIL_DESC* pDepthStencilDesc, ID3D11DepthStencilState** ppDepthStencilState) override;
 
 		public:
-			virtual IDeviceContext* GetImmediateContext() override { return m_pd3dImmediateContext; }
+			virtual IDeviceContext* GetImmediateContext() override;
 
-			virtual int GetThreadID(ThreadType emThreadType) const override { return m_nThreadID[emThreadType]; }
-			virtual IDeviceContext* GetDeferredContext(int nThreadID) override { return m_pd3dDeferredContext[nThreadID]; }
+			virtual int GetThreadID(ThreadType emThreadType) const override;
+			virtual IDeviceContext* GetDeferredContext(int nThreadID) override;
 
 			virtual IGBuffers* GetGBuffers() override { return m_pGBuffers; }
 			virtual IImageBasedLight* GetImageBasedLight() override { return m_pImageBasedLight; }

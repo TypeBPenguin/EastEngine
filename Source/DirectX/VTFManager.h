@@ -30,10 +30,8 @@ namespace EastEngine
 			};
 
 		public:
-			bool Init();
+			bool Initialize();
 			void Release();
-
-			bool Process();
 
 			bool Allocate(size_t nMatrixCount, Math::Matrix** ppDest_Out, size_t& nVTFID_Out);
 

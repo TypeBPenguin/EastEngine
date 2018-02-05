@@ -265,6 +265,12 @@ namespace EastEngine
 			virtual ~ITexture() = default;
 
 		public:
+			struct tKey {};
+			using Key = PhantomType<tKey, const String::StringKey>;
+
+			virtual Key GetKey() const = 0;
+
+		public:
 			static std::shared_ptr<ITexture> Create(const String::StringID& strName, ID3D11Texture2D* pTexture2D, const TextureDesc2D* pCustomDesc2D = nullptr);
 			static std::shared_ptr<ITexture> Create(const String::StringID& strName, const TextureDesc1D& desc, D3D11_SUBRESOURCE_DATA* pData = nullptr);
 			static std::shared_ptr<ITexture> Create(const String::StringID& strName, const TextureDesc2D& desc, D3D11_SUBRESOURCE_DATA* pData = nullptr);
@@ -597,4 +603,16 @@ namespace EastEngine
 			virtual int DecreaseReference() = 0;
 		};
 	}
+}
+
+namespace std
+{
+	template <>
+	struct hash<EastEngine::Graphics::ITexture::Key>
+	{
+		std::uint64_t operator()(const EastEngine::Graphics::ITexture::Key& key) const
+		{
+			return key.value.value;
+		}
+	};
 }

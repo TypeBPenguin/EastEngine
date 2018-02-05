@@ -28,12 +28,12 @@ namespace EastEngine
 			void AsyncLoadModel(IModel* pModel, const ModelLoader& loader);
 
 			// FilePath or ModelName
-			IModel* AllocateModel(const std::string& strKey);
+			IModel* AllocateModel(const String::StringID& strKey);
 			IModelInstance* AllocateModelInstance(Model* pModel);
 			bool DestroyModelInstance(ModelInstance** ppModelInstance);
 
 			// FilePath or ModelName
-			IModel* GetModel(const std::string& strKey) const;
+			IModel* GetModel(const String::StringID& strKey) const;
 
 		private:
 			class Impl;

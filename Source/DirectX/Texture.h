@@ -9,8 +9,11 @@ namespace EastEngine
 		class Texture : public ITexture
 		{
 		public:
-			Texture();
+			Texture(const Key& key);
 			virtual ~Texture();
+
+		public:
+			virtual Key GetKey() const override { return m_key; }
 
 		public:
 			virtual void CopySubresourceRegion(ThreadType emThreadID, uint32_t DstSubresource, uint32_t DstX, uint32_t DstY, uint32_t DstZ, ITexture* pSrcResource, uint32_t SrcSubresource, const D3D11_BOX* pSrcBox) override;
@@ -39,6 +42,8 @@ namespace EastEngine
 			bool Load(ID3D11Texture2D* pTexture2D, ID3D11ShaderResourceView* pShaderResourceView);
 
 		protected:
+			const Key m_key;
+
 			ID3D11Texture1D* m_pTexture1D;
 			ID3D11Texture2D* m_pTexture2D;
 			ID3D11Texture3D* m_pTexture3D;

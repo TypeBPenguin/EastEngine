@@ -16,8 +16,7 @@ namespace EastEngine
 			~Impl();
 
 		public:
-			void Update();
-			void Flush();
+			void Flush(bool isEnableGarbageCollector);
 
 		public:
 			// FilePath or ModelName
@@ -45,45 +44,44 @@ namespace EastEngine
 			m_clnMotions.clear();
 		}
 
-		void MotionManager::Impl::Update()
+		void MotionManager::Impl::Flush(bool isEnableGarbageCollector)
 		{
-		}
-
-		void MotionManager::Impl::Flush()
-		{
-			auto iter = m_clnMotions.begin();
-			while (iter != m_clnMotions.end())
+			if (isEnableGarbageCollector == true)
 			{
-				Motion& motion = *iter;
-
-				if (motion.GetLoadState() == EmLoadState::eReady ||
-					motion.GetLoadState() == EmLoadState::eLoading)
+				auto iter = m_clnMotions.begin();
+				while (iter != m_clnMotions.end())
 				{
-					++iter;
-					continue;
-				}
+					Motion& motion = *iter;
 
-				if (motion.GetReferenceCount() > 0)
-				{
-					motion.SetAlive(true);
-					++iter;
-					continue;
-				}
-
-				if (motion.IsAlive() == false)
-				{
-					auto iter_find = m_umapMotions.find(motion.GetKey());
-					if (iter_find != m_umapMotions.end())
+					if (motion.GetLoadState() == EmLoadState::eReady ||
+						motion.GetLoadState() == EmLoadState::eLoading)
 					{
-						m_umapMotions.erase(iter_find);
+						++iter;
+						continue;
 					}
 
-					iter = m_clnMotions.erase(iter);
-					continue;
-				}
+					if (motion.GetReferenceCount() > 0)
+					{
+						motion.SetAlive(true);
+						++iter;
+						continue;
+					}
 
-				motion.SubtractLife();
-				++iter;
+					if (motion.IsAlive() == false)
+					{
+						auto iter_find = m_umapMotions.find(motion.GetKey());
+						if (iter_find != m_umapMotions.end())
+						{
+							m_umapMotions.erase(iter_find);
+						}
+
+						iter = m_clnMotions.erase(iter);
+						continue;
+					}
+
+					motion.SubtractLife();
+					++iter;
+				}
 			}
 		}
 
@@ -142,13 +140,18 @@ namespace EastEngine
 		{
 		}
 
-		IMotion* MotionManager::AllocateMotion(const std::string& strKey)
+		void MotionManager::Flush(bool isEnableGarbageCollector)
+		{
+			m_pImpl->Flush(isEnableGarbageCollector);
+		}
+
+		IMotion* MotionManager::AllocateMotion(const String::StringID& strKey)
 		{
 			IMotion::Key key(String::GetKey(strKey.c_str()));
 			return m_pImpl->AllocateMotion(key);
 		}
 
-		IMotion* MotionManager::GetMotion(const std::string& strKey)
+		IMotion* MotionManager::GetMotion(const String::StringID& strKey)
 		{
 			IMotion::Key key(String::GetKey(strKey.c_str()));
 			return m_pImpl->GetMotion(key);

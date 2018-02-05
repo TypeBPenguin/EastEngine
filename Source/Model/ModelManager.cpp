@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "ModelManager.h"
 
+#include "CommonLib/Performance.h"
+
 #include "CommonLib/ThreadPool.h"
 #include "CommonLib/plf_colony.h"
 
@@ -295,9 +297,9 @@ namespace EastEngine
 			m_pImpl->AsyncLoadModel(pModel, loader);
 		}
 
-		IModel* ModelManager::AllocateModel(const std::string& strKey)
+		IModel* ModelManager::AllocateModel(const String::StringID& strKey)
 		{
-			IModel::Key key(String::GetKey(strKey.c_str()));
+			IModel::Key key(strKey.Key());
 			return m_pImpl->AllocateModel(key);
 		}
 
@@ -311,9 +313,9 @@ namespace EastEngine
 			return m_pImpl->DestroyModelInstance(ppModelInstance);
 		}
 
-		IModel* ModelManager::GetModel(const std::string& strKey) const
+		IModel* ModelManager::GetModel(const String::StringID& strKey) const
 		{
-			IModel::Key key(String::GetKey(strKey.c_str()));
+			IModel::Key key(strKey.Key());
 			return m_pImpl->GetModel(key);
 		}
 	}

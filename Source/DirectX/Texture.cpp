@@ -7,8 +7,9 @@ namespace EastEngine
 {
 	namespace Graphics
 	{
-		Texture::Texture()
-			: m_pTexture1D(nullptr)
+		Texture::Texture(const Key& key)
+			: m_key(key)
+			, m_pTexture1D(nullptr)
 			, m_pTexture2D(nullptr)
 			, m_pTexture3D(nullptr)
 			, m_pShaderResourceView(nullptr)

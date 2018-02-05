@@ -18,7 +18,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pScmdLine,
 
 	LOG_ERROR("Studio Start..");
 
-	if (EastEngine::MainSystem::GetInstance()->Init(StrID::EastEngine, 1600, 900, false, true) == true)
+	if (EastEngine::MainSystem::GetInstance()->Initialize(StrID::EastEngine, 1600, 900, false, true) == true)
 	{
 		EastEngine::SceneManager::GetInstance()->AddScene(new SceneStudio);
 		EastEngine::SceneManager::GetInstance()->ChangeScene(StrID::Studio);
