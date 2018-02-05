@@ -296,9 +296,9 @@ namespace EastEngine
 				}
 			});
 
-			m_pLightBuffers[EmLight::eDirectional]->UpdateSubresource(0, m_directionalLightData.data(), m_nLightCountInView[EmLight::eDirectional]);
-			m_pLightBuffers[EmLight::ePoint]->UpdateSubresource(0, m_pointLightData.data(), m_nLightCountInView[EmLight::ePoint]);
-			m_pLightBuffers[EmLight::eSpot]->UpdateSubresource(0, m_spotLightData.data(), m_nLightCountInView[EmLight::eSpot]);
+			m_pLightBuffers[EmLight::eDirectional]->UpdateSubresource(ThreadType::eUpdate, 0, m_directionalLightData.data(), m_nLightCountInView[EmLight::eDirectional]);
+			m_pLightBuffers[EmLight::ePoint]->UpdateSubresource(ThreadType::eUpdate, 0, m_pointLightData.data(), m_nLightCountInView[EmLight::ePoint]);
+			m_pLightBuffers[EmLight::eSpot]->UpdateSubresource(ThreadType::eUpdate, 0, m_spotLightData.data(), m_nLightCountInView[EmLight::eSpot]);
 		}
 	}
 }

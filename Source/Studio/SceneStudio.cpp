@@ -485,7 +485,7 @@ void SceneStudio::Enter()
 		return pActor;
 	};
 
-	for (int i = 0; i < 100; ++i)
+	for (int i = 0; i < 1; ++i)
 	{
 		String::StringID name;
 		name.Format("UnityChan%d", i);
@@ -2186,9 +2186,7 @@ void ShowMaterial(bool& isShowMaterial, Graphics::IMaterial* pMaterial, int nInd
 
 void SceneStudio::RenderUI()
 {
-	int nThreadID = Graphics::GetThreadID(Graphics::eRender);
-
-	ImGui_ImplDX11_DeviceContextChange(Graphics::GetDeferredContext(nThreadID)->GetInterface());
+	ImGui_ImplDX11_DeviceContextChange(Graphics::GetDeferredContext(Graphics::eRender)->GetInterface());
 	ImGui_ImplDX11_NewFrame();
 
 	ShowConfig();

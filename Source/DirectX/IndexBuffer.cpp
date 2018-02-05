@@ -65,12 +65,12 @@ namespace EastEngine
 			return true;
 		}
 
-		bool IndexBuffer::Map(uint32_t nSubresource, D3D11_MAP emMap, void** ppData) const
+		bool IndexBuffer::Map(ThreadType emThreadID, uint32_t nSubresource, D3D11_MAP emMap, void** ppData) const
 		{
 			D3D11_MAPPED_SUBRESOURCE map;
 			Memory::Clear(&map, sizeof(D3D11_MAPPED_SUBRESOURCE));
 
-			HRESULT hr = GetImmediateContext()->Map(m_pIndexBuffer, nSubresource, static_cast<D3D11_MAP>(emMap), 0, &map);
+			HRESULT hr = GetDeferredContext(emThreadID)->Map(m_pIndexBuffer, nSubresource, static_cast<D3D11_MAP>(emMap), 0, &map);
 			if (FAILED(hr))
 			{
 				*ppData = nullptr;
@@ -81,9 +81,9 @@ namespace EastEngine
 			return true;
 		}
 
-		void IndexBuffer::Unmap(uint32_t Subresource) const
+		void IndexBuffer::Unmap(ThreadType emThreadID, uint32_t Subresource) const
 		{
-			GetImmediateContext()->Unmap(m_pIndexBuffer, Subresource);
+			GetDeferredContext(emThreadID)->Unmap(m_pIndexBuffer, Subresource);
 		}
 	}
 }

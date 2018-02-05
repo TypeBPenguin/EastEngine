@@ -54,8 +54,9 @@ namespace EastEngine
 			return Device::GetInstance()->GetImmediateContext();
 		}
 
-		IDeviceContext* GetDeferredContext(int nThreadID)
+		IDeviceContext* GetDeferredContext(ThreadType emThreadType)
 		{
+			int nThreadID = GetThreadID(emThreadType);
 			return Device::GetInstance()->GetDeferredContext(nThreadID);
 		}
 

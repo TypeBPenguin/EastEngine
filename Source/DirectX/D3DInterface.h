@@ -55,7 +55,7 @@ namespace EastEngine
 
 		IDevice* GetDevice();
 		IDeviceContext* GetImmediateContext();
-		IDeviceContext* GetDeferredContext(int nThreadID);
+		IDeviceContext* GetDeferredContext(ThreadType emThreadType);
 		IGBuffers* GetGBuffers();
 		IImageBasedLight* GetImageBasedLight();
 
@@ -272,10 +272,10 @@ namespace EastEngine
 			static std::shared_ptr<ITexture> Create(const std::string& strFilePath, bool isThreadLoad = true);
 
 		public:
-			virtual void CopySubresourceRegion(uint32_t DstSubresource, uint32_t DstX, uint32_t DstY, uint32_t DstZ, ITexture* pSrcResource, uint32_t SrcSubresource, const D3D11_BOX* pSrcBox) = 0;
+			virtual void CopySubresourceRegion(ThreadType emThreadID, uint32_t DstSubresource, uint32_t DstX, uint32_t DstY, uint32_t DstZ, ITexture* pSrcResource, uint32_t SrcSubresource, const D3D11_BOX* pSrcBox) = 0;
 
-			virtual bool Map(uint32_t Subresource, D3D11_MAP emMap, void** ppData) const = 0;
-			virtual void Unmap(uint32_t Subresource) const = 0;
+			virtual bool Map(ThreadType emThreadID, uint32_t Subresource, D3D11_MAP emMap, void** ppData) const = 0;
+			virtual void Unmap(ThreadType emThreadID, uint32_t Subresource) const = 0;
 
 		public:
 			virtual ID3D11Texture1D* GetTexture1D() = 0;
@@ -311,8 +311,8 @@ namespace EastEngine
 			virtual EmVertexFormat::Type GetFormat() const = 0;
 			virtual size_t GetVertexNum() const = 0;
 
-			virtual bool Map(uint32_t Subresource, D3D11_MAP emMap, void** ppData) const = 0;
-			virtual void Unmap(uint32_t Subresource) const = 0;
+			virtual bool Map(ThreadType emThreadID, uint32_t Subresource, D3D11_MAP emMap, void** ppData) const = 0;
+			virtual void Unmap(ThreadType emThreadID, uint32_t Subresource) const = 0;
 
 			virtual const void* GetRawValuePtr() const = 0;
 			virtual const VertexPos* GetVertexPosPtr() const = 0;
@@ -340,8 +340,8 @@ namespace EastEngine
 			virtual size_t GetFormat() const = 0;
 			virtual size_t GetIndexNum() const = 0;
 
-			virtual bool Map(uint32_t Subresource, D3D11_MAP emMap, void** ppData) const = 0;
-			virtual void Unmap(uint32_t Subresource) const = 0;
+			virtual bool Map(ThreadType emThreadID, uint32_t Subresource, D3D11_MAP emMap, void** ppData) const = 0;
+			virtual void Unmap(ThreadType emThreadID, uint32_t Subresource) const = 0;
 
 			virtual const uint32_t* GetRawValuePtr() const = 0;
 		};
@@ -355,7 +355,7 @@ namespace EastEngine
 			static IStructuredBuffer* Create(void* pData, size_t nNumElements, size_t nByteStride, bool isEnableCpuWrite = false, bool isEnableGpuWrite = true);
 
 		public:
-			virtual void UpdateSubresource(uint32_t DstSubresource, const void* pSrcData, uint32_t SrcRowPitch) = 0;
+			virtual void UpdateSubresource(ThreadType emThreadID, uint32_t DstSubresource, const void* pSrcData, uint32_t SrcRowPitch) = 0;
 
 		public:
 			virtual ID3D11Buffer* GetBuffer() = 0;

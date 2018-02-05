@@ -20,8 +20,8 @@ namespace EastEngine
 			virtual EmVertexFormat::Type GetFormat() const override { return m_emVertexFormat; }
 			virtual uint32_t GetVertexNum() const override { return m_nVertexNum; }
 
-			virtual bool Map(uint32_t Subresource, D3D11_MAP emMap, void** ppData) const override;
-			virtual void Unmap(uint32_t Subresource) const override;
+			virtual bool Map(ThreadType emThreadID, uint32_t Subresource, D3D11_MAP emMap, void** ppData) const override;
+			virtual void Unmap(ThreadType emThreadID, uint32_t Subresource) const override;
 
 			virtual const void* GetRawValuePtr() const override
 			{

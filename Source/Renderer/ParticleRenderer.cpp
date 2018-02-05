@@ -375,7 +375,7 @@ namespace EastEngine
 				}
 
 				VertexPosTexCol* pVertices = nullptr;
-				if (m_pEmitterVB->Map(0, D3D11_MAP_WRITE_NO_OVERWRITE, reinterpret_cast<void**>(&pVertices)) == false)
+				if (m_pEmitterVB->Map(ThreadType::eRender, 0, D3D11_MAP_WRITE_NO_OVERWRITE, reinterpret_cast<void**>(&pVertices)) == false)
 					return;
 
 				for (auto& iter : mapClassifyParticle)
@@ -394,7 +394,7 @@ namespace EastEngine
 					}
 				}
 
-				m_pEmitterVB->Unmap(0);
+				m_pEmitterVB->Unmap(ThreadType::eRender, 0);
 			}
 
 			{

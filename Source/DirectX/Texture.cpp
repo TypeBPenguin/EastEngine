@@ -135,20 +135,20 @@ namespace EastEngine
 			return true;
 		}
 
-		void Texture::CopySubresourceRegion(uint32_t DstSubresource, uint32_t DstX, uint32_t DstY, uint32_t DstZ, ITexture* pSrcResource, uint32_t SrcSubresource, const D3D11_BOX* pSrcBox)
+		void Texture::CopySubresourceRegion(ThreadType emThreadID, uint32_t DstSubresource, uint32_t DstX, uint32_t DstY, uint32_t DstZ, ITexture* pSrcResource, uint32_t SrcSubresource, const D3D11_BOX* pSrcBox)
 		{
 			if (m_pTexture2D != nullptr && pSrcResource != nullptr)
 			{
-				GetImmediateContext()->CopySubresourceRegion(m_pTexture2D, DstSubresource, DstX, DstY, DstZ, pSrcResource->GetTexture2D(), SrcSubresource, pSrcBox);
+				GetDeferredContext(emThreadID)->CopySubresourceRegion(m_pTexture2D, DstSubresource, DstX, DstY, DstZ, pSrcResource->GetTexture2D(), SrcSubresource, pSrcBox);
 			}
 		}
 
-		bool Texture::Map(uint32_t Subresource, D3D11_MAP emMap, void** ppData) const
+		bool Texture::Map(ThreadType emThreadID, uint32_t Subresource, D3D11_MAP emMap, void** ppData) const
 		{
 			D3D11_MAPPED_SUBRESOURCE map;
 			Memory::Clear(&map, sizeof(D3D11_MAPPED_SUBRESOURCE));
 			
-			HRESULT hr = GetImmediateContext()->Map(m_pTexture2D, Subresource, emMap, 0, &map);
+			HRESULT hr = GetDeferredContext(emThreadID)->Map(m_pTexture2D, Subresource, emMap, 0, &map);
 			if (FAILED(hr))
 			{
 				*ppData = nullptr;
@@ -159,9 +159,9 @@ namespace EastEngine
 			return true;
 		}
 
-		void Texture::Unmap(uint32_t Subresource) const
+		void Texture::Unmap(ThreadType emThreadID, uint32_t Subresource) const
 		{
-			GetImmediateContext()->Unmap(m_pTexture2D, Subresource);
+			GetDeferredContext(emThreadID)->Unmap(m_pTexture2D, Subresource);
 		}
 	}
 }

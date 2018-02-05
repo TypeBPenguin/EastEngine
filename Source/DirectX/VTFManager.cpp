@@ -73,7 +73,7 @@ namespace EastEngine
 		{
 			std::lock_guard<std::mutex> lock(m_mutex);
 			
-			int nThreadID = GetThreadID(ThreadType::eRender);
+			/*int nThreadID = GetThreadID(ThreadType::eRender);
 			
 			if (m_vtfInstances[nThreadID].nAllocatedCount == 0)
 				return true;
@@ -88,12 +88,10 @@ namespace EastEngine
 			
 			m_vtfInstances[nThreadID].pVTF->Unmap(0);
 			
-			return true;
-
-			/*std::lock_guard<std::mutex> lock(m_mutex);
+			return true;*/
 
 			int nThreadID = GetThreadID(ThreadType::eRender);
-			IDeviceContext* pDeviceContext = GetDeferredContext(nThreadID);
+			IDeviceContext* pDeviceContext = GetDeferredContext(ThreadType::eRender);
 
 			if (m_vtfInstances[nThreadID].nAllocatedCount == 0)
 				return true;
@@ -111,7 +109,7 @@ namespace EastEngine
 
 			pDeviceContext->Unmap(m_vtfInstances[nThreadID].pVTF->GetTexture2D(), 0);
 
-			return true;*/
+			return true;
 		}
 
 		bool VTFManager::Allocate(size_t nMatrixCount, Math::Matrix** ppDest_Out, size_t& nVTFID_Out)

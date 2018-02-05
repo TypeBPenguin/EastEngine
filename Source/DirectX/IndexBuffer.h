@@ -20,8 +20,8 @@ namespace EastEngine
 			virtual uint32_t GetFormat() const override { return DXGI_FORMAT_R32_UINT; }
 			virtual uint32_t GetIndexNum() const override { return m_nIndexNum; }
 
-			virtual bool Map(uint32_t Subresource, D3D11_MAP emMap, void** ppData) const override;
-			virtual void Unmap(uint32_t Subresource) const override;
+			virtual bool Map(ThreadType emThreadID, uint32_t Subresource, D3D11_MAP emMap, void** ppData) const override;
+			virtual void Unmap(ThreadType emThreadID, uint32_t Subresource) const override;
 
 			const uint32_t* GetRawValuePtr() const
 			{

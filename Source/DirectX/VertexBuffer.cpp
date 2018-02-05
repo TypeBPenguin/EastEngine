@@ -102,12 +102,12 @@ namespace EastEngine
 			return true;
 		}
 
-		bool VertexBuffer::Map(uint32_t nSubresource, D3D11_MAP emMap, void** ppData) const
+		bool VertexBuffer::Map(ThreadType emThreadID, uint32_t nSubresource, D3D11_MAP emMap, void** ppData) const
 		{
 			D3D11_MAPPED_SUBRESOURCE map;
 			Memory::Clear(&map, sizeof(D3D11_MAPPED_SUBRESOURCE));
 
-			HRESULT hr = GetImmediateContext()->Map(m_pVertexBuffer, nSubresource, static_cast<D3D11_MAP>(emMap), 0, &map);
+			HRESULT hr = GetDeferredContext(emThreadID)->Map(m_pVertexBuffer, nSubresource, static_cast<D3D11_MAP>(emMap), 0, &map);
 			if (FAILED(hr))
 			{
 				*ppData = nullptr;
@@ -118,9 +118,9 @@ namespace EastEngine
 			return true;
 		}
 
-		void VertexBuffer::Unmap(uint32_t nSubresource) const
+		void VertexBuffer::Unmap(ThreadType emThreadID, uint32_t nSubresource) const
 		{
-			GetImmediateContext()->Unmap(m_pVertexBuffer, nSubresource);
+			GetDeferredContext(emThreadID)->Unmap(m_pVertexBuffer, nSubresource);
 		}
 	}
 }

@@ -15,7 +15,7 @@ namespace EastEngine
 			bool Init(void* pData, uint32_t nNumElements, uint32_t nByteStride, bool isEnableCpuWrite = false, bool isEnableGpuWrite = true);
 
 		public:
-			virtual void UpdateSubresource(uint32_t DstSubresource, const void* pSrcData, uint32_t SrcRowPitch) override;
+			virtual void UpdateSubresource(ThreadType emThreadID, uint32_t DstSubresource, const void* pSrcData, uint32_t SrcRowPitch) override;
 
 		public:
 			virtual ID3D11Buffer* GetBuffer() override { return m_pBuffer; }

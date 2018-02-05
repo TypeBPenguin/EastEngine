@@ -87,7 +87,7 @@ namespace EastEngine
 			return true;
 		}
 
-		void StructuredBuffer::UpdateSubresource(uint32_t DstSubresource, const void* pSrcData, uint32_t SrcRowPitch)
+		void StructuredBuffer::UpdateSubresource(ThreadType emThreadID, uint32_t DstSubresource, const void* pSrcData, uint32_t SrcRowPitch)
 		{
 			D3D11_BOX box;
 			box.front = 0;
@@ -97,7 +97,7 @@ namespace EastEngine
 			box.top = 0;
 			box.bottom = 1;
 
-			GetImmediateContext()->UpdateSubresource(m_pBuffer, DstSubresource, &box, pSrcData, SrcRowPitch, 0);
+			GetDeferredContext(emThreadID)->UpdateSubresource(m_pBuffer, DstSubresource, &box, pSrcData, SrcRowPitch, 0);
 		}
 	}
 }

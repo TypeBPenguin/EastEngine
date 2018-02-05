@@ -13,10 +13,10 @@ namespace EastEngine
 			virtual ~Texture();
 
 		public:
-			virtual void CopySubresourceRegion(uint32_t DstSubresource, uint32_t DstX, uint32_t DstY, uint32_t DstZ, ITexture* pSrcResource, uint32_t SrcSubresource, const D3D11_BOX* pSrcBox) override;
+			virtual void CopySubresourceRegion(ThreadType emThreadID, uint32_t DstSubresource, uint32_t DstX, uint32_t DstY, uint32_t DstZ, ITexture* pSrcResource, uint32_t SrcSubresource, const D3D11_BOX* pSrcBox) override;
 
-			virtual bool Map(uint32_t Subresource, D3D11_MAP emMap, void** ppData) const override;
-			virtual void Unmap(uint32_t Subresource) const override;
+			virtual bool Map(ThreadType emThreadID, uint32_t Subresource, D3D11_MAP emMap, void** ppData) const override;
+			virtual void Unmap(ThreadType emThreadID, uint32_t Subresource) const override;
 
 		public:
 			virtual ID3D11Texture1D* GetTexture1D() override { return m_pTexture1D; }

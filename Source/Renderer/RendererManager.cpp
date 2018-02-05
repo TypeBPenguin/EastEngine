@@ -141,10 +141,8 @@ namespace EastEngine
 
 		void RendererManager::Render()
 		{
-			int nThreadID = GetThreadID(ThreadType::eRender);
-
 			IDevice* pDevice = GetDevice();
-			IDeviceContext* pDeviceContext = GetDeferredContext(nThreadID);
+			IDeviceContext* pDeviceContext = GetDeferredContext(ThreadType::eRender);
 
 			Camera* pCamera = Camera::GetInstance();
 			if (pCamera == nullptr)

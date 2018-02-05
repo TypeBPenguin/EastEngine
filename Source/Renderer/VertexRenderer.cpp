@@ -334,13 +334,13 @@ namespace EastEngine
 				RenderSubsetLineSegment& renderSubset = m_vecLineSegmentSubset[nThreadID][i];
 
 				VertexPosCol* pVertices = nullptr;
-				if (m_pLineSegmentVertexBuffer->Map(0, D3D11_MAP_WRITE_DISCARD, reinterpret_cast<void**>(&pVertices)) == false)
+				if (m_pLineSegmentVertexBuffer->Map(ThreadType::eRender, 0, D3D11_MAP_WRITE_DISCARD, reinterpret_cast<void**>(&pVertices)) == false)
 					continue;
 
 				pVertices[0] = renderSubset.vertexLineSegment[0];
 				pVertices[1] = renderSubset.vertexLineSegment[1];
 
-				m_pLineSegmentVertexBuffer->Unmap(0);
+				m_pLineSegmentVertexBuffer->Unmap(ThreadType::eRender, 0);
 
 				if (renderSubset.isIgnoreDepth == true)
 				{
