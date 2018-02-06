@@ -40,7 +40,7 @@ namespace EastEngine
 	public:
 		void Run();
 
-		bool HandleMsg(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam);
+		bool HandleMessage(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam);
 
 	public:
 		float GetFPS() const { return m_pFpsChecker->GetFps(); }
@@ -51,6 +51,7 @@ namespace EastEngine
 		bool IsFullScreen() const { return m_isFullScreen; }
 
 	private:
+		void Synchronize();
 		void Flush(float fElapsedTime);
 		void Update(float fElapsedTime);
 		void Render();
@@ -236,7 +237,7 @@ namespace EastEngine
 			// 윈도우에서 어플리케이션의 종료를 요청하는 경우 종료
 			if (msg.message == WM_QUIT)
 				break;
-
+			
 			s_pTimer->Tick();
 			float fElapsedTime = s_pTimer->GetElapsedTime();
 
@@ -245,6 +246,7 @@ namespace EastEngine
 			s_pWindows->ProcessMessages();
 
 			Flush(fElapsedTime);
+			Synchronize();
 			
 			Concurrency::parallel_invoke
 			(
@@ -254,9 +256,14 @@ namespace EastEngine
 		}
 	}
 
-	bool MainSystem::Impl::HandleMsg(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
+	bool MainSystem::Impl::HandleMessage(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
 	{
 		return false;
+	}
+
+	void MainSystem::Impl::Synchronize()
+	{
+		s_pGraphicsSystem->Synchronize();
 	}
 
 	void MainSystem::Impl::Flush(float fElapsedTime)
@@ -305,9 +312,9 @@ namespace EastEngine
 		m_pImpl->Run();
 	}
 
-	bool MainSystem::HandleMsg(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
+	bool MainSystem::HandleMessage(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
 	{
-		return m_pImpl->HandleMsg(hWnd, nMsg, wParam, lParam);
+		return m_pImpl->HandleMessage(hWnd, nMsg, wParam, lParam);
 	}
 
 	float MainSystem::GetFPS() const

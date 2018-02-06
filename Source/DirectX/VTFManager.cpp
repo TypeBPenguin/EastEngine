@@ -90,24 +90,20 @@ namespace EastEngine
 			return true;
 		}
 
-		void VTFManager::Flush()
+		void VTFManager::Synchronize()
 		{
-			int nThreadID = GetThreadID(ThreadType::eUpdate);
-			IDeviceContext* pDeviceContext = GetImmediateContext();
-
+			int nThreadID = GetThreadID(ThreadType::eRender);
 			if (m_vtfInstances[nThreadID].nAllocatedCount > 0)
 			{
-				D3D11_MAPPED_SUBRESOURCE map;
-				Memory::Clear(&map, sizeof(D3D11_MAPPED_SUBRESOURCE));
-
-				HRESULT hr = pDeviceContext->Map(m_vtfInstances[nThreadID].pVTF->GetTexture2D(), 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
-				if (SUCCEEDED(hr))
+				char* pData = nullptr;
+				bool isSucceeded = m_vtfInstances[nThreadID].pVTF->Map(ThreadType::eImmediate, 0, D3D11_MAP_WRITE_DISCARD, reinterpret_cast<void**>(&pData));
+				if (isSucceeded == true)
 				{
 					const uint32_t nDestSize = sizeof(Math::Matrix) * eBufferCapacity;
 
-					Memory::Copy(map.pData, nDestSize, m_vtfInstances[nThreadID].buffer.data(), sizeof(Math::Matrix) * m_vtfInstances[nThreadID].nAllocatedCount);
+					Memory::Copy(pData, nDestSize, m_vtfInstances[nThreadID].buffer.data(), sizeof(Math::Matrix) * m_vtfInstances[nThreadID].nAllocatedCount);
 
-					pDeviceContext->Unmap(m_vtfInstances[nThreadID].pVTF->GetTexture2D(), 0);
+					m_vtfInstances[nThreadID].pVTF->Unmap(ThreadType::eImmediate, 0);
 				}
 
 				m_vtfInstances[nThreadID].nAllocatedCount = 0;

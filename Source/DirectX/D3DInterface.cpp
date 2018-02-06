@@ -39,6 +39,9 @@ namespace EastEngine
 
 		IDeviceContext* GetDeferredContext(ThreadType emThreadType)
 		{
+			if (emThreadType != ThreadType::eUpdate && emThreadType != ThreadType::eRender)
+				return GetImmediateContext();
+
 			int nThreadID = GetThreadID(emThreadType);
 			return Device::GetInstance()->GetDeferredContext(nThreadID);
 		}

@@ -63,7 +63,10 @@ namespace EastEngine
 			{
 				pLight->Update(fElapsedTime);
 			});
+		}
 
+		void LightManager::Synchronize()
+		{
 			UpdateLightBuffer();
 		}
 
@@ -204,7 +207,7 @@ namespace EastEngine
 			m_vecDirectionalLights.clear();
 		}
 
-		ILight* LightManager::GetLight(EmLight::Type emType, uint32_t nIndex)
+		ILight* LightManager::GetLight(EmLight::Type emType, size_t nIndex)
 		{
 			switch (emType)
 			{
@@ -296,9 +299,9 @@ namespace EastEngine
 				}
 			});
 
-			m_pLightBuffers[EmLight::eDirectional]->UpdateSubresource(ThreadType::eUpdate, 0, m_directionalLightData.data(), m_nLightCountInView[EmLight::eDirectional]);
-			m_pLightBuffers[EmLight::ePoint]->UpdateSubresource(ThreadType::eUpdate, 0, m_pointLightData.data(), m_nLightCountInView[EmLight::ePoint]);
-			m_pLightBuffers[EmLight::eSpot]->UpdateSubresource(ThreadType::eUpdate, 0, m_spotLightData.data(), m_nLightCountInView[EmLight::eSpot]);
+			m_pLightBuffers[EmLight::eDirectional]->UpdateSubresource(ThreadType::eImmediate, 0, m_directionalLightData.data(), m_nLightCountInView[EmLight::eDirectional]);
+			m_pLightBuffers[EmLight::ePoint]->UpdateSubresource(ThreadType::eImmediate, 0, m_pointLightData.data(), m_nLightCountInView[EmLight::ePoint]);
+			m_pLightBuffers[EmLight::eSpot]->UpdateSubresource(ThreadType::eImmediate, 0, m_spotLightData.data(), m_nLightCountInView[EmLight::eSpot]);
 		}
 	}
 }

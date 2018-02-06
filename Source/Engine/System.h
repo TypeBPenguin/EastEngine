@@ -74,7 +74,7 @@ namespace EastEngine
 	public:
 		void Run();
 
-		bool HandleMsg(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam);
+		bool HandleMessage(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam);
 
 	public:
 		float GetFPS() const;

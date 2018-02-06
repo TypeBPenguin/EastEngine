@@ -10,6 +10,8 @@ namespace EastEngine
 			eRender,
 
 			ThreadCount,
+
+			eImmediate = 3,
 		};
 
 		namespace EmRasterizerState

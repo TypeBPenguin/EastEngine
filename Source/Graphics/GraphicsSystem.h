@@ -28,6 +28,7 @@ namespace EastEngine
 			void Update(float fElapsedTime);
 			void Render();
 
+			void Synchronize();
 			void Flush(float fElapsedTime);
 
 		public:

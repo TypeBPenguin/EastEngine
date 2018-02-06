@@ -38,6 +38,7 @@ namespace EastEngine
 			void Update(float fElapsedTime);
 			void Render();
 
+			void Synchronize();
 			void Flush(float fElapsedTime);
 
 		public:
@@ -209,6 +210,12 @@ namespace EastEngine
 			}
 		}
 
+		void GraphicsSystem::Impl::Synchronize()
+		{
+			s_pLightMgr->Synchronize();
+			s_pVTFManager->Synchronize();
+		}
+
 		void GraphicsSystem::Impl::Flush(float fElapsedTime)
 		{
 			bool isEnableGarbageCollector = false;
@@ -222,8 +229,6 @@ namespace EastEngine
 			s_pTextureMgr->Flush(isEnableGarbageCollector);
 			s_pModelMgr->Flush(isEnableGarbageCollector);
 			s_pTextureMgr->Flush(isEnableGarbageCollector);
-
-			s_pVTFManager->Flush();
 
 			s_pShaderMgr->Flush();
 
@@ -279,6 +284,11 @@ namespace EastEngine
 		void GraphicsSystem::Render()
 		{
 			m_pImpl->Render();
+		}
+
+		void GraphicsSystem::Synchronize()
+		{
+			m_pImpl->Synchronize();
 		}
 
 		void GraphicsSystem::Flush(float fElapsedTime)

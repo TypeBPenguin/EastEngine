@@ -21,8 +21,11 @@ namespace EastEngine
 			bool Init();
 			void Release();
 
+		public:
 			void Update(float fElapsedTime);
+			void Synchronize();
 
+		public:
 			bool AddLight(ILight* pLight);
 			void Remove(ILight* pLight);
 			void Remove(EmLight::Type emType, size_t nIndex);

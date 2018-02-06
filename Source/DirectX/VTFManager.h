@@ -33,10 +33,12 @@ namespace EastEngine
 			bool Initialize();
 			void Release();
 
+		public:
 			bool Allocate(size_t nMatrixCount, Math::Matrix** ppDest_Out, size_t& nVTFID_Out);
 
-			void Flush();
+			void Synchronize();
 
+		public:
 			const std::shared_ptr<ITexture>& GetTexture();
 
 		private:
