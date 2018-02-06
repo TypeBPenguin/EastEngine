@@ -75,8 +75,7 @@ namespace EastEngine
 			std::unordered_map<ITexture::Key, std::shared_ptr<ITexture>> m_umapTexture;
 
 			boost::object_pool<Texture> m_poolTexture;
-			std::mutex m_mutexTexture;
-			uint32_t m_nTextureCount{ 0 };
+			uint32_t m_nAllocatedTextureCount{ 0 };
 		};
 
 		TextureManager::Impl::Impl()
@@ -85,11 +84,8 @@ namespace EastEngine
 
 		TextureManager::Impl::~Impl()
 		{
-			for (auto& iter : m_umapTexture)
-			{
-				std::shared_ptr<ITexture>& pTexture = iter.second;
-				pTexture.reset();
-			}
+			m_conQueueRequestLoadTexture.clear();
+			m_conQueueCompleteTexture.clear();
 			m_umapTexture.clear();
 		}
 
@@ -131,6 +127,8 @@ namespace EastEngine
 
 			if (isEnableGarbageCollector == true)
 			{
+				std::lock_guard<std::mutex> lock(m_mutex);
+
 				auto iter = m_umapTexture.begin();
 				while (iter != m_umapTexture.end())
 				{
@@ -152,9 +150,6 @@ namespace EastEngine
 
 					if (pTexture->IsAlive() == false)
 					{
-						pTexture.reset();
-
-						std::lock_guard<std::mutex> lock(m_mutex);
 						iter = m_umapTexture.erase(iter);
 
 						continue;
@@ -175,15 +170,14 @@ namespace EastEngine
 
 		std::shared_ptr<ITexture> TextureManager::Impl::AllocateTexture(const ITexture::Key& key)
 		{
-			std::lock_guard<std::mutex> lock(m_mutexTexture);
-			++m_nTextureCount;
+			std::lock_guard<std::mutex> lock(m_mutex);
 
-			std::shared_ptr<Texture> pTexture =  std::shared_ptr<Texture>(m_poolTexture.construct(key), [&](Texture* pTexture)
+			++m_nAllocatedTextureCount;
+
+			std::shared_ptr<Texture> pTexture = std::shared_ptr<Texture>(m_poolTexture.construct(key), [&](Texture* pTexture)
 			{
-				std::lock_guard<std::mutex> lock(m_mutexTexture);
+				--m_nAllocatedTextureCount;
 				m_poolTexture.destroy(pTexture);
-
-				--m_nTextureCount;
 			});
 
 			m_umapTexture.emplace(key, pTexture);
