@@ -444,27 +444,12 @@ namespace EastEngine
 
 		void Device::HandleDeviceLost()
 		{
-			const std::list<IDeviceLost*>& listDeviceLostHandler = IDeviceLost::GetDeviceLostHandler();
-			std::for_each(listDeviceLostHandler.begin(), listDeviceLostHandler.end(), [](IDeviceLost* pHandler)
-			{
-				if (pHandler->OnDeviceLost() == false)
-				{
-					LOG_ERROR("Failed Handle Device Lost");
-					assert(false);
-				}
-			});
+			IDeviceLost::HandleDeviceLost();
 
 			Release();
 			Initialize(m_hWnd, m_n2ScreenSize.x, m_n2ScreenSize.y, m_isFullScreen, m_isVsync);
 
-			std::for_each(listDeviceLostHandler.begin(), listDeviceLostHandler.end(), [](IDeviceLost* pHandler)
-			{
-				if (pHandler->OnDeviceRestored() == false)
-				{
-					LOG_ERROR("Failed Handle Device Restored");
-					assert(false);
-				}
-			});
+			IDeviceLost::HandleDeviceRestored();
 		}
 
 		void Device::BeginScene(float r, float g, float b, float a)

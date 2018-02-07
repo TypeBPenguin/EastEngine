@@ -7,47 +7,138 @@ namespace EastEngine
 {
 	namespace Graphics
 	{
-		LightManager::LightManager()
-			: m_isInit(false)
+		class LightManager::Impl
 		{
-			m_pLightBuffers.fill(nullptr);
-			m_nLightCountInView.fill(0u);
-		}
+		public:
+			Impl();
+			~Impl();
 
-		LightManager::~LightManager()
+		public:
+			void Update(float fElapsedTime);
+			void Synchronize();
+
+		public:
+			bool AddLight(ILight* pLight);
+			void Remove(ILight* pLight);
+			void Remove(EmLight::Type emType, size_t nIndex);
+			void RemoveAll();
+			ILight* GetLight(EmLight::Type emType, size_t nIndex);
+			size_t GetLightCount(EmLight::Type emType);
+
+		public:
+			IStructuredBuffer* GetLightBuffer(EmLight::Type emType);
+			uint32_t GetLightCountInView(EmLight::Type emType);
+
+		private:
+			void UpdateLightBuffer();
+
+		private:
+			std::array<IStructuredBuffer*, EmLight::eCount> m_pLightBuffers;
+			std::array<uint32_t, EmLight::eCount> m_nLightCountInView;
+
+			std::vector<IDirectionalLight*> m_vecDirectionalLights;
+			std::vector<ISpotLight*> m_vecSpotLights;
+			std::vector<IPointLight*> m_vecPointLights;
+
+			struct DirectionalLightData
+			{
+				Math::Vector3 f3Color;
+				float fLightIntensity = 0.f;
+
+				Math::Vector3 f3Dir;
+				float fAmbientIntensity = 0.f;
+
+				Math::Vector3 padding;
+				float fReflectionIntensity = 0.f;
+
+				void Set(const Math::Color& color, const Math::Vector3& direction, float lightIntensity, float ambientIntensity, float reflectionIntensity)
+				{
+					f3Color.x = color.r;
+					f3Color.y = color.g;
+					f3Color.z = color.b;
+
+					f3Dir = direction;
+					fLightIntensity = lightIntensity;
+					fAmbientIntensity = ambientIntensity;
+					fReflectionIntensity = reflectionIntensity;
+				}
+			};
+			std::array<DirectionalLightData, EmLight::eMaxDirectionalLightCount> m_directionalLightData;
+
+			struct PointLightData
+			{
+				Math::Vector3 f3Color;
+				float fLightIntensity = 0.f;
+
+				Math::Vector3 f3Pos;
+				float fAmbientIntensity = 0.f;
+
+				Math::Vector3 padding;
+				float fReflectionIntensity = 0.f;
+
+				void Set(const Math::Color& color, const Math::Vector3& pos, float lightIntensity, float ambientIntensity, float reflectionIntensity)
+				{
+					f3Color.x = color.r;
+					f3Color.y = color.g;
+					f3Color.z = color.b;
+
+					f3Pos = pos;
+					fLightIntensity = lightIntensity;
+					fAmbientIntensity = ambientIntensity;
+					fReflectionIntensity = reflectionIntensity;
+				}
+			};
+			std::array<PointLightData, EmLight::eMaxPointLightCount> m_pointLightData;
+
+			struct SpotLightData
+			{
+				Math::Vector3 f3Color;
+				float fLightIntensity = 0.f;
+
+				Math::Vector3 f3Pos;
+				float fAmbientIntensity = 0.f;
+
+				Math::Vector3 f3Dir;
+				float fReflectionIntensity = 0.f;
+
+				Math::Vector3 padding;
+				float fAngle = 0.f;
+
+				void Set(const Math::Color& color, const Math::Vector3& position, const Math::Vector3& direction, float lightIntensity, float ambientIntensity, float reflectionIntensity, float angle)
+				{
+					f3Color.x = color.r;
+					f3Color.y = color.g;
+					f3Color.z = color.b;
+
+					f3Pos = position;
+					f3Dir = direction;
+					fLightIntensity = lightIntensity;
+					fAmbientIntensity = ambientIntensity;
+					fReflectionIntensity = reflectionIntensity;
+					fAngle = angle;
+				}
+			};
+			std::array<SpotLightData, EmLight::eMaxSpotLightCount> m_spotLightData;
+		};
+
+		LightManager::Impl::Impl()
 		{
-			Release();
-		}
-
-		bool LightManager::Init()
-		{
-			if (m_isInit == true)
-				return true;
-
 			m_pLightBuffers[EmLight::eDirectional] = IStructuredBuffer::Create(m_directionalLightData.data(), m_directionalLightData.size(), sizeof(DirectionalLightData));
 			m_pLightBuffers[EmLight::ePoint] = IStructuredBuffer::Create(m_pointLightData.data(), m_pointLightData.size(), sizeof(PointLightData));
 			m_pLightBuffers[EmLight::eSpot] = IStructuredBuffer::Create(m_spotLightData.data(), m_spotLightData.size(), sizeof(SpotLightData));
 
-			m_nLightCountInView.fill(0);
-
-			m_isInit = true;
-
-			return true;
+			m_nLightCountInView.fill(0u);
 		}
 
-		void LightManager::Release()
+		LightManager::Impl::~Impl()
 		{
-			if (m_isInit == false)
-				return;
-
 			RemoveAll();
 
 			std::for_each(m_pLightBuffers.begin(), m_pLightBuffers.end(), DeleteSTLObject());
-
-			m_isInit = false;
+			m_pLightBuffers.fill(nullptr);
 		}
 
-		void LightManager::Update(float fElapsedTime)
+		void LightManager::Impl::Update(float fElapsedTime)
 		{
 			std::for_each(m_vecDirectionalLights.begin(), m_vecDirectionalLights.end(), [fElapsedTime](IDirectionalLight* pLight)
 			{
@@ -65,12 +156,12 @@ namespace EastEngine
 			});
 		}
 
-		void LightManager::Synchronize()
+		void LightManager::Impl::Synchronize()
 		{
 			UpdateLightBuffer();
 		}
 
-		bool LightManager::AddLight(ILight* pLight)
+		bool LightManager::Impl::AddLight(ILight* pLight)
 		{
 			switch (pLight->GetType())
 			{
@@ -108,7 +199,7 @@ namespace EastEngine
 			return true;
 		}
 
-		void LightManager::Remove(ILight* pLight)
+		void LightManager::Impl::Remove(ILight* pLight)
 		{
 			switch (pLight->GetType())
 			{
@@ -144,7 +235,7 @@ namespace EastEngine
 			}
 		}
 
-		void LightManager::Remove(EmLight::Type emType, size_t nIndex)
+		void LightManager::Impl::Remove(EmLight::Type emType, size_t nIndex)
 		{
 			switch (emType)
 			{
@@ -195,7 +286,7 @@ namespace EastEngine
 			}
 		}
 
-		void LightManager::RemoveAll()
+		void LightManager::Impl::RemoveAll()
 		{
 			std::for_each(m_vecDirectionalLights.begin(), m_vecDirectionalLights.end(), DeleteSTLObject());
 			m_vecDirectionalLights.clear();
@@ -207,7 +298,7 @@ namespace EastEngine
 			m_vecDirectionalLights.clear();
 		}
 
-		ILight* LightManager::GetLight(EmLight::Type emType, size_t nIndex)
+		ILight* LightManager::Impl::GetLight(EmLight::Type emType, size_t nIndex)
 		{
 			switch (emType)
 			{
@@ -240,7 +331,7 @@ namespace EastEngine
 			}
 		}
 
-		size_t LightManager::GetLightCount(EmLight::Type emType)
+		size_t LightManager::Impl::GetLightCount(EmLight::Type emType)
 		{
 			switch (emType)
 			{
@@ -255,7 +346,17 @@ namespace EastEngine
 			}
 		}
 
-		void LightManager::UpdateLightBuffer()
+		IStructuredBuffer* LightManager::Impl::GetLightBuffer(EmLight::Type emType)
+		{
+			return m_pLightBuffers[emType];
+		}
+
+		uint32_t LightManager::Impl::GetLightCountInView(EmLight::Type emType)
+		{
+			return m_nLightCountInView[emType];
+		}
+
+		void LightManager::Impl::UpdateLightBuffer()
 		{
 			m_nLightCountInView.fill(0);
 
@@ -302,6 +403,65 @@ namespace EastEngine
 			m_pLightBuffers[EmLight::eDirectional]->UpdateSubresource(ThreadType::eImmediate, 0, m_directionalLightData.data(), m_nLightCountInView[EmLight::eDirectional]);
 			m_pLightBuffers[EmLight::ePoint]->UpdateSubresource(ThreadType::eImmediate, 0, m_pointLightData.data(), m_nLightCountInView[EmLight::ePoint]);
 			m_pLightBuffers[EmLight::eSpot]->UpdateSubresource(ThreadType::eImmediate, 0, m_spotLightData.data(), m_nLightCountInView[EmLight::eSpot]);
+		}
+
+		LightManager::LightManager()
+			: m_pImpl{ std::make_unique<Impl>() }
+		{
+		}
+
+		LightManager::~LightManager()
+		{
+		}
+
+		void LightManager::Update(float fElapsedTime)
+		{
+			m_pImpl->Update(fElapsedTime);
+		}
+
+		void LightManager::Synchronize()
+		{
+			m_pImpl->Synchronize();
+		}
+
+		bool LightManager::AddLight(ILight* pLight)
+		{
+			return m_pImpl->AddLight(pLight);
+		}
+
+		void LightManager::Remove(ILight* pLight)
+		{
+			m_pImpl->Remove(pLight);
+		}
+
+		void LightManager::Remove(EmLight::Type emType, size_t nIndex)
+		{
+			m_pImpl->Remove(emType, nIndex);
+		}
+
+		void LightManager::RemoveAll()
+		{
+			m_pImpl->RemoveAll();
+		}
+
+		ILight* LightManager::GetLight(EmLight::Type emType, size_t nIndex)
+		{
+			return m_pImpl->GetLight(emType, nIndex);
+		}
+
+		size_t LightManager::GetLightCount(EmLight::Type emType)
+		{
+			return m_pImpl->GetLightCount(emType);
+		}
+
+		IStructuredBuffer* LightManager::GetLightBuffer(EmLight::Type emType)
+		{
+			return m_pImpl->GetLightBuffer(emType);
+		}
+
+		uint32_t LightManager::GetLightCountInView(EmLight::Type emType)
+		{
+			return m_pImpl->GetLightCountInView(emType);
 		}
 	}
 }

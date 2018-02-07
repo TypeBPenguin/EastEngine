@@ -19,7 +19,7 @@ namespace EastEngine
 {
 	namespace Sound
 	{
-		enum EmMode
+		enum Mode
 		{
 			eDefault = 0x00000000,					/* Default for all modes listed below. FMOD_LOOP_OFF, FMOD_2D, FMOD_HARDWARE */
 			eLoopOff = 0x00000001,					/* For non looping sounds. (DEFAULT).  Overrides FMOD_LOOP_NORMAL / FMOD_LOOP_BIDI. */
@@ -55,45 +55,24 @@ namespace EastEngine
 			eVirtualPlayFromStart = 0x80000000,		/* For sounds that start virtual (due to being quiet or low importance), instead of swapping back to audible, and playing at the correct offset according to time, this flag makes the sound play from the start. */
 		};
 
-		struct SoundInstance
+		class System : public Singleton<System>
 		{
-			FMOD::Sound* pSound = nullptr;
-			std::list<FMOD::Channel*> listChannel;
-
-			float m_fFlushTime = 0.f;
-
-			~SoundInstance();
-		};
-
-		class SoundSystem : public Singleton<SoundSystem>
-		{
-			friend Singleton<SoundSystem>;
+			friend Singleton<System>;
 		private:
-			SoundSystem();
-			virtual ~SoundSystem();
+			System();
+			virtual ~System();
 
 		public:
-			bool Init();
-			void Release();
-
-			void Play(const String::StringID& strSoundFile, float fVolume = 1.f, const Math::Vector3* pf3Pos = nullptr, int mode = eLoopOff | e2D | eHardware);
-			void Stop(const String::StringID& strSoundFile) { m_listReqStopSound.emplace_back(strSoundFile); }
-
 			void Update(float fElapsedTime);
 
-			void SetListenerPosition(const Math::Vector3* pf3ListenerPos) { m_pf3ListenerPos = pf3ListenerPos; }
+			bool Play(const String::StringID& strSoundFile, float fVolume = 1.f, const Math::Vector3* pf3Pos = nullptr, int mode = eLoopOff | e2D | eHardware);
+			void Stop(const String::StringID& strSoundFile);
+
+			void SetListenerPosition(const Math::Vector3* pf3ListenerPos);
 
 		private:
-			FMOD::Sound* createSoundInst(const String::StringID& strSoundFile, int mode = eLoopOff | e2D | eHardware);
-
-		private:
-			bool m_isInit;
-
-			FMOD::System* m_pSystem;
-			const Math::Vector3* m_pf3ListenerPos;
-
-			std::unordered_map<String::StringID, SoundInstance*> m_umapSoundInst;
-			std::list<String::StringID> m_listReqStopSound;
+			class Impl;
+			std::unique_ptr<Impl> m_pImpl;
 		};
 	}
 }

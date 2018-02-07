@@ -10,10 +10,13 @@ namespace EastEngine
 			IDeviceLost();
 			virtual ~IDeviceLost() = 0;
 
+		public:
 			virtual bool OnDeviceLost() = 0;
 			virtual bool OnDeviceRestored() = 0;
 
-			static const std::list<IDeviceLost*>& GetDeviceLostHandler();
+		public:
+			static void HandleDeviceLost();
+			static void HandleDeviceRestored();
 		};
 	}
 }

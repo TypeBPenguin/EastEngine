@@ -11,58 +11,37 @@ namespace EastEngine
 {
 	namespace Graphics
 	{
-		ShaderManager::ShaderManager()
-			: m_isInit(false)
+		class ShaderManager::Impl
 		{
-		}
+		public:
+			Impl();
+			~Impl();
 
-		ShaderManager::~ShaderManager()
-		{
-			Release();
-		}
+		public:
+			void Flush();
 
-		bool ShaderManager::Init()
-		{
-			if (m_isInit == true)
-				return true;
+		public:
+			IEffect * GetEffect(const String::StringID& strName);
+			bool AddEffect(IEffect* pEffect);
+			void RemoveEffect(IEffect* pEffect);
 
-			m_isInit = true;
+			void CompleteEffectAsyncLoad(IEffect* pEffect, bool isSuccess, std::function<void(IEffect*, bool)> funcCallback);
 
-			File::DirectoryMonitor::GetInstance()->AddDirMonitor(File::GetPath(File::EmPath::eFx), ShaderManager::DirectoryMonitorCallback);
+		private:
+			std::mutex m_mutex;
 
-			return true;
-		}
-
-		void ShaderManager::Release()
-		{
-			if (m_isInit == false)
-				return;
-
-			for (auto& iter : m_umapEffects)
+			struct CompleteEffectAsyncLoader
 			{
-				Effect* pEffect = static_cast<Effect*>(iter.second);
-				SafeDelete(pEffect);
-			}
-			m_umapEffects.clear();
+				IEffect* pEffect = nullptr;
+				bool isSuccess = false;
+				std::function<void(IEffect*, bool)> funcCallback;
+			};
+			Concurrency::concurrent_queue<CompleteEffectAsyncLoader> m_conQueueCompleteEffectAsyncLoader;
 
-			m_isInit = false;
-		}
+			std::unordered_map<String::StringID, IEffect*> m_umapEffects;
+		};
 
-		void ShaderManager::Flush()
-		{
-			while (m_conQueueCompleteEffectAsyncLoader.empty() == false)
-			{
-				CompleteEffectAsyncLoader loader;
-				if (m_conQueueCompleteEffectAsyncLoader.try_pop(loader) == true)
-				{
-					Effect* pEffect = static_cast<Effect*>(loader.pEffect);
-					pEffect->SetValid(loader.isSuccess);
-					loader.funcCallback(loader.pEffect, loader.isSuccess);
-				}
-			}
-		}
-
-		void CALLBACK ShaderManager::DirectoryMonitorCallback(const char* strPath, DWORD dwAction, LPARAM lParam)
+		void CALLBACK DirectoryMonitorCallback(const char* strPath, DWORD dwAction, LPARAM lParam)
 		{
 			switch (dwAction)
 			{
@@ -86,7 +65,36 @@ namespace EastEngine
 			}
 		}
 
-		IEffect* ShaderManager::GetEffect(const String::StringID& strName)
+		ShaderManager::Impl::Impl()
+		{
+			File::DirectoryMonitor::GetInstance()->AddDirectoryMonitor(File::GetPath(File::EmPath::eFx), DirectoryMonitorCallback);
+		}
+
+		ShaderManager::Impl::~Impl()
+		{
+			for (auto& iter : m_umapEffects)
+			{
+				Effect* pEffect = static_cast<Effect*>(iter.second);
+				SafeDelete(pEffect);
+			}
+			m_umapEffects.clear();
+		}
+
+		void ShaderManager::Impl::Flush()
+		{
+			while (m_conQueueCompleteEffectAsyncLoader.empty() == false)
+			{
+				CompleteEffectAsyncLoader loader;
+				if (m_conQueueCompleteEffectAsyncLoader.try_pop(loader) == true)
+				{
+					Effect* pEffect = static_cast<Effect*>(loader.pEffect);
+					pEffect->SetValid(loader.isSuccess);
+					loader.funcCallback(loader.pEffect, loader.isSuccess);
+				}
+			}
+		}
+
+		IEffect* ShaderManager::Impl::GetEffect(const String::StringID& strName)
 		{
 			std::lock_guard<std::mutex> lock(m_mutex);
 
@@ -97,7 +105,7 @@ namespace EastEngine
 			return nullptr;
 		}
 
-		bool ShaderManager::AddEffect(IEffect* pEffect)
+		bool ShaderManager::Impl::AddEffect(IEffect* pEffect)
 		{
 			if (pEffect == nullptr || GetEffect(pEffect->GetName()) != nullptr)
 				return false;
@@ -109,7 +117,7 @@ namespace EastEngine
 			return true;
 		}
 
-		void ShaderManager::RemoveEffect(IEffect* pEffect)
+		void ShaderManager::Impl::RemoveEffect(IEffect* pEffect)
 		{
 			if (pEffect == nullptr)
 				return;
@@ -125,17 +133,47 @@ namespace EastEngine
 			m_umapEffects.erase(iter);
 		}
 
-		void ShaderManager::RequestEffectAsyncLoad(IEffect* pEffect, std::function<bool()> funcLoader)
-		{
-		}
-
-		void ShaderManager::CompleteEffectAsyncLoad(IEffect* pEffect, bool isSuccess, std::function<void(IEffect*, bool)> funcCallback)
+		void ShaderManager::Impl::CompleteEffectAsyncLoad(IEffect* pEffect, bool isSuccess, std::function<void(IEffect*, bool)> funcCallback)
 		{
 			CompleteEffectAsyncLoader loader;
 			loader.pEffect = pEffect;
 			loader.isSuccess = isSuccess;
 			loader.funcCallback = funcCallback;
 			m_conQueueCompleteEffectAsyncLoader.push(loader);
+		}
+
+		ShaderManager::ShaderManager()
+			: m_pImpl{ std::make_unique<Impl>() }
+		{
+		}
+
+		ShaderManager::~ShaderManager()
+		{
+		}
+
+		void ShaderManager::Flush()
+		{
+			m_pImpl->Flush();
+		}
+
+		IEffect* ShaderManager::GetEffect(const String::StringID& strName)
+		{
+			return m_pImpl->GetEffect(strName);
+		}
+
+		bool ShaderManager::AddEffect(IEffect* pEffect)
+		{
+			return m_pImpl->AddEffect(pEffect);
+		}
+
+		void ShaderManager::RemoveEffect(IEffect* pEffect)
+		{
+			m_pImpl->RemoveEffect(pEffect);
+		}
+		
+		void ShaderManager::CompleteEffectAsyncLoad(IEffect* pEffect, bool isSuccess, std::function<void(IEffect*, bool)> funcCallback)
+		{
+			m_pImpl->CompleteEffectAsyncLoad(pEffect, isSuccess, funcCallback);
 		}
 	}
 }

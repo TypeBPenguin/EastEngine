@@ -69,7 +69,7 @@ namespace EastEngine
 		Graphics::GraphicsSystem* s_pGraphicsSystem{ nullptr };
 		Input::Device* s_pInputDevice{ nullptr };
 		Physics::PhysicsSystem* s_pPhysicsSystem{ nullptr };
-		Sound::SoundSystem* s_pSoundSystem{ nullptr };
+		Sound::System* s_pSoundSystem{ nullptr };
 		UI::UIManager* s_pUIMgr{ nullptr };
 		GameObject::ActorManager* s_pActorMgr{ nullptr };
 		GameObject::TerrainManager* s_pTerrainManager{ nullptr };
@@ -106,8 +106,8 @@ namespace EastEngine
 		SafeRelease(s_pUIMgr);
 		UI::UIManager::DestroyInstance();
 
-		SafeRelease(s_pSoundSystem);
-		Sound::SoundSystem::DestroyInstance();
+		Sound::System::DestroyInstance();
+		s_pSoundSystem = nullptr;
 
 		SafeRelease(s_pPhysicsSystem);
 		Physics::PhysicsSystem::DestroyInstance();
@@ -130,8 +130,8 @@ namespace EastEngine
 		s_pCommandLine = nullptr;
 		Config::SCommandLine::DestroyInstance();
 
-		SafeRelease(s_pDirectoryMonitor);
 		File::DirectoryMonitor::DestroyInstance();
+		s_pDirectoryMonitor = nullptr;
 
 		String::Release();
 		CrashHandler::Release();
@@ -145,8 +145,6 @@ namespace EastEngine
 			return false;
 
 		s_pDirectoryMonitor = File::DirectoryMonitor::GetInstance();
-		if (s_pDirectoryMonitor->Init() == false)
-			return false;
 
 		m_strApplicationName = strApplicationName;
 		m_n2ScreenSize = Math::Int2(nScreenWidth, nScreenHeight);
@@ -191,9 +189,7 @@ namespace EastEngine
 		if (s_pPhysicsSystem->Init() == false)
 			return false;
 
-		s_pSoundSystem = Sound::SoundSystem::GetInstance();
-		if (s_pSoundSystem->Init() == false)
-			return false;
+		s_pSoundSystem = Sound::System::GetInstance();
 
 		//s_pLuaSystem = LuaSystemInst;
 		//if (s_pLuaSystem->Init() == false)

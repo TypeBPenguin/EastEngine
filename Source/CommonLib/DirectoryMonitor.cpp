@@ -9,76 +9,92 @@ namespace EastEngine
 {
 	namespace File
 	{
-		HDirMonitor::HDirMonitor()
-			: lParam(0)
-			, dwNotifyFilter(0)
-			, isWatchSubTree(false)
-			, isStop(false)
-			, callback(nullptr)
+		static_assert(FILE_NOTIFY_CHANGE_FILE_NAME == eFileName, "DirectoryMonitor Filter Mismatch");
+		static_assert(FILE_NOTIFY_CHANGE_DIR_NAME == eDirName, "DirectoryMonitor Filter Mismatch");
+		static_assert(FILE_NOTIFY_CHANGE_ATTRIBUTES == eAttributes, "DirectoryMonitor Filter Mismatch");
+		static_assert(FILE_NOTIFY_CHANGE_SIZE == eSize, "DirectoryMonitor Filter Mismatch");
+		static_assert(FILE_NOTIFY_CHANGE_LAST_WRITE == eLastWrite, "DirectoryMonitor Filter Mismatch");
+		static_assert(FILE_NOTIFY_CHANGE_LAST_ACCESS == eLastAccess, "DirectoryMonitor Filter Mismatch");
+		static_assert(FILE_NOTIFY_CHANGE_CREATION == eCreation, "DirectoryMonitor Filter Mismatch");
+		static_assert(FILE_NOTIFY_CHANGE_SECURITY == eSecurity, "DirectoryMonitor Filter Mismatch");
+
+		struct HDirMonitor
 		{
-			Memory::Clear(buffer);
+			OVERLAPPED ol;
+			HANDLE hDir = nullptr;
+			HANDLE hDirOPPort = nullptr;
+			unsigned char buffer[sizeof(FILE_NOTIFY_INFORMATION) * 1024 * 32]{};
+			LPARAM lParam{ 0 };
+			DWORD dwNotifyFilter{ 0 };
+			BOOL isWatchSubTree{ FALSE };
+			BOOL isStop{ FALSE };
+			DirectoryMonitorCallback callback{ nullptr };
+
+			~HDirMonitor();
+		};
+
+		class DirectoryMonitor::Impl
+		{
+		public:
+			Impl();
+			~Impl();
+
+		public:
+			void Update();
+
+		public:
+			void AddDirectoryMonitor(const char* strDirectory, DirectoryMonitorCallback funcCallback, DWORD notifyFilter = Filter::eFileName | Filter::eDirName | Filter::eAttributes | Filter::eSize | Filter::eLastWrite | Filter::eCreation);
+
+		private:
+			std::vector<HDirMonitor*> m_vecHDirMonitor;
+		};
+
+		void CALLBACK HandleDirectoryMonitorCallback(const char* strPath, DWORD dwAction, LPARAM lParam)
+		{
+
 		}
 
-		DirectoryMonitor::DirectoryMonitor()
-			: m_isInit(false)
+		bool RefreshMonitoring(HDirMonitor* pMonitor, DWORD* pdw)
+		{
+			return ReadDirectoryChangesW(pMonitor->hDir, pMonitor->buffer, sizeof(pMonitor->buffer), pMonitor->isWatchSubTree,
+				pMonitor->dwNotifyFilter, pdw, &pMonitor->ol, nullptr) == TRUE;
+		}
+
+		HDirMonitor::~HDirMonitor()
+		{
+			isStop = TRUE;
+
+			CancelIo(hDir);
+
+			CloseHandle(ol.hEvent);
+			CloseHandle(hDir);
+		}
+		
+		DirectoryMonitor::Impl::Impl()
 		{
 		}
 
-		DirectoryMonitor::~DirectoryMonitor()
+		DirectoryMonitor::Impl::~Impl()
 		{
-			Release();
-		}
-
-		bool DirectoryMonitor::Init()
-		{
-			if (m_isInit == true)
-				return true;
-
-			m_isInit = true;
-
-			return true;
-		}
-
-		void DirectoryMonitor::Release()
-		{
-			if (m_isInit == false)
-				return;
-
-			size_t nSize = m_vecHDirMonitor.size();
+			const size_t nSize = m_vecHDirMonitor.size();
 			for (size_t i = 0; i < nSize; ++i)
 			{
-				HDirMonitor* pMonitor = m_vecHDirMonitor[i];
-				if (pMonitor == nullptr)
-					continue;
-
-				pMonitor->isStop = TRUE;
-
-				CancelIo(pMonitor->hDir);
-
-				CloseHandle(pMonitor->ol.hEvent);
-				CloseHandle(pMonitor->hDir);
-
-				SafeDelete(pMonitor);
+				SafeDelete(m_vecHDirMonitor[i]);
 			}
 			m_vecHDirMonitor.clear();
-
-			m_isInit = false;
 		}
 
-		void DirectoryMonitor::Update()
+		void DirectoryMonitor::Impl::Update()
 		{
-			size_t nSize = m_vecHDirMonitor.size();
+			const size_t nSize = m_vecHDirMonitor.size();
 			for (size_t i = 0; i < nSize; ++i)
 			{
 				HDirMonitor* pMonitor = m_vecHDirMonitor[i];
-				if (pMonitor == nullptr)
-					continue;
-
 				if (pMonitor->isStop == TRUE)
 					continue;
 
 				DWORD dwNumBytes = 0;
-				ULONG_PTR key = (ULONG_PTR)pMonitor;
+				ULONG_PTR key = reinterpret_cast<ULONG_PTR>(pMonitor);
 				if (RefreshMonitoring(pMonitor, &dwNumBytes) == true)
 				{
 					BOOL bResult = GetQueuedCompletionStatus(pMonitor->hDirOPPort,
@@ -86,8 +102,7 @@ namespace EastEngine
 
 					if (bResult == TRUE)
 					{
-						wchar_t temp[MAX_PATH];
-						Memory::Clear(temp);
+						wchar_t temp[MAX_PATH]{};
 
 						DWORD dwOffset = 0;
 						FILE_NOTIFY_INFORMATION* pFni = nullptr;
@@ -111,11 +126,9 @@ namespace EastEngine
 			}
 		}
 
-		void DirectoryMonitor::AddDirMonitor(const char* strDirectory, DirectoryMonitorCallback funcCallback, DWORD notifyFilter)
+		void DirectoryMonitor::Impl::AddDirectoryMonitor(const char* strDirectory, DirectoryMonitorCallback funcCallback, DWORD notifyFilter)
 		{
 			HDirMonitor* pMonitor = new HDirMonitor;
-			Memory::Clear(pMonitor, sizeof(HDirMonitor));
-
 			pMonitor->hDir = CreateFile(strDirectory, FILE_LIST_DIRECTORY | GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
 				nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED, nullptr);
 
@@ -123,65 +136,41 @@ namespace EastEngine
 			{
 				pMonitor->ol.hEvent = CreateEvent(nullptr, TRUE, FALSE, nullptr);
 				pMonitor->dwNotifyFilter = notifyFilter;
-				pMonitor->callback = funcCallback;
+				pMonitor->callback = HandleDirectoryMonitorCallback;
 				pMonitor->isWatchSubTree = TRUE;
 				pMonitor->isStop = FALSE;
 				pMonitor->lParam = 0;
 
-				pMonitor->hDirOPPort = CreateIoCompletionPort(pMonitor->hDir, nullptr, (ULONG_PTR)(pMonitor), 1);
+				pMonitor->hDirOPPort = CreateIoCompletionPort(pMonitor->hDir, nullptr, reinterpret_cast<ULONG_PTR>(pMonitor), 1);
 
-				if (RefreshMonitoring(pMonitor))
+				if (RefreshMonitoring(pMonitor, nullptr))
 				{
 					m_vecHDirMonitor.push_back(pMonitor);
 				}
 				else
 				{
-					CloseHandle(pMonitor->ol.hEvent);
-					CloseHandle(pMonitor->hDir);
+					SafeDelete(pMonitor);
 				}
 			}
 		}
 
-		void CALLBACK DirectoryMonitor::MonitorCallback(DWORD dwErrorCode, DWORD dwNumberOfBytesTransfered, LPOVERLAPPED lpOverlapped)
+		DirectoryMonitor::DirectoryMonitor()
+			: m_pImpl{ std::make_unique<Impl>() }
 		{
-			std::string strFile;
-			PFILE_NOTIFY_INFORMATION pNotify;
-			HDirMonitor* pMonitor = reinterpret_cast<HDirMonitor*>(lpOverlapped);
-			size_t offset = 0;
-
-			if (dwErrorCode == ERROR_SUCCESS)
-			{
-				do
-				{
-					pNotify = reinterpret_cast<PFILE_NOTIFY_INFORMATION>(&pMonitor->buffer[offset]);
-					offset += pNotify->NextEntryOffset;
-
-# if defined(UNICODE)
-					{
-						lstrcpynW(szFile, pNotify->FileName,
-							min(MAX_PATH, pNotify->FileNameLength / sizeof(WCHAR) + 1));
-					}
-# else
-					{
-						strFile = String::WideToMulti(pNotify->FileName, CP_ACP);
-					}
-# endif
-
-					pMonitor->callback(strFile.c_str(), pNotify->Action, pMonitor->lParam);
-
-				} while (pNotify->NextEntryOffset != 0);
-			}
-
-			/*if (pMonitor->bStop == FALSE)
-			{
-			sRefreshMonitoring(pMonitor);
-			}*/
 		}
 
-		bool DirectoryMonitor::RefreshMonitoring(HDirMonitor* pMonitor, DWORD* pdw)
+		DirectoryMonitor::~DirectoryMonitor()
 		{
-			return ReadDirectoryChangesW(pMonitor->hDir, pMonitor->buffer, sizeof(pMonitor->buffer), pMonitor->isWatchSubTree,
-				pMonitor->dwNotifyFilter, pdw, &pMonitor->ol, nullptr) == TRUE;
+		}
+		
+		void DirectoryMonitor::Update()
+		{
+			m_pImpl->Update();
+		}
+
+		void DirectoryMonitor::AddDirectoryMonitor(const char* strDirectory, DirectoryMonitorCallback funcCallback, DWORD notifyFilter)
+		{
+			m_pImpl->AddDirectoryMonitor(strDirectory, funcCallback, notifyFilter);
 		}
 	}
 }

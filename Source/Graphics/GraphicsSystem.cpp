@@ -92,8 +92,8 @@ namespace EastEngine
 			Camera::DestroyInstance();
 			s_pCamera = nullptr;
 
-			SafeRelease(s_pLightMgr);
 			LightManager::DestroyInstance();
+			s_pLightMgr = nullptr;
 
 			SafeRelease(s_pRendererMgr);
 			RendererManager::DestroyInstance();
@@ -106,8 +106,8 @@ namespace EastEngine
 			TextureManager::DestroyInstance();
 			s_pTextureMgr = nullptr;
 
-			SafeRelease(s_pShaderMgr);
 			ShaderManager::DestroyInstance();
+			s_pShaderMgr = nullptr;
 
 			SafeRelease(s_pDevice);
 			Device::DestroyInstance();
@@ -126,20 +126,9 @@ namespace EastEngine
 			}
 
 			s_pShaderMgr = ShaderManager::GetInstance();
-			if (s_pShaderMgr->Init() == false)
-			{
-				LOG_ERROR("Failed ShaderManager Initialize, s_pShaderMgr");
-				return false;
-			}
-
 			s_pTextureMgr = TextureManager::GetInstance();
 
 			s_pLightMgr = LightManager::GetInstance();
-			if (s_pLightMgr->Init() == false)
-			{
-				LOG_ERROR("Failed LightManager Initialize, s_pLightMgr");
-				return false;
-			}
 
 			const Math::UInt2& n2ScreenSize = s_pDevice->GetScreenSize();
 			s_pCamera = Camera::GetInstance();

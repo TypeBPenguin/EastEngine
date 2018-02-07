@@ -6,7 +6,7 @@ namespace EastEngine
 {
 	namespace Windows
 	{
-		typedef bool(*FuncMessageHandler)(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam);
+		using FuncMessageHandler = bool(*)(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam);
 
 		struct MessageData
 		{

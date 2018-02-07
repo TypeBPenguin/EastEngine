@@ -6,21 +6,18 @@ namespace EastEngine
 {
 	namespace File
 	{
-		typedef void (CALLBACK *DirectoryMonitorCallback)(const char* strPath, DWORD dwAction, LPARAM lParam);
+		using DirectoryMonitorCallback = void (CALLBACK*)(const char* strPath, DWORD dwAction, LPARAM lParam);
 
-		struct HDirMonitor
+		enum Filter
 		{
-			OVERLAPPED ol;
-			HANDLE hDir = nullptr;
-			HANDLE hDirOPPort = nullptr;
-			unsigned char buffer[sizeof(FILE_NOTIFY_INFORMATION) * 1024 * 32];
-			LPARAM lParam;
-			DWORD dwNotifyFilter;
-			BOOL isWatchSubTree;
-			BOOL isStop;
-			DirectoryMonitorCallback callback;
-
-			HDirMonitor();
+			eFileName = 1 << 0,
+			eDirName = 1 << 1,
+			eAttributes = 1 << 2,
+			eSize = 1 << 3,
+			eLastWrite = 1 << 4,
+			eLastAccess = 1 << 5,
+			eCreation = 1 << 6,
+			eSecurity = 1 << 8,
 		};
 
 		class DirectoryMonitor : public Singleton<DirectoryMonitor>
@@ -31,21 +28,14 @@ namespace EastEngine
 			virtual ~DirectoryMonitor();
 
 		public:
-			bool Init();
-			void Release();
-
 			void Update();
 
-			void AddDirMonitor(const char* strDirectory, DirectoryMonitorCallback funcCallback, DWORD notifyFilter = FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME | FILE_NOTIFY_CHANGE_ATTRIBUTES | FILE_NOTIFY_CHANGE_SIZE | FILE_NOTIFY_CHANGE_LAST_WRITE | FILE_NOTIFY_CHANGE_CREATION);
-			static void CALLBACK MonitorCallback(DWORD dwErrorCode, DWORD dwNumberOfBytesTransfered, LPOVERLAPPED lpOverlapped);
+		public:
+			void AddDirectoryMonitor(const char* strDirectory, DirectoryMonitorCallback funcCallback, DWORD notifyFilter = Filter::eFileName | Filter::eDirName | Filter::eAttributes | Filter::eSize | Filter::eLastWrite | Filter::eCreation);
 
 		private:
-			static bool RefreshMonitoring(HDirMonitor* pMonitor, DWORD* pdw = nullptr);
-
-		private:
-			std::vector<HDirMonitor*> m_vecHDirMonitor;
-
-			bool m_isInit;
+			class Impl;
+			std::unique_ptr<Impl> m_pImpl;
 		};
 	}
 }
