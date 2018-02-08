@@ -230,6 +230,8 @@ namespace EastEngine
 				return false;
 
 			pNewChannel->setVolume(fVolume);
+
+			return true;
 		}
 
 		void System::Impl::Stop(const String::StringID& strSoundFile)

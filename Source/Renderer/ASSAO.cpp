@@ -1792,10 +1792,8 @@ namespace EastEngine
 			Release();
 		}
 
-		bool ASSAO::Init(const Math::Viewport& viewport)
+		bool ASSAO::Init()
 		{
-			m_viewport = viewport;
-
 			std::string strPath(File::GetPath(File::eFx));
 			strPath += "PostProcessing\\ASSAO\\ASSAO.fx";
 
@@ -1828,15 +1826,17 @@ namespace EastEngine
 
 			int nThreadID = GetThreadID(ThreadType::eRender);
 
+			const Math::Viewport& viewport = pDevice->GetViewport();
+
 			ASSAO_InputsDX11 inputs;
 			inputs.ScissorLeft = 0;
 			inputs.ScissorTop = 0;
-			inputs.ScissorRight = static_cast<int>(m_viewport.width);
-			inputs.ScissorBottom = static_cast<int>(m_viewport.height);
+			inputs.ScissorRight = static_cast<int>(viewport.width);
+			inputs.ScissorBottom = static_cast<int>(viewport.height);
 			inputs.DeviceContext = pDeviceContext;
 			inputs.ProjectionMatrix = pCamera->GetProjMatrix(nThreadID);
-			inputs.ViewportWidth = static_cast<int>(m_viewport.width);
-			inputs.ViewportHeight = static_cast<int>(m_viewport.height);
+			inputs.ViewportWidth = static_cast<int>(viewport.width);
+			inputs.ViewportHeight = static_cast<int>(viewport.height);
 			inputs.DepthSRV = GetDevice()->GetMainDepthStencil()->GetTexture()->GetShaderResourceView();
 			inputs.NormalSRV = GetGBuffers()->GetGBuffer(EmGBuffer::eNormals)->GetTexture()->GetShaderResourceView();
 			inputs.MatricesRowMajorOrder = true;

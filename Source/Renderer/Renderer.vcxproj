@@ -111,7 +111,6 @@
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="ModelRenderer.h" />
     <ClInclude Include="PostProcessingRenderer.h" />
-    <ClInclude Include="PreProcessingRenderer.h" />
     <ClInclude Include="RendererManager.h" />
     <ClInclude Include="RenderSubsets.h" />
     <ClInclude Include="SkyRenderer.h" />
@@ -139,7 +138,6 @@
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="ModelRenderer.cpp" />
     <ClCompile Include="PostProcessingRenderer.cpp" />
-    <ClCompile Include="PreProcessingRenderer.cpp" />
     <ClCompile Include="RendererManager.cpp" />
     <ClCompile Include="RenderSubsets.cpp" />
     <ClCompile Include="SkyRenderer.cpp" />

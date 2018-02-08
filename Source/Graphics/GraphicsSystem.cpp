@@ -95,8 +95,8 @@ namespace EastEngine
 			LightManager::DestroyInstance();
 			s_pLightMgr = nullptr;
 
-			SafeRelease(s_pRendererMgr);
 			RendererManager::DestroyInstance();
+			s_pRendererMgr = nullptr;
 
 			if (s_pDevice != nullptr)
 			{
@@ -155,11 +155,6 @@ namespace EastEngine
 			}
 
 			s_pRendererMgr = RendererManager::GetInstance();
-			if (s_pRendererMgr->Init(s_pDevice->GetViewport()) == false)
-			{
-				LOG_ERROR("Failed RendererManager Initialize, s_pRendererMgr");
-				return false;
-			}
 
 			m_fFlushTime = 0.f;
 

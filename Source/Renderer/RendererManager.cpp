@@ -27,119 +27,77 @@ namespace EastEngine
 {
 	namespace Graphics
 	{
-		RendererManager::RendererManager()
-			: m_isInit(false)
-			, m_pEffect(nullptr)
+		class RendererManager::Impl
 		{
-			m_pRenderer.fill(nullptr);
-		}
+		public:
+			Impl();
+			~Impl();
 
-		RendererManager::~RendererManager()
+		public:
+			void Render();
+			void Flush();
+
+		public:
+			void AddRender(const RenderSubsetVertex& renderSubset);
+			void AddRender(const RenderSubsetLine& renderSubset);
+			void AddRender(const RenderSubsetLineSegment& renderSubset);
+
+			void AddRender(const RenderSubsetStatic& renderSubset);
+			void AddRender(const RenderSubsetSkinned& renderSubset);
+			void AddRender(const RenderSubsetTerrain& renderSubset);
+
+			void AddRender(const RenderSubsetSky& renderSubset);
+			void AddRender(const RenderSubsetSkybox& renderSubset);
+			void AddRender(const RenderSubsetSkyEffect& renderSubset);
+			void AddRender(const RenderSubsetSkyCloud& renderSubset);
+
+			void AddRender(const RenderSubsetParticleEmitter& renderSubset);
+			void AddRender(const RenderSubsetParticleDecal& renderSubset);
+
+			void AddRender(const RenderSubsetUIText& renderSubset);
+			void AddRender(const RenderSubsetUISprite& renderSubset);
+			void AddRender(const RenderSubsetUIPanel& renderSubset);
+
+		private:
+			bool CreateEffect();
+			void CopyToMainRenderTarget(IDevice* pDevice, IDeviceContext* pDeviceContext);
+			void ClearEffect(IDeviceContext* pd3dDeviceContext, IEffectTech* pEffectTech);
+
+		private:
+			IEffect* m_pEffect{ nullptr };
+
+			std::array<std::mutex, EmRenderer::TypeCount> m_pMutex;
+			std::array<IRenderer*, EmRenderer::TypeCount> m_pRenderer{ nullptr };
+		};
+
+		RendererManager::Impl::Impl()
 		{
-			Release();
-		}
-
-		bool RendererManager::Init(const Math::Viewport& viewport)
-		{
-			if (m_isInit == true)
-				return true;
-
-			m_isInit = true;
-
-			std::string strPath(File::GetPath(File::EmPath::eFx));
-
-#if defined(DEBUG) || defined(_DEBUG)
-			strPath.append("Copy_D.cso");
-#else
-			strPath.append("Copy.cso");
-#endif
-
-			m_pEffect = IEffect::Create(StrID::EffectCopy, strPath.c_str());
-			if (m_pEffect == nullptr)
-				return false;
-
-			m_pEffect->CreateTechnique(StrID::Copy, EmVertexFormat::eUnknown);
+			if (CreateEffect() == false)
+			{
+				assert(false);
+				return;
+			}
 
 			m_pRenderer[EmRenderer::eParticle] = new ParticleRenderer;
-			if (m_pRenderer[EmRenderer::eParticle]->Init(viewport) == false)
-			{
-				Release();
-				return false;
-			}
-
 			m_pRenderer[EmRenderer::eModel] = new ModelRenderer;
-			if (m_pRenderer[EmRenderer::eModel]->Init(viewport) == false)
-			{
-				Release();
-				return false;
-			}
-
 			m_pRenderer[EmRenderer::eTerrain] = new TerrainRenderer;
-			if (m_pRenderer[EmRenderer::eTerrain]->Init(viewport) == false)
-			{
-				Release();
-				return false;
-			}
-
 			m_pRenderer[EmRenderer::eUI] = new UIRenderer;
-			if (m_pRenderer[EmRenderer::eUI]->Init(viewport) == false)
-			{
-				Release();
-				return false;
-			}
-
 			m_pRenderer[EmRenderer::eDeferred] = new DeferredRenderer;
-			if (m_pRenderer[EmRenderer::eDeferred]->Init(viewport) == false)
-			{
-				Release();
-				return false;
-			}
-
 			m_pRenderer[EmRenderer::ePostProcessing] = new PostProcessingRenderer;
-			if (m_pRenderer[EmRenderer::ePostProcessing]->Init(viewport) == false)
-			{
-				Release();
-				return false;
-			}
-
 			m_pRenderer[EmRenderer::eSky] = new SkyRenderer;
-			if (m_pRenderer[EmRenderer::eSky]->Init(viewport) == false)
-			{
-				Release();
-				return false;
-			}
-
 			m_pRenderer[EmRenderer::eVertex] = new VertexRenderer;
-			if (m_pRenderer[EmRenderer::eVertex]->Init(viewport) == false)
-			{
-				Release();
-				return false;
-			}
-
-			//m_pRenderer[EmRenderer::eWater] = new WaterRenderer;
-			//if (m_pRenderer[EmRenderer::eWater]->Init(viewport) == false)
-			//{
-			//	Release();
-			//	return false;
-			//}
-
-			return true;
 		}
 
-		void RendererManager::Release()
+		RendererManager::Impl::~Impl()
 		{
-			if (m_isInit == false)
-				return;
-
-			for (auto& pRenderer : m_pRenderer)
+			for (IRenderer* pRenderer : m_pRenderer)
 			{
 				SafeDelete(pRenderer);
 			}
-
-			m_isInit = false;
+			m_pRenderer.fill(nullptr);
 		}
 
-		void RendererManager::Render()
+		void RendererManager::Impl::Render()
 		{
 			IDevice* pDevice = GetDevice();
 			IDeviceContext* pDeviceContext = GetDeferredContext(ThreadType::eRender);
@@ -174,7 +132,7 @@ namespace EastEngine
 			CopyToMainRenderTarget(pDevice, pDeviceContext);
 		}
 
-		void RendererManager::Flush()
+		void RendererManager::Impl::Flush()
 		{
 			for (auto& pRenderer : m_pRenderer)
 			{
@@ -185,97 +143,116 @@ namespace EastEngine
 			}
 		}
 
-		void RendererManager::AddRender(const RenderSubsetVertex& renderSubset)
+		void RendererManager::Impl::AddRender(const RenderSubsetVertex& renderSubset)
 		{
 			std::lock_guard<std::mutex> lock(m_pMutex[EmRenderer::eVertex]);
 			m_pRenderer[EmRenderer::eVertex]->AddRender(renderSubset);
 		}
 
-		void RendererManager::AddRender(const RenderSubsetLine& renderSubset)
+		void RendererManager::Impl::AddRender(const RenderSubsetLine& renderSubset)
 		{
 			std::lock_guard<std::mutex> lock(m_pMutex[EmRenderer::eVertex]);
 			m_pRenderer[EmRenderer::eVertex]->AddRender(renderSubset);
 		}
 
-		void RendererManager::AddRender(const RenderSubsetLineSegment& renderSubset)
+		void RendererManager::Impl::AddRender(const RenderSubsetLineSegment& renderSubset)
 		{
 			std::lock_guard<std::mutex> lock(m_pMutex[EmRenderer::eVertex]);
 			m_pRenderer[EmRenderer::eVertex]->AddRender(renderSubset);
 		}
 
-		void RendererManager::AddRender(const RenderSubsetStatic& renderSubset)
+		void RendererManager::Impl::AddRender(const RenderSubsetStatic& renderSubset)
 		{
 			std::lock_guard<std::mutex> lock(m_pMutex[EmRenderer::eModel]);
 			m_pRenderer[EmRenderer::eModel]->AddRender(renderSubset);
 		}
 
-		void RendererManager::AddRender(const RenderSubsetSkinned& renderSubset)
+		void RendererManager::Impl::AddRender(const RenderSubsetSkinned& renderSubset)
 		{
 			std::lock_guard<std::mutex> lock(m_pMutex[EmRenderer::eModel]);
 			m_pRenderer[EmRenderer::eModel]->AddRender(renderSubset);
 		}
 
-		void RendererManager::AddRender(const RenderSubsetTerrain& renderSubset)
+		void RendererManager::Impl::AddRender(const RenderSubsetTerrain& renderSubset)
 		{
 			std::lock_guard<std::mutex> lock(m_pMutex[EmRenderer::eTerrain]);
 			m_pRenderer[EmRenderer::eTerrain]->AddRender(renderSubset);
 		}
 
-		void RendererManager::AddRender(const RenderSubsetSky& renderSubset)
+		void RendererManager::Impl::AddRender(const RenderSubsetSky& renderSubset)
 		{
 			std::lock_guard<std::mutex> lock(m_pMutex[EmRenderer::eSky]);
 			m_pRenderer[EmRenderer::eSky]->AddRender(renderSubset);
 		}
 
-		void RendererManager::AddRender(const RenderSubsetSkybox& renderSubset)
+		void RendererManager::Impl::AddRender(const RenderSubsetSkybox& renderSubset)
 		{
 			std::lock_guard<std::mutex> lock(m_pMutex[EmRenderer::eSky]);
 			m_pRenderer[EmRenderer::eSky]->AddRender(renderSubset);
 		}
 
-		void RendererManager::AddRender(const RenderSubsetSkyEffect& renderSubset)
+		void RendererManager::Impl::AddRender(const RenderSubsetSkyEffect& renderSubset)
 		{
 			std::lock_guard<std::mutex> lock(m_pMutex[EmRenderer::eSky]);
 			m_pRenderer[EmRenderer::eSky]->AddRender(renderSubset);
 		}
 
-		void RendererManager::AddRender(const RenderSubsetSkyCloud& renderSubset)
+		void RendererManager::Impl::AddRender(const RenderSubsetSkyCloud& renderSubset)
 		{
 			std::lock_guard<std::mutex> lock(m_pMutex[EmRenderer::eSky]);
 			m_pRenderer[EmRenderer::eSky]->AddRender(renderSubset);
 		}
 
-		void RendererManager::AddRender(const RenderSubsetParticleEmitter& renderSubset)
+		void RendererManager::Impl::AddRender(const RenderSubsetParticleEmitter& renderSubset)
 		{
 			std::lock_guard<std::mutex> lock(m_pMutex[EmRenderer::eParticle]);
 			m_pRenderer[EmRenderer::eParticle]->AddRender(renderSubset);
 		}
 
-		void RendererManager::AddRender(const RenderSubsetParticleDecal& renderSubset)
+		void RendererManager::Impl::AddRender(const RenderSubsetParticleDecal& renderSubset)
 		{
 			std::lock_guard<std::mutex> lock(m_pMutex[EmRenderer::eParticle]);
 			m_pRenderer[EmRenderer::eParticle]->AddRender(renderSubset);
 		}
 
-		void RendererManager::AddRender(const RenderSubsetUIText& renderSubset)
+		void RendererManager::Impl::AddRender(const RenderSubsetUIText& renderSubset)
 		{
 			std::lock_guard<std::mutex> lock(m_pMutex[EmRenderer::eUI]);
 			m_pRenderer[EmRenderer::eUI]->AddRender(renderSubset);
 		}
 
-		void RendererManager::AddRender(const RenderSubsetUISprite& renderSubset)
+		void RendererManager::Impl::AddRender(const RenderSubsetUISprite& renderSubset)
 		{
 			std::lock_guard<std::mutex> lock(m_pMutex[EmRenderer::eUI]);
 			m_pRenderer[EmRenderer::eUI]->AddRender(renderSubset);
 		}
 
-		void RendererManager::AddRender(const RenderSubsetUIPanel& renderSubset)
+		void RendererManager::Impl::AddRender(const RenderSubsetUIPanel& renderSubset)
 		{
 			std::lock_guard<std::mutex> lock(m_pMutex[EmRenderer::eUI]);
 			m_pRenderer[EmRenderer::eUI]->AddRender(renderSubset);
 		}
 
-		void RendererManager::CopyToMainRenderTarget(IDevice* pDevice, IDeviceContext* pDeviceContext)
+		bool RendererManager::Impl::CreateEffect()
+		{
+			std::string strPath(File::GetPath(File::EmPath::eFx));
+
+#if defined(DEBUG) || defined(_DEBUG)
+			strPath.append("Copy_D.cso");
+#else
+			strPath.append("Copy.cso");
+#endif
+
+			m_pEffect = IEffect::Create(StrID::EffectCopy, strPath.c_str());
+			if (m_pEffect == nullptr)
+				return false;
+
+			m_pEffect->CreateTechnique(StrID::Copy, EmVertexFormat::eUnknown);
+
+			return true;
+		}
+
+		void RendererManager::Impl::CopyToMainRenderTarget(IDevice* pDevice, IDeviceContext* pDeviceContext)
 		{
 			D3D_PROFILING(pDeviceContext, CopyToMainRenderTarget);
 
@@ -315,12 +292,121 @@ namespace EastEngine
 			pDevice->ReleaseRenderTargets(&pRenderTarget);
 		}
 
-		void RendererManager::ClearEffect(IDeviceContext* pd3dDeviceContext, IEffectTech* pEffectTech)
+		void RendererManager::Impl::ClearEffect(IDeviceContext* pd3dDeviceContext, IEffectTech* pEffectTech)
 		{
 			m_pEffect->SetTexture(StrID::g_texture, nullptr);
 			m_pEffect->UndoSamplerState(StrID::g_sampler, 0);
 
 			m_pEffect->ClearState(pd3dDeviceContext, pEffectTech);
+		}
+
+		RendererManager::RendererManager()
+			: m_pImpl{ std::make_unique<Impl>() }
+		{
+		}
+
+		RendererManager::~RendererManager()
+		{
+		}
+
+		void RendererManager::Render()
+		{
+			m_pImpl->Render();
+		}
+
+		void RendererManager::Flush()
+		{
+			m_pImpl->Flush();
+		}
+
+		template <>
+		void RendererManager::AddRender(const RenderSubsetVertex& renderSubset)
+		{
+			m_pImpl->AddRender(renderSubset);
+		}
+
+		template <>
+		void RendererManager::AddRender(const RenderSubsetLine& renderSubset)
+		{
+			m_pImpl->AddRender(renderSubset);
+		}
+
+		template <>
+		void RendererManager::AddRender(const RenderSubsetLineSegment& renderSubset)
+		{
+			m_pImpl->AddRender(renderSubset);
+		}
+
+		template <>
+		void RendererManager::AddRender(const RenderSubsetStatic& renderSubset)
+		{
+			m_pImpl->AddRender(renderSubset);
+		}
+
+		template <>
+		void RendererManager::AddRender(const RenderSubsetSkinned& renderSubset)
+		{
+			m_pImpl->AddRender(renderSubset);
+		}
+
+		template <>
+		void RendererManager::AddRender(const RenderSubsetTerrain& renderSubset)
+		{
+			m_pImpl->AddRender(renderSubset);
+		}
+
+		template <>
+		void RendererManager::AddRender(const RenderSubsetSky& renderSubset)
+		{
+			m_pImpl->AddRender(renderSubset);
+		}
+
+		template <>
+		void RendererManager::AddRender(const RenderSubsetSkybox& renderSubset)
+		{
+			m_pImpl->AddRender(renderSubset);
+		}
+
+		template <>
+		void RendererManager::AddRender(const RenderSubsetSkyEffect& renderSubset)
+		{
+			m_pImpl->AddRender(renderSubset);
+		}
+
+		template <>
+		void RendererManager::AddRender(const RenderSubsetSkyCloud& renderSubset)
+		{
+			m_pImpl->AddRender(renderSubset);
+		}
+
+		template <>
+		void RendererManager::AddRender(const RenderSubsetParticleEmitter& renderSubset)
+		{
+			m_pImpl->AddRender(renderSubset);
+		}
+
+		template <>
+		void RendererManager::AddRender(const RenderSubsetParticleDecal& renderSubset)
+		{
+			m_pImpl->AddRender(renderSubset);
+		}
+
+		template <>
+		void RendererManager::AddRender(const RenderSubsetUIText& renderSubset)
+		{
+			m_pImpl->AddRender(renderSubset);
+		}
+
+		template <>
+		void RendererManager::AddRender(const RenderSubsetUISprite& renderSubset)
+		{
+			m_pImpl->AddRender(renderSubset);
+		}
+
+		template <>
+		void RendererManager::AddRender(const RenderSubsetUIPanel& renderSubset)
+		{
+			m_pImpl->AddRender(renderSubset);
 		}
 	}
 }

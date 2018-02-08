@@ -20,19 +20,90 @@ namespace EastEngine
 {
 	namespace Graphics
 	{
-		PostProcessingRenderer::PostProcessingRenderer()
-			: m_pGaussianBlur(nullptr)
-			, m_pDownscale(nullptr)
-			, m_pDepthOfField(nullptr)
-			, m_pFxaa(nullptr)
-			, m_pColorGrading(nullptr)
-			, m_pASSAO(nullptr)
-			, m_pSSS(nullptr)
-			, m_pBloomFilter(nullptr)
+		class PostProcessingRenderer::Impl
 		{
+		public:
+			Impl();
+			~Impl();
+
+		public:
+			void Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag);
+			void Flush();
+
+		private:
+			GaussianBlur* m_pGaussianBlur{ nullptr };
+			Downscale* m_pDownscale{ nullptr };
+			DepthOfField* m_pDepthOfField{ nullptr };
+			FXAA* m_pFxaa{ nullptr };
+			HDRFilter*	m_pHDRFilter{ nullptr };
+			ColorGrading* m_pColorGrading{ nullptr };
+			ASSAO* m_pASSAO{ nullptr };
+			SSS* m_pSSS{ nullptr };
+			BloomFilter* m_pBloomFilter{ nullptr };
+		};
+
+		PostProcessingRenderer::Impl::Impl()
+		{
+			m_pGaussianBlur = GaussianBlur::GetInstance();
+			if (m_pGaussianBlur->Init() == false)
+			{
+				assert(false);
+				return;
+			}
+
+			m_pDownscale = Downscale::GetInstance();
+			if (m_pDownscale->Init() == false)
+			{
+				assert(false);
+				return;
+			}
+
+			m_pDepthOfField = DepthOfField::GetInstance();
+			if (m_pDepthOfField->Init() == false)
+			{
+				assert(false);
+				return;
+			}
+
+			m_pFxaa = FXAA::GetInstance();
+			if (m_pFxaa->Init() == false)
+			{
+				assert(false);
+				return;
+			}
+
+			m_pColorGrading = ColorGrading::GetInstance();
+			if (m_pColorGrading->Init() == false)
+			{
+				assert(false);
+				return;
+			}
+
+			m_pHDRFilter = HDRFilter::GetInstance();
+
+			m_pASSAO = ASSAO::GetInstance();
+			if (m_pASSAO->Init() == false)
+			{
+				assert(false);
+				return;
+			}
+
+			m_pSSS = SSS::GetInstance();
+			if (m_pSSS->Init() == false)
+			{
+				assert(false);
+				return;
+			}
+
+			m_pBloomFilter = BloomFilter::GetInstance();
+			if (m_pBloomFilter->Init() == false)
+			{
+				assert(false);
+				return;
+			}
 		}
 
-		PostProcessingRenderer::~PostProcessingRenderer()
+		PostProcessingRenderer::Impl::~Impl()
 		{
 			SafeRelease(m_pGaussianBlur);
 			GaussianBlur::DestroyInstance();
@@ -61,46 +132,7 @@ namespace EastEngine
 			BloomFilter::DestroyInstance();
 		}
 
-		bool PostProcessingRenderer::Init(const Math::Viewport& viewport)
-		{
-			m_pGaussianBlur = GaussianBlur::GetInstance();
-			if (m_pGaussianBlur->Init() == false)
-				return false;
-
-			m_pDownscale = Downscale::GetInstance();
-			if (m_pDownscale->Init() == false)
-				return false;
-
-			m_pDepthOfField = DepthOfField::GetInstance();
-			if (m_pDepthOfField->Init() == false)
-				return false;
-
-			m_pFxaa = FXAA::GetInstance();
-			if (m_pFxaa->Init() == false)
-				return false;
-
-			m_pColorGrading = ColorGrading::GetInstance();
-			if (m_pColorGrading->Init() == false)
-				return false;
-
-			m_pHDRFilter = HDRFilter::GetInstance();
-
-			m_pASSAO = ASSAO::GetInstance();
-			if (m_pASSAO->Init(viewport) == false)
-				return false;
-
-			m_pSSS = SSS::GetInstance();
-			if (m_pSSS->Init() == false)
-				return false;
-
-			m_pBloomFilter = BloomFilter::GetInstance();
-			if (m_pBloomFilter->Init() == false)
-				return false;
-
-			return true;
-		}
-
-		void PostProcessingRenderer::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
+		void PostProcessingRenderer::Impl::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
 		{
 			D3D_PROFILING(pDeviceContext, PostProcessing);
 
@@ -127,7 +159,7 @@ namespace EastEngine
 				IRenderTarget* pHDR = pDevice->GetRenderTarget(pDevice->GetLastUseRenderTarget()->GetDesc2D(), false);
 				IRenderTarget* pSource = pDevice->GetLastUseRenderTarget();
 				m_pHDRFilter->Apply(pDevice, pDeviceContext, pHDR, pSource);
-			
+
 				pDevice->ReleaseRenderTargets(&pHDR);
 			}
 
@@ -166,8 +198,27 @@ namespace EastEngine
 			}
 		}
 
+		void PostProcessingRenderer::Impl::Flush()
+		{
+		}
+
+		PostProcessingRenderer::PostProcessingRenderer()
+			: m_pImpl{ std::make_unique<Impl>() }
+		{
+		}
+
+		PostProcessingRenderer::~PostProcessingRenderer()
+		{
+		}
+
+		void PostProcessingRenderer::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
+		{
+			m_pImpl->Render(pDevice, pDeviceContext, pCamera, nRenderGroupFlag);
+		}
+
 		void PostProcessingRenderer::Flush()
 		{
+			m_pImpl->Flush();
 		}
 	}
 }

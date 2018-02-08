@@ -198,12 +198,44 @@ namespace EastEngine
 			std::vector<Math::Color> vecInstColor;
 		};
 
-		ParticleRenderer::ParticleRenderer()
-			: m_pEffect(nullptr)
+		class ParticleRenderer::Impl
+		{
+		public:
+			Impl();
+			~Impl();
+
+		public:
+			void AddRender(const RenderSubsetParticleEmitter& renderSubset);
+			void AddRender(const RenderSubsetParticleDecal& renderSubset);
+
+			void Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag);
+			void Flush();
+
+		private:
+			bool CreateBuffer();
+			void RenderEmitter(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera);
+			void RenderDecal(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera);
+
+		private:
+			IEffect* m_pEffect{ nullptr };
+
+			std::priority_queue<RenderSubsetParticleEmitter, std::vector<RenderSubsetParticleEmitter>, ParticleSortor> m_queueEmitter;
+			uint32_t m_nEmitterVertexCount{ 0 };
+
+			std::list<RenderSubsetParticleDecal> m_listDecal;
+
+			IVertexBuffer* m_pEmitterVB{ nullptr };
+			IIndexBuffer* m_pEmitterIB{ nullptr };
+
+			IVertexBuffer* m_pDecalVB{ nullptr };
+			IIndexBuffer* m_pDecalIB{ nullptr };
+		};
+
+		ParticleRenderer::Impl::Impl()
 		{
 		}
 
-		ParticleRenderer::~ParticleRenderer()
+		ParticleRenderer::Impl::~Impl()
 		{
 			IEffect::Destroy(&m_pEffect);
 
@@ -214,7 +246,43 @@ namespace EastEngine
 			SafeDelete(m_pDecalIB);
 		}
 
-		bool ParticleRenderer::Init(const Math::Viewport& viewport)
+		void ParticleRenderer::Impl::AddRender(const RenderSubsetParticleEmitter& renderSubset)
+		{
+			if (m_nEmitterVertexCount + renderSubset.nVertexCount > eEmitterCapacity)
+				return;
+
+			m_nEmitterVertexCount += renderSubset.nVertexCount;
+
+			m_queueEmitter.emplace(renderSubset);
+		}
+
+		void ParticleRenderer::Impl::AddRender(const RenderSubsetParticleDecal& renderSubset)
+		{
+			m_listDecal.emplace_back(renderSubset);
+		}
+
+		void ParticleRenderer::Impl::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
+		{
+			D3D_PROFILING(pDeviceContext, EffectRenderer);
+
+			if ((nRenderGroupFlag & Group::eDecal) != 0)
+			{
+				RenderDecal(pDevice, pDeviceContext, pCamera);
+			}
+
+			if ((nRenderGroupFlag & Group::eEmitter) != 0)
+			{
+				RenderEmitter(pDevice, pDeviceContext, pCamera);
+			}
+		}
+
+		void ParticleRenderer::Impl::Flush()
+		{
+			m_listDecal.clear();
+			m_nEmitterVertexCount = 0;
+		}
+
+		bool ParticleRenderer::Impl::CreateBuffer()
 		{
 			// Emitter
 			{
@@ -253,11 +321,11 @@ namespace EastEngine
 				const Math::Vector3 faceNormals[FaceCount] =
 				{
 					{ 0, 0, 1 },
-					{ 0, 0, -1 },
-					{ 1, 0, 0 },
-					{ -1, 0, 0 },
-					{ 0, 1, 0 },
-					{ 0, -1, 0 },
+				{ 0, 0, -1 },
+				{ 1, 0, 0 },
+				{ -1, 0, 0 },
+				{ 0, 1, 0 },
+				{ 0, -1, 0 },
 				};
 
 				Math::Vector3 tsize = Math::Vector3(0.5f, 0.5f, 0.5f);
@@ -305,28 +373,7 @@ namespace EastEngine
 			return true;
 		}
 
-		void ParticleRenderer::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
-		{
-			D3D_PROFILING(pDeviceContext, EffectRenderer);
-
-			if ((nRenderGroupFlag & EmParticleGroup::eDecal) != 0)
-			{
-				RenderDecal(pDevice, pDeviceContext, pCamera);
-			}
-
-			if ((nRenderGroupFlag & EmParticleGroup::eEmitter) != 0)
-			{
-				RenderEmitter(pDevice, pDeviceContext, pCamera);
-			}
-		}
-
-		void ParticleRenderer::Flush()
-		{
-			m_listDecal.clear();
-			m_nEmitterVertexCount = 0;
-		}
-
-		void ParticleRenderer::RenderEmitter(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera)
+		void ParticleRenderer::Impl::RenderEmitter(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera)
 		{
 			D3D_PROFILING(pDeviceContext, Particle);
 
@@ -476,7 +523,7 @@ namespace EastEngine
 			}
 		}
 
-		void ParticleRenderer::RenderDecal(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera)
+		void ParticleRenderer::Impl::RenderDecal(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera)
 		{
 			D3D_PROFILING(pDeviceContext, Decal);
 
@@ -676,6 +723,35 @@ namespace EastEngine
 
 				pDevice->ReleaseRenderTargets(pRenderTarget, _countof(pRenderTarget));
 			}
+		}
+
+		ParticleRenderer::ParticleRenderer()
+			: m_pImpl{ std::make_unique<Impl>() }
+		{
+		}
+
+		ParticleRenderer::~ParticleRenderer()
+		{
+		}
+
+		void ParticleRenderer::AddRender(const RenderSubsetParticleEmitter& renderSubset)
+		{
+			m_pImpl->AddRender(renderSubset);
+		}
+
+		void ParticleRenderer::AddRender(const RenderSubsetParticleDecal& renderSubset)
+		{
+			m_pImpl->AddRender(renderSubset);
+		}
+
+		void ParticleRenderer::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
+		{
+			m_pImpl->Render(pDevice, pDeviceContext, pCamera, nRenderGroupFlag);
+		}
+
+		void ParticleRenderer::Flush()
+		{
+			m_pImpl->Flush();
 		}
 	}
 }

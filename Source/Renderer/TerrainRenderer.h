@@ -6,9 +6,6 @@ namespace EastEngine
 {
 	namespace Graphics
 	{
-		class IEffect;
-		class IEffectTech;
-
 		class TerrainRenderer : public IRenderer
 		{
 		public:
@@ -16,20 +13,14 @@ namespace EastEngine
 			virtual ~TerrainRenderer();
 
 		public:
-			virtual bool Init(const Math::Viewport& viewport) override;
-
-			virtual void AddRender(const RenderSubsetTerrain& renderPiece) override { m_vecTerrain.emplace_back(renderPiece); }
+			virtual void AddRender(const RenderSubsetTerrain& renderPiece);
 
 			virtual void Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag) override;
-			virtual void Flush() override { m_vecTerrain.clear(); }
+			virtual void Flush();
 
 		private:
-			void ClearEffect(IDeviceContext* pd3dDeviceContext, IEffectTech* pTech);
-
-		private:
-			IEffect* m_pEffect;
-
-			std::vector<RenderSubsetTerrain> m_vecTerrain;
+			class Impl;
+			std::unique_ptr<Impl> m_pImpl;
 		};
 	}
 }

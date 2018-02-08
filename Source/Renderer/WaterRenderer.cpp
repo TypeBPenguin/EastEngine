@@ -52,57 +52,137 @@ namespace EastEngine
 {
 	namespace Graphics
 	{
-		WaterRenderer::WaterRenderer()
-			: m_pWaterSimulator(nullptr)
-			, m_nMeshDim(128)
-			, m_fPatchLength(0.f)
-			, m_nDisplaceMapDim(0)
-			, m_fUpperGridCoverage(64.0f)
-			, m_nFurthestCover(8)
-			, m_f3SkyColor(0.38f, 0.45f, 0.56f)
-			, m_f3WaterbodyColor(0.07f, 0.15f, 0.2f)
-			, m_fSkyBlending(16.0f)
-			, m_fPerlinSize(1.0f)
-			, m_fPerlinSpeed(0.06f)
-			, m_f3PerlinAmplitude(35, 42, 57)
-			, m_f3PerlinGradient(1.4f, 1.6f, 2.2f)
-			, m_f3PerlinOctave(1.12f, 0.59f, 0.23f)
-			, m_f3BendParam(0.1f, -0.4f, 0.2f)
-			, m_f3SunDir(0.936016f, -0.343206f, 0.0780013f)
-			, m_f3SunColor(1.0f, 1.0f, 0.6f)
-			, m_fShineness(400.0f)
-			, m_nLods(0)
-			, m_pVertexBuffer(nullptr)
-			, m_pIndexBuffer(nullptr)
-			, m_pFresnelMap(nullptr)
+		// Quadtree structures & routines
+		struct QuadNode
 		{
-			Memory::Clear(&m_mesh_patterns, sizeof(m_mesh_patterns));
-		}
+			Math::Vector2 bottom_left;
+			float length{ 0.f };
+			int lod{ 0 };
 
-		WaterRenderer::~WaterRenderer()
+			int sub_node[4]{ 0 };
+		};
+
+		struct QuadRenderParam
 		{
-			SafeReleaseDelete(m_pWaterSimulator);
-			SafeDelete(m_pVertexBuffer);
-			SafeDelete(m_pIndexBuffer);
+			uint32_t num_inner_verts{ 0 };
+			uint32_t num_inner_faces{ 0 };
+			uint32_t inner_start_index{ 0 };
 
-			m_pFresnelMap.reset();
-			m_pSRV_Perlin.reset();
-			m_pSRV_ReflectCube.reset();
-		}
+			uint32_t num_boundary_verts{ 0 };
+			uint32_t num_boundary_faces{ 0 };
+			uint32_t boundary_start_index{ 0 };
+		};
 
-		bool WaterRenderer::Init(const Math::Viewport& viewport)
+		class WaterRenderer::Impl
 		{
-			std::string strPath(File::GetPath(File::EmPath::eFx));
+		public:
+			Impl();
+			~Impl();
 
-#if defined(DEBUG) || defined(_DEBUG)
-			strPath.append("Water\\Water_D.cso");
-#else
-			strPath.append("Water\\Water.cso");
-#endif
+		public:
+			void Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag);
+			void Flush();
 
-			m_pEffect = IEffect::Create(StrID::EffectWater, strPath.c_str());
-			m_pEffect->CreateTechnique(StrID::Water, EmVertexFormat::ePos);
-			m_pEffect->CreateTechnique(StrID::WaterWireframe, EmVertexFormat::ePos);
+		private:
+			bool CreateEffect();
+			void ClearEffect(IDeviceContext* pd3dDeviceContext, IEffectTech* pEffectTech);
+
+			void Simulate(IDevice* pDevice, IDeviceContext* pDeviceContext, float fTime);
+			void Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, float fTime);
+
+		private:
+			bool IsLeaf(const QuadNode& quad_node);
+			int BuildNodeList(IDevice* pDevice, IDeviceContext* pDeviceContext, QuadNode& quad_node, Camera* pCamera);
+			bool CheckNodeVisibility(const QuadNode& quad_node, Camera* pCamera);
+			float EstimateGridCoverage(const QuadNode& quad_node, Camera* pCamera, float screen_area);
+
+			int SearchLeaf(const std::vector<QuadNode>& node_list, const Math::Vector2& point);
+			QuadRenderParam& SelectMeshPattern(const QuadNode& quad_node);
+
+			// create a triangle strip mesh for ocean surface.
+			void CreateSurfaceMesh();
+			// create color/fresnel lookup table.
+			void CreateFresnelMap();
+			// create perlin noise texture for far-sight rendering
+			void LoadTextures();
+
+			// Generate boundary mesh for a patch. Return the number of generated indices
+			int GenerateBoundaryMesh(int left_degree, int right_degree, int bottom_degree, int top_degree, const Math::Rect& vert_rect, uint32_t* output);
+
+			// Generate boundary mesh for a patch. Return the number of generated indices
+			int GenerateInnerMesh(const Math::Rect& vert_rect, uint32_t* output);
+
+		private:
+			IEffect* m_pEffect{ nullptr };
+
+			WaterSimulator* m_pWaterSimulator{ nullptr };
+
+			// Mesh grid dimension, must be 2^n. 4x4 ~ 256x256
+			int m_nMeshDim{ 128 };
+			// Side length of square shaped mesh patch
+			float m_fPatchLength{ 0.f };
+			// Dimension of displacement map
+			int m_nDisplaceMapDim{ 0 };
+			// Subdivision thredshold. Any quad covers more pixels than this value needs to be subdivided.
+			float m_fUpperGridCoverage{ 64.f };
+			// Draw distance = m_PatchLength * 2^m_FurthestCover
+			int m_nFurthestCover{ 8 };
+
+			// Shading properties:
+			// Two colors for waterbody and sky color
+			Math::Vector3 m_f3SkyColor{ 0.38f, 0.45f, 0.56f };
+			Math::Vector3 m_f3WaterbodyColor{ 0.07f, 0.15f, 0.2f };
+			// Blending term for sky cubemap
+			float m_fSkyBlending{ 16.f };
+
+			// Perlin wave parameters
+			float m_fPerlinSize{ 1.f };
+			float m_fPerlinSpeed{ 0.06f };
+			Math::Vector3 m_f3PerlinAmplitude{ 35.f, 42.f, 57.f };
+			Math::Vector3 m_f3PerlinGradient{ 1.4f, 1.6f, 2.2f };
+			Math::Vector3 m_f3PerlinOctave{ 1.12f, 0.59f, 0.23f };
+			Math::Vector2 m_f2WindDir;
+
+			Math::Vector3 m_f3BendParam{ 0.1f, -0.4f, 0.2f };
+
+			// Sunspot parameters
+			Math::Vector3 m_f3SunDir{ 0.936016f, -0.343206f, 0.0780013f };
+			Math::Vector3 m_f3SunColor{ 1.0f, 1.0f, 0.6f };
+			float m_fShineness{ 400.f };
+
+			QuadRenderParam m_mesh_patterns[9][3][3][3][3]{};
+			int m_nLods{ 0 };
+
+			IVertexBuffer* m_pVertexBuffer{ nullptr };
+			IIndexBuffer* m_pIndexBuffer{ nullptr };
+
+			// Color look up 1D texture
+			std::shared_ptr<ITexture> m_pFresnelMap;
+
+			// Distant perlin wave
+			std::shared_ptr<ITexture> m_pSRV_Perlin;
+
+			// Environment maps
+			std::shared_ptr<ITexture> m_pSRV_ReflectCube;
+
+			std::vector<QuadNode> m_vecRenderNode;
+
+			ISamplerState* m_pSamplerHeight{ nullptr };
+			ISamplerState* m_pSamplerCube{ nullptr };
+			ISamplerState* m_pSamplerGradient{ nullptr };
+			ISamplerState* m_pSamplerPerlin{ nullptr };
+			ISamplerState* m_pSamplerFresnel{ nullptr };
+
+			IBlendState* m_pBlendState{ nullptr };
+		};
+
+		WaterRenderer::Impl::Impl()
+		{
+			if (CreateEffect() == false)
+			{
+				assert(false);
+				return;
+			}
 
 			OceanParameter ocean_param;
 			// The size of displacement map. In this sample, it's fixed to 512.
@@ -129,7 +209,8 @@ namespace EastEngine
 			if (m_pWaterSimulator->Init(ocean_param) == false)
 			{
 				SafeReleaseDelete(m_pWaterSimulator);
-				return false;
+				assert(false);
+				return;
 			}
 
 			// Update the simulation for the first time.
@@ -141,9 +222,9 @@ namespace EastEngine
 			m_f2WindDir = ocean_param.wind_dir;
 
 			// D3D buffers
-			createSurfaceMesh();
-			createFresnelMap();
-			loadTextures();
+			CreateSurfaceMesh();
+			CreateFresnelMap();
+			LoadTextures();
 
 			// Samplers
 			SamplerStateDesc sam_desc;
@@ -191,11 +272,20 @@ namespace EastEngine
 			blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 			blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 			m_pBlendState = IBlendState::Create(blendDesc);
-
-			return true;
 		}
 
-		void WaterRenderer::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
+		WaterRenderer::Impl::~Impl()
+		{
+			SafeReleaseDelete(m_pWaterSimulator);
+			SafeDelete(m_pVertexBuffer);
+			SafeDelete(m_pIndexBuffer);
+
+			m_pFresnelMap.reset();
+			m_pSRV_Perlin.reset();
+			m_pSRV_ReflectCube.reset();
+		}
+
+		void WaterRenderer::Impl::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
 		{
 			D3D_PROFILING(pDeviceContext, Water);
 
@@ -206,12 +296,32 @@ namespace EastEngine
 			Render(pDevice, pDeviceContext, pCamera, (float)(dGameTime));
 		}
 
-		void WaterRenderer::Flush()
+		void WaterRenderer::Impl::Flush()
 		{
 			m_vecRenderNode.clear();
 		}
 
-		void WaterRenderer::ClearEffect(IDeviceContext* pd3dDeviceContext, IEffectTech* pEffectTech)
+		bool WaterRenderer::Impl::CreateEffect()
+		{
+			std::string strPath(File::GetPath(File::EmPath::eFx));
+
+#if defined(DEBUG) || defined(_DEBUG)
+			strPath.append("Water\\Water_D.cso");
+#else
+			strPath.append("Water\\Water.cso");
+#endif
+
+			m_pEffect = IEffect::Create(StrID::EffectWater, strPath.c_str());
+			if (m_pEffect == nullptr)
+				return false;
+
+			m_pEffect->CreateTechnique(StrID::Water, EmVertexFormat::ePos);
+			m_pEffect->CreateTechnique(StrID::WaterWireframe, EmVertexFormat::ePos);
+
+			return true;
+		}
+
+		void WaterRenderer::Impl::ClearEffect(IDeviceContext* pd3dDeviceContext, IEffectTech* pEffectTech)
 		{
 			m_pEffect->SetTexture(StrID::g_texDisplacement, nullptr);
 			m_pEffect->SetTexture(StrID::g_texPerlin, nullptr);
@@ -227,14 +337,14 @@ namespace EastEngine
 			m_pEffect->ClearState(pd3dDeviceContext, pEffectTech);
 		}
 
-		void WaterRenderer::Simulate(IDevice* pDevice, IDeviceContext* pDeviceContext, float fTime)
+		void WaterRenderer::Impl::Simulate(IDevice* pDevice, IDeviceContext* pDeviceContext, float fTime)
 		{
 			D3D_PROFILING(pDeviceContext, Simulate);
 
 			m_pWaterSimulator->UpdateDisplacementMap(pDevice, pDeviceContext, fTime);
 		}
 
-		void WaterRenderer::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, float fTime)
+		void WaterRenderer::Impl::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, float fTime)
 		{
 			D3D_PROFILING(pDeviceContext, Render);
 			IEffectTech* pEffectTech = m_pEffect->GetTechnique(StrID::Water);
@@ -250,7 +360,7 @@ namespace EastEngine
 			float ocean_extent = m_fPatchLength * (1 << m_nFurthestCover);
 			QuadNode root_node = { Math::Vector2(-ocean_extent * 0.5f, -ocean_extent * 0.5f), ocean_extent, 0,{ -1,-1,-1,-1 } };
 
-			buildNodeList(pDevice, pDeviceContext, root_node, pCamera);
+			BuildNodeList(pDevice, pDeviceContext, root_node, pCamera);
 
 			// Matrices
 			//const Matrix& matView = pCamera->GetViewMatrix();
@@ -318,11 +428,11 @@ namespace EastEngine
 			{
 				QuadNode& node = m_vecRenderNode[i];
 
-				if (isLeaf(node) == false)
+				if (IsLeaf(node) == false)
 					continue;
 
 				// Check adjacent patches and select mesh pattern
-				QuadRenderParam& render_param = selectMeshPattern(node);
+				QuadRenderParam& render_param = SelectMeshPattern(node);
 
 				// Find the right LOD to render
 				int level_size = m_nMeshDim;
@@ -376,17 +486,22 @@ namespace EastEngine
 			pDevice->ReleaseRenderTargets(&pRenderTarget);
 		}
 
-		int WaterRenderer::buildNodeList(IDevice* pDevice, IDeviceContext* pDeviceContext, QuadNode& quad_node, Camera* pCamera)
+		bool WaterRenderer::Impl::IsLeaf(const QuadNode& quad_node)
+		{
+			return (quad_node.sub_node[0] == -1 && quad_node.sub_node[1] == -1 && quad_node.sub_node[2] == -1 && quad_node.sub_node[3] == -1);
+		}
+
+		int WaterRenderer::Impl::BuildNodeList(IDevice* pDevice, IDeviceContext* pDeviceContext, QuadNode& quad_node, Camera* pCamera)
 		{
 			// Check against view frustum
-			if (!checkNodeVisibility(quad_node, pCamera))
+			if (!CheckNodeVisibility(quad_node, pCamera))
 				return -1;
 
 			// Estimate the min grid coverage
 			uint32_t num_vps = 1;
 			D3D11_VIEWPORT vp;
 			pDeviceContext->GetInterface()->RSGetViewports(&num_vps, &vp);
-			float min_coverage = estimateGridCoverage(quad_node, pCamera, vp.Width * vp.Height);
+			float min_coverage = EstimateGridCoverage(quad_node, pCamera, vp.Width * vp.Height);
 
 			// Recursively attatch sub-nodes.
 			bool visible = true;
@@ -394,18 +509,18 @@ namespace EastEngine
 			{
 				// Recursive rendering for sub-quads.
 				QuadNode sub_node_0 = { quad_node.bottom_left, quad_node.length / 2, 0,{ -1, -1, -1, -1 } };
-				quad_node.sub_node[0] = buildNodeList(pDevice, pDeviceContext, sub_node_0, pCamera);
+				quad_node.sub_node[0] = BuildNodeList(pDevice, pDeviceContext, sub_node_0, pCamera);
 
 				QuadNode sub_node_1 = { quad_node.bottom_left + Math::Vector2(quad_node.length / 2, 0), quad_node.length / 2, 0,{ -1, -1, -1, -1 } };
-				quad_node.sub_node[1] = buildNodeList(pDevice, pDeviceContext, sub_node_1, pCamera);
+				quad_node.sub_node[1] = BuildNodeList(pDevice, pDeviceContext, sub_node_1, pCamera);
 
 				QuadNode sub_node_2 = { quad_node.bottom_left + Math::Vector2(quad_node.length / 2, quad_node.length / 2), quad_node.length / 2, 0,{ -1, -1, -1, -1 } };
-				quad_node.sub_node[2] = buildNodeList(pDevice, pDeviceContext, sub_node_2, pCamera);
+				quad_node.sub_node[2] = BuildNodeList(pDevice, pDeviceContext, sub_node_2, pCamera);
 
 				QuadNode sub_node_3 = { quad_node.bottom_left + Math::Vector2(0, quad_node.length / 2), quad_node.length / 2, 0,{ -1, -1, -1, -1 } };
-				quad_node.sub_node[3] = buildNodeList(pDevice, pDeviceContext, sub_node_3, pCamera);
+				quad_node.sub_node[3] = BuildNodeList(pDevice, pDeviceContext, sub_node_3, pCamera);
 
-				visible = !isLeaf(quad_node);
+				visible = !IsLeaf(quad_node);
 			}
 
 			if (visible == false)
@@ -431,7 +546,7 @@ namespace EastEngine
 			return position;
 		}
 
-		bool WaterRenderer::checkNodeVisibility(const QuadNode& quad_node, Camera* pCamera)
+		bool WaterRenderer::Impl::CheckNodeVisibility(const QuadNode& quad_node, Camera* pCamera)
 		{
 			int nThreadID = GetThreadID(ThreadType::eRender);
 
@@ -506,7 +621,7 @@ namespace EastEngine
 			return true;
 		}
 
-		float WaterRenderer::estimateGridCoverage(const QuadNode& quad_node, Camera* pCamera, float screen_area)
+		float WaterRenderer::Impl::EstimateGridCoverage(const QuadNode& quad_node, Camera* pCamera, float screen_area)
 		{
 			// Estimate projected area
 
@@ -514,21 +629,21 @@ namespace EastEngine
 			const static float sample_pos[16][2] =
 			{
 				{ 0, 0 },
-				{ 0, 1 },
-				{ 1, 0 },
-				{ 1, 1 },
-				{ 0.5f, 0.333f },
-				{ 0.25f, 0.667f },
-				{ 0.75f, 0.111f },
-				{ 0.125f, 0.444f },
-				{ 0.625f, 0.778f },
-				{ 0.375f, 0.222f },
-				{ 0.875f, 0.556f },
-				{ 0.0625f, 0.889f },
-				{ 0.5625f, 0.037f },
-				{ 0.3125f, 0.37f },
-				{ 0.8125f, 0.704f },
-				{ 0.1875f, 0.148f },
+			{ 0, 1 },
+			{ 1, 0 },
+			{ 1, 1 },
+			{ 0.5f, 0.333f },
+			{ 0.25f, 0.667f },
+			{ 0.75f, 0.111f },
+			{ 0.125f, 0.444f },
+			{ 0.625f, 0.778f },
+			{ 0.375f, 0.222f },
+			{ 0.875f, 0.556f },
+			{ 0.0625f, 0.889f },
+			{ 0.5625f, 0.037f },
+			{ 0.3125f, 0.37f },
+			{ 0.8125f, 0.704f },
+			{ 0.1875f, 0.148f },
 			};
 
 			int nThreadID = GetThreadID(ThreadType::eRender);
@@ -558,14 +673,14 @@ namespace EastEngine
 			return pixel_coverage;
 		}
 
-		int WaterRenderer::searchLeaf(const std::vector<QuadNode>& node_list, const Math::Vector2& point)
+		int WaterRenderer::Impl::SearchLeaf(const std::vector<QuadNode>& node_list, const Math::Vector2& point)
 		{
 			int index = -1;
 
 			size_t size = node_list.size();
 			QuadNode node = node_list[size - 1];
 
-			while (isLeaf(node) == false)
+			while (IsLeaf(node) == false)
 			{
 				bool found = false;
 
@@ -592,20 +707,20 @@ namespace EastEngine
 			return index;
 		}
 
-		QuadRenderParam& WaterRenderer::selectMeshPattern(const QuadNode& quad_node)
+		QuadRenderParam& WaterRenderer::Impl::SelectMeshPattern(const QuadNode& quad_node)
 		{
 			// Check 4 adjacent quad.
 			Math::Vector2 point_left = quad_node.bottom_left + Math::Vector2(-m_fPatchLength * 0.5f, quad_node.length * 0.5f);
-			int left_adj_index = searchLeaf(m_vecRenderNode, point_left);
+			int left_adj_index = SearchLeaf(m_vecRenderNode, point_left);
 
 			Math::Vector2 point_right = quad_node.bottom_left + Math::Vector2(quad_node.length + m_fPatchLength * 0.5f, quad_node.length * 0.5f);
-			int right_adj_index = searchLeaf(m_vecRenderNode, point_right);
+			int right_adj_index = SearchLeaf(m_vecRenderNode, point_right);
 
 			Math::Vector2 point_bottom = quad_node.bottom_left + Math::Vector2(quad_node.length * 0.5f, -m_fPatchLength * 0.5f);
-			int bottom_adj_index = searchLeaf(m_vecRenderNode, point_bottom);
+			int bottom_adj_index = SearchLeaf(m_vecRenderNode, point_bottom);
 
 			Math::Vector2 point_top = quad_node.bottom_left + Math::Vector2(quad_node.length * 0.5f, quad_node.length + m_fPatchLength * 0.5f);
-			int top_adj_index = searchLeaf(m_vecRenderNode, point_top);
+			int top_adj_index = SearchLeaf(m_vecRenderNode, point_top);
 
 			int left_type = 0;
 			if (left_adj_index != -1 && m_vecRenderNode[left_adj_index].length > quad_node.length * 0.999f)
@@ -655,7 +770,7 @@ namespace EastEngine
 			return m_mesh_patterns[quad_node.lod][left_type][right_type][bottom_type][top_type];
 		}
 
-		void WaterRenderer::createSurfaceMesh()
+		void WaterRenderer::Impl::CreateSurfaceMesh()
 		{
 			// --------------------------------- Vertex Buffer -------------------------------
 			int num_verts = (m_nMeshDim + 1) * (m_nMeshDim + 1);
@@ -724,7 +839,7 @@ namespace EastEngine
 								inner_rect.bottom = (bottom_degree == level_size) ? 0 : 1;
 								inner_rect.top = (top_degree == level_size) ? level_size : level_size - 1;
 
-								int num_new_indices = generateInnerMesh(inner_rect, &indexCollector[offset]);
+								int num_new_indices = GenerateInnerMesh(inner_rect, &indexCollector[offset]);
 
 								pattern->inner_start_index = offset;
 								pattern->num_inner_verts = (level_size + 1) * (level_size + 1);
@@ -738,7 +853,7 @@ namespace EastEngine
 								int t_degree = (top_degree == level_size) ? 0 : top_degree;
 
 								Math::Rect outer_rect = { 0, level_size, level_size, 0 };
-								num_new_indices = generateBoundaryMesh(l_degree, r_degree, b_degree, t_degree, outer_rect, &indexCollector[offset]);
+								num_new_indices = GenerateBoundaryMesh(l_degree, r_degree, b_degree, t_degree, outer_rect, &indexCollector[offset]);
 
 								pattern->boundary_start_index = offset;
 								pattern->num_boundary_verts = (level_size + 1) * (level_size + 1);
@@ -761,14 +876,14 @@ namespace EastEngine
 			m_pIndexBuffer = IIndexBuffer::Create(indexCollector.size(), &indexCollector.front(), D3D11_USAGE_IMMUTABLE);
 		}
 
-		void WaterRenderer::createFresnelMap()
+		void WaterRenderer::Impl::CreateFresnelMap()
 		{
 			DWORD* buffer = new DWORD[FRESNEL_TEX_SIZE];
 			for (int i = 0; i < FRESNEL_TEX_SIZE; i++)
 			{
 				float cos_a = i / (FLOAT)FRESNEL_TEX_SIZE;
 				// Using water's refraction index 1.33
-				
+
 				Math::Vector3 f3Fresnel(Math::Vector3::FresnelTerm(Math::Vector3(cos_a, 0.f, 0.f), Math::Vector3(1.33f, 0.f, 0.f)) * 255);
 				DWORD fresnel = (DWORD)f3Fresnel.x;
 
@@ -798,7 +913,7 @@ namespace EastEngine
 			SafeDeleteArray(buffer);
 		}
 
-		void WaterRenderer::loadTextures()
+		void WaterRenderer::Impl::LoadTextures()
 		{
 			std::string strPerlinPath = File::GetPath(File::eTexture);
 			strPerlinPath.append("perlin_noise.dds");
@@ -810,8 +925,7 @@ namespace EastEngine
 		}
 
 #define MESH_INDEX_2D(x, y)	(((y) + vert_rect.bottom) * (m_nMeshDim + 1) + (x) + vert_rect.left)
-		int WaterRenderer::generateBoundaryMesh(int left_degree, int right_degree, int bottom_degree, int top_degree,
-			const Math::Rect& vert_rect, uint32_t* output)
+		int WaterRenderer::Impl::GenerateBoundaryMesh(int left_degree, int right_degree, int bottom_degree, int top_degree, const Math::Rect& vert_rect, uint32_t* output)
 		{
 			// Triangle list for bottom boundary
 			int i, j;
@@ -954,7 +1068,7 @@ namespace EastEngine
 			return counter;
 		}
 
-		int WaterRenderer::generateInnerMesh(const Math::Rect& vert_rect, uint32_t* output)
+		int WaterRenderer::Impl::GenerateInnerMesh(const Math::Rect& vert_rect, uint32_t* output)
 		{
 			int counter = 0;
 			int width = vert_rect.right - vert_rect.left;
@@ -988,6 +1102,25 @@ namespace EastEngine
 			}
 
 			return counter;
+		}
+
+		WaterRenderer::WaterRenderer()
+			: m_pImpl{ std::make_unique<Impl>() }
+		{
+		}
+
+		WaterRenderer::~WaterRenderer()
+		{
+		}
+
+		void WaterRenderer::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
+		{
+			m_pImpl->Render(pDevice, pDeviceContext, pCamera, nRenderGroupFlag);
+		}
+
+		void WaterRenderer::Flush()
+		{
+			m_pImpl->Flush();
 		}
 	}
 }

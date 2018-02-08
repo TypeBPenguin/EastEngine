@@ -34,9 +34,6 @@
     <Filter Include="Renderer\Deferred">
       <UniqueIdentifier>{4947940f-a7f0-4604-98ce-506954257083}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Renderer\PreProcessing">
-      <UniqueIdentifier>{26f666b6-39c0-407c-84d8-6c3933120319}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Renderer\Interface">
       <UniqueIdentifier>{023047c5-420c-4275-98cd-35099d0598df}</UniqueIdentifier>
     </Filter>
@@ -114,9 +111,6 @@
     <ClInclude Include="PostProcessingRenderer.h">
       <Filter>Renderer\PostProcessing</Filter>
     </ClInclude>
-    <ClInclude Include="PreProcessingRenderer.h">
-      <Filter>Renderer\PreProcessing</Filter>
-    </ClInclude>
     <ClInclude Include="SkyRenderer.h">
       <Filter>Renderer\Sky</Filter>
     </ClInclude>
@@ -187,9 +181,6 @@
     </ClCompile>
     <ClCompile Include="PostProcessingRenderer.cpp">
       <Filter>Renderer\PostProcessing</Filter>
-    </ClCompile>
-    <ClCompile Include="PreProcessingRenderer.cpp">
-      <Filter>Renderer\PreProcessing</Filter>
     </ClCompile>
     <ClCompile Include="SkyRenderer.cpp">
       <Filter>Renderer\Sky</Filter>

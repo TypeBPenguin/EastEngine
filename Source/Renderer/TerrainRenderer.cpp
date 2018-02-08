@@ -36,36 +36,43 @@ namespace EastEngine
 {
 	namespace Graphics
 	{
-		TerrainRenderer::TerrainRenderer()
-			: m_pEffect(nullptr)
+		class TerrainRenderer::Impl
+		{
+		public:
+			Impl();
+			~Impl();
+
+		public:
+			void AddRender(const RenderSubsetTerrain& renderPiece);
+
+			void Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag);
+			void Flush();
+
+		private:
+			bool CreateEffect();
+			void ClearEffect(IDeviceContext* pd3dDeviceContext, IEffectTech* pTech);
+
+		private:
+			IEffect* m_pEffect{ nullptr };
+
+			std::vector<RenderSubsetTerrain> m_vecTerrain;
+		};
+
+		TerrainRenderer::Impl::Impl()
 		{
 		}
 
-		TerrainRenderer::~TerrainRenderer()
+		TerrainRenderer::Impl::~Impl()
 		{
 			IEffect::Destroy(&m_pEffect);
 		}
 
-		bool TerrainRenderer::Init(const Math::Viewport& viewport)
+		void TerrainRenderer::Impl::AddRender(const RenderSubsetTerrain& renderPiece)
 		{
-			std::string strPath(File::GetPath(File::EmPath::eFx));
-
-#if defined(DEBUG) || defined(_DEBUG)
-			strPath.append("Terrain\\Terrain_D.cso");
-#else
-			strPath.append("Terrain\\Terrain.cso");
-#endif
-
-			m_pEffect = IEffect::Create(StrID::EffectTerrain, strPath.c_str());
-			if (m_pEffect == nullptr)
-				return false;
-
-			m_pEffect->CreateTechnique(StrID::RenderHeightfield, EmVertexFormat::ePos4);
-
-			return true;
+			m_vecTerrain.emplace_back(renderPiece);
 		}
 
-		void TerrainRenderer::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
+		void TerrainRenderer::Impl::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
 		{
 			if (m_vecTerrain.empty())
 				return;
@@ -139,7 +146,31 @@ namespace EastEngine
 			}
 		}
 
-		void TerrainRenderer::ClearEffect(IDeviceContext* pd3dDeviceContext, IEffectTech* pTech)
+		void TerrainRenderer::Impl::Flush()
+		{
+			m_vecTerrain.clear();
+		}
+
+		bool TerrainRenderer::Impl::CreateEffect()
+		{
+			std::string strPath(File::GetPath(File::EmPath::eFx));
+
+#if defined(DEBUG) || defined(_DEBUG)
+			strPath.append("Terrain\\Terrain_D.cso");
+#else
+			strPath.append("Terrain\\Terrain.cso");
+#endif
+
+			m_pEffect = IEffect::Create(StrID::EffectTerrain, strPath.c_str());
+			if (m_pEffect == nullptr)
+				return false;
+
+			m_pEffect->CreateTechnique(StrID::RenderHeightfield, EmVertexFormat::ePos4);
+
+			return true;
+		}
+
+		void TerrainRenderer::Impl::ClearEffect(IDeviceContext* pd3dDeviceContext, IEffectTech* pTech)
 		{
 			m_pEffect->SetTexture(StrID::g_texHeightField, nullptr);
 			m_pEffect->SetTexture(StrID::g_texColor, nullptr);
@@ -148,6 +179,30 @@ namespace EastEngine
 			m_pEffect->SetTexture(StrID::g_texDetailNormal, nullptr);
 
 			m_pEffect->ClearState(pd3dDeviceContext, pTech);
+		}
+
+		TerrainRenderer::TerrainRenderer()
+			: m_pImpl{ std::make_unique<Impl>() }
+		{
+		}
+
+		TerrainRenderer::~TerrainRenderer()
+		{
+		}
+
+		void TerrainRenderer::AddRender(const RenderSubsetTerrain& renderPiece)
+		{
+			m_pImpl->AddRender(renderPiece);
+		}
+
+		void TerrainRenderer::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
+		{
+			m_pImpl->Render(pDevice, pDeviceContext, pCamera, nRenderGroupFlag);
+		}
+
+		void TerrainRenderer::Flush()
+		{
+			m_pImpl->Flush();
 		}
 	}
 }

@@ -13,27 +13,47 @@ namespace EastEngine
 {
 	namespace Graphics
 	{
-		UIRenderer::UIRenderer()
-			: m_pSpriteBatch(nullptr)
-			, m_nPanelIndex(0)
+		class UIRenderer::Impl
 		{
+		public:
+			Impl();
+			~Impl();
+
+		public:
+			void AddRender(const RenderSubsetUIText& renderSubset);
+			void AddRender(const RenderSubsetUISprite& renderSubset);
+			void AddRender(const RenderSubsetUIPanel& renderSubset);
+
+		public:
+			void Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag);
+			void Flush();
+
+		private:
+			void RenderSprtie(ISpriteBatch* pSpriteBatch, std::vector<RenderSubsetUISprite>& vecRenderSubsetSprite);
+			void RenderText(ISpriteBatch* pSpriteBatch, std::vector<RenderSubsetUIText>& vecRenderSubsetText);
+			void RenderPanel(ISpriteBatch* pSpriteBatch);
+
+		private:
+			ISpriteBatch* m_pSpriteBatch{ nullptr };
+
+			size_t m_nPanelIndex{ 0 };
+
+			std::vector<RenderGroupUI> m_vecRenderGroup;
+			std::vector<RenderSubsetUIPanel> m_vecRPUIPanel;
+		};
+		
+		UIRenderer::Impl::Impl()
+		{
+			m_pSpriteBatch = ISpriteBatch::Create(GetImmediateContext()->GetInterface());
+			m_pSpriteBatch->SetRotation(DXGI_MODE_ROTATION_IDENTITY);
 		}
 
-		UIRenderer::~UIRenderer()
+		UIRenderer::Impl::~Impl()
 		{
 			SafeDelete(m_pSpriteBatch);
 		}
 
-		bool UIRenderer::Init(const Math::Viewport& viewport)
-		{
-			m_pSpriteBatch = ISpriteBatch::Create(GetImmediateContext()->GetInterface());
-			m_pSpriteBatch->SetRotation(DXGI_MODE_ROTATION_IDENTITY);
-			m_pSpriteBatch->SetViewport(viewport);
-
-			return true;
-		}
-
-		void UIRenderer::AddRender(const RenderSubsetUIText& renderSubset)
+		void UIRenderer::Impl::AddRender(const RenderSubsetUIText& renderSubset)
 		{
 			size_t nSize = m_vecRenderGroup.size();
 			for (size_t i = 0; i < nSize; ++i)
@@ -53,7 +73,7 @@ namespace EastEngine
 			m_vecRenderGroup.emplace_back(renderGroup);
 		}
 
-		void UIRenderer::AddRender(const RenderSubsetUISprite& renderSubset)
+		void UIRenderer::Impl::AddRender(const RenderSubsetUISprite& renderSubset)
 		{
 			size_t nSize = m_vecRenderGroup.size();
 			for (size_t i = 0; i < nSize; ++i)
@@ -73,7 +93,7 @@ namespace EastEngine
 			m_vecRenderGroup.emplace_back(renderGroup);
 		}
 
-		void UIRenderer::AddRender(const RenderSubsetUIPanel& renderSubset)
+		void UIRenderer::Impl::AddRender(const RenderSubsetUIPanel& renderSubset)
 		{
 			//renderSubset.bNeedRender = true;
 
@@ -89,7 +109,7 @@ namespace EastEngine
 			++m_nPanelIndex;
 		}
 
-		void UIRenderer::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
+		void UIRenderer::Impl::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
 		{
 			D3D_PROFILING(pDeviceContext, UIRenderer);
 
@@ -99,6 +119,8 @@ namespace EastEngine
 			pDeviceContext->ClearState();
 
 			pDeviceContext->SetDefaultViewport();
+
+			m_pSpriteBatch->SetViewport(GetDevice()->GetViewport());
 
 			if (m_vecRenderGroup.empty() == false)
 			{
@@ -129,13 +151,13 @@ namespace EastEngine
 			pDevice->ReleaseRenderTargets(&pRenderTarget);
 		}
 
-		void UIRenderer::Flush()
+		void UIRenderer::Impl::Flush()
 		{
 			m_vecRenderGroup.clear();
 			m_nPanelIndex = 0;
 		}
 
-		void UIRenderer::RenderSprtie(ISpriteBatch* pSpriteBatch, std::vector<RenderSubsetUISprite>& vecRenderSubsetSprite)
+		void UIRenderer::Impl::RenderSprtie(ISpriteBatch* pSpriteBatch, std::vector<RenderSubsetUISprite>& vecRenderSubsetSprite)
 		{
 			if (vecRenderSubsetSprite.empty())
 				return;
@@ -162,7 +184,7 @@ namespace EastEngine
 			}
 		}
 
-		void UIRenderer::RenderText(ISpriteBatch* pSpriteBatch, std::vector<RenderSubsetUIText>& vecRenderSubsetText)
+		void UIRenderer::Impl::RenderText(ISpriteBatch* pSpriteBatch, std::vector<RenderSubsetUIText>& vecRenderSubsetText)
 		{
 			if (vecRenderSubsetText.empty())
 				return;
@@ -175,19 +197,19 @@ namespace EastEngine
 				if (renderSubset.pSpriteFont == nullptr)
 					continue;
 
-				renderSubset.pSpriteFont->DrawString(pSpriteBatch, 
-					renderSubset.wstrText.c_str(), 
-					renderSubset.rect, 
-					renderSubset.color, 
-					renderSubset.fRot, 
-					renderSubset.vOrigin, 
-					renderSubset.fScale, 
-					renderSubset.emSpriteEffects, 
+				renderSubset.pSpriteFont->DrawString(pSpriteBatch,
+					renderSubset.wstrText.c_str(),
+					renderSubset.rect,
+					renderSubset.color,
+					renderSubset.fRot,
+					renderSubset.vOrigin,
+					renderSubset.fScale,
+					renderSubset.emSpriteEffects,
 					renderSubset.fDepth);
 			}
 		}
 
-		void UIRenderer::RenderPanel(ISpriteBatch* pSpriteBatch)
+		void UIRenderer::Impl::RenderPanel(ISpriteBatch* pSpriteBatch)
 		{
 			if (m_vecRPUIPanel.empty())
 				return;
@@ -210,6 +232,40 @@ namespace EastEngine
 
 				renderSubset.bNeedRender = false;
 			}
+		}
+
+		UIRenderer::UIRenderer()
+			: m_pImpl{ std::make_unique<Impl>() }
+		{
+		}
+
+		UIRenderer::~UIRenderer()
+		{
+		}
+
+		void UIRenderer::AddRender(const RenderSubsetUIText& renderSubset)
+		{
+			m_pImpl->AddRender(renderSubset);
+		}
+
+		void UIRenderer::AddRender(const RenderSubsetUISprite& renderSubset)
+		{
+			m_pImpl->AddRender(renderSubset);
+		}
+
+		void UIRenderer::AddRender(const RenderSubsetUIPanel& renderSubset)
+		{
+			m_pImpl->AddRender(renderSubset);
+		}
+
+		void UIRenderer::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
+		{
+			m_pImpl->Render(pDevice, pDeviceContext, pCamera, nRenderGroupFlag);
+		}
+
+		void UIRenderer::Flush()
+		{
+			m_pImpl->Flush();
 		}
 	}
 }

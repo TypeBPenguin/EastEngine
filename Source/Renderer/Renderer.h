@@ -16,8 +16,6 @@ namespace EastEngine
 			virtual ~IRenderer() = 0;
 
 		public:
-			virtual bool Init(const Math::Viewport& viewport) = 0;
-
 			virtual void AddRender(const RenderSubsetVertex&) {}
 			virtual void AddRender(const RenderSubsetLine&) {}
 			virtual void AddRender(const RenderSubsetLineSegment&) {}

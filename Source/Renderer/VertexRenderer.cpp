@@ -24,57 +24,94 @@ namespace EastEngine
 {
 	namespace Graphics
 	{
-		VertexRenderer::VertexRenderer()
-			: m_pEffect(nullptr)
-			, m_pLineSegmentVertexBuffer(nullptr)
+		class VertexRenderer::Impl
 		{
+		public:
+			Impl();
+			~Impl();
+
+		public:
+			void AddRender(const RenderSubsetVertex& renderSubset);
+			void AddRender(const RenderSubsetLine& renderSubset);
+			void AddRender(const RenderSubsetLineSegment& renderSubset);
+
+		public:
+			void Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag);
+			void Flush();
+
+		private:
+			bool CreateEffect();
+			void ClearEffect(IDeviceContext* pDeviceContext, IEffectTech* pTech);
+
+			void RenderVertex(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera);
+			void RenderLine(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera);
+			void RenderLineSegment(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera);
+
+		private:
+			IEffect* m_pEffect{ nullptr };
+
+			std::array<std::vector<RenderSubsetVertex>, ThreadCount> m_vecVertexSubset;
+			std::array<std::vector<RenderSubsetLine>, ThreadCount> m_vecLineSubset;
+			std::array<std::vector<RenderSubsetLineSegment>, ThreadCount> m_vecLineSegmentSubset;
+
+			IVertexBuffer* m_pLineSegmentVertexBuffer{ nullptr };
+
+			struct RenderSubsetVertexBatch
+			{
+				struct InstVertexData
+				{
+					InstStaticData worldData;
+					Math::Color colorData;
+
+					InstVertexData(const Math::Matrix& matWorld, const Math::Color& color)
+						: worldData(matWorld)
+						, colorData(color)
+					{
+					}
+				};
+
+				const RenderSubsetVertex* pSubset = nullptr;
+				std::vector<InstVertexData> vecInstData;
+
+				RenderSubsetVertexBatch(const RenderSubsetVertex* pSubset, const Math::Matrix& matWorld, const Math::Color& color)
+					: pSubset(pSubset)
+				{
+					vecInstData.emplace_back(matWorld, color);
+				}
+			};
+		};
+
+		VertexRenderer::Impl::Impl()
+		{
+			if (CreateEffect() == false)
+			{
+				assert(false);
+			}
 		}
 
-		VertexRenderer::~VertexRenderer()
+		VertexRenderer::Impl::~Impl()
 		{
 			SafeDelete(m_pLineSegmentVertexBuffer);
 
 			IEffect::Destroy(&m_pEffect);
 		}
 
-		bool VertexRenderer::Init(const Math::Viewport& viewport)
+		void VertexRenderer::Impl::AddRender(const RenderSubsetVertex& renderSubset)
 		{
-			std::string strPath(File::GetPath(File::EmPath::eFx));
-
-#if defined(DEBUG) || defined(_DEBUG)
-			strPath.append("Vertex\\Vertex_D.cso");
-#else
-			strPath.append("Vertex\\Vertex.cso");
-#endif
-
-			m_pEffect = IEffect::Create(StrID::EffectVertex, strPath.c_str());
-			if (m_pEffect == nullptr)
-				return false;
-
-			m_pEffect->CreateTechnique(StrID::Vertex, EmVertexFormat::ePos);
-			m_pEffect->CreateTechnique(StrID::VertexInstancing, EmVertexFormat::ePos);
-			m_pEffect->CreateTechnique(StrID::Color, EmVertexFormat::ePosCol);
-
-			{
-				uint32_t nVertexCount = 2;
-				Math::Color color = Math::Color::DarkRed;
-				
-				std::vector<VertexPosCol> vecVertices;
-				vecVertices.reserve(nVertexCount);
-
-				vecVertices.push_back(VertexPosCol(Math::Vector3::Zero, color));
-				vecVertices.push_back(VertexPosCol(Math::Vector3(0.f, 0.f, 1.f), color));
-
-				m_pLineSegmentVertexBuffer = IVertexBuffer::Create(VertexPosCol::Format(), vecVertices.size(), &vecVertices.front(), D3D11_USAGE_DYNAMIC);
-
-				if (m_pLineSegmentVertexBuffer == nullptr)
-					return false;
-			}
-
-			return true;
+			m_vecVertexSubset[GetThreadID(ThreadType::eUpdate)].emplace_back(renderSubset);
 		}
 
-		void VertexRenderer::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
+		void VertexRenderer::Impl::AddRender(const RenderSubsetLine& renderSubset)
+		{
+			m_vecLineSubset[GetThreadID(ThreadType::eUpdate)].emplace_back(renderSubset);
+		}
+
+		void VertexRenderer::Impl::AddRender(const RenderSubsetLineSegment& renderSubset)
+		{
+			m_vecLineSegmentSubset[GetThreadID(ThreadType::eUpdate)].emplace_back(renderSubset);
+		}
+
+		void VertexRenderer::Impl::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
 		{
 			D3D_PROFILING(pDeviceContext, VertexRenderer);
 
@@ -105,7 +142,7 @@ namespace EastEngine
 			pDevice->ReleaseRenderTargets(&pRenderTarget);
 		}
 
-		void VertexRenderer::Flush()
+		void VertexRenderer::Impl::Flush()
 		{
 			int nThreadID = GetThreadID(ThreadType::eRender);
 			m_vecVertexSubset[nThreadID].clear();
@@ -113,16 +150,49 @@ namespace EastEngine
 			m_vecLineSegmentSubset[nThreadID].clear();
 		}
 
-		void VertexRenderer::SetRenderState(IDevice* pDevice, IDeviceContext* pDeviceContext)
+		bool VertexRenderer::Impl::CreateEffect()
 		{
+			std::string strPath(File::GetPath(File::EmPath::eFx));
+
+#if defined(DEBUG) || defined(_DEBUG)
+			strPath.append("Vertex\\Vertex_D.cso");
+#else
+			strPath.append("Vertex\\Vertex.cso");
+#endif
+
+			m_pEffect = IEffect::Create(StrID::EffectVertex, strPath.c_str());
+			if (m_pEffect == nullptr)
+				return false;
+
+			m_pEffect->CreateTechnique(StrID::Vertex, EmVertexFormat::ePos);
+			m_pEffect->CreateTechnique(StrID::VertexInstancing, EmVertexFormat::ePos);
+			m_pEffect->CreateTechnique(StrID::Color, EmVertexFormat::ePosCol);
+
+			{
+				uint32_t nVertexCount = 2;
+				Math::Color color = Math::Color::DarkRed;
+
+				std::vector<VertexPosCol> vecVertices;
+				vecVertices.reserve(nVertexCount);
+
+				vecVertices.push_back(VertexPosCol(Math::Vector3::Zero, color));
+				vecVertices.push_back(VertexPosCol(Math::Vector3(0.f, 0.f, 1.f), color));
+
+				m_pLineSegmentVertexBuffer = IVertexBuffer::Create(VertexPosCol::Format(), vecVertices.size(), &vecVertices.front(), D3D11_USAGE_DYNAMIC);
+
+				if (m_pLineSegmentVertexBuffer == nullptr)
+					return false;
+			}
+
+			return true;
 		}
 
-		void VertexRenderer::ClearEffect(IDeviceContext* pDeviceContext, IEffectTech* pTech)
+		void VertexRenderer::Impl::ClearEffect(IDeviceContext* pDeviceContext, IEffectTech* pTech)
 		{
 			m_pEffect->ClearState(pDeviceContext, pTech);
 		}
 
-		void VertexRenderer::RenderVertex(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera)
+		void VertexRenderer::Impl::RenderVertex(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera)
 		{
 			D3D_PROFILING(pDeviceContext, Vertex);
 
@@ -264,7 +334,7 @@ namespace EastEngine
 			ClearEffect(pDeviceContext, pEffectTech);
 		}
 
-		void VertexRenderer::RenderLine(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera)
+		void VertexRenderer::Impl::RenderLine(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera)
 		{
 			D3D_PROFILING(pDeviceContext, Line);
 
@@ -286,7 +356,7 @@ namespace EastEngine
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 
 			const size_t nSize = m_vecLineSubset[nThreadID].size();
-			for (size_t i= 0; i < nSize; ++i)
+			for (size_t i = 0; i < nSize; ++i)
 			{
 				RenderSubsetLine& renderSubset = m_vecLineSubset[nThreadID][i];
 
@@ -307,7 +377,7 @@ namespace EastEngine
 			ClearEffect(pDeviceContext, pEffectTech);
 		}
 
-		void VertexRenderer::RenderLineSegment(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera)
+		void VertexRenderer::Impl::RenderLineSegment(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera)
 		{
 			D3D_PROFILING(pDeviceContext, LineSegment);
 
@@ -329,7 +399,7 @@ namespace EastEngine
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 
 			const size_t nSize = m_vecLineSegmentSubset[nThreadID].size();
-			for (size_t i= 0; i < nSize; ++i)
+			for (size_t i = 0; i < nSize; ++i)
 			{
 				RenderSubsetLineSegment& renderSubset = m_vecLineSegmentSubset[nThreadID][i];
 
@@ -366,6 +436,40 @@ namespace EastEngine
 			}
 
 			ClearEffect(pDeviceContext, pEffectTech);
+		}
+
+		VertexRenderer::VertexRenderer()
+			: m_pImpl{ std::make_unique<Impl>() }
+		{
+		}
+
+		VertexRenderer::~VertexRenderer()
+		{
+		}
+
+		void VertexRenderer::AddRender(const RenderSubsetVertex& renderSubset)
+		{
+			m_pImpl->AddRender(renderSubset);
+		}
+
+		void VertexRenderer::AddRender(const RenderSubsetLine& renderSubset)
+		{
+			m_pImpl->AddRender(renderSubset);
+		}
+
+		void VertexRenderer::AddRender(const RenderSubsetLineSegment& renderSubset)
+		{
+			m_pImpl->AddRender(renderSubset);
+		}
+
+		void VertexRenderer::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
+		{
+			m_pImpl->Render(pDevice, pDeviceContext, pCamera, nRenderGroupFlag);
+		}
+
+		void VertexRenderer::Flush()
+		{
+			m_pImpl->Flush();
 		}
 	}
 }

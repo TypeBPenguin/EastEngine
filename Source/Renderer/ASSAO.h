@@ -194,7 +194,7 @@ namespace EastEngine
 			virtual ~ASSAO();
 		
 		public:
-			bool Init(const Math::Viewport& viewport);
+			bool Init();
 			void Release();
 		
 		public:
@@ -205,7 +205,6 @@ namespace EastEngine
 		private:
 			ASSAO_Effect* m_pEffect;
 			ASSAO_Settings m_settings;
-			Math::Viewport m_viewport;
 		};
 	}
 }

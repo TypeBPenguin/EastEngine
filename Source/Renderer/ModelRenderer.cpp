@@ -219,32 +219,6 @@ namespace EastEngine
 			return pEffect;
 		}
 
-		ModelRenderer::ModelRenderer()
-		{
-			for (int i = 0; i < ThreadCount; ++i)
-			{
-				m_nStaticIndex[i].fill(0);
-				m_nSkinnedIndex[i].fill(0);
-			}
-		}
-
-		ModelRenderer::~ModelRenderer()
-		{
-		}
-
-		bool ModelRenderer::Init(const Math::Viewport& viewport)
-		{
-			for (int i = 0; i < ThreadCount; ++i)
-			{
-				m_vecStaticSubsets[i][eDeferred].resize(512);
-				m_vecStaticSubsets[i][eAlphaBlend].resize(512);
-				m_vecSkinnedSubsets[i][eDeferred].resize(128);
-				m_vecSkinnedSubsets[i][eAlphaBlend].resize(128);
-			}
-
-			return true;
-		}
-
 		enum EmRenderType
 		{
 			eNone = 0,
@@ -710,7 +684,106 @@ namespace EastEngine
 			ClearEffect(pDeviceContext, pEffect, pEffectTech);
 		}
 
-		void ModelRenderer::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
+		class ModelRenderer::Impl
+		{
+		public:
+			Impl();
+			~Impl();
+
+		public:
+			void Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag);
+			void Flush();
+
+		public:
+			void AddRender(const RenderSubsetStatic& renderSubset);
+			void AddRender(const RenderSubsetSkinned& renderSubset);
+
+		private:
+			void OcclusionCulling(Camera* pCamera, uint32_t nRenderGroupFlag);
+
+			void RenderStaticModel(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, uint32_t nRenderTypeFlag);
+			void RenderSkinnedModel(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, uint32_t nRenderTypeFlag);
+
+			void RenderStaticModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, const Math::Matrix* pMatView, const Math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap);
+			void RenderSkinnedModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, const Math::Matrix* pMatView, const Math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap);
+
+		private:
+			struct StaticSubset
+			{
+				std::pair<const void*, IMaterial*> pairKey;
+				RenderSubsetStatic data;
+				bool isCulling = false;
+				//std::vector<VertexClipSpace> vecVertexClipSpace;
+
+				void Set(const RenderSubsetStatic& source)
+				{
+					pairKey = std::make_pair(source.pKey, source.pMaterial);
+					data = source;
+					isCulling = false;
+				}
+			};
+			std::array<std::array<std::vector<StaticSubset>, GroupCount>, ThreadCount> m_vecStaticSubsets;
+			std::array<std::array<size_t, GroupCount>, ThreadCount> m_nStaticIndex;
+
+			struct SkinnedSubset
+			{
+				std::pair<const void*, IMaterial*> pairKey;
+				RenderSubsetSkinned data;
+				bool isCulling = false;
+
+				void Set(const RenderSubsetSkinned& source)
+				{
+					pairKey = std::make_pair(source.pKey, source.pMaterial);
+					data = source;;
+				}
+			};
+			std::array<std::array<std::vector<SkinnedSubset>, GroupCount>, 2> m_vecSkinnedSubsets;
+			std::array<std::array<size_t, GroupCount>, 2> m_nSkinnedIndex;
+
+			struct RenderSubsetStaticBatch
+			{
+				const StaticSubset* pSubset = nullptr;
+				std::vector<InstStaticData> vecInstData;
+
+				RenderSubsetStaticBatch(const StaticSubset* pSubset, const Math::Matrix& matWorld)
+					: pSubset(pSubset)
+				{
+					vecInstData.emplace_back(matWorld);
+				}
+			};
+
+			struct RenderSubsetSkinnedBatch
+			{
+				const SkinnedSubset* pSubset = nullptr;
+				std::vector<InstSkinnedData> vecInstData;
+
+				RenderSubsetSkinnedBatch(const SkinnedSubset* pSubset, const Math::Matrix& matWorld, uint32_t nVTFID)
+					: pSubset(pSubset)
+				{
+					vecInstData.emplace_back(matWorld, nVTFID);
+				}
+			};
+		};
+
+		ModelRenderer::Impl::Impl()
+		{
+			for (int i = 0; i < ThreadCount; ++i)
+			{
+				m_vecStaticSubsets[i][eDeferred].resize(512);
+				m_vecStaticSubsets[i][eAlphaBlend].resize(512);
+				m_vecSkinnedSubsets[i][eDeferred].resize(128);
+				m_vecSkinnedSubsets[i][eAlphaBlend].resize(128);
+
+				m_nStaticIndex[i].fill(0);
+				m_nSkinnedIndex[i].fill(0);
+			}
+		}
+
+		ModelRenderer::Impl::~Impl()
+		{
+		}
+
+		void ModelRenderer::Impl::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
 		{
 			D3D_PROFILING(pDeviceContext, ModelRenderer);
 
@@ -878,14 +951,14 @@ namespace EastEngine
 			}
 		}
 
-		void ModelRenderer::Flush()
+		void ModelRenderer::Impl::Flush()
 		{
 			int nThreadID = GetThreadID(ThreadType::eRender);
 			m_nStaticIndex[nThreadID].fill(0);
 			m_nSkinnedIndex[nThreadID].fill(0);
 		}
 
-		void ModelRenderer::AddRender(const RenderSubsetStatic& renderSubset)
+		void ModelRenderer::Impl::AddRender(const RenderSubsetStatic& renderSubset)
 		{
 			Group group;
 
@@ -910,7 +983,7 @@ namespace EastEngine
 			++m_nStaticIndex[nThreadID][group];
 		}
 
-		void ModelRenderer::AddRender(const RenderSubsetSkinned& renderSubset)
+		void ModelRenderer::Impl::AddRender(const RenderSubsetSkinned& renderSubset)
 		{
 			Group group;
 
@@ -935,7 +1008,7 @@ namespace EastEngine
 			++m_nSkinnedIndex[nThreadID][group];
 		}
 
-		void ModelRenderer::OcclusionCulling(Camera* pCamera, uint32_t nRenderGroupFlag)
+		void ModelRenderer::Impl::OcclusionCulling(Camera* pCamera, uint32_t nRenderGroupFlag)
 		{
 			//if (Config::IsEnable("OcclusionCulling"_s) == true && nRenderGroupFlag == eDeferred)
 			//{
@@ -998,7 +1071,7 @@ namespace EastEngine
 			//}
 		}
 
-		void ModelRenderer::RenderStaticModel(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, uint32_t nRenderTypeFlag)
+		void ModelRenderer::Impl::RenderStaticModel(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, uint32_t nRenderTypeFlag)
 		{
 			D3D_PROFILING(pDeviceContext, StaticModel);
 			{
@@ -1079,7 +1152,7 @@ namespace EastEngine
 			}
 		}
 
-		void ModelRenderer::RenderSkinnedModel(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, uint32_t nRenderTypeFlag)
+		void ModelRenderer::Impl::RenderSkinnedModel(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, uint32_t nRenderTypeFlag)
 		{
 			D3D_PROFILING(pDeviceContext, SkinnedModel);
 			{
@@ -1148,7 +1221,8 @@ namespace EastEngine
 				mapSkinned.clear();
 			}
 		}
-		void ModelRenderer::RenderStaticModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, const Math::Matrix* pMatView, const Math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap)
+
+		void ModelRenderer::Impl::RenderStaticModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, const Math::Matrix* pMatView, const Math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap)
 		{
 			D3D_PROFILING(pDeviceContext, StaticModel_ShadowDepth);
 
@@ -1215,7 +1289,7 @@ namespace EastEngine
 			mapStatic.clear();
 		}
 
-		void ModelRenderer::RenderSkinnedModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, const Math::Matrix* pMatView, const Math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap)
+		void ModelRenderer::Impl::RenderSkinnedModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, const Math::Matrix* pMatView, const Math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap)
 		{
 			D3D_PROFILING(pDeviceContext, SkinnedModel_ShadowDepth);
 
@@ -1287,6 +1361,35 @@ namespace EastEngine
 			}
 
 			mapSkinned.clear();
+		}
+
+		ModelRenderer::ModelRenderer()
+			: m_pImpl{ std::make_unique<Impl>() }
+		{
+		}
+
+		ModelRenderer::~ModelRenderer()
+		{
+		}
+
+		void ModelRenderer::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
+		{
+			m_pImpl->Render(pDevice, pDeviceContext, pCamera, nRenderGroupFlag);
+		}
+
+		void ModelRenderer::Flush()
+		{
+			m_pImpl->Flush();
+		}
+
+		void ModelRenderer::AddRender(const RenderSubsetStatic& renderSubset)
+		{
+			m_pImpl->AddRender(renderSubset);
+		}
+
+		void ModelRenderer::AddRender(const RenderSubsetSkinned& renderSubset)
+		{
+			m_pImpl->AddRender(renderSubset);
 		}
 	}
 }

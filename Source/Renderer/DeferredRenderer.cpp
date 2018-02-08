@@ -58,82 +58,44 @@ namespace EastEngine
 {
 	namespace Graphics
 	{
-		DeferredRenderer::DeferredRenderer()
-			: m_pEffect(nullptr)
-			, m_pEffectShadow(nullptr)
+		class DeferredRenderer::Impl
 		{
+		public:
+			Impl();
+			~Impl();
+
+		public:
+			void Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag);
+			void Flush();
+
+		private:
+			int RenderShadowMap(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, IRenderTarget* pRenderTarget);
+
+		private:
+			bool CreateEffect();
+			void ClearEffect(IDeviceContext* pd3dDeviceContext, IEffectTech* pTech);
+			void ClearEffect_Shadow(IDeviceContext* pd3dDeviceContext, IEffectTech* pTech);
+
+		private:
+			IEffect* m_pEffect{ nullptr };
+			IEffect* m_pEffectShadow{ nullptr };
+		};
+
+		DeferredRenderer::Impl::Impl()
+		{
+			if (CreateEffect() == false)
+			{
+				assert(false);
+			}
 		}
 
-		DeferredRenderer::~DeferredRenderer()
+		DeferredRenderer::Impl::~Impl()
 		{
 			IEffect::Destroy(&m_pEffect);
 			IEffect::Destroy(&m_pEffectShadow);
 		}
 
-		bool DeferredRenderer::Init(const Math::Viewport& viewport)
-		{
-			std::string strPath(File::GetPath(File::EmPath::eFx));
-
-#if defined(DEBUG) || defined(_DEBUG)
-			strPath.append("Model\\Deferred_D.cso");
-#else
-			strPath.append("Model\\Deferred.cso");
-#endif
-
-			m_pEffect = IEffect::Create(StrID::EffectDeferred, strPath.c_str());
-			if (m_pEffect == nullptr)
-			{
-				LOG_ERROR("Can't Create Effect : %s", strPath.c_str());
-				return false;
-			}
-
-			IEffectTech* pEffectTech = m_pEffect->CreateTechnique(StrID::Deferred, EmVertexFormat::eUnknown);
-			if (pEffectTech == nullptr)
-			{
-				LOG_ERROR("Not Exist EffectTech !!, %s", StrID::Deferred.c_str());
-				return false;
-			}
-
-			strPath = File::GetPath(File::EmPath::eFx);
-
-#if defined(DEBUG) || defined(_DEBUG)
-			strPath.append("Model\\DeferredShadow_D.cso");
-#else
-			strPath.append("Model\\DeferredShadow.cso");
-#endif
-
-			m_pEffectShadow = IEffect::Create(StrID::EffectDeferredShadow, strPath.c_str());
-			if (m_pEffectShadow == nullptr)
-			{
-				LOG_ERROR("Can't Create Effect : %s", strPath.c_str());
-				return false;
-			}
-
-			pEffectTech = m_pEffectShadow->CreateTechnique(StrID::Deferred_CascadedShadow, EmVertexFormat::eUnknown);
-			if (pEffectTech == nullptr)
-			{
-				LOG_ERROR("Not Exist EffectTech !!, %s", StrID::Deferred_CascadedShadow.c_str());
-				return false;
-			}
-
-			pEffectTech = m_pEffectShadow->CreateTechnique(StrID::Deferred_ShadowMap, EmVertexFormat::eUnknown);
-			if (pEffectTech == nullptr)
-			{
-				LOG_ERROR("Not Exist EffectTech !!, %s", StrID::Deferred_ShadowMap.c_str());
-				return false;
-			}
-
-			pEffectTech = m_pEffectShadow->CreateTechnique(StrID::Deferred_ShadowCubeMap, EmVertexFormat::eUnknown);
-			if (pEffectTech == nullptr)
-			{
-				LOG_ERROR("Not Exist EffectTech !!, %s", StrID::Deferred_ShadowCubeMap.c_str());
-				return false;
-			}
-
-			return true;
-		}
-
-		void DeferredRenderer::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
+		void DeferredRenderer::Impl::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
 		{
 			int nEnableShadowCount = 0;
 			IRenderTarget* pRenderTargetShadow = nullptr;
@@ -149,13 +111,13 @@ namespace EastEngine
 
 				/*if (nEnableShadowCount > 0)
 				{
-					IRenderTarget* pFxaa = pDevice->GetRenderTarget(pRenderTargetShadow->GetDesc2D(), false);
-					IRenderTarget* pSource = pRenderTargetShadow;
-					FXAA::GetInstance()->Apply(pFxaa, pSource);
+				IRenderTarget* pFxaa = pDevice->GetRenderTarget(pRenderTargetShadow->GetDesc2D(), false);
+				IRenderTarget* pSource = pRenderTargetShadow;
+				FXAA::GetInstance()->Apply(pFxaa, pSource);
 
-					pDevice->ReleaseRenderTargets(&pSource);
+				pDevice->ReleaseRenderTargets(&pSource);
 
-					pRenderTargetShadow = pFxaa;
+				pRenderTargetShadow = pFxaa;
 				}*/
 			}
 
@@ -255,11 +217,11 @@ namespace EastEngine
 			}
 		}
 
-		void DeferredRenderer::Flush()
+		void DeferredRenderer::Impl::Flush()
 		{
 		}
 
-		int DeferredRenderer::RenderShadowMap(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, IRenderTarget* pRenderTarget)
+		int DeferredRenderer::Impl::RenderShadowMap(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, IRenderTarget* pRenderTarget)
 		{
 			pDeviceContext->ClearRenderTargetView(pRenderTarget, Math::Color::Black);
 
@@ -520,7 +482,70 @@ namespace EastEngine
 			return nShadowCount;
 		}
 
-		void DeferredRenderer::ClearEffect(IDeviceContext* pd3dDeviceContext, IEffectTech* pTech)
+		bool DeferredRenderer::Impl::CreateEffect()
+		{
+			std::string strPath(File::GetPath(File::EmPath::eFx));
+
+#if defined(DEBUG) || defined(_DEBUG)
+			strPath.append("Model\\Deferred_D.cso");
+#else
+			strPath.append("Model\\Deferred.cso");
+#endif
+
+			m_pEffect = IEffect::Create(StrID::EffectDeferred, strPath.c_str());
+			if (m_pEffect == nullptr)
+			{
+				LOG_ERROR("Can't Create Effect : %s", strPath.c_str());
+				return false;
+			}
+
+			IEffectTech* pEffectTech = m_pEffect->CreateTechnique(StrID::Deferred, EmVertexFormat::eUnknown);
+			if (pEffectTech == nullptr)
+			{
+				LOG_ERROR("Not Exist EffectTech !!, %s", StrID::Deferred.c_str());
+				return false;
+			}
+
+			strPath = File::GetPath(File::EmPath::eFx);
+
+#if defined(DEBUG) || defined(_DEBUG)
+			strPath.append("Model\\DeferredShadow_D.cso");
+#else
+			strPath.append("Model\\DeferredShadow.cso");
+#endif
+
+			m_pEffectShadow = IEffect::Create(StrID::EffectDeferredShadow, strPath.c_str());
+			if (m_pEffectShadow == nullptr)
+			{
+				LOG_ERROR("Can't Create Effect : %s", strPath.c_str());
+				return false;
+			}
+
+			pEffectTech = m_pEffectShadow->CreateTechnique(StrID::Deferred_CascadedShadow, EmVertexFormat::eUnknown);
+			if (pEffectTech == nullptr)
+			{
+				LOG_ERROR("Not Exist EffectTech !!, %s", StrID::Deferred_CascadedShadow.c_str());
+				return false;
+			}
+
+			pEffectTech = m_pEffectShadow->CreateTechnique(StrID::Deferred_ShadowMap, EmVertexFormat::eUnknown);
+			if (pEffectTech == nullptr)
+			{
+				LOG_ERROR("Not Exist EffectTech !!, %s", StrID::Deferred_ShadowMap.c_str());
+				return false;
+			}
+
+			pEffectTech = m_pEffectShadow->CreateTechnique(StrID::Deferred_ShadowCubeMap, EmVertexFormat::eUnknown);
+			if (pEffectTech == nullptr)
+			{
+				LOG_ERROR("Not Exist EffectTech !!, %s", StrID::Deferred_ShadowCubeMap.c_str());
+				return false;
+			}
+
+			return true;
+		}
+
+		void DeferredRenderer::Impl::ClearEffect(IDeviceContext* pd3dDeviceContext, IEffectTech* pTech)
 		{
 			m_pEffect->SetStructuredBuffer(StrID::g_lightDirectional, nullptr);
 			m_pEffect->SetStructuredBuffer(StrID::g_lightPoint, nullptr);
@@ -542,12 +567,31 @@ namespace EastEngine
 			m_pEffect->ClearState(pd3dDeviceContext, pTech);
 		}
 
-		void DeferredRenderer::ClearEffect_Shadow(IDeviceContext* pd3dDeviceContext, IEffectTech* pTech)
+		void DeferredRenderer::Impl::ClearEffect_Shadow(IDeviceContext* pd3dDeviceContext, IEffectTech* pTech)
 		{
 			m_pEffectShadow->SetTexture(StrID::g_texDepth, nullptr);
 			m_pEffectShadow->SetTexture(StrID::g_texShadowMap, nullptr);
 
 			m_pEffectShadow->ClearState(pd3dDeviceContext, pTech);
+		}
+
+		DeferredRenderer::DeferredRenderer()
+			: m_pImpl{ std::make_unique<Impl>() }
+		{
+		}
+
+		DeferredRenderer::~DeferredRenderer()
+		{
+		}
+
+		void DeferredRenderer::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
+		{
+			m_pImpl->Render(pDevice, pDeviceContext, pCamera, nRenderGroupFlag);
+		}
+
+		void DeferredRenderer::Flush()
+		{
+			m_pImpl->Flush();
 		}
 	}
 }
