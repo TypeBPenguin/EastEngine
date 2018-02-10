@@ -1,9 +1,8 @@
 #pragma once
 
 #include "CommonLib/Singleton.h"
-#include "CommonLib/plf_colony.h"
 
-#include "Terrain.h"
+#include "GameObject.h"
 
 namespace EastEngine
 {
@@ -17,8 +16,6 @@ namespace EastEngine
 			virtual ~TerrainManager();
 
 		public:
-			void Release();
-
 			void Update(float fElapsedTime);
 
 		public:
@@ -26,10 +23,11 @@ namespace EastEngine
 			ITerrain* CreateTerrainAsync(const String::StringID& strTerrainName, const TerrainProperty& terrainProperty);
 
 			ITerrain* GetTerrain(size_t nIndex);
-			size_t GetTerrainCount() const { return m_colonyTerrain.size(); }
+			size_t GetTerrainCount() const;
 
 		private:
-			plf::colony<Terrain> m_colonyTerrain;
+			class Impl;
+			std::unique_ptr<Impl> m_pImpl;
 		};
 	}
 }

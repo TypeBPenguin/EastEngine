@@ -82,6 +82,7 @@ namespace EastEngine
 
 		void ShaderManager::Impl::Flush()
 		{
+			PERF_TRACER_EVENT("ShaderManager::Flush", "");
 			while (m_conQueueCompleteEffectAsyncLoader.empty() == false)
 			{
 				CompleteEffectAsyncLoader loader;

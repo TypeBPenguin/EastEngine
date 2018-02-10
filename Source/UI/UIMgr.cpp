@@ -72,6 +72,7 @@ namespace EastEngine
 
 		void UIManager::Update(float fElapsedTime)
 		{
+			PERF_TRACER_EVENT("UIManager::Update", "");
 			for (auto iter = m_umapPanel.begin(); iter != m_umapPanel.end(); ++iter)
 			{
 				IUIPanel* pUIPanel = iter->second;

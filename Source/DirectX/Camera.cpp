@@ -140,6 +140,7 @@ namespace EastEngine
 
 		void Camera::Impl::Update(float fElapsedTime)
 		{
+			PERF_TRACER_EVENT("Camera::Update", "");
 			const float fMin = 0.0001f;
 			int nThreadID = GetThreadID(ThreadType::eUpdate);
 

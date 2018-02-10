@@ -1,9 +1,8 @@
 #pragma once
 
 #include "CommonLib/Singleton.h"
-#include "CommonLib/plf_colony.h"
 
-#include "Skybox.h"
+#include "GameObject.h"
 
 namespace EastEngine
 {
@@ -17,18 +16,17 @@ namespace EastEngine
 			virtual ~SkyManager();
 
 		public:
-			void Release();
-
 			void Update(float fElapsedTime);
 
 		public:
-			ISkybox* CreateSkybox(const String::StringID& strName, const SkyboxProperty& proprety);
+			ISkybox* CreateSkybox(const String::StringID& strName, const SkyboxProperty& property);
 
 			ISkybox* GetSkybox(size_t nIndex);
-			size_t GetSkyboxCount() const { return m_colonySkybox.size(); }
+			size_t GetSkyboxCount() const;
 
 		private:
-			plf::colony<Skybox> m_colonySkybox;
+			class Impl;
+			std::unique_ptr<Impl> m_pImpl;
 		};
 
 	}

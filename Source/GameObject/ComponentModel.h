@@ -18,8 +18,8 @@ namespace EastEngine
 			void Init(Graphics::ModelLoader* pLoader);
 			virtual void Update(float fElapsedTime) override;
 
-			virtual bool LoadToFile(File::FileStream& file);
-			virtual bool SaveToFile(File::FileStream& file);
+			virtual bool LoadToFile(File::Stream& file);
+			virtual bool SaveToFile(File::Stream& file);
 
 		public:
 			Graphics::IModelInstance* GetModelInstance() { return m_pModelInst; }

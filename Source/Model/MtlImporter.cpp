@@ -22,7 +22,7 @@ namespace EastEngine
 			std::string strFilePath = strPath;
 			strFilePath.append(strFileName);
 
-			File::FileStream file;
+			File::Stream file;
 			if (file.Open(strFilePath.c_str()) == false)
 				return false;
 

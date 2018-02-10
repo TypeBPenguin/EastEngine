@@ -14,6 +14,7 @@
 
 #include <assert.h>
 #include <Windows.h>
+#include <fstream>
 
 #include <mutex>
 #include <algorithm>
@@ -25,6 +26,9 @@
 #include <vector>
 #include <list>
 #include <queue>
+#include <stack>
+
+#include <optional>
 #include <variant>
 
 #include <Shlwapi.h>
@@ -32,5 +36,3 @@
 
 #include <ppl.h>
 #include <concurrent_queue.h>
-
-#include <boost/unordered_map.hpp>

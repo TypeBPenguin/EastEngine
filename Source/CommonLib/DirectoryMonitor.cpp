@@ -86,6 +86,7 @@ namespace EastEngine
 
 		void DirectoryMonitor::Impl::Update()
 		{
+			PERF_TRACER_EVENT("DirectoryMonitor::Update", "");
 			const size_t nSize = m_vecHDirMonitor.size();
 			for (size_t i = 0; i < nSize; ++i)
 			{

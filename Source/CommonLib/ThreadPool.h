@@ -23,19 +23,19 @@ namespace EastEngine
 			void Wait();
 
 		public:
-			enum EmState
+			enum State
 			{
 				eIdle = 0,
 				eProcessing,
 			};
 
-			EmState GetState();
+			State GetState();
 
 		private:
-			void SetState(EmState emState);
+			void SetState(State emState);
 
 		private:
-			std::atomic<EmState> m_emState;
+			std::atomic<State> m_emState;
 			std::condition_variable m_condition;
 			std::mutex m_mutex;
 
@@ -68,7 +68,7 @@ namespace EastEngine
 			bool IsEmptyTask() { return m_queueTasks.empty(); }
 
 		private:
-			void SetTaskState(Task* pTask, Task::EmState emState) { pTask->SetState(emState); }
+			void SetTaskState(Task* pTask, Task::State emState) { pTask->SetState(emState); }
 
 		private:
 			bool m_isInit;

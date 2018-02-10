@@ -469,10 +469,10 @@ namespace EastEngine
 			}
 
 			// 좀 더 구조적으로 쉽고 간편한 Save Load 방식이 필요함
-			// FileStream 은 빨라서 좋지만, 데이터 규격이 달라지면 기존 데이터를 사용할 수 없게됨
-			// 또는 확실한 버전 관리로, 버전별 Save Load 로직을 구현한다면 FileStream 으로도 문제없음
-			File::FileStream file;
-			if (file.Open(strFilePath, File::EmState::eRead | File::EmState::eBinary) == false)
+			// Stream 은 빨라서 좋지만, 데이터 규격이 달라지면 기존 데이터를 사용할 수 없게됨
+			// 또는 확실한 버전 관리로, 버전별 Save Load 로직을 구현한다면 Stream 으로도 문제없음
+			File::Stream file;
+			if (file.Open(strFilePath, File::eRead | File::eBinary) == false)
 			{
 				LOG_WARNING("Can't open to file : %s", strFilePath);
 				return false;

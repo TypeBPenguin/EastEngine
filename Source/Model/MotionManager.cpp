@@ -46,6 +46,7 @@ namespace EastEngine
 
 		void MotionManager::Impl::Flush(bool isEnableGarbageCollector)
 		{
+			PERF_TRACER_EVENT("MotionManager::Flush", "");
 			if (isEnableGarbageCollector == true)
 			{
 				auto iter = m_clnMotions.begin();

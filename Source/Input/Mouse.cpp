@@ -44,6 +44,7 @@ namespace EastEngine
 
 		void MouseInstance::Update()
 		{
+			PERF_TRACER_EVENT("MouseInstance::Update", "");
 			Memory::Copy(&m_OldMouseState, sizeof(m_OldMouseState), &m_CurMouseState, sizeof(m_CurMouseState));
 
 			HRESULT hr = m_pMouse->GetDeviceState(sizeof(m_CurMouseState), reinterpret_cast<void**>(&m_CurMouseState));

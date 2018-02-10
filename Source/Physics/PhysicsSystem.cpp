@@ -82,8 +82,10 @@ namespace EastEngine
 
 		void PhysicsSystem::Update(float fElapsedtime)
 		{
+			PERF_TRACER_EVENT("PhysicsSystem::Update", "");
 			ProcessAddWaitObject();
 
+			PERF_TRACER_BEGINEVENT("PhysicsSystem::Update", "ClearCollisionResults");
 			btCollisionObjectArray& objectArray = m_pDynamicsWorld->getCollisionObjectArray();
 			int nSize = objectArray.size();
 			for (int i = 0; i < nSize; ++i)
@@ -95,8 +97,11 @@ namespace EastEngine
 
 				pRigidBody->ClearCollisionResults();
 			}
-			
+			PERF_TRACER_ENDEVENT();
+
+			PERF_TRACER_BEGINEVENT("PhysicsSystem::Update", "StepSimulation");
 			m_pDynamicsWorld->stepSimulation(fElapsedtime);
+			PERF_TRACER_ENDEVENT();
 		}
 
 		void PhysicsSystem::AddRigidBody(RigidBody* pRigidBody)
@@ -126,6 +131,7 @@ namespace EastEngine
 		
 		void PhysicsSystem::ProcessAddWaitObject()
 		{
+			PERF_TRACER_EVENT("PhysicsSystem::ProcessAddWaitObject", "");
 			while (m_conQueueAddWaitRigidBody.empty() == false)
 			{
 				AddWaitRigidBody job;

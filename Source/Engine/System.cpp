@@ -62,6 +62,8 @@ namespace EastEngine
 
 		Timer* s_pTimer{ nullptr };
 
+		Performance::Tracer* s_pPerformanceTracer{ nullptr };
+
 		Config::SCommandLine* s_pCommandLine{ nullptr };
 		File::DirectoryMonitor* s_pDirectoryMonitor{ nullptr };
 		Lua::LuaSystem* s_pLuaSystem{ nullptr };
@@ -94,14 +96,14 @@ namespace EastEngine
 		SceneManager::DestroyInstance();
 		s_pSceneManager = nullptr;
 
-		SafeRelease(s_pActorMgr);
 		GameObject::ActorManager::DestroyInstance();
+		s_pActorMgr = nullptr;
 
-		SafeRelease(s_pTerrainManager);
 		GameObject::TerrainManager::DestroyInstance();
+		s_pTerrainManager = nullptr;
 
-		SafeRelease(m_pSkyManager);
 		GameObject::SkyManager::DestroyInstance();
+		m_pSkyManager = nullptr;
 
 		SafeRelease(s_pUIMgr);
 		UI::UIManager::DestroyInstance();
@@ -133,6 +135,8 @@ namespace EastEngine
 		File::DirectoryMonitor::DestroyInstance();
 		s_pDirectoryMonitor = nullptr;
 
+		Performance::Tracer::DestroyInstance();
+
 		String::Release();
 		CrashHandler::Release();
 	}
@@ -143,6 +147,8 @@ namespace EastEngine
 		strDumpPath.append("Dump\\");
 		if (CrashHandler::Initialize(strDumpPath.c_str()) == false)
 			return false;
+
+		s_pPerformanceTracer = Performance::Tracer::GetInstance();
 
 		s_pDirectoryMonitor = File::DirectoryMonitor::GetInstance();
 
@@ -234,6 +240,10 @@ namespace EastEngine
 			if (msg.message == WM_QUIT)
 				break;
 			
+			s_pPerformanceTracer->RefreshState();
+
+			PERF_TRACER_EVENT("System", "Frame");
+
 			s_pTimer->Tick();
 			float fElapsedTime = s_pTimer->GetElapsedTime();
 
@@ -259,17 +269,20 @@ namespace EastEngine
 
 	void MainSystem::Impl::Synchronize()
 	{
+		PERF_TRACER_EVENT("System::Synchronize", "");
 		s_pGraphicsSystem->Synchronize();
 	}
 
 	void MainSystem::Impl::Flush(float fElapsedTime)
 	{
+		PERF_TRACER_EVENT("System::Flush", "");
 		s_pSceneManager->Flush();
 		s_pGraphicsSystem->Flush(fElapsedTime);
 	}
 
 	void MainSystem::Impl::Update(float fElapsedTime)
 	{
+		PERF_TRACER_EVENT("System::Update", "");
 		s_pDirectoryMonitor->Update();
 		s_pInputDevice->Update(fElapsedTime);
 		s_pSoundSystem->Update(fElapsedTime);
@@ -284,6 +297,7 @@ namespace EastEngine
 
 	void MainSystem::Impl::Render()
 	{
+		PERF_TRACER_EVENT("System::Render", "");
 		s_pGraphicsSystem->BeginScene(0.f, 0.f, 0.f, 1.f);
 		s_pGraphicsSystem->Render();
 		s_pGraphicsSystem->EndScene();

@@ -54,9 +54,9 @@ namespace EastEngine
 				std::vector<uint32_t> elements;	// [numElements];
 			};
 
-			std::string GetString(File::FileStream& file)
+			std::string GetString(File::Stream& file)
 			{
-				if (file.GetFlag() == 0)
+				if (file.GetOpenMode() == 0)
 				{
 					std::string strTemp;
 					file >> strTemp;
@@ -77,8 +77,8 @@ namespace EastEngine
 
 			bool LoadModel(Model* pModel, const char* strFilePath, const std::string* pStrDevideModels, size_t nKeywordCount)
 			{
-				File::FileStream file;
-				if (file.Open(strFilePath, File::EmState::eRead | File::EmState::eBinary) == false)
+				File::Stream file;
+				if (file.Open(strFilePath, File::eRead | File::eBinary) == false)
 					return false;
 
 				std::string strPath = File::GetFilePath(strFilePath);
@@ -177,7 +177,7 @@ namespace EastEngine
 					file.Read(strTemp.data(), nReadSize);
 
 					//uint8_t nTemp8 = 0;
-					//file.Read(&nTemp8);
+					file.Read(&nTemp16);
 
 					file.Read(&nBoneCount);
 				}
@@ -277,7 +277,7 @@ namespace EastEngine
 					std::vector<ModelSubset> vecModelSubset;
 					std::vector<IMaterial*> vecMaterial;
 
-					bool isEnableMeshOptimize = false;
+					bool isEnableMeshOptimize = true;
 					if (isEnableMeshOptimize == true)
 					{
 						uint32_t nVertexCount = 0;
@@ -285,6 +285,7 @@ namespace EastEngine
 
 						struct MeshOptimizer
 						{
+							String::StringID strName;
 							std::vector<int> vecMeshIndex;
 							uint32_t numVertices = 0;
 							uint32_t numElements = 0;
@@ -297,16 +298,27 @@ namespace EastEngine
 
 							nVertexCount += mesh.numVertices;
 							nIndexCount += mesh.numElements;
+							
+							std::string strAlbedo;
+							std::string strNormal;
+							std::string strClassify = mesh.name;
 
-							std::string strAlbedo = File::GetFileName(mesh.textures[0].filename);
-							std::string strNormal = File::GetFileName(mesh.textures[2].filename);
-							std::string strClassify;
+							if (mesh.numTextures == 1)
+							{
+								strAlbedo = File::GetFileName(mesh.textures[0].filename);
+							}
+							else if (mesh.numTextures == 3 || mesh.numTextures == 4)
+							{
+								strAlbedo = File::GetFileName(mesh.textures[0].filename);
+								strNormal = File::GetFileName(mesh.textures[2].filename);
+							}
 
 							for (size_t j = 0; j < nKeywordCount; ++j)
 							{
 								if (strstr(mesh.name.c_str(), pStrDevideModels[j].c_str()) != nullptr)
 								{
 									strClassify = pStrDevideModels[j];
+									break;
 								}
 							}
 
@@ -326,6 +338,7 @@ namespace EastEngine
 								meshOptimizer.vecMeshIndex.emplace_back(i);
 								meshOptimizer.numVertices += mesh.numVertices;
 								meshOptimizer.numElements += mesh.numElements;
+								meshOptimizer.strName = mesh.name.c_str();
 							}
 						}
 
@@ -343,14 +356,14 @@ namespace EastEngine
 							const std::tuple<std::string, std::string, std::string> key = iter.first;
 							const MeshOptimizer& meshOptimizer = iter.second;
 
-							vecModelSubset[nIndex].strName.Format("%s_%d", strFileName.c_str(), nIndex);
+							vecModelSubset[nIndex].strName = meshOptimizer.strName;
 							vecModelSubset[nIndex].nStartIndex = nStartIndex;
 							vecModelSubset[nIndex].nIndexCount = meshOptimizer.numElements;
 							vecModelSubset[nIndex].nMaterialID = nIndex;
 
 							MaterialInfo materianInfo;
 							materianInfo.strPath = strPath;
-							materianInfo.strName.Format("%s_%d", strFileName.c_str(), nIndex);
+							materianInfo.strName = meshOptimizer.strName;
 							materianInfo.strTextureNameArray[EmMaterial::eAlbedo] = std::get<0>(key).c_str();
 							materianInfo.strTextureNameArray[EmMaterial::eNormal] = std::get<1>(key).c_str();
 							vecMaterial[nIndex] = IMaterial::Create(&materianInfo);
@@ -558,8 +571,8 @@ namespace EastEngine
 
 			bool LoadMotion(Motion* pMotion, const char* strFilePath)
 			{
-				File::FileStream file;
-				if (file.Open(strFilePath, File::EmState::eRead | File::EmState::eBinary) == false)
+				File::Stream file;
+				if (file.Open(strFilePath, File::eRead | File::eBinary) == false)
 					return false;
 
 				pMotion->SetInfo(0.f, 0.f, 0.f);

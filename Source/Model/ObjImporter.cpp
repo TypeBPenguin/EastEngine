@@ -38,8 +38,8 @@ namespace EastEngine
 				m_pMtlImporter->Release();
 			}
 
-			File::FileStream file;
-			if (file.Open(strFileName, File::EmState::eNone) == false)
+			File::Stream file;
+			if (file.Open(strFileName, File::eNone) == false)
 				return false;
 
 			if (loadModelData(file, fScaleFactor) == false)
@@ -71,7 +71,7 @@ namespace EastEngine
 			return m_pMtlImporter->GetMaterial(strName);
 		}
 
-		bool SObjImporter::loadModelData(File::FileStream& file, const float fScaleFactor)
+		bool SObjImporter::loadModelData(File::Stream& file, const float fScaleFactor)
 		{
 			file.Seekg(0, std::ios::beg);
 

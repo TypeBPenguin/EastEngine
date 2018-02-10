@@ -91,6 +91,7 @@ namespace EastEngine
 
 		void TextureManager::Impl::Flush(bool isEnableGarbageCollector)
 		{
+			PERF_TRACER_EVENT("TextureManager::Flush", "");
 			bool isLoading = m_isLoading.load();
 			if (m_conQueueRequestLoadTexture.empty() == false && isLoading == false)
 			{

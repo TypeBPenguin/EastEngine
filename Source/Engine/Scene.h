@@ -21,7 +21,7 @@ namespace EastEngine
 		GameObject::SectorMgr* CreateSectorMgr(GameObject::SectorInitInfo& sectorInitInfo);
 
 	public:
-		String::StringID GetSceneName() { return m_strName; }
+		const String::StringID& GetSceneName() const { return m_strName; }
 
 	private:
 		String::StringID m_strName;

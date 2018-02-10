@@ -41,6 +41,7 @@ namespace EastEngine
 
 		void KeyboardInstance::Update()
 		{
+			PERF_TRACER_EVENT("KeyboardInstance::Update", "");
 			Memory::Copy(&m_oldKeyState, sizeof(m_oldKeyState), &m_curKeyState, sizeof(m_curKeyState));
 
 			HRESULT hr = m_pKeyboard->GetDeviceState(sizeof(m_curKeyState), reinterpret_cast<void**>(&m_curKeyState));

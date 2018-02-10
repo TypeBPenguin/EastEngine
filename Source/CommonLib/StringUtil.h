@@ -204,7 +204,7 @@ namespace EastEngine
 		T ToValue(const char* string);
 
 		std::string Format(const char* format, ...);
-		std::string RandomString(uint32_t nLength, bool isOnlyAlphabet);
+		std::string RandomString(uint32_t nLength, bool isOnlyAlphabet = true);
 
 		std::string WideToMulti(const wchar_t* strWide, DWORD dwCodePage = CP_ACP);
 		std::string WideToMulti(const std::wstring& strWide, DWORD dwCodePage = CP_ACP);

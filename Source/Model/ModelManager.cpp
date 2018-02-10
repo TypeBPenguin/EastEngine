@@ -95,11 +95,16 @@ namespace EastEngine
 
 		void ModelManager::Impl::Update()
 		{
+			PERF_TRACER_EVENT("ModelManager::Update", "");
+
+			PERF_TRACER_BEGINEVENT("ModelManager::Update", "Model");
 			std::for_each(m_clnModel.begin(), m_clnModel.end(), [](Model& model)
 			{
 				model.Ready();
 			});
+			PERF_TRACER_ENDEVENT();
 
+			PERF_TRACER_BEGINEVENT("ModelManager::Update", "ModelInstance");
 			Concurrency::parallel_for_each(m_clnModelInstance.begin(), m_clnModelInstance.end(), [](ModelInstance& mModelInstance)
 			{
 				if (mModelInstance.GetSkeleton() != nullptr)
@@ -108,10 +113,12 @@ namespace EastEngine
 				}
 				mModelInstance.UpdateModel();
 			});
+			PERF_TRACER_ENDEVENT();
 		}
 
 		void ModelManager::Impl::Flush(bool isEnableGarbageCollector)
 		{
+			PERF_TRACER_EVENT("ModelManager::Flush", "");
 			if (m_conQueueRequestModelLoader.empty() == false && m_isLoading == false)
 			{
 				RequestLoadModelInfo loader;

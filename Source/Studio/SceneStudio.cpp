@@ -3,6 +3,7 @@
 
 #include "CommonLib/FileUtil.h"
 #include "CommonLib/Config.h"
+#include "CommonLib/Performance.h"
 
 #include "DirectX/Camera.h"
 #include "DirectX/Light.h"
@@ -962,21 +963,29 @@ void SceneStudio::Exit()
 
 void SceneStudio::Update(float fElapsedTime)
 {
+	PERF_TRACER_EVENT("SceneStudio::Update", "");
+
 	ImGuiIO& io = ImGui::GetIO();
 
+	PERF_TRACER_BEGINEVENT("SceneStudio::Update", "SkeletonController");
 	bool isProcessedMouseInput = m_pSkeletonController->Process(fElapsedTime);
+	PERF_TRACER_ENDEVENT();
 
 	if (io.WantCaptureMouse == false)
 	{
 		if (isProcessedMouseInput == false)
 		{
+			PERF_TRACER_BEGINEVENT("SceneStudio::Update", "SkeletonController");
 			ProcessInput(fElapsedTime);
+			PERF_TRACER_ENDEVENT();
 		}
 	}
 
 	if (m_pSectorMgr != nullptr)
 	{
+		PERF_TRACER_BEGINEVENT("SceneStudio::Update", "SkeletonController");
 		m_pSectorMgr->Update(fElapsedTime);
+		PERF_TRACER_ENDEVENT();
 	}
 }
 
@@ -2186,6 +2195,8 @@ void ShowMaterial(bool& isShowMaterial, Graphics::IMaterial* pMaterial, int nInd
 
 void SceneStudio::RenderUI()
 {
+	PERF_TRACER_EVENT("SceneStudio::RenderUI", "");
+
 	ImGui_ImplDX11_DeviceContextChange(Graphics::GetDeferredContext(Graphics::eRender)->GetInterface());
 	ImGui_ImplDX11_NewFrame();
 
@@ -2204,6 +2215,39 @@ void SceneStudio::RenderUI()
 		float fps = MainSystem::GetInstance()->GetFPS();
 		float ms = 1.f / fps * 1000.f;
 		ImGui::Text("Frame %.2f(%.2f)", fps, ms);
+
+		if (ImGui::CollapsingHeader("Tracer") == true)
+		{
+			const bool isTracing = Performance::Tracer::GetInstance()->IsTracing();
+			ImGui::Text("State : %s", isTracing == true ? "Tracing" : "Idle");
+
+			if (isTracing == true)
+			{
+				if (ImGui::Button("End") == true)
+				{
+					char path[512] = { 0 };
+					OPENFILENAME ofn;
+					Memory::Clear(&ofn, sizeof(ofn));
+
+					ofn.lStructSize = sizeof(OPENFILENAME);
+					ofn.hwndOwner = Windows::GetHwnd();
+					ofn.lpstrFilter = "Json(*.json)\0*.json\0";
+					ofn.lpstrFile = path;
+					ofn.nMaxFile = 255;
+					if (GetSaveFileName(&ofn) != 0)
+					{
+						PERF_TRACER_END(path);
+					}
+				}
+			}
+			else
+			{
+				if (ImGui::Button("Start") == true)
+				{
+					PERF_TRACER_START();
+				}
+			}
+		}
 
 		ImGui::End();
 	}
@@ -2266,7 +2310,7 @@ void SceneStudio::RenderUI()
 			{
 				if (String::Length(buf) > 1)
 				{
-					GameObject::Actor::Create(buf);
+					GameObject::IActor::Create(buf);
 				}
 				ImGui::CloseCurrentPopup();
 			}
@@ -2319,7 +2363,7 @@ void SceneStudio::RenderUI()
 			ofn.nMaxFile = 255;
 			if (GetOpenFileName(&ofn) != 0)
 			{
-				if (GameObject::Actor::CreateByFile(ofn.lpstrFile) == nullptr)
+				if (GameObject::IActor::CreateByFile(ofn.lpstrFile) == nullptr)
 				{
 					LOG_ERROR("로드 실패 : %s", path);
 				}
@@ -2349,7 +2393,7 @@ void SceneStudio::RenderUI()
 
 				if (String::IsEqualsNoCase(File::GetFileExtension(path).c_str(), "eact") == true)
 				{
-					GameObject::Actor::SaveToFile(pActor, path);
+					GameObject::IActor::SaveToFile(pActor, path);
 				}
 			}
 		}

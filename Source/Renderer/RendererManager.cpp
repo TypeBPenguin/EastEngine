@@ -99,6 +99,8 @@ namespace EastEngine
 
 		void RendererManager::Impl::Render()
 		{
+			PERF_TRACER_EVENT("RendererManager::Render", "");
+
 			IDevice* pDevice = GetDevice();
 			IDeviceContext* pDeviceContext = GetDeferredContext(ThreadType::eRender);
 
@@ -134,6 +136,7 @@ namespace EastEngine
 
 		void RendererManager::Impl::Flush()
 		{
+			PERF_TRACER_EVENT("RendererManager::Flush", "");
 			for (auto& pRenderer : m_pRenderer)
 			{
 				if (pRenderer == nullptr)

@@ -4,7 +4,7 @@ namespace EastEngine
 {
 	namespace File
 	{
-		class FileStream;
+		class Stream;
 	}
 
 	namespace GameObject
@@ -38,8 +38,8 @@ namespace EastEngine
 		public:
 			virtual void Update(float fElapsedTime) = 0;
 
-			virtual bool LoadToFile(File::FileStream& file) { return true; }
-			virtual bool SaveToFile(File::FileStream& file) { return true; }
+			virtual bool LoadToFile(File::Stream& file) { return true; }
+			virtual bool SaveToFile(File::Stream& file) { return true; }
 
 		public:
 			IComponent* AddComponent(IComponent* pComponent);

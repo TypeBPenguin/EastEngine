@@ -4,8 +4,13 @@
 #include "CommonLib/FileStream.h"
 
 #include "ActorManager.h"
+#include "Actor.h"
+
 #include "TerrainManager.h"
+#include "Terrain.h"
+
 #include "SkyManager.h"
+#include "Skybox.h"
 
 namespace EastEngine
 {
@@ -13,8 +18,8 @@ namespace EastEngine
 	{
 		IActor* IActor::CreateByFile(const char* strFilePath)
 		{
-			File::FileStream file;
-			if (file.Open(strFilePath, File::EmState::eRead | File::EmState::eBinary) == false)
+			File::Stream file;
+			if (file.Open(strFilePath, File::eRead | File::eBinary) == false)
 			{
 				LOG_WARNING("Can't open to file : %s", strFilePath);
 				return nullptr;
@@ -64,8 +69,8 @@ namespace EastEngine
 
 		bool IActor::SaveToFile(IActor* pActor, const char* strFilePath)
 		{
-			File::FileStream file;
-			if (file.Open(strFilePath, File::EmState::eWrite | File::EmState::eBinary) == false)
+			File::Stream file;
+			if (file.Open(strFilePath, File::eWrite | File::eBinary) == false)
 			{
 				LOG_WARNING("Can't open to file : %s", strFilePath);
 				return false;

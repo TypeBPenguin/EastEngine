@@ -498,6 +498,7 @@ namespace EastEngine
 
 		void Device::Flush()
 		{
+			PERF_TRACER_EVENT("Device::Flush", "");
 			std::swap(m_nThreadID[ThreadType::eUpdate], m_nThreadID[ThreadType::eRender]);
 		}
 

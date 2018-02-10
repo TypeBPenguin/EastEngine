@@ -79,6 +79,7 @@ namespace EastEngine
 
 		void Device::Impl::Update(float fElapsedTime)
 		{
+			PERF_TRACER_EVENT("InputDevice::Update", "");
 			m_mouse.Update();
 			m_keyboard.Update();
 			m_gamePad.Update(fElapsedTime);

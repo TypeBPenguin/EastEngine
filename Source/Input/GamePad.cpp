@@ -278,6 +278,7 @@ namespace EastEngine
 
 		void GamePadInstance::Update(float fElapsedTime)
 		{
+			PERF_TRACER_EVENT("GamePadInstance::Update", "");
 			for (auto& player : m_players)
 			{
 				player.Update(fElapsedTime);

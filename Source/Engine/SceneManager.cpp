@@ -49,18 +49,23 @@ namespace EastEngine
 
 	void SceneManager::Impl::Update(float fElapsedTime)
 	{
+		PERF_TRACER_EVENT("SceneManager::Update", "");
 		if (m_pCurScene != nullptr)
 		{
+			PERF_TRACER_PUSHARGS("Scene Name", m_pCurScene->GetSceneName().c_str());
 			m_pCurScene->Update(fElapsedTime);
 		}
 	}
 
 	void SceneManager::Impl::Flush()
 	{
+		PERF_TRACER_EVENT("SceneManager::Flush", "");
 		if (m_pChangeScene != nullptr)
 		{
 			if (m_pCurScene != nullptr)
 			{
+				PERF_TRACER_EVENT("SceneManager::Flush", "Exit");
+				PERF_TRACER_PUSHARGS("Scene Name", m_pCurScene->GetSceneName().c_str());
 				m_pCurScene->Exit();
 			}
 
@@ -68,6 +73,8 @@ namespace EastEngine
 
 			if (m_pCurScene != nullptr)
 			{
+				PERF_TRACER_EVENT("SceneManager::Flush", "Enter");
+				PERF_TRACER_PUSHARGS("Scene Name", m_pCurScene->GetSceneName().c_str());
 				m_pCurScene->Enter();
 			}
 

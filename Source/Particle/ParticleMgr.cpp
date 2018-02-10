@@ -45,6 +45,8 @@ namespace EastEngine
 
 		void ParticleManager::Update(float fElapsedTime)
 		{
+			PERF_TRACER_EVENT("ParticleManager::Update", "");
+
 			Camera* pCamera = Camera::GetInstance();
 			if (pCamera == nullptr)
 				return;

@@ -445,8 +445,8 @@ namespace EastEngine
 			std::string strFullPath(strFilePath);
 			strFullPath.append(strFileName);
 
-			File::FileStream file;
-			if (file.Open(strFullPath.c_str(), File::EmState::eRead | File::EmState::eBinary) == false)
+			File::Stream file;
+			if (file.Open(strFullPath.c_str(), File::eRead | File::eBinary) == false)
 			{
 				LOG_WARNING("아 실패함");
 				return nullptr;
@@ -515,8 +515,8 @@ namespace EastEngine
 			strFullPath.append(pMaterial->GetName().c_str());
 			strFullPath.append(".emtl");
 
-			File::FileStream file;
-			if (file.Open(strFullPath.c_str(), File::EmState::eWrite | File::EmState::eBinary) == false)
+			File::Stream file;
+			if (file.Open(strFullPath.c_str(), File::eWrite | File::eBinary) == false)
 			{
 				LOG_WARNING("아 실패함");
 				return false;

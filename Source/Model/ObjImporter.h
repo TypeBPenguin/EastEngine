@@ -6,7 +6,7 @@ namespace EastEngine
 {
 	namespace File
 	{
-		class FileStream;
+		class Stream;
 	}
 
 	namespace Graphics
@@ -116,7 +116,7 @@ namespace EastEngine
 			IMaterial* GetMaterial(const String::StringID& strName);
 
 		private:
-			bool loadModelData(File::FileStream& file, const float fScaleFactor);
+			bool loadModelData(File::Stream& file, const float fScaleFactor);
 
 			bool buildModel(IModel* pIModel, uint32_t nLodMax, const LODReductionRate* pLodReductionRate = nullptr);
 			

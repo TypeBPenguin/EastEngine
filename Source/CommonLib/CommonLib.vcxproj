@@ -110,6 +110,7 @@
     <ClInclude Include="Config.h" />
     <ClInclude Include="CrashHandler.h" />
     <ClInclude Include="ErrorDefine.h" />
+    <ClInclude Include="json.hpp" />
     <ClInclude Include="Memory.h" />
     <ClInclude Include="Performance.h" />
     <ClInclude Include="PipeData.h" />

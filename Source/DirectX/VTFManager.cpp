@@ -92,6 +92,7 @@ namespace EastEngine
 
 		void VTFManager::Synchronize()
 		{
+			PERF_TRACER_EVENT("VTFManager::Synchronize", "");
 			int nThreadID = GetThreadID(ThreadType::eRender);
 			if (m_vtfInstances[nThreadID].nAllocatedCount > 0)
 			{

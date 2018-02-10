@@ -140,24 +140,33 @@ namespace EastEngine
 
 		void LightManager::Impl::Update(float fElapsedTime)
 		{
+			PERF_TRACER_EVENT("LightManager::Update", "");
+
+			PERF_TRACER_BEGINEVENT("LightManager::Update", "Directional");
 			std::for_each(m_vecDirectionalLights.begin(), m_vecDirectionalLights.end(), [fElapsedTime](IDirectionalLight* pLight)
 			{
 				pLight->Update(fElapsedTime);
 			});
+			PERF_TRACER_ENDEVENT();
 
+			PERF_TRACER_BEGINEVENT("LightManager::Update", "Spot");
 			std::for_each(m_vecSpotLights.begin(), m_vecSpotLights.end(), [fElapsedTime](ISpotLight* pLight)
 			{
 				pLight->Update(fElapsedTime);
 			});
+			PERF_TRACER_ENDEVENT();
 
+			PERF_TRACER_BEGINEVENT("LightManager::Update", "Point");
 			std::for_each(m_vecPointLights.begin(), m_vecPointLights.end(), [fElapsedTime](IPointLight* pLight)
 			{
 				pLight->Update(fElapsedTime);
 			});
+			PERF_TRACER_ENDEVENT();
 		}
 
 		void LightManager::Impl::Synchronize()
 		{
+			PERF_TRACER_EVENT("LightManager::Synchronize", "");
 			UpdateLightBuffer();
 		}
 
@@ -360,6 +369,7 @@ namespace EastEngine
 		{
 			m_nLightCountInView.fill(0);
 
+			PERF_TRACER_BEGINEVENT("LightManager::UpdateLightBuffer", "Directional");
 			std::for_each(m_vecDirectionalLights.begin(), m_vecDirectionalLights.end(), [&](IDirectionalLight* pLight)
 			{
 				uint32_t& nLightIndex = m_nLightCountInView[EmLight::eDirectional];
@@ -369,7 +379,9 @@ namespace EastEngine
 					++nLightIndex;
 				}
 			});
+			PERF_TRACER_ENDEVENT();
 
+			PERF_TRACER_BEGINEVENT("LightManager::UpdateLightBuffer", "Point");
 			std::for_each(m_vecPointLights.begin(), m_vecPointLights.end(), [&](IPointLight* pLight)
 			{
 				Collision::Sphere sphere(pLight->GetPosition(), Math::PI * pLight->GetIntensity());
@@ -385,7 +397,9 @@ namespace EastEngine
 					}
 				}
 			});
+			PERF_TRACER_ENDEVENT();
 
+			PERF_TRACER_BEGINEVENT("LightManager::UpdateLightBuffer", "Spot");
 			std::for_each(m_vecSpotLights.begin(), m_vecSpotLights.end(), [&](ISpotLight* pLight)
 			{
 				// 이걸 보거든, 방향 및 거리 계산을 계산해서 프러스텀 안에 들어갈때 버퍼에 추가하도록 바꾸시오.
@@ -399,10 +413,13 @@ namespace EastEngine
 					}
 				}
 			});
+			PERF_TRACER_ENDEVENT();
 
+			PERF_TRACER_BEGINEVENT("LightManager::UpdateLightBuffer", "UpdateSubresource");
 			m_pLightBuffers[EmLight::eDirectional]->UpdateSubresource(ThreadType::eImmediate, 0, m_directionalLightData.data(), m_nLightCountInView[EmLight::eDirectional]);
 			m_pLightBuffers[EmLight::ePoint]->UpdateSubresource(ThreadType::eImmediate, 0, m_pointLightData.data(), m_nLightCountInView[EmLight::ePoint]);
 			m_pLightBuffers[EmLight::eSpot]->UpdateSubresource(ThreadType::eImmediate, 0, m_spotLightData.data(), m_nLightCountInView[EmLight::eSpot]);
+			PERF_TRACER_ENDEVENT();
 		}
 
 		LightManager::LightManager()

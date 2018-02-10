@@ -172,6 +172,7 @@ namespace EastEngine
 
 		void GraphicsSystem::Impl::Update(float fElapsedTime)
 		{
+			PERF_TRACER_EVENT("GraphicsSystem::Update", "");
 			s_pCamera->Update(fElapsedTime);
 
 			s_pModelMgr->Update();
@@ -183,6 +184,7 @@ namespace EastEngine
 
 		void GraphicsSystem::Impl::Render()
 		{
+			PERF_TRACER_EVENT("GraphicsSystem::Render", "");
 			s_pRendererMgr->Render();
 
 			for (auto& func : m_vecFuncAfterRender)
@@ -196,12 +198,14 @@ namespace EastEngine
 
 		void GraphicsSystem::Impl::Synchronize()
 		{
+			PERF_TRACER_EVENT("GraphicsSystem::Synchronize", "");
 			s_pLightMgr->Synchronize();
 			s_pVTFManager->Synchronize();
 		}
 
 		void GraphicsSystem::Impl::Flush(float fElapsedTime)
 		{
+			PERF_TRACER_EVENT("GraphicsSystem::Flush", "");
 			bool isEnableGarbageCollector = false;
 			m_fFlushTime += fElapsedTime;
 			if (m_fFlushTime >= m_fFlushCycleTime)
@@ -212,7 +216,7 @@ namespace EastEngine
 
 			s_pTextureMgr->Flush(isEnableGarbageCollector);
 			s_pModelMgr->Flush(isEnableGarbageCollector);
-			s_pTextureMgr->Flush(isEnableGarbageCollector);
+			s_pMotionMgr->Flush(isEnableGarbageCollector);
 
 			s_pShaderMgr->Flush();
 
@@ -223,6 +227,7 @@ namespace EastEngine
 
 		void GraphicsSystem::Impl::BeginScene(float r, float g, float b, float a)
 		{
+			PERF_TRACER_EVENT("GraphicsSystem::BeginScene", "");
 			s_pDevice->BeginScene(r, g, b, a);
 
 			//s_pOcclusionCulling->ClearBuffer();
@@ -230,6 +235,7 @@ namespace EastEngine
 
 		void GraphicsSystem::Impl::EndScene()
 		{
+			PERF_TRACER_EVENT("GraphicsSystem::EndScene", "");
 			s_pDevice->EndScene();
 		}
 

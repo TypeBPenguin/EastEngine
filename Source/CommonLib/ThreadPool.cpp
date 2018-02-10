@@ -8,7 +8,7 @@ namespace EastEngine
 	namespace Thread
 	{
 		Task::Task(std::thread& thread)
-			: m_emState(EmState::eIdle)
+			: m_emState(State::eIdle)
 		{
 			m_thread.swap(thread);
 		}
@@ -27,20 +27,20 @@ namespace EastEngine
 
 			m_condition.wait(lock, [&]()
 			{
-				return m_emState.load() == EmState::eIdle;
+				return m_emState.load() == State::eIdle;
 			});
 		}
 
-		Task::EmState Task::GetState()
+		Task::State Task::GetState()
 		{
 			return m_emState.load();
 		}
 
-		void Task::SetState(EmState emState)
+		void Task::SetState(State emState)
 		{
 			m_emState.store(emState);
 
-			if (m_emState == EmState::eIdle)
+			if (m_emState == State::eIdle)
 			{
 				m_condition.notify_all();
 			}
@@ -100,12 +100,12 @@ namespace EastEngine
 							m_queueTasks.pop();
 						}
 
-						SetTaskState(pWorker, Task::EmState::eProcessing);
+						SetTaskState(pWorker, Task::State::eProcessing);
 
 						task.promiseThread.set_value(pWorker);
 						task.funcTask();
 
-						SetTaskState(pWorker, Task::EmState::eIdle);
+						SetTaskState(pWorker, Task::State::eIdle);
 					}
 				}, promiseThread.get_future());
 

@@ -49,7 +49,7 @@ namespace EastEngine
 			}
 		}
 
-		bool ComponentModel::LoadToFile(File::FileStream& file)
+		bool ComponentModel::LoadToFile(File::Stream& file)
 		{
 			std::string strBuf;
 			file >> strBuf;
@@ -67,7 +67,7 @@ namespace EastEngine
 			return true;
 		}
 
-		bool ComponentModel::SaveToFile(File::FileStream& file)
+		bool ComponentModel::SaveToFile(File::Stream& file)
 		{
 			Graphics::IModel* pModel = m_pModelInst->GetModel();
 

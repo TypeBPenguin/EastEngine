@@ -85,7 +85,9 @@ namespace EastEngine
 			if (m_isInitialized == false)
 				return;
 
+			PERF_TRACER_EVENT("SoundSystem::Update", "");
 			{
+				PERF_TRACER_BEGINEVENT("SoundSystem::Update", "RequestStopSound");
 				auto iter = m_listReqStopSound.begin();
 				while (iter != m_listReqStopSound.end())
 				{
@@ -123,9 +125,11 @@ namespace EastEngine
 						++iter;
 					}
 				}
+				PERF_TRACER_ENDEVENT();
 			}
 
 			{
+				PERF_TRACER_BEGINEVENT("SoundSystem::Update", "GarbageCollect");
 				auto iter = m_umapSoundInst.begin();
 				while (iter != m_umapSoundInst.end())
 				{
@@ -161,17 +165,22 @@ namespace EastEngine
 						}
 					}
 				}
+				PERF_TRACER_ENDEVENT();
 			}
 
-			m_pSystem->update();
+			{
+				PERF_TRACER_BEGINEVENT("SoundSystem::Update", "FMOD System Update");
+				m_pSystem->update();
 
-			if (m_pf3ListenerPos == nullptr)
-				return;
-
-			FMOD_VECTOR vPos = { m_pf3ListenerPos->x, m_pf3ListenerPos->y, m_pf3ListenerPos->z };
-			FMOD_VECTOR vForward = { 0.f, 1.f, 0.f };
-			FMOD_VECTOR vUp = { 0.f, 0.f, 1.f };
-			m_pSystem->set3DListenerAttributes(0, &vPos, nullptr, &vForward, &vUp);
+				if (m_pf3ListenerPos != nullptr)
+				{
+					FMOD_VECTOR vPos = { m_pf3ListenerPos->x, m_pf3ListenerPos->y, m_pf3ListenerPos->z };
+					FMOD_VECTOR vForward = { 0.f, 1.f, 0.f };
+					FMOD_VECTOR vUp = { 0.f, 0.f, 1.f };
+					m_pSystem->set3DListenerAttributes(0, &vPos, nullptr, &vForward, &vUp);
+				}
+				PERF_TRACER_ENDEVENT();
+			}
 		}
 
 		bool System::Impl::Play(const String::StringID& strSoundFile, float fVolume, const Math::Vector3* pf3Pos, int mode)

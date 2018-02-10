@@ -1,9 +1,8 @@
 #pragma once
 
 #include "CommonLib/Singleton.h"
-#include "CommonLib/plf_colony.h"
 
-#include "Actor.h"
+#include "GameObject.h"
 
 namespace EastEngine
 {
@@ -17,17 +16,17 @@ namespace EastEngine
 			virtual ~ActorManager();
 
 		public:
-			void Release();
-
 			void Update(float fElapsedTime);
 
+		public:
 			IActor* CreateActor(const String::StringID& strActorName);
 
 			IActor* GetActor(size_t nIndex);
-			size_t GetActorCount() const { return m_colonyActor.size(); }
+			size_t GetActorCount() const;
 
 		private:
-			plf::colony<Actor> m_colonyActor;
+			class Impl;
+			std::unique_ptr<Impl> m_pImpl;
 		};
 	}
 }

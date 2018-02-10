@@ -202,8 +202,8 @@ namespace EastEngine
 
 		bool Terrain::loadHeightMap(const char* strFilePath)
 		{
-			File::FileStream file;
-			if (file.Open(strFilePath, File::EmState::eBinary | File::EmState::eRead) == false)
+			File::Stream file;
+			if (file.Open(strFilePath, File::eBinary | File::eRead) == false)
 				return false;
 
 			BITMAPFILEHEADER bitmapFileHeader;
@@ -265,8 +265,8 @@ namespace EastEngine
 		{
 			// Start by creating the array structure to hold the height map data.
 			// Open the bitmap map file in binary.
-			File::FileStream file;
-			if (file.Open(strFilePath, File::EmState::eBinary | File::EmState::eRead) == false)
+			File::Stream file;
+			if (file.Open(strFilePath, File::eBinary | File::eRead) == false)
 				return false;
 
 			// Calculate the size of the bitmap image data.  

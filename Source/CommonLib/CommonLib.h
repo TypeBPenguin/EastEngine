@@ -135,3 +135,4 @@ struct ReleaseSTLMapObject
 #include "Collision.h"
 #include "StringTable.h"
 #include "Log.h"
+#include "Performance.h"

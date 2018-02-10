@@ -76,6 +76,9 @@
     <Filter Include="PhantomType">
       <UniqueIdentifier>{1aeaa061-a01c-4a63-8d63-5d9c65ea1fcd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Json">
+      <UniqueIdentifier>{3cf8da9b-dfc4-487f-8c95-3d8e040141b7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -158,6 +161,9 @@
     </ClInclude>
     <ClInclude Include="PhantomType.h">
       <Filter>PhantomType</Filter>
+    </ClInclude>
+    <ClInclude Include="json.hpp">
+      <Filter>Json</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
