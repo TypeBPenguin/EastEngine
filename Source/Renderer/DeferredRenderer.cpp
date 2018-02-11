@@ -97,6 +97,8 @@ namespace EastEngine
 
 		void DeferredRenderer::Impl::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
 		{
+			PERF_TRACER_EVENT("DeferredRenderer::Render", "");
+
 			int nEnableShadowCount = 0;
 			IRenderTarget* pRenderTargetShadow = nullptr;
 			if (Config::IsEnable("Shadow"_s) == true)
@@ -223,6 +225,7 @@ namespace EastEngine
 
 		int DeferredRenderer::Impl::RenderShadowMap(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, IRenderTarget* pRenderTarget)
 		{
+			PERF_TRACER_EVENT("DeferredRenderer::RenderShadowMap", "");
 			pDeviceContext->ClearRenderTargetView(pRenderTarget, Math::Color::Black);
 
 			bool isEnableShadow = false;

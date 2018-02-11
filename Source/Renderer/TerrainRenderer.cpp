@@ -77,6 +77,7 @@ namespace EastEngine
 			if (m_vecTerrain.empty())
 				return;
 
+			PERF_TRACER_EVENT("TerrainRenderer::Render", "");
 			D3D_PROFILING(pDeviceContext, TerrainRenderer);
 
 			IGBuffers* pGBuffers = GetGBuffers();

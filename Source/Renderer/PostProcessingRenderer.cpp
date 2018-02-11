@@ -134,6 +134,7 @@ namespace EastEngine
 
 		void PostProcessingRenderer::Impl::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
 		{
+			PERF_TRACER_EVENT("PostProcessingRenderer::Render", "");
 			D3D_PROFILING(pDeviceContext, PostProcessing);
 
 			if (Config::IsEnable("SSS"_s) == true)

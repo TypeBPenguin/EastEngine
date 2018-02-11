@@ -71,6 +71,7 @@ namespace EastEngine
 			if (pSource == nullptr || pSource->GetTexture() == nullptr)
 				return false;
 
+			PERF_TRACER_EVENT("SSS::Apply", "");
 			D3D_PROFILING(pDeviceContext, SSS);
 
 			pDeviceContext->ClearState();

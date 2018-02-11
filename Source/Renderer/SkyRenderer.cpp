@@ -94,6 +94,7 @@ namespace EastEngine
 
 		void SkyRenderer::Impl::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
 		{
+			PERF_TRACER_EVENT("SkyRenderer::Render", "");
 			D3D_PROFILING(pDeviceContext, SkyRenderer);
 
 			IEffectTech* pEffectTech = m_pEffect->GetTechnique(StrID::Skybox);

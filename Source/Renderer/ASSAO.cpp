@@ -1822,6 +1822,7 @@ namespace EastEngine
 
 		void ASSAO::Apply(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, IRenderTarget* pResult)
 		{
+			PERF_TRACER_EVENT("ASSAO::Apply", "");
 			D3D_PROFILING(pDeviceContext, SSAO);
 
 			int nThreadID = GetThreadID(ThreadType::eRender);

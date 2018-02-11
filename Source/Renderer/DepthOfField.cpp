@@ -88,6 +88,7 @@ namespace EastEngine
 			if (pSource == nullptr || pSource->GetTexture() == nullptr)
 				return false;
 
+			PERF_TRACER_EVENT("DepthOfField::Apply", "");
 			D3D_PROFILING(pDeviceContext, DepthOfField);
 
 			int nThreadID = GetThreadID(ThreadType::eRender);

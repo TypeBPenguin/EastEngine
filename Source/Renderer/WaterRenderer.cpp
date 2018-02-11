@@ -339,6 +339,7 @@ namespace EastEngine
 
 		void WaterRenderer::Impl::Simulate(IDevice* pDevice, IDeviceContext* pDeviceContext, float fTime)
 		{
+			PERF_TRACER_EVENT("WaterRenderer::Simulate", "");
 			D3D_PROFILING(pDeviceContext, Simulate);
 
 			m_pWaterSimulator->UpdateDisplacementMap(pDevice, pDeviceContext, fTime);
@@ -346,6 +347,7 @@ namespace EastEngine
 
 		void WaterRenderer::Impl::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, float fTime)
 		{
+			PERF_TRACER_EVENT("WaterRenderer::Render", "");
 			D3D_PROFILING(pDeviceContext, Render);
 			IEffectTech* pEffectTech = m_pEffect->GetTechnique(StrID::Water);
 			if (pEffectTech == nullptr)

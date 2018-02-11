@@ -113,6 +113,7 @@ namespace EastEngine
 
 		void VertexRenderer::Impl::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
 		{
+			PERF_TRACER_EVENT("VertexRenderer::Render", "");
 			D3D_PROFILING(pDeviceContext, VertexRenderer);
 
 			pDeviceContext->ClearState();

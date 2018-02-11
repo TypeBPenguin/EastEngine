@@ -112,6 +112,7 @@ namespace EastEngine
 			if (pSource == nullptr || pSource->GetTexture() == nullptr)
 				return false;
 
+			PERF_TRACER_EVENT("Downscale::Apply4SW", "");
 			D3D_PROFILING(pDeviceContext, Downscale);
 
 			pDeviceContext->ClearState();
@@ -144,6 +145,7 @@ namespace EastEngine
 			if (pSource == nullptr || pSource->GetTexture() == nullptr)
 				return false;
 
+			PERF_TRACER_EVENT("Downscale::Apply16SW", "");
 			D3D_PROFILING(pDeviceContext, Downscale);
 
 			pDeviceContext->ClearState();
@@ -190,6 +192,7 @@ namespace EastEngine
 			if (pSource == nullptr || pSource->GetTexture() == nullptr)
 				return false;
 
+			PERF_TRACER_EVENT("Downscale::ApplyHW", "");
 			D3D_PROFILING(pDeviceContext, Downscale);
 
 			pDeviceContext->ClearState();
@@ -219,6 +222,7 @@ namespace EastEngine
 			if (pSource == nullptr || pSource->GetTexture() == nullptr)
 				return false;
 
+			PERF_TRACER_EVENT("Downscale::Apply16HW", "");
 			D3D_PROFILING(pDeviceContext, Downscale);
 
 			pDeviceContext->ClearState();

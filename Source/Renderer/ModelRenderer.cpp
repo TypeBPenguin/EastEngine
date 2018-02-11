@@ -785,6 +785,7 @@ namespace EastEngine
 
 		void ModelRenderer::Impl::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
 		{
+			PERF_TRACER_EVENT("ModelRenderer::Render", "");
 			D3D_PROFILING(pDeviceContext, ModelRenderer);
 
 			OcclusionCulling(pCamera, nRenderGroupFlag);
@@ -796,6 +797,7 @@ namespace EastEngine
 			IRenderTarget** ppRenderTarget = nullptr;
 			uint32_t nRenderTargetCount = 0;
 			{
+				PERF_TRACER_EVENT("ModelRenderer::Render", "Ready");
 				D3D_PROFILING(pDeviceContext, Ready);
 				pDeviceContext->ClearState();
 
@@ -1073,6 +1075,7 @@ namespace EastEngine
 
 		void ModelRenderer::Impl::RenderStaticModel(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, uint32_t nRenderTypeFlag)
 		{
+			PERF_TRACER_EVENT("ModelRenderer::RenderStaticModel", "");
 			D3D_PROFILING(pDeviceContext, StaticModel);
 			{
 				int nThreadID = GetThreadID(ThreadType::eRender);
@@ -1154,6 +1157,7 @@ namespace EastEngine
 
 		void ModelRenderer::Impl::RenderSkinnedModel(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, uint32_t nRenderTypeFlag)
 		{
+			PERF_TRACER_EVENT("ModelRenderer::RenderSkinnedModel", "");
 			D3D_PROFILING(pDeviceContext, SkinnedModel);
 			{
 				int nThreadID = GetThreadID(ThreadType::eRender);
@@ -1224,6 +1228,7 @@ namespace EastEngine
 
 		void ModelRenderer::Impl::RenderStaticModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, const Math::Matrix* pMatView, const Math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap)
 		{
+			PERF_TRACER_EVENT("ModelRenderer::RenderStaticModel_Shadow", "");
 			D3D_PROFILING(pDeviceContext, StaticModel_ShadowDepth);
 
 			int nThreadID = GetThreadID(ThreadType::eRender);
@@ -1291,6 +1296,7 @@ namespace EastEngine
 
 		void ModelRenderer::Impl::RenderSkinnedModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, const Math::Matrix* pMatView, const Math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap)
 		{
+			PERF_TRACER_EVENT("ModelRenderer::RenderSkinnedModel_Shadow", "");
 			D3D_PROFILING(pDeviceContext, SkinnedModel_ShadowDepth);
 
 			int nThreadID = GetThreadID(ThreadType::eRender);

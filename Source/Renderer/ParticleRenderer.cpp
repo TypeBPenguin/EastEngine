@@ -375,6 +375,7 @@ namespace EastEngine
 
 		void ParticleRenderer::Impl::RenderEmitter(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera)
 		{
+			PERF_TRACER_EVENT("ParticleRenderer::RenderEmitter", "");
 			D3D_PROFILING(pDeviceContext, Particle);
 
 			if (m_queueEmitter.empty())
@@ -525,6 +526,7 @@ namespace EastEngine
 
 		void ParticleRenderer::Impl::RenderDecal(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera)
 		{
+			PERF_TRACER_EVENT("ParticleRenderer::RenderDecal", "");
 			D3D_PROFILING(pDeviceContext, Decal);
 
 			if (m_listDecal.empty())

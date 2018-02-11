@@ -113,6 +113,7 @@ namespace EastEngine
 			if (pSource == nullptr || pSource->GetTexture() == nullptr)
 				return false;
 
+			PERF_TRACER_EVENT("GaussianBlur::Apply", "");
 			D3D_PROFILING(pDeviceContext, GaussianBlur);
 
 			pDeviceContext->ClearState();
@@ -176,6 +177,9 @@ namespace EastEngine
 
 			if (pDepth == nullptr || pDepth->GetTexture() == nullptr)
 				return false;
+
+			PERF_TRACER_EVENT("GaussianBlur::Apply", "");
+			D3D_PROFILING(pDeviceContext, GaussianBlur);
 
 			pDeviceContext->ClearState();
 			pDeviceContext->SetDefaultViewport();

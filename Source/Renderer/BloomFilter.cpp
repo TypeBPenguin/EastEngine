@@ -104,6 +104,7 @@ namespace EastEngine
 			if (pSource == nullptr || pSource->GetTexture() == nullptr)
 				return false;
 
+			PERF_TRACER_EVENT("BloomFilter::Apply", "");
 			D3D_PROFILING(pDeviceContext, BloomFilter);
 
 			SetBloomPreset(m_settings.emPreset);
