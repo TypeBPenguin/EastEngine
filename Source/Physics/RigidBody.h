@@ -2,12 +2,7 @@
 
 #include "PhysicsDefine.h"
 
-class btDiscreteDynamicsWorld;
-class btCollisionShape;
 class btRigidBody;
-class btTriangleMesh;
-class btTriangleIndexVertexArray;
-class btMotionState;
 
 namespace EastEngine
 {
@@ -27,7 +22,7 @@ namespace EastEngine
 			{
 			}
 		};
-		typedef void(*FuncCollisionCallback)(const std::vector<CollisionResult>&);
+		using FuncCollisionCallback = void(*)(const std::vector<CollisionResult>&);
 
 		using FuncTriangleDrawCallback = std::function<void(const Math::Vector3* pTriangles, const size_t nCount)>;
 
@@ -72,32 +67,24 @@ namespace EastEngine
 			void Update(float fElapsedTime);
 			void UpdateBoundingBox(const Math::Matrix& matWorld);
 
-			bool IsCollision(const RigidBody* pRigidBody);
-			bool RayTest(const Math::Vector3& f3From, const Math::Vector3& f3To, Math::Vector3* pHitPoint_out = nullptr, Math::Vector3* pHitNormal_out = nullptr);
+			bool IsCollision(RigidBody* pRigidBody);
+			bool RayTest(const Math::Vector3& f3From, const Math::Vector3& f3To, Math::Vector3* pHitPoint_out = nullptr, Math::Vector3* pHitNormal_out = nullptr) const;
 
-			void AddCollisionResult(const RigidBody* pRigidBody, const Math::Vector3& f3OpponentPoint, const Math::Vector3& f3MyPoint)
-			{
-				if (m_rigidBodyProperty.funcCollisionCallback != nullptr)
-				{
-					m_vecCollisionResults.emplace_back(pRigidBody, f3OpponentPoint, f3MyPoint);
-				}
-			}
-
-			void ClearCollisionResults() { m_vecCollisionResults.clear(); }
-
-			void SetEnableTriangleDrawCallback(bool isEnableTriangleDrawCallback) { m_isEnableTriangleDrawCallback = isEnableTriangleDrawCallback; }
+			void AddCollisionResult(const RigidBody* pRigidBody, const Math::Vector3& f3OpponentPoint, const Math::Vector3& f3MyPoint);
+			void ClearCollisionResults();
+			void SetEnableTriangleDrawCallback(bool isEnableTriangleDrawCallback);
 
 		public:
-			const RigidBodyProperty& GetRigidBodyProperty() { return m_rigidBodyProperty; }
+			const String::StringID& GetName() const;
+			void SetName(const String::StringID& strName);
+
+			const RigidBodyProperty& GetRigidBodyProperty() const;
 
 			void SetWorldMatrix(const Math::Matrix& mat);
-			Math::Matrix GetWorldMatrix();
+			Math::Matrix GetWorldMatrix() const;
 
-			Math::Quaternion GetOrientation();
-			Math::Vector3 GetCenterOfMassPosition();
-
-			const String::StringID& GetName() { return m_rigidBodyProperty.strName; }
-			void SetName(const String::StringID& strName) { m_rigidBodyProperty.strName = strName; }
+			Math::Quaternion GetOrientation() const;
+			Math::Vector3 GetCenterOfMassPosition() const;
 
 			void SetLinearVelocity(const Math::Vector3& f3Velocity);
 
@@ -110,32 +97,18 @@ namespace EastEngine
 			void SetGravity(bool isEnable);
 			void SetGravity(const Math::Vector3& f3Gravity);
 
-			const Collision::AABB& GetAABB() { return m_boundingBox; }
-			const Collision::Sphere& GetBoundingSphere() { return m_boundingSphere; }
-			const Collision::OBB& GetOBB() { return m_boundingOrientedBox; }
+			const Collision::AABB& GetAABB() const;
+			const Collision::Sphere& GetBoundingSphere() const;
+			const Collision::OBB& GetOBB() const;
 
-			btRigidBody* GetInterface() { return m_pRigidBody; }
-
-		private:
-			bool init(const RigidBodyProperty& physicsProperty);
+			btRigidBody* GetInterface();
 
 		private:
-			btDiscreteDynamicsWorld* m_pDynamicsWorld;
-			btRigidBody* m_pRigidBody;
-			btCollisionShape* m_pCollisionShape;
-			std::variant<btTriangleMesh*, btTriangleIndexVertexArray*> m_varTriangleMesh;
-			btMotionState* m_pMotionState;
+			bool Initislize(const RigidBodyProperty& physicsProperty);
 
-			RigidBodyProperty m_rigidBodyProperty;
-
-			Math::Matrix m_matWorld;
-
-			Collision::AABB m_boundingBox;
-			Collision::Sphere m_boundingSphere;
-			Collision::OBB m_boundingOrientedBox;
-
-			std::vector<CollisionResult> m_vecCollisionResults;
-			bool m_isEnableTriangleDrawCallback;
+		private:
+			class Impl;
+			std::unique_ptr<Impl> m_pImpl;
 		};
 	}
 }

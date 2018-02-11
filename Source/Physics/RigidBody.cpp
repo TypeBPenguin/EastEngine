@@ -9,21 +9,87 @@ namespace EastEngine
 {
 	namespace Physics
 	{
-		RigidBody::RigidBody()
-			: m_pDynamicsWorld(nullptr)
-			, m_pRigidBody(nullptr)
-			, m_pCollisionShape(nullptr)
-			//, m_pTriangleMesh(nullptr)
-			, m_pMotionState(nullptr)
-			, m_isEnableTriangleDrawCallback(false)
+		class RigidBody::Impl
+		{
+		public:
+			Impl();
+			~Impl();
+
+		public:
+			bool Initislize(const RigidBodyProperty& physicsProperty);
+
+		public:
+			void Update(float fElapsedTime);
+			void UpdateBoundingBox(const Math::Matrix& matWorld);
+
+			bool IsCollision(RigidBody* pRigidBody);
+			bool RayTest(const Math::Vector3& f3From, const Math::Vector3& f3To, Math::Vector3* pHitPoint_out = nullptr, Math::Vector3* pHitNormal_out = nullptr) const;
+
+			void AddCollisionResult(const RigidBody* pRigidBody, const Math::Vector3& f3OpponentPoint, const Math::Vector3& f3MyPoint);
+
+			void ClearCollisionResults();
+
+			void SetEnableTriangleDrawCallback(bool isEnableTriangleDrawCallback);
+
+		public:
+			const String::StringID& GetName() const;
+			void SetName(const String::StringID& strName);
+
+			const RigidBodyProperty& GetRigidBodyProperty() const;
+
+			void SetWorldMatrix(const Math::Matrix& mat);
+			Math::Matrix GetWorldMatrix() const;
+
+			Math::Quaternion GetOrientation() const;
+			Math::Vector3 GetCenterOfMassPosition() const;
+
+			void SetLinearVelocity(const Math::Vector3& f3Velocity);
+
+			void SetDamping(float fLinearDamping, float fAngularDamping);
+			void SetDeactivationTime(float fTime);
+			void SetSleepingThresholds(float fLinear, float fAngular);
+			void SetAngularFactor(float fFactor);
+
+			void SetActiveState(EmActiveState::Type emActiveState);
+			void SetGravity(bool isEnable);
+			void SetGravity(const Math::Vector3& f3Gravity);
+
+			const Collision::AABB& GetAABB() const { return m_boundingBox; }
+			const Collision::Sphere& GetBoundingSphere() const { return m_boundingSphere; }
+			const Collision::OBB& GetOBB() const { return m_boundingOrientedBox; }
+
+			btRigidBody* GetInterface() { return m_pRigidBody.get(); }
+
+		private:
+			btDiscreteDynamicsWorld* m_pDynamicsWorld{ nullptr };
+
+			std::unique_ptr<btRigidBody> m_pRigidBody;
+			std::unique_ptr<btCollisionShape> m_pCollisionShape;
+			std::unique_ptr<btMotionState> m_pMotionState;
+
+			std::variant<btTriangleMesh*, btTriangleIndexVertexArray*> m_varTriangleMesh;
+
+			RigidBodyProperty m_rigidBodyProperty;
+
+			Math::Matrix m_matWorld;
+
+			Collision::AABB m_boundingBox;
+			Collision::Sphere m_boundingSphere;
+			Collision::OBB m_boundingOrientedBox;
+
+			std::vector<CollisionResult> m_vecCollisionResults;
+			bool m_isEnableTriangleDrawCallback{ false };
+		};
+
+		RigidBody::Impl::Impl()
 		{
 		}
 
-		RigidBody::~RigidBody()
+		RigidBody::Impl::~Impl()
 		{
 			if (m_pDynamicsWorld != nullptr)
 			{
-				m_pDynamicsWorld->removeRigidBody(m_pRigidBody);
+				m_pDynamicsWorld->removeRigidBody(m_pRigidBody.get());
 				m_pDynamicsWorld = nullptr;
 			}
 
@@ -41,28 +107,75 @@ namespace EastEngine
 				SafeDelete(*pp2);
 			}
 
-			SafeDelete(m_pCollisionShape);
-			SafeDelete(m_pMotionState);
-			SafeDelete(m_pRigidBody);
+			m_pCollisionShape.reset();
+			m_pMotionState.reset();
+			m_pRigidBody.reset();
 		}
 
-		RigidBody* RigidBody::Create(const RigidBodyProperty& rigidBodyProperty)
+		bool RigidBody::Impl::Initislize(const RigidBodyProperty& rigidBodyProperty)
 		{
-			if (rigidBodyProperty.GetShapeType() == EmPhysicsShape::eEmpty)
-				return nullptr;
+			m_pCollisionShape = CreateShape(rigidBodyProperty.shapeInfo);
+			if (m_pCollisionShape == nullptr)
+				return false;
 
-			RigidBody* pRigidBody = new RigidBody;
-			if (pRigidBody->init(rigidBodyProperty) == false)
+			if (rigidBodyProperty.GetShapeType() == EmPhysicsShape::eTriangleMesh)
 			{
-				SafeDelete(pRigidBody);
+				const Shape::TriangleMesh* pShapeInfo = std::get_if<Shape::TriangleMesh>(&rigidBodyProperty.shapeInfo.element);
+				if (pShapeInfo == nullptr)
+					return false;
 
-				return nullptr;
+				if (pShapeInfo->pVertices != nullptr && pShapeInfo->pIndices != nullptr)
+				{
+					btBvhTriangleMeshShape* pTriangleMeshShape = static_cast<btBvhTriangleMeshShape*>(m_pCollisionShape.get());
+					btTriangleIndexVertexArray* p1 = static_cast<btTriangleIndexVertexArray*>(pTriangleMeshShape->getMeshInterface());
+
+					m_varTriangleMesh.emplace<btTriangleIndexVertexArray*>(p1);
+				}
+				else if (pShapeInfo->pVertices != nullptr)
+				{
+					btBvhTriangleMeshShape* pTriangleMeshShape = static_cast<btBvhTriangleMeshShape*>(m_pCollisionShape.get());
+					btTriangleMesh* p1 = static_cast<btTriangleMesh*>(pTriangleMeshShape->getMeshInterface());
+
+					m_varTriangleMesh.emplace<btTriangleMesh*>(p1);
+				}
 			}
-			
-			return pRigidBody;
+
+			m_pDynamicsWorld = System::GetInstance()->GetDynamicsWorld();
+
+			m_rigidBodyProperty = rigidBodyProperty;
+
+			btTransform offsetTransform = Math::ConvertToBt(rigidBodyProperty.matOffset);
+
+			btTransform bodyTransform;
+			bodyTransform.setIdentity();
+			bodyTransform.setOrigin(Math::ConvertToBt(rigidBodyProperty.f3OriginPos));
+			bodyTransform.setRotation(Math::ConvertToBt(rigidBodyProperty.originQuat));
+
+			btVector3 localInertia(0.f, 0.f, 0.f);
+			// IneritaTensor를 계산
+			if ((rigidBodyProperty.nCollisionFlag & EmCollision::eStaticObject) == 0 &&
+				(rigidBodyProperty.nCollisionFlag & EmCollision::eKinematicObject) == 0)
+			{
+				m_pCollisionShape->calculateLocalInertia(m_rigidBodyProperty.fMass, localInertia);
+			}
+
+			m_pMotionState = std::make_unique<btDefaultMotionState>(offsetTransform * bodyTransform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(m_rigidBodyProperty.fMass, m_pMotionState.get(), m_pCollisionShape.get(), localInertia);
+			rbInfo.m_restitution = m_rigidBodyProperty.fRestitution;
+			rbInfo.m_friction = m_rigidBodyProperty.fFriction;
+			rbInfo.m_linearDamping = m_rigidBodyProperty.fLinearDamping;
+			rbInfo.m_angularDamping = m_rigidBodyProperty.fAngularDamping;
+
+			m_pRigidBody = std::make_unique<btRigidBody>(rbInfo);
+			m_pRigidBody->setUserPointer(this);
+			m_pRigidBody->setCollisionFlags(rigidBodyProperty.nCollisionFlag);
+
+			SetName(rigidBodyProperty.strName);
+
+			return true;
 		}
 
-		void RigidBody::Update(float fElapsedTime)
+		void RigidBody::Impl::Update(float fElapsedTime)
 		{
 			m_matWorld = Math::Convert(m_pRigidBody->getWorldTransform());
 
@@ -78,7 +191,7 @@ namespace EastEngine
 				if (m_rigidBodyProperty.shapeInfo.emPhysicsShapeType == EmPhysicsShape::Type::eTriangleMesh ||
 					m_rigidBodyProperty.shapeInfo.emPhysicsShapeType == EmPhysicsShape::Type::eTerrain)
 				{
-					btConcaveShape* pShape = static_cast<btConcaveShape*>(m_pCollisionShape);
+					btConcaveShape* pShape = static_cast<btConcaveShape*>(m_pCollisionShape.get());
 
 					btVector3 aabbMin(btScalar(-1e30), btScalar(-1e30), btScalar(-1e30));
 					btVector3 aabbMax(btScalar(1e30), btScalar(1e30), btScalar(1e30));
@@ -104,7 +217,7 @@ namespace EastEngine
 			}
 		}
 
-		void RigidBody::UpdateBoundingBox(const Math::Matrix& matWorld)
+		void RigidBody::Impl::UpdateBoundingBox(const Math::Matrix& matWorld)
 		{
 			btVector3 vMin, vMax;
 			m_pRigidBody->getAabb(vMin, vMax);
@@ -118,7 +231,7 @@ namespace EastEngine
 			Collision::OBB::CreateFromAABB(m_boundingOrientedBox, m_boundingBox);
 		}
 
-		bool RigidBody::IsCollision(const RigidBody* pRigidBody)
+		bool RigidBody::Impl::IsCollision(RigidBody* pRigidBody)
 		{
 			auto iter = std::find_if(m_vecCollisionResults.begin(), m_vecCollisionResults.end(), [pRigidBody](const CollisionResult& result)
 			{
@@ -142,12 +255,12 @@ namespace EastEngine
 
 			CustomResultCallBack result;
 
-			m_pDynamicsWorld->contactPairTest(m_pRigidBody, pRigidBody->m_pRigidBody, result);
+			m_pDynamicsWorld->contactPairTest(m_pRigidBody.get(), pRigidBody->GetInterface(), result);
 
 			return result.isCollision;
 		}
 
-		bool RigidBody::RayTest(const Math::Vector3& f3From, const Math::Vector3& f3To, Math::Vector3* pHitPoint_out, Math::Vector3* pHitNormal_out)
+		bool RigidBody::Impl::RayTest(const Math::Vector3& f3From, const Math::Vector3& f3To, Math::Vector3* pHitPoint_out, Math::Vector3* pHitNormal_out) const
 		{
 			btVector3 rayFromWorld = Math::ConvertToBt(f3From);
 			btVector3 rayToWorld = Math::ConvertToBt(f3To);
@@ -161,10 +274,10 @@ namespace EastEngine
 			rayToTrans.setOrigin(rayToWorld);
 
 			btCollisionWorld::ClosestRayResultCallback resultCallback(rayFromWorld, rayToWorld);
-			
+
 			m_pDynamicsWorld->rayTestSingle(rayFromTrans, rayToTrans,
-				m_pRigidBody,
-				m_pCollisionShape,
+				m_pRigidBody.get(),
+				m_pCollisionShape.get(),
 				m_pRigidBody->getWorldTransform(),
 				resultCallback);
 
@@ -197,8 +310,41 @@ namespace EastEngine
 				return false;
 			}
 		}
-		
-		void RigidBody::SetWorldMatrix(const Math::Matrix& mat)
+
+		void RigidBody::Impl::AddCollisionResult(const RigidBody* pRigidBody, const Math::Vector3& f3OpponentPoint, const Math::Vector3& f3MyPoint)
+		{
+			if (m_rigidBodyProperty.funcCollisionCallback != nullptr)
+			{
+				m_vecCollisionResults.emplace_back(pRigidBody, f3OpponentPoint, f3MyPoint);
+			}
+		}
+
+		void RigidBody::Impl::ClearCollisionResults()
+		{
+			m_vecCollisionResults.clear();
+		}
+
+		void RigidBody::Impl::SetEnableTriangleDrawCallback(bool isEnableTriangleDrawCallback)
+		{
+			m_isEnableTriangleDrawCallback = isEnableTriangleDrawCallback;
+		}
+
+		const String::StringID& RigidBody::Impl::GetName() const
+		{
+			return m_rigidBodyProperty.strName;
+		}
+
+		void RigidBody::Impl::SetName(const String::StringID& strName)
+		{
+			m_rigidBodyProperty.strName = strName;
+		}
+
+		const RigidBodyProperty& RigidBody::Impl::GetRigidBodyProperty() const
+		{
+			return m_rigidBodyProperty;
+		}
+
+		void RigidBody::Impl::SetWorldMatrix(const Math::Matrix& mat)
 		{
 			Math::Vector3 f3Pos, vScale;
 			Math::Quaternion quat;
@@ -210,22 +356,22 @@ namespace EastEngine
 			m_pCollisionShape->setLocalScaling(Math::ConvertToBt(vScale));
 		}
 
-		Math::Matrix RigidBody::GetWorldMatrix()
+		Math::Matrix RigidBody::Impl::GetWorldMatrix() const
 		{
 			return Math::Convert(m_pRigidBody->getWorldTransform());
 		}
 
-		Math::Quaternion RigidBody::GetOrientation()
+		Math::Quaternion RigidBody::Impl::GetOrientation() const
 		{
 			return Math::Convert(m_pRigidBody->getOrientation());
 		}
 
-		Math::Vector3 RigidBody::GetCenterOfMassPosition()
+		Math::Vector3 RigidBody::Impl::GetCenterOfMassPosition() const
 		{
 			return Math::Convert(m_pRigidBody->getCenterOfMassPosition());
 		}
 
-		void RigidBody::SetLinearVelocity(const Math::Vector3& f3Velocity)
+		void RigidBody::Impl::SetLinearVelocity(const Math::Vector3& f3Velocity)
 		{
 			if (Math::IsZero(f3Velocity.LengthSquared()) == true)
 				return;
@@ -244,32 +390,32 @@ namespace EastEngine
 			}
 		}
 
-		void RigidBody::SetDamping(float fLinearDamping, float fAngularDamping)
+		void RigidBody::Impl::SetDamping(float fLinearDamping, float fAngularDamping)
 		{
 			m_pRigidBody->setDamping(fLinearDamping, fAngularDamping);
 		}
 
-		void RigidBody::SetDeactivationTime(float fTime)
+		void RigidBody::Impl::SetDeactivationTime(float fTime)
 		{
 			m_pRigidBody->setDeactivationTime(fTime);
 		}
 
-		void RigidBody::SetSleepingThresholds(float fLinear, float fAngular)
+		void RigidBody::Impl::SetSleepingThresholds(float fLinear, float fAngular)
 		{
 			m_pRigidBody->setSleepingThresholds(fLinear, fAngular);
 		}
 
-		void RigidBody::SetAngularFactor(float fFactor)
+		void RigidBody::Impl::SetAngularFactor(float fFactor)
 		{
 			m_pRigidBody->setAngularFactor(fFactor);
 		}
 
-		void RigidBody::SetActiveState(EmActiveState::Type emActiveState)
+		void RigidBody::Impl::SetActiveState(EmActiveState::Type emActiveState)
 		{
 			m_pRigidBody->setActivationState((int)(emActiveState));
 		}
 
-		void RigidBody::SetGravity(bool isEnable)
+		void RigidBody::Impl::SetGravity(bool isEnable)
 		{
 			if (isEnable == true)
 			{
@@ -284,75 +430,172 @@ namespace EastEngine
 			m_pRigidBody->applyGravity();
 		}
 
-		void RigidBody::SetGravity(const Math::Vector3& f3Gravity)
+		void RigidBody::Impl::SetGravity(const Math::Vector3& f3Gravity)
 		{
 			m_pRigidBody->setGravity(Math::ConvertToBt(f3Gravity));
 			m_pRigidBody->applyGravity();
 		}
 
-		bool RigidBody::init(const RigidBodyProperty& rigidBodyProperty)
+		RigidBody::RigidBody()
+			: m_pImpl{ std::make_unique<Impl>() }
 		{
-			m_pCollisionShape = CreateShape(rigidBodyProperty.shapeInfo);
-			if (m_pCollisionShape == nullptr)
-				return false;
+		}
 
-			if (rigidBodyProperty.GetShapeType() == EmPhysicsShape::eTriangleMesh)
+		RigidBody::~RigidBody()
+		{
+		}
+
+		RigidBody* RigidBody::Create(const RigidBodyProperty& rigidBodyProperty)
+		{
+			if (rigidBodyProperty.GetShapeType() == EmPhysicsShape::eEmpty)
+				return nullptr;
+
+			RigidBody* pRigidBody = new RigidBody;
+			if (pRigidBody->Initislize(rigidBodyProperty) == false)
 			{
-				const Shape::TriangleMesh* pShapeInfo = std::get_if<Shape::TriangleMesh>(&rigidBodyProperty.shapeInfo.element);
-				if (pShapeInfo == nullptr)
-					return false;
+				SafeDelete(pRigidBody);
 
-				if (pShapeInfo->pVertices != nullptr && pShapeInfo->pIndices != nullptr)
-				{
-					btBvhTriangleMeshShape* pTriangleMeshShape = static_cast<btBvhTriangleMeshShape*>(m_pCollisionShape);
-					btTriangleIndexVertexArray* p1 = static_cast<btTriangleIndexVertexArray*>(pTriangleMeshShape->getMeshInterface());
-
-					m_varTriangleMesh.emplace<btTriangleIndexVertexArray*>(p1);
-				}
-				else if (pShapeInfo->pVertices != nullptr)
-				{
-					btBvhTriangleMeshShape* pTriangleMeshShape = static_cast<btBvhTriangleMeshShape*>(m_pCollisionShape);
-					btTriangleMesh* p1 = static_cast<btTriangleMesh*>(pTriangleMeshShape->getMeshInterface());
-
-					m_varTriangleMesh.emplace<btTriangleMesh*>(p1);
-				}
+				return nullptr;
 			}
 
-			m_pDynamicsWorld = PhysicsSystem::GetInstance()->GetDynamicsWorld();
-
-			m_rigidBodyProperty = rigidBodyProperty;
-
-			btTransform offsetTransform = Math::ConvertToBt(rigidBodyProperty.matOffset);
-
-			btTransform bodyTransform;
-			bodyTransform.setIdentity();
-			bodyTransform.setOrigin(Math::ConvertToBt(rigidBodyProperty.f3OriginPos));
-			bodyTransform.setRotation(Math::ConvertToBt(rigidBodyProperty.originQuat));
+			System::GetInstance()->AddRigidBody(pRigidBody);
 			
-			btVector3 localInertia(0.f, 0.f, 0.f);
-			// IneritaTensor를 계산
-			if ((rigidBodyProperty.nCollisionFlag & EmCollision::eStaticObject) == 0 &&
-				(rigidBodyProperty.nCollisionFlag & EmCollision::eKinematicObject) == 0)
-			{
-				m_pCollisionShape->calculateLocalInertia(m_rigidBodyProperty.fMass, localInertia);
-			}
+			return pRigidBody;
+		}
 
-			m_pMotionState = new btDefaultMotionState(offsetTransform * bodyTransform);
-			btRigidBody::btRigidBodyConstructionInfo rbInfo(m_rigidBodyProperty.fMass, m_pMotionState, m_pCollisionShape, localInertia);
-			rbInfo.m_restitution = m_rigidBodyProperty.fRestitution;
-			rbInfo.m_friction = m_rigidBodyProperty.fFriction;
-			rbInfo.m_linearDamping = m_rigidBodyProperty.fLinearDamping;
-			rbInfo.m_angularDamping = m_rigidBodyProperty.fAngularDamping;
+		void RigidBody::Update(float fElapsedTime)
+		{
+			m_pImpl->Update(fElapsedTime);
+		}
 
-			m_pRigidBody = new btRigidBody(rbInfo);
-			m_pRigidBody->setUserPointer(this);
-			m_pRigidBody->setCollisionFlags(rigidBodyProperty.nCollisionFlag);
+		void RigidBody::UpdateBoundingBox(const Math::Matrix& matWorld)
+		{
+			m_pImpl->UpdateBoundingBox(matWorld);
+		}
 
-			PhysicsSystem::GetInstance()->AddRigidBody(this);
+		bool RigidBody::IsCollision(RigidBody* pRigidBody)
+		{
+			return m_pImpl->IsCollision(pRigidBody);
+		}
 
-			SetName(rigidBodyProperty.strName);
+		bool RigidBody::RayTest(const Math::Vector3& f3From, const Math::Vector3& f3To, Math::Vector3* pHitPoint_out, Math::Vector3* pHitNormal_out) const
+		{
+			return m_pImpl->RayTest(f3From, f3To, pHitPoint_out, pHitNormal_out);
+		}
 
-			return true;
+		void RigidBody::AddCollisionResult(const RigidBody* pRigidBody, const Math::Vector3& f3OpponentPoint, const Math::Vector3& f3MyPoint)
+		{
+			m_pImpl->AddCollisionResult(pRigidBody, f3OpponentPoint, f3MyPoint);
+		}
+
+		void RigidBody::ClearCollisionResults()
+		{
+			m_pImpl->ClearCollisionResults();
+		}
+
+		void RigidBody::SetEnableTriangleDrawCallback(bool isEnableTriangleDrawCallback)
+		{
+			m_pImpl->SetEnableTriangleDrawCallback(isEnableTriangleDrawCallback);
+		}
+
+		const String::StringID& RigidBody::GetName() const
+		{
+			return m_pImpl->GetName();
+		}
+
+		void RigidBody::SetName(const String::StringID& strName)
+		{
+			m_pImpl->SetName(strName);
+		}
+
+		const RigidBodyProperty& RigidBody::GetRigidBodyProperty() const
+		{
+			return m_pImpl->GetRigidBodyProperty();
+		}
+
+		void RigidBody::SetWorldMatrix(const Math::Matrix& mat)
+		{
+			m_pImpl->SetWorldMatrix(mat);
+		}
+
+		Math::Matrix RigidBody::GetWorldMatrix() const
+		{
+			return m_pImpl->GetWorldMatrix();
+		}
+
+		Math::Quaternion RigidBody::GetOrientation() const
+		{
+			return m_pImpl->GetOrientation();
+		}
+
+		Math::Vector3 RigidBody::GetCenterOfMassPosition() const
+		{
+			return m_pImpl->GetCenterOfMassPosition();
+		}
+
+		void RigidBody::SetLinearVelocity(const Math::Vector3& f3Velocity)
+		{
+			m_pImpl->SetLinearVelocity(f3Velocity);
+		}
+
+		void RigidBody::SetDamping(float fLinearDamping, float fAngularDamping)
+		{
+			m_pImpl->SetDamping(fLinearDamping, fAngularDamping);
+		}
+
+		void RigidBody::SetDeactivationTime(float fTime)
+		{
+			m_pImpl->SetDeactivationTime(fTime);
+		}
+
+		void RigidBody::SetSleepingThresholds(float fLinear, float fAngular)
+		{
+			m_pImpl->SetSleepingThresholds(fLinear, fAngular);
+		}
+
+		void RigidBody::SetAngularFactor(float fFactor)
+		{
+			m_pImpl->SetAngularFactor(fFactor);
+		}
+
+		void RigidBody::SetActiveState(EmActiveState::Type emActiveState)
+		{
+			m_pImpl->SetActiveState(emActiveState);
+		}
+
+		void RigidBody::SetGravity(bool isEnable)
+		{
+			m_pImpl->SetGravity(isEnable);
+		}
+
+		void RigidBody::SetGravity(const Math::Vector3& f3Gravity)
+		{
+			m_pImpl->SetGravity(f3Gravity);
+		}
+
+		const Collision::AABB& RigidBody::GetAABB() const
+		{
+			return m_pImpl->GetAABB();
+		}
+
+		const Collision::Sphere& RigidBody::GetBoundingSphere() const
+		{
+			return m_pImpl->GetBoundingSphere();
+		}
+
+		const Collision::OBB& RigidBody::GetOBB() const
+		{
+			return m_pImpl->GetOBB();
+		}
+
+		btRigidBody* RigidBody::GetInterface()
+		{
+			return m_pImpl->GetInterface();
+		}
+		
+		bool RigidBody::Initislize(const RigidBodyProperty& physicsProperty)
+		{
+			return m_pImpl->Initislize(physicsProperty);
 		}
 	}
 }

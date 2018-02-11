@@ -8,51 +8,91 @@ namespace EastEngine
 {
 	namespace Physics
 	{
-		PhysicsSystem::PhysicsSystem()
-			: m_pCollisionConfig(nullptr)
-			, m_pDispatcher(nullptr)
-			, m_pOverlappingPairCache(nullptr)
-			, m_pSolver(nullptr)
-			, m_pDynamicsWorld(nullptr)
-			, m_isInit(false)
+		class System::Impl
 		{
-		}
+		public:
+			Impl();
+			~Impl();
 
-		PhysicsSystem::~PhysicsSystem()
+		public:
+			void Update(float fElapsedtime);
+
+		public:
+			void AddRigidBody(RigidBody* pRigidBody);
+			void AddRigidBody(RigidBody* pRigidBody, short group, short mask);
+			void AddConstraint(ConstraintInterface* pConstraint, bool isEanbleCollisionBetweenLinkedBodies = true);
+			btDiscreteDynamicsWorld* GetDynamicsWorld() { return m_pDynamicsWorld.get(); }
+			btBroadphaseInterface* GetBoradphaseInterface() { return m_pOverlappingPairCache.get(); }
+
+		private:
+			void ProcessAddWaitObject();
+
+		private:
+			static void tickCallback(btDynamicsWorld* pDynamicsWorld, float fTimeStep);
+
+			// 충돌하는 순간
+			static bool contactAddedCallback(btManifoldPoint& cp, const btCollisionObjectWrapper* pCollisionObj0Wrap, int nPartId0, int nIndex0, const btCollisionObjectWrapper* pCollisionObj1Wrap, int nPartId1, int nIndex1);
+
+			// 충돌 처리할때마다
+			static bool contactProcessedCallback(btManifoldPoint& cp, void* body0, void* body1);
+
+			// 아직 모름..
+			static bool contactDestroyedCallback(void* userPersistentData);
+
+		private:
+			std::unique_ptr<btDefaultCollisionConfiguration> m_pCollisionConfig;
+			std::unique_ptr<btCollisionDispatcher> m_pDispatcher;
+			std::unique_ptr<btBroadphaseInterface> m_pOverlappingPairCache;
+			std::unique_ptr<btSequentialImpulseConstraintSolver> m_pSolver;
+
+			std::unique_ptr<btDiscreteDynamicsWorld> m_pDynamicsWorld;
+
+			struct AddWaitRigidBody
+			{
+				struct Default
+				{
+					RigidBody* pRigidBody = nullptr;
+				};
+
+				struct Group
+				{
+					RigidBody* pRigidBody = nullptr;
+					short group = 0;
+					short mask = 0;
+				};
+
+				std::variant<Default, Group> rigidBody;
+			};
+			Concurrency::concurrent_queue<AddWaitRigidBody> m_conQueueAddWaitRigidBody;
+
+			struct AddWaitConstraintInterface
+			{
+				ConstraintInterface* pConstraint = nullptr;
+				bool isEanbleCollisionBetweenLinkedBodies = true;
+			};
+			Concurrency::concurrent_queue<AddWaitConstraintInterface> m_conQueueAddWaitConstraintInterface;
+		};
+
+		System::Impl::Impl()
 		{
-			Release();
-		}
+			m_pCollisionConfig = std::make_unique<btDefaultCollisionConfiguration>();
+			m_pDispatcher = std::make_unique<btCollisionDispatcher>(m_pCollisionConfig.get());
+			m_pOverlappingPairCache = std::make_unique<btDbvtBroadphase>();
+			m_pSolver = std::make_unique<btSequentialImpulseConstraintSolver>();
 
-		bool PhysicsSystem::Init()
-		{
-			if (m_isInit == true)
-				return true;
-
-			m_isInit = true;
-
-			m_pCollisionConfig = new btDefaultCollisionConfiguration;
-			m_pDispatcher = new	btCollisionDispatcher(m_pCollisionConfig);
-			m_pOverlappingPairCache = new btDbvtBroadphase;
-			m_pSolver = new btSequentialImpulseConstraintSolver;
-			
-			m_pDynamicsWorld = new btDiscreteDynamicsWorld(m_pDispatcher, m_pOverlappingPairCache, m_pSolver, m_pCollisionConfig);
+			m_pDynamicsWorld = std::make_unique<btDiscreteDynamicsWorld>(m_pDispatcher.get(), m_pOverlappingPairCache.get(), m_pSolver.get(), m_pCollisionConfig.get());
 			m_pDynamicsWorld->getDispatchInfo().m_enableSPU = true;
 			m_pDynamicsWorld->setGravity(btVector3(0, Gravity, 0));
-			m_pDynamicsWorld->setInternalTickCallback(PhysicsSystem::tickCallback, this);
+			m_pDynamicsWorld->setInternalTickCallback(System::Impl::tickCallback, this);
 
 			// 이런 녀석들도 있다. 필요할때 쓰자
-			//gContactAddedCallback = PhysicsSystem::contactAddedCallback;
-			//gContactProcessedCallback = PhysicsSystem::contactProcessedCallback;
-			//gContactDestroyedCallback = PhysicsSystem::contactDestroyedCallback;
-
-			return true;
+			//gContactAddedCallback = System::contactAddedCallback;
+			//gContactProcessedCallback = System::contactProcessedCallback;
+			//gContactDestroyedCallback = System::contactDestroyedCallback;
 		}
 
-		void PhysicsSystem::Release()
+		System::Impl::~Impl()
 		{
-			if (m_isInit == false)
-				return;
-
 			for (int i = m_pDynamicsWorld->getNumConstraints() - 1; i >= 0; i--)
 			{
 				m_pDynamicsWorld->removeConstraint(m_pDynamicsWorld->getConstraint(i));
@@ -71,21 +111,19 @@ namespace EastEngine
 				SafeDelete(pObj);
 			}
 
-			SafeDelete(m_pDynamicsWorld);
-			SafeDelete(m_pOverlappingPairCache);
-			SafeDelete(m_pSolver);
-			SafeDelete(m_pDispatcher);
-			SafeDelete(m_pCollisionConfig);
-
-			m_isInit = false;
+			m_pDynamicsWorld.reset();
+			m_pOverlappingPairCache.reset();
+			m_pSolver.reset();
+			m_pDispatcher.reset();
+			m_pCollisionConfig.reset();
 		}
-
-		void PhysicsSystem::Update(float fElapsedtime)
+		
+		void System::Impl::Update(float fElapsedtime)
 		{
-			PERF_TRACER_EVENT("PhysicsSystem::Update", "");
+			PERF_TRACER_EVENT("System::Update", "");
 			ProcessAddWaitObject();
 
-			PERF_TRACER_BEGINEVENT("PhysicsSystem::Update", "ClearCollisionResults");
+			PERF_TRACER_BEGINEVENT("System::Update", "ClearCollisionResults");
 			btCollisionObjectArray& objectArray = m_pDynamicsWorld->getCollisionObjectArray();
 			int nSize = objectArray.size();
 			for (int i = 0; i < nSize; ++i)
@@ -99,12 +137,12 @@ namespace EastEngine
 			}
 			PERF_TRACER_ENDEVENT();
 
-			PERF_TRACER_BEGINEVENT("PhysicsSystem::Update", "StepSimulation");
+			PERF_TRACER_BEGINEVENT("System::Update", "StepSimulation");
 			m_pDynamicsWorld->stepSimulation(fElapsedtime);
 			PERF_TRACER_ENDEVENT();
 		}
 
-		void PhysicsSystem::AddRigidBody(RigidBody* pRigidBody)
+		void System::Impl::AddRigidBody(RigidBody* pRigidBody)
 		{
 			AddWaitRigidBody job;
 			AddWaitRigidBody::Default& defaultJob = job.rigidBody.emplace<AddWaitRigidBody::Default>();
@@ -113,7 +151,7 @@ namespace EastEngine
 			m_conQueueAddWaitRigidBody.push(job);
 		}
 
-		void PhysicsSystem::AddRigidBody(RigidBody* pRigidBody, short group, short mask)
+		void System::Impl::AddRigidBody(RigidBody* pRigidBody, short group, short mask)
 		{
 			AddWaitRigidBody job;
 			AddWaitRigidBody::Group& groupJob = job.rigidBody.emplace<AddWaitRigidBody::Group>();
@@ -124,14 +162,14 @@ namespace EastEngine
 			m_conQueueAddWaitRigidBody.push(job);
 		}
 
-		void PhysicsSystem::AddConstraint(ConstraintInterface* pConstraint, bool isEanbleCollisionBetweenLinkedBodies)
+		void System::Impl::AddConstraint(ConstraintInterface* pConstraint, bool isEanbleCollisionBetweenLinkedBodies)
 		{
 			m_conQueueAddWaitConstraintInterface.push({ pConstraint, isEanbleCollisionBetweenLinkedBodies });
 		}
-		
-		void PhysicsSystem::ProcessAddWaitObject()
+
+		void System::Impl::ProcessAddWaitObject()
 		{
-			PERF_TRACER_EVENT("PhysicsSystem::ProcessAddWaitObject", "");
+			PERF_TRACER_EVENT("System::ProcessAddWaitObject", "");
 			while (m_conQueueAddWaitRigidBody.empty() == false)
 			{
 				AddWaitRigidBody job;
@@ -161,10 +199,10 @@ namespace EastEngine
 			}
 		}
 
-		void PhysicsSystem::tickCallback(btDynamicsWorld* pDynamicsWorld, float fTimeStep)
+		void System::Impl::tickCallback(btDynamicsWorld* pDynamicsWorld, float fTimeStep)
 		{
-			PhysicsSystem* pPhysicsSystem = reinterpret_cast<PhysicsSystem*>(pDynamicsWorld->getWorldUserInfo());
-			if (pPhysicsSystem == nullptr)
+			System* pSystem = reinterpret_cast<System*>(pDynamicsWorld->getWorldUserInfo());
+			if (pSystem == nullptr)
 				return;
 
 			btDispatcher* pDispatcher = pDynamicsWorld->getDispatcher();
@@ -201,19 +239,58 @@ namespace EastEngine
 			}
 		}
 
-		bool PhysicsSystem::contactAddedCallback(btManifoldPoint& cp, const btCollisionObjectWrapper* pCollisionObj0Wrap, int nPartId0, int nIndex0, const btCollisionObjectWrapper* pCollisionObj1Wrap, int nPartId1, int nIndex1)
+		bool System::Impl::contactAddedCallback(btManifoldPoint& cp, const btCollisionObjectWrapper* pCollisionObj0Wrap, int nPartId0, int nIndex0, const btCollisionObjectWrapper* pCollisionObj1Wrap, int nPartId1, int nIndex1)
 		{
 			return true;
 		}
 
-		bool PhysicsSystem::contactProcessedCallback(btManifoldPoint& cp, void* body0, void* body1)
+		bool System::Impl::contactProcessedCallback(btManifoldPoint& cp, void* body0, void* body1)
 		{
 			return true;
 		}
 
-		bool PhysicsSystem::contactDestroyedCallback(void* userPersistentData)
+		bool System::Impl::contactDestroyedCallback(void* userPersistentData)
 		{
 			return true;
+		}
+
+		System::System()
+			: m_pImpl{ std::make_unique<Impl>() }
+		{
+		}
+
+		System::~System()
+		{
+		}
+
+		void System::Update(float fElapsedtime)
+		{
+			m_pImpl->Update(fElapsedtime);
+		}
+
+		void System::AddRigidBody(RigidBody* pRigidBody)
+		{
+			m_pImpl->AddRigidBody(pRigidBody);
+		}
+
+		void System::AddRigidBody(RigidBody* pRigidBody, short group, short mask)
+		{
+			m_pImpl->AddRigidBody(pRigidBody, group, mask);
+		}
+
+		void System::AddConstraint(ConstraintInterface* pConstraint, bool isEanbleCollisionBetweenLinkedBodies)
+		{
+			m_pImpl->AddConstraint(pConstraint, isEanbleCollisionBetweenLinkedBodies);
+		}
+
+		btDiscreteDynamicsWorld* System::GetDynamicsWorld()
+		{
+			return m_pImpl->GetDynamicsWorld();
+		}
+
+		btBroadphaseInterface* System::GetBoradphaseInterface()
+		{
+			return m_pImpl->GetBoradphaseInterface();
 		}
 	}
 }

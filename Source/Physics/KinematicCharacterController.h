@@ -43,12 +43,11 @@ namespace EastEngine
 			void SetUpInterpolate(bool isUpInterpolate);
 
 		private:
-			bool init(GhostObject* pGhostObject, float fStepHeight);
+			bool Initialize(GhostObject* pGhostObject, float fStepHeight);
 
 		private:
-			btDiscreteDynamicsWorld* m_pDynamicsWorld;
-			btKinematicCharacterController* m_pController;
-			GhostObject* m_pGhostObject;
+			class Impl;
+			std::unique_ptr<Impl> m_pImpl;
 		};
 	}
 }

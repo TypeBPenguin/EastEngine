@@ -295,6 +295,6 @@ namespace EastEngine
 			//}
 		};
 
-		btCollisionShape* CreateShape(const Shape& shape);
+		std::unique_ptr<btCollisionShape> CreateShape(const Shape& shape);
 	}
 }

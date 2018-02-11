@@ -10,31 +10,107 @@ namespace EastEngine
 {
 	namespace Physics
 	{
+		class GhostObject::Impl
+		{
+		public:
+			Impl();
+			~Impl();
+
+		public:
+			bool Initialize(const GhostProperty& ghostProperty);
+
+		public:
+			Math::Matrix GetWorldMatrix() const;
+
+		public:
+			btPairCachingGhostObject* GetInterface();
+			btCollisionShape* GetCollisionShape();
+
+		private:
+			btDiscreteDynamicsWorld* m_pDynamicsWorld{ nullptr };
+			std::unique_ptr<btPairCachingGhostObject> m_pGhostObject;
+			std::unique_ptr<btCollisionShape> m_pCollisionShape;
+			btTriangleMesh* m_pTriangleMesh{ nullptr };
+		};
+
+		GhostObject::Impl::Impl()
+		{
+		}
+
+		GhostObject::Impl::~Impl()
+		{
+			if (m_pDynamicsWorld != nullptr)
+			{
+				m_pDynamicsWorld->removeCollisionObject(m_pGhostObject.get());
+				m_pDynamicsWorld = nullptr;
+			}
+
+			m_pGhostObject.reset();
+			m_pCollisionShape.reset();
+
+			SafeDelete(m_pTriangleMesh);
+		}
+
+		bool GhostObject::Impl::Initialize(const GhostProperty& ghostProperty)
+		{
+			m_pCollisionShape = CreateShape(ghostProperty.shapeInfo);
+			if (m_pCollisionShape == nullptr)
+				return false;
+
+			if (ghostProperty.GetShapeType() == EmPhysicsShape::eTriangleMesh)
+			{
+				btBvhTriangleMeshShape* pTriangleMeshShape = static_cast<btBvhTriangleMeshShape*>(m_pCollisionShape.get());
+				m_pTriangleMesh = static_cast<btTriangleMesh*>(pTriangleMeshShape->getMeshInterface());
+
+				if (m_pTriangleMesh == nullptr)
+					return false;
+			}
+
+			m_pDynamicsWorld = System::GetInstance()->GetDynamicsWorld();
+
+			btTransform transform;
+			transform.setIdentity();
+			transform.setOrigin(Math::ConvertToBt(ghostProperty.f3OriginPos));
+			transform.setRotation(Math::ConvertToBt(ghostProperty.originQuat));
+
+			m_pGhostObject = std::make_unique<btPairCachingGhostObject>();
+			m_pGhostObject->setWorldTransform(transform);
+			m_pGhostObject->setCollisionShape(m_pCollisionShape.get());
+			m_pGhostObject->setCollisionFlags(ghostProperty.nCollisionFlag);
+
+			m_pDynamicsWorld->addCollisionObject(m_pGhostObject.get(), btBroadphaseProxy::CharacterFilter, btBroadphaseProxy::StaticFilter | btBroadphaseProxy::DefaultFilter);
+
+			return true;
+		}
+
+		Math::Matrix GhostObject::Impl::GetWorldMatrix() const
+		{
+			return Math::Convert(m_pGhostObject->getWorldTransform());
+		}
+
+		btPairCachingGhostObject* GhostObject::Impl::GetInterface()
+		{
+			return m_pGhostObject.get();
+		}
+
+		btCollisionShape* GhostObject::Impl::GetCollisionShape()
+		{
+			return m_pCollisionShape.get();
+		}
+
 		GhostObject::GhostObject()
-			: m_pDynamicsWorld(nullptr)
-			, m_pGhostObject(nullptr)
-			, m_pCollisionShape(nullptr)
-			, m_pTriangleMesh(nullptr)
+			: m_pImpl{ std::make_unique<Impl>() }
 		{
 		}
 
 		GhostObject::~GhostObject()
 		{
-			if (m_pDynamicsWorld != nullptr)
-			{
-				m_pDynamicsWorld->removeCollisionObject(m_pGhostObject);
-				m_pDynamicsWorld = nullptr;
-			}
-
-			SafeDelete(m_pGhostObject);
-			SafeDelete(m_pCollisionShape);
-			SafeDelete(m_pTriangleMesh);
 		}
 
 		GhostObject* GhostObject::Create(const GhostProperty& ghostProperty)
 		{
 			GhostObject* pGhostObject = new GhostObject;
-			if (pGhostObject->init(ghostProperty) == false)
+			if (pGhostObject->Initialize(ghostProperty) == false)
 			{
 				SafeDelete(pGhostObject);
 				return nullptr;
@@ -43,41 +119,24 @@ namespace EastEngine
 			return pGhostObject;
 		}
 
-		Math::Matrix GhostObject::GetWorldMatrix()
+		Math::Matrix GhostObject::GetWorldMatrix() const
 		{
-			return Math::Convert(m_pGhostObject->getWorldTransform());
+			return m_pImpl->GetWorldMatrix();
 		}
 
-		bool GhostObject::init(const GhostProperty& ghostProperty)
+		btPairCachingGhostObject* GhostObject::GetInterface()
 		{
-			m_pCollisionShape = CreateShape(ghostProperty.shapeInfo);
-			if (m_pCollisionShape == nullptr)
-				return false;
+			return m_pImpl->GetInterface();
+		}
 
-			if (ghostProperty.GetShapeType() == EmPhysicsShape::eTriangleMesh)
-			{
-				btBvhTriangleMeshShape* pTriangleMeshShape = static_cast<btBvhTriangleMeshShape*>(m_pCollisionShape);
-				m_pTriangleMesh = static_cast<btTriangleMesh*>(pTriangleMeshShape->getMeshInterface());
+		btCollisionShape* GhostObject::GetCollisionShape()
+		{
+			return m_pImpl->GetCollisionShape();
+		}
 
-				if (m_pTriangleMesh == nullptr)
-					return false;
-			}
-
-			m_pDynamicsWorld = PhysicsSystem::GetInstance()->GetDynamicsWorld();
-
-			btTransform transform;
-			transform.setIdentity();
-			transform.setOrigin(Math::ConvertToBt(ghostProperty.f3OriginPos));
-			transform.setRotation(Math::ConvertToBt(ghostProperty.originQuat));
-
-			m_pGhostObject = new btPairCachingGhostObject;
-			m_pGhostObject->setWorldTransform(transform);
-			m_pGhostObject->setCollisionShape(m_pCollisionShape);
-			m_pGhostObject->setCollisionFlags(ghostProperty.nCollisionFlag);
-
-			m_pDynamicsWorld->addCollisionObject(m_pGhostObject, btBroadphaseProxy::CharacterFilter, btBroadphaseProxy::StaticFilter | btBroadphaseProxy::DefaultFilter);
-			
-			return true;
+		bool GhostObject::Initialize(const GhostProperty& ghostProperty)
+		{
+			return m_pImpl->Initialize(ghostProperty);
 		}
 	}
 }

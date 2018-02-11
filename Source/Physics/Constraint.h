@@ -4,6 +4,7 @@
 
 class btTypedConstraint;
 class btGeneric6DofConstraint;
+class btDiscreteDynamicsWorld;
 
 namespace EastEngine
 {

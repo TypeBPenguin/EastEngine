@@ -10,7 +10,21 @@ namespace EastEngine
 {
 	namespace Physics
 	{
-		btCollisionShape* CreateShape(const Shape& shape)
+		static_assert(EmActiveState::eActiveTag == ACTIVE_TAG, "ActiveState Mismatch");
+		static_assert(EmActiveState::eIslandSleeping == ISLAND_SLEEPING, "ActiveState Mismatch");
+		static_assert(EmActiveState::eWantsDeactivation == WANTS_DEACTIVATION, "ActiveState Mismatch");
+		static_assert(EmActiveState::eDisableDeactivation == DISABLE_DEACTIVATION, "ActiveState Mismatch");
+		static_assert(EmActiveState::eDisableSimulation == DISABLE_SIMULATION, "ActiveState Mismatch");
+		
+		static_assert(EmCollision::eStaticObject == btCollisionObject::CF_STATIC_OBJECT, "CollisionFlags Mismatch");
+		static_assert(EmCollision::eKinematicObject == btCollisionObject::CF_KINEMATIC_OBJECT, "CollisionFlags Mismatch");
+		static_assert(EmCollision::eNoContactResponse == btCollisionObject::CF_NO_CONTACT_RESPONSE, "CollisionFlags Mismatch");
+		static_assert(EmCollision::eCustomMaterialCallback == btCollisionObject::CF_CUSTOM_MATERIAL_CALLBACK, "CollisionFlags Mismatch");
+		static_assert(EmCollision::eCharacterObject == btCollisionObject::CF_CHARACTER_OBJECT, "CollisionFlags Mismatch");
+		static_assert(EmCollision::eDisableVisualizeObject == btCollisionObject::CF_DISABLE_VISUALIZE_OBJECT, "CollisionFlags Mismatch");
+		static_assert(EmCollision::eDisableSPUCollisionProcessing == btCollisionObject::CF_DISABLE_SPU_COLLISION_PROCESSING, "CollisionFlags Mismatch");
+
+		std::unique_ptr<btCollisionShape> CreateShape(const Shape& shape)
 		{
 			switch (shape.emPhysicsShapeType)
 			{
@@ -22,7 +36,7 @@ namespace EastEngine
 				if (pBox == nullptr)
 					return nullptr;
 
-				return new btBoxShape(Math::ConvertToBt(pBox->f3Size));
+				return std::make_unique<btBoxShape>(Math::ConvertToBt(pBox->f3Size));
 			}
 			case EmPhysicsShape::eSphere:
 			{
@@ -30,7 +44,7 @@ namespace EastEngine
 				if (pSphere == nullptr)
 					return nullptr;
 
-				return new btSphereShape(pSphere->fRadius);
+				return std::make_unique<btSphereShape>(pSphere->fRadius);
 			}
 			case EmPhysicsShape::eCylinder:
 			{
@@ -38,7 +52,7 @@ namespace EastEngine
 				if (pCylinder == nullptr)
 					return nullptr;
 
-				return new btCylinderShape(Math::ConvertToBt(pCylinder->f3HalfExtents));
+				return std::make_unique<btCylinderShape>(Math::ConvertToBt(pCylinder->f3HalfExtents));
 			}
 			case EmPhysicsShape::eCylinder_X:
 			{
@@ -46,7 +60,7 @@ namespace EastEngine
 				if (pCylinder == nullptr)
 					return nullptr;
 
-				return new btCylinderShapeX(Math::ConvertToBt(pCylinder->f3HalfExtents));
+				return std::make_unique<btCylinderShapeX>(Math::ConvertToBt(pCylinder->f3HalfExtents));
 			}
 			case EmPhysicsShape::eCylinder_Z:
 			{
@@ -54,7 +68,7 @@ namespace EastEngine
 				if (pCylinder == nullptr)
 					return nullptr;
 
-				return new btCylinderShapeZ(Math::ConvertToBt(pCylinder->f3HalfExtents));
+				return std::make_unique<btCylinderShapeZ>(Math::ConvertToBt(pCylinder->f3HalfExtents));
 			}
 			case EmPhysicsShape::eCapsule:
 			{
@@ -62,7 +76,7 @@ namespace EastEngine
 				if (pCapsule == nullptr)
 					return nullptr;
 
-				return new btCapsuleShape(pCapsule->fRadius, pCapsule->fHeight);
+				return std::make_unique<btCapsuleShape>(pCapsule->fRadius, pCapsule->fHeight);
 			}
 			case EmPhysicsShape::eCapsule_X:
 			{
@@ -70,7 +84,7 @@ namespace EastEngine
 				if (pCapsule == nullptr)
 					return nullptr;
 
-				return new btCapsuleShapeX(pCapsule->fRadius, pCapsule->fHeight);
+				return std::make_unique<btCapsuleShapeX>(pCapsule->fRadius, pCapsule->fHeight);
 			}
 			case EmPhysicsShape::eCapsule_Z:
 			{
@@ -78,7 +92,7 @@ namespace EastEngine
 				if (pCapsule == nullptr)
 					return nullptr;
 
-				return new btCapsuleShapeZ(pCapsule->fRadius, pCapsule->fHeight);
+				return std::make_unique<btCapsuleShapeZ>(pCapsule->fRadius, pCapsule->fHeight);
 			}
 			case EmPhysicsShape::eCone:
 			{
@@ -86,7 +100,7 @@ namespace EastEngine
 				if (pCone == nullptr)
 					return nullptr;
 
-				return new btConeShape(pCone->fRadius, pCone->fHeight);
+				return std::make_unique<btConeShape>(pCone->fRadius, pCone->fHeight);
 			}
 			case EmPhysicsShape::eCone_X:
 			{
@@ -94,7 +108,7 @@ namespace EastEngine
 				if (pCone == nullptr)
 					return nullptr;
 
-				return new btConeShapeX(pCone->fRadius, pCone->fHeight);
+				return std::make_unique<btConeShapeX>(pCone->fRadius, pCone->fHeight);
 			}
 			case EmPhysicsShape::eCone_Z:
 			{
@@ -102,7 +116,7 @@ namespace EastEngine
 				if (pCone == nullptr)
 					return nullptr;
 
-				return new btConeShapeZ(pCone->fRadius, pCone->fHeight);
+				return std::make_unique<btConeShapeZ>(pCone->fRadius, pCone->fHeight);
 			}
 			case EmPhysicsShape::eHull:
 			{
@@ -134,7 +148,7 @@ namespace EastEngine
 				btShapeHull* pHullShape = new btShapeHull(pMeshShape);
 				btScalar currentMargin = pMeshShape->getMargin();
 				pHullShape->buildHull(currentMargin);
-				btConvexHullShape* pReducedPolygonStaticMesh = new btConvexHullShape;
+				std::unique_ptr<btConvexHullShape> pReducedPolygonStaticMesh = std::make_unique<btConvexHullShape>();
 
 				const btVector3* pVertex = pHullShape->getVertexPointer();
 				int nSize = pHullShape->numVertices();
@@ -207,9 +221,7 @@ namespace EastEngine
 					pMeshInterface = pTriangle;
 				}
 
-				btBvhTriangleMeshShape* pTriShape = new btBvhTriangleMeshShape(pMeshInterface, true);
-
-				return pTriShape;
+				return std::make_unique<btBvhTriangleMeshShape>(pMeshInterface, true);
 			}
 			case EmPhysicsShape::eTerrain:
 			{
@@ -220,7 +232,7 @@ namespace EastEngine
 
 				float heightScale = pShapeInfo->fHeightMax / 65535.f;
 
-				btHeightfieldTerrainShape* pHeightShape = new btHeightfieldTerrainShape(pShapeInfo->n2Size.x, pShapeInfo->n2Size.y,
+				std::unique_ptr<btHeightfieldTerrainShape> pHeightShape = std::make_unique<btHeightfieldTerrainShape>(pShapeInfo->n2Size.x, pShapeInfo->n2Size.y,
 					pShapeInfo->pHeightArray, heightScale, pShapeInfo->fHeightMin, pShapeInfo->fHeightMax,
 					1, PHY_FLOAT, true);
 

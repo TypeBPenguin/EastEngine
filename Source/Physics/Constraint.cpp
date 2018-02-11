@@ -13,7 +13,7 @@ namespace EastEngine
 			: m_emConstraintType(emConstraintType)
 			, m_pDynamicsWorld(nullptr)
 		{
-			m_pDynamicsWorld = PhysicsSystem::GetInstance()->GetDynamicsWorld();
+			m_pDynamicsWorld = System::GetInstance()->GetDynamicsWorld();
 		}
 
 		ConstraintInterface::~ConstraintInterface()
@@ -95,7 +95,7 @@ namespace EastEngine
 			if (pGeneric6DofConstraint == nullptr)
 				return nullptr;
 
-			PhysicsSystem::GetInstance()->AddConstraint(pGeneric6DofConstraint, constraintProperty.generic6Dof.isEnableCollisionBetweenLinkedBodies);
+			System::GetInstance()->AddConstraint(pGeneric6DofConstraint, constraintProperty.generic6Dof.isEnableCollisionBetweenLinkedBodies);
 
 			return pGeneric6DofConstraint;
 		}

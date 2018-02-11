@@ -31,20 +31,18 @@ namespace EastEngine
 			static GhostObject* Create(const GhostProperty& ghostProperty);
 
 		public:
-			Math::Matrix GetWorldMatrix();
+			Math::Matrix GetWorldMatrix() const;
 
 		public:
-			btPairCachingGhostObject* GetInterface() { return m_pGhostObject; }
-			btCollisionShape* GetCollisionShape() { return m_pCollisionShape; }
+			btPairCachingGhostObject* GetInterface();
+			btCollisionShape* GetCollisionShape();
 
 		private:
-			bool init(const GhostProperty& ghostProperty);
+			bool Initialize(const GhostProperty& ghostProperty);
 
 		private:
-			btDiscreteDynamicsWorld* m_pDynamicsWorld;
-			btPairCachingGhostObject* m_pGhostObject;
-			btCollisionShape* m_pCollisionShape;
-			btTriangleMesh* m_pTriangleMesh;
+			class Impl;
+			std::unique_ptr<Impl> m_pImpl;
 		};
 	}
 }

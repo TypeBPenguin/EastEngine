@@ -2223,6 +2223,8 @@ void SceneStudio::RenderUI()
 
 			if (isTracing == true)
 			{
+				ImGui::Text("Time : %.2f", Performance::Tracer::GetInstance()->TracingTime());
+
 				if (ImGui::Button("End") == true)
 				{
 					char path[512] = { 0 };

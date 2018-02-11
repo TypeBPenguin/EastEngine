@@ -70,7 +70,7 @@ namespace EastEngine
 		Windows::WindowsManager* s_pWindows{ nullptr };
 		Graphics::GraphicsSystem* s_pGraphicsSystem{ nullptr };
 		Input::Device* s_pInputDevice{ nullptr };
-		Physics::PhysicsSystem* s_pPhysicsSystem{ nullptr };
+		Physics::System* s_pPhysicsSystem{ nullptr };
 		Sound::System* s_pSoundSystem{ nullptr };
 		UI::UIManager* s_pUIMgr{ nullptr };
 		GameObject::ActorManager* s_pActorMgr{ nullptr };
@@ -111,8 +111,8 @@ namespace EastEngine
 		Sound::System::DestroyInstance();
 		s_pSoundSystem = nullptr;
 
-		SafeRelease(s_pPhysicsSystem);
-		Physics::PhysicsSystem::DestroyInstance();
+		Physics::System::DestroyInstance();
+		s_pPhysicsSystem = nullptr;
 
 		Input::Device::DestroyInstance();
 		s_pInputDevice = nullptr;
@@ -191,9 +191,7 @@ namespace EastEngine
 			return Input::Device::GetInstance()->HandleMessage(hWnd, nMsg, wParam, lParam);
 		});
 
-		s_pPhysicsSystem = Physics::PhysicsSystem::GetInstance();
-		if (s_pPhysicsSystem->Init() == false)
-			return false;
+		s_pPhysicsSystem = Physics::System::GetInstance();
 
 		s_pSoundSystem = Sound::System::GetInstance();
 
