@@ -340,7 +340,7 @@ namespace EastEngine
 				IVertexBuffer* pVertexBuffer = pNode->GetVertexBuffer();
 
 				void* pData = nullptr;
-				if (pVertexBuffer->Map(ThreadType::eUpdate, 0, D3D11_MAP_WRITE_NO_OVERWRITE, &pData) == false)
+				if (pVertexBuffer->Map(ThreadType::eImmediate, 0, D3D11_MAP_WRITE_NO_OVERWRITE, &pData) == false)
 				{
 					LOG_ERROR("Can't map vertexbuffer");
 					return false;
@@ -372,12 +372,12 @@ namespace EastEngine
 					}
 				}
 
-				pVertexBuffer->Unmap(ThreadType::eUpdate, 0);
+				pVertexBuffer->Unmap(ThreadType::eImmediate, 0);
 
 				IIndexBuffer* pIndexBuffer = pNode->GetIndexBuffer();
 
 				pData = nullptr;
-				if (pIndexBuffer->Map(ThreadType::eUpdate, 0, D3D11_MAP_WRITE_NO_OVERWRITE, &pData) == false)
+				if (pIndexBuffer->Map(ThreadType::eImmediate, 0, D3D11_MAP_WRITE_NO_OVERWRITE, &pData) == false)
 				{
 					LOG_ERROR("Can't map indexbuffer");
 					return false;
@@ -391,7 +391,7 @@ namespace EastEngine
 					file << pIndices[j];
 				}
 
-				pIndexBuffer->Unmap(ThreadType::eUpdate, 0);
+				pIndexBuffer->Unmap(ThreadType::eImmediate, 0);
 
 				uint32_t nMaterialCount = pNode->GetMaterialCount();
 				file << nMaterialCount;

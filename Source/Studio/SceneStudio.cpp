@@ -713,6 +713,20 @@ void SceneStudio::Enter()
 	//if (false)
 	{
 		String::StringID name;
+		name.Format("Bugeikloth");
+
+		Math::Vector3 pos;
+		pos.z = 10.f;
+
+		strPath = File::GetDataPath();
+		strPath.append("Model\\Bugeikloth\\Bugeikloth.emod");
+
+		GameObject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
+	}
+
+	//if (false)
+	{
+		String::StringID name;
 		name.Format("DarkKnight_Female");
 
 		Math::Vector3 pos;
