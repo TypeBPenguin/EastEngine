@@ -7,24 +7,47 @@ namespace EastEngine
 {
 	namespace Lua
 	{
-		LuaSystem::LuaSystem()
-			: m_pLuaState(nullptr)
-			, m_isInit(false)
-			, m_nIndex(0)
+		class System::Impl
+		{
+		public:
+			Impl();
+			~Impl();
+
+		public:
+			bool Initialize(bool isEnableJIT);
+
+			void SetEnableJIT(bool isEnableJIT);
+
+			bool CompileLua(const char* strFile);
+
+			std::shared_ptr<LuaThread> GetThread();
+
+		private:
+			bool m_isInitialized{ false };
+			lua_State* m_pLuaState{ nullptr };
+
+			std::vector<std::shared_ptr<LuaThread>> m_vecLuaThread;
+
+			std::unordered_map<String::StringID, std::string> m_umapCompiledLua;
+
+			size_t m_nIndex{ 0 };
+		};
+
+		System::Impl::Impl()
 		{
 		}
 
-		LuaSystem::~LuaSystem()
+		System::Impl::~Impl()
 		{
-			Release();
+			m_vecLuaThread.clear();
+
+			lua_close(m_pLuaState);
 		}
 
-		bool LuaSystem::Init(bool isEnableJIT)
+		bool System::Impl::Initialize(bool isEnableJIT)
 		{
-			if (m_isInit == true)
+			if (m_isInitialized == true)
 				return true;
-
-			m_isInit = true;
 
 			// Lua state »ý¼º
 			m_pLuaState = luaL_newstate();
@@ -37,24 +60,14 @@ namespace EastEngine
 
 			SetEnableJIT(isEnableJIT);
 
-			m_vecLuaThread.reserve(100);
+			m_vecLuaThread.reserve(32);
+
+			m_isInitialized = true;
 
 			return true;
 		}
 
-		void LuaSystem::Release()
-		{
-			if (m_isInit == false)
-				return;
-
-			m_vecLuaThread.clear();
-
-			lua_close(m_pLuaState);
-
-			m_isInit = false;
-		}
-
-		void LuaSystem::SetEnableJIT(bool isEnableJIT)
+		void System::Impl::SetEnableJIT(bool isEnableJIT)
 		{
 			if (isEnableJIT == true)
 			{
@@ -66,7 +79,7 @@ namespace EastEngine
 			}
 		}
 
-		bool LuaSystem::CompileLua(const char* strFile)
+		bool System::Impl::CompileLua(const char* strFile)
 		{
 			int nError = luaL_loadfile(m_pLuaState, strFile);
 			if (nError != 0)
@@ -81,22 +94,22 @@ namespace EastEngine
 			auto iter = m_umapCompiledLua.find(strFileName);
 			if (iter != m_umapCompiledLua.end())
 			{
-				LOG_ERROR("Already compiled file : %s", strFileName.c_str());
-				return false;
+			LOG_ERROR("Already compiled file : %s", strFileName.c_str());
+			return false;
 			}
 
 			std::string strCompile;
 			int nError = luaL_loadfile(m_pLuaState, strFile);
 			if (nError != 0)
 			{
-				LOG_ERROR("Can't Load Lua Script : %s", strFile);
-				return false;
+			LOG_ERROR("Can't Load Lua Script : %s", strFile);
+			return false;
 			}
 
 			auto DumpWriter = [](lua_State* pLuaState, const void* buf, size_t size, void* lua_buf)
 			{
-				luaL_addlstring(static_cast<luaL_Buffer*>(lua_buf), static_cast<const char*>(buf), size);
-				return 0;
+			luaL_addlstring(static_cast<luaL_Buffer*>(lua_buf), static_cast<const char*>(buf), size);
+			return 0;
 			};
 
 			int nTop = lua_gettop(m_pLuaState);
@@ -114,7 +127,7 @@ namespace EastEngine
 			return true;
 		}
 
-		std::shared_ptr<LuaThread> LuaSystem::GetThread()
+		std::shared_ptr<LuaThread> System::Impl::GetThread()
 		{
 			size_t nSize = m_vecLuaThread.size();
 			size_t nUseCount = 0;
@@ -141,6 +154,35 @@ namespace EastEngine
 			m_vecLuaThread.push_back(pNewThread);
 
 			return pNewThread;
+		}
+
+		System::System()
+			: m_pImpl{ std::make_unique<Impl>() }
+		{
+		}
+
+		System::~System()
+		{
+		}
+
+		bool System::Initialize(bool isEnableJIT)
+		{
+			return m_pImpl->Initialize(isEnableJIT);
+		}
+
+		void System::SetEnableJIT(bool isEnableJIT)
+		{
+			m_pImpl->SetEnableJIT(isEnableJIT);
+		}
+
+		bool System::CompileLua(const char* strFile)
+		{
+			return m_pImpl->CompileLua(strFile);
+		}
+
+		std::shared_ptr<LuaThread> System::GetThread()
+		{
+			return m_pImpl->GetThread();
 		}
 	}
 }

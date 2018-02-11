@@ -14,176 +14,153 @@ namespace EastEngine
 {
 	namespace Lua
 	{
-		LuaThread::LuaIOValue::LuaIOValue(double value)
-			: emValueType(EmValueType::eDouble)
+		class LuaThread::Impl
 		{
-			element.emplace<double>(value);
-		}
+		public:
+			Impl();
+			~Impl();
 
-		LuaThread::LuaIOValue::LuaIOValue(const String::StringID& value)
-			: emValueType(EmValueType::eString)
-		{
-			element.emplace<String::StringID>(value);
-		}
+		public:
+			bool IsIdle() const;
+			void SetIdle(bool isIdle);
 
-		LuaThread::LuaIOValue::LuaIOValue(bool value)
-			: emValueType(EmValueType::eBool)
-		{
-			element.emplace<bool>(value);
-		}
+		public:
+			void PushInt(intptr_t nValue);
+			void PushDouble(double dValue);
+			void PushString(const String::StringID& sValue);
+			void PushBool(bool bValue);
 
-		double LuaThread::LuaIOValue::ToDouble() const
-		{
-			if (IsDouble() == false)
-				return 0.0;
+		public:
+			intptr_t PopInt(size_t nIndex);
+			double PopDouble(size_t nIndex);
+			const String::StringID& PopString(size_t nIndex);
+			bool PopBool(size_t nIndex);
 
-			return std::get<double>(element);
-		}
+		public:
+			bool Run(const String::StringID& strFuncName, const int nReturnValueCount);
 
-		const String::StringID& LuaThread::LuaIOValue::ToString() const
-		{
-			if (IsString() == false)
-				return StrID::Unregistered;
+		private:
+			lua_State* m_pLuaState;
 
-			return std::get<String::StringID>(element);
-		}
+			bool m_isIdle;
 
-		bool LuaThread::LuaIOValue::ToBool() const
-		{
-			if (IsBool() == false)
-				return false;
-
-			return std::get<bool>(element);
-		}
-
-		bool LuaThread::LuaIOValue::IsDouble() const
-		{
-			return emValueType == EmValueType::eDouble;
-		}
-
-		bool LuaThread::LuaIOValue::IsString() const
-		{
-			return emValueType == EmValueType::eString;
-		}
-
-		bool LuaThread::LuaIOValue::IsBool() const
-		{
-			return emValueType == EmValueType::eBool;
-		}
-
-		const String::StringID& LuaThread::LuaIOValue::TypeToString() const
-		{
-			switch (emValueType)
+			enum
 			{
-			case EmValueType::eDouble:
-				return StrID::Double;
-			case EmValueType::eString:
-				return StrID::String;
-			case EmValueType::eBool:
-				return StrID::Bool;
-			default:
-				return StrID::Undefined;
-			}
-		}
+				eInt = 0,
+				eDouble,
+				eString,
+				eBool,
 
-		LuaThread::LuaThread(lua_State* pLuaState)
-			: m_pLuaState(pLuaState)
-			, m_isIdle(false)
+				TypeCount,
+			};
+
+			const std::array<const String::StringID, TypeCount> TypeToString =
+			{
+				"Int",
+				"Double",
+				"String",
+				"Bool",
+			};
+
+			std::queue<std::variant<intptr_t, double, String::StringID, bool>> m_queueInputValue;
+			std::vector<std::variant<intptr_t, double, String::StringID, bool>> m_vecOutputValue;
+		};
+
+		LuaThread::Impl::Impl()
 		{
 		}
 
-		LuaThread::~LuaThread()
+		LuaThread::Impl::~Impl()
 		{
-			m_pLuaState = nullptr;
 		}
 
-		void LuaThread::PushInt(intptr_t nValue)
+		bool LuaThread::Impl::IsIdle() const
 		{
-			m_queueInputValue.emplace(static_cast<double>(nValue));
+			return m_isIdle;
 		}
 
-		void LuaThread::PushFloat(float fValue)
+		void LuaThread::Impl::SetIdle(bool isIdle)
 		{
-			m_queueInputValue.emplace(static_cast<double>(fValue));
+			m_isIdle = isIdle;
 		}
 
-		void LuaThread::PushDouble(double dValue)
+		void LuaThread::Impl::PushInt(intptr_t nValue)
+		{
+			m_queueInputValue.emplace(static_cast<intptr_t>(nValue));
+		}
+
+		void LuaThread::Impl::PushDouble(double dValue)
 		{
 			m_queueInputValue.emplace(dValue);
 		}
 
-		void LuaThread::PushString(const String::StringID& sValue)
+		void LuaThread::Impl::PushString(const String::StringID& sValue)
 		{
 			m_queueInputValue.emplace(sValue);
 		}
 
-		void LuaThread::PushBool(bool bValue)
+		void LuaThread::Impl::PushBool(bool bValue)
 		{
 			m_queueInputValue.emplace(bValue);
 		}
 
-		intptr_t LuaThread::PopInt(size_t nIndex)
+		intptr_t LuaThread::Impl::PopInt(size_t nIndex)
 		{
 			return static_cast<intptr_t>(PopDouble(nIndex));
 		}
 
-		float LuaThread::PopFloat(size_t nIndex)
-		{
-			return static_cast<float>(PopDouble(nIndex));
-		}
-
-		double LuaThread::PopDouble(size_t nIndex)
+		double LuaThread::Impl::PopDouble(size_t nIndex)
 		{
 			if (nIndex >= m_vecOutputValue.size())
 			{
 				LOG_WARNING("인덱스 범위 초과 : BufferSize[%Iu] <= Index[%Iu]", m_vecOutputValue.size(), nIndex);
-				return 0.0;
+				return 0;
 			}
 
-			if (m_vecOutputValue[nIndex].IsDouble() == false)
+			if (m_vecOutputValue[nIndex].index() != eDouble)
 			{
-				LOG_WARNING("잘못 된 변수 요청 : ValueType is %s", m_vecOutputValue[nIndex].TypeToString().c_str());
-				return 0.0;
+				LOG_WARNING("잘못 된 변수 요청 : ValueType is %s", TypeToString[m_vecOutputValue[nIndex].index()].c_str());
+				return 0;
 			}
 
-			return static_cast<float>(m_vecOutputValue[nIndex].ToDouble());
+			return std::get<double>(m_vecOutputValue[nIndex]);
 		}
 
-		const String::StringID& LuaThread::PopString(size_t nIndex)
+		const String::StringID& LuaThread::Impl::PopString(size_t nIndex)
 		{
 			if (nIndex >= m_vecOutputValue.size())
 			{
 				LOG_WARNING("인덱스 범위 초과 : BufferSize[%Iu] <= Index[%Iu]", m_vecOutputValue.size(), nIndex);
-				return StrID::Unregistered;
+				return 0;
 			}
 
-			if (m_vecOutputValue[nIndex].IsString() == false)
+			if (m_vecOutputValue[nIndex].index() != eString)
 			{
-				LOG_WARNING("잘못 된 변수 요청 : ValueType is %s", m_vecOutputValue[nIndex].TypeToString().c_str());
-				return StrID::Unregistered;
+				LOG_WARNING("잘못 된 변수 요청 : ValueType is %s", TypeToString[m_vecOutputValue[nIndex].index()].c_str());
+				return 0;
 			}
 
-			return m_vecOutputValue[nIndex].ToString();
+			return std::get<String::StringID>(m_vecOutputValue[nIndex]);
 		}
 
-		bool LuaThread::PopBool(size_t nIndex)
+		bool LuaThread::Impl::PopBool(size_t nIndex)
 		{
 			if (nIndex >= m_vecOutputValue.size())
 			{
 				LOG_WARNING("인덱스 범위 초과 : BufferSize[%Iu] <= Index[%Iu]", m_vecOutputValue.size(), nIndex);
-				return false;
+				return 0;
 			}
 
-			if (m_vecOutputValue[nIndex].IsBool() == false)
+			if (m_vecOutputValue[nIndex].index() != eBool)
 			{
-				LOG_WARNING("잘못 된 변수 요청 : ValueType is %s", m_vecOutputValue[nIndex].TypeToString().c_str());
-				return false;
+				LOG_WARNING("잘못 된 변수 요청 : ValueType is %s", TypeToString[m_vecOutputValue[nIndex].index()].c_str());
+				return 0;
 			}
 
-			return m_vecOutputValue[nIndex].ToBool();
+			return std::get<bool>(m_vecOutputValue[nIndex]);
 		}
 
-		bool LuaThread::Run(const String::StringID& strFuncName, const int nReturnValueCount)
+		bool LuaThread::Impl::Run(const String::StringID& strFuncName, const int nReturnValueCount)
 		{
 			lua_getglobal(m_pLuaState, strFuncName.c_str());
 
@@ -193,25 +170,22 @@ namespace EastEngine
 
 			while (m_queueInputValue.empty() == false)
 			{
-				LuaIOValue& value = m_queueInputValue.front();
+				std::variant<intptr_t, double, String::StringID, bool>& variantValue = m_queueInputValue.front();
 
-				switch (value.emValueType)
+				switch (variantValue.index())
 				{
-				case LuaIOValue::EmValueType::eDouble:
-				{
-					lua_pushnumber(m_pLuaState, value.ToDouble());
-				}
-				break;
-				case LuaIOValue::EmValueType::eString:
-				{
-					lua_pushstring(m_pLuaState, value.ToString().c_str());
-				}
-				break;
-				case LuaIOValue::EmValueType::eBool:
-				{
-					lua_pushboolean(m_pLuaState, value.ToBool());
-				}
-				break;
+				case eInt:
+					lua_pushinteger(m_pLuaState, std::get<intptr_t>(variantValue));
+					break;
+				case eDouble:
+					lua_pushnumber(m_pLuaState, std::get<double>(variantValue));
+					break;
+				case eString:
+					lua_pushstring(m_pLuaState, std::get<String::StringID>(variantValue).c_str());
+					break;
+				case eBool:
+					lua_pushboolean(m_pLuaState, std::get<bool>(variantValue));
+					break;
 				}
 
 				m_queueInputValue.pop();
@@ -265,6 +239,70 @@ namespace EastEngine
 			m_isIdle = true;
 
 			return true;
+		}
+
+		LuaThread::LuaThread(lua_State* pLuaState)
+			: m_pImpl{ std::unique_ptr<Impl>() }
+		{
+		}
+
+		LuaThread::~LuaThread()
+		{
+		}
+
+		bool LuaThread::IsIdle() const
+		{
+			return m_pImpl->IsIdle();
+		}
+
+		void LuaThread::SetIdle(bool isIdle)
+		{
+			return m_pImpl->SetIdle(isIdle);
+		}
+
+		void LuaThread::PushInt(intptr_t nValue)
+		{
+			m_pImpl->PushInt(nValue);
+		}
+
+		void LuaThread::PushDouble(double dValue)
+		{
+			m_pImpl->PushDouble(dValue);
+		}
+
+		void LuaThread::PushString(const String::StringID& sValue)
+		{
+			m_pImpl->PushString(sValue);
+		}
+
+		void LuaThread::PushBool(bool bValue)
+		{
+			m_pImpl->PushBool(bValue);
+		}
+
+		intptr_t LuaThread::PopInt(size_t nIndex)
+		{
+			return m_pImpl->PopInt(nIndex);
+		}
+
+		double LuaThread::PopDouble(size_t nIndex)
+		{
+			return m_pImpl->PopDouble(nIndex);
+		}
+
+		const String::StringID& LuaThread::PopString(size_t nIndex)
+		{
+			return m_pImpl->PopString(nIndex);
+		}
+
+		bool LuaThread::PopBool(size_t nIndex)
+		{
+			return m_pImpl->PopBool(nIndex);
+		}
+
+		bool LuaThread::Run(const String::StringID& strFuncName, const int nReturnValueCount)
+		{
+			return m_pImpl->Run(strFuncName, nReturnValueCount);
 		}
 	}
 }

@@ -66,7 +66,7 @@ namespace EastEngine
 
 		Config::SCommandLine* s_pCommandLine{ nullptr };
 		File::DirectoryMonitor* s_pDirectoryMonitor{ nullptr };
-		Lua::LuaSystem* s_pLuaSystem{ nullptr };
+		Lua::System* s_pLuaSystem{ nullptr };
 		Windows::WindowsManager* s_pWindows{ nullptr };
 		Graphics::GraphicsSystem* s_pGraphicsSystem{ nullptr };
 		Input::Device* s_pInputDevice{ nullptr };
@@ -120,8 +120,8 @@ namespace EastEngine
 		Graphics::GraphicsSystem::DestroyInstance();
 		s_pGraphicsSystem = nullptr;
 
-		SafeRelease(s_pLuaSystem);
-		Lua::LuaSystem::DestroyInstance();
+		Lua::System::DestroyInstance();
+		s_pLuaSystem = nullptr;
 
 		Windows::WindowsManager::DestroyInstance();
 		s_pWindows = nullptr;
@@ -197,12 +197,9 @@ namespace EastEngine
 
 		s_pSoundSystem = Sound::System::GetInstance();
 
-		//s_pLuaSystem = LuaSystemInst;
-		//if (s_pLuaSystem->Init() == false)
-		//{
-		//	Release();
-		//	return false;
-		//}
+		s_pLuaSystem = Lua::System::GetInstance();
+		if (s_pLuaSystem->Initialize(false) == false)
+			return false;
 
 		s_pSceneManager = SceneManager::GetInstance();
 

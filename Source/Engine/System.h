@@ -9,58 +9,6 @@
 
 namespace EastEngine
 {
-	class Timer;
-
-	namespace Config
-	{
-		class SCommandLine;
-	}
-
-	namespace File
-	{
-		class DirectoryMonitor;
-	}
-
-	namespace Lua
-	{
-		class LuaSystem;
-	}
-
-	namespace Windows
-	{
-		class WindowsManager;
-	}
-
-	namespace Input
-	{
-		class Device;
-	}
-
-	namespace Physics
-	{
-		class PhysicsSystem;
-	}
-
-	namespace Sound
-	{
-		class SoundSystem;
-	}
-
-	namespace UI
-	{
-		class UIManager;
-	}
-
-	namespace GameObject
-	{
-		class ActorManager;
-		class TerrainManager;
-		class SkyManager;
-	}
-
-	class FpsChecker;
-	class SceneManager;
-
 	class MainSystem : public Singleton<MainSystem>
 	{
 		friend Singleton<MainSystem>;

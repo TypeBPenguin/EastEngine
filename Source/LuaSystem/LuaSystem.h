@@ -4,22 +4,19 @@
 
 #include "LuaThread.h"
 
-struct lua_State;
-
 namespace EastEngine
 {
 	namespace Lua
 	{
-		class LuaSystem : public Singleton<LuaSystem>
+		class System : public Singleton<System>
 		{
-			friend Singleton<LuaSystem>;
+			friend Singleton<System>;
 		private:
-			LuaSystem();
-			virtual ~LuaSystem();
+			System();
+			virtual ~System();
 
 		public:
-			bool Init(bool isEnableJIT);
-			void Release();
+			bool Initialize(bool isEnableJIT);
 
 			void SetEnableJIT(bool isEnableJIT);
 
@@ -28,15 +25,8 @@ namespace EastEngine
 			std::shared_ptr<LuaThread> GetThread();
 
 		private:
-			lua_State* m_pLuaState;
-
-			std::vector<std::shared_ptr<LuaThread>> m_vecLuaThread;
-
-			std::unordered_map<String::StringID, std::string> m_umapCompiledLua;
-
-			size_t m_nIndex;
-
-			bool m_isInit;
+			class Impl;
+			std::unique_ptr<Impl> m_pImpl;
 		};
 	}
 }
