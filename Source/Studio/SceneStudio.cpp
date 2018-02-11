@@ -802,6 +802,21 @@ void SceneStudio::Enter()
 		GameObject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
 	}
 
+	//if (false)
+	{
+		String::StringID name;
+		name.Format("Lynn_DancingBlade");
+
+		Math::Vector3 pos;
+		pos.x = 6.f;
+		pos.z = 2.f;
+
+		strPath = File::GetDataPath();
+		strPath.append("Model\\Lynn_DancingBlade\\Lynn_DancingBlade.emod");
+
+		GameObject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
+	}
+
 	{
 		String::StringID name;
 		name.Format("ElementalSwordIce");
