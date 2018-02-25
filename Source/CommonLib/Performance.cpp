@@ -32,8 +32,11 @@ namespace EastEngine
 
 				std::lock_guard<std::mutex> lock(m_mutex);
 
-				Event& event = m_umapEvents[GetCurrentThreadId()].back();
-				event.vecArgs.push_back({ strKey, value });
+				Event* pEvent = GetLastEvent();
+				if (pEvent != nullptr)
+				{
+					pEvent->vecArgs.push_back({ strKey, value });
+				}
 			}
 
 			template <>
@@ -44,8 +47,11 @@ namespace EastEngine
 
 				std::lock_guard<std::mutex> lock(m_mutex);
 
-				Event& event = m_umapEvents[GetCurrentThreadId()].back();
-				event.vecArgs.push_back({ strKey, std::string{ value } });
+				Event* pEvent = GetLastEvent();
+				if (pEvent != nullptr)
+				{
+					pEvent->vecArgs.push_back({ strKey, std::string{ value } });
+				}
 			}
 
 		public:
@@ -91,6 +97,9 @@ namespace EastEngine
 				std::vector<Args> vecArgs;
 			};
 
+			Event* GetLastEvent();
+
+		private:
 			std::mutex m_mutex;
 
 			std::optional<std::chrono::system_clock::time_point> m_startTime;
@@ -183,6 +192,8 @@ namespace EastEngine
 			std::lock_guard<std::mutex> lock(m_mutex);
 
 			const uint32_t nThreadID = GetCurrentThreadId();
+			if (m_umapEventLinkers[nThreadID].empty() == true)
+				return;
 
 			const size_t nIndex = m_umapEventLinkers[nThreadID].top();
 			m_umapEventLinkers[nThreadID].pop();
@@ -215,10 +226,10 @@ namespace EastEngine
 
 		float Tracer::Impl::TracingTime() const
 		{
-			if (IsTracing() == true)
+			if (IsTracing() == false)
 				return 0.f;
 
-			return std::chrono::duration_cast<std::chrono::duration<float>>(m_startTime.value() - std::chrono::system_clock::now()).count();
+			return std::chrono::duration_cast<std::chrono::duration<float>>(std::chrono::system_clock::now() - m_startTime.value()).count();
 		}
 
 		constexpr bool Tracer::Impl::IsTracing() const noexcept
@@ -311,6 +322,17 @@ namespace EastEngine
 
 			m_startTime.reset();
 			m_umapEvents.clear();
+		}
+
+		Tracer::Impl::Event* Tracer::Impl::GetLastEvent()
+		{
+			const uint32_t nThreadID = GetCurrentThreadId();
+			if (m_umapEventLinkers[nThreadID].empty() == true)
+				return nullptr;
+
+			const size_t nIndex = m_umapEventLinkers[nThreadID].top();
+
+			return &m_umapEvents[nThreadID][nIndex];
 		}
 
 		Tracer::Tracer()
