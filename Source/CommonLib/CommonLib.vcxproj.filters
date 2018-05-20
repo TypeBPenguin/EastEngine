@@ -46,17 +46,8 @@
     <Filter Include="Collision">
       <UniqueIdentifier>{4ed9ef4d-7b1e-442c-a631-8d74bd8398fd}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ThreadPool">
-      <UniqueIdentifier>{0b0f6fd3-2737-4722-b6de-96b9c5c065d3}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Config">
       <UniqueIdentifier>{1418b84c-664b-4e2b-b964-bd721f3bce9c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="PipeStream">
-      <UniqueIdentifier>{eaf16f6a-571e-4e7d-85b6-9b557308d151}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="PipeStream\PipeData">
-      <UniqueIdentifier>{7ec9285c-f541-4602-bac5-18e360d2412b}</UniqueIdentifier>
     </Filter>
     <Filter Include="Performance">
       <UniqueIdentifier>{9b62e0f4-518a-44a5-a4e5-fdf80cdd41c2}</UniqueIdentifier>
@@ -78,6 +69,15 @@
     </Filter>
     <Filter Include="Json">
       <UniqueIdentifier>{3cf8da9b-dfc4-487f-8c95-3d8e040141b7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Thread">
+      <UniqueIdentifier>{0fdcb183-2b86-4c36-8382-b7f4fbf07dbd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Thread\Lock">
+      <UniqueIdentifier>{394c9fa0-ff6c-45e5-9827-e14ba10b44b2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Thread\Pool">
+      <UniqueIdentifier>{0b0f6fd3-2737-4722-b6de-96b9c5c065d3}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -117,12 +117,6 @@
     <ClInclude Include="Collision.h">
       <Filter>Collision</Filter>
     </ClInclude>
-    <ClInclude Include="PipeStream.h">
-      <Filter>PipeStream</Filter>
-    </ClInclude>
-    <ClInclude Include="PipeData.h">
-      <Filter>PipeStream\PipeData</Filter>
-    </ClInclude>
     <ClInclude Include="Performance.h">
       <Filter>Performance</Filter>
     </ClInclude>
@@ -154,7 +148,7 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="ThreadPool.h">
-      <Filter>ThreadPool</Filter>
+      <Filter>Thread\Pool</Filter>
     </ClInclude>
     <ClInclude Include="CrashHandler.h">
       <Filter>CrashHandler</Filter>
@@ -164,6 +158,9 @@
     </ClInclude>
     <ClInclude Include="json.hpp">
       <Filter>Json</Filter>
+    </ClInclude>
+    <ClInclude Include="Lock.h">
+      <Filter>Thread\Lock</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -194,12 +191,6 @@
     <ClCompile Include="Collision.cpp">
       <Filter>Collision</Filter>
     </ClCompile>
-    <ClCompile Include="PipeStream.cpp">
-      <Filter>PipeStream</Filter>
-    </ClCompile>
-    <ClCompile Include="PipeData.cpp">
-      <Filter>PipeStream\PipeData</Filter>
-    </ClCompile>
     <ClCompile Include="Performance.cpp">
       <Filter>Performance</Filter>
     </ClCompile>
@@ -222,13 +213,16 @@
       <Filter>Memory</Filter>
     </ClCompile>
     <ClCompile Include="ThreadPool.cpp">
-      <Filter>ThreadPool</Filter>
+      <Filter>Thread\Pool</Filter>
     </ClCompile>
     <ClCompile Include="CrashHandler.cpp">
       <Filter>CrashHandler</Filter>
     </ClCompile>
     <ClCompile Include="PhantomType.cpp">
       <Filter>PhantomType</Filter>
+    </ClCompile>
+    <ClCompile Include="Lock.cpp">
+      <Filter>Thread\Lock</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

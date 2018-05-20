@@ -2,9 +2,9 @@
 
 #include "InputInterface.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Input
+	namespace input
 	{
 		class KeyboardInstance
 		{
@@ -13,7 +13,7 @@ namespace EastEngine
 			~KeyboardInstance();
 
 		public:
-			bool Init(HWND hWnd, struct IDirectInput8A* pInput, DWORD keyboardCoopFlag);
+			void Initialize(HWND hWnd, struct IDirectInput8A* pInput, DWORD keyboardCoopFlag);
 			void Release();
 			void Update();
 

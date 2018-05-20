@@ -1,8 +1,8 @@
 #pragma once
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Math
+	namespace math
 	{
 		Vector3 Convert(const btVector3& v);
 		Vector4 Convert(const btVector4& v);

@@ -4,9 +4,9 @@
 
 #include "GameObject.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace GameObject
+	namespace gameobject
 	{
 		class SkyManager : public Singleton<SkyManager>
 		{

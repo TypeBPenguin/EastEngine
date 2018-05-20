@@ -4,29 +4,29 @@
 #include "CommonLib/FileStream.h"
 #include "CommonLib/FileUtil.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
-		CMtlImporter::CMtlImporter()
+		MtlImporter::MtlImporter()
 		{
 		}
 
-		CMtlImporter::~CMtlImporter()
+		MtlImporter::~MtlImporter()
 		{
 			Release();
 		}
 
-		bool CMtlImporter::Init(const char* strFileName, const char* strPath)
+		bool MtlImporter::Init(const char* strFileName, const char* strPath)
 		{
 			std::string strFilePath = strPath;
 			strFilePath.append(strFileName);
 
-			File::Stream file;
+			file::Stream file;
 			if (file.Open(strFilePath.c_str()) == false)
 				return false;
 
-			std::string strTexturePath = File::GetFilePath(file.GetPath().c_str());
+			std::string strTexturePath = file::GetFilePath(file.GetFilePath().c_str());
 
 			IMaterial* pMaterial = nullptr;
 
@@ -51,16 +51,16 @@ namespace EastEngine
 
 					strNewMtlName = strNewMtlName.substr(1, strNewMtlName.length());
 
-					auto iter = m_umapNewMtrl.emplace(String::StringID(strNewMtlName.c_str()), IMaterial::Create(strNewMtlName.c_str()));
+					MaterialInfo info;
+					info.strName = strNewMtlName.c_str();
+					auto iter = m_umapNewMtrl.emplace(String::StringID(strNewMtlName.c_str()), CreateMaterial(&info));
 					pMaterial = iter.first->second;
-
-					pMaterial->IncreaseReference();
 				}
 				else if (temp == "Ka")
 				{
 					assert(pMaterial);
 
-					Math::Color colorAmbient = pMaterial->GetAlbedoColor();
+					math::Color colorAmbient = pMaterial->GetAlbedoColor();
 					file.Read(&colorAmbient.r, 3);
 
 					pMaterial->SetAlbedoColor(colorAmbient);
@@ -69,7 +69,7 @@ namespace EastEngine
 				{
 					assert(pMaterial);
 
-					Math::Color colorDiffuse = pMaterial->GetAlbedoColor();
+					math::Color colorDiffuse = pMaterial->GetAlbedoColor();
 					file.Read(&colorDiffuse.r, 3);
 
 					pMaterial->SetAlbedoColor(colorDiffuse);
@@ -78,7 +78,7 @@ namespace EastEngine
 				{
 					assert(pMaterial);
 
-					Math::Color colorSpecular;
+					math::Color colorSpecular;
 					file.Read(&colorSpecular.r, 3);
 				}
 				else if (temp == "Ns")
@@ -94,7 +94,7 @@ namespace EastEngine
 				{
 					assert(pMaterial);
 
-					Math::Color colorDiffuse = pMaterial->GetAlbedoColor();
+					math::Color colorDiffuse = pMaterial->GetAlbedoColor();
 					file >> colorDiffuse.a;
 					pMaterial->SetAlbedoColor(colorDiffuse);
 				}
@@ -102,7 +102,7 @@ namespace EastEngine
 				{
 					assert(pMaterial);
 
-					Math::Color colorDiffuse = pMaterial->GetAlbedoColor();
+					math::Color colorDiffuse = pMaterial->GetAlbedoColor();
 					file >> colorDiffuse.a;
 					colorDiffuse.a = (1.f - colorDiffuse.a);
 					pMaterial->SetAlbedoColor(colorDiffuse);
@@ -413,8 +413,8 @@ namespace EastEngine
 
 			for (auto& iter : m_umapNewMtrl)
 			{
-				iter.second->SetSurSpecTintAniso(Math::Vector4(0.f, 0.f, 0.f, 0.f));
-				iter.second->SetSheenTintClearcoatGloss(Math::Vector4(0.f, 0.f, 0.f, 0.f));
+				iter.second->SetSurSpecTintAniso(math::Vector4(0.f, 0.f, 0.f, 0.f));
+				iter.second->SetSheenTintClearcoatGloss(math::Vector4(0.f, 0.f, 0.f, 0.f));
 
 				iter.second->LoadTexture();
 			}
@@ -422,11 +422,11 @@ namespace EastEngine
 			return true;
 		}
 
-		void CMtlImporter::Release()
+		void MtlImporter::Release()
 		{
 			std::for_each(m_umapNewMtrl.begin(), m_umapNewMtrl.end(), [](std::pair<const String::StringID, IMaterial*>& iter)
 			{
-				IMaterial::Destroy(&iter.second);
+				ReleaseResource(&iter.second);
 			});
 			m_umapNewMtrl.clear();
 		}

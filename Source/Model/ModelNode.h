@@ -2,9 +2,9 @@
 
 #include "ModelInterface.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class IVertexBuffer;
 		class IIndexBuffer;
@@ -18,7 +18,7 @@ namespace EastEngine
 			virtual ~ModelNode() = 0;
 
 		public:
-			virtual void Update(float fElapsedTime, const Math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance, bool isModelVisible) const = 0;
+			virtual void Update(float fElapsedTime, const math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance, bool isModelVisible) const = 0;
 
 		public:
 			virtual EmModelNode::Type GetType() const override { return m_emModelNodeType; }
@@ -37,15 +37,15 @@ namespace EastEngine
 			virtual IVertexBuffer* GetVertexBuffer(uint32_t nLod = 0) const override;
 			virtual IIndexBuffer* GetIndexBuffer(uint32_t nLod = 0) const override;
 
-			virtual size_t GetChildNodeCount() const override { return m_vecChildModelNode.size(); }
-			virtual IModelNode* GetChildNode(size_t nIndex) const override { return m_vecChildModelNode[nIndex]; }
+			virtual uint32_t GetChildNodeCount() const override { return static_cast<uint32_t>(m_vecChildModelNode.size()); }
+			virtual IModelNode* GetChildNode(uint32_t nIndex) const override { return m_vecChildModelNode[nIndex]; }
 
-			virtual size_t GetMaterialCount() const override { return m_vecMaterial.size(); }
-			virtual IMaterial* GetMaterial(size_t nIndex) const override { return m_vecMaterial[nIndex]; }
+			virtual uint32_t GetMaterialCount() const override { return static_cast<uint32_t>(m_vecMaterial.size()); }
+			virtual IMaterial* GetMaterial(uint32_t nIndex) const override { return m_vecMaterial[nIndex]; }
 			virtual IMaterial* GetMaterial(const String::StringID& strMaterialName, uint32_t& nMaterialID_out) const override;
 
-			virtual size_t GetModelSubsetCount(uint32_t nLod = 0) const override { return m_vecModelSubsets[nLod].size(); }
-			virtual const ModelSubset* GetModelSubset(size_t nIndex, uint32_t nLod = 0) const override { return &m_vecModelSubsets[nLod][nIndex]; }
+			virtual uint32_t GetModelSubsetCount(uint32_t nLod = 0) const override { return static_cast<uint32_t>(m_vecModelSubsets[nLod].size()); }
+			virtual const ModelSubset* GetModelSubset(uint32_t nIndex, uint32_t nLod = 0) const override { return &m_vecModelSubsets[nLod][nIndex]; }
 
 			virtual void SetOriginAABB(const Collision::AABB& aabb) override;
 			virtual const Collision::AABB& GetOriginAABB() const override { return m_originAABB; }

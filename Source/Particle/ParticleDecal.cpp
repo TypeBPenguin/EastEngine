@@ -6,9 +6,9 @@
 #include "DirectX/D3DInterface.h"
 #include "Renderer/RendererManager.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		ParticleDecal::ParticleDecal()
 			: m_isDirtyWorldMatrix(true)
@@ -40,11 +40,11 @@ namespace EastEngine
 			return true;
 		}
 
-		void ParticleDecal::Update(float fElapsedTime, const Math::Matrix& matView, const Math::Matrix& matViewProjection, const Collision::Frustum& frustum)
+		void ParticleDecal::Update(float fElapsedTime, const math::Matrix& matView, const math::Matrix& matViewProjection, const Collision::Frustum& frustum)
 		{
 			if (m_isDirtyWorldMatrix == true)
 			{
-				m_matWorld = Math::Matrix::Compose(m_attributes.f3Scale, m_attributes.quatRot, m_attributes.f3Pos);
+				m_matWorld = math::Matrix::Compose(m_attributes.f3Scale, m_attributes.quatRot, m_attributes.f3Pos);
 
 				m_isDirtyWorldMatrix = false;
 			}

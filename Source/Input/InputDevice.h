@@ -4,9 +4,9 @@
 
 #include "InputInterface.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Input
+	namespace input
 	{
 		class MouseInstance;
 		class KeyboardInstance;
@@ -29,7 +29,7 @@ namespace EastEngine
 			virtual ~Device();
 
 		public:
-			bool Initialize(HINSTANCE hInstance, HWND hWnd, DWORD keyboardCoopFlag = eNoneExclusive | eForeGround, DWORD mouseCoopFlag = eNoneExclusive | eForeGround);
+			void Initialize(HINSTANCE hInstance, HWND hWnd, DWORD keyboardCoopFlag = eNoneExclusive | eForeGround, DWORD mouseCoopFlag = eNoneExclusive | eForeGround);
 
 		public:
 			void Update(float fElapsedTime);

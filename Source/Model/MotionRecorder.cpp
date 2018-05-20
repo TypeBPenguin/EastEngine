@@ -1,9 +1,9 @@
 #include "stdafx.h"
 #include "MotionRecorder.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		MotionRecorder::MotionRecorder()
 		{
@@ -13,12 +13,12 @@ namespace EastEngine
 		{
 		}
 		
-		void MotionRecorder::SetTransform(const String::StringID& strBoneName, const Math::Transform& transform)
+		void MotionRecorder::SetTransform(const String::StringID& strBoneName, const math::Transform& transform)
 		{
 			m_umapMotionData[strBoneName] = transform;
 		}
 
-		const Math::Transform* MotionRecorder::GetTransform(const String::StringID& strBoneName) const
+		const math::Transform* MotionRecorder::GetTransform(const String::StringID& strBoneName) const
 		{
 			auto iter = m_umapMotionData.find(strBoneName);
 			if (iter != m_umapMotionData.end())
@@ -31,7 +31,7 @@ namespace EastEngine
 		{
 			for (auto& iter : m_umapMotionData)
 			{
-				iter.second = Math::Transform{};
+				iter.second = math::Transform{};
 			}
 		}
 	}

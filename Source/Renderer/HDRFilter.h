@@ -2,9 +2,9 @@
 
 #include "CommonLib/Singleton.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class HDRFilter : public Singleton<HDRFilter>
 		{

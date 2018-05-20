@@ -2,9 +2,9 @@
 
 #include "D3DInterface.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class DeviceContext : public IDeviceContext
 		{
@@ -18,9 +18,9 @@ namespace EastEngine
 		public:
 			virtual void ClearState() override;
 
-			virtual void ClearRenderTargetView(IRenderTarget* pRenderTarget, const Math::Color& color) override;
+			virtual void ClearRenderTargetView(IRenderTarget* pRenderTarget, const math::Color& color) override;
 			virtual void ClearDepthStencilView(IDepthStencil* pDepthStencil, uint32_t clearFlag = D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL) override;
-			virtual void ClearUnorderedAccessViewUint(ID3D11UnorderedAccessView* pUnorderedAccessView, const Math::UInt4& n4Uint) override;
+			virtual void ClearUnorderedAccessViewUint(ID3D11UnorderedAccessView* pUnorderedAccessView, const math::UInt4& n4Uint) override;
 
 		public:
 			virtual void DrawAuto() override;
@@ -34,8 +34,8 @@ namespace EastEngine
 			virtual bool SetInputLayout(EmVertexFormat::Type emVertexFormat) override;
 			virtual bool SetInputLayout(ID3D11InputLayout* pInputLayout) override;
 
-			virtual void SetBlendState(EmBlendState::Type emBlendState, const Math::Vector4& f4BlendFactor = Math::Vector4::Zero, uint32_t nSimpleMask = 0xffffffff) override;
-			virtual void SetBlendState(const IBlendState* pBlendState, const Math::Vector4& f4BlendFactor = Math::Vector4::Zero, uint32_t nSimpleMask = 0xffffffff) override;
+			virtual void SetBlendState(EmBlendState::Type emBlendState, const math::Vector4& f4BlendFactor = math::Vector4::Zero, uint32_t nSimpleMask = 0xffffffff) override;
+			virtual void SetBlendState(const IBlendState* pBlendState, const math::Vector4& f4BlendFactor = math::Vector4::Zero, uint32_t nSimpleMask = 0xffffffff) override;
 
 			virtual void SetDepthStencilState(EmDepthStencilState::Type emDepthStencil, uint32_t nStencilRef = 1) override;
 			virtual void SetDepthStencilState(const IDepthStencilState* pDepthStencilState, uint32_t nStencilRef = 1) override;
@@ -47,14 +47,14 @@ namespace EastEngine
 			virtual void SetIndexBuffer(const IIndexBuffer* pIndexBuffer, uint32_t offset) override;
 
 			virtual void SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY primitiveTopology) override;
-			virtual void SetScissorRects(Math::Rect* pRects, uint32_t nNumRects) override;
+			virtual void SetScissorRects(math::Rect* pRects, uint32_t nNumRects) override;
 
 			virtual void SetRenderTargets(const RenderTargetDesc2D& renderTargetInfo, const IDepthStencil* pDepthStencil = nullptr) override;
 			virtual void SetRenderTargets(IRenderTarget** ppRenderTarget, uint32_t nSize, const IDepthStencil* pDepthStencil = nullptr) override;
 			virtual void SetRenderTargetsAndUnorderedAccessViews(IRenderTarget** ppRenderTarget, uint32_t nSize, IDepthStencil* pDepthStencil, uint32_t nUAVStartSlot, uint32_t nUAVCount, ID3D11UnorderedAccessView* const* ppUnorderedAccessViews, const uint32_t* pUAVInitialCounts) override;
 
-			virtual void SetViewport(const Math::Viewport& viewport) override;
-			virtual void SetViewport(const Math::Viewport* pViewports, uint32_t nCount) override;
+			virtual void SetViewport(const math::Viewport& viewport) override;
+			virtual void SetViewport(const math::Viewport* pViewports, uint32_t nCount) override;
 			virtual void SetDefaultViewport() override;
 
 		public:

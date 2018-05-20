@@ -1,9 +1,9 @@
 #include "stdafx.h"
 #include "DepthStencilState.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		DepthStencilState::DepthStencilState()
 			: m_pDepthStencilState(nullptr)

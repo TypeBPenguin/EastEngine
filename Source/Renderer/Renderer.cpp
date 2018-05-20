@@ -1,9 +1,9 @@
 #include "stdafx.h"
 #include "Renderer.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		IRenderer::IRenderer()
 		{

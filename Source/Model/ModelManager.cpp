@@ -14,9 +14,9 @@
 #include "FbxImporter.h"
 #include "ObjImporter.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class ModelManager::Impl
 		{
@@ -26,7 +26,7 @@ namespace EastEngine
 
 		public:
 			void Update();
-			void Flush(bool isEnableGarbageCollector);
+			void Flush(float fElapsedTime);
 
 		public:
 			void AsyncLoadModel(IModel* pModel, const ModelLoader& loader);
@@ -53,7 +53,8 @@ namespace EastEngine
 			void ProcessRequestModelLoader(const RequestLoadModelInfo& loader);
 
 		private:
-			bool m_isLoading;
+			bool m_isLoading{ false };
+			float m_fTime{ 0.f };
 
 			plf::colony<Model> m_clnModel;
 			plf::colony<ModelInstance> m_clnModelInstance;
@@ -65,7 +66,6 @@ namespace EastEngine
 		};
 
 		ModelManager::Impl::Impl()
-			: m_isLoading(false)
 		{
 			if (GeometryModel::Initialize() == false)
 			{
@@ -76,7 +76,7 @@ namespace EastEngine
 			m_clnModel.reserve(128);
 			m_clnModelInstance.reserve(1024);
 
-			SObjImporter::GetInstance();
+			ObjImporter::GetInstance();
 		}
 
 		ModelManager::Impl::~Impl()
@@ -84,8 +84,8 @@ namespace EastEngine
 			FBXImport::GetInstance()->Release();
 			FBXImport::DestroyInstance();
 
-			SObjImporter::GetInstance()->ClearData();
-			SObjImporter::DestroyInstance();
+			ObjImporter::GetInstance()->ClearData();
+			ObjImporter::DestroyInstance();
 
 			m_clnModel.clear();
 			m_clnModelInstance.clear();
@@ -95,16 +95,16 @@ namespace EastEngine
 
 		void ModelManager::Impl::Update()
 		{
-			PERF_TRACER_EVENT("ModelManager::Update", "");
+			TRACER_EVENT("ModelManager::Update");
 
-			PERF_TRACER_BEGINEVENT("ModelManager::Update", "Model");
+			TRACER_BEGINEVENT("Model");
 			std::for_each(m_clnModel.begin(), m_clnModel.end(), [](Model& model)
 			{
 				model.Ready();
 			});
-			PERF_TRACER_ENDEVENT();
+			TRACER_ENDEVENT();
 
-			PERF_TRACER_BEGINEVENT("ModelManager::Update", "ModelInstance");
+			TRACER_BEGINEVENT("ModelInstance");
 			Concurrency::parallel_for_each(m_clnModelInstance.begin(), m_clnModelInstance.end(), [](ModelInstance& mModelInstance)
 			{
 				if (mModelInstance.GetSkeleton() != nullptr)
@@ -113,12 +113,14 @@ namespace EastEngine
 				}
 				mModelInstance.UpdateModel();
 			});
-			PERF_TRACER_ENDEVENT();
+			TRACER_ENDEVENT();
 		}
 
-		void ModelManager::Impl::Flush(bool isEnableGarbageCollector)
+		void ModelManager::Impl::Flush(float fElapsedTime)
 		{
-			PERF_TRACER_EVENT("ModelManager::Flush", "");
+			m_fTime += fElapsedTime;
+
+			TRACER_EVENT("ModelManager::Flush");
 			if (m_conQueueRequestModelLoader.empty() == false && m_isLoading == false)
 			{
 				RequestLoadModelInfo loader;
@@ -127,9 +129,9 @@ namespace EastEngine
 					if (loader.pModel_out != nullptr)
 					{
 						m_isLoading = true;
-						loader.pModel_out->SetLoadState(EmLoadState::eLoading);
+						loader.pModel_out->SetState(IResource::eLoading);
 
-						Thread::CreateTask([this, loader]() { this->ProcessRequestModelLoader(loader); });
+						thread::CreateTask([this, loader]() { this->ProcessRequestModelLoader(loader); });
 					}
 				}
 			}
@@ -143,29 +145,31 @@ namespace EastEngine
 				Model* pModel = static_cast<Model*>(result.pModel_out);
 				if (result.isSuccess == true)
 				{
-					pModel->SetLoadState(EmLoadState::eComplete);
+					pModel->SetState(IResource::eComplete);
 					pModel->SetAlive(true);
 
 					pModel->LoadCompleteCallback(true);
 				}
 				else
 				{
-					pModel->SetLoadState(EmLoadState::eInvalid);
+					pModel->SetState(IResource::eInvalid);
 					pModel->SetAlive(false);
 
 					pModel->LoadCompleteCallback(false);
 				}
 			}
 
-			if (isEnableGarbageCollector == true)
+			if (m_fTime >= 10.f)
 			{
+				m_fTime = 0.f;
+
 				auto iter = m_clnModel.begin();
 				while (iter != m_clnModel.end())
 				{
 					Model& model = *iter;
 
-					if (model.GetLoadState() == EmLoadState::eReady ||
-						model.GetLoadState() == EmLoadState::eLoading)
+					if (model.GetState() == IResource::eReady ||
+						model.GetState() == IResource::eLoading)
 					{
 						++iter;
 						continue;
@@ -294,9 +298,9 @@ namespace EastEngine
 			m_pImpl->Update();
 		}
 
-		void ModelManager::Flush(bool isEnableGarbageCollector)
+		void ModelManager::Flush(float fElapsedTime)
 		{
-			m_pImpl->Flush(isEnableGarbageCollector);
+			m_pImpl->Flush(fElapsedTime);
 		}
 
 		void ModelManager::AsyncLoadModel(IModel* pModel, const ModelLoader& loader)

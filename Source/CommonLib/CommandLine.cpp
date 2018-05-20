@@ -5,7 +5,7 @@
 
 #include <shellapi.h>
 
-namespace EastEngine
+namespace eastengine
 {
 	namespace Config
 	{

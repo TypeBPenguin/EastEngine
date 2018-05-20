@@ -44,21 +44,21 @@ namespace StrID
 	RegisterStringID(g_DstData);
 }
 
-namespace EastEngine
+namespace eastengine
 {
 	// Generating gaussian random number with mean 0 and standard deviation 1.
 	float Gauss()
 	{
-		float u1 = Math::Random<float>() / (float)RAND_MAX;
-		float u2 = Math::Random<float>() / (float)RAND_MAX;
+		float u1 = math::Random<float>() / (float)RAND_MAX;
+		float u2 = math::Random<float>() / (float)RAND_MAX;
 		if (u1 < 1e-6f)
 			u1 = 1e-6f;
-		return sqrtf(-2 * logf(u1)) * cosf(2 * Math::PI * u2);
+		return sqrtf(-2 * logf(u1)) * cosf(2 * math::PI * u2);
 	}
 
 	// Phillips Spectrum
 	// K: normalized wave vector, W: wind direction, v: wind velocity, a: amplitude constant
-	float Phillips(const Math::Vector2& K, const Math::Vector2& W, float v, float a, float dir_depend)
+	float Phillips(const math::Vector2& K, const math::Vector2& W, float v, float a, float dir_depend)
 	{
 		// largest possible wave from constant wind of velocity v
 		float l = v * v / GRAV_ACCEL;
@@ -77,7 +77,7 @@ namespace EastEngine
 		return phillips * expf(-Ksqr * w * w);
 	}
 
-	namespace Graphics
+	namespace graphics
 	{
 #define COHERENCY_GRANULARITY 128
 
@@ -130,7 +130,7 @@ namespace EastEngine
 
 		bool WaterSimulator::Init(OceanParameter& params)
 		{
-			std::string strPath(File::GetPath(File::EmPath::eFx));
+			std::string strPath(file::GetPath(file::EmPath::eFx));
 
 #if defined(DEBUG) || defined(_DEBUG)
 			strPath.append("Water\\WaterSimulator_D.cso");
@@ -143,7 +143,7 @@ namespace EastEngine
 			m_pEffect->CreateTechnique(StrID::WaterSimulator_Displacement, EmVertexFormat::ePos);
 			m_pEffect->CreateTechnique(StrID::WaterSimulator_Gradient, EmVertexFormat::ePos);
 
-			strPath = File::GetPath(File::EmPath::eFx);
+			strPath = file::GetPath(file::EmPath::eFx);
 
 #if defined(DEBUG) || defined(_DEBUG)
 			strPath.append("Water\\FFT_D.cso");
@@ -157,7 +157,7 @@ namespace EastEngine
 
 			// Quad vertex buffer
 			D3D11_BUFFER_DESC vb_desc;
-			vb_desc.ByteWidth = 4 * sizeof(Math::Vector4);
+			vb_desc.ByteWidth = 4 * sizeof(math::Vector4);
 			vb_desc.Usage = D3D11_USAGE_IMMUTABLE;
 			vb_desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 			vb_desc.CPUAccessFlags = 0;
@@ -184,7 +184,7 @@ namespace EastEngine
 
 			// Height map H(0)
 			int height_map_size = (params.dmap_dim + 4) * (params.dmap_dim + 1);
-			Math::Vector2* h0_data = new Math::Vector2[height_map_size * sizeof(Math::Vector2)];
+			math::Vector2* h0_data = new math::Vector2[height_map_size * sizeof(math::Vector2)];
 			float* omega_data = new float[height_map_size * sizeof(float)];
 			InitHeightMap(params, h0_data, omega_data);
 
@@ -385,7 +385,7 @@ namespace EastEngine
 			if (pDeviceContext->SetInputLayout(pEffectTech->GetLayoutFormat()) == false)
 				return;
 
-			UINT strides[1] = { sizeof(Math::Vector4) };
+			UINT strides[1] = { sizeof(math::Vector4) };
 			UINT offsets[1] = { 0 };
 			pDeviceContext->GetInterface()->IASetVertexBuffers(0, 1, &m_pQuadVB, &strides[0], &offsets[0]);
 
@@ -469,11 +469,11 @@ namespace EastEngine
 			return m_pGradientMap->GetTexture();
 		}
 
-		void WaterSimulator::InitHeightMap(OceanParameter& params, Math::Vector2* out_h0, float* out_omega)
+		void WaterSimulator::InitHeightMap(OceanParameter& params, math::Vector2* out_h0, float* out_omega)
 		{
-			Math::Vector2 K, Kn;
+			math::Vector2 K, Kn;
 
-			Math::Vector2 wind_dir;
+			math::Vector2 wind_dir;
 			params.wind_dir.Normalize(wind_dir);
 
 			float a = params.wave_amplitude * 1e-7f;	// It is too small. We must scale it for editing.
@@ -487,11 +487,11 @@ namespace EastEngine
 			for (int i = 0; i <= height_map_dim; ++i)
 			{
 				// K is wave-vector, range [-|DX/W, |DX/W], [-|DY/H, |DY/H]
-				K.y = (-height_map_dim / 2.0f + i) * (2 * Math::PI / patch_length);
+				K.y = (-height_map_dim / 2.0f + i) * (2 * math::PI / patch_length);
 
 				for (int j = 0; j <= height_map_dim; ++j)
 				{
-					K.x = (-height_map_dim / 2.0f + j) * (2 * Math::PI / patch_length);
+					K.x = (-height_map_dim / 2.0f + j) * (2 * math::PI / patch_length);
 
 					float phil = (K.x == 0 && K.y == 0) ? 0 : sqrtf(Phillips(K, wind_dir, v, a, dir_depend));
 

@@ -3,20 +3,20 @@
 
 #include "MathConvertor.h"
 
-namespace EastEngine
+namespace eastengine
 {
 	namespace Physics
 	{
-		DebugTriangleDrawCallback::DebugTriangleDrawCallback(std::vector<Math::Vector3>* pTriangles)
+		DebugTriangleDrawCallback::DebugTriangleDrawCallback(std::vector<math::Vector3>* pTriangles)
 			: m_pTriangles(pTriangles)
 		{
 		}
 
 		void DebugTriangleDrawCallback::processTriangle(btVector3* triangle, int partId, int triangleIndex)
 		{
-			m_pTriangles->emplace_back(Math::Convert(*triangle));
-			m_pTriangles->emplace_back(Math::Convert(*(triangle + 2)));
-			m_pTriangles->emplace_back(Math::Convert(*(triangle + 1)));
+			m_pTriangles->emplace_back(math::Convert(*triangle));
+			m_pTriangles->emplace_back(math::Convert(*(triangle + 2)));
+			m_pTriangles->emplace_back(math::Convert(*(triangle + 1)));
 		}
 	}
 }

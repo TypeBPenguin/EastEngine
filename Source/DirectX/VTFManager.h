@@ -4,9 +4,9 @@
 
 #include "D3DInterface.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class ITexture;
 
@@ -34,7 +34,7 @@ namespace EastEngine
 			void Release();
 
 		public:
-			bool Allocate(size_t nMatrixCount, Math::Matrix** ppDest_Out, size_t& nVTFID_Out);
+			bool Allocate(size_t nMatrixCount, math::Matrix** ppDest_Out, size_t& nVTFID_Out);
 
 			void Synchronize();
 
@@ -51,7 +51,7 @@ namespace EastEngine
 				size_t nAllocatedCount{ 0 };
 
 				std::shared_ptr<ITexture> pVTF;
-				std::vector<Math::Matrix> buffer;
+				std::vector<math::Matrix> buffer;
 			};
 
 			std::array<VTFInstance, ThreadCount> m_vtfInstances;

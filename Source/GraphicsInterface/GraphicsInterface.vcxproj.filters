@@ -1,0 +1,176 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="소스 파일">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="헤더 파일">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="리소스 파일">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Interface">
+      <UniqueIdentifier>{e842b31c-24e4-41e8-a3b7-17c374c186ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource">
+      <UniqueIdentifier>{c7e23ac0-e635-496a-853a-65f2afa197e3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader">
+      <UniqueIdentifier>{c062e964-509d-4a94-a425-1cc67fce981d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Window">
+      <UniqueIdentifier>{7589c903-fdf3-447f-aee5-c3030b5c912c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader\HLSL">
+      <UniqueIdentifier>{cf884df0-ea6f-45b9-9804-9711ae29bc67}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader\GLSL">
+      <UniqueIdentifier>{56ccc518-28f6-458b-bd49-f17f49501164}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader\GLSL\spv">
+      <UniqueIdentifier>{7f3e0808-7029-4af1-bb18-abc8b44b5e45}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Camera">
+      <UniqueIdentifier>{1043b573-f465-4e43-8194-1e45e1b592f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Define">
+      <UniqueIdentifier>{432687b7-93ff-480d-890a-3b772ab604f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Render">
+      <UniqueIdentifier>{3b5b1a18-57df-450b-8a18-40183ad2c7b3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Render\Instancing">
+      <UniqueIdentifier>{2964ac19-f751-480a-93ef-8d4659bcd150}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Render\Subset">
+      <UniqueIdentifier>{b2736a57-0bd6-4ba7-9385-8ee62e660cc8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Light">
+      <UniqueIdentifier>{90422cb0-6a28-4090-8b5e-b31883a26a6d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Light\Directional">
+      <UniqueIdentifier>{10d60c8a-b2bc-4c04-9ad4-85dad0e453e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Light\Spot">
+      <UniqueIdentifier>{0076839e-1b56-4a10-b05f-5dea597e9055}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Light\Point">
+      <UniqueIdentifier>{8e583979-2ee1-49da-89b3-ad7f5b6d3831}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Vertex.h">
+      <Filter>Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Window.h">
+      <Filter>Window</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Define.h">
+      <Filter>Define</Filter>
+    </ClInclude>
+    <ClInclude Include="Instancing.h">
+      <Filter>Render\Instancing</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsInterface.h">
+      <Filter>Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderJob.h">
+      <Filter>Render\Subset</Filter>
+    </ClInclude>
+    <ClInclude Include="Light.h">
+      <Filter>Light</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectionalLight.h">
+      <Filter>Light\Directional</Filter>
+    </ClInclude>
+    <ClInclude Include="PointLight.h">
+      <Filter>Light\Point</Filter>
+    </ClInclude>
+    <ClInclude Include="SpotLight.h">
+      <Filter>Light\Spot</Filter>
+    </ClInclude>
+    <ClInclude Include="LightManager.h">
+      <Filter>Light</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Vertex.cpp">
+      <Filter>Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="Resource.cpp">
+      <Filter>Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="Window.cpp">
+      <Filter>Window</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="Define.cpp">
+      <Filter>Define</Filter>
+    </ClCompile>
+    <ClCompile Include="Instancing.cpp">
+      <Filter>Render\Instancing</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsInterface.cpp">
+      <Filter>Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderJob.cpp">
+      <Filter>Render\Subset</Filter>
+    </ClCompile>
+    <ClCompile Include="Light.cpp">
+      <Filter>Light</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectionalLight.cpp">
+      <Filter>Light\Directional</Filter>
+    </ClCompile>
+    <ClCompile Include="PointLight.cpp">
+      <Filter>Light\Point</Filter>
+    </ClCompile>
+    <ClCompile Include="SpotLight.cpp">
+      <Filter>Light\Spot</Filter>
+    </ClCompile>
+    <ClCompile Include="LightManager.cpp">
+      <Filter>Light</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="PixelShader.hlsl">
+      <Filter>Shader\HLSL</Filter>
+    </None>
+    <None Include="VertexShader.hlsl">
+      <Filter>Shader\HLSL</Filter>
+    </None>
+    <None Include="FragmentShader.frag">
+      <Filter>Shader\GLSL</Filter>
+    </None>
+    <None Include="VertexShader.vert">
+      <Filter>Shader\GLSL</Filter>
+    </None>
+    <None Include="frag.spv">
+      <Filter>Shader\GLSL\spv</Filter>
+    </None>
+    <None Include="vert.spv">
+      <Filter>Shader\GLSL\spv</Filter>
+    </None>
+  </ItemGroup>
+</Project>

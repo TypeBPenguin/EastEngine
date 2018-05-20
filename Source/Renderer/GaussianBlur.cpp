@@ -18,9 +18,9 @@ namespace StrID
 	RegisterStringID(g_samplerPoint);
 }
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		GaussianBlur::GaussianBlur()
 			: m_isInit(false)
@@ -41,7 +41,7 @@ namespace EastEngine
 
 			m_isInit = true;
 
-			std::string strPath(File::GetPath(File::EmPath::eFx));
+			std::string strPath(file::GetPath(file::EmPath::eFx));
 
 #if defined(DEBUG) || defined(_DEBUG)
 			strPath.append("PostProcessing\\GaussianBlur\\GaussianBlur_D.cso");
@@ -83,13 +83,13 @@ namespace EastEngine
 
 		void ApplyBlur(IDeviceContext* pDeviceContext, IEffect* pEffect, IEffectTech* pTech, IRenderTarget* pResult, IRenderTarget* pSource)
 		{
-			Math::Viewport viewport;
+			math::Viewport viewport;
 			viewport.width = static_cast<float>(pResult->GetSize().x);
 			viewport.height = static_cast<float>(pResult->GetSize().y);
 			pDeviceContext->SetViewport(viewport);
 			pDeviceContext->SetRenderTargets(&pResult, 1);
 
-			Math::Vector2 f2Size;
+			math::Vector2 f2Size;
 			f2Size.x = static_cast<float>(pSource->GetSize().x);
 			f2Size.y = static_cast<float>(pSource->GetSize().y);
 
@@ -113,7 +113,7 @@ namespace EastEngine
 			if (pSource == nullptr || pSource->GetTexture() == nullptr)
 				return false;
 
-			PERF_TRACER_EVENT("GaussianBlur::Apply", "");
+			TRACER_EVENT("GaussianBlur::Apply");
 			D3D_PROFILING(pDeviceContext, GaussianBlur);
 
 			pDeviceContext->ClearState();
@@ -178,7 +178,7 @@ namespace EastEngine
 			if (pDepth == nullptr || pDepth->GetTexture() == nullptr)
 				return false;
 
-			PERF_TRACER_EVENT("GaussianBlur::Apply", "");
+			TRACER_EVENT("GaussianBlur::Apply");
 			D3D_PROFILING(pDeviceContext, GaussianBlur);
 
 			pDeviceContext->ClearState();

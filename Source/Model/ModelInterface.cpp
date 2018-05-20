@@ -20,9 +20,9 @@
 #include "FbxImporter.h"
 #include "XpsImporter.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		LODReductionRate::LODReductionRate()
 		{
@@ -58,38 +58,38 @@ namespace EastEngine
 			{
 			case EmMotionLoader::eFbx:
 			{
-				String::StringID strMotionName = File::GetFileNameWithoutExtension(loader.GetFilePath().c_str()).c_str();
+				String::StringID strMotionName = file::GetFileNameWithoutExtension(loader.GetFilePath().c_str()).c_str();
 
 				if (FBXImport::GetInstance()->LoadMotion(pMotion, loader.GetFilePath().c_str(), loader.GetScaleFactor()) == false)
 				{
-					pMotion->SetLoadState(EmLoadState::eInvalid);
+					pMotion->SetState(IResource::eInvalid);
 					return nullptr;
 				}
 
-				pMotion->SetLoadState(EmLoadState::eComplete);
+				pMotion->SetState(IResource::eComplete);
 
 				return pMotion;
 			}
 			break;
 			case EmMotionLoader::eXps:
 			{
-				String::StringID strMotionName = File::GetFileNameWithoutExtension(loader.GetFilePath().c_str()).c_str();
+				String::StringID strMotionName = file::GetFileNameWithoutExtension(loader.GetFilePath().c_str()).c_str();
 
 				if (XPSImport::LoadMotion(pMotion, loader.GetFilePath().c_str()) == false)
 				{
-					pMotion->SetLoadState(EmLoadState::eInvalid);
+					pMotion->SetState(IResource::eInvalid);
 					return nullptr;
 				}
 
-				pMotion->SetLoadState(EmLoadState::eComplete);
+				pMotion->SetState(IResource::eComplete);
 
 				return pMotion;
 			}
 			break;
 			case EmMotionLoader::eEast:
 			{
-				File::Stream file;
-				if (file.Open(loader.GetFilePath().c_str(), File::eRead | File::eBinary) == false)
+				file::Stream file;
+				if (file.Open(loader.GetFilePath().c_str(), file::eRead | file::eBinary) == false)
 				{
 					LOG_WARNING("Can't open to file : %s", loader.GetFilePath().c_str());
 					return false;
@@ -122,7 +122,7 @@ namespace EastEngine
 					pMotion->AddBoneKeyframes(strBuf.c_str(), vecKeyframes);
 				}
 
-				pMotion->SetLoadState(EmLoadState::eComplete);
+				pMotion->SetState(IResource::eComplete);
 
 				file.Close();
 			}
@@ -145,8 +145,8 @@ namespace EastEngine
 
 		bool IMotion::SaveToFile(IMotion* pMotion, const char* strFilePath)
 		{
-			File::Stream file;
-			if (file.Open(strFilePath, File::eWrite | File::eBinary) == false)
+			file::Stream file;
+			if (file.Open(strFilePath, file::eWrite | file::eBinary) == false)
 			{
 				LOG_WARNING("Can't save to file : %s", strFilePath);
 				return false;
@@ -186,7 +186,7 @@ namespace EastEngine
 		IModel* IModel::Create(const ModelLoader& loader, bool isThreadLoad)
 		{
 			String::StringID strKey;
-			if (loader.GetLoadModelType() == EmModelLoader::LoadType::eGeometry)
+			if (loader.GetLoadModelType() == ModelLoader::LoadType::eGeometry)
 			{
 				strKey = loader.GetModelName();
 			}
@@ -205,7 +205,7 @@ namespace EastEngine
 			pModel->SetLocalPosition(loader.GetLocalPosition());
 			pModel->SetLocalRotation(loader.GetLocalRotation());
 			pModel->SetLocalScale(loader.GetLocalScale());
-			pModel->SetLoadState(EmLoadState::eReady);
+			pModel->SetState(IResource::eReady);
 
 			if (isThreadLoad == true)
 			{
@@ -215,14 +215,14 @@ namespace EastEngine
 			{
 				if (pModel->Load(loader) == true)
 				{
-					pModel->SetLoadState(EmLoadState::eComplete);
+					pModel->SetState(IResource::eComplete);
 					pModel->SetAlive(true);
 
 					pModel->LoadCompleteCallback(true);
 				}
 				else
 				{
-					pModel->SetLoadState(EmLoadState::eInvalid);
+					pModel->SetState(IResource::eInvalid);
 					pModel->SetAlive(false);
 
 					pModel->LoadCompleteCallback(false);
@@ -274,8 +274,8 @@ namespace EastEngine
 			// 좀 더 구조적으로 쉽고 간편한 Save Load 방식이 필요함
 			// Stream 은 빨라서 좋지만, 데이터 규격이 달라지면 기존 데이터를 사용할 수 없게됨
 			// 또는 확실한 버전 관리로, 버전별 Save Load 로직을 구별한다면 Stream 으로도 문제없음
-			File::Stream file;
-			if (file.Open(strFilePath, File::eWrite | File::eBinary) == false)
+			file::Stream file;
+			if (file.Open(strFilePath, file::eWrite | file::eBinary) == false)
 			{
 				LOG_WARNING("Can't save to file : %s", strFilePath);
 				return false;
@@ -340,18 +340,18 @@ namespace EastEngine
 				IVertexBuffer* pVertexBuffer = pNode->GetVertexBuffer();
 
 				void* pData = nullptr;
-				if (pVertexBuffer->Map(ThreadType::eImmediate, 0, D3D11_MAP_WRITE_NO_OVERWRITE, &pData) == false)
+				if (pVertexBuffer->Map(&pData) == false)
 				{
 					LOG_ERROR("Can't map vertexbuffer");
 					return false;
 				}
 
-				uint32_t nVertexCount = pVertexBuffer->GetVertexNum();
+				uint32_t nVertexCount = pVertexBuffer->GetVertexCount();
 				file << nVertexCount;
 
 				if (pNode->GetType() == EmModelNode::eStatic)
 				{
-					VertexPosTexNor* pVertices = reinterpret_cast<VertexPosTexNor*>(pData);
+					const VertexPosTexNor* pVertices = reinterpret_cast<const VertexPosTexNor*>(pData);
 					for (uint32_t j = 0; j < nVertexCount; ++j)
 					{
 						file.Write(&pVertices[j].pos.x, 3);
@@ -361,7 +361,7 @@ namespace EastEngine
 				}
 				else if (pNode->GetType() == EmModelNode::eSkinned)
 				{
-					VertexPosTexNorWeiIdx* pVertices = reinterpret_cast<VertexPosTexNorWeiIdx*>(pData);
+					const VertexPosTexNorWeiIdx* pVertices = reinterpret_cast<const VertexPosTexNorWeiIdx*>(pData);
 					for (uint32_t j = 0; j < nVertexCount; ++j)
 					{
 						file.Write(&pVertices[j].pos.x, 3);
@@ -372,37 +372,38 @@ namespace EastEngine
 					}
 				}
 
-				pVertexBuffer->Unmap(ThreadType::eImmediate, 0);
+				pVertexBuffer->Unmap();
 
 				IIndexBuffer* pIndexBuffer = pNode->GetIndexBuffer();
 
 				pData = nullptr;
-				if (pIndexBuffer->Map(ThreadType::eImmediate, 0, D3D11_MAP_WRITE_NO_OVERWRITE, &pData) == false)
+				if (pIndexBuffer->Map(&pData) == false)
 				{
 					LOG_ERROR("Can't map indexbuffer");
 					return false;
 				}
 
-				uint32_t nIndexCount = pIndexBuffer->GetIndexNum();
+				uint32_t nIndexCount = pIndexBuffer->GetIndexCount();
 				file << nIndexCount;
-				uint32_t* pIndices = reinterpret_cast<uint32_t*>(pData);
+
+				const uint32_t* pIndices = reinterpret_cast<const uint32_t*>(pData);
 				for (uint32_t j = 0; j < nIndexCount; ++j)
 				{
 					file << pIndices[j];
 				}
 
-				pIndexBuffer->Unmap(ThreadType::eImmediate, 0);
+				pIndexBuffer->Unmap();
 
 				uint32_t nMaterialCount = pNode->GetMaterialCount();
 				file << nMaterialCount;
 
-				std::string strPath = File::GetFilePath(strFilePath);
+				std::string strPath = file::GetFilePath(strFilePath);
 				for (uint32_t j = 0; j < nMaterialCount; ++j)
 				{
 					IMaterial* pMaterial = pNode->GetMaterial(j);
 					file << pMaterial->GetName().c_str();
 
-					IMaterial::SaveToFile(pMaterial, strPath.c_str());
+					pMaterial->SaveToFile(strPath.c_str());
 				}
 
 				if (pNode->GetType() == EmModelNode::eSkinned)
@@ -425,11 +426,11 @@ namespace EastEngine
 			{
 				file << true;
 
-				const size_t nBoneCount = pSkeleton->GetBoneCount();
+				const uint32_t nBoneCount = pSkeleton->GetBoneCount();
 
 				file << nBoneCount;
 
-				for (size_t i = 0; i < nBoneCount; ++i)
+				for (uint32_t i = 0; i < nBoneCount; ++i)
 				{
 					ISkeleton::IBone* pBone = pSkeleton->GetBone(i);
 

@@ -4,7 +4,7 @@
 
 #include "LuaThread.h"
 
-namespace EastEngine
+namespace eastengine
 {
 	namespace Lua
 	{

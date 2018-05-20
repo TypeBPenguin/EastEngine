@@ -123,9 +123,6 @@
     <ClInclude Include="MotionManager.h">
       <Filter>Motion\Manager</Filter>
     </ClInclude>
-    <ClInclude Include="ModelInterface.h">
-      <Filter>Interface</Filter>
-    </ClInclude>
     <ClInclude Include="FbxWriter.h">
       <Filter>Model\Importer\FBX</Filter>
     </ClInclude>
@@ -137,6 +134,9 @@
     </ClInclude>
     <ClInclude Include="MotionRecorder.h">
       <Filter>Motion\Recoder</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelInterface.h">
+      <Filter>Interface</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -191,9 +191,6 @@
     <ClCompile Include="MotionManager.cpp">
       <Filter>Motion\Manager</Filter>
     </ClCompile>
-    <ClCompile Include="ModelInterface.cpp">
-      <Filter>Interface</Filter>
-    </ClCompile>
     <ClCompile Include="FbxWriter.cpp">
       <Filter>Model\Importer\FBX</Filter>
     </ClCompile>
@@ -205,6 +202,9 @@
     </ClCompile>
     <ClCompile Include="MotionRecorder.cpp">
       <Filter>Motion\Recoder</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelInterface.cpp">
+      <Filter>Interface</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

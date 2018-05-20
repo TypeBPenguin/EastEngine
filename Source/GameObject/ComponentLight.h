@@ -2,14 +2,14 @@
 
 #include "ComponentInterface.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class ILight;
 	}
 
-	namespace GameObject
+	namespace gameobject
 	{
 		class ComponentLight : public IComponent
 		{
@@ -21,7 +21,7 @@ namespace EastEngine
 			virtual void Update(float fElapsedTime) override;
 
 		private:
-			std::list<Graphics::ILight*> m_listLights;
+			std::list<graphics::ILight*> m_listLights;
 		};
 	}
 }

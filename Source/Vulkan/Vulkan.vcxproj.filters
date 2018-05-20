@@ -1,0 +1,138 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="소스 파일">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="헤더 파일">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="리소스 파일">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Device">
+      <UniqueIdentifier>{02c0826f-18c3-4ce3-b14c-8e719472f8bc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IndexBuffer">
+      <UniqueIdentifier>{51996d12-1d4b-4abd-ae39-dd381af9fa3c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer">
+      <UniqueIdentifier>{050101bf-dfcb-43b8-aa6a-2a1851f4ca6d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Texture">
+      <UniqueIdentifier>{d5dabcab-251e-4f81-a6ac-cbe1c2b4d670}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="VertexBuffer">
+      <UniqueIdentifier>{94875fc9-ebbb-463b-8d52-57a2ee933945}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\Deferred">
+      <UniqueIdentifier>{0c5df53c-ab19-4f23-9a34-48b07818ca06}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\Model">
+      <UniqueIdentifier>{95de9b1b-0898-485e-a2dd-ee683c51ccd4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Util">
+      <UniqueIdentifier>{271695e4-4559-4681-bf6d-09d2bfdc8643}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GBuffer">
+      <UniqueIdentifier>{e61aef01-9900-4251-a48e-191f0797a42c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DescriptorPool">
+      <UniqueIdentifier>{fdc87cc1-7330-4fae-a041-0ca3892e78a9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ImageBuffer">
+      <UniqueIdentifier>{b68fdd87-bc71-43e0-9a3c-9e4d9b30ca6e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ImageBuffer\SwapChainBuffer">
+      <UniqueIdentifier>{65a7b121-9d2a-4b9b-a38b-75b9b5e0517b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="DeviceVulkan.h">
+      <Filter>Device</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexBufferVulkan.h">
+      <Filter>IndexBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexBufferVulkan.h">
+      <Filter>VertexBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureVulkan.h">
+      <Filter>Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderManagerVulkan.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageBufferVulkan.h">
+      <Filter>ImageBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="DeferredRendererVulkan.h">
+      <Filter>Renderer\Deferred</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelRendererVulkan.h">
+      <Filter>Renderer\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="UtilVulkan.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="GBufferVulkan.h">
+      <Filter>GBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="DescriptorPoolVulkan.h">
+      <Filter>DescriptorPool</Filter>
+    </ClInclude>
+    <ClInclude Include="SwapChainBufferVulkan.h">
+      <Filter>ImageBuffer\SwapChainBuffer</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="DeviceVulkan.cpp">
+      <Filter>Device</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexBufferVulkan.cpp">
+      <Filter>IndexBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="VertexBufferVulkan.cpp">
+      <Filter>VertexBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureVulkan.cpp">
+      <Filter>Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderManagerVulkan.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageBufferVulkan.cpp">
+      <Filter>ImageBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="DeferredRendererVulkan.cpp">
+      <Filter>Renderer\Deferred</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelRendererVulkan.cpp">
+      <Filter>Renderer\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="UtilVulkan.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="GBufferVulkan.cpp">
+      <Filter>GBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="DescriptorPoolVulkan.cpp">
+      <Filter>DescriptorPool</Filter>
+    </ClCompile>
+    <ClCompile Include="SwapChainBufferVulkan.cpp">
+      <Filter>ImageBuffer\SwapChainBuffer</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

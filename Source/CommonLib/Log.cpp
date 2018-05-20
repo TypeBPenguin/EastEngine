@@ -1,7 +1,9 @@
 #include "stdafx.h"
 #include "Log.h"
 
-namespace EastEngine
+#include "Lock.h"
+
+namespace eastengine
 {
 	namespace Log
 	{
@@ -24,7 +26,7 @@ namespace EastEngine
 
 			void Output(const char* msg, int length, WORD textColor = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY)
 			{
-				std::lock_guard<std::mutex> lock(m_mutex);
+				thread::AutoLock autoLock(&m_lock);
 
 				createConsole();
 
@@ -53,7 +55,8 @@ namespace EastEngine
 			}
 
 		private:
-			std::mutex m_mutex;
+			thread::Lock m_lock;
+
 			HANDLE m_hConsole;
 			WORD m_wDefaultConsoleTextAttributes;
 			WORD m_wBackgroundAttributes;
@@ -75,7 +78,7 @@ namespace EastEngine
 			int size = std::vsnprintf(nullptr, 0, msg, args) + 1;
 			va_end(args);
 
-			std::unique_ptr<char[]> buf(new char[size]);
+			std::unique_ptr<char[]> buf = std::make_unique<char[]>(size);
 			va_start(args, msg);
 			std::vsnprintf(buf.get(), size, msg, args);
 			va_end(args);
@@ -94,7 +97,7 @@ namespace EastEngine
 			strBuffer.append(strLine);
 			strBuffer.append(s_strInfo3);
 
-			s_consoleLog.Output(strBuffer.c_str(), strBuffer.size());
+			s_consoleLog.Output(strBuffer.c_str(), static_cast<int>(strBuffer.size()));
 		}
 
 		void Warning(const char* file, int line, const char* msg, ...)
@@ -104,7 +107,7 @@ namespace EastEngine
 			int size = std::vsnprintf(nullptr, 0, msg, args) + 1;
 			va_end(args);
 
-			std::unique_ptr<char[]> buf(new char[size]);
+			std::unique_ptr<char[]> buf = std::make_unique<char[]>(size);
 			va_start(args, msg);
 			std::vsnprintf(buf.get(), size, msg, args);
 			va_end(args);
@@ -123,7 +126,7 @@ namespace EastEngine
 			strBuffer.append(strLine);
 			strBuffer.append(s_strInfo3);
 
-			s_consoleLog.Output(strBuffer.c_str(), strBuffer.size(), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+			s_consoleLog.Output(strBuffer.c_str(), static_cast<int>(strBuffer.size()), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
 		}
 
 		void Error(const char* file, int line, const char* msg, ...)
@@ -133,7 +136,7 @@ namespace EastEngine
 			int size = std::vsnprintf(nullptr, 0, msg, args) + 1;
 			va_end(args);
 
-			std::unique_ptr<char[]> buf(new char[size]);
+			std::unique_ptr<char[]> buf = std::make_unique<char[]>(size);
 			va_start(args, msg);
 			std::vsnprintf(buf.get(), size, msg, args);
 			va_end(args);
@@ -152,7 +155,7 @@ namespace EastEngine
 			strBuffer.append(strLine);
 			strBuffer.append(s_strInfo3);
 
-			s_consoleLog.Output(strBuffer.c_str(), strBuffer.size(), FOREGROUND_RED | FOREGROUND_INTENSITY);
+			s_consoleLog.Output(strBuffer.c_str(), static_cast<int>(strBuffer.size()), FOREGROUND_RED | FOREGROUND_INTENSITY);
 		}
 	}
 }

@@ -1,9 +1,9 @@
 #include "stdafx.h"
 #include "DeviceContext.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		DeviceContext::DeviceContext(ID3D11DeviceContext* pDeviceContext)
 			: m_pDeviceContext(pDeviceContext)
@@ -27,7 +27,7 @@ namespace EastEngine
 			m_pDeviceContext->ClearState();
 		}
 
-		void DeviceContext::ClearRenderTargetView(IRenderTarget* pRenderTarget, const Math::Color& color)
+		void DeviceContext::ClearRenderTargetView(IRenderTarget* pRenderTarget, const math::Color& color)
 		{
 			if (pRenderTarget == nullptr)
 				return;
@@ -43,7 +43,7 @@ namespace EastEngine
 			m_pDeviceContext->ClearDepthStencilView(pDepthStencil->GetDepthStencilView(), clearFlag, 1.f, 0);
 		}
 
-		void DeviceContext::ClearUnorderedAccessViewUint(ID3D11UnorderedAccessView* pUnorderedAccessView, const Math::UInt4& n4Uint)
+		void DeviceContext::ClearUnorderedAccessViewUint(ID3D11UnorderedAccessView* pUnorderedAccessView, const math::UInt4& n4Uint)
 		{
 			if (pUnorderedAccessView == nullptr)
 				return;
@@ -97,13 +97,13 @@ namespace EastEngine
 			return true;
 		}
 
-		void DeviceContext::SetBlendState(EmBlendState::Type emBlendState, const Math::Vector4& f4BlendFactor, uint32_t nSimpleMask)
+		void DeviceContext::SetBlendState(EmBlendState::Type emBlendState, const math::Vector4& f4BlendFactor, uint32_t nSimpleMask)
 		{
 			IBlendState* pBlendState = GetDevice()->GetBlendState(emBlendState);
 			SetBlendState(pBlendState, f4BlendFactor, nSimpleMask);
 		}
 
-		void DeviceContext::SetBlendState(const IBlendState* pBlendState, const Math::Vector4& f4BlendFactor, uint32_t nSimpleMask)
+		void DeviceContext::SetBlendState(const IBlendState* pBlendState, const math::Vector4& f4BlendFactor, uint32_t nSimpleMask)
 		{
 			if (pBlendState == nullptr)
 				return;
@@ -168,7 +168,7 @@ namespace EastEngine
 			m_pDeviceContext->IASetPrimitiveTopology(primitiveTopology);
 		}
 
-		void DeviceContext::SetScissorRects(Math::Rect* pRects, uint32_t nNumRects)
+		void DeviceContext::SetScissorRects(math::Rect* pRects, uint32_t nNumRects)
 		{
 			m_pDeviceContext->RSSetScissorRects(nNumRects, pRects);
 		}
@@ -209,19 +209,19 @@ namespace EastEngine
 			m_pDeviceContext->OMSetRenderTargetsAndUnorderedAccessViews(nSize, &vecRenderTarget.front(), pDepthStencilView, nUAVStartSlot, nUAVCount, ppUnorderedAccessViews, pUAVInitialCounts);
 		}
 
-		void DeviceContext::SetViewport(const Math::Viewport& viewport)
+		void DeviceContext::SetViewport(const math::Viewport& viewport)
 		{
 			m_pDeviceContext->RSSetViewports(1, viewport.Get11());
 		}
 
-		void DeviceContext::SetViewport(const Math::Viewport* pViewports, uint32_t nCount)
+		void DeviceContext::SetViewport(const math::Viewport* pViewports, uint32_t nCount)
 		{
 			m_pDeviceContext->RSSetViewports(nCount, reinterpret_cast<const D3D11_VIEWPORT*>(pViewports));
 		}
 
 		void DeviceContext::SetDefaultViewport()
 		{
-			const Math::Viewport& viewport = GetDevice()->GetViewport();
+			const math::Viewport& viewport = GetDevice()->GetViewport();
 
 			m_pDeviceContext->RSSetViewports(1, viewport.Get11());
 		}

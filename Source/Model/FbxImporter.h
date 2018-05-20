@@ -1,7 +1,6 @@
 #pragma once
 
 #define FBXSDK_NEW_API
-#define FBXSDK_SHARED
 
 #pragma warning(push)
 #pragma warning( disable : 4616 6011 )
@@ -27,9 +26,9 @@ namespace DirectX
 	struct XMFLOAT3;
 }
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class Model;
 		class Motion;
@@ -83,11 +82,11 @@ namespace EastEngine
 		private:
 			void SetBindPose();
 
-			Math::Matrix ParseTransform(fbxsdk::FbxNode* pNode, ATG::ExportFrame* pFrame, const Math::Matrix& matParentWorld, const bool isWarnings = true);
-			void ParseNode(fbxsdk::FbxNode* pNode, ATG::ExportFrame* pParentFrame, const Math::Matrix& matParentWorld);
+			math::Matrix ParseTransform(fbxsdk::FbxNode* pNode, ATG::ExportFrame* pFrame, const math::Matrix& matParentWorld, const bool isWarnings = true);
+			void ParseNode(fbxsdk::FbxNode* pNode, ATG::ExportFrame* pParentFrame, const math::Matrix& matParentWorld);
 			void ParseCamera(fbxsdk::FbxCamera* pFbxCamera, ATG::ExportFrame* pParentFrame);
 			void ParseLight(fbxsdk::FbxLight* pFbxLight, ATG::ExportFrame* pParentFrame);
-			void FixupNode(ATG::ExportFrame* pFrame, const Math::Matrix& matParentWorld);
+			void FixupNode(ATG::ExportFrame* pFrame, const math::Matrix& matParentWorld);
 
 			struct AnimationScanNode
 			{
@@ -95,7 +94,7 @@ namespace EastEngine
 				fbxsdk::FbxNode* pNode = nullptr;
 				ATG::ExportAnimationTrack* pTrack = nullptr;
 				DWORD dwFlags = 0;
-				Math::Matrix matGlobal;
+				math::Matrix matGlobal;
 			};
 
 			void ParseAnimNode(FbxNode* pNode, std::vector<AnimationScanNode>& scanlist, DWORD nFlags, int nParentIndex, bool isIncludeNode);
@@ -139,7 +138,7 @@ namespace EastEngine
 			fbxsdk::FbxImporter* m_pImporter;
 			fbxsdk::FbxScene* m_pFBXScene;
 
-			std::unordered_map<EastEngine::String::StringID, EastEngine::Math::Matrix> m_umapMotionOffsetMarix;
+			std::unordered_map<eastengine::String::StringID, eastengine::math::Matrix> m_umapMotionOffsetMarix;
 
 			std::unordered_map<String::StringID, fbxsdk::FbxMatrix> m_BindPoseMap;
 			bool m_isBindPoseFixupRequired;

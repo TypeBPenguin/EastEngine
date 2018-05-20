@@ -2,14 +2,14 @@
 
 #include "CommonLib/Singleton.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace File
+	namespace file
 	{
 		class Stream;
 	}
 
-	namespace Graphics
+	namespace graphics
 	{
 		struct LODReductionRate;
 		class IMaterial;
@@ -17,9 +17,9 @@ namespace EastEngine
 
 		struct FaceType
 		{
-			Math::UInt3 vIdx;
-			Math::UInt3 tIdx;
-			Math::UInt3 nIdx;
+			math::UInt3 vIdx;
+			math::UInt3 tIdx;
+			math::UInt3 nIdx;
 		};
 
 		namespace EmObjVertex
@@ -66,9 +66,9 @@ namespace EastEngine
 		{
 			String::StringID strObjName;
 
-			std::vector<Math::Vector3> vecVertex;
-			std::vector<Math::Vector2> vecTexcoord;
-			std::vector<Math::Vector3> vecNormal;
+			std::vector<math::Vector3> vecVertex;
+			std::vector<math::Vector2> vecTexcoord;
+			std::vector<math::Vector3> vecNormal;
 
 			std::vector<ObjGroupData> vecGroupData;
 
@@ -100,13 +100,13 @@ namespace EastEngine
 			}
 		};
 
-		class CMtlImporter;
+		class MtlImporter;
 
-		class SObjImporter : public Singleton<SObjImporter>
+		class ObjImporter : public Singleton<ObjImporter>
 		{
 		public:
-			SObjImporter();
-			~SObjImporter();
+			ObjImporter();
+			~ObjImporter();
 
 			bool LoadModel(IModel* pModel, const char* strFileName, const float fScaleFactor, uint32_t nLodMax = 0, const LODReductionRate* pLodReductionRate = nullptr);
 			void ClearData();
@@ -116,14 +116,14 @@ namespace EastEngine
 			IMaterial* GetMaterial(const String::StringID& strName);
 
 		private:
-			bool loadModelData(File::Stream& file, const float fScaleFactor);
+			bool loadModelData(file::Stream& file, const float fScaleFactor);
 
 			bool buildModel(IModel* pIModel, uint32_t nLodMax, const LODReductionRate* pLodReductionRate = nullptr);
 			
 		private:
 			ObjectData m_objData;
 
-			CMtlImporter* m_pMtlImporter;
+			std::unique_ptr<MtlImporter> m_pMtlImporter;
 		};
 	}
 }

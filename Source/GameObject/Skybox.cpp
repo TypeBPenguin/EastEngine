@@ -6,9 +6,9 @@
 #include "DirectX/Camera.h"
 #include "Model/GeometryModel.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace GameObject
+	namespace gameobject
 	{
 		Skybox::Skybox()
 			: m_isDestroy(false)
@@ -28,30 +28,30 @@ namespace EastEngine
 		{
 			m_property = property;
 
-			Graphics::GeometryModel::CreateBox(&m_pVertexBuffer, &m_pIndexBuffer, Math::Vector3(property.fBoxSize, property.fBoxSize, property.fBoxSize), false, true);
+			graphics::GeometryModel::CreateBox(&m_pVertexBuffer, &m_pIndexBuffer, math::Vector3(property.fBoxSize, property.fBoxSize, property.fBoxSize), false, true);
 
-			m_pTexture = Graphics::ITexture::Create(property.strTexSky.c_str());
+			m_pTexture = graphics::ITexture::Create(property.strTexSky.c_str());
 		}
 
 		void Skybox::Update(float fElapsedTime)
 		{
 			if (IsVisible() == true)
 			{
-				if (m_pTexture->GetLoadState() == Graphics::EmLoadState::eComplete)
+				if (m_pTexture->GetState() == graphics::EmLoadState::eComplete)
 				{
-					Graphics::Camera* pCamera = Graphics::Camera::GetInstance();
+					graphics::Camera* pCamera = graphics::Camera::GetInstance();
 
-					//Math::Matrix matWorld = Math::Matrix::CreateTranslation(pCamera->GetPosition());
-					Math::Matrix matWorld = Math::Matrix::CreateTranslation(pCamera->GetViewMatrix(Graphics::GetThreadID(Graphics::eUpdate)).Invert().Translation());
+					//math::Matrix matWorld = math::Matrix::CreateTranslation(pCamera->GetPosition());
+					math::Matrix matWorld = math::Matrix::CreateTranslation(pCamera->GetViewMatrix(graphics::GetThreadID(graphics::eUpdate)).Invert().Translation());
 
-					Graphics::RenderSubsetSkybox subset;
+					graphics::RenderSubsetSkybox subset;
 					subset.pVertexBuffer = m_pVertexBuffer;
 					subset.pIndexBuffer = m_pIndexBuffer;
 
 					subset.pTexSkyCubemap = m_pTexture;
 					subset.matWorld = matWorld;
 
-					Graphics::RendererManager::GetInstance()->AddRender(subset);
+					graphics::RendererManager::GetInstance()->AddRender(subset);
 				}
 			}
 		}

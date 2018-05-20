@@ -4,9 +4,9 @@
 #include "FileUtil.h"
 #include "StringUtil.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace File
+	namespace file
 	{
 		static_assert(std::ios::in == eRead, "Openmode Mismatch");
 		static_assert(std::ios::out == eWrite, "Openmode Mismatch");
@@ -14,7 +14,7 @@ namespace EastEngine
 
 		Stream::Stream()
 			: m_nOpenMode(OpenMode::eNone)
-			, m_nDataSize(0)
+			, m_nFileSize(0)
 		{
 		}
 
@@ -231,8 +231,8 @@ namespace EastEngine
 			}
 			else
 			{
-				uint32_t size = value.length() + 1;
-				*this << size;
+				size_t size = value.length() + 1;
+				*this << static_cast<uint32_t>(size);
 				m_file.write(value.c_str(), size);
 			}
 
@@ -254,9 +254,8 @@ namespace EastEngine
 				if (size <= 0)
 					return *this;
 
-				std::unique_ptr<char[]> buf(new char[size]);
-				m_file.read(buf.get(), size);
-				value = buf.get();
+				value.resize(size);
+				m_file.read(value.data(), size);
 			}
 
 			return *this;
@@ -270,8 +269,8 @@ namespace EastEngine
 			}
 			else
 			{
-				uint32_t size = value.length() + 1;
-				*this << size;
+				size_t size = value.length() + 1;
+				*this << static_cast<uint32_t>(size);
 				m_file.write(reinterpret_cast<const char*>(value.c_str()), size * 2);
 			}
 
@@ -534,7 +533,12 @@ namespace EastEngine
 			return *this;
 		}
 
-		bool Stream::Open(const char* fileName, uint32_t emMode, uint32_t* pDataSize)
+		void Stream::ReadLine(std::string& str)
+		{
+			std::getline(m_file, str);
+		}
+
+		bool Stream::Open(const char* fileName, uint32_t emMode)
 		{
 			m_nOpenMode = emMode;
 
@@ -544,21 +548,6 @@ namespace EastEngine
 			}
 			else
 			{
-				if ((emMode & OpenMode::eRead) != 0)
-				{
-					m_nOpenMode |= std::ios::in;
-				}
-
-				if ((emMode & OpenMode::eWrite) != 0)
-				{
-					m_nOpenMode |= std::ios::out;
-				}
-
-				if ((emMode & OpenMode::eBinary) != 0)
-				{
-					m_nOpenMode |= std::ios::binary;
-				}
-
 				m_file.open(fileName, m_nOpenMode);
 			}
 
@@ -569,15 +558,10 @@ namespace EastEngine
 				return false;
 
 			m_file.seekg(0, std::ios::end);
-			m_nDataSize = static_cast<uint32_t>(m_file.tellg());
+			m_nFileSize = static_cast<size_t>(m_file.tellg());
 			m_file.seekg(0, std::ios::beg);
 
-			if (pDataSize != nullptr)
-			{
-				*pDataSize = m_nDataSize;
-			}
-
-			m_strPath = File::GetFilePath(fileName);
+			m_strPath = fileName;
 
 			return true;
 		}

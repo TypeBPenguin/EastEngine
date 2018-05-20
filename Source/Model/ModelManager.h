@@ -4,9 +4,9 @@
 
 #include "ModelLoader.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class Model;
 		class IModel;
@@ -22,7 +22,7 @@ namespace EastEngine
 
 		public:
 			void Update();
-			void Flush(bool isEnableGarbageCollector);
+			void Flush(float fElapsedTime);
 
 		public:
 			void AsyncLoadModel(IModel* pModel, const ModelLoader& loader);

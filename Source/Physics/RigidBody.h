@@ -4,7 +4,7 @@
 
 class btRigidBody;
 
-namespace EastEngine
+namespace eastengine
 {
 	namespace Physics
 	{
@@ -12,10 +12,10 @@ namespace EastEngine
 		struct CollisionResult
 		{
 			const RigidBody* pOpponentObject = nullptr;
-			const Math::Vector3 f3OpponentPoint;
-			const Math::Vector3 f3MyPoint;
+			const math::Vector3 f3OpponentPoint;
+			const math::Vector3 f3MyPoint;
 
-			CollisionResult(const RigidBody* pOpponentObject, const Math::Vector3& f3OpponentPoint, const Math::Vector3& f3MyPoint)
+			CollisionResult(const RigidBody* pOpponentObject, const math::Vector3& f3OpponentPoint, const math::Vector3& f3MyPoint)
 				: pOpponentObject(pOpponentObject)
 				, f3OpponentPoint(f3OpponentPoint)
 				, f3MyPoint(f3MyPoint)
@@ -24,7 +24,7 @@ namespace EastEngine
 		};
 		using FuncCollisionCallback = void(*)(const std::vector<CollisionResult>&);
 
-		using FuncTriangleDrawCallback = std::function<void(const Math::Vector3* pTriangles, const size_t nCount)>;
+		using FuncTriangleDrawCallback = std::function<void(const math::Vector3* pTriangles, const size_t nCount)>;
 
 		struct RigidBodyProperty
 		{
@@ -45,9 +45,9 @@ namespace EastEngine
 
 			String::StringID strName;
 
-			Math::Vector3 f3OriginPos;
-			Math::Quaternion originQuat;
-			Math::Matrix matOffset;
+			math::Vector3 f3OriginPos;
+			math::Quaternion originQuat;
+			math::Matrix matOffset;
 
 			Shape shapeInfo;
 
@@ -65,12 +65,12 @@ namespace EastEngine
 			static RigidBody* Create(const RigidBodyProperty& physicsProperty);
 
 			void Update(float fElapsedTime);
-			void UpdateBoundingBox(const Math::Matrix& matWorld);
+			void UpdateBoundingBox(const math::Matrix& matWorld);
 
 			bool IsCollision(RigidBody* pRigidBody);
-			bool RayTest(const Math::Vector3& f3From, const Math::Vector3& f3To, Math::Vector3* pHitPoint_out = nullptr, Math::Vector3* pHitNormal_out = nullptr) const;
+			bool RayTest(const math::Vector3& f3From, const math::Vector3& f3To, math::Vector3* pHitPoint_out = nullptr, math::Vector3* pHitNormal_out = nullptr) const;
 
-			void AddCollisionResult(const RigidBody* pRigidBody, const Math::Vector3& f3OpponentPoint, const Math::Vector3& f3MyPoint);
+			void AddCollisionResult(const RigidBody* pRigidBody, const math::Vector3& f3OpponentPoint, const math::Vector3& f3MyPoint);
 			void ClearCollisionResults();
 			void SetEnableTriangleDrawCallback(bool isEnableTriangleDrawCallback);
 
@@ -80,13 +80,13 @@ namespace EastEngine
 
 			const RigidBodyProperty& GetRigidBodyProperty() const;
 
-			void SetWorldMatrix(const Math::Matrix& mat);
-			Math::Matrix GetWorldMatrix() const;
+			void SetWorldMatrix(const math::Matrix& mat);
+			math::Matrix GetWorldMatrix() const;
 
-			Math::Quaternion GetOrientation() const;
-			Math::Vector3 GetCenterOfMassPosition() const;
+			math::Quaternion GetOrientation() const;
+			math::Vector3 GetCenterOfMassPosition() const;
 
-			void SetLinearVelocity(const Math::Vector3& f3Velocity);
+			void SetLinearVelocity(const math::Vector3& f3Velocity);
 
 			void SetDamping(float fLinearDamping, float fAngularDamping);
 			void SetDeactivationTime(float fTime);
@@ -95,7 +95,7 @@ namespace EastEngine
 
 			void SetActiveState(EmActiveState::Type emActiveState);
 			void SetGravity(bool isEnable);
-			void SetGravity(const Math::Vector3& f3Gravity);
+			void SetGravity(const math::Vector3& f3Gravity);
 
 			const Collision::AABB& GetAABB() const;
 			const Collision::Sphere& GetBoundingSphere() const;

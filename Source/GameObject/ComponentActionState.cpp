@@ -6,9 +6,9 @@ namespace StrID
 	RegisterStringID(Root);
 }
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace GameObject
+	namespace gameobject
 	{
 		ActionStateInterface::ActionStateInterface(const String::StringID& strName)
 			: m_pOwnerComponent(nullptr)

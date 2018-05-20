@@ -6,7 +6,7 @@
 #include "BulletCollision/CollisionShapes/btShapeHull.h"
 #include "BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h"
 
-namespace EastEngine
+namespace eastengine
 {
 	namespace Physics
 	{
@@ -36,7 +36,7 @@ namespace EastEngine
 				if (pBox == nullptr)
 					return nullptr;
 
-				return std::make_unique<btBoxShape>(Math::ConvertToBt(pBox->f3Size));
+				return std::make_unique<btBoxShape>(math::ConvertToBt(pBox->f3Size));
 			}
 			case EmPhysicsShape::eSphere:
 			{
@@ -52,7 +52,7 @@ namespace EastEngine
 				if (pCylinder == nullptr)
 					return nullptr;
 
-				return std::make_unique<btCylinderShape>(Math::ConvertToBt(pCylinder->f3HalfExtents));
+				return std::make_unique<btCylinderShape>(math::ConvertToBt(pCylinder->f3HalfExtents));
 			}
 			case EmPhysicsShape::eCylinder_X:
 			{
@@ -60,7 +60,7 @@ namespace EastEngine
 				if (pCylinder == nullptr)
 					return nullptr;
 
-				return std::make_unique<btCylinderShapeX>(Math::ConvertToBt(pCylinder->f3HalfExtents));
+				return std::make_unique<btCylinderShapeX>(math::ConvertToBt(pCylinder->f3HalfExtents));
 			}
 			case EmPhysicsShape::eCylinder_Z:
 			{
@@ -68,7 +68,7 @@ namespace EastEngine
 				if (pCylinder == nullptr)
 					return nullptr;
 
-				return std::make_unique<btCylinderShapeZ>(Math::ConvertToBt(pCylinder->f3HalfExtents));
+				return std::make_unique<btCylinderShapeZ>(math::ConvertToBt(pCylinder->f3HalfExtents));
 			}
 			case EmPhysicsShape::eCapsule:
 			{
@@ -124,7 +124,7 @@ namespace EastEngine
 				if (pShapeInfo == nullptr)
 					return nullptr;
 
-				const Math::Vector3* pVertices = pShapeInfo->pVertices;
+				const math::Vector3* pVertices = pShapeInfo->pVertices;
 				uint32_t nVertexCount = pShapeInfo->nVertexCount;
 				const uint32_t* pIndices = pShapeInfo->pIndices;
 				uint32_t nIndexCount = pShapeInfo->nIndexCount;
@@ -174,7 +174,7 @@ namespace EastEngine
 				if (pShapeInfo == nullptr)
 					return nullptr;
 
-				const Math::Vector3* pVertices = pShapeInfo->pVertices;
+				const math::Vector3* pVertices = pShapeInfo->pVertices;
 				uint32_t nVertexCount = pShapeInfo->nVertexCount;
 
 				const uint32_t* pIndices = pShapeInfo->pIndices;
@@ -211,11 +211,11 @@ namespace EastEngine
 					btTriangleMesh* pTriangle = new btTriangleMesh;
 					for (uint32_t i = 0; i < nVertexCount; i += 3)
 					{
-						const Math::Vector3& v1 = pVertices[i];
-						const Math::Vector3& v2 = pVertices[i + 1];
-						const Math::Vector3& v3 = pVertices[i + 2];
+						const math::Vector3& v1 = pVertices[i];
+						const math::Vector3& v2 = pVertices[i + 1];
+						const math::Vector3& v3 = pVertices[i + 2];
 
-						pTriangle->addTriangle(Math::ConvertToBt(v1), Math::ConvertToBt(v2), Math::ConvertToBt(v3));
+						pTriangle->addTriangle(math::ConvertToBt(v1), math::ConvertToBt(v2), math::ConvertToBt(v3));
 					}
 
 					pMeshInterface = pTriangle;

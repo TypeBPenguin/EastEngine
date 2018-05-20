@@ -4,7 +4,7 @@
 #include "MathConvertor.h"
 #include "Constraint.h"
 
-namespace EastEngine
+namespace eastengine
 {
 	namespace Physics
 	{
@@ -120,10 +120,10 @@ namespace EastEngine
 		
 		void System::Impl::Update(float fElapsedtime)
 		{
-			PERF_TRACER_EVENT("System::Update", "");
+			TRACER_EVENT("System::Update");
 			ProcessAddWaitObject();
 
-			PERF_TRACER_BEGINEVENT("System::Update", "ClearCollisionResults");
+			TRACER_BEGINEVENT("ClearCollisionResults");
 			btCollisionObjectArray& objectArray = m_pDynamicsWorld->getCollisionObjectArray();
 			int nSize = objectArray.size();
 			for (int i = 0; i < nSize; ++i)
@@ -135,11 +135,11 @@ namespace EastEngine
 
 				pRigidBody->ClearCollisionResults();
 			}
-			PERF_TRACER_ENDEVENT();
+			TRACER_ENDEVENT();
 
-			PERF_TRACER_BEGINEVENT("System::Update", "StepSimulation");
+			TRACER_BEGINEVENT("StepSimulation");
 			m_pDynamicsWorld->stepSimulation(fElapsedtime);
-			PERF_TRACER_ENDEVENT();
+			TRACER_ENDEVENT();
 		}
 
 		void System::Impl::AddRigidBody(RigidBody* pRigidBody)
@@ -169,7 +169,7 @@ namespace EastEngine
 
 		void System::Impl::ProcessAddWaitObject()
 		{
-			PERF_TRACER_EVENT("System::ProcessAddWaitObject", "");
+			TRACER_EVENT("System::ProcessAddWaitObject");
 			while (m_conQueueAddWaitRigidBody.empty() == false)
 			{
 				AddWaitRigidBody job;
@@ -230,8 +230,8 @@ namespace EastEngine
 				for (int j = 0; j < nContacts; ++j)
 				{
 					btManifoldPoint& point = pContactManifold->getContactPoint(j);
-					Math::Vector3 f3PointA(Math::Convert(point.getPositionWorldOnA()));
-					Math::Vector3 f3PointB(Math::Convert(point.getPositionWorldOnB()));
+					math::Vector3 f3PointA(math::Convert(point.getPositionWorldOnA()));
+					math::Vector3 f3PointB(math::Convert(point.getPositionWorldOnB()));
 
 					pRigidBodyA->AddCollisionResult(pRigidBodyB, f3PointB, f3PointA);
 					pRigidBodyB->AddCollisionResult(pRigidBodyA, f3PointA, f3PointB);

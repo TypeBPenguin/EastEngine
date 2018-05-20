@@ -2,9 +2,9 @@
 
 #include "D3DInterface.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class IRenderTarget;
 		class ITexture;
@@ -18,7 +18,7 @@ namespace EastEngine
 			virtual ~GBuffers();
 
 		public:
-			bool Init(const Math::Viewport& viewport);
+			bool Init(const math::Viewport& viewport);
 
 		public:
 			virtual IRenderTarget* GetGBuffer(EmGBuffer::Type emType) override { return m_pGBuffers[emType]; }

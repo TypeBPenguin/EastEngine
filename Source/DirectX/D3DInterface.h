@@ -24,9 +24,9 @@ struct D3D11_BOX;
 struct D3D11_SUBRESOURCE_DATA;
 struct D3D11_MAPPED_SUBRESOURCE;
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		namespace EmVertexFormat
 		{
@@ -124,14 +124,14 @@ namespace EastEngine
 			virtual IDepthStencilState* GetDepthStencilState(const DepthStencilStateDesc& depthStencilStateDesc) = 0;
 			virtual IDepthStencilState* GetDepthStencilState(EmDepthStencilState::Type emDepthStencilState) = 0;
 
-			virtual const Math::Viewport& GetViewport() = 0;
+			virtual const math::Viewport& GetViewport() = 0;
 
 		public:
 			virtual void SetDebugName(ID3D11DeviceChild* pResource, const std::string& strName) = 0;
 
 		public:
 			virtual HWND GetHWND() = 0;
-			virtual const Math::UInt2& GetScreenSize() const = 0;
+			virtual const math::UInt2& GetScreenSize() const = 0;
 			virtual bool IsFullScreen() const = 0;
 			virtual bool IsVSync() const = 0;
 			virtual void SetVSync(bool isVSync) = 0;
@@ -151,9 +151,9 @@ namespace EastEngine
 		public:
 			virtual void ClearState() = 0;
 
-			virtual void ClearRenderTargetView(IRenderTarget* pRenderTarget, const Math::Color& color) = 0;
+			virtual void ClearRenderTargetView(IRenderTarget* pRenderTarget, const math::Color& color) = 0;
 			virtual void ClearDepthStencilView(IDepthStencil* pDepthStencil, uint32_t clearFlag = D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL) = 0;
-			virtual void ClearUnorderedAccessViewUint(ID3D11UnorderedAccessView* pUnorderedAccessView, const Math::UInt4& n4Uint) = 0;
+			virtual void ClearUnorderedAccessViewUint(ID3D11UnorderedAccessView* pUnorderedAccessView, const math::UInt4& n4Uint) = 0;
 
 		public:
 			virtual void DrawAuto() = 0;
@@ -167,8 +167,8 @@ namespace EastEngine
 			virtual bool SetInputLayout(EmVertexFormat::Type emVertexFormat) = 0;
 			virtual bool SetInputLayout(ID3D11InputLayout* pInputLayout) = 0;
 
-			virtual void SetBlendState(EmBlendState::Type emBlendState, const Math::Vector4& f4BlendFactor = Math::Vector4::Zero, uint32_t nSimpleMask = 0xffffffff) = 0;
-			virtual void SetBlendState(const IBlendState* pBlendState, const Math::Vector4& f4BlendFactor = Math::Vector4::Zero, uint32_t nSimpleMask = 0xffffffff) = 0;
+			virtual void SetBlendState(EmBlendState::Type emBlendState, const math::Vector4& f4BlendFactor = math::Vector4::Zero, uint32_t nSimpleMask = 0xffffffff) = 0;
+			virtual void SetBlendState(const IBlendState* pBlendState, const math::Vector4& f4BlendFactor = math::Vector4::Zero, uint32_t nSimpleMask = 0xffffffff) = 0;
 
 			virtual void SetDepthStencilState(EmDepthStencilState::Type emDepthStencil, uint32_t nStencilRef = 1) = 0;
 			virtual void SetDepthStencilState(const IDepthStencilState* pDepthStencilState, uint32_t nStencilRef = 1) = 0;
@@ -180,14 +180,14 @@ namespace EastEngine
 			virtual void SetIndexBuffer(const IIndexBuffer* pIndexBuffer, uint32_t offset) = 0;
 
 			virtual void SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY primitiveTopology) = 0;
-			virtual void SetScissorRects(Math::Rect* pRects, uint32_t nNumRects) = 0;
+			virtual void SetScissorRects(math::Rect* pRects, uint32_t nNumRects) = 0;
 
 			virtual void SetRenderTargets(const RenderTargetDesc2D& renderTargetInfo, const IDepthStencil* pDepthStencil = nullptr) = 0;
 			virtual void SetRenderTargets(IRenderTarget** ppRenderTarget, uint32_t nSize, const IDepthStencil* pDepthStencil = nullptr) = 0;
 			virtual void SetRenderTargetsAndUnorderedAccessViews(IRenderTarget** ppRenderTarget, uint32_t nSize, IDepthStencil* pDepthStencil, uint32_t nUAVStartSlot, uint32_t nUAVCount, ID3D11UnorderedAccessView* const* ppUnorderedAccessViews, const uint32_t* pUAVInitialCounts) = 0;
 
-			virtual void SetViewport(const Math::Viewport& viewport) = 0;
-			virtual void SetViewport(const Math::Viewport* pViewports, uint32_t nCount) = 0;
+			virtual void SetViewport(const math::Viewport& viewport) = 0;
+			virtual void SetViewport(const math::Viewport* pViewports, uint32_t nCount) = 0;
 			virtual void SetDefaultViewport() = 0;
 
 		public:
@@ -214,7 +214,7 @@ namespace EastEngine
 			IDeviceContext* m_pDeviceContext;
 		};
 		D3DProfiler D3DProfiling(IDeviceContext* pDeviceContext, const wchar_t* strBeginEvent);
-#define D3D_PROFILING(pDeviceContext, name)	auto profiler_##name = EastEngine::Graphics::D3DProfiling(pDeviceContext, L#name)
+#define D3D_PROFILING(pDeviceContext, name)	auto profiler_##name = eastengine::graphics::D3DProfiling(pDeviceContext, L#name)
 
 		class IDeferredContext
 		{
@@ -258,7 +258,7 @@ namespace EastEngine
 			virtual void SetSpecularBRDF(const std::shared_ptr<ITexture>& pSpecularBRDF) = 0;
 		};
 
-		class ITexture : public Resource
+		class ITexture : public IResource
 		{
 		protected:
 			ITexture() = default;
@@ -290,7 +290,7 @@ namespace EastEngine
 			virtual ID3D11ShaderResourceView* GetShaderResourceView() = 0;
 			virtual ID3D11ShaderResourceView** GetShaderResourceViewPtr() = 0;
 
-			virtual const Math::UInt2& GetSize() = 0;
+			virtual const math::UInt2& GetSize() = 0;
 			virtual const String::StringID& GetName() = 0;
 		};
 
@@ -369,7 +369,7 @@ namespace EastEngine
 			virtual ID3D11ShaderResourceView* GetShaderResourceView() = 0;
 		};
 
-		class IRenderTarget : public Resource
+		class IRenderTarget : public IResource
 		{
 		public:
 			IRenderTarget() = default;
@@ -388,14 +388,14 @@ namespace EastEngine
 			virtual void SetMipLevel(uint32_t nMipLevel) = 0;
 			virtual uint32_t GetMipLevel() = 0;
 
-			virtual void SetClear(const Math::Color& color) = 0;
+			virtual void SetClear(const math::Color& color) = 0;
 			virtual void OnClear(IDeviceContext* pImmediateContext) = 0;
 
 			virtual const RenderTargetDesc1D& GetDesc1D() = 0;
 			virtual const RenderTargetDesc2D& GetDesc2D() = 0;
 			virtual const RenderTargetKey& GetKey() = 0;
 
-			virtual const Math::UInt2& GetSize() = 0;
+			virtual const math::UInt2& GetSize() = 0;
 		};
 
 		class IDepthStencil
@@ -476,12 +476,12 @@ namespace EastEngine
 			String::StringID strName;
 			std::string strPath;
 
-			Math::Color colorAlbedo;
-			Math::Color colorEmissive;
+			math::Color colorAlbedo;
+			math::Color colorEmissive;
 
-			Math::Vector4 f4PaddingRoughMetEmi;
-			Math::Vector4 f4SurSpecTintAniso;
-			Math::Vector4 f4SheenTintClearcoatGloss;
+			math::Vector4 f4PaddingRoughMetEmi;
+			math::Vector4 f4SurSpecTintAniso;
+			math::Vector4 f4SheenTintClearcoatGloss;
 
 			float fStippleTransparencyFactor;
 			float fTessellationFactor;
@@ -524,11 +524,11 @@ namespace EastEngine
 			virtual const std::string& GetPath() const = 0;
 			virtual void SetPath(const std::string& strPath) = 0;
 
-			virtual const Math::Color& GetAlbedoColor() const = 0;
-			virtual void SetAlbedoColor(const Math::Color& color) = 0;
+			virtual const math::Color& GetAlbedoColor() const = 0;
+			virtual void SetAlbedoColor(const math::Color& color) = 0;
 
-			virtual const Math::Color& GetEmissiveColor() const = 0;
-			virtual void SetEmissiveColor(const Math::Color& color) = 0;
+			virtual const math::Color& GetEmissiveColor() const = 0;
+			virtual void SetEmissiveColor(const math::Color& color) = 0;
 
 			virtual const String::StringID& GetTextureName(EmMaterial::Type emType) const = 0;
 			virtual void SetTextureName(EmMaterial::Type emType, const String::StringID& strName) = 0;
@@ -548,12 +548,12 @@ namespace EastEngine
 			virtual EmDepthStencilState::Type GetDepthStencilState() const = 0;
 			virtual void SetDepthStencilState(EmDepthStencilState::Type pDepthStencilState) = 0;
 
-			virtual const Math::Vector4& GetPaddingRoughMetEmi() const = 0;
-			virtual void SetPaddingRoughMetEmi(const Math::Vector4& f4PaddingRoughMetEmi) = 0;
-			virtual const Math::Vector4& GetSurSpecTintAniso() const = 0;
-			virtual void SetSurSpecTintAniso(const Math::Vector4& f4SurSpecTintAniso) = 0;
-			virtual const Math::Vector4& GetSheenTintClearcoatGloss() const = 0;
-			virtual void SetSheenTintClearcoatGloss(const Math::Vector4& f4SheenTintClearcoatGloss) = 0;
+			virtual const math::Vector4& GetPaddingRoughMetEmi() const = 0;
+			virtual void SetPaddingRoughMetEmi(const math::Vector4& f4PaddingRoughMetEmi) = 0;
+			virtual const math::Vector4& GetSurSpecTintAniso() const = 0;
+			virtual void SetSurSpecTintAniso(const math::Vector4& f4SurSpecTintAniso) = 0;
+			virtual const math::Vector4& GetSheenTintClearcoatGloss() const = 0;
+			virtual void SetSheenTintClearcoatGloss(const math::Vector4& f4SheenTintClearcoatGloss) = 0;
 
 			virtual float GetDisplacement() const = 0;
 			virtual void SetDisplacement(float fDisplacement) = 0;
@@ -608,9 +608,9 @@ namespace EastEngine
 namespace std
 {
 	template <>
-	struct hash<EastEngine::Graphics::ITexture::Key>
+	struct hash<eastengine::graphics::ITexture::Key>
 	{
-		std::uint64_t operator()(const EastEngine::Graphics::ITexture::Key& key) const
+		std::uint64_t operator()(const eastengine::graphics::ITexture::Key& key) const
 		{
 			return key.value.value;
 		}

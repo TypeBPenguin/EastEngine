@@ -5,9 +5,9 @@
 
 #include <strsafe.h>
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace File
+	namespace file
 	{
 		static_assert(FILE_NOTIFY_CHANGE_FILE_NAME == eFileName, "DirectoryMonitor Filter Mismatch");
 		static_assert(FILE_NOTIFY_CHANGE_DIR_NAME == eDirName, "DirectoryMonitor Filter Mismatch");
@@ -86,7 +86,7 @@ namespace EastEngine
 
 		void DirectoryMonitor::Impl::Update()
 		{
-			PERF_TRACER_EVENT("DirectoryMonitor::Update", "");
+			TRACER_EVENT("DirectoryMonitor::Update");
 			const size_t nSize = m_vecHDirMonitor.size();
 			for (size_t i = 0; i < nSize; ++i)
 			{

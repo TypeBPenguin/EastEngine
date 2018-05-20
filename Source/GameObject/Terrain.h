@@ -2,9 +2,9 @@
 
 #include "GameObject.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace GameObject
+	namespace gameobject
 	{
 		class Terrain : public ITerrain
 		{
@@ -43,12 +43,12 @@ namespace EastEngine
 			bool loadRawHeightmap(const char* strFilePath);
 			bool initTerrain();
 
-			std::optional<float> CheckHeightOfTriangle(float x, float z, const Math::Vector3& v0, const Math::Vector3& v1, const Math::Vector3& v2) const;
+			std::optional<float> CheckHeightOfTriangle(float x, float z, const math::Vector3& v0, const math::Vector3& v1, const math::Vector3& v2) const;
 
 		private:
 			String::StringID m_strName;
 
-			Math::Matrix m_matWorld;
+			math::Matrix m_matWorld;
 
 			bool m_isDestroy;
 			bool m_isVisible;
@@ -58,17 +58,17 @@ namespace EastEngine
 
 			struct HeightMapVertex
 			{
-				Math::Vector3 pos;
-				Math::Vector3 normal;
+				math::Vector3 pos;
+				math::Vector3 normal;
 			};
 			std::vector<HeightMapVertex> m_vecHeightMap;
 
-			Graphics::IVertexBuffer* m_pHeightField;
+			graphics::IVertexBuffer* m_pHeightField;
 
-			std::shared_ptr<Graphics::ITexture> m_pTexHeightMap;
-			std::shared_ptr<Graphics::ITexture> m_pTexColorMap;
-			std::shared_ptr<Graphics::ITexture> m_pTexDetailMap;
-			std::shared_ptr<Graphics::ITexture> m_pTexDetailNormalMap;
+			std::shared_ptr<graphics::ITexture> m_pTexHeightMap;
+			std::shared_ptr<graphics::ITexture> m_pTexColorMap;
+			std::shared_ptr<graphics::ITexture> m_pTexDetailMap;
+			std::shared_ptr<graphics::ITexture> m_pTexDetailNormalMap;
 
 			// 아래의 정점 정보는 RigidBody가 삭제되기 전까지 내용을 유지해야함
 			// 아니면 댕글링 빠바방
@@ -76,7 +76,7 @@ namespace EastEngine
 			// 여러 RigidBody를 만들어 사용하는 경우가 있기 때문에
 			struct RigidBodyData
 			{
-				std::vector<Math::Vector3> vecVertices;
+				std::vector<math::Vector3> vecVertices;
 				std::vector<uint32_t> vecIndices;
 			};
 			RigidBodyData m_rigidBodyData;

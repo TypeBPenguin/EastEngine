@@ -2,9 +2,9 @@
 
 #include <fstream>
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace File
+	namespace file
 	{
 		enum OpenMode
 		{
@@ -21,7 +21,7 @@ namespace EastEngine
 			~Stream();
 
 		public:
-			bool Open(const char* fileName, uint32_t emMode = OpenMode::eNone, uint32_t* pDataSize = nullptr);
+			bool Open(const char* fileName, uint32_t emMode = OpenMode::eNone);
 			void Close() { m_file.close(); }
 
 			bool Eof() { return m_file.eof(); }
@@ -30,7 +30,7 @@ namespace EastEngine
 			void Seekg(std::streampos pos, uint32_t state) { m_file.seekp(pos, state); }
 			std::streampos Tellg() { m_file.tellg(); }
 
-			uint32_t GetDataSize() { return m_nDataSize; }
+			size_t GetFileSize() const { return m_nFileSize; }
 
 		public:
 			Stream& operator << (int8_t value);
@@ -87,17 +87,17 @@ namespace EastEngine
 
 			Stream& Read(char* pBuffer, uint32_t nLength);
 
-			void ReadLine(std::string& str) { std::getline(m_file, str); }
+			void ReadLine(std::string& str);
 
 		public:
-			const std::string& GetPath() { return m_strPath; }
+			const std::string& GetFilePath() const { return m_strPath; }
 			uint32_t GetOpenMode() const { return m_nOpenMode; }
 
 		private:
 			std::fstream m_file;
 			std::string m_strPath;
 			uint32_t m_nOpenMode;
-			uint32_t m_nDataSize;
+			size_t m_nFileSize;
 		};
 	}
 }

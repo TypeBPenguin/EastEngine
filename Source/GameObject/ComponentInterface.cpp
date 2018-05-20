@@ -1,9 +1,9 @@
 #include "stdafx.h"
 #include "ComponentInterface.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace GameObject
+	namespace gameobject
 	{
 		namespace EmComponent
 		{
@@ -35,26 +35,26 @@ namespace EastEngine
 			{
 				if (String::IsEquals(strType, "ActionState"))
 				{
-					return GameObject::EmComponent::eActionState;
+					return gameobject::EmComponent::eActionState;
 				}
 				else if (String::IsEquals(strType, "Timer"))
 				{
-					return GameObject::EmComponent::eTimer;
+					return gameobject::EmComponent::eTimer;
 				}
 				else if (String::IsEquals(strType, "Physics"))
 				{
-					return GameObject::EmComponent::ePhysics;
+					return gameobject::EmComponent::ePhysics;
 				}
 				else if (String::IsEquals(strType, "Model"))
 				{
-					return GameObject::EmComponent::eModel;
+					return gameobject::EmComponent::eModel;
 				}
 				else if (String::IsEquals(strType, "Camera"))
 				{
-					return GameObject::EmComponent::eCamera;
+					return gameobject::EmComponent::eCamera;
 				}
 
-				return GameObject::EmComponent::TypeCount;
+				return gameobject::EmComponent::TypeCount;
 			}
 		}
 

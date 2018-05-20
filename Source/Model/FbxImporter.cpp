@@ -3,9 +3,8 @@
 
 #include "CommonLib/FileStream.h"
 #include "CommonLib/FileUtil.h"
-#include "CommonLib/Performance.h"
 
-#include "DirectX/Vertex.h"
+#include "GraphicsInterface/Vertex.h"
 
 #include "Model.h"
 #include "ModelNodeStatic.h"
@@ -20,13 +19,13 @@ ATG::ExportScene* g_pScene = nullptr;
 ExportPath g_CurrentInputFileName;
 ExportPath g_CurrentOutputFileName;
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
-		Math::Matrix ConvertMatrix(const fbxsdk::FbxMatrix& fbxMatrix)
+		math::Matrix ConvertMatrix(const fbxsdk::FbxMatrix& fbxMatrix)
 		{
-			Math::Matrix matResult;
+			math::Matrix matResult;
 			float* pFloats = reinterpret_cast<float*>(&matResult);
 			const double* pDoubles = reinterpret_cast<const double*>(&fbxMatrix);
 			for (int i = 0; i < 16; ++i)
@@ -359,9 +358,6 @@ namespace EastEngine
 
 			std::lock_guard<std::mutex> lock(m_mutex);
 
-			Performance::Counter counter;
-			counter.Start();
-
 			if (Initialize() == false)
 			{
 				ExportLog::LogError("Failed to initialize FBX");
@@ -369,7 +365,7 @@ namespace EastEngine
 			}
 			ExportLog::LogMsg(4, "FBX has been initialized.");
 
-			g_CurrentOutputFileName = File::GetFilePath(strFilePath).c_str();
+			g_CurrentOutputFileName = file::GetFilePath(strFilePath).c_str();
 
 			ModelSettings();
 
@@ -408,10 +404,6 @@ namespace EastEngine
 			Release();
 			ExportLog::ResetCounters();
 
-			counter.End();
-
-			LOG_MESSAGE("FBX Import, Model[%s] : %lf", strFilePath, counter.Count());
-
 			return true;
 		}
 
@@ -422,9 +414,6 @@ namespace EastEngine
 
 			std::lock_guard<std::mutex> lock(m_mutex);
 
-			Performance::Counter counter;
-			counter.Start();
-
 			if (Initialize() == false)
 			{
 				ExportLog::LogError("Failed to initialize FBX");
@@ -432,7 +421,7 @@ namespace EastEngine
 			}
 			ExportLog::LogMsg(4, "FBX has been initialized.");
 
-			g_CurrentOutputFileName = File::GetFilePath(strFilePath).c_str();
+			g_CurrentOutputFileName = file::GetFilePath(strFilePath).c_str();
 
 			MotionSettings();
 
@@ -462,10 +451,6 @@ namespace EastEngine
 
 			Release();
 			ExportLog::ResetCounters();
-
-			counter.End();
-
-			LOG_MESSAGE("FBX Import, Motion[%s] : %lf", strFilePath, counter.Count());
 
 			return true;
 		}
@@ -551,7 +536,7 @@ namespace EastEngine
 			m_isBindPoseFixupRequired = false;
 
 			assert(m_pFBXScene->GetRootNode() != nullptr);
-			Math::Matrix matIdentity;
+			math::Matrix matIdentity;
 			ParseNode(m_pFBXScene->GetRootNode(), g_pScene, matIdentity);
 
 			if (m_isBindPoseFixupRequired)
@@ -565,7 +550,7 @@ namespace EastEngine
 				ParseAnimation(m_pFBXScene);
 				if (g_pScene->Settings().bRenameAnimationsToFileName)
 				{
-					std::string AnimName = File::GetFileNameWithoutExtension(strFileName);
+					std::string AnimName = file::GetFileNameWithoutExtension(strFileName);
 
 					size_t nAnimCount = g_pScene->GetAnimationCount();
 					for (size_t i = 0; i < nAnimCount; ++i)
@@ -649,10 +634,10 @@ namespace EastEngine
 			ExportLog::LogMsg(3, "Created bind pose map with %Iu nodes.", m_BindPoseMap.size());
 		}
 
-		Math::Matrix FBXImport::ParseTransform(fbxsdk::FbxNode* pNode, ATG::ExportFrame* pFrame, const Math::Matrix& matParentWorld, const bool isWarnings)
+		math::Matrix FBXImport::ParseTransform(fbxsdk::FbxNode* pNode, ATG::ExportFrame* pFrame, const math::Matrix& matParentWorld, const bool isWarnings)
 		{
-			Math::Matrix matWorld;
-			Math::Matrix matLocal;
+			math::Matrix matWorld;
+			math::Matrix matLocal;
 			bool isProcessDefaultTransform = true;
 
 			if (m_BindPoseMap.empty() == false)
@@ -695,11 +680,11 @@ namespace EastEngine
 
 			pFrame->Transform().Initialize(*reinterpret_cast<DirectX::XMFLOAT4X4*>(&matLocal));
 
-			const Math::Vector3& Scale = *reinterpret_cast<const Math::Vector3*>(&pFrame->Transform().Scale());
+			const math::Vector3& Scale = *reinterpret_cast<const math::Vector3*>(&pFrame->Transform().Scale());
 			if (isWarnings == true &&
-				(Math::IsEqual(Scale.x, Scale.y) == false ||
-					Math::IsEqual(Scale.y, Scale.z) == false ||
-					Math::IsEqual(Scale.x, Scale.z) == false))
+				(math::IsEqual(Scale.x, Scale.y) == false ||
+					math::IsEqual(Scale.y, Scale.z) == false ||
+					math::IsEqual(Scale.x, Scale.z) == false))
 			{
 				ExportLog::LogWarning("Non-uniform scale found on node \"%s\".", pFrame->GetName().SafeString());
 			}
@@ -721,14 +706,14 @@ namespace EastEngine
 			return matWorld;
 		}
 
-		void FBXImport::ParseNode(FbxNode* pNode, ATG::ExportFrame* pParentFrame, const Math::Matrix& matParentWorld)
+		void FBXImport::ParseNode(FbxNode* pNode, ATG::ExportFrame* pParentFrame, const math::Matrix& matParentWorld)
 		{
 			ExportLog::LogMsg(2, "Parsing node \"%s\".", pNode->GetName());
 
 			ExportFrame* pFrame = new ExportFrame(pNode->GetName());
 			pFrame->SetDCCObject(pNode);
 
-			Math::Matrix matWorld = ParseTransform(pNode, pFrame, matParentWorld);
+			math::Matrix matWorld = ParseTransform(pNode, pFrame, matParentWorld);
 			pParentFrame->AddChild(pFrame);
 
 			if (pNode->GetSubdiv())
@@ -846,11 +831,11 @@ namespace EastEngine
 			}
 		}
 
-		void FBXImport::FixupNode(ATG::ExportFrame* pFrame, const Math::Matrix& matParentWorld)
+		void FBXImport::FixupNode(ATG::ExportFrame* pFrame, const math::Matrix& matParentWorld)
 		{
 			fbxsdk::FbxNode* pNode = reinterpret_cast<fbxsdk::FbxNode*>(pFrame->GetDCCObject());
 
-			Math::Matrix matWorld;
+			math::Matrix matWorld;
 			if (pNode != nullptr)
 			{
 				ExportLog::LogMsg(4, "Fixing up frame \"%s\".", pFrame->GetName().SafeString());
@@ -902,22 +887,22 @@ namespace EastEngine
 
 		void FBXImport::AddKey(AnimationScanNode& asn, const AnimationScanNode* pParent, const FbxAMatrix& matFBXGlobal, float fTime)
 		{
-			Math::Matrix matGlobal = ConvertMatrix(matFBXGlobal);
+			math::Matrix matGlobal = ConvertMatrix(matFBXGlobal);
 
 			asn.matGlobal = matGlobal;
 
-			Math::Matrix matLocal = matGlobal;
+			math::Matrix matLocal = matGlobal;
 			if (pParent != nullptr)
 			{
 				matLocal = matGlobal * pParent->matGlobal.Invert();
 			}
 
-			Math::Matrix matLocalFinal = matLocal;
+			math::Matrix matLocalFinal = matLocal;
 			g_pScene->GetDCCTransformer()->TransformMatrix(reinterpret_cast<DirectX::XMFLOAT4X4*>(&matLocalFinal), reinterpret_cast<const DirectX::XMFLOAT4X4*>(&matLocal));
 
-			Math::Vector3 f3Scale;
-			Math::Quaternion quatRotation;
-			Math::Vector3 f3Translation;
+			math::Vector3 f3Scale;
+			math::Quaternion quatRotation;
+			math::Vector3 f3Translation;
 			matLocalFinal.Decompose(f3Scale, quatRotation, f3Translation);
 
 			asn.pTrack->TransformTrack.AddKey(fTime,
@@ -1531,7 +1516,7 @@ namespace EastEngine
 
 					FbxMatrix matBindPose = matReferenceGlobalInitPosition.Inverse() * matXBindPose;
 
-					Math::Matrix matMotionOffset = ConvertMatrix(matXBindPose.Inverse() * matReferenceGlobalInitPosition);
+					math::Matrix matMotionOffset = ConvertMatrix(matXBindPose.Inverse() * matReferenceGlobalInitPosition);
 					g_pScene->GetDCCTransformer()->TransformMatrix(reinterpret_cast<DirectX::XMFLOAT4X4*>(&matMotionOffset), reinterpret_cast<const DirectX::XMFLOAT4X4*>(&matMotionOffset));
 
 					m_umapMotionOffsetMarix.emplace(pLink->GetName(), matMotionOffset);

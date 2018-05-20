@@ -32,9 +32,9 @@ namespace StrID
 	RegisterStringID(g_f2HeightFieldSize);
 }
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class TerrainRenderer::Impl
 		{
@@ -77,14 +77,14 @@ namespace EastEngine
 			if (m_vecTerrain.empty())
 				return;
 
-			PERF_TRACER_EVENT("TerrainRenderer::Render", "");
+			TRACER_EVENT("TerrainRenderer::Render");
 			D3D_PROFILING(pDeviceContext, TerrainRenderer);
 
 			IGBuffers* pGBuffers = GetGBuffers();
 
 			int nThreadID = GetThreadID(ThreadType::eRender);
-			const Math::Matrix& matView = pCamera->GetViewMatrix(nThreadID);
-			const Math::Matrix& matProj = pCamera->GetProjMatrix(nThreadID);
+			const math::Matrix& matView = pCamera->GetViewMatrix(nThreadID);
+			const math::Matrix& matProj = pCamera->GetProjMatrix(nThreadID);
 
 			pDeviceContext->ClearState();
 			pDeviceContext->SetDefaultViewport();
@@ -94,7 +94,7 @@ namespace EastEngine
 			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eRead_Write_On);
 			pDeviceContext->SetBlendState(EmBlendState::eOff);
 
-			Math::Matrix matViewProj = matView * matProj;
+			math::Matrix matViewProj = matView * matProj;
 			m_pEffect->SetVector(StrID::g_CameraPosition, matView.Invert().Translation());
 			m_pEffect->SetVector(StrID::g_CameraDirection, pCamera->GetDir());
 
@@ -154,7 +154,7 @@ namespace EastEngine
 
 		bool TerrainRenderer::Impl::CreateEffect()
 		{
-			std::string strPath(File::GetPath(File::EmPath::eFx));
+			std::string strPath(file::GetPath(file::EmPath::eFx));
 
 #if defined(DEBUG) || defined(_DEBUG)
 			strPath.append("Terrain\\Terrain_D.cso");

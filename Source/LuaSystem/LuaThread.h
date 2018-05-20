@@ -2,7 +2,7 @@
 
 struct lua_State;
 
-namespace EastEngine
+namespace eastengine
 {
 	namespace Lua
 	{

@@ -1,11 +1,7 @@
 #pragma once
 
-#include "GameObject/SectorMgr.h"
-
-namespace EastEngine
+namespace eastengine
 {
-	class SceneManager;
-
 	class IScene
 	{
 	public:
@@ -17,14 +13,10 @@ namespace EastEngine
 
 		virtual void Update(float fElapsedTime) = 0;
 
-	protected:
-		GameObject::SectorMgr* CreateSectorMgr(GameObject::SectorInitInfo& sectorInitInfo);
-
 	public:
-		const String::StringID& GetSceneName() const { return m_strName; }
+		const String::StringID& GetName() const { return m_strName; }
 
 	private:
 		String::StringID m_strName;
-		GameObject::SectorMgr* m_pSectorMgr;
 	};
 }

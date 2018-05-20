@@ -2,9 +2,9 @@
 
 #include "EffectInterface.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		struct EffectVariable;
 
@@ -74,20 +74,20 @@ namespace EastEngine
 			virtual void SetIntArray(const String::StringID& strName, const int* pValue, uint32_t nOffset, uint32_t nCount) override;
 			virtual void SetFloat(const String::StringID& strName, float fValue) override;
 			virtual void SetFloatArray(const String::StringID& strName, const float* pValue, uint32_t nOffset, uint32_t nCount) override;
-			virtual void SetVector(const String::StringID& strName, const Math::Int2& n2Value) override;
-			virtual void SetVector(const String::StringID& strName, const Math::Int3& n3Value) override;
-			virtual void SetVector(const String::StringID& strName, const Math::Int4& n4Value) override;
-			virtual void SetVector(const String::StringID& strName, const Math::Vector2& f2Value) override;
-			virtual void SetVector(const String::StringID& strName, const Math::Vector3& f3Value) override;
-			virtual void SetVector(const String::StringID& strName, const Math::Vector4& f4Value) override;
-			virtual void SetVectorArray(const String::StringID& strName, const Math::Int2* pn2Value, uint32_t nOffset, uint32_t nCount) override;
-			virtual void SetVectorArray(const String::StringID& strName, const Math::Int3* pn3Value, uint32_t nOffset, uint32_t nCount) override;
-			virtual void SetVectorArray(const String::StringID& strName, const Math::Int4* pn4Value, uint32_t nOffset, uint32_t nCount) override;
-			virtual void SetVectorArray(const String::StringID& strName, const Math::Vector2* pf2Value, uint32_t nOffset, uint32_t nCount) override;
-			virtual void SetVectorArray(const String::StringID& strName, const Math::Vector3* pf3Value, uint32_t nOffset, uint32_t nCount) override;
-			virtual void SetVectorArray(const String::StringID& strName, const Math::Vector4* pf4Value, uint32_t nOffset, uint32_t nCount) override;
-			virtual void SetMatrix(const String::StringID& strName, const Math::Matrix& matrix) override;
-			virtual void SetMatrixArray(const String::StringID& strName, const Math::Matrix* pMatrix, uint32_t nOffset, uint32_t nCount) override;
+			virtual void SetVector(const String::StringID& strName, const math::Int2& n2Value) override;
+			virtual void SetVector(const String::StringID& strName, const math::Int3& n3Value) override;
+			virtual void SetVector(const String::StringID& strName, const math::Int4& n4Value) override;
+			virtual void SetVector(const String::StringID& strName, const math::Vector2& f2Value) override;
+			virtual void SetVector(const String::StringID& strName, const math::Vector3& f3Value) override;
+			virtual void SetVector(const String::StringID& strName, const math::Vector4& f4Value) override;
+			virtual void SetVectorArray(const String::StringID& strName, const math::Int2* pn2Value, uint32_t nOffset, uint32_t nCount) override;
+			virtual void SetVectorArray(const String::StringID& strName, const math::Int3* pn3Value, uint32_t nOffset, uint32_t nCount) override;
+			virtual void SetVectorArray(const String::StringID& strName, const math::Int4* pn4Value, uint32_t nOffset, uint32_t nCount) override;
+			virtual void SetVectorArray(const String::StringID& strName, const math::Vector2* pf2Value, uint32_t nOffset, uint32_t nCount) override;
+			virtual void SetVectorArray(const String::StringID& strName, const math::Vector3* pf3Value, uint32_t nOffset, uint32_t nCount) override;
+			virtual void SetVectorArray(const String::StringID& strName, const math::Vector4* pf4Value, uint32_t nOffset, uint32_t nCount) override;
+			virtual void SetMatrix(const String::StringID& strName, const math::Matrix& matrix) override;
+			virtual void SetMatrixArray(const String::StringID& strName, const math::Matrix* pMatrix, uint32_t nOffset, uint32_t nCount) override;
 			virtual void SetString(const String::StringID& strName, const char* str, uint32_t nCount) override;
 			virtual void SetTexture(const String::StringID& strName, const std::shared_ptr<ITexture>& pTexture) override;
 			virtual void SetTextureArray(const String::StringID& strName, const std::shared_ptr<ITexture>* pTextures, uint32_t nOffset, uint32_t nCount) override;
@@ -163,18 +163,18 @@ namespace EastEngine
 			EffectVectorVariable(ID3DX11EffectVariable* pVariable);
 			virtual ~EffectVectorVariable();
 
-			virtual void SetVector(const Math::Int2& n2Value) override;
-			virtual void SetVector(const Math::Int3& n3Value) override;
-			virtual void SetVector(const Math::Int4& n4Value) override;
-			virtual void SetVector(const Math::Vector2& f2Value) override;
-			virtual void SetVector(const Math::Vector3& f3Value) override;
-			virtual void SetVector(const Math::Vector4& f4Value) override;
-			virtual void SetVectorArray(const Math::Int2* pData, uint32_t nOffset, uint32_t nCount) override;
-			virtual void SetVectorArray(const Math::Int3* pData, uint32_t nOffset, uint32_t nCount) override;
-			virtual void SetVectorArray(const Math::Int4* pData, uint32_t nOffset, uint32_t nCount) override;
-			virtual void SetVectorArray(const Math::Vector2* pData, uint32_t nOffset, uint32_t nCount) override;
-			virtual void SetVectorArray(const Math::Vector3* pData, uint32_t nOffset, uint32_t nCount) override;
-			virtual void SetVectorArray(const Math::Vector4* pData, uint32_t nOffset, uint32_t nCount) override;
+			virtual void SetVector(const math::Int2& n2Value) override;
+			virtual void SetVector(const math::Int3& n3Value) override;
+			virtual void SetVector(const math::Int4& n4Value) override;
+			virtual void SetVector(const math::Vector2& f2Value) override;
+			virtual void SetVector(const math::Vector3& f3Value) override;
+			virtual void SetVector(const math::Vector4& f4Value) override;
+			virtual void SetVectorArray(const math::Int2* pData, uint32_t nOffset, uint32_t nCount) override;
+			virtual void SetVectorArray(const math::Int3* pData, uint32_t nOffset, uint32_t nCount) override;
+			virtual void SetVectorArray(const math::Int4* pData, uint32_t nOffset, uint32_t nCount) override;
+			virtual void SetVectorArray(const math::Vector2* pData, uint32_t nOffset, uint32_t nCount) override;
+			virtual void SetVectorArray(const math::Vector3* pData, uint32_t nOffset, uint32_t nCount) override;
+			virtual void SetVectorArray(const math::Vector4* pData, uint32_t nOffset, uint32_t nCount) override;
 		};
 
 		struct EffectMatrixVariable : public EffectVariable, public EffectMatrixHandle
@@ -184,8 +184,8 @@ namespace EastEngine
 			EffectMatrixVariable(ID3DX11EffectVariable* pVariable);
 			virtual ~EffectMatrixVariable();
 
-			virtual void SetMatrix(const Math::Matrix& matrix) override;
-			virtual void SetMatrixArray(const Math::Matrix* pData, uint32_t nOffset, uint32_t nCount) override;
+			virtual void SetMatrix(const math::Matrix& matrix) override;
+			virtual void SetMatrixArray(const math::Matrix* pData, uint32_t nOffset, uint32_t nCount) override;
 		};
 
 		struct EffectStringVariable : public EffectVariable, public EffectStringHandle

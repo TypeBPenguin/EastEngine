@@ -10,7 +10,7 @@ namespace StrID
 	RegisterStringID(Bool);
 }
 
-namespace EastEngine
+namespace eastengine
 {
 	namespace Lua
 	{

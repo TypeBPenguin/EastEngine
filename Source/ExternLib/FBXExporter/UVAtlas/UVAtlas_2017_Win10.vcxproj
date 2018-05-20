@@ -172,7 +172,9 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <ProgramDataBaseFileName>$(IntDir)$(TargetName).pdb</ProgramDataBaseFileName>
       <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)Inc;$(ProjectDir)geodesics;$(ProjectDir)isochart;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalOptions>/permissive- %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/permissive- /Ylsymbol %(AdditionalOptions)</AdditionalOptions>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <MinimalRebuild>false</MinimalRebuild>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

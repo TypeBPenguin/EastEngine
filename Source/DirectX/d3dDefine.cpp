@@ -1,9 +1,9 @@
 #include "stdafx.h"
 #include "d3dDefine.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		SamplerStateDesc::SamplerStateDesc()
 			: CD3D11_SAMPLER_DESC(CD3D11_DEFAULT())

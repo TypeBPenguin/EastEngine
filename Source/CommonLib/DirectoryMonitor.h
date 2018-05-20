@@ -2,9 +2,9 @@
 
 #include "Singleton.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace File
+	namespace file
 	{
 		using DirectoryMonitorCallback = void (CALLBACK*)(const char* strPath, DWORD dwAction, LPARAM lParam);
 

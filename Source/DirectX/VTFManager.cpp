@@ -1,9 +1,9 @@
 #include "stdafx.h"
 #include "VTFManager.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		VTFManager::VTFManager()
 			: m_isInit(false)
@@ -41,7 +41,7 @@ namespace EastEngine
 
 				D3D11_SUBRESOURCE_DATA srd;
 				srd.pSysMem = m_vtfInstances[i].buffer.data();
-				srd.SysMemPitch = eTextureWidth * (sizeof(Math::Vector4));
+				srd.SysMemPitch = eTextureWidth * (sizeof(math::Vector4));
 				srd.SysMemSlicePitch = 1;
 
 				String::StringID strName;
@@ -69,7 +69,7 @@ namespace EastEngine
 			m_isInit = false;
 		}
 
-		bool VTFManager::Allocate(size_t nMatrixCount, Math::Matrix** ppDest_Out, size_t& nVTFID_Out)
+		bool VTFManager::Allocate(size_t nMatrixCount, math::Matrix** ppDest_Out, size_t& nVTFID_Out)
 		{
 			std::lock_guard<std::mutex> lock(m_mutex);
 
@@ -92,7 +92,7 @@ namespace EastEngine
 
 		void VTFManager::Synchronize()
 		{
-			PERF_TRACER_EVENT("VTFManager::Synchronize", "");
+			TRACER_EVENT("VTFManager::Synchronize");
 			int nThreadID = GetThreadID(ThreadType::eRender);
 			if (m_vtfInstances[nThreadID].nAllocatedCount > 0)
 			{
@@ -100,9 +100,9 @@ namespace EastEngine
 				bool isSucceeded = m_vtfInstances[nThreadID].pVTF->Map(ThreadType::eImmediate, 0, D3D11_MAP_WRITE_DISCARD, reinterpret_cast<void**>(&pData));
 				if (isSucceeded == true)
 				{
-					const uint32_t nDestSize = sizeof(Math::Matrix) * eBufferCapacity;
+					const uint32_t nDestSize = sizeof(math::Matrix) * eBufferCapacity;
 
-					Memory::Copy(pData, nDestSize, m_vtfInstances[nThreadID].buffer.data(), sizeof(Math::Matrix) * m_vtfInstances[nThreadID].nAllocatedCount);
+					Memory::Copy(pData, nDestSize, m_vtfInstances[nThreadID].buffer.data(), sizeof(math::Matrix) * m_vtfInstances[nThreadID].nAllocatedCount);
 
 					m_vtfInstances[nThreadID].pVTF->Unmap(ThreadType::eImmediate, 0);
 				}

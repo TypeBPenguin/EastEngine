@@ -54,9 +54,9 @@ namespace StrID
 	RegisterStringID(g_shadowCubeMap);
 }
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class DeferredRenderer::Impl
 		{
@@ -97,7 +97,7 @@ namespace EastEngine
 
 		void DeferredRenderer::Impl::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
 		{
-			PERF_TRACER_EVENT("DeferredRenderer::Render", "");
+			TRACER_EVENT("DeferredRenderer::Render");
 
 			int nEnableShadowCount = 0;
 			IRenderTarget* pRenderTargetShadow = nullptr;
@@ -166,8 +166,8 @@ namespace EastEngine
 				pDeviceContext->SetRenderTargets(&pRenderTarget, 1, nullptr);
 
 				int nThreadID = GetThreadID(ThreadType::eRender);
-				const Math::Matrix& matInvView = pCamera->GetViewMatrix(nThreadID).Invert();
-				const Math::Matrix& matInvProj = pCamera->GetProjMatrix(nThreadID).Invert();
+				const math::Matrix& matInvView = pCamera->GetViewMatrix(nThreadID).Invert();
+				const math::Matrix& matInvProj = pCamera->GetProjMatrix(nThreadID).Invert();
 
 				m_pEffect->SetVector(StrID::g_f3CameraPos, matInvView.Translation());
 
@@ -225,8 +225,8 @@ namespace EastEngine
 
 		int DeferredRenderer::Impl::RenderShadowMap(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, IRenderTarget* pRenderTarget)
 		{
-			PERF_TRACER_EVENT("DeferredRenderer::RenderShadowMap", "");
-			pDeviceContext->ClearRenderTargetView(pRenderTarget, Math::Color::Black);
+			TRACER_EVENT("DeferredRenderer::RenderShadowMap");
+			pDeviceContext->ClearRenderTargetView(pRenderTarget, math::Color::Black);
 
 			bool isEnableShadow = false;
 			for (int i = 0; i < EmLight::eCount; ++i)
@@ -266,8 +266,8 @@ namespace EastEngine
 				pDeviceContext->SetRenderTargets(&pRenderTarget, 1, nullptr);
 
 				int nThreadID = GetThreadID(ThreadType::eRender);
-				const Math::Matrix& matInvView = pCamera->GetViewMatrix(nThreadID).Invert();
-				const Math::Matrix& matInvProj = pCamera->GetProjMatrix(nThreadID).Invert();
+				const math::Matrix& matInvView = pCamera->GetViewMatrix(nThreadID).Invert();
+				const math::Matrix& matInvProj = pCamera->GetProjMatrix(nThreadID).Invert();
 
 				m_pEffectShadow->SetVector(StrID::g_f3CameraPos, matInvView.Translation());
 
@@ -304,15 +304,15 @@ namespace EastEngine
 
 								struct CascadedShadow
 								{
-									Math::Int2 n2PCFBlurSize;
-									Math::Vector2 f2TexelOffset;
+									math::Int2 n2PCFBlurSize;
+									math::Vector2 f2TexelOffset;
 
 									int nCascadeLevel = 0;
 									float fDepthBias = 0.f;
-									Math::Vector2 padding;
+									math::Vector2 padding;
 
-									Math::Matrix matCascadeViewProj[CascadedShadowsConfig::eMaxLevel];
-									Math::Vector4 f2SplitDpeths[CascadedShadowsConfig::eMaxLevel];
+									math::Matrix matCascadeViewProj[CascadedShadowsConfig::eMaxLevel];
+									math::Vector4 f2SplitDpeths[CascadedShadowsConfig::eMaxLevel];
 								};
 
 								ICascadedShadows* pCascadedShadows = pDirectionalLight->GetCascadedShadow();
@@ -331,15 +331,15 @@ namespace EastEngine
 
 								for (uint32_t k = 0; k < pCascadedShadows->GetCascadeLevel(); ++k)
 								{
-									const Math::Matrix& matView = pCascadedShadows->GetViewMatrix(k);
-									const Math::Matrix& matProj = pCascadedShadows->GetProjectionMatrix(k);
+									const math::Matrix& matView = pCascadedShadows->GetViewMatrix(k);
+									const math::Matrix& matProj = pCascadedShadows->GetProjectionMatrix(k);
 
-									Math::Matrix matViewProj = matView * matProj;
+									math::Matrix matViewProj = matView * matProj;
 
 									cascadedShadow.matCascadeViewProj[k] = matViewProj.Transpose();
 
-									const Math::Vector2& f2SplitDepth = pCascadedShadows->GetSplitDepths(k);
-									cascadedShadow.f2SplitDpeths[k] = Math::Vector4(f2SplitDepth.x, f2SplitDepth.y, 0.f, 0.f);
+									const math::Vector2& f2SplitDepth = pCascadedShadows->GetSplitDepths(k);
+									cascadedShadow.f2SplitDpeths[k] = math::Vector4(f2SplitDepth.x, f2SplitDepth.y, 0.f, 0.f);
 								}
 
 								if (pSamplerState == nullptr)
@@ -368,15 +368,15 @@ namespace EastEngine
 
 								struct ShadowCubeMap
 								{
-									Math::Int2 n2PCFBlurSize;
-									Math::Vector2 f2TexelOffset;
+									math::Int2 n2PCFBlurSize;
+									math::Vector2 f2TexelOffset;
 
 									float fDepthBias = 0.f;
-									Math::Vector3 f3LightPos;
+									math::Vector3 f3LightPos;
 
 									float fLightIntensity;
 									float fFarPlane;
-									Math::Vector2 padding;
+									math::Vector2 padding;
 								};
 
 								IShadowCubeMap* pShadowCubeMap = pPointLight->GetShadowCubeMap();
@@ -417,19 +417,19 @@ namespace EastEngine
 
 								struct ShadowMap
 								{
-									Math::Int2 n2PCFBlurSize;
-									Math::Vector2 f2TexelOffset;
+									math::Int2 n2PCFBlurSize;
+									math::Vector2 f2TexelOffset;
 
 									float fDepthBias = 0.f;
-									Math::Vector3 f3LightPos;
+									math::Vector3 f3LightPos;
 
-									Math::Vector3 f3LightDir;
+									math::Vector3 f3LightDir;
 									float fLightAngle = 0.f;
 
 									float fLightIntensity;
-									Math::Vector3 padding;
+									math::Vector3 padding;
 
-									Math::Matrix matViewProj;
+									math::Matrix matViewProj;
 								};
 
 								IShadowMap* pShadowMap = pSpotLight->GetShadowMap();
@@ -450,7 +450,7 @@ namespace EastEngine
 
 								shadowMap.fLightIntensity = pSpotLight->GetIntensity();
 
-								Math::Matrix matViewProj = pShadowMap->GetViewMatrix() * pShadowMap->GetProjectionMatrix();
+								math::Matrix matViewProj = pShadowMap->GetViewMatrix() * pShadowMap->GetProjectionMatrix();
 								shadowMap.matViewProj = matViewProj.Transpose();
 
 								m_pEffectShadow->SetTexture(StrID::g_texShadowMap, pTexture);
@@ -487,7 +487,7 @@ namespace EastEngine
 
 		bool DeferredRenderer::Impl::CreateEffect()
 		{
-			std::string strPath(File::GetPath(File::EmPath::eFx));
+			std::string strPath(file::GetPath(file::EmPath::eFx));
 
 #if defined(DEBUG) || defined(_DEBUG)
 			strPath.append("Model\\Deferred_D.cso");
@@ -509,7 +509,7 @@ namespace EastEngine
 				return false;
 			}
 
-			strPath = File::GetPath(File::EmPath::eFx);
+			strPath = file::GetPath(file::EmPath::eFx);
 
 #if defined(DEBUG) || defined(_DEBUG)
 			strPath.append("Model\\DeferredShadow_D.cso");

@@ -15,7 +15,8 @@
 #define _SCL_SECURE_NO_WARNINGS
 #endif
 
-#include <boost/pool/object_pool.hpp>
-
 #include "CommonLib/CommonLib.h"
-#include "DirectX/D3DInterface.h"
+#include "Graphics/Graphics.h"
+
+#include <ppl.h>
+#include <concurrent_queue.h>

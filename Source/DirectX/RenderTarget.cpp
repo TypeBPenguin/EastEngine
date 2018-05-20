@@ -1,9 +1,9 @@
 #include "stdafx.h"
 #include "RenderTarget.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		static int s_nRenderTargetCount = 0;
 
@@ -12,7 +12,7 @@ namespace EastEngine
 			, m_nMaxMipLevel(1)
 			, m_pTexture(nullptr)
 			, m_isNeedClear(false)
-			, m_colorClear(Math::Color::Black)
+			, m_colorClear(math::Color::Black)
 			, m_keyRenderTarget(String::UnregisteredKey)
 		{
 		}
@@ -85,14 +85,14 @@ namespace EastEngine
 						return false;
 				}
 
-				Math::UInt2 n2Size(m_renderTargetDesc2D.Width, m_renderTargetDesc2D.Height);
+				math::UInt2 n2Size(m_renderTargetDesc2D.Width, m_renderTargetDesc2D.Height);
 				for (uint32_t i = 0; i < nIdx; ++i)
 				{
 					n2Size.x = (n2Size.x + 1) / 2;
 					n2Size.y = (n2Size.y + 1) / 2;
 				}
-				n2Size.x = Math::Max(n2Size.x, 1u);
-				n2Size.y = Math::Max(n2Size.y, 1u);
+				n2Size.x = math::Max(n2Size.x, 1u);
+				n2Size.y = math::Max(n2Size.y, 1u);
 
 				m_vecSize[nIdx] = n2Size;
 
@@ -163,14 +163,14 @@ namespace EastEngine
 						return false;
 				}
 
-				Math::UInt2 n2Size(m_renderTargetDesc2D.Width, m_renderTargetDesc2D.Height);
+				math::UInt2 n2Size(m_renderTargetDesc2D.Width, m_renderTargetDesc2D.Height);
 				for (uint32_t i = 0; i < nIdx; ++i)
 				{
 					n2Size.x = (n2Size.x + 1) / 2;
 					n2Size.y = (n2Size.y + 1) / 2;
 				}
-				n2Size.x = Math::Max(n2Size.x, 1u);
-				n2Size.y = Math::Max(n2Size.y, 1u);
+				n2Size.x = math::Max(n2Size.x, 1u);
+				n2Size.y = math::Max(n2Size.y, 1u);
 
 				m_vecSize[nIdx] = n2Size;
 
@@ -240,14 +240,14 @@ namespace EastEngine
 						return false;
 				}
 
-				Math::UInt2 n2Size(m_renderTargetDesc2D.Width, m_renderTargetDesc2D.Height);
+				math::UInt2 n2Size(m_renderTargetDesc2D.Width, m_renderTargetDesc2D.Height);
 				for (uint32_t i = 0; i < nIdx; ++i)
 				{
 					n2Size.x = (n2Size.x + 1) / 2;
 					n2Size.y = (n2Size.y + 1) / 2;
 				}
-				n2Size.x = Math::Max(n2Size.x, 1u);
-				n2Size.y = Math::Max(n2Size.y, 1u);
+				n2Size.x = math::Max(n2Size.x, 1u);
+				n2Size.y = math::Max(n2Size.y, 1u);
 
 				m_vecSize[nIdx] = n2Size;
 

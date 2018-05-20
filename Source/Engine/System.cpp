@@ -1,32 +1,18 @@
 #include "stdafx.h"
 #include "System.h"
 
+#include "CommonLib/FileUtil.h"
+#include "CommonLib/Timer.h"
+#include "CommonLib/CrashHandler.h"
+
+#include "Input/InputDevice.h"
+#include "Model/ModelManager.h"
+//#include "GameObject/ActorManager.h"
+
 #include "FpsChecker.h"
 #include "SceneManager.h"
 
-#include "CommonLib/CommandLine.h"
-#include "CommonLib/FileUtil.h"
-#include "CommonLib/DirectoryMonitor.h"
-#include "CommonLib/ThreadPool.h"
-#include "CommonLib/Timer.h"
-#include "CommonLib/CrashHandler.h"
-#include "CommonLib/Performance.h"
-
-#include "CommonLib/PipeStream.h"
-
-#include "DirectX/Device.h"
-#include "LuaSystem/LuaSystem.h"
-#include "Input/InputDevice.h"
-#include "Physics/PhysicsSystem.h"
-#include "SoundSystem/SoundSystem.h"
-#include "GameObject/ActorManager.h"
-#include "GameObject/TerrainManager.h"
-#include "GameObject/SkyManager.h"
-#include "UI/UIMgr.h"
-
-#include "GameObject/ComponentModel.h"
-
-namespace EastEngine
+namespace eastengine
 {
 	class MainSystem::Impl
 	{
@@ -35,52 +21,27 @@ namespace EastEngine
 		~Impl();
 
 	public:
-		bool Initialize(const String::StringID& strApplicationName, uint32_t nScreenWidth, uint32_t nScreenHeight, bool isFullScreen, bool isVsync);
+		bool Initialize(graphics::APIs emAPI, uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const String::StringID& strApplicationTitle, const String::StringID& strApplicationName);
+		void Release();
 
 	public:
-		void Run();
-
-		bool HandleMessage(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam);
+		void Run(IScene** ppScene, size_t nSceneCount, size_t nMainScene);
 
 	public:
 		float GetFPS() const { return m_pFpsChecker->GetFps(); }
 
-	public:
-		const String::StringID& GetApplicationName() const { return m_strApplicationName; }
-		const Math::Int2& GetScreenSize() const { return m_n2ScreenSize; }
-		bool IsFullScreen() const { return m_isFullScreen; }
-
 	private:
-		void Synchronize();
 		void Flush(float fElapsedTime);
 		void Update(float fElapsedTime);
-		void Render();
 
 	private:
 		std::unique_ptr<FpsChecker> m_pFpsChecker;
-		SceneManager* s_pSceneManager{ nullptr };
-
 		Timer* s_pTimer{ nullptr };
 
-		Performance::Tracer* s_pPerformanceTracer{ nullptr };
-
-		Config::SCommandLine* s_pCommandLine{ nullptr };
-		File::DirectoryMonitor* s_pDirectoryMonitor{ nullptr };
-		Lua::System* s_pLuaSystem{ nullptr };
-		Windows::WindowsManager* s_pWindows{ nullptr };
-		Graphics::GraphicsSystem* s_pGraphicsSystem{ nullptr };
-		Input::Device* s_pInputDevice{ nullptr };
-		Physics::System* s_pPhysicsSystem{ nullptr };
-		Sound::System* s_pSoundSystem{ nullptr };
-		UI::UIManager* s_pUIMgr{ nullptr };
-		GameObject::ActorManager* s_pActorMgr{ nullptr };
-		GameObject::TerrainManager* s_pTerrainManager{ nullptr };
-		GameObject::SkyManager* m_pSkyManager{ nullptr };
-
-		String::StringID m_strApplicationName;
-		Math::Int2 m_n2ScreenSize;
-		bool m_isFullScreen{ false };
-		bool m_isVsync{ false };
+		SceneManager* s_pSceneManager{ nullptr };
+		input::Device* s_pInputDevice{ nullptr };
+		//gameobject::ActorManager* s_pActorManager{ nullptr };
+		graphics::ModelManager* s_pModelManager{ nullptr };
 	};
 
 	MainSystem::Impl::Impl()
@@ -90,212 +51,92 @@ namespace EastEngine
 
 	MainSystem::Impl::~Impl()
 	{
-		Thread::ThreadPool::GetInstance()->Release();
-		Thread::ThreadPool::DestroyInstance();
-
-		SceneManager::DestroyInstance();
-		s_pSceneManager = nullptr;
-
-		GameObject::ActorManager::DestroyInstance();
-		s_pActorMgr = nullptr;
-
-		GameObject::TerrainManager::DestroyInstance();
-		s_pTerrainManager = nullptr;
-
-		GameObject::SkyManager::DestroyInstance();
-		m_pSkyManager = nullptr;
-
-		SafeRelease(s_pUIMgr);
-		UI::UIManager::DestroyInstance();
-
-		Sound::System::DestroyInstance();
-		s_pSoundSystem = nullptr;
-
-		Physics::System::DestroyInstance();
-		s_pPhysicsSystem = nullptr;
-
-		Input::Device::DestroyInstance();
-		s_pInputDevice = nullptr;
-
-		Graphics::GraphicsSystem::DestroyInstance();
-		s_pGraphicsSystem = nullptr;
-
-		Lua::System::DestroyInstance();
-		s_pLuaSystem = nullptr;
-
-		Windows::WindowsManager::DestroyInstance();
-		s_pWindows = nullptr;
-
-		s_pTimer = nullptr;
-		Timer::DestroyInstance();
-
-		s_pCommandLine = nullptr;
-		Config::SCommandLine::DestroyInstance();
-
-		File::DirectoryMonitor::DestroyInstance();
-		s_pDirectoryMonitor = nullptr;
-
-		Performance::Tracer::DestroyInstance();
-
-		String::Release();
-		CrashHandler::Release();
+		Release();
 	}
 
-	bool MainSystem::Impl::Initialize(const String::StringID& strApplicationName, uint32_t nScreenWidth, uint32_t nScreenHeight, bool isFullScreen, bool isVsync)
+	bool MainSystem::Impl::Initialize(graphics::APIs emAPI, uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const String::StringID& strApplicationTitle, const String::StringID& strApplicationName)
 	{
-		std::string strDumpPath = File::GetBinPath();
+		std::string strDumpPath = file::GetBinPath();
 		strDumpPath.append("Dump\\");
 		if (CrashHandler::Initialize(strDumpPath.c_str()) == false)
 			return false;
 
-		s_pPerformanceTracer = Performance::Tracer::GetInstance();
-
-		s_pDirectoryMonitor = File::DirectoryMonitor::GetInstance();
-
-		m_strApplicationName = strApplicationName;
-		m_n2ScreenSize = Math::Int2(nScreenWidth, nScreenHeight);
-		m_isFullScreen = isFullScreen;;
-		m_isVsync = isVsync;;
-
-		s_pCommandLine = Config::SCommandLine::GetInstance();
-		if (s_pCommandLine->Init() == false)
-			return false;
-
-		Thread::ThreadPool::GetInstance()->Init(std::thread::hardware_concurrency() - 1);
-
 		s_pTimer = Timer::GetInstance();
 
-		s_pWindows = Windows::WindowsManager::GetInstance();
+		graphics::Initialize(emAPI, nWidth, nHeight, isFullScreen, strApplicationTitle, strApplicationName);
 
-		if (s_pWindows->Initialize(strApplicationName.c_str(), nScreenWidth, nScreenHeight, isFullScreen) == false)
-			return false;
+		s_pInputDevice = input::Device::GetInstance();
+		s_pInputDevice->Initialize(graphics::GetHInstance(), graphics::GetHwnd());
 
-		HWND hWnd = s_pWindows->GetHwnd();
-		HINSTANCE hInstance = s_pWindows->GetHInstance();
-
-		s_pGraphicsSystem = Graphics::GraphicsSystem::GetInstance();
-		if (s_pGraphicsSystem->Initialize(hWnd, m_n2ScreenSize.x, m_n2ScreenSize.y, m_isFullScreen, m_isVsync, 1.f) == false)
-			return false;
-
-		s_pWindows->AddMessageHandler([](HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam) -> bool
+		graphics::AddMessageHandler([](HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
 		{
-			return Graphics::GraphicsSystem::GetInstance()->HandleMessage(hWnd, nMsg, wParam, lParam);
+			input::Device::GetInstance()->HandleMessage(hWnd, nMsg, wParam, lParam);
 		});
 
-		s_pInputDevice = Input::Device::GetInstance();
-		if (s_pInputDevice->Initialize(hInstance, hWnd) == false)
-			return false;
-
-		s_pWindows->AddMessageHandler([](HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam) -> bool
-		{
-			return Input::Device::GetInstance()->HandleMessage(hWnd, nMsg, wParam, lParam);
-		});
-
-		s_pPhysicsSystem = Physics::System::GetInstance();
-
-		s_pSoundSystem = Sound::System::GetInstance();
-
-		s_pLuaSystem = Lua::System::GetInstance();
-		if (s_pLuaSystem->Initialize(false) == false)
-			return false;
+		s_pModelManager = graphics::ModelManager::GetInstance();
 
 		s_pSceneManager = SceneManager::GetInstance();
-
-		s_pUIMgr = UI::UIManager::GetInstance();
-		if (s_pUIMgr->Init(s_pWindows->GetHwnd()) == false)
-			return false;
-
-		s_pWindows->AddMessageHandler([](HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam) -> bool
-		{
-			return UI::UIManager::GetInstance()->HandleMsg(hWnd, nMsg, wParam, lParam);
-		});
-
-		s_pActorMgr = GameObject::ActorManager::GetInstance();
-		s_pTerrainManager = GameObject::TerrainManager::GetInstance();
-		m_pSkyManager = GameObject::SkyManager::GetInstance();
 
 		return true;
 	}
 
-	void MainSystem::Impl::Run()
+	void MainSystem::Impl::Release()
 	{
-		MSG msg;
-		Memory::Clear(&msg, sizeof(msg));
+		SceneManager::DestroyInstance();
+		s_pSceneManager = nullptr;
 
-		// 유저로부터 종료 메세지를 받을 때까지 루프
-		while (true)
+		//gameobject::ActorManager::DestroyInstance();
+		//s_pActorManager = nullptr;
+
+		graphics::ModelManager::DestroyInstance();
+		s_pModelManager = nullptr;
+
+		input::Device::DestroyInstance();
+		s_pInputDevice = nullptr;
+
+		graphics::Release();
+		Timer::DestroyInstance();
+
+		CrashHandler::Release();
+
+		String::Release();
+	}
+
+	void MainSystem::Impl::Run(IScene** ppScene, size_t nSceneCount, size_t nMainScene)
+	{
+		s_pTimer->Start();
+
+		for (size_t i = 0; i < nSceneCount; ++i)
 		{
-			if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
-			{
-				TranslateMessage(&msg);
-				DispatchMessage(&msg);
-			}
-
-			// 윈도우에서 어플리케이션의 종료를 요청하는 경우 종료
-			if (msg.message == WM_QUIT)
-				break;
-			
-			s_pPerformanceTracer->RefreshState();
-
-			PERF_TRACER_EVENT("System", "Frame");
-
-			s_pTimer->Tick();
-			float fElapsedTime = s_pTimer->GetElapsedTime();
-
-			m_pFpsChecker->Update(fElapsedTime);
-
-			s_pWindows->ProcessMessages();
-
-			Flush(fElapsedTime);
-			Synchronize();
-			
-			Concurrency::parallel_invoke
-			(
-				[&] { Update(fElapsedTime); },
-				[&] { Render(); }
-			);
+			s_pSceneManager->AddScene(ppScene[i]);
 		}
-	}
 
-	bool MainSystem::Impl::HandleMessage(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
-	{
-		return false;
-	}
+		s_pSceneManager->ChangeScene(ppScene[nMainScene]->GetName());
 
-	void MainSystem::Impl::Synchronize()
-	{
-		PERF_TRACER_EVENT("System::Synchronize", "");
-		s_pGraphicsSystem->Synchronize();
+		graphics::Run([&]()
+		{
+			s_pTimer->Tick();
+
+			float fElapsedTime = s_pTimer->GetElapsedTime();
+			Flush(fElapsedTime);
+			Update(fElapsedTime);
+		});
 	}
 
 	void MainSystem::Impl::Flush(float fElapsedTime)
 	{
-		PERF_TRACER_EVENT("System::Flush", "");
 		s_pSceneManager->Flush();
-		s_pGraphicsSystem->Flush(fElapsedTime);
+		s_pModelManager->Flush(fElapsedTime);
+		graphics::Flush(fElapsedTime);
 	}
 
 	void MainSystem::Impl::Update(float fElapsedTime)
 	{
-		PERF_TRACER_EVENT("System::Update", "");
-		s_pDirectoryMonitor->Update();
 		s_pInputDevice->Update(fElapsedTime);
-		s_pSoundSystem->Update(fElapsedTime);
-		s_pPhysicsSystem->Update(fElapsedTime);
 		s_pSceneManager->Update(fElapsedTime);
-		s_pTerrainManager->Update(fElapsedTime);
-		m_pSkyManager->Update(fElapsedTime);
-		s_pActorMgr->Update(fElapsedTime);
-		s_pGraphicsSystem->Update(fElapsedTime);
-		s_pUIMgr->Update(fElapsedTime);
-	}
-
-	void MainSystem::Impl::Render()
-	{
-		PERF_TRACER_EVENT("System::Render", "");
-		s_pGraphicsSystem->BeginScene(0.f, 0.f, 0.f, 1.f);
-		s_pGraphicsSystem->Render();
-		s_pGraphicsSystem->EndScene();
+		//s_pActorManager->Update(fElapsedTime);
+		s_pModelManager->Update();
+		graphics::Update(fElapsedTime);
 	}
 
 	MainSystem::MainSystem()
@@ -307,38 +148,18 @@ namespace EastEngine
 	{
 	}
 
-	bool MainSystem::Initialize(const String::StringID& strApplicationName, uint32_t nScreenWidth, uint32_t nScreenHeight, bool isFullScreen, bool isVsync)
+	bool MainSystem::Initialize(graphics::APIs emAPI, uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const String::StringID& strApplicationTitle, const String::StringID& strApplicationName)
 	{
-		return m_pImpl->Initialize(strApplicationName, nScreenWidth, nScreenHeight, isFullScreen, isVsync);
+		return m_pImpl->Initialize(emAPI, nWidth, nHeight, isFullScreen, strApplicationTitle, strApplicationName);
 	}
 
-	void MainSystem::Run()
+	void MainSystem::Run(IScene** ppScene, size_t nSceneCount, size_t nMainScene)
 	{
-		m_pImpl->Run();
-	}
-
-	bool MainSystem::HandleMessage(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
-	{
-		return m_pImpl->HandleMessage(hWnd, nMsg, wParam, lParam);
+		m_pImpl->Run(ppScene, nSceneCount, nMainScene);
 	}
 
 	float MainSystem::GetFPS() const
 	{
 		return m_pImpl->GetFPS();
-	}
-
-	const String::StringID& MainSystem::GetApplicationName() const
-	{
-		return m_pImpl->GetApplicationName();
-	}
-
-	const Math::Int2& MainSystem::GetScreenSize() const
-	{
-		return m_pImpl->GetScreenSize();
-	}
-
-	bool MainSystem::IsFullScreen() const
-	{
-		return m_pImpl->IsFullScreen();
 	}
 }

@@ -1,8 +1,67 @@
 #include "stdafx.h"
 #include "Timer.h"
 
-namespace EastEngine
+namespace eastengine
 {
+	class Counter::Impl
+	{
+	public:
+		Impl() = default;
+		~Impl() = default;
+
+	public:
+		void Start() { m_timeStart = std::chrono::system_clock::now(); }
+		void End() { m_timeEnd = std::chrono::system_clock::now(); }
+
+		double Count() const { return std::chrono::duration<double>(m_timeEnd - m_timeStart).count(); }
+		int64_t MilliSec() const { return std::chrono::duration_cast<std::chrono::milliseconds>(m_timeEnd - m_timeStart).count(); }
+		int64_t MicroSec() const { return std::chrono::duration_cast<std::chrono::microseconds>(m_timeEnd - m_timeStart).count(); }
+		int64_t NanoSec() const { return std::chrono::duration_cast<std::chrono::nanoseconds>(m_timeEnd - m_timeStart).count(); }
+
+	private:
+		std::chrono::system_clock::time_point m_timeStart;
+		std::chrono::system_clock::time_point m_timeEnd;
+	};
+
+	Counter::Counter()
+		: m_pImpl{ std::make_unique<Impl>() }
+	{
+	}
+
+	Counter::~Counter()
+	{
+	}
+
+	void Counter::Start()
+	{
+		m_pImpl->Start();
+	}
+
+	void Counter::End()
+	{
+		m_pImpl->End();
+	}
+
+	double Counter::Count() const
+	{
+		return m_pImpl->Count();
+	}
+
+	int64_t Counter::MilliSec() const
+	{
+		return m_pImpl->MilliSec();
+	}
+
+	int64_t Counter::MicroSec() const
+	{
+		return m_pImpl->MicroSec();
+	}
+
+	int64_t Counter::NanoSec() const
+	{
+		return m_pImpl->NanoSec();
+	}
+
 	class Timer::Impl
 	{
 	public:

@@ -1,8 +1,8 @@
 #pragma once
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class IVertexBuffer;
 		class IIndexBuffer;

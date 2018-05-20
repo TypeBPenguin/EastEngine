@@ -3,7 +3,7 @@
 
 #include "Log.h"
 
-namespace EastEngine
+namespace eastengine
 {
 	namespace Memory
 	{

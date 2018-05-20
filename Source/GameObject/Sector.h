@@ -1,8 +1,8 @@
 #pragma once
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace GameObject
+	namespace gameobject
 	{
 		class IActor;
 		class SectorMgr;
@@ -65,14 +65,14 @@ namespace EastEngine
 			void SetNearSector(EmSector::Dir emSectorDir, Sector* pSector) { if (pSector == nullptr) return; m_vecNearSector[emSectorDir] = pSector; }
 
 		public:
-			const Math::Int2& GetCoordinate() { return m_n2Coordinate; }
+			const math::Int2& GetCoordinate() { return m_n2Coordinate; }
 
 		private:
 			SectorMgr* m_pSectorMgr;
 			IActor* m_pActor;
 
 			float m_fRadius;
-			Math::Int2 m_n2Coordinate;
+			math::Int2 m_n2Coordinate;
 
 			std::vector<Sector*> m_vecNearSector;
 			std::unordered_map<uint32_t, IActor*> m_umapActor;
@@ -85,9 +85,9 @@ namespace EastEngine
 namespace std
 {
 	template <>
-	struct hash<EastEngine::GameObject::SectorKey>
+	struct hash<eastengine::gameobject::SectorKey>
 	{
-		std::size_t operator()(const EastEngine::GameObject::SectorKey& key) const
+		std::size_t operator()(const eastengine::gameobject::SectorKey& key) const
 		{
 			return std::hash<uint64_t>{}((static_cast<uint64_t>(key.x) << 32) | key.y);
 		}

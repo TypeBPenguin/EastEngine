@@ -71,9 +71,9 @@ namespace StrID
 	RegisterStringID(g_nSpotLightCount);
 }
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		namespace EmModelShader
 		{
@@ -155,19 +155,19 @@ namespace EastEngine
 				return pEffect;
 
 			ShaderMacros macros;
-			for (int i = 0; i < EmModelShader::MaskCount; ++i)
+			for (int i = 0; i < Emmodelshader::MaskCount; ++i)
 			{
 				if (GetBitMask64(nMask, i) == true)
 				{
-					macros.AddMacro(EmModelShader::GetMaskName(i), "1");
+					macros.AddMacro(Emmodelshader::GetMaskName(i), "1");
 				}
 			}
 			macros.EndSet();
 
 			TechType emTechType = eModelStatic;
-			if (GetBitMask64(nMask, EmModelShader::eUseSkinning))
+			if (GetBitMask64(nMask, Emmodelshader::eUseSkinning))
 			{
-				if (GetBitMask64(nMask, EmModelShader::eUseTessellation))
+				if (GetBitMask64(nMask, Emmodelshader::eUseTessellation))
 				{
 					emTechType = eModelSkinned_Tessellation;
 				}
@@ -178,7 +178,7 @@ namespace EastEngine
 			}
 			else
 			{
-				if (GetBitMask64(nMask, EmModelShader::eUseTessellation))
+				if (GetBitMask64(nMask, Emmodelshader::eUseTessellation))
 				{
 					emTechType = eModelStatic_Tessellation;
 				}
@@ -187,7 +187,7 @@ namespace EastEngine
 			static std::string strPath;
 			if (strPath.empty() == true)
 			{
-				strPath.append(File::GetPath(File::EmPath::eFx));
+				strPath.append(file::GetPath(file::EmPath::eFx));
 				strPath.append("Model\\Model.fx");
 			}
 
@@ -266,7 +266,7 @@ namespace EastEngine
 		}
 
 		void RenderModel(uint32_t nRenderType, IDevice* pDevice, IDeviceContext* pDeviceContext,
-			const Math::Matrix* pMatViews, const Math::Matrix& matProj, const Math::Vector3& f3CameraPos,
+			const math::Matrix* pMatViews, const math::Matrix& matProj, const math::Vector3& f3CameraPos,
 			const IVertexBuffer* pVertexBuffer, const IIndexBuffer* pIndexBuffer, const IMaterial* pMaterial,
 			uint32_t nIndexCount, uint32_t nStartIndex,
 			const void* pInstanceData, uint32_t nVTFID = 0)
@@ -284,27 +284,27 @@ namespace EastEngine
 			int64_t nMask = 0;
 			if (isInstancing == true)
 			{
-				SetBitMask64(nMask, EmModelShader::eUseInstancing);
+				SetBitMask64(nMask, Emmodelshader::eUseInstancing);
 			}
 
 			if (isSkinnedModel == true)
 			{
-				SetBitMask64(nMask, EmModelShader::eUseSkinning);
+				SetBitMask64(nMask, Emmodelshader::eUseSkinning);
 			}
 
 			if (isWriteDepth == true)
 			{
-				SetBitMask64(nMask, EmModelShader::eUseWriteDepth);
+				SetBitMask64(nMask, Emmodelshader::eUseWriteDepth);
 			}
 
 			if (isCubeMap == true)
 			{
-				SetBitMask64(nMask, EmModelShader::eUseCubeMap);
+				SetBitMask64(nMask, Emmodelshader::eUseCubeMap);
 			}
 
 			if (isAlphaBlend_Pre == true || isAlphaBlend_Post == true)
 			{
-				SetBitMask64(nMask, EmModelShader::eUseAlphaBlending);
+				SetBitMask64(nMask, Emmodelshader::eUseAlphaBlending);
 			}
 
 			bool isEnableTessellation = false;
@@ -317,24 +317,24 @@ namespace EastEngine
 					if (pTexture == nullptr)
 						return false;
 
-					return pTexture->GetLoadState() == EmLoadState::eComplete;
+					return pTexture->GetState() == EmLoadState::eComplete;
 				};
 
-				SetBitMask64(nMask, IsValidTexture(EmMaterial::eAlbedo) == true ? EmModelShader::eUseTexAlbedo : -1);
-				SetBitMask64(nMask, IsValidTexture(EmMaterial::eMask) == true ? EmModelShader::eUseTexMask : -1);
-				SetBitMask64(nMask, IsValidTexture(EmMaterial::eNormal) == true ? EmModelShader::eUseTexNormal : -1);
-				SetBitMask64(nMask, IsValidTexture(EmMaterial::eRoughness) == true ? EmModelShader::eUseTexRoughness : -1);
-				SetBitMask64(nMask, IsValidTexture(EmMaterial::eMetallic) == true ? EmModelShader::eUseTexMetallic : -1);
-				SetBitMask64(nMask, IsValidTexture(EmMaterial::eEmissive) == true ? EmModelShader::eUseTexEmissive : -1);
-				SetBitMask64(nMask, IsValidTexture(EmMaterial::eEmissiveColor) == true ? EmModelShader::eUseTexEmissiveColor : -1);
-				SetBitMask64(nMask, IsValidTexture(EmMaterial::eSubsurface) == true ? EmModelShader::eUseTexSubsurface : -1);
-				SetBitMask64(nMask, IsValidTexture(EmMaterial::eSpecular) == true ? EmModelShader::eUseTexSpecular : -1);
-				SetBitMask64(nMask, IsValidTexture(EmMaterial::eSpecularTint) == true ? EmModelShader::eUseTexSpecularTint : -1);
-				SetBitMask64(nMask, IsValidTexture(EmMaterial::eAnisotropic) == true ? EmModelShader::eUseTexAnisotropic : -1);
-				SetBitMask64(nMask, IsValidTexture(EmMaterial::eSheen) == true ? EmModelShader::eUseTexSheen : -1);
-				SetBitMask64(nMask, IsValidTexture(EmMaterial::eSheenTint) == true ? EmModelShader::eUseTexSheenTint : -1);
-				SetBitMask64(nMask, IsValidTexture(EmMaterial::eClearcoat) == true ? EmModelShader::eUseTexClearcoat : -1);
-				SetBitMask64(nMask, IsValidTexture(EmMaterial::eClearcoatGloss) == true ? EmModelShader::eUseTexClearcoatGloss : -1);
+				SetBitMask64(nMask, IsValidTexture(EmMaterial::eAlbedo) == true ? Emmodelshader::eUseTexAlbedo : -1);
+				SetBitMask64(nMask, IsValidTexture(EmMaterial::eMask) == true ? Emmodelshader::eUseTexMask : -1);
+				SetBitMask64(nMask, IsValidTexture(EmMaterial::eNormal) == true ? Emmodelshader::eUseTexNormal : -1);
+				SetBitMask64(nMask, IsValidTexture(EmMaterial::eRoughness) == true ? Emmodelshader::eUseTexRoughness : -1);
+				SetBitMask64(nMask, IsValidTexture(EmMaterial::eMetallic) == true ? Emmodelshader::eUseTexMetallic : -1);
+				SetBitMask64(nMask, IsValidTexture(EmMaterial::eEmissive) == true ? Emmodelshader::eUseTexEmissive : -1);
+				SetBitMask64(nMask, IsValidTexture(EmMaterial::eEmissiveColor) == true ? Emmodelshader::eUseTexEmissiveColor : -1);
+				SetBitMask64(nMask, IsValidTexture(EmMaterial::eSubsurface) == true ? Emmodelshader::eUseTexSubsurface : -1);
+				SetBitMask64(nMask, IsValidTexture(EmMaterial::eSpecular) == true ? Emmodelshader::eUseTexSpecular : -1);
+				SetBitMask64(nMask, IsValidTexture(EmMaterial::eSpecularTint) == true ? Emmodelshader::eUseTexSpecularTint : -1);
+				SetBitMask64(nMask, IsValidTexture(EmMaterial::eAnisotropic) == true ? Emmodelshader::eUseTexAnisotropic : -1);
+				SetBitMask64(nMask, IsValidTexture(EmMaterial::eSheen) == true ? Emmodelshader::eUseTexSheen : -1);
+				SetBitMask64(nMask, IsValidTexture(EmMaterial::eSheenTint) == true ? Emmodelshader::eUseTexSheenTint : -1);
+				SetBitMask64(nMask, IsValidTexture(EmMaterial::eClearcoat) == true ? Emmodelshader::eUseTexClearcoat : -1);
+				SetBitMask64(nMask, IsValidTexture(EmMaterial::eClearcoatGloss) == true ? Emmodelshader::eUseTexClearcoatGloss : -1);
 
 				if (isAlphaBlend_Post == true)
 				{
@@ -342,16 +342,16 @@ namespace EastEngine
 						pMaterial->GetDepthStencilState() == EmDepthStencilState::eRead_On_Write_Off)
 						return;
 
-					SetBitMask64(nMask, EmModelShader::eUseAlbedoAlphaIsMaskMap);
+					SetBitMask64(nMask, Emmodelshader::eUseAlbedoAlphaIsMaskMap);
 				}
 				else
 				{
-					SetBitMask64(nMask, pMaterial->IsAlbedoAlphaChannelMaskMap() == true ? EmModelShader::eUseAlbedoAlphaIsMaskMap : -1);
+					SetBitMask64(nMask, pMaterial->IsAlbedoAlphaChannelMaskMap() == true ? Emmodelshader::eUseAlbedoAlphaIsMaskMap : -1);
 				}
 
-				if (Config::IsEnable("Tessellation"_s) == true && Math::IsZero(pMaterial->GetTessellationFactor() - 1.f) == false)
+				if (Config::IsEnable("Tessellation"_s) == true && math::IsZero(pMaterial->GetTessellationFactor() - 1.f) == false)
 				{
-					SetBitMask64(nMask, EmModelShader::eUseTessellation);
+					SetBitMask64(nMask, Emmodelshader::eUseTessellation);
 					isEnableTessellation = true;
 				}
 			}
@@ -359,7 +359,7 @@ namespace EastEngine
 			{
 				if (Config::IsEnable("Tessellation"_s) == true)
 				{
-					SetBitMask64(nMask, EmModelShader::eUseTessellation);
+					SetBitMask64(nMask, Emmodelshader::eUseTessellation);
 					isEnableTessellation = true;
 				}
 			}
@@ -368,12 +368,12 @@ namespace EastEngine
 			if (pEffect == nullptr || pEffect->IsValid() == false)
 			{
 				int64_t nDefaultMask = 0;
-				SetBitMask64(nDefaultMask, isInstancing == true ? EmModelShader::eUseInstancing : -1);
-				SetBitMask64(nDefaultMask, isSkinnedModel == true ? EmModelShader::eUseSkinning : -1);
-				SetBitMask64(nDefaultMask, isWriteDepth == true ? EmModelShader::eUseWriteDepth : -1);
-				SetBitMask64(nDefaultMask, isCubeMap == true ? EmModelShader::eUseCubeMap : -1);
-				SetBitMask64(nDefaultMask, isEnableTessellation == true ? EmModelShader::eUseTessellation : -1);
-				SetBitMask64(nDefaultMask, (isAlphaBlend_Pre == true || isAlphaBlend_Post == true) ? EmModelShader::eUseAlphaBlending : -1);
+				SetBitMask64(nDefaultMask, isInstancing == true ? Emmodelshader::eUseInstancing : -1);
+				SetBitMask64(nDefaultMask, isSkinnedModel == true ? Emmodelshader::eUseSkinning : -1);
+				SetBitMask64(nDefaultMask, isWriteDepth == true ? Emmodelshader::eUseWriteDepth : -1);
+				SetBitMask64(nDefaultMask, isCubeMap == true ? Emmodelshader::eUseCubeMap : -1);
+				SetBitMask64(nDefaultMask, isEnableTessellation == true ? Emmodelshader::eUseTessellation : -1);
+				SetBitMask64(nDefaultMask, (isAlphaBlend_Pre == true || isAlphaBlend_Post == true) ? Emmodelshader::eUseAlphaBlending : -1);
 
 				pEffect = GetEffect(nDefaultMask);
 				if (pEffect == nullptr || pEffect->IsValid() == false)
@@ -421,41 +421,41 @@ namespace EastEngine
 			{
 				pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
 
-				Math::Vector4 f4FrustumNormals[4];
+				math::Vector4 f4FrustumNormals[4];
 				{
 					float clipNear = -matProj._43 / matProj._33;
 					float clipFar = clipNear * matProj._33 / (matProj._33 - 1.f);
 
-					Math::Vector3 f3CameraFrustum[4];
+					math::Vector3 f3CameraFrustum[4];
 
-					Math::Vector3 f3CenterFar = f3CameraPos + pMatViews->Forward() * clipFar;
-					Math::Vector3 f3OffsetH = (clipFar / matProj._11) * pMatViews->Right();
-					Math::Vector3 f3OffsetV = (clipFar / matProj._22) * pMatViews->Up();
+					math::Vector3 f3CenterFar = f3CameraPos + pMatViews->Forward() * clipFar;
+					math::Vector3 f3OffsetH = (clipFar / matProj._11) * pMatViews->Right();
+					math::Vector3 f3OffsetV = (clipFar / matProj._22) * pMatViews->Up();
 					f3CameraFrustum[0] = f3CenterFar - f3OffsetV - f3OffsetH;
 					f3CameraFrustum[1] = f3CenterFar + f3OffsetV - f3OffsetH;
 					f3CameraFrustum[2] = f3CenterFar + f3OffsetV + f3OffsetH;
 					f3CameraFrustum[3] = f3CenterFar - f3OffsetV + f3OffsetH;
 
 					// left/top planes normals
-					Math::Vector3 f3Normal;
-					Math::Vector3 f3Temp = f3CameraFrustum[1] - f3CameraPos;
+					math::Vector3 f3Normal;
+					math::Vector3 f3Temp = f3CameraFrustum[1] - f3CameraPos;
 					f3Normal = f3Temp.Cross(pMatViews->Up());
 					f3Normal.Normalize();
-					f4FrustumNormals[0] = Math::Vector4(f3Normal.x, f3Normal.y, f3Normal.z, 0.f);
+					f4FrustumNormals[0] = math::Vector4(f3Normal.x, f3Normal.y, f3Normal.z, 0.f);
 
 					f3Normal = f3Temp.Cross(pMatViews->Right());
 					f3Normal.Normalize();
-					f4FrustumNormals[1] = Math::Vector4(f3Normal.x, f3Normal.y, f3Normal.z, 0.f);
+					f4FrustumNormals[1] = math::Vector4(f3Normal.x, f3Normal.y, f3Normal.z, 0.f);
 
 					// right/bottom planes normals
 					f3Temp = f3CameraFrustum[3] - f3CameraPos;
 					f3Normal = pMatViews->Up().Cross(f3Temp);
 					f3Normal.Normalize();
-					f4FrustumNormals[2] = Math::Vector4(f3Normal.x, f3Normal.y, f3Normal.z, 0.f);
+					f4FrustumNormals[2] = math::Vector4(f3Normal.x, f3Normal.y, f3Normal.z, 0.f);
 
 					f3Normal = pMatViews->Right().Cross(f3Temp);
 					f3Normal.Normalize();
-					f4FrustumNormals[2] = Math::Vector4(f3Normal.x, f3Normal.y, f3Normal.z, 0.f);
+					f4FrustumNormals[2] = math::Vector4(f3Normal.x, f3Normal.y, f3Normal.z, 0.f);
 				}
 				pEffect->SetVector(StrID::g_FrustumOrigin, f3CameraPos);
 				pEffect->SetVectorArray(StrID::g_FrustumNormals, f4FrustumNormals, 0, 4);
@@ -499,8 +499,8 @@ namespace EastEngine
 			{
 				if (pMaterial != nullptr)
 				{
-					pEffect->SetVector(StrID::g_f4AlbedoColor, reinterpret_cast<const Math::Vector4&>(pMaterial->GetAlbedoColor()));
-					pEffect->SetVector(StrID::g_f4EmissiveColor, reinterpret_cast<const Math::Vector4&>(pMaterial->GetEmissiveColor()));
+					pEffect->SetVector(StrID::g_f4AlbedoColor, reinterpret_cast<const math::Vector4&>(pMaterial->GetAlbedoColor()));
+					pEffect->SetVector(StrID::g_f4EmissiveColor, reinterpret_cast<const math::Vector4&>(pMaterial->GetEmissiveColor()));
 
 					pEffect->SetVector(StrID::g_f4PaddingRoughMetEmi, pMaterial->GetPaddingRoughMetEmi());
 					pEffect->SetVector(StrID::g_f4SurSpecTintAniso, pMaterial->GetSurSpecTintAniso());
@@ -562,12 +562,12 @@ namespace EastEngine
 				}
 				else
 				{
-					pEffect->SetVector(StrID::g_f4AlbedoColor, reinterpret_cast<const Math::Vector4&>(Math::Color::White));
-					pEffect->SetVector(StrID::g_f4EmissiveColor, reinterpret_cast<const Math::Vector4&>(Math::Color::Black));
+					pEffect->SetVector(StrID::g_f4AlbedoColor, reinterpret_cast<const math::Vector4&>(math::Color::White));
+					pEffect->SetVector(StrID::g_f4EmissiveColor, reinterpret_cast<const math::Vector4&>(math::Color::Black));
 
-					pEffect->SetVector(StrID::g_f4PaddingRoughMetEmi, reinterpret_cast<const Math::Vector4&>(Math::Color::Transparent));
-					pEffect->SetVector(StrID::g_f4SurSpecTintAniso, reinterpret_cast<const Math::Vector4&>(Math::Color::Transparent));
-					pEffect->SetVector(StrID::g_f4SheenTintClearcoatGloss, reinterpret_cast<const Math::Vector4&>(Math::Color::Transparent));
+					pEffect->SetVector(StrID::g_f4PaddingRoughMetEmi, reinterpret_cast<const math::Vector4&>(math::Color::Transparent));
+					pEffect->SetVector(StrID::g_f4SurSpecTintAniso, reinterpret_cast<const math::Vector4&>(math::Color::Transparent));
+					pEffect->SetVector(StrID::g_f4SheenTintClearcoatGloss, reinterpret_cast<const math::Vector4&>(math::Color::Transparent));
 
 					pEffect->SetFloat(StrID::g_fStippleTransparencyFactor, 0.f);
 
@@ -657,7 +657,7 @@ namespace EastEngine
 			}
 			else
 			{
-				const Math::Matrix& matWorld = *static_cast<const Math::Matrix*>(pInstanceData);
+				const math::Matrix& matWorld = *static_cast<const math::Matrix*>(pInstanceData);
 				pEffect->SetMatrix(StrID::g_matWorld, matWorld);
 
 				if (isSkinnedModel == true)
@@ -704,8 +704,8 @@ namespace EastEngine
 			void RenderStaticModel(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, uint32_t nRenderTypeFlag);
 			void RenderSkinnedModel(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, uint32_t nRenderTypeFlag);
 
-			void RenderStaticModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, const Math::Matrix* pMatView, const Math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap);
-			void RenderSkinnedModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, const Math::Matrix* pMatView, const Math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap);
+			void RenderStaticModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, const math::Matrix* pMatView, const math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap);
+			void RenderSkinnedModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, const math::Matrix* pMatView, const math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap);
 
 		private:
 			struct StaticSubset
@@ -745,7 +745,7 @@ namespace EastEngine
 				const StaticSubset* pSubset = nullptr;
 				std::vector<InstStaticData> vecInstData;
 
-				RenderSubsetStaticBatch(const StaticSubset* pSubset, const Math::Matrix& matWorld)
+				RenderSubsetStaticBatch(const StaticSubset* pSubset, const math::Matrix& matWorld)
 					: pSubset(pSubset)
 				{
 					vecInstData.emplace_back(matWorld);
@@ -757,7 +757,7 @@ namespace EastEngine
 				const SkinnedSubset* pSubset = nullptr;
 				std::vector<InstSkinnedData> vecInstData;
 
-				RenderSubsetSkinnedBatch(const SkinnedSubset* pSubset, const Math::Matrix& matWorld, uint32_t nVTFID)
+				RenderSubsetSkinnedBatch(const SkinnedSubset* pSubset, const math::Matrix& matWorld, uint32_t nVTFID)
 					: pSubset(pSubset)
 				{
 					vecInstData.emplace_back(matWorld, nVTFID);
@@ -785,7 +785,7 @@ namespace EastEngine
 
 		void ModelRenderer::Impl::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
 		{
-			PERF_TRACER_EVENT("ModelRenderer::Render", "");
+			TRACER_EVENT("ModelRenderer::Render");
 			D3D_PROFILING(pDeviceContext, ModelRenderer);
 
 			OcclusionCulling(pCamera, nRenderGroupFlag);
@@ -797,7 +797,7 @@ namespace EastEngine
 			IRenderTarget** ppRenderTarget = nullptr;
 			uint32_t nRenderTargetCount = 0;
 			{
-				PERF_TRACER_EVENT("ModelRenderer::Render", "Ready");
+				TRACER_EVENT("Ready");
 				D3D_PROFILING(pDeviceContext, Ready);
 				pDeviceContext->ClearState();
 
@@ -876,8 +876,8 @@ namespace EastEngine
 									{
 										pDeviceContext->SetViewport(pCascadedShadows->GetViewport(nCascadeLevel));
 
-										const Math::Matrix& matView = pCascadedShadows->GetViewMatrix(nCascadeLevel);
-										const Math::Matrix& matProj = pCascadedShadows->GetProjectionMatrix(nCascadeLevel);
+										const math::Matrix& matView = pCascadedShadows->GetViewMatrix(nCascadeLevel);
+										const math::Matrix& matProj = pCascadedShadows->GetProjectionMatrix(nCascadeLevel);
 
 										const Collision::Frustum& frustum = pCascadedShadows->GetFrustum(nCascadeLevel);
 
@@ -901,14 +901,14 @@ namespace EastEngine
 
 									pDeviceContext->SetViewport(pShadowCubeMap->GetViewport());
 
-									std::array<Math::Matrix, IShadowCubeMap::DirectionCount> matViews;
+									std::array<math::Matrix, IShadowCubeMap::DirectionCount> matViews;
 									for (int k = 0; k < IShadowCubeMap::DirectionCount; ++k)
 									{
 										IShadowCubeMap::EmDirection emDirection = static_cast<IShadowCubeMap::EmDirection>(k);
 										matViews[k] = pShadowCubeMap->GetViewMatrix(emDirection);
 									}
 
-									const Math::Matrix& matProj = pShadowCubeMap->GetProjectionMatrix();
+									const math::Matrix& matProj = pShadowCubeMap->GetProjectionMatrix();
 
 									const Collision::Frustum& frustum = pShadowCubeMap->GetFrustum(IShadowCubeMap::EmDirection::eFront);
 
@@ -931,8 +931,8 @@ namespace EastEngine
 
 									pDeviceContext->SetViewport(pShadowMap->GetViewport());
 
-									const Math::Matrix& matView = pShadowMap->GetViewMatrix();
-									const Math::Matrix& matProj = pShadowMap->GetProjectionMatrix();
+									const math::Matrix& matView = pShadowMap->GetViewMatrix();
+									const math::Matrix& matProj = pShadowMap->GetProjectionMatrix();
 
 									const Collision::Frustum& frustum = pShadowMap->GetFrustum();
 
@@ -1014,7 +1014,7 @@ namespace EastEngine
 		{
 			//if (Config::IsEnable("OcclusionCulling"_s) == true && nRenderGroupFlag == eDeferred)
 			//{
-			//	const Math::Matrix matViewport
+			//	const math::Matrix matViewport
 			//	(
 			//		1.f, 0.f, 0.f, 0.f,
 			//		0.f, -1.f, 0.f, 0.f,
@@ -1022,7 +1022,7 @@ namespace EastEngine
 			//		0.f, 0.f, 0.f, 1.f
 			//	);
 
-			//	const Math::Matrix matClipSpace = pCamera->GetViewMatrix() * pCamera->GetProjMatrix() * matViewport;
+			//	const math::Matrix matClipSpace = pCamera->GetViewMatrix() * pCamera->GetProjMatrix() * matViewport;
 
 			//	const Collision::Frustum& frustum = pCamera->GetFrustum();
 
@@ -1047,7 +1047,7 @@ namespace EastEngine
 			//		const uint32_t* pIndices = renderSubset.pIndexBuffer->GetRawValuePtr();
 			//		const size_t nIndexCount = renderSubset.pIndexBuffer->GetIndexNum();
 			//		//OcclusionCulling::GetInstance()->RenderTriangles(renderSubset.matWorld * matClipSpace, pVertexClipSpace, pIndices, nIndexCount);
-			//		OcclusionCulling::GetInstance()->RenderTriangles(Math::Matrix::Identity, subset.vecVertexClipSpace.data(), pIndices, nIndexCount);
+			//		OcclusionCulling::GetInstance()->RenderTriangles(math::Matrix::Identity, subset.vecVertexClipSpace.data(), pIndices, nIndexCount);
 			//	}
 			//	OcclusionCulling::GetInstance()->Flush();
 			//	OcclusionCulling::GetInstance()->End();
@@ -1064,7 +1064,7 @@ namespace EastEngine
 			//		const uint32_t* pIndices = renderSubset.pIndexBuffer->GetRawValuePtr();
 			//		const size_t nIndexCount = renderSubset.pIndexBuffer->GetIndexNum();
 			//		//OcclusionCulling::Result emResult = OcclusionCulling::GetInstance()->TestTriangles(renderSubset.matWorld * matClipSpace, pVertexClipSpace, pIndices, nIndexCount);
-			//		OcclusionCulling::Result emResult = OcclusionCulling::GetInstance()->RenderTriangles(Math::Matrix::Identity, subset.vecVertexClipSpace.data(), pIndices, nIndexCount);
+			//		OcclusionCulling::Result emResult = OcclusionCulling::GetInstance()->RenderTriangles(math::Matrix::Identity, subset.vecVertexClipSpace.data(), pIndices, nIndexCount);
 			//		if (emResult != OcclusionCulling::eVisible)
 			//		{
 			//			subset.isCulling = true;
@@ -1075,14 +1075,14 @@ namespace EastEngine
 
 		void ModelRenderer::Impl::RenderStaticModel(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, uint32_t nRenderTypeFlag)
 		{
-			PERF_TRACER_EVENT("ModelRenderer::RenderStaticModel", "");
+			TRACER_EVENT("ModelRenderer::RenderStaticModel");
 			D3D_PROFILING(pDeviceContext, StaticModel);
 			{
 				int nThreadID = GetThreadID(ThreadType::eRender);
-				const Math::Matrix& matView = pCamera->GetViewMatrix(nThreadID);
-				const Math::Matrix& matProj = pCamera->GetProjMatrix(nThreadID);
+				const math::Matrix& matView = pCamera->GetViewMatrix(nThreadID);
+				const math::Matrix& matProj = pCamera->GetProjMatrix(nThreadID);
 				const Collision::Frustum& frustum = pCamera->GetFrustum(nThreadID);
-				const Math::Vector3 f3Position = matView.Invert().Translation();
+				const math::Vector3 f3Position = matView.Invert().Translation();
 
 				std::map<std::pair<const void*, IMaterial*>, RenderSubsetStaticBatch> mapStatic;
 				{
@@ -1157,14 +1157,14 @@ namespace EastEngine
 
 		void ModelRenderer::Impl::RenderSkinnedModel(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, uint32_t nRenderTypeFlag)
 		{
-			PERF_TRACER_EVENT("ModelRenderer::RenderSkinnedModel", "");
+			TRACER_EVENT("ModelRenderer::RenderSkinnedModel");
 			D3D_PROFILING(pDeviceContext, SkinnedModel);
 			{
 				int nThreadID = GetThreadID(ThreadType::eRender);
-				const Math::Matrix& matView = pCamera->GetViewMatrix(nThreadID);
-				const Math::Matrix& matProj = pCamera->GetProjMatrix(nThreadID);
+				const math::Matrix& matView = pCamera->GetViewMatrix(nThreadID);
+				const math::Matrix& matProj = pCamera->GetProjMatrix(nThreadID);
 				const Collision::Frustum& frustum = pCamera->GetFrustum(nThreadID);
-				const Math::Vector3 f3Position = matView.Invert().Translation();
+				const math::Vector3 f3Position = matView.Invert().Translation();
 
 				std::map<std::pair<const void*, IMaterial*>, RenderSubsetSkinnedBatch> mapSkinned;
 				{
@@ -1226,9 +1226,9 @@ namespace EastEngine
 			}
 		}
 
-		void ModelRenderer::Impl::RenderStaticModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, const Math::Matrix* pMatView, const Math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap)
+		void ModelRenderer::Impl::RenderStaticModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, const math::Matrix* pMatView, const math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap)
 		{
-			PERF_TRACER_EVENT("ModelRenderer::RenderStaticModel_Shadow", "");
+			TRACER_EVENT("ModelRenderer::RenderStaticModel_Shadow");
 			D3D_PROFILING(pDeviceContext, StaticModel_ShadowDepth);
 
 			int nThreadID = GetThreadID(ThreadType::eRender);
@@ -1294,9 +1294,9 @@ namespace EastEngine
 			mapStatic.clear();
 		}
 
-		void ModelRenderer::Impl::RenderSkinnedModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, const Math::Matrix* pMatView, const Math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap)
+		void ModelRenderer::Impl::RenderSkinnedModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, const math::Matrix* pMatView, const math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap)
 		{
-			PERF_TRACER_EVENT("ModelRenderer::RenderSkinnedModel_Shadow", "");
+			TRACER_EVENT("ModelRenderer::RenderSkinnedModel_Shadow");
 			D3D_PROFILING(pDeviceContext, SkinnedModel_ShadowDepth);
 
 			int nThreadID = GetThreadID(ThreadType::eRender);

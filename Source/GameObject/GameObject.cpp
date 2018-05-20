@@ -12,14 +12,14 @@
 #include "SkyManager.h"
 #include "Skybox.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace GameObject
+	namespace gameobject
 	{
 		IActor* IActor::CreateByFile(const char* strFilePath)
 		{
-			File::Stream file;
-			if (file.Open(strFilePath, File::eRead | File::eBinary) == false)
+			file::Stream file;
+			if (file.Open(strFilePath, file::eRead | file::eBinary) == false)
 			{
 				LOG_WARNING("Can't open to file : %s", strFilePath);
 				return nullptr;
@@ -69,8 +69,8 @@ namespace EastEngine
 
 		bool IActor::SaveToFile(IActor* pActor, const char* strFilePath)
 		{
-			File::Stream file;
-			if (file.Open(strFilePath, File::eWrite | File::eBinary) == false)
+			file::Stream file;
+			if (file.Open(strFilePath, file::eWrite | file::eBinary) == false)
 			{
 				LOG_WARNING("Can't open to file : %s", strFilePath);
 				return false;

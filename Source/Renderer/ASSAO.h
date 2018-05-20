@@ -36,9 +36,9 @@ class IDeviceContext;
 // If enabled, will use ASSAO_Inputs::NormalsWorldToViewspaceMatrix, otherwise it is ignored (compiled out) as it adds approx 3% to the overall cost
 #define INTEL_SSAO_ENABLE_NORMAL_WORLD_TO_VIEW_CONVERSION
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class Camera;
 		class IRenderTarget;
@@ -78,11 +78,11 @@ namespace EastEngine
 
 			// Requires a projection matrix created with xxxPerspectiveFovLH or equivalent, not tested (yet) for right-handed
 			// coordinates and will likely break for ortho projections.
-			Math::Matrix ProjectionMatrix;
+			math::Matrix ProjectionMatrix;
 
 #ifdef INTEL_SSAO_ENABLE_NORMAL_WORLD_TO_VIEW_CONVERSION
 			// In case normals are in world space, matrix used to convert them to viewspace
-			Math::Matrix NormalsWorldToViewspaceMatrix;
+			math::Matrix NormalsWorldToViewspaceMatrix;
 #endif
 
 			bool MatricesRowMajorOrder;

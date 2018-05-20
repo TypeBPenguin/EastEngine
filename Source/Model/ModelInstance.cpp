@@ -4,9 +4,9 @@
 #include "Model.h"
 #include "ModelManager.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		MaterialInstance::MaterialInstance()
 		{
@@ -16,7 +16,7 @@ namespace EastEngine
 		{
 			for (auto& nodeMaterial : m_vecMaterials)
 			{
-				IMaterial::Destroy(&nodeMaterial.pMaterial);
+				ReleaseResource(&nodeMaterial.pMaterial);
 			}
 			m_vecMaterials.clear();
 		}
@@ -48,7 +48,7 @@ namespace EastEngine
 		{
 		}
 
-		ModelInstance::AttachmentNode::AttachmentNode(ModelInstance* pInstance, const String::StringID& strNodeName, const Math::Matrix& matOffset, Type emType)
+		ModelInstance::AttachmentNode::AttachmentNode(ModelInstance* pInstance, const String::StringID& strNodeName, const math::Matrix& matOffset, Type emType)
 			: pInstance(pInstance)
 			, strNodeName(strNodeName)
 			, matOffset(matOffset)
@@ -134,13 +134,13 @@ namespace EastEngine
 			m_pModel->Update(m_fElapsedTime, m_matParent, &m_skeletonInstance, &m_materialInstance);
 		}
 
-		void ModelInstance::Update(float fElapsedTime, const Math::Matrix& matParent)
+		void ModelInstance::Update(float fElapsedTime, const math::Matrix& matParent)
 		{
 			m_fElapsedTime = fElapsedTime;
 			m_matParent = m_pModel->GetLocalMatrix() * matParent;
 		}
 
-		bool ModelInstance::Attachment(IModelInstance* pInstance, const String::StringID& strNodeName, const Math::Matrix& matOffset)
+		bool ModelInstance::Attachment(IModelInstance* pInstance, const String::StringID& strNodeName, const math::Matrix& matOffset)
 		{
 			if (IsLoadComplete() == false)
 				return false;
@@ -159,7 +159,7 @@ namespace EastEngine
 			return false;
 		}
 
-		bool ModelInstance::Attachment(IModelInstance* pInstance, const Math::Matrix& matOffset)
+		bool ModelInstance::Attachment(IModelInstance* pInstance, const math::Matrix& matOffset)
 		{
 			if (IsLoadComplete() == false)
 				return false;
@@ -204,7 +204,7 @@ namespace EastEngine
 
 		bool ModelInstance::IsLoadComplete() const
 		{
-			return m_pModel->GetLoadState() == EmLoadState::eComplete;
+			return m_pModel->GetState() == IResource::eComplete;
 		}
 
 		void ModelInstance::ChangeMaterial(const String::StringID& strNodeName, uint32_t nIndex, IMaterial* pMaterial)

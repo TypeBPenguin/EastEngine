@@ -3,9 +3,9 @@
 
 #include "D3DInterface.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		GBuffers::GBuffers()
 		{
@@ -20,7 +20,7 @@ namespace EastEngine
 			}
 		}
 
-		bool GBuffers::Init(const Math::Viewport& viewport)
+		bool GBuffers::Init(const math::Viewport& viewport)
 		{
 			RenderTargetDesc2D renderTargetInfo;
 			renderTargetInfo.Width = static_cast<uint32_t>(viewport.width);

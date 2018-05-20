@@ -1,9 +1,9 @@
 #include "stdafx.h"
 #include "Keyboard.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Input
+	namespace input
 	{
 		KeyboardInstance::KeyboardInstance()
 			: m_pKeyboard(nullptr)
@@ -16,18 +16,21 @@ namespace EastEngine
 		{
 		}
 
-		bool KeyboardInstance::Init(HWND hWnd, IDirectInput8A* pInput, DWORD keyboardCoopFlag)
+		void KeyboardInstance::Initialize(HWND hWnd, IDirectInput8A* pInput, DWORD keyboardCoopFlag)
 		{
 			if (pInput == nullptr)
-				return false;
+				return;
 
 			// 키보드 디바이스 생성
-			pInput->CreateDevice(GUID_SysKeyboard, &m_pKeyboard, 0);
+			HRESULT hr = pInput->CreateDevice(GUID_SysKeyboard, &m_pKeyboard, 0);
+			if (FAILED(hr))
+			{
+				throw_line("failed to create keyboard device");
+			}
+
 			m_pKeyboard->SetDataFormat(&c_dfDIKeyboard);
 			m_pKeyboard->SetCooperativeLevel(hWnd, keyboardCoopFlag);
 			m_pKeyboard->Acquire();
-
-			return true;
 		}
 
 		void KeyboardInstance::Release()
@@ -41,7 +44,7 @@ namespace EastEngine
 
 		void KeyboardInstance::Update()
 		{
-			PERF_TRACER_EVENT("KeyboardInstance::Update", "");
+			TRACER_EVENT("KeyboardInstance::Update");
 			Memory::Copy(&m_oldKeyState, sizeof(m_oldKeyState), &m_curKeyState, sizeof(m_curKeyState));
 
 			HRESULT hr = m_pKeyboard->GetDeviceState(sizeof(m_curKeyState), reinterpret_cast<void**>(&m_curKeyState));

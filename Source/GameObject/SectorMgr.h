@@ -2,9 +2,9 @@
 
 #include "Sector.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace GameObject
+	namespace gameobject
 	{
 		struct SectorInitInfo
 		{

@@ -4,9 +4,9 @@
 
 #include "D3DInterface.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class DeviceContext;
 		class DeferredContext;
@@ -88,7 +88,7 @@ namespace EastEngine
 			virtual IDepthStencilState* GetDepthStencilState(const DepthStencilStateDesc& depthStencilStateDesc) override;
 			virtual IDepthStencilState* GetDepthStencilState(EmDepthStencilState::Type emDepthStencilState) override;
 
-			virtual const Math::Viewport& GetViewport() override { return m_viewport;}
+			virtual const math::Viewport& GetViewport() override { return m_viewport;}
 
 		public:
 			virtual void SetDebugName(ID3D11DeviceChild* pResource, const std::string& strName) override
@@ -100,7 +100,7 @@ namespace EastEngine
 
 		public:
 			virtual HWND GetHWND() override { return m_hWnd; }
-			virtual const Math::UInt2& GetScreenSize() const override { return m_n2ScreenSize; }
+			virtual const math::UInt2& GetScreenSize() const override { return m_n2ScreenSize; }
 			virtual bool IsFullScreen() const override { return m_isFullScreen; }
 			virtual bool IsVSync() const override { return m_isVsync; }
 			virtual void SetVSync(bool isVSync) override { m_isVsync = isVSync; }
@@ -125,7 +125,7 @@ namespace EastEngine
 		private:
 			HWND m_hWnd;
 
-			Math::UInt2 m_n2ScreenSize;
+			math::UInt2 m_n2ScreenSize;
 
 			bool m_isInit;
 			bool m_isVsync;
@@ -135,7 +135,7 @@ namespace EastEngine
 
 			std::vector<DXGI_MODE_DESC> m_vecDisplayModes;
 
-			Math::Viewport m_viewport;
+			math::Viewport m_viewport;
 
 			IDXGISwapChain1* m_pSwapChain;
 			ID3D11Device* m_pd3dDevice;

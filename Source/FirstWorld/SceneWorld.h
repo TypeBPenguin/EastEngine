@@ -2,10 +2,10 @@
 
 #include "Engine/SceneManager.h"
 
-class SceneWorld : public EastEngine::IScene
+class SceneWorld : public eastengine::IScene
 {
 public:
-	SceneWorld(const EastEngine::String::StringID& strSceneName);
+	SceneWorld(const eastengine::String::StringID& strSceneName);
 	virtual ~SceneWorld();
 
 public:

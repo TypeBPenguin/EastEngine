@@ -23,9 +23,9 @@ namespace StrID
 	RegisterStringID(ScreenTexture);
 }
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		BloomFilter::BloomFilter()
 			: m_isInit(false)
@@ -50,7 +50,7 @@ namespace EastEngine
 
 			m_isInit = true;
 
-			std::string strPath(File::GetPath(File::EmPath::eFx));
+			std::string strPath(file::GetPath(file::EmPath::eFx));
 
 #if defined(DEBUG) || defined(_DEBUG)
 			strPath.append("PostProcessing\\BloomFilter\\BloomFilter_D.cso");
@@ -84,7 +84,7 @@ namespace EastEngine
 
 		void ApplyEffect(IDeviceContext* pDeviceContext, IEffect* pEffect, IEffectTech* pTech, IRenderTarget* pResult)
 		{
-			Math::Viewport viewport;
+			math::Viewport viewport;
 			viewport.width = static_cast<float>(pResult->GetSize().x);
 			viewport.height = static_cast<float>(pResult->GetSize().y);
 			pDeviceContext->SetViewport(viewport);
@@ -104,7 +104,7 @@ namespace EastEngine
 			if (pSource == nullptr || pSource->GetTexture() == nullptr)
 				return false;
 
-			PERF_TRACER_EVENT("BloomFilter::Apply", "");
+			TRACER_EVENT("BloomFilter::Apply");
 			D3D_PROFILING(pDeviceContext, BloomFilter);
 
 			SetBloomPreset(m_settings.emPreset);
@@ -115,11 +115,11 @@ namespace EastEngine
 			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eRead_Write_Off);
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-			const Math::UInt2& n2Size = pSource->GetSize();
-			const Math::UInt2 n2TargetSize(n2Size.x / 2, n2Size.y / 2);
+			const math::UInt2& n2Size = pSource->GetSize();
+			const math::UInt2 n2TargetSize(n2Size.x / 2, n2Size.y / 2);
 			m_fRadiusMultiplier = static_cast<float>(n2Size.x) / n2TargetSize.x;
 
-			auto Sampling = [&](bool isResult, uint32_t nWidth, uint32_t nHeight, int nPass, const Math::Vector2& f2InverseResolution, IRenderTarget* pSource, const String::StringID& strTechName, IRenderTarget* pResult = nullptr) -> IRenderTarget*
+			auto Sampling = [&](bool isResult, uint32_t nWidth, uint32_t nHeight, int nPass, const math::Vector2& f2InverseResolution, IRenderTarget* pSource, const String::StringID& strTechName, IRenderTarget* pResult = nullptr) -> IRenderTarget*
 			{
 				if (m_nDownsamplePasses > nPass)
 				{
@@ -161,7 +161,7 @@ namespace EastEngine
 
 			pDeviceContext->SetBlendState(EmBlendState::eOpacity);
 
-			Math::Vector2 f2InverseResolution(1.f / n2TargetSize.x, 1.f / n2TargetSize.y);
+			math::Vector2 f2InverseResolution(1.f / n2TargetSize.x, 1.f / n2TargetSize.y);
 			IRenderTarget* pMip0 = Sampling(true, n2TargetSize.x, n2TargetSize.y, 0, f2InverseResolution, pSource, m_settings.isEnableLuminance ? StrID::ExtractLuminance : StrID::Extract);
 
 			IRenderTarget* pMip1 = Sampling(false, n2TargetSize.x, n2TargetSize.y, 0, f2InverseResolution, pMip0, StrID::Downsample);

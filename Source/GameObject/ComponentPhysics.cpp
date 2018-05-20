@@ -8,11 +8,11 @@
 
 #include "GameObject.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace GameObject
+	namespace gameobject
 	{
-		PhysicsNode::PhysicsNode(const Math::Matrix* pMatWorld, Physics::RigidBody* pRigidBody, Graphics::IModelInstance* pPhysicsModelInstance, Graphics::IModelInstance* pModelInstance)
+		PhysicsNode::PhysicsNode(const math::Matrix* pMatWorld, Physics::RigidBody* pRigidBody, graphics::IModelInstance* pPhysicsModelInstance, graphics::IModelInstance* pModelInstance)
 			: pMatWorld(pMatWorld)
 			, pRigidBody(pRigidBody)
 			, pPhysicsModelInstance(pPhysicsModelInstance)
@@ -36,7 +36,7 @@ namespace EastEngine
 			std::for_each(m_umapPhysicsNode.begin(), m_umapPhysicsNode.end(), [](std::pair<String::StringID, PhysicsNode> key)
 			{
 				SafeDelete(key.second.pRigidBody);
-				Graphics::IModel::DestroyInstance(&key.second.pPhysicsModelInstance);
+				graphics::IModel::DestroyInstance(&key.second.pPhysicsModelInstance);
 			});
 			m_umapPhysicsNode.clear();
 		}
@@ -51,7 +51,7 @@ namespace EastEngine
 			m_isCollisionModelVisible = isCollisionModelVisible;
 		}
 
-		void ComponentPhysics::Init(Graphics::IModelInstance* pModelInstance, const Physics::RigidBodyProperty& rigidBodyProperty, uint32_t nTargetLod, bool isCollisionModelVisible)
+		void ComponentPhysics::Init(graphics::IModelInstance* pModelInstance, const Physics::RigidBodyProperty& rigidBodyProperty, uint32_t nTargetLod, bool isCollisionModelVisible)
 		{
 			m_emRigidBodyType = RigidBodyType::eModel;
 
@@ -61,7 +61,7 @@ namespace EastEngine
 			m_isCollisionModelVisible = isCollisionModelVisible;
 		}
 
-		void ComponentPhysics::Init(const String::StringID& strID, const Graphics::IVertexBuffer* pVertexBuffer, const Graphics::IIndexBuffer* pIndexBuffer, Math::Matrix* pMatWorld, const Physics::RigidBodyProperty& rigidBodyProperty, bool isCollisionModelVisible)
+		void ComponentPhysics::Init(const String::StringID& strID, const graphics::IVertexBuffer* pVertexBuffer, const graphics::IIndexBuffer* pIndexBuffer, math::Matrix* pMatWorld, const Physics::RigidBodyProperty& rigidBodyProperty, bool isCollisionModelVisible)
 		{
 			m_emRigidBodyType = RigidBodyType::eCustom;
 
@@ -70,7 +70,7 @@ namespace EastEngine
 
 			if (pVertexBuffer != nullptr && pIndexBuffer != nullptr)
 			{
-				const Math::Vector3* pVertexPos = reinterpret_cast<const Math::Vector3*>(pVertexBuffer->GetVertexPosPtr());
+				const math::Vector3* pVertexPos = reinterpret_cast<const math::Vector3*>(pVertexBuffer->GetVertexPosPtr());
 				uint32_t nVertexCount = pVertexBuffer->GetVertexNum();
 
 				const uint32_t* pIndices = static_cast<const uint32_t*>(pIndexBuffer->GetRawValuePtr());
@@ -102,16 +102,16 @@ namespace EastEngine
 
 					if (modelRigidBody.pModelInstance != nullptr && modelRigidBody.pModelInstance->IsLoadComplete())
 					{
-						Graphics::IModel* pModel = modelRigidBody.pModelInstance->GetModel();
+						graphics::IModel* pModel = modelRigidBody.pModelInstance->GetModel();
 						const size_t nNodeCount = pModel->GetNodeCount();
 						m_umapPhysicsNode.reserve(nNodeCount);
 
 						for (uint32_t i = 0; i < nNodeCount; ++i)
 						{
-							Graphics::IModelNode* pModelNode = pModel->GetNode(i);
+							graphics::IModelNode* pModelNode = pModel->GetNode(i);
 
 							modelRigidBody.rigidBodyProperty.shapeInfo.SetTriangleMesh(
-								reinterpret_cast<const Math::Vector3*>(pModelNode->GetVertexBuffer()->GetVertexPosPtr()), pModelNode->GetVertexBuffer()->GetVertexNum(),
+								reinterpret_cast<const math::Vector3*>(pModelNode->GetVertexBuffer()->GetVertexPosPtr()), pModelNode->GetVertexBuffer()->GetVertexNum(),
 								pModelNode->GetIndexBuffer()->GetRawValuePtr(), pModelNode->GetIndexBuffer()->GetIndexNum());
 
 							String::StringID strName;
@@ -152,10 +152,10 @@ namespace EastEngine
 
 				iter->second.pRigidBody->Update(fElapsedTime);
 
-				Math::Matrix matWorld = iter->second.pRigidBody->GetWorldMatrix();
+				math::Matrix matWorld = iter->second.pRigidBody->GetWorldMatrix();
 
-				Math::Vector3 f3Pos, f3Scale;
-				Math::Quaternion quat;
+				math::Vector3 f3Pos, f3Scale;
+				math::Quaternion quat;
 				matWorld.Decompose(f3Scale, quat, f3Pos);
 
 				if (m_pOwner != nullptr)
@@ -164,7 +164,7 @@ namespace EastEngine
 					m_pOwner->SetRotation(quat);
 					m_pOwner->CalcWorldMatrix();
 
-					Math::Vector3 f3Velocity = m_pOwner->GetVelocity();
+					math::Vector3 f3Velocity = m_pOwner->GetVelocity();
 					iter->second.pRigidBody->SetLinearVelocity(f3Velocity);
 				}
 
@@ -184,15 +184,15 @@ namespace EastEngine
 			}
 		}
 
-		void ComponentPhysics::initPhysics(const String::StringID& strID, const Physics::RigidBodyProperty& rigidBodyProperty, const Math::Matrix* pMatWorld, Graphics::IModelInstance* pModelInstance)
+		void ComponentPhysics::initPhysics(const String::StringID& strID, const Physics::RigidBodyProperty& rigidBodyProperty, const math::Matrix* pMatWorld, graphics::IModelInstance* pModelInstance)
 		{
-			Graphics::MaterialInfo materialInfo;
+			graphics::MaterialInfo materialInfo;
 			materialInfo.strName = strID;
-			materialInfo.colorAlbedo = Math::Color::Red;
-			materialInfo.emRasterizerState = Graphics::EmRasterizerState::eWireframeCullNone;
+			materialInfo.colorAlbedo = math::Color::Red;
+			materialInfo.emRasterizerState = graphics::EmRasterizerState::eWireframeCullNone;
 
 			Physics::RigidBody* pRigidBody = nullptr;
-			Graphics::IModelInstance* pPhysicsModelInst = nullptr;
+			graphics::IModelInstance* pPhysicsModelInst = nullptr;
 
 			switch (rigidBodyProperty.shapeInfo.emPhysicsShapeType)
 			{
@@ -204,9 +204,9 @@ namespace EastEngine
 				if (pBox == nullptr)
 					return;
 
-				Graphics::ModelLoader modelLoader;
+				graphics::ModelLoader modelLoader;
 				modelLoader.InitBox(strID, &materialInfo, pBox->f3Size);
-				pPhysicsModelInst = Graphics::IModel::CreateInstance(modelLoader);
+				pPhysicsModelInst = graphics::IModel::CreateInstance(modelLoader);
 			}
 			break;
 			case Physics::EmPhysicsShape::eSphere:
@@ -217,9 +217,9 @@ namespace EastEngine
 				if (pSphere == nullptr)
 					return;
 
-				Graphics::ModelLoader modelLoader;
+				graphics::ModelLoader modelLoader;
 				modelLoader.InitSphere(strID, &materialInfo, pSphere->fRadius);
-				pPhysicsModelInst = Graphics::IModel::CreateInstance(modelLoader);
+				pPhysicsModelInst = graphics::IModel::CreateInstance(modelLoader);
 			}
 			break;
 			case Physics::EmPhysicsShape::eCylinder:
@@ -236,9 +236,9 @@ namespace EastEngine
 				if (pCapsule == nullptr)
 					return;
 
-				Graphics::ModelLoader modelLoader;
+				graphics::ModelLoader modelLoader;
 				modelLoader.InitCapsule(strID, &materialInfo, pCapsule->fRadius, pCapsule->fHeight);
-				pPhysicsModelInst = Graphics::IModel::CreateInstance(modelLoader);
+				pPhysicsModelInst = graphics::IModel::CreateInstance(modelLoader);
 			}
 			break;
 			case Physics::EmPhysicsShape::eCapsule_X:
@@ -253,9 +253,9 @@ namespace EastEngine
 				if (pCone == nullptr)
 					return;
 
-				Graphics::ModelLoader modelLoader;
+				graphics::ModelLoader modelLoader;
 				modelLoader.InitCone(strID, &materialInfo, pCone->fRadius, pCone->fHeight);
-				pPhysicsModelInst = Graphics::IModel::CreateInstance(modelLoader);
+				pPhysicsModelInst = graphics::IModel::CreateInstance(modelLoader);
 			}
 			break;
 			case Physics::EmPhysicsShape::eCone_X:

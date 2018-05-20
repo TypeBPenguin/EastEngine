@@ -1,9 +1,9 @@
 #include "stdafx.h"
 #include "GamePad.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Input
+	namespace input
 	{
 		float ApplyLinearDeadZone(float fValue, float fMaxValue, float fDeadZoneSize)
 		{
@@ -26,7 +26,7 @@ namespace EastEngine
 			// Scale into 0-1 range.
 			float scaledValue = fValue / (fMaxValue - fDeadZoneSize);
 
-			return Math::Max(-1.f, Math::Min(scaledValue, 1.f));
+			return math::Max(-1.f, math::Min(scaledValue, 1.f));
 		}
 
 		void ApplyStickDeadZone(float x, float y, GamePad::DeadZone emDeadZoneMode, float fMaxValue, float fDeadZoneSize,
@@ -45,8 +45,8 @@ namespace EastEngine
 
 				float scale = (wanted > 0.f) ? (wanted / dist) : 0.f;
 
-				fResultX_out = Math::Max(-1.f, Math::Min(x * scale, 1.f));
-				fResultY_out = Math::Max(-1.f, Math::Min(y * scale, 1.f));
+				fResultX_out = math::Max(-1.f, math::Min(x * scale, 1.f));
+				fResultY_out = math::Max(-1.f, math::Min(y * scale, 1.f));
 			}
 			break;
 			default: // GamePad::DEAD_ZONE_NONE
@@ -128,7 +128,7 @@ namespace EastEngine
 
 				m_buttonStateTracker.Update(m_state);
 
-				if (Math::IsZero(m_fMaxVibrationTime) == false)
+				if (math::IsZero(m_fMaxVibrationTime) == false)
 				{
 					if (m_fVibrationTime >= m_fMaxVibrationTime)
 					{
@@ -278,7 +278,7 @@ namespace EastEngine
 
 		void GamePadInstance::Update(float fElapsedTime)
 		{
-			PERF_TRACER_EVENT("GamePadInstance::Update", "");
+			TRACER_EVENT("GamePadInstance::Update");
 			for (auto& player : m_players)
 			{
 				player.Update(fElapsedTime);

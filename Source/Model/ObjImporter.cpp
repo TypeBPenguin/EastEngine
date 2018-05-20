@@ -14,21 +14,21 @@
 
 #include <boost/functional/hash.hpp>
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
-		SObjImporter::SObjImporter()
-			: m_pMtlImporter(new CMtlImporter)
+		ObjImporter::ObjImporter()
+			: m_pMtlImporter{ std::make_unique<MtlImporter>() }
 		{
 		}
 
-		SObjImporter::~SObjImporter()
+		ObjImporter::~ObjImporter()
 		{
-			SafeReleaseDelete(m_pMtlImporter);
+			SafeRelease(m_pMtlImporter);
 		}
 
-		bool SObjImporter::LoadModel(IModel* pModel, const char* strFileName, const float fScaleFactor, uint32_t nLodMax, const LODReductionRate* pLodReductionRate)
+		bool ObjImporter::LoadModel(IModel* pModel, const char* strFileName, const float fScaleFactor, uint32_t nLodMax, const LODReductionRate* pLodReductionRate)
 		{
 			if (pModel == nullptr)
 				return false;
@@ -38,8 +38,8 @@ namespace EastEngine
 				m_pMtlImporter->Release();
 			}
 
-			File::Stream file;
-			if (file.Open(strFileName, File::eNone) == false)
+			file::Stream file;
+			if (file.Open(strFileName, file::eNone) == false)
 				return false;
 
 			if (loadModelData(file, fScaleFactor) == false)
@@ -53,7 +53,7 @@ namespace EastEngine
 			return buildModel(pModel, nLodMax, pLodReductionRate);
 		}
 
-		void SObjImporter::ClearData()
+		void ObjImporter::ClearData()
 		{
 			m_objData.Clear();
 
@@ -63,7 +63,7 @@ namespace EastEngine
 			}
 		}
 
-		IMaterial* SObjImporter::GetMaterial(const String::StringID& strName)
+		IMaterial* ObjImporter::GetMaterial(const String::StringID& strName)
 		{
 			if (m_pMtlImporter == nullptr)
 				return nullptr;
@@ -71,7 +71,7 @@ namespace EastEngine
 			return m_pMtlImporter->GetMaterial(strName);
 		}
 
-		bool SObjImporter::loadModelData(File::Stream& file, const float fScaleFactor)
+		bool ObjImporter::loadModelData(file::Stream& file, const float fScaleFactor)
 		{
 			file.Seekg(0, std::ios::beg);
 
@@ -97,7 +97,7 @@ namespace EastEngine
 
 					strFileName = strFileName.substr(1, strFileName.length());
 
-					if (m_pMtlImporter->Init(strFileName.c_str(), File::GetFilePath(file.GetPath().c_str()).c_str()) == false)
+					if (m_pMtlImporter->Init(strFileName.c_str(), file::GetFilePath(file.GetFilePath().c_str()).c_str()) == false)
 					{
 						LOG_WARNING("Cant Load Mtl File : %s", strFileName.c_str());
 					}
@@ -148,7 +148,7 @@ namespace EastEngine
 				}
 				else if (temp == "v")
 				{
-					Math::Vector3 f3Vertex;
+					math::Vector3 f3Vertex;
 					file.Read(&f3Vertex.x, 3);
 
 					// Invert the Z vertex to change to left hand system.
@@ -159,7 +159,7 @@ namespace EastEngine
 				}
 				else if (temp == "vt")
 				{
-					Math::Vector2 f2Texcoord;
+					math::Vector2 f2Texcoord;
 					file.Read(&f2Texcoord.x, 2);
 
 					f2Texcoord.y = 1.f - f2Texcoord.y;
@@ -168,7 +168,7 @@ namespace EastEngine
 				}
 				else if (temp == "vn")
 				{
-					Math::Vector3 f3Normal;
+					math::Vector3 f3Normal;
 					file.Read(&f3Normal.x, 3);
 
 					f3Normal.z = f3Normal.z * -1.f;
@@ -188,7 +188,7 @@ namespace EastEngine
 						{
 							std::array<int, 3> indexArray;
 							indexArray.fill(0);
-							int nPrevPos = 0;
+							size_t nPrevPos = 0;
 							int nIndex = 0;
 							for (size_t i = 0; i < str.size(); ++i)
 							{
@@ -201,7 +201,7 @@ namespace EastEngine
 									}
 									else if (t.empty() == false)
 									{
-										indexArray[nIndex] = std::stoi(t.c_str());
+										indexArray[nIndex] = String::ToValue<int>(t.c_str());
 									}
 									else
 									{
@@ -286,7 +286,7 @@ namespace EastEngine
 				}
 			}
 
-			m_objData.strObjName = File::GetFileNameWithoutExtension(file.GetPath().c_str()).c_str();
+			m_objData.strObjName = file::GetFileNameWithoutExtension(file.GetFilePath().c_str()).c_str();
 
 			if (m_objData.Empty() == true)
 				return false;
@@ -298,7 +298,7 @@ namespace EastEngine
 			return true;
 		}
 
-		bool SObjImporter::buildModel(IModel* pIModel, uint32_t nLodMax, const LODReductionRate* pLodReductionRate)
+		bool ObjImporter::buildModel(IModel* pIModel, uint32_t nLodMax, const LODReductionRate* pLodReductionRate)
 		{
 			Model* pModel = static_cast<Model*>(pIModel);
 
@@ -310,12 +310,6 @@ namespace EastEngine
 
 			for (auto& iter : m_objData.vecGroupData)
 			{
-				uint32_t nFaceCount = 0;
-				for (auto& iter_sub : iter.vecSubModel)
-				{
-					nFaceCount += iter_sub.vecFaceType.size();
-				}
-
 				std::vector<VertexPosTexNor> vecVertices[eMaxLod];
 				std::vector<uint32_t> vecIndices[eMaxLod];
 
@@ -331,7 +325,7 @@ namespace EastEngine
 				std::string strName;
 				for (auto& iter_sub : iter.vecSubModel)
 				{
-					int nMtrlIdx = -1;
+					uint32_t nMaterialID = ModelSubset::eInvalidMaterialID;
 					if (iter_sub.strMtlName.empty() == false)
 					{
 						IMaterial* pMaterial = GetMaterial(iter_sub.strMtlName.c_str());
@@ -340,7 +334,7 @@ namespace EastEngine
 							bool bFind = false;
 							for (auto& iter_mtrl : vecMaterial)
 							{
-								++nMtrlIdx;
+								++nMaterialID;
 
 								if (iter_mtrl->GetName() == pMaterial->GetName())
 								{
@@ -352,7 +346,7 @@ namespace EastEngine
 							if (bFind == false)
 							{
 								vecMaterial.push_back(pMaterial);
-								nMtrlIdx = vecMaterial.size() - 1;
+								nMaterialID = static_cast<uint32_t>(vecMaterial.size() - 1);
 							}
 						}
 					}
@@ -372,9 +366,9 @@ namespace EastEngine
 
 					std::unordered_map<std::size_t, uint32_t> umap;
 
-					auto func = [&](uint32_t vIdx, uint32_t tIdx, uint32_t nIdx) -> size_t
+					auto func = [&](uint32_t vIdx, uint32_t tIdx, uint32_t nIdx) -> uint32_t
 					{
-						size_t ret = ((size_t) - 1);
+						uint32_t ret = ((uint32_t) - 1);
 						auto key = GetKey(vIdx, tIdx, nIdx);
 						auto iter = umap.find(key);
 						if (iter == umap.end())
@@ -390,9 +384,9 @@ namespace EastEngine
 								v.normal = m_objData.vecNormal[nIdx];
 							}
 
-							umap.emplace(key, vecVertexIn.size());
+							umap.emplace(key, static_cast<uint32_t>(vecVertexIn.size()));
 
-							ret = vecVertexIn.size();
+							ret = static_cast<uint32_t>(vecVertexIn.size());
 							vecVertexIn.push_back(v);
 						}
 						else
@@ -449,12 +443,12 @@ namespace EastEngine
 
 						ModelSubset modelSubset;
 						modelSubset.nStartIndex = nStartIdx[i];
-						modelSubset.nMaterialID = nMtrlIdx;
-						modelSubset.nIndexCount = vecIndexOut.size();
+						modelSubset.nMaterialID = nMaterialID;
+						modelSubset.nIndexCount = static_cast<uint32_t>(vecIndexOut.size());
 						vecModelSubsets[i].push_back(modelSubset);
 
-						nStartIdx[i] += vecIndexOut.size();
-						nStartVertex[i] += vecVertexOut.size();
+						nStartIdx[i] += static_cast<uint32_t>(vecIndexOut.size());
+						nStartVertex[i] += static_cast<uint32_t>(vecVertexOut.size());
 					}
 				}
 
@@ -462,8 +456,8 @@ namespace EastEngine
 				{
 					for (uint32_t i = 0; i < eMaxLod; ++i)
 					{
-						SafeDelete(pVertexBuffer[i]);
-						SafeDelete(pIndexBuffer[i]);
+						ReleaseResource(&pVertexBuffer[i]);
+						ReleaseResource(&pIndexBuffer[i]);
 					}
 				};
 
@@ -483,16 +477,16 @@ namespace EastEngine
 					if (vecVertices[i].empty() || vecIndices[i].empty())
 						break;
 
-					SafeDelete(pVertexBuffer[i]);
-					pVertexBuffer[i] = IVertexBuffer::Create(VertexPosTexNor::Format(), vecVertices[i].size(), &vecVertices[i].front(), D3D11_USAGE_DYNAMIC, IVertexBuffer::eSaveVertexPos/* | IVertexBuffer::eSaveVertexClipSpace*/);
+					ReleaseResource(&pVertexBuffer[i]);
+					pVertexBuffer[i] = CreateVertexBuffer(reinterpret_cast<uint8_t*>(vecVertices[i].data()), static_cast<uint32_t>(sizeof(VertexPosTexNor) * vecVertices[i].size()), static_cast<uint32_t>(vecVertices[i].size()));
 					if (pVertexBuffer[i] == nullptr)
 					{
 						FailFunc();
 						return false;
 					}
 
-					SafeDelete(pIndexBuffer[i]);
-					pIndexBuffer[i] = IIndexBuffer::Create(vecIndices[i].size(), &vecIndices[i].front(), D3D11_USAGE_DYNAMIC, IIndexBuffer::eSaveRawValue);
+					ReleaseResource(&pIndexBuffer[i]);
+					pIndexBuffer[i] = CreateIndexBuffer(reinterpret_cast<uint8_t*>(vecIndices[i].data()), static_cast<uint32_t>(sizeof(VertexPosTexNor) * vecIndices[i].size()), static_cast<uint32_t>(vecIndices[i].size()));
 					if (pIndexBuffer[i] == nullptr)
 					{
 						FailFunc();
@@ -515,6 +509,17 @@ namespace EastEngine
 
 				pModelStatic->AddMaterialArray(&vecMaterial.front(), vecMaterial.size());
 				pModel->AddNode(pModelStatic, iter.strGroupName.c_str(), true);
+
+				for (uint32_t i = 0; i < nSize; ++i)
+				{
+					ReleaseResource(&pVertexBuffer[i]);
+					ReleaseResource(&pIndexBuffer[i]);
+				}
+
+				for (auto& pMaterial : vecMaterial)
+				{
+					ReleaseResource(&pMaterial);
+				}
 
 				SuccessFunc();
 			}

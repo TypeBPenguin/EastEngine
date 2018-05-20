@@ -2,9 +2,9 @@
 
 #include "ModelInterface.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class MotionRecorder : public IMotionRecorder
 		{
@@ -13,14 +13,14 @@ namespace EastEngine
 			virtual ~MotionRecorder();
 
 		public:
-			virtual void SetTransform(const String::StringID& strBoneName, const Math::Transform& keyframe) override;
-			virtual const Math::Transform* GetTransform(const String::StringID& strBoneName) const override;
+			virtual void SetTransform(const String::StringID& strBoneName, const math::Transform& keyframe) override;
+			virtual const math::Transform* GetTransform(const String::StringID& strBoneName) const override;
 
 		public:
 			void Clear();
 
 		private:
-			std::unordered_map<String::StringID, Math::Transform> m_umapMotionData;
+			std::unordered_map<String::StringID, math::Transform> m_umapMotionData;
 		};
 	}
 }

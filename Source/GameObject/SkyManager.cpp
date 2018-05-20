@@ -5,9 +5,9 @@
 
 #include "Skybox.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace GameObject
+	namespace gameobject
 	{
 		class SkyManager::Impl
 		{
@@ -39,7 +39,7 @@ namespace EastEngine
 
 		void SkyManager::Impl::Update(float fElapsedTime)
 		{
-			PERF_TRACER_EVENT("SkyManager::Update", "");
+			TRACER_EVENT("SkyManager::Update");
 			auto iter = m_colonySkybox.begin();
 			auto iter_end = m_colonySkybox.end();
 			while (iter != iter_end)

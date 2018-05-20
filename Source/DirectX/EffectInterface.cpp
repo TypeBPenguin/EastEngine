@@ -10,9 +10,9 @@
 
 #include <D3DCompiler.h>
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		ShaderMacros::Macro::Macro(const char* strName, const char* strDefinition)
 			: Name(strName)
@@ -127,7 +127,7 @@ namespace EastEngine
 				pShaderMacros->GetMacro(i, asyncMacro.Name, asyncMacro.Definition);
 			}
 
-			Thread::CreateTask([pNewEffect, strName, strPath, vecMacros, funcCallback]()
+			thread::CreateTask([pNewEffect, strName, strPath, vecMacros, funcCallback]()
 			{
 				ShaderMacros macros;
 				const size_t nSize = vecMacros.size();

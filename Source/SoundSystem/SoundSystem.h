@@ -15,7 +15,7 @@ namespace FMOD
 	class Geometry;
 }
 
-namespace EastEngine
+namespace eastengine
 {
 	namespace Sound
 	{
@@ -65,10 +65,10 @@ namespace EastEngine
 		public:
 			void Update(float fElapsedTime);
 
-			bool Play(const String::StringID& strSoundFile, float fVolume = 1.f, const Math::Vector3* pf3Pos = nullptr, int mode = eLoopOff | e2D | eHardware);
+			bool Play(const String::StringID& strSoundFile, float fVolume = 1.f, const math::Vector3* pf3Pos = nullptr, int mode = eLoopOff | e2D | eHardware);
 			void Stop(const String::StringID& strSoundFile);
 
-			void SetListenerPosition(const Math::Vector3* pf3ListenerPos);
+			void SetListenerPosition(const math::Vector3* pf3ListenerPos);
 
 		private:
 			class Impl;

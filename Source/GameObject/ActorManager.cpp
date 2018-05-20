@@ -5,9 +5,9 @@
 
 #include "Actor.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace GameObject
+	namespace gameobject
 	{
 		class ActorManager::Impl
 		{
@@ -39,7 +39,7 @@ namespace EastEngine
 
 		void ActorManager::Impl::Update(float fElapsedTime)
 		{
-			PERF_TRACER_EVENT("ActorManager::Update", "");
+			TRACER_EVENT("ActorManager::Update");
 			auto iter = m_colonyActor.begin();
 			auto iter_end = m_colonyActor.end();
 			while (iter != iter_end)

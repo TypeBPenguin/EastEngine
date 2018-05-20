@@ -2,7 +2,7 @@
 
 #include "Singleton.h"
 
-namespace EastEngine
+namespace eastengine
 {
 	namespace Config
 	{

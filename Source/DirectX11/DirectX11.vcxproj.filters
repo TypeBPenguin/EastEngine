@@ -1,0 +1,138 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="소스 파일">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="헤더 파일">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="리소스 파일">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Device">
+      <UniqueIdentifier>{ddf2ade6-7187-4f10-a678-aaccb5bd550c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IndexBuffer">
+      <UniqueIdentifier>{b2a63a5d-2f98-4660-b3e7-542b5917c495}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Texture">
+      <UniqueIdentifier>{2e629891-e0ad-4e23-a70d-0021e152335c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer">
+      <UniqueIdentifier>{184b98f2-0f0b-4db6-8b1d-986de665d02b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="VertexBuffer">
+      <UniqueIdentifier>{7d9e25cb-88d5-4e39-984c-d65a99d3f33b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\Model">
+      <UniqueIdentifier>{3fb95925-2914-48bc-a6f1-e7cb2ffa2184}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\Deferred">
+      <UniqueIdentifier>{e1849515-d221-475c-8750-4992adaa20d4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="VTF">
+      <UniqueIdentifier>{404e7bac-356b-4b8a-b445-0fb3eb0dac48}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GBuffer">
+      <UniqueIdentifier>{0ec836ad-dec3-4b0d-a2a7-758df5f2d40d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RenderTarget">
+      <UniqueIdentifier>{44ed6565-3931-44f5-893f-cc983531020c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Util">
+      <UniqueIdentifier>{c2543761-731e-4408-b8ed-afa527af80b7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DepthStencil">
+      <UniqueIdentifier>{35cddeae-a73f-42f2-aed1-9e3b727be630}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="DeviceDX11.h">
+      <Filter>Device</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexBufferDX11.h">
+      <Filter>IndexBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderManagerDX11.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureDX11.h">
+      <Filter>Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexBufferDX11.h">
+      <Filter>VertexBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelRendererDX11.h">
+      <Filter>Renderer\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="GBufferDX11.h">
+      <Filter>GBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderTargetDX11.h">
+      <Filter>RenderTarget</Filter>
+    </ClInclude>
+    <ClInclude Include="DeferredRendererDX11.h">
+      <Filter>Renderer\Deferred</Filter>
+    </ClInclude>
+    <ClInclude Include="UtilDX11.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="DepthStencilDX11.h">
+      <Filter>DepthStencil</Filter>
+    </ClInclude>
+    <ClInclude Include="VTFManagerDX11.h">
+      <Filter>VTF</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="DeviceDX11.cpp">
+      <Filter>Device</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexBufferDX11.cpp">
+      <Filter>IndexBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderManagerDX11.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureDX11.cpp">
+      <Filter>Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="VertexBufferDX11.cpp">
+      <Filter>VertexBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelRendererDX11.cpp">
+      <Filter>Renderer\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="GBufferDX11.cpp">
+      <Filter>GBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderTargetDX11.cpp">
+      <Filter>RenderTarget</Filter>
+    </ClCompile>
+    <ClCompile Include="DeferredRendererDX11.cpp">
+      <Filter>Renderer\Deferred</Filter>
+    </ClCompile>
+    <ClCompile Include="UtilDX11.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="DepthStencilDX11.cpp">
+      <Filter>DepthStencil</Filter>
+    </ClCompile>
+    <ClCompile Include="VTFManagerDX11.cpp">
+      <Filter>VTF</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

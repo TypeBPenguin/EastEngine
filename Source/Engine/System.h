@@ -4,11 +4,12 @@
 
 #include "CommonLib/CommonLib.h"
 
-#include "Windows/Windows.h"
-#include "Graphics/GraphicsSystem.h"
+#include "Graphics/Graphics.h"
 
-namespace EastEngine
+namespace eastengine
 {
+	class IScene;
+
 	class MainSystem : public Singleton<MainSystem>
 	{
 		friend Singleton<MainSystem>;
@@ -17,20 +18,13 @@ namespace EastEngine
 		virtual ~MainSystem();
 
 	public:
-		bool Initialize(const String::StringID& strApplicationName, uint32_t nScreenWidth, uint32_t nScreenHeight, bool isFullScreen, bool isVsync);
+		bool Initialize(graphics::APIs emAPI, uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const String::StringID& strApplicationTitle, const String::StringID& strApplicationName);
 
 	public:
-		void Run();
-
-		bool HandleMessage(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam);
+		void Run(IScene** ppScene, size_t nSceneCount, size_t nMainScene);
 
 	public:
 		float GetFPS() const;
-
-	public:
-		const String::StringID& GetApplicationName() const;
-		const Math::Int2& GetScreenSize() const;
-		bool IsFullScreen() const;
 
 	private:
 		class Impl;

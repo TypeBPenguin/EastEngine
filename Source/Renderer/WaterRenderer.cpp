@@ -48,14 +48,14 @@ namespace StrID
 	RegisterStringID(g_samplerCube);
 }
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		// Quadtree structures & routines
 		struct QuadNode
 		{
-			Math::Vector2 bottom_left;
+			math::Vector2 bottom_left;
 			float length{ 0.f };
 			int lod{ 0 };
 
@@ -96,7 +96,7 @@ namespace EastEngine
 			bool CheckNodeVisibility(const QuadNode& quad_node, Camera* pCamera);
 			float EstimateGridCoverage(const QuadNode& quad_node, Camera* pCamera, float screen_area);
 
-			int SearchLeaf(const std::vector<QuadNode>& node_list, const Math::Vector2& point);
+			int SearchLeaf(const std::vector<QuadNode>& node_list, const math::Vector2& point);
 			QuadRenderParam& SelectMeshPattern(const QuadNode& quad_node);
 
 			// create a triangle strip mesh for ocean surface.
@@ -107,10 +107,10 @@ namespace EastEngine
 			void LoadTextures();
 
 			// Generate boundary mesh for a patch. Return the number of generated indices
-			int GenerateBoundaryMesh(int left_degree, int right_degree, int bottom_degree, int top_degree, const Math::Rect& vert_rect, uint32_t* output);
+			int GenerateBoundaryMesh(int left_degree, int right_degree, int bottom_degree, int top_degree, const math::Rect& vert_rect, uint32_t* output);
 
 			// Generate boundary mesh for a patch. Return the number of generated indices
-			int GenerateInnerMesh(const Math::Rect& vert_rect, uint32_t* output);
+			int GenerateInnerMesh(const math::Rect& vert_rect, uint32_t* output);
 
 		private:
 			IEffect* m_pEffect{ nullptr };
@@ -130,24 +130,24 @@ namespace EastEngine
 
 			// Shading properties:
 			// Two colors for waterbody and sky color
-			Math::Vector3 m_f3SkyColor{ 0.38f, 0.45f, 0.56f };
-			Math::Vector3 m_f3WaterbodyColor{ 0.07f, 0.15f, 0.2f };
+			math::Vector3 m_f3SkyColor{ 0.38f, 0.45f, 0.56f };
+			math::Vector3 m_f3WaterbodyColor{ 0.07f, 0.15f, 0.2f };
 			// Blending term for sky cubemap
 			float m_fSkyBlending{ 16.f };
 
 			// Perlin wave parameters
 			float m_fPerlinSize{ 1.f };
 			float m_fPerlinSpeed{ 0.06f };
-			Math::Vector3 m_f3PerlinAmplitude{ 35.f, 42.f, 57.f };
-			Math::Vector3 m_f3PerlinGradient{ 1.4f, 1.6f, 2.2f };
-			Math::Vector3 m_f3PerlinOctave{ 1.12f, 0.59f, 0.23f };
-			Math::Vector2 m_f2WindDir;
+			math::Vector3 m_f3PerlinAmplitude{ 35.f, 42.f, 57.f };
+			math::Vector3 m_f3PerlinGradient{ 1.4f, 1.6f, 2.2f };
+			math::Vector3 m_f3PerlinOctave{ 1.12f, 0.59f, 0.23f };
+			math::Vector2 m_f2WindDir;
 
-			Math::Vector3 m_f3BendParam{ 0.1f, -0.4f, 0.2f };
+			math::Vector3 m_f3BendParam{ 0.1f, -0.4f, 0.2f };
 
 			// Sunspot parameters
-			Math::Vector3 m_f3SunDir{ 0.936016f, -0.343206f, 0.0780013f };
-			Math::Vector3 m_f3SunColor{ 1.0f, 1.0f, 0.6f };
+			math::Vector3 m_f3SunDir{ 0.936016f, -0.343206f, 0.0780013f };
+			math::Vector3 m_f3SunColor{ 1.0f, 1.0f, 0.6f };
 			float m_fShineness{ 400.f };
 
 			QuadRenderParam m_mesh_patterns[9][3][3][3][3]{};
@@ -194,7 +194,7 @@ namespace EastEngine
 			// A scale to control the amplitude. Not the world space height
 			ocean_param.wave_amplitude = 0.35f;
 			// 2D wind direction. No need to be normalized
-			ocean_param.wind_dir = Math::Vector2(0.8f, 0.6f);
+			ocean_param.wind_dir = math::Vector2(0.8f, 0.6f);
 			// The bigger the wind speed, the larger scale of wave crest.
 			// But the wave scale can be no larger than patch_length
 			ocean_param.wind_speed = 600.0f;
@@ -214,7 +214,7 @@ namespace EastEngine
 			}
 
 			// Update the simulation for the first time.
-			m_pWaterSimulator->UpdateDisplacementMap(GetDevice(), Graphics::GetImmediateContext(), 0.f);
+			m_pWaterSimulator->UpdateDisplacementMap(GetDevice(), graphics::GetImmediateContext(), 0.f);
 
 			// Init D3D11 resources for rendering
 			m_fPatchLength = ocean_param.patch_length;
@@ -303,7 +303,7 @@ namespace EastEngine
 
 		bool WaterRenderer::Impl::CreateEffect()
 		{
-			std::string strPath(File::GetPath(File::EmPath::eFx));
+			std::string strPath(file::GetPath(file::EmPath::eFx));
 
 #if defined(DEBUG) || defined(_DEBUG)
 			strPath.append("Water\\Water_D.cso");
@@ -339,7 +339,7 @@ namespace EastEngine
 
 		void WaterRenderer::Impl::Simulate(IDevice* pDevice, IDeviceContext* pDeviceContext, float fTime)
 		{
-			PERF_TRACER_EVENT("WaterRenderer::Simulate", "");
+			TRACER_EVENT("WaterRenderer::Simulate");
 			D3D_PROFILING(pDeviceContext, Simulate);
 
 			m_pWaterSimulator->UpdateDisplacementMap(pDevice, pDeviceContext, fTime);
@@ -347,7 +347,7 @@ namespace EastEngine
 
 		void WaterRenderer::Impl::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, float fTime)
 		{
-			PERF_TRACER_EVENT("WaterRenderer::Render", "");
+			TRACER_EVENT("WaterRenderer::Render");
 			D3D_PROFILING(pDeviceContext, Render);
 			IEffectTech* pEffectTech = m_pEffect->GetTechnique(StrID::Water);
 			if (pEffectTech == nullptr)
@@ -360,17 +360,17 @@ namespace EastEngine
 
 			// Build rendering list
 			float ocean_extent = m_fPatchLength * (1 << m_nFurthestCover);
-			QuadNode root_node = { Math::Vector2(-ocean_extent * 0.5f, -ocean_extent * 0.5f), ocean_extent, 0,{ -1,-1,-1,-1 } };
+			QuadNode root_node = { math::Vector2(-ocean_extent * 0.5f, -ocean_extent * 0.5f), ocean_extent, 0,{ -1,-1,-1,-1 } };
 
 			BuildNodeList(pDevice, pDeviceContext, root_node, pCamera);
 
 			// Matrices
 			//const Matrix& matView = pCamera->GetViewMatrix();
-			const Math::Matrix matView = Math::Matrix(1.f, 0.f, 0.f, 0.f,
+			const math::Matrix matView = math::Matrix(1.f, 0.f, 0.f, 0.f,
 				0.f, 0.f, 1.f, 0.f,
 				0.f, 1.f, 0.f, 0.f,
 				0.f, 0.f, 0.f, 1.f) * pCamera->GetViewMatrix(nThreadID);
-			const Math::Matrix& matProj = pCamera->GetProjMatrix(nThreadID);
+			const math::Matrix& matProj = pCamera->GetProjMatrix(nThreadID);
 
 			pDeviceContext->ClearState();
 
@@ -441,24 +441,24 @@ namespace EastEngine
 				for (int lod = 0; lod < node.lod; lod++)
 					level_size >>= 1;
 
-				Math::Matrix matScale = Math::Matrix::CreateScale(node.length / level_size, node.length / level_size, 0.f);
+				math::Matrix matScale = math::Matrix::CreateScale(node.length / level_size, node.length / level_size, 0.f);
 				m_pEffect->SetMatrix(StrID::g_matLocal, matScale);
 
 				// WVP matrix
-				Math::Matrix matWorld = Math::Matrix::CreateTranslation(node.bottom_left.x, node.bottom_left.y, 0.f);
-				Math::Matrix matWVP = matWorld * matView * matProj;
+				math::Matrix matWorld = math::Matrix::CreateTranslation(node.bottom_left.x, node.bottom_left.y, 0.f);
+				math::Matrix matWVP = matWorld * matView * matProj;
 				m_pEffect->SetMatrix(StrID::g_matWorldViewProj, matWVP);
 
 				// Texcoord for perlin noise
-				Math::Vector2 uv_base = Math::Vector2(node.bottom_left / m_fPatchLength) * m_fPerlinSize;
+				math::Vector2 uv_base = math::Vector2(node.bottom_left / m_fPatchLength) * m_fPerlinSize;
 				m_pEffect->SetVector(StrID::g_UVBase, uv_base);
 
 				// Constant g_PerlinSpeed need to be adjusted mannually
-				Math::Vector2 perlin_move = -m_f2WindDir * fTime * m_fPerlinSpeed;
+				math::Vector2 perlin_move = -m_f2WindDir * fTime * m_fPerlinSpeed;
 				m_pEffect->SetVector(StrID::g_PerlinMovement, perlin_move);
 
 				// Eye point
-				Math::Matrix matInvWV = matWorld;
+				math::Matrix matInvWV = matWorld;
 				m_pEffect->SetVector(StrID::g_LocalEye, matWorld.Invert().Translation());
 
 				uint32_t nPassCount = pEffectTech->GetPassCount();
@@ -513,13 +513,13 @@ namespace EastEngine
 				QuadNode sub_node_0 = { quad_node.bottom_left, quad_node.length / 2, 0,{ -1, -1, -1, -1 } };
 				quad_node.sub_node[0] = BuildNodeList(pDevice, pDeviceContext, sub_node_0, pCamera);
 
-				QuadNode sub_node_1 = { quad_node.bottom_left + Math::Vector2(quad_node.length / 2, 0), quad_node.length / 2, 0,{ -1, -1, -1, -1 } };
+				QuadNode sub_node_1 = { quad_node.bottom_left + math::Vector2(quad_node.length / 2, 0), quad_node.length / 2, 0,{ -1, -1, -1, -1 } };
 				quad_node.sub_node[1] = BuildNodeList(pDevice, pDeviceContext, sub_node_1, pCamera);
 
-				QuadNode sub_node_2 = { quad_node.bottom_left + Math::Vector2(quad_node.length / 2, quad_node.length / 2), quad_node.length / 2, 0,{ -1, -1, -1, -1 } };
+				QuadNode sub_node_2 = { quad_node.bottom_left + math::Vector2(quad_node.length / 2, quad_node.length / 2), quad_node.length / 2, 0,{ -1, -1, -1, -1 } };
 				quad_node.sub_node[2] = BuildNodeList(pDevice, pDeviceContext, sub_node_2, pCamera);
 
-				QuadNode sub_node_3 = { quad_node.bottom_left + Math::Vector2(0, quad_node.length / 2), quad_node.length / 2, 0,{ -1, -1, -1, -1 } };
+				QuadNode sub_node_3 = { quad_node.bottom_left + math::Vector2(0, quad_node.length / 2), quad_node.length / 2, 0,{ -1, -1, -1, -1 } };
 				quad_node.sub_node[3] = BuildNodeList(pDevice, pDeviceContext, sub_node_3, pCamera);
 
 				visible = !IsLeaf(quad_node);
@@ -554,35 +554,35 @@ namespace EastEngine
 
 			// Plane equation setup
 			//const Matrix& matView = pCamera->GetViewMatrix();
-			const Math::Matrix matView = Math::Matrix(1.f, 0.f, 0.f, 0.f,
+			const math::Matrix matView = math::Matrix(1.f, 0.f, 0.f, 0.f,
 				0.f, 0.f, 1.f, 0.f,
 				0.f, 1.f, 0.f, 0.f,
 				0.f, 0.f, 0.f, 1.f) * pCamera->GetViewMatrix(nThreadID);
-			const Math::Matrix& matProj = pCamera->GetProjMatrix(nThreadID);
+			const math::Matrix& matProj = pCamera->GetProjMatrix(nThreadID);
 
 			// Left plane
 			float fov_x = std::atan(1.0f / matProj.m[0][0]);
-			Math::Vector4 plane_left(cos(fov_x), 0.f, sin(fov_x), 0.f);
+			math::Vector4 plane_left(cos(fov_x), 0.f, sin(fov_x), 0.f);
 			// Right plane
-			Math::Vector4 plane_right(-cos(fov_x), 0.f, sin(fov_x), 0.f);
+			math::Vector4 plane_right(-cos(fov_x), 0.f, sin(fov_x), 0.f);
 
 			// Bottom plane
 			float fov_y = std::atan(1.0f / matProj.m[1][1]);
-			Math::Vector4 plane_bottom(0.f, cos(fov_y), sin(fov_y), 0.f);
+			math::Vector4 plane_bottom(0.f, cos(fov_y), sin(fov_y), 0.f);
 			// Top plane
-			Math::Vector4 plane_top(0.f, -cos(fov_y), sin(fov_y), 0.f);
+			math::Vector4 plane_top(0.f, -cos(fov_y), sin(fov_y), 0.f);
 
 			// Test quad corners against view frustum in view space
-			Math::Vector4 corner_verts[4];
-			corner_verts[0] = Math::Vector4(quad_node.bottom_left.x, quad_node.bottom_left.y, 0.f, 1.f);
-			corner_verts[1] = corner_verts[0] + Math::Vector4(quad_node.length, 0.f, 0.f, 0.f);
-			corner_verts[2] = corner_verts[0] + Math::Vector4(quad_node.length, quad_node.length, 0.f, 0.f);
-			corner_verts[3] = corner_verts[0] + Math::Vector4(0, quad_node.length, 0.f, 0.f);
+			math::Vector4 corner_verts[4];
+			corner_verts[0] = math::Vector4(quad_node.bottom_left.x, quad_node.bottom_left.y, 0.f, 1.f);
+			corner_verts[1] = corner_verts[0] + math::Vector4(quad_node.length, 0.f, 0.f, 0.f);
+			corner_verts[2] = corner_verts[0] + math::Vector4(quad_node.length, quad_node.length, 0.f, 0.f);
+			corner_verts[3] = corner_verts[0] + math::Vector4(0, quad_node.length, 0.f, 0.f);
 
-			Math::Vector4::Transform(corner_verts[0], matView, corner_verts[0]);
-			Math::Vector4::Transform(corner_verts[1], matView, corner_verts[1]);
-			Math::Vector4::Transform(corner_verts[2], matView, corner_verts[2]);
-			Math::Vector4::Transform(corner_verts[3], matView, corner_verts[3]);
+			math::Vector4::Transform(corner_verts[0], matView, corner_verts[0]);
+			math::Vector4::Transform(corner_verts[1], matView, corner_verts[1]);
+			math::Vector4::Transform(corner_verts[2], matView, corner_verts[2]);
+			math::Vector4::Transform(corner_verts[3], matView, corner_verts[3]);
 
 			// Test against eye plane
 			if (corner_verts[0].z < 0.f && corner_verts[1].z < 0.f && corner_verts[2].z < 0.f && corner_verts[3].z < 0.f)
@@ -649,18 +649,18 @@ namespace EastEngine
 			};
 
 			int nThreadID = GetThreadID(ThreadType::eRender);
-			const Math::Matrix& matView = pCamera->GetViewMatrix(nThreadID);
-			const Math::Matrix& matProj = pCamera->GetProjMatrix(nThreadID);
+			const math::Matrix& matView = pCamera->GetViewMatrix(nThreadID);
+			const math::Matrix& matProj = pCamera->GetProjMatrix(nThreadID);
 
-			const Math::Vector3& eye_point = matView.Invert().Translation();
+			const math::Vector3& eye_point = matView.Invert().Translation();
 			//eye_point = Vector3(eye_point.x, eye_point.z, eye_point.y);
 			float grid_len_world = quad_node.length / m_nMeshDim;
 
 			float max_area_proj = 0;
 			for (int i = 0; i < 16; ++i)
 			{
-				Math::Vector3 test_point(quad_node.bottom_left.x + quad_node.length * sample_pos[i][0], quad_node.bottom_left.y + quad_node.length * sample_pos[i][1], 0);
-				Math::Vector3 eye_vec = test_point - eye_point;
+				math::Vector3 test_point(quad_node.bottom_left.x + quad_node.length * sample_pos[i][0], quad_node.bottom_left.y + quad_node.length * sample_pos[i][1], 0);
+				math::Vector3 eye_vec = test_point - eye_point;
 				float dist = eye_vec.Length();
 
 				float area_world = grid_len_world * grid_len_world;// * abs(eye_point.z) / sqrt(nearest_sqr_dist);
@@ -675,7 +675,7 @@ namespace EastEngine
 			return pixel_coverage;
 		}
 
-		int WaterRenderer::Impl::SearchLeaf(const std::vector<QuadNode>& node_list, const Math::Vector2& point)
+		int WaterRenderer::Impl::SearchLeaf(const std::vector<QuadNode>& node_list, const math::Vector2& point)
 		{
 			int index = -1;
 
@@ -712,16 +712,16 @@ namespace EastEngine
 		QuadRenderParam& WaterRenderer::Impl::SelectMeshPattern(const QuadNode& quad_node)
 		{
 			// Check 4 adjacent quad.
-			Math::Vector2 point_left = quad_node.bottom_left + Math::Vector2(-m_fPatchLength * 0.5f, quad_node.length * 0.5f);
+			math::Vector2 point_left = quad_node.bottom_left + math::Vector2(-m_fPatchLength * 0.5f, quad_node.length * 0.5f);
 			int left_adj_index = SearchLeaf(m_vecRenderNode, point_left);
 
-			Math::Vector2 point_right = quad_node.bottom_left + Math::Vector2(quad_node.length + m_fPatchLength * 0.5f, quad_node.length * 0.5f);
+			math::Vector2 point_right = quad_node.bottom_left + math::Vector2(quad_node.length + m_fPatchLength * 0.5f, quad_node.length * 0.5f);
 			int right_adj_index = SearchLeaf(m_vecRenderNode, point_right);
 
-			Math::Vector2 point_bottom = quad_node.bottom_left + Math::Vector2(quad_node.length * 0.5f, -m_fPatchLength * 0.5f);
+			math::Vector2 point_bottom = quad_node.bottom_left + math::Vector2(quad_node.length * 0.5f, -m_fPatchLength * 0.5f);
 			int bottom_adj_index = SearchLeaf(m_vecRenderNode, point_bottom);
 
-			Math::Vector2 point_top = quad_node.bottom_left + Math::Vector2(quad_node.length * 0.5f, quad_node.length + m_fPatchLength * 0.5f);
+			math::Vector2 point_top = quad_node.bottom_left + math::Vector2(quad_node.length * 0.5f, quad_node.length + m_fPatchLength * 0.5f);
 			int top_adj_index = SearchLeaf(m_vecRenderNode, point_top);
 
 			int left_type = 0;
@@ -835,7 +835,7 @@ namespace EastEngine
 								QuadRenderParam* pattern = &m_mesh_patterns[level][left_type][right_type][bottom_type][top_type];
 
 								// Inner mesh (triangle strip)
-								Math::Rect inner_rect;
+								math::Rect inner_rect;
 								inner_rect.left = (left_degree == level_size) ? 0 : 1;
 								inner_rect.right = (right_degree == level_size) ? level_size : level_size - 1;
 								inner_rect.bottom = (bottom_degree == level_size) ? 0 : 1;
@@ -854,7 +854,7 @@ namespace EastEngine
 								int b_degree = (bottom_degree == level_size) ? 0 : bottom_degree;
 								int t_degree = (top_degree == level_size) ? 0 : top_degree;
 
-								Math::Rect outer_rect = { 0, level_size, level_size, 0 };
+								math::Rect outer_rect = { 0, level_size, level_size, 0 };
 								num_new_indices = GenerateBoundaryMesh(l_degree, r_degree, b_degree, t_degree, outer_rect, &indexCollector[offset]);
 
 								pattern->boundary_start_index = offset;
@@ -886,7 +886,7 @@ namespace EastEngine
 				float cos_a = i / (FLOAT)FRESNEL_TEX_SIZE;
 				// Using water's refraction index 1.33
 
-				Math::Vector3 f3Fresnel(Math::Vector3::FresnelTerm(Math::Vector3(cos_a, 0.f, 0.f), Math::Vector3(1.33f, 0.f, 0.f)) * 255);
+				math::Vector3 f3Fresnel(math::Vector3::FresnelTerm(math::Vector3(cos_a, 0.f, 0.f), math::Vector3(1.33f, 0.f, 0.f)) * 255);
 				DWORD fresnel = (DWORD)f3Fresnel.x;
 
 
@@ -917,17 +917,17 @@ namespace EastEngine
 
 		void WaterRenderer::Impl::LoadTextures()
 		{
-			std::string strPerlinPath = File::GetPath(File::eTexture);
+			std::string strPerlinPath = file::GetPath(file::eTexture);
 			strPerlinPath.append("perlin_noise.dds");
 			m_pSRV_Perlin = ITexture::Create(strPerlinPath.c_str(), false);
 
-			std::string strReflectCubePath = File::GetPath(File::eTexture);
+			std::string strReflectCubePath = file::GetPath(file::eTexture);
 			strReflectCubePath.append("reflect_cube.dds");
 			m_pSRV_ReflectCube = ITexture::Create(strReflectCubePath.c_str(), false);
 		}
 
 #define MESH_INDEX_2D(x, y)	(((y) + vert_rect.bottom) * (m_nMeshDim + 1) + (x) + vert_rect.left)
-		int WaterRenderer::Impl::GenerateBoundaryMesh(int left_degree, int right_degree, int bottom_degree, int top_degree, const Math::Rect& vert_rect, uint32_t* output)
+		int WaterRenderer::Impl::GenerateBoundaryMesh(int left_degree, int right_degree, int bottom_degree, int top_degree, const math::Rect& vert_rect, uint32_t* output)
 		{
 			// Triangle list for bottom boundary
 			int i, j;
@@ -1070,7 +1070,7 @@ namespace EastEngine
 			return counter;
 		}
 
-		int WaterRenderer::Impl::GenerateInnerMesh(const Math::Rect& vert_rect, uint32_t* output)
+		int WaterRenderer::Impl::GenerateInnerMesh(const math::Rect& vert_rect, uint32_t* output)
 		{
 			int counter = 0;
 			int width = vert_rect.right - vert_rect.left;

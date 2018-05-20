@@ -7,13 +7,13 @@
 #include "ComponentPhysics.h"
 #include "ComponentCamera.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace GameObject
+	namespace gameobject
 	{
 		Actor::Actor()
-			: m_f3Scale(Math::Vector3::One)
-			, m_f3PrevScale(Math::Vector3::One)
+			: m_f3Scale(math::Vector3::One)
+			, m_f3PrevScale(math::Vector3::One)
 			, m_isDestroy(false)
 			, m_isVisible(true)
 			, m_isDirtyWorldMatrix(true)
@@ -37,7 +37,7 @@ namespace EastEngine
 
 			if (m_isDirtyWorldMatrix == true)
 			{
-				Math::Matrix::Compose(m_f3Scale, m_quatPrevRotation, m_f3Pos, m_matWorld);
+				math::Matrix::Compose(m_f3Scale, m_quatPrevRotation, m_f3Pos, m_matWorld);
 
 				m_isDirtyWorldMatrix = false;
 			}
@@ -50,7 +50,7 @@ namespace EastEngine
 				pComponent->Update(fElapsedTime);
 			}
 
-			m_f3Velocity = Math::Vector3::Zero;
+			m_f3Velocity = math::Vector3::Zero;
 		}
 		
 		IComponent* Actor::CreateComponent(EmComponent::Type emComponentType)

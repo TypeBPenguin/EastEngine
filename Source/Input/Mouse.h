@@ -2,9 +2,9 @@
 
 #include "InputInterface.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Input
+	namespace input
 	{
 		class MouseInstance
 		{
@@ -34,7 +34,7 @@ namespace EastEngine
 			};
 
 		public:
-			bool Init(HWND hWnd, struct IDirectInput8A* pInput, DWORD mouseCoopFlag);
+			void Initialize(HWND hWnd, struct IDirectInput8A* pInput, DWORD mouseCoopFlag);
 			void Release();
 
 			void Update();

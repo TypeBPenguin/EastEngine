@@ -22,7 +22,7 @@
     <ProjectGuid>{A9465262-7336-4F6B-BE75-1926F34C1484}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Model</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -42,14 +42,14 @@
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -80,6 +80,16 @@
     <LibraryPath>..\ExternLib\boost_1_65_1\lib32-msvc-14.1;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)Bin\Lib\</OutDir>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>..\ExternLib\boost_1_65_1;$(IncludePath)</IncludePath>
+    <LibraryPath>..\ExternLib\boost_1_65_1\lib32-msvc-14.1;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>..\ExternLib\boost_1_65_1;$(IncludePath)</IncludePath>
+    <LibraryPath>..\ExternLib\boost_1_65_1\lib32-msvc-14.1;$(LibraryPath)</LibraryPath>
+    <OutDir>$(SolutionDir)Bin\Lib\</OutDir>
+    <TargetName>$(ProjectName)_D</TargetName>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -97,20 +107,26 @@
     </Link>
     <Lib>
       <AdditionalLibraryDirectories>../ExternLib/FBX/lib/vs2015/x86/debug;..\ExternLib\FBXExporter\ExportObjects\Win32\Debug_2017;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libfbxsdk.lib;ExportObjects.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libfbxsdk-md.lib;ExportObjects.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(SolutionDir)Source;../ExternLib/FBX/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
     </Link>
+    <Lib>
+      <AdditionalDependencies>libfbxsdk-md.lib;ExportObjects.lib;UVAtlas.lib;DirectXMesh.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../ExternLib/FBX/lib/vs2015/x64/debug;..\ExternLib\FBXExporter\ExportObjects\x64\Debug_2017;..\ExternLib\FBXExporter\UVAtlas\Bin\Desktop_2017_Win10\x64\Debug;..\ExternLib\DirectXMesh\Bin\Desktop_2017\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -134,7 +150,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>libfbxsdk.lib;ExportObjects.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libfbxsdk-md.lib;ExportObjects.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <Lib>
       <AdditionalLibraryDirectories>../ExternLib/FBX/lib/vs2015/x86/release;..\ExternLib\FBXExporter\ExportObjects\Win32\Release_2017;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -142,19 +158,25 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(SolutionDir)Source;../ExternLib/FBX/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
+    <Lib>
+      <AdditionalDependencies>libfbxsdk-md.lib;ExportObjects.lib;UVAtlas.lib;DirectXMesh.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../ExternLib/FBX/lib/vs2015/x64/release;..\ExternLib\FBXExporter\ExportObjects\x64\Release_2017;..\ExternLib\FBXExporter\UVAtlas\Bin\Desktop_2017_Win10\x64\Release;..\ExternLib\DirectXMesh\Bin\Desktop_2017\x64\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -214,8 +236,8 @@
     <ClCompile Include="XpsImporter.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Renderer\Renderer.vcxproj">
-      <Project>{1f9647d1-c3a2-4677-afe7-289e9f0ee2b9}</Project>
+    <ProjectReference Include="..\Graphics\Graphics.vcxproj">
+      <Project>{388c8bce-27cc-4468-b2c3-514eaa2ba568}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

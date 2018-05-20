@@ -1,8 +1,8 @@
 #pragma once
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class ITexture;
 		class IStructuredBuffer;
@@ -159,20 +159,20 @@ namespace EastEngine
 			virtual void SetIntArray(const String::StringID& strName, const int* pValue, uint32_t nOffset, uint32_t nCount) = 0;
 			virtual void SetFloat(const String::StringID& strName, float fValue) = 0;
 			virtual void SetFloatArray(const String::StringID& strName, const float* pValue, uint32_t nOffset, uint32_t nCount) = 0;
-			virtual void SetVector(const String::StringID& strName, const Math::Int2& n2Value) = 0;
-			virtual void SetVector(const String::StringID& strName, const Math::Int3& n3Value) = 0;
-			virtual void SetVector(const String::StringID& strName, const Math::Int4& n4Value) = 0;
-			virtual void SetVector(const String::StringID& strName, const Math::Vector2& f2Value) = 0;
-			virtual void SetVector(const String::StringID& strName, const Math::Vector3& f3Value) = 0;
-			virtual void SetVector(const String::StringID& strName, const Math::Vector4& f4Value) = 0;
-			virtual void SetVectorArray(const String::StringID& strName, const Math::Int2* pn2Value, uint32_t nOffset, uint32_t nCount) = 0;
-			virtual void SetVectorArray(const String::StringID& strName, const Math::Int3* pn3Value, uint32_t nOffset, uint32_t nCount) = 0;
-			virtual void SetVectorArray(const String::StringID& strName, const Math::Int4* pn4Value, uint32_t nOffset, uint32_t nCount) = 0;
-			virtual void SetVectorArray(const String::StringID& strName, const Math::Vector2* pf2Value, uint32_t nOffset, uint32_t nCount) = 0;
-			virtual void SetVectorArray(const String::StringID& strName, const Math::Vector3* pf3Value, uint32_t nOffset, uint32_t nCount) = 0;
-			virtual void SetVectorArray(const String::StringID& strName, const Math::Vector4* pf4Value, uint32_t nOffset, uint32_t nCount) = 0;
-			virtual void SetMatrix(const String::StringID& strName, const Math::Matrix& matrix) = 0;
-			virtual void SetMatrixArray(const String::StringID& strName, const Math::Matrix* pMatrix, uint32_t nOffset, uint32_t nCount) = 0;
+			virtual void SetVector(const String::StringID& strName, const math::Int2& n2Value) = 0;
+			virtual void SetVector(const String::StringID& strName, const math::Int3& n3Value) = 0;
+			virtual void SetVector(const String::StringID& strName, const math::Int4& n4Value) = 0;
+			virtual void SetVector(const String::StringID& strName, const math::Vector2& f2Value) = 0;
+			virtual void SetVector(const String::StringID& strName, const math::Vector3& f3Value) = 0;
+			virtual void SetVector(const String::StringID& strName, const math::Vector4& f4Value) = 0;
+			virtual void SetVectorArray(const String::StringID& strName, const math::Int2* pn2Value, uint32_t nOffset, uint32_t nCount) = 0;
+			virtual void SetVectorArray(const String::StringID& strName, const math::Int3* pn3Value, uint32_t nOffset, uint32_t nCount) = 0;
+			virtual void SetVectorArray(const String::StringID& strName, const math::Int4* pn4Value, uint32_t nOffset, uint32_t nCount) = 0;
+			virtual void SetVectorArray(const String::StringID& strName, const math::Vector2* pf2Value, uint32_t nOffset, uint32_t nCount) = 0;
+			virtual void SetVectorArray(const String::StringID& strName, const math::Vector3* pf3Value, uint32_t nOffset, uint32_t nCount) = 0;
+			virtual void SetVectorArray(const String::StringID& strName, const math::Vector4* pf4Value, uint32_t nOffset, uint32_t nCount) = 0;
+			virtual void SetMatrix(const String::StringID& strName, const math::Matrix& matrix) = 0;
+			virtual void SetMatrixArray(const String::StringID& strName, const math::Matrix* pMatrix, uint32_t nOffset, uint32_t nCount) = 0;
 			virtual void SetString(const String::StringID& strName, const char* str, uint32_t nCount) = 0;
 			virtual void SetTexture(const String::StringID& strName, const std::shared_ptr<ITexture>& pTexture) = 0;
 			virtual void SetTextureArray(const String::StringID& strName, const std::shared_ptr<ITexture>* pTextures, uint32_t nOffset, uint32_t nCount) = 0;
@@ -221,18 +221,18 @@ namespace EastEngine
 			virtual ~EffectVectorHandle() = default;
 			virtual EmEffectHandle::Type GetType() override { return EmEffectHandle::eVector; }
 
-			virtual void SetVector(const Math::Int2& n2Value) = 0;
-			virtual void SetVector(const Math::Int3& n3Value) = 0;
-			virtual void SetVector(const Math::Int4& n4Value) = 0;
-			virtual void SetVector(const Math::Vector2& f2Value) = 0;
-			virtual void SetVector(const Math::Vector3& f3Value) = 0;
-			virtual void SetVector(const Math::Vector4& f4Value) = 0;
-			virtual void SetVectorArray(const Math::Int2* pn2Value, uint32_t nOffset, uint32_t nCount) = 0;
-			virtual void SetVectorArray(const Math::Int3* pn3Value, uint32_t nOffset, uint32_t nCount) = 0;
-			virtual void SetVectorArray(const Math::Int4* pn4Value, uint32_t nOffset, uint32_t nCount) = 0;
-			virtual void SetVectorArray(const Math::Vector2* pf2Value, uint32_t nOffset, uint32_t nCount) = 0;
-			virtual void SetVectorArray(const Math::Vector3* pf3Value, uint32_t nOffset, uint32_t nCount) = 0;
-			virtual void SetVectorArray(const Math::Vector4* pf4Value, uint32_t nOffset, uint32_t nCount) = 0;
+			virtual void SetVector(const math::Int2& n2Value) = 0;
+			virtual void SetVector(const math::Int3& n3Value) = 0;
+			virtual void SetVector(const math::Int4& n4Value) = 0;
+			virtual void SetVector(const math::Vector2& f2Value) = 0;
+			virtual void SetVector(const math::Vector3& f3Value) = 0;
+			virtual void SetVector(const math::Vector4& f4Value) = 0;
+			virtual void SetVectorArray(const math::Int2* pn2Value, uint32_t nOffset, uint32_t nCount) = 0;
+			virtual void SetVectorArray(const math::Int3* pn3Value, uint32_t nOffset, uint32_t nCount) = 0;
+			virtual void SetVectorArray(const math::Int4* pn4Value, uint32_t nOffset, uint32_t nCount) = 0;
+			virtual void SetVectorArray(const math::Vector2* pf2Value, uint32_t nOffset, uint32_t nCount) = 0;
+			virtual void SetVectorArray(const math::Vector3* pf3Value, uint32_t nOffset, uint32_t nCount) = 0;
+			virtual void SetVectorArray(const math::Vector4* pf4Value, uint32_t nOffset, uint32_t nCount) = 0;
 		};
 
 		struct EffectMatrixHandle : public EffectHandle
@@ -240,8 +240,8 @@ namespace EastEngine
 			virtual ~EffectMatrixHandle() = default;
 			virtual EmEffectHandle::Type GetType() override { return EmEffectHandle::eMatrix; }
 
-			virtual void SetMatrix(const Math::Matrix& matrix) = 0;
-			virtual void SetMatrixArray(const Math::Matrix* pMatrix, uint32_t nOffset, uint32_t nCount) = 0;
+			virtual void SetMatrix(const math::Matrix& matrix) = 0;
+			virtual void SetMatrixArray(const math::Matrix* pMatrix, uint32_t nOffset, uint32_t nCount) = 0;
 		};
 
 		struct EffectStringHandle : public EffectHandle

@@ -10,9 +10,9 @@ namespace StrID
 	RegisterStringID(Terrain_Physics);
 }
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace GameObject
+	namespace gameobject
 	{
 		static uint32_t s_nTerrainIndex = 0;
 
@@ -39,7 +39,7 @@ namespace EastEngine
 
 			if (isEnableThreadLoad == true)
 			{
-				Thread::CreateTask([&]()
+				thread::CreateTask([&]()
 				{
 					init();
 				});
@@ -63,15 +63,15 @@ namespace EastEngine
 			if (initTerrain() == false)
 				return false;
 
-			m_pTexDetailMap = Graphics::ITexture::Create(m_property.strTexDetailMap, true);
-			m_pTexDetailNormalMap = Graphics::ITexture::Create(m_property.strTexDetailNormalMap, true);
+			m_pTexDetailMap = graphics::ITexture::Create(m_property.strTexDetailMap, true);
+			m_pTexDetailNormalMap = graphics::ITexture::Create(m_property.strTexDetailNormalMap, true);
 
 			m_property.rigidBodyProperty.fMass = 0.f;
 			m_property.rigidBodyProperty.strName = StrID::Terrain_Physics;
 
 			m_property.rigidBodyProperty.nCollisionFlag = Physics::EmCollision::eStaticObject;
 
-			m_matWorld = Math::Matrix::Compose(m_property.f3Scale, m_property.quatRotation, m_property.f3Position);
+			m_matWorld = math::Matrix::Compose(m_property.f3Scale, m_property.quatRotation, m_property.f3Position);
 			m_property.rigidBodyProperty.matOffset = m_matWorld;
 
 			if (m_rigidBodyData.vecVertices.empty() == false && m_rigidBodyData.vecIndices.empty() == false)
@@ -99,12 +99,12 @@ namespace EastEngine
 
 			if (IsVisible() == true)
 			{
-				if (m_pTexHeightMap->GetLoadState() == Graphics::EmLoadState::eComplete &&
-					m_pTexColorMap->GetLoadState() == Graphics::EmLoadState::eComplete &&
-					m_pTexDetailMap->GetLoadState() == Graphics::EmLoadState::eComplete &&
-					m_pTexDetailNormalMap->GetLoadState() == Graphics::EmLoadState::eComplete)
+				if (m_pTexHeightMap->GetState() == graphics::EmLoadState::eComplete &&
+					m_pTexColorMap->GetState() == graphics::EmLoadState::eComplete &&
+					m_pTexDetailMap->GetState() == graphics::EmLoadState::eComplete &&
+					m_pTexDetailNormalMap->GetState() == graphics::EmLoadState::eComplete)
 				{
-					Graphics::RenderSubsetTerrain subset;
+					graphics::RenderSubsetTerrain subset;
 					subset.pVertexBuffer = m_pHeightField;
 
 					subset.f2PatchSize.x = static_cast<float>(m_property.n2Size.x) / static_cast<float>(m_property.n2Patches.x);
@@ -129,7 +129,7 @@ namespace EastEngine
 					// 컬링 하냐마냐의 차이는 1025 x 1025 사이즈 터레인에서 0.03 ms 정도
 					subset.isEnableFrustumCullInHS = false;
 
-					Graphics::RendererManager::GetInstance()->AddRender(subset);
+					graphics::RendererManager::GetInstance()->AddRender(subset);
 				}
 			}
 
@@ -147,10 +147,10 @@ namespace EastEngine
 			if (m_pPhysics != nullptr)
 			{
 				const float fOffset = 100.f;
-				Math::Vector3 f3From(fPosX, m_property.f3Position.y + m_fHeightMax + fOffset, fPosZ);
-				Math::Vector3 f3To(fPosX, m_property.f3Position.y + m_fHeightMin - fOffset, fPosZ);
+				math::Vector3 f3From(fPosX, m_property.f3Position.y + m_fHeightMax + fOffset, fPosZ);
+				math::Vector3 f3To(fPosX, m_property.f3Position.y + m_fHeightMin - fOffset, fPosZ);
 
-				Math::Vector3 f3HitPoint;
+				math::Vector3 f3HitPoint;
 				if (m_pPhysics->RayTest(f3From, f3To, &f3HitPoint) == true)
 					return f3HitPoint.y;
 
@@ -158,10 +158,10 @@ namespace EastEngine
 			}
 			else
 			{
-				Math::Matrix matInvWorld = m_matWorld.Invert();
+				math::Matrix matInvWorld = m_matWorld.Invert();
 
-				Math::Vector3 f3Pos(fPosX, 0.f, fPosZ);
-				f3Pos = Math::Vector3::Transform(f3Pos, matInvWorld);
+				math::Vector3 f3Pos(fPosX, 0.f, fPosZ);
+				f3Pos = math::Vector3::Transform(f3Pos, matInvWorld);
 
 				int i = static_cast<int>(f3Pos.x);
 				int j = static_cast<int>(f3Pos.z);
@@ -177,16 +177,16 @@ namespace EastEngine
 				uint32_t nIdx4 = (m_property.n2Size.x * (i + 1)) + (j + 1);	// Bottom right.
 
 				// Triangle 1 - Upper left.
-				const Math::Vector3& p0 = m_vecHeightMap[nIdx1].pos;
+				const math::Vector3& p0 = m_vecHeightMap[nIdx1].pos;
 
 				// Triangle 1 - Upper right.
-				const Math::Vector3& p1 = m_vecHeightMap[nIdx2].pos;
+				const math::Vector3& p1 = m_vecHeightMap[nIdx2].pos;
 
 				// Triangle 1 - Bottom left.
-				const Math::Vector3& p2 = m_vecHeightMap[nIdx3].pos;
+				const math::Vector3& p2 = m_vecHeightMap[nIdx3].pos;
 
 				// Triangle 2 - Bottom right.
-				const Math::Vector3& p3 = m_vecHeightMap[nIdx4].pos;
+				const math::Vector3& p3 = m_vecHeightMap[nIdx4].pos;
 
 				std::optional<float> optHeight = CheckHeightOfTriangle(fPosX, fPosZ, p0, p1, p2);
 				if (optHeight.has_value())
@@ -202,8 +202,8 @@ namespace EastEngine
 
 		bool Terrain::loadHeightMap(const char* strFilePath)
 		{
-			File::Stream file;
-			if (file.Open(strFilePath, File::eBinary | File::eRead) == false)
+			file::Stream file;
+			if (file.Open(strFilePath, file::eBinary | file::eRead) == false)
 				return false;
 
 			BITMAPFILEHEADER bitmapFileHeader;
@@ -256,7 +256,7 @@ namespace EastEngine
 
 		bool Terrain::loadColorMap(const char* strFilePath)
 		{
-			m_pTexColorMap = Graphics::ITexture::Create(strFilePath, false);
+			m_pTexColorMap = graphics::ITexture::Create(strFilePath, false);
 
 			return true;
 		}
@@ -265,8 +265,8 @@ namespace EastEngine
 		{
 			// Start by creating the array structure to hold the height map data.
 			// Open the bitmap map file in binary.
-			File::Stream file;
-			if (file.Open(strFilePath, File::eBinary | File::eRead) == false)
+			file::Stream file;
+			if (file.Open(strFilePath, file::eBinary | file::eRead) == false)
 				return false;
 
 			// Calculate the size of the bitmap image data.  
@@ -313,13 +313,13 @@ namespace EastEngine
 			uint32_t nVertexCount = (m_property.n2Size.y - 1) * (m_property.n2Size.x - 1) * 4;
 			uint32_t nIndexCount = (m_property.n2Size.y - 1) * (m_property.n2Size.x - 1) * 6;
 
-			std::vector<Graphics::VertexPosTexNorCol> vecVertex;
+			std::vector<graphics::VertexPosTexNorCol> vecVertex;
 			vecVertex.reserve(nVertexCount);
 
 			m_rigidBodyData.vecVertices.reserve(nVertexCount);
 			m_rigidBodyData.vecIndices.reserve(nIndexCount);
 
-			std::vector<Math::Vector3> vecNormal;
+			std::vector<math::Vector3> vecNormal;
 			vecNormal.reserve((m_property.n2Size.y - 1) * (m_property.n2Size.x - 1));
 
 			int nIndex = 0;
@@ -336,9 +336,9 @@ namespace EastEngine
 						int nIdx3 = (j * m_property.n2Size.x) + i;				// Upper left vertex.
 
 						// Get three vertices from the face.
-						Math::Vector3 v1 = m_vecHeightMap[nIdx1].pos;
-						Math::Vector3 v2 = m_vecHeightMap[nIdx2].pos;
-						Math::Vector3 v3 = m_vecHeightMap[nIdx3].pos;
+						math::Vector3 v1 = m_vecHeightMap[nIdx1].pos;
+						math::Vector3 v2 = m_vecHeightMap[nIdx2].pos;
+						math::Vector3 v3 = m_vecHeightMap[nIdx3].pos;
 
 						// Calculate the two vectors for this face.
 						v1.x = v1.x - v3.x;
@@ -349,7 +349,7 @@ namespace EastEngine
 						v2.z = v3.z - v2.z;
 
 						// Calculate the cross product of those two vectors to get the un-normalized value for this face normal.
-						Math::Vector3 vNormal(
+						math::Vector3 vNormal(
 							(v1.y * v2.z) - (v1.z * v2.y),
 							(v1.z * v2.x) - (v1.x * v2.z),
 							(v1.x * v2.y) - (v1.y * v2.x)
@@ -400,7 +400,7 @@ namespace EastEngine
 				for (int i = 0; i < nWidth; ++i)
 				{
 					// Initialize the sum.
-					Math::Vector3 sum;
+					math::Vector3 sum;
 					int nIdx = 0;
 
 					// Bottom left face.
@@ -448,7 +448,7 @@ namespace EastEngine
 
 			vecNormal.clear();
 
-			std::vector<Math::Vector4> vecHeightLinear(m_property.n2Size.x * m_property.n2Size.y);
+			std::vector<math::Vector4> vecHeightLinear(m_property.n2Size.x * m_property.n2Size.y);
 
 			m_fHeightMax = std::numeric_limits<float>::min();
 			m_fHeightMin = std::numeric_limits<float>::max();
@@ -458,19 +458,19 @@ namespace EastEngine
 				for (int j = 0; j < m_property.n2Size.y; ++j)
 				{
 					const HeightMapVertex& vertex = m_vecHeightMap[i + j * m_property.n2Size.y];
-					vecHeightLinear[i + j * m_property.n2Size.y] = Math::Vector4(vertex.normal.x, vertex.normal.y, vertex.normal.z, vertex.pos.y);
+					vecHeightLinear[i + j * m_property.n2Size.y] = math::Vector4(vertex.normal.x, vertex.normal.y, vertex.normal.z, vertex.pos.y);
 
-					m_fHeightMax = Math::Max(m_fHeightMax, vertex.pos.y);
-					m_fHeightMin = Math::Min(m_fHeightMin, vertex.pos.y);
+					m_fHeightMax = math::Max(m_fHeightMax, vertex.pos.y);
+					m_fHeightMin = math::Min(m_fHeightMin, vertex.pos.y);
 				}
 			}
 
 			D3D11_SUBRESOURCE_DATA subresource_data;
 			subresource_data.pSysMem = vecHeightLinear.data();
-			subresource_data.SysMemPitch = m_property.n2Size.x * sizeof(Math::Vector4);
+			subresource_data.SysMemPitch = m_property.n2Size.x * sizeof(math::Vector4);
 			subresource_data.SysMemSlicePitch = 0;
 
-			Graphics::TextureDesc2D tex_desc;
+			graphics::TextureDesc2D tex_desc;
 			tex_desc.Width = m_property.n2Size.x;
 			tex_desc.Height = m_property.n2Size.y;
 			tex_desc.MipLevels = 1;
@@ -487,9 +487,9 @@ namespace EastEngine
 			String::StringID strName;
 			strName.Format("TerrainHeightMap_%d", s_nTerrainIndex);
 
-			m_pTexHeightMap = Graphics::ITexture::Create(strName, tex_desc, &subresource_data);
+			m_pTexHeightMap = graphics::ITexture::Create(strName, tex_desc, &subresource_data);
 
-			std::vector<Graphics::VertexPos4> vecPatches_rawdata;
+			std::vector<graphics::VertexPos4> vecPatches_rawdata;
 			vecPatches_rawdata.resize(m_property.n2Patches.x * m_property.n2Patches.y);
 
 			// creating terrain vertex buffer
@@ -497,32 +497,32 @@ namespace EastEngine
 			{
 				for (int j = 0; j < m_property.n2Patches.y; ++j)
 				{
-					Graphics::VertexPos4& vertex = vecPatches_rawdata[i + j * m_property.n2Patches.y];
+					graphics::VertexPos4& vertex = vecPatches_rawdata[i + j * m_property.n2Patches.y];
 					vertex.pos.x = i * static_cast<float>(m_property.n2Size.x) / static_cast<float>(m_property.n2Patches.x);
 					vertex.pos.y = j * static_cast<float>(m_property.n2Size.y) / static_cast<float>(m_property.n2Patches.y);
 				}
 			}
 
-			m_pHeightField = Graphics::IVertexBuffer::Create(Graphics::VertexPos4::Format(), vecPatches_rawdata.size(), &vecPatches_rawdata.front(), D3D11_USAGE_IMMUTABLE);
+			m_pHeightField = graphics::IVertexBuffer::Create(graphics::VertexPos4::Format(), vecPatches_rawdata.size(), &vecPatches_rawdata.front(), D3D11_USAGE_IMMUTABLE);
 
 			return true;
 		}
 
-		std::optional<float> Terrain::CheckHeightOfTriangle(float x, float z, const Math::Vector3& v0, const Math::Vector3& v1, const Math::Vector3& v2) const
+		std::optional<float> Terrain::CheckHeightOfTriangle(float x, float z, const math::Vector3& v0, const math::Vector3& v1, const math::Vector3& v2) const
 		{
 			// Starting position of the ray that is being cast.
-			Math::Vector3 f3StartVector(x, 0.f, z);
+			math::Vector3 f3StartVector(x, 0.f, z);
 
 			// The direction the ray is being cast.
-			const Math::Vector3 f3DrectionVector(0.f, -1.f, 0.f);
+			const math::Vector3 f3DrectionVector(0.f, -1.f, 0.f);
 
 			// Calculate the two edges from the three points given.
-			const Math::Vector3 vEdge1(v1.x - v0.x, v1.y - v0.y, v1.z - v0.z);
+			const math::Vector3 vEdge1(v1.x - v0.x, v1.y - v0.y, v1.z - v0.z);
 
-			const Math::Vector3 vEdge2(v2.x - v0.x, v2.y - v0.y, v2.z - v0.z);
+			const math::Vector3 vEdge2(v2.x - v0.x, v2.y - v0.y, v2.z - v0.z);
 
 			// Calculate the normal of the triangle from the two edges.
-			Math::Vector3 vNormal((vEdge1.y * vEdge2.z) - (vEdge1.z * vEdge2.y),
+			math::Vector3 vNormal((vEdge1.y * vEdge2.z) - (vEdge1.z * vEdge2.y),
 				(vEdge1.z * vEdge2.x) - (vEdge1.x * vEdge2.z),
 				(vEdge1.x * vEdge2.y) - (vEdge1.y * vEdge2.x));
 
@@ -548,22 +548,22 @@ namespace EastEngine
 			float t = fNumerator / fDenominator;
 
 			// Find the intersection vector.
-			Math::Vector3 Q(f3StartVector.x + (f3DrectionVector.x * t),
+			math::Vector3 Q(f3StartVector.x + (f3DrectionVector.x * t),
 				f3StartVector.y + (f3DrectionVector.y * t),
 				f3StartVector.z + (f3DrectionVector.z * t));
 
 			// Find the three edges of the triangle.
-			Math::Vector3 e1(v1.x - v0.x, v1.y - v0.y, v1.z - v0.z);
-			Math::Vector3 e2(v2.x - v1.x, v2.y - v1.y, v2.z - v1.z);
-			Math::Vector3 e3(v0.x - v2.x, v0.y - v2.y, v0.z - v2.z);
+			math::Vector3 e1(v1.x - v0.x, v1.y - v0.y, v1.z - v0.z);
+			math::Vector3 e2(v2.x - v1.x, v2.y - v1.y, v2.z - v1.z);
+			math::Vector3 e3(v0.x - v2.x, v0.y - v2.y, v0.z - v2.z);
 
 			// Calculate the normal for the first edge.
-			Math::Vector3 edgeNormal((e1.y * vNormal.z) - (e1.z * vNormal.y),
+			math::Vector3 edgeNormal((e1.y * vNormal.z) - (e1.z * vNormal.y),
 				(e1.z * vNormal.x) - (e1.x * vNormal.z),
 				(e1.x * vNormal.y) - (e1.y * vNormal.x));
 
 			// Calculate the determinant to see if it is on the inside, outside, or directly on the edge.
-			Math::Vector3 temp(Q.x - v0.x, Q.y - v0.y, Q.z - v0.z);
+			math::Vector3 temp(Q.x - v0.x, Q.y - v0.y, Q.z - v0.z);
 
 			float fDeterminant = ((edgeNormal.x * temp.x) + (edgeNormal.y * temp.y) + (edgeNormal.z * temp.z));
 

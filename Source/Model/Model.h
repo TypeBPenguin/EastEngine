@@ -3,9 +3,9 @@
 #include "ModelInterface.h"
 #include "Skeleton.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class ModelInstance;
 
@@ -13,6 +13,8 @@ namespace EastEngine
 		{
 		public:
 			Model(Key key);
+			Model(const Model& source);
+			Model(Model&& source) noexcept;
 			virtual ~Model();
 
 		public:
@@ -26,44 +28,33 @@ namespace EastEngine
 			void Ready();
 
 		public:
-			virtual void Update(float fElapsedTime, const Math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance) override;
+			virtual void Update(float fElapsedTime, const math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance) override;
 
 			virtual void ChangeName(const String::StringID& strName) override;
 
 			void LoadCompleteCallback(bool isSuccess);
 
 		public:
-			virtual const Math::Vector3& GetLocalPosition() const override { return m_f3Pos; }
-			virtual void SetLocalPosition(const Math::Vector3& f3Pos) override { m_f3Pos = f3Pos; m_isDirtyLocalMatrix = true; }
-			virtual const Math::Vector3& GetLocalScale() const override { return m_f3Scale; }
-			virtual void SetLocalScale(const Math::Vector3& f3Scale) override { m_f3Scale = f3Scale; m_isDirtyLocalMatrix = true; }
-			virtual const Math::Quaternion& GetLocalRotation() const override { return m_quat; }
-			virtual void SetLocalRotation(const Math::Quaternion& quat) override { m_quat = quat; m_isDirtyLocalMatrix = true; }
+			virtual const math::Vector3& GetLocalPosition() const override { return m_f3Pos; }
+			virtual void SetLocalPosition(const math::Vector3& f3Pos) override { m_f3Pos = f3Pos; m_isDirtyLocalMatrix = true; }
+			virtual const math::Vector3& GetLocalScale() const override { return m_f3Scale; }
+			virtual void SetLocalScale(const math::Vector3& f3Scale) override { m_f3Scale = f3Scale; m_isDirtyLocalMatrix = true; }
+			virtual const math::Quaternion& GetLocalRotation() const override { return m_quat; }
+			virtual void SetLocalRotation(const math::Quaternion& quat) override { m_quat = quat; m_isDirtyLocalMatrix = true; }
 
-			virtual const Math::Matrix& GetLocalMatrix() const override { return m_matLocal; }
+			virtual const math::Matrix& GetLocalMatrix() const override { return m_matLocal; }
 
 			virtual const String::StringID& GetName() const override { return m_strModelName; }
 			virtual const std::string& GetFilePath() const override { return m_strFilePath; }
 
-			virtual size_t GetNodeCount() const override { return m_vecModelNodes.size(); }
-			virtual IModelNode* GetNode(size_t nIndex) const override { return m_vecModelNodes[nIndex]; }
+			virtual uint32_t GetNodeCount() const override { return static_cast<uint32_t>(m_vecModelNodes.size()); }
+			virtual IModelNode* GetNode(uint32_t nIndex) const override { return m_vecModelNodes[nIndex]; }
 			virtual IModelNode* GetNode(const String::StringID& strName) const override;
 
 			virtual bool IsVisible() const override { return m_isVisible; }
 			virtual void SetVisible(bool bVisible) override { m_isVisible = bVisible; }
 
 			virtual ISkeleton* GetSkeleton() override { return &m_skeleton; }
-
-		public:
-			virtual int GetReferenceCount() const override { return m_nReferenceCount; }
-			virtual int IncreaseReference() override
-			{
-				++m_nReferenceCount;
-				SetAlive(true);
-
-				return m_nReferenceCount;
-			}
-			virtual int DecreaseReference() override { return --m_nReferenceCount; }
 
 		public:
 			void AddNode(IModelNode* pNode, const String::StringID& strNodeName, bool isRootNode);
@@ -75,18 +66,17 @@ namespace EastEngine
 
 		private:
 			const Key m_key;
-			int m_nReferenceCount;
 
 			bool m_isVisible;
 			bool m_isDirtyLocalMatrix;
 
 			Skeleton m_skeleton;
 
-			Math::Vector3 m_f3Pos;
-			Math::Vector3 m_f3Scale;
-			Math::Quaternion m_quat;
+			math::Vector3 m_f3Pos;
+			math::Vector3 m_f3Scale;
+			math::Quaternion m_quat;
 
-			Math::Matrix m_matLocal;
+			math::Matrix m_matLocal;
 
 			String::StringID m_strModelName;
 			std::string	m_strFilePath;

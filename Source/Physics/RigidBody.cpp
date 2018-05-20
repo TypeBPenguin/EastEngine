@@ -5,7 +5,7 @@
 #include "DebugHelper.h"
 #include "MathConvertor.h"
 
-namespace EastEngine
+namespace eastengine
 {
 	namespace Physics
 	{
@@ -20,12 +20,12 @@ namespace EastEngine
 
 		public:
 			void Update(float fElapsedTime);
-			void UpdateBoundingBox(const Math::Matrix& matWorld);
+			void UpdateBoundingBox(const math::Matrix& matWorld);
 
 			bool IsCollision(RigidBody* pRigidBody);
-			bool RayTest(const Math::Vector3& f3From, const Math::Vector3& f3To, Math::Vector3* pHitPoint_out = nullptr, Math::Vector3* pHitNormal_out = nullptr) const;
+			bool RayTest(const math::Vector3& f3From, const math::Vector3& f3To, math::Vector3* pHitPoint_out = nullptr, math::Vector3* pHitNormal_out = nullptr) const;
 
-			void AddCollisionResult(const RigidBody* pRigidBody, const Math::Vector3& f3OpponentPoint, const Math::Vector3& f3MyPoint);
+			void AddCollisionResult(const RigidBody* pRigidBody, const math::Vector3& f3OpponentPoint, const math::Vector3& f3MyPoint);
 
 			void ClearCollisionResults();
 
@@ -37,13 +37,13 @@ namespace EastEngine
 
 			const RigidBodyProperty& GetRigidBodyProperty() const;
 
-			void SetWorldMatrix(const Math::Matrix& mat);
-			Math::Matrix GetWorldMatrix() const;
+			void SetWorldMatrix(const math::Matrix& mat);
+			math::Matrix GetWorldMatrix() const;
 
-			Math::Quaternion GetOrientation() const;
-			Math::Vector3 GetCenterOfMassPosition() const;
+			math::Quaternion GetOrientation() const;
+			math::Vector3 GetCenterOfMassPosition() const;
 
-			void SetLinearVelocity(const Math::Vector3& f3Velocity);
+			void SetLinearVelocity(const math::Vector3& f3Velocity);
 
 			void SetDamping(float fLinearDamping, float fAngularDamping);
 			void SetDeactivationTime(float fTime);
@@ -52,7 +52,7 @@ namespace EastEngine
 
 			void SetActiveState(EmActiveState::Type emActiveState);
 			void SetGravity(bool isEnable);
-			void SetGravity(const Math::Vector3& f3Gravity);
+			void SetGravity(const math::Vector3& f3Gravity);
 
 			const Collision::AABB& GetAABB() const { return m_boundingBox; }
 			const Collision::Sphere& GetBoundingSphere() const { return m_boundingSphere; }
@@ -71,7 +71,7 @@ namespace EastEngine
 
 			RigidBodyProperty m_rigidBodyProperty;
 
-			Math::Matrix m_matWorld;
+			math::Matrix m_matWorld;
 
 			Collision::AABB m_boundingBox;
 			Collision::Sphere m_boundingSphere;
@@ -144,12 +144,12 @@ namespace EastEngine
 
 			m_rigidBodyProperty = rigidBodyProperty;
 
-			btTransform offsetTransform = Math::ConvertToBt(rigidBodyProperty.matOffset);
+			btTransform offsetTransform = math::ConvertToBt(rigidBodyProperty.matOffset);
 
 			btTransform bodyTransform;
 			bodyTransform.setIdentity();
-			bodyTransform.setOrigin(Math::ConvertToBt(rigidBodyProperty.f3OriginPos));
-			bodyTransform.setRotation(Math::ConvertToBt(rigidBodyProperty.originQuat));
+			bodyTransform.setOrigin(math::ConvertToBt(rigidBodyProperty.f3OriginPos));
+			bodyTransform.setRotation(math::ConvertToBt(rigidBodyProperty.originQuat));
 
 			btVector3 localInertia(0.f, 0.f, 0.f);
 			// IneritaTensor¸¦ °è»ê
@@ -177,7 +177,7 @@ namespace EastEngine
 
 		void RigidBody::Impl::Update(float fElapsedTime)
 		{
-			m_matWorld = Math::Convert(m_pRigidBody->getWorldTransform());
+			m_matWorld = math::Convert(m_pRigidBody->getWorldTransform());
 
 			UpdateBoundingBox(m_matWorld);
 
@@ -196,7 +196,7 @@ namespace EastEngine
 					btVector3 aabbMin(btScalar(-1e30), btScalar(-1e30), btScalar(-1e30));
 					btVector3 aabbMax(btScalar(1e30), btScalar(1e30), btScalar(1e30));
 
-					std::vector<Math::Vector3> triangles;
+					std::vector<math::Vector3> triangles;
 					if (m_rigidBodyProperty.shapeInfo.emPhysicsShapeType == EmPhysicsShape::Type::eTriangleMesh)
 					{
 					}
@@ -217,16 +217,16 @@ namespace EastEngine
 			}
 		}
 
-		void RigidBody::Impl::UpdateBoundingBox(const Math::Matrix& matWorld)
+		void RigidBody::Impl::UpdateBoundingBox(const math::Matrix& matWorld)
 		{
 			btVector3 vMin, vMax;
 			m_pRigidBody->getAabb(vMin, vMax);
 
-			Math::Vector3 f3Min = Math::Convert(vMin);
-			Math::Vector3 f3Max = Math::Convert(vMax);
+			math::Vector3 f3Min = math::Convert(vMin);
+			math::Vector3 f3Max = math::Convert(vMax);
 
 			Collision::AABB::CreateFromPoints(m_boundingBox, f3Min, f3Max);
-			m_boundingBox.Extents = Math::Vector3::Max(m_boundingBox.Extents, Math::Vector3(0.01f));
+			m_boundingBox.Extents = math::Vector3::Max(m_boundingBox.Extents, math::Vector3(0.01f));
 			Collision::Sphere::CreateFromAABB(m_boundingSphere, m_boundingBox);
 			Collision::OBB::CreateFromAABB(m_boundingOrientedBox, m_boundingBox);
 		}
@@ -260,10 +260,10 @@ namespace EastEngine
 			return result.isCollision;
 		}
 
-		bool RigidBody::Impl::RayTest(const Math::Vector3& f3From, const Math::Vector3& f3To, Math::Vector3* pHitPoint_out, Math::Vector3* pHitNormal_out) const
+		bool RigidBody::Impl::RayTest(const math::Vector3& f3From, const math::Vector3& f3To, math::Vector3* pHitPoint_out, math::Vector3* pHitNormal_out) const
 		{
-			btVector3 rayFromWorld = Math::ConvertToBt(f3From);
-			btVector3 rayToWorld = Math::ConvertToBt(f3To);
+			btVector3 rayFromWorld = math::ConvertToBt(f3From);
+			btVector3 rayToWorld = math::ConvertToBt(f3To);
 
 			btTransform	rayFromTrans;
 			rayFromTrans.setIdentity();
@@ -285,12 +285,12 @@ namespace EastEngine
 			{
 				if (pHitPoint_out != nullptr)
 				{
-					*pHitPoint_out = Math::Convert(resultCallback.m_hitPointWorld);
+					*pHitPoint_out = math::Convert(resultCallback.m_hitPointWorld);
 				}
 
 				if (pHitNormal_out != nullptr)
 				{
-					*pHitNormal_out = Math::Convert(resultCallback.m_hitNormalWorld);
+					*pHitNormal_out = math::Convert(resultCallback.m_hitNormalWorld);
 				}
 
 				return true;
@@ -299,19 +299,19 @@ namespace EastEngine
 			{
 				if (pHitPoint_out != nullptr)
 				{
-					*pHitPoint_out = Math::Vector3::Zero;
+					*pHitPoint_out = math::Vector3::Zero;
 				}
 
 				if (pHitNormal_out != nullptr)
 				{
-					*pHitNormal_out = Math::Vector3::Zero;
+					*pHitNormal_out = math::Vector3::Zero;
 				}
 
 				return false;
 			}
 		}
 
-		void RigidBody::Impl::AddCollisionResult(const RigidBody* pRigidBody, const Math::Vector3& f3OpponentPoint, const Math::Vector3& f3MyPoint)
+		void RigidBody::Impl::AddCollisionResult(const RigidBody* pRigidBody, const math::Vector3& f3OpponentPoint, const math::Vector3& f3MyPoint)
 		{
 			if (m_rigidBodyProperty.funcCollisionCallback != nullptr)
 			{
@@ -344,47 +344,47 @@ namespace EastEngine
 			return m_rigidBodyProperty;
 		}
 
-		void RigidBody::Impl::SetWorldMatrix(const Math::Matrix& mat)
+		void RigidBody::Impl::SetWorldMatrix(const math::Matrix& mat)
 		{
-			Math::Vector3 f3Pos, vScale;
-			Math::Quaternion quat;
+			math::Vector3 f3Pos, vScale;
+			math::Quaternion quat;
 
 			mat.Decompose(vScale, quat, f3Pos);
-			btTransform transform = Math::ConvertToBt(f3Pos, quat);
+			btTransform transform = math::ConvertToBt(f3Pos, quat);
 			m_pMotionState->setWorldTransform(transform);
 			m_pRigidBody->setWorldTransform(transform);
-			m_pCollisionShape->setLocalScaling(Math::ConvertToBt(vScale));
+			m_pCollisionShape->setLocalScaling(math::ConvertToBt(vScale));
 		}
 
-		Math::Matrix RigidBody::Impl::GetWorldMatrix() const
+		math::Matrix RigidBody::Impl::GetWorldMatrix() const
 		{
-			return Math::Convert(m_pRigidBody->getWorldTransform());
+			return math::Convert(m_pRigidBody->getWorldTransform());
 		}
 
-		Math::Quaternion RigidBody::Impl::GetOrientation() const
+		math::Quaternion RigidBody::Impl::GetOrientation() const
 		{
-			return Math::Convert(m_pRigidBody->getOrientation());
+			return math::Convert(m_pRigidBody->getOrientation());
 		}
 
-		Math::Vector3 RigidBody::Impl::GetCenterOfMassPosition() const
+		math::Vector3 RigidBody::Impl::GetCenterOfMassPosition() const
 		{
-			return Math::Convert(m_pRigidBody->getCenterOfMassPosition());
+			return math::Convert(m_pRigidBody->getCenterOfMassPosition());
 		}
 
-		void RigidBody::Impl::SetLinearVelocity(const Math::Vector3& f3Velocity)
+		void RigidBody::Impl::SetLinearVelocity(const math::Vector3& f3Velocity)
 		{
-			if (Math::IsZero(f3Velocity.LengthSquared()) == true)
+			if (math::IsZero(f3Velocity.LengthSquared()) == true)
 				return;
 
 			if (m_pRigidBody->isActive() == false)
 			{
-				m_pRigidBody->setLinearVelocity(Math::ConvertToBt(f3Velocity));
+				m_pRigidBody->setLinearVelocity(math::ConvertToBt(f3Velocity));
 				m_pRigidBody->activate();
 			}
 			else
 			{
 				auto btVelocity = m_pRigidBody->getLinearVelocity();
-				btVelocity += Math::ConvertToBt(f3Velocity);
+				btVelocity += math::ConvertToBt(f3Velocity);
 
 				m_pRigidBody->setLinearVelocity(btVelocity);
 			}
@@ -430,9 +430,9 @@ namespace EastEngine
 			m_pRigidBody->applyGravity();
 		}
 
-		void RigidBody::Impl::SetGravity(const Math::Vector3& f3Gravity)
+		void RigidBody::Impl::SetGravity(const math::Vector3& f3Gravity)
 		{
-			m_pRigidBody->setGravity(Math::ConvertToBt(f3Gravity));
+			m_pRigidBody->setGravity(math::ConvertToBt(f3Gravity));
 			m_pRigidBody->applyGravity();
 		}
 
@@ -468,7 +468,7 @@ namespace EastEngine
 			m_pImpl->Update(fElapsedTime);
 		}
 
-		void RigidBody::UpdateBoundingBox(const Math::Matrix& matWorld)
+		void RigidBody::UpdateBoundingBox(const math::Matrix& matWorld)
 		{
 			m_pImpl->UpdateBoundingBox(matWorld);
 		}
@@ -478,12 +478,12 @@ namespace EastEngine
 			return m_pImpl->IsCollision(pRigidBody);
 		}
 
-		bool RigidBody::RayTest(const Math::Vector3& f3From, const Math::Vector3& f3To, Math::Vector3* pHitPoint_out, Math::Vector3* pHitNormal_out) const
+		bool RigidBody::RayTest(const math::Vector3& f3From, const math::Vector3& f3To, math::Vector3* pHitPoint_out, math::Vector3* pHitNormal_out) const
 		{
 			return m_pImpl->RayTest(f3From, f3To, pHitPoint_out, pHitNormal_out);
 		}
 
-		void RigidBody::AddCollisionResult(const RigidBody* pRigidBody, const Math::Vector3& f3OpponentPoint, const Math::Vector3& f3MyPoint)
+		void RigidBody::AddCollisionResult(const RigidBody* pRigidBody, const math::Vector3& f3OpponentPoint, const math::Vector3& f3MyPoint)
 		{
 			m_pImpl->AddCollisionResult(pRigidBody, f3OpponentPoint, f3MyPoint);
 		}
@@ -513,27 +513,27 @@ namespace EastEngine
 			return m_pImpl->GetRigidBodyProperty();
 		}
 
-		void RigidBody::SetWorldMatrix(const Math::Matrix& mat)
+		void RigidBody::SetWorldMatrix(const math::Matrix& mat)
 		{
 			m_pImpl->SetWorldMatrix(mat);
 		}
 
-		Math::Matrix RigidBody::GetWorldMatrix() const
+		math::Matrix RigidBody::GetWorldMatrix() const
 		{
 			return m_pImpl->GetWorldMatrix();
 		}
 
-		Math::Quaternion RigidBody::GetOrientation() const
+		math::Quaternion RigidBody::GetOrientation() const
 		{
 			return m_pImpl->GetOrientation();
 		}
 
-		Math::Vector3 RigidBody::GetCenterOfMassPosition() const
+		math::Vector3 RigidBody::GetCenterOfMassPosition() const
 		{
 			return m_pImpl->GetCenterOfMassPosition();
 		}
 
-		void RigidBody::SetLinearVelocity(const Math::Vector3& f3Velocity)
+		void RigidBody::SetLinearVelocity(const math::Vector3& f3Velocity)
 		{
 			m_pImpl->SetLinearVelocity(f3Velocity);
 		}
@@ -568,7 +568,7 @@ namespace EastEngine
 			m_pImpl->SetGravity(isEnable);
 		}
 
-		void RigidBody::SetGravity(const Math::Vector3& f3Gravity)
+		void RigidBody::SetGravity(const math::Vector3& f3Gravity)
 		{
 			m_pImpl->SetGravity(f3Gravity);
 		}

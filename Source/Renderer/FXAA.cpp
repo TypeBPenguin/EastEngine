@@ -13,9 +13,9 @@ namespace StrID
 	RegisterStringID(g_samAnisotropic);
 }
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		FXAA::FXAA()
 			: m_isInit(false)
@@ -36,7 +36,7 @@ namespace EastEngine
 
 			m_isInit = true;
 
-			std::string strPath(File::GetPath(File::EmPath::eFx));
+			std::string strPath(file::GetPath(file::EmPath::eFx));
 
 #if defined(DEBUG) || defined(_DEBUG)
 			strPath.append("PostProcessing\\FXAA\\FXAA_D.cso");
@@ -82,7 +82,7 @@ namespace EastEngine
 			if (pResult == nullptr || pSource == nullptr)
 				return false;
 
-			PERF_TRACER_EVENT("FXAA::Apply", "");
+			TRACER_EVENT("FXAA::Apply");
 			D3D_PROFILING(pDeviceContext, FXAA);
 
 			IEffectTech* pEffectTech = m_pEffect->GetTechnique(StrID::FXAA);
@@ -103,9 +103,9 @@ namespace EastEngine
 
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-			const Math::UInt2& nScreenSize = pDevice->GetScreenSize();
+			const math::UInt2& nScreenSize = pDevice->GetScreenSize();
 
-			Math::Vector4 vRcpFrame(1.f / nScreenSize.x, 1.f / nScreenSize.y, 0.f, 0.f);
+			math::Vector4 vRcpFrame(1.f / nScreenSize.x, 1.f / nScreenSize.y, 0.f, 0.f);
 			m_pEffect->SetVector(StrID::g_f4RcpFrame, vRcpFrame);
 
 			m_pEffect->SetTexture(StrID::g_texInput, pSource->GetTexture());

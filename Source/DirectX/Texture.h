@@ -2,9 +2,9 @@
 
 #include "D3DInterface.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class Texture : public ITexture
 		{
@@ -28,7 +28,7 @@ namespace EastEngine
 			virtual ID3D11ShaderResourceView* GetShaderResourceView() override { return m_pShaderResourceView; }
 			virtual ID3D11ShaderResourceView** GetShaderResourceViewPtr() override { return &m_pShaderResourceView; }
 
-			virtual const Math::UInt2& GetSize() override { return m_n2Size; }
+			virtual const math::UInt2& GetSize() override { return m_n2Size; }
 			virtual const String::StringID& GetName() override { return m_strName; }
 
 		public:
@@ -49,7 +49,7 @@ namespace EastEngine
 			ID3D11Texture3D* m_pTexture3D;
 			ID3D11ShaderResourceView* m_pShaderResourceView;
 
-			Math::UInt2 m_n2Size;
+			math::UInt2 m_n2Size;
 
 			String::StringID m_strName;
 		};

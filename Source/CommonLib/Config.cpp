@@ -3,7 +3,7 @@
 
 #include "StringID.h"
 
-namespace EastEngine
+namespace eastengine
 {
 	namespace Config
 	{

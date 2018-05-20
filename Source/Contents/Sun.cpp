@@ -18,34 +18,34 @@ namespace Contents
 
 	Sun::~Sun()
 	{
-		GameObject::IActor::Destroy(&m_pActor);
+		gameobject::IActor::Destroy(&m_pActor);
 
 		m_pLight = nullptr;
 	}
 
-	bool Sun::Init(const String::StringID& strName, Graphics::ILight* pLight, float fRadius, const Math::Vector3& f3CenterAxis, const Math::Vector3& f3Velocity, const Math::Vector3& f3OrbitalPos)
+	bool Sun::Init(const String::StringID& strName, graphics::ILight* pLight, float fRadius, const math::Vector3& f3CenterAxis, const math::Vector3& f3Velocity, const math::Vector3& f3OrbitalPos)
 	{
 		m_f3CenterAxis = f3CenterAxis;
 		m_f3OrbitalRotateVelocity = f3Velocity;
 		m_f3OrbitalPos = f3OrbitalPos;
 
-		Graphics::MaterialInfo material;
+		graphics::MaterialInfo material;
 		material.strName = pLight->GetName();
 		material.colorAlbedo = pLight->GetColor();
 		material.colorEmissive = pLight->GetColor();
 		material.f4PaddingRoughMetEmi.w = pLight->GetIntensity() / 10.f;
 
-		Graphics::ModelLoader loader;
+		graphics::ModelLoader loader;
 		loader.InitSphere(pLight->GetName(), &material, fRadius * 2.f, 32);
 
-		m_pActor = GameObject::IActor::Create(strName);
+		m_pActor = gameobject::IActor::Create(strName);
 
-		auto pCompModel = static_cast<GameObject::ComponentModel*>(m_pActor->CreateComponent(GameObject::EmComponent::eModel));
+		auto pCompModel = static_cast<gameobject::ComponentModel*>(m_pActor->CreateComponent(gameobject::EmComponent::eModel));
 		pCompModel->Init(&loader);
 
 		pCompModel->GetModelInstance()->SetVisible(false);
 
-		auto pCompTimer = static_cast<GameObject::ComponentTimer*>(m_pActor->CreateComponent(GameObject::EmComponent::eTimer));
+		auto pCompTimer = static_cast<gameobject::ComponentTimer*>(m_pActor->CreateComponent(gameobject::EmComponent::eTimer));
 		pCompTimer->StartTimeAction([&](uint32_t nEventID, float fElapsedTime, float fProcessTime)
 		{
 			Update(fElapsedTime);
@@ -58,7 +58,7 @@ namespace Contents
 
 	void Sun::Update(float fElapsedTime)
 	{
-		//Math::Matrix matCenterAxis = Math::Matrix::CreateTranslation(m_f3CenterAxis);
+		//math::Matrix matCenterAxis = math::Matrix::CreateTranslation(m_f3CenterAxis);
 		//
 		//m_f3OrbitalRotation += m_f3OrbitalRotateVelocity * fElapsedTime;
 		//
@@ -78,27 +78,27 @@ namespace Contents
 		//ResetRot(m_f3OrbitalRotation.y);
 		//ResetRot(m_f3OrbitalRotation.z);
 		//
-		//Math::Matrix matOrbitalRotate = Math::Matrix::CreateFromYawPitchRoll(m_f3OrbitalRotation.y, m_f3OrbitalRotation.x, m_f3OrbitalRotation.z);
+		//math::Matrix matOrbitalRotate = math::Matrix::CreateFromYawPitchRoll(m_f3OrbitalRotation.y, m_f3OrbitalRotation.x, m_f3OrbitalRotation.z);
 		//
-		//Math::Matrix matOrbitalPos = Math::Matrix::CreateTranslation(m_f3OrbitalPos);
+		//math::Matrix matOrbitalPos = math::Matrix::CreateTranslation(m_f3OrbitalPos);
 		//
-		//Math::Matrix matFinalPos = matOrbitalPos * (matCenterAxis * matOrbitalRotate);
+		//math::Matrix matFinalPos = matOrbitalPos * (matCenterAxis * matOrbitalRotate);
 		//
 		//SetPosition(matFinalPos.Translation());
 
-		if (m_pLight->GetType() == Graphics::EmLight::ePoint)
+		if (m_pLight->GetType() == graphics::EmLight::ePoint)
 		{
-			Graphics::IPointLight* pPointLight = static_cast<Graphics::IPointLight*>(m_pLight);
+			graphics::IPointLight* pPointLight = static_cast<graphics::IPointLight*>(m_pLight);
 			pPointLight->SetPosition(m_pActor->GetPosition());
 		}
-		else if (m_pLight->GetType() == Graphics::EmLight::eSpot)
+		else if (m_pLight->GetType() == graphics::EmLight::eSpot)
 		{
-			Graphics::ISpotLight* pPointLight = static_cast<Graphics::ISpotLight*>(m_pLight);
+			graphics::ISpotLight* pPointLight = static_cast<graphics::ISpotLight*>(m_pLight);
 			pPointLight->SetPosition(m_pActor->GetPosition());
 
 			static float fTime = 0.f;
 			fTime += fElapsedTime * 0.1f;
-			pPointLight->SetAngle(std::abs(Math::Sin(fTime) * 90.f));
+			pPointLight->SetAngle(std::abs(math::Sin(fTime) * 90.f));
 		}
 	}
 }

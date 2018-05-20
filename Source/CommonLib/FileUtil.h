@@ -1,8 +1,8 @@
 #pragma once
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace File
+	namespace file
 	{
 		std::string GetFileName(const std::string& strPath);	// 경로명에서 파일명.확장자 리턴
 		std::string GetFileNameWithoutExtension(const char* strPath);

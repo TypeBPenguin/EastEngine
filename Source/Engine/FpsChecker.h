@@ -1,6 +1,6 @@
 #pragma once
 
-namespace EastEngine
+namespace eastengine
 {
 	class FpsChecker
 	{

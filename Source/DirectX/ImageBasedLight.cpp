@@ -1,9 +1,9 @@
 #include "stdafx.h"
 #include "ImageBasedLight.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		ImageBasedLight::ImageBasedLight()
 		{

@@ -38,11 +38,11 @@ namespace StrID
 	RegisterStringID(EastEngine_Plane);
 };
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
-		const String::StringID& GetGeometryTypeName(EmModelLoader::GeometryType emGeometryType)
+		const String::StringID& GetGeometryTypeName(ModelLoader::GeometryType emGeometryType)
 		{
 			static String::StringID strGeometryType[] =
 			{
@@ -72,8 +72,41 @@ namespace EastEngine
 			: m_key(key)
 			, m_isVisible(true)
 			, m_isDirtyLocalMatrix(false)
-			, m_nReferenceCount(0)
-			, m_f3Scale(Math::Vector3::One)
+			, m_f3Scale(math::Vector3::One)
+		{
+		}
+
+		Model::Model(const Model& source)
+			: m_key(source.m_key)
+			, m_isVisible(source.m_isVisible)
+			, m_isDirtyLocalMatrix(source.m_isDirtyLocalMatrix)
+			, m_skeleton(source.m_skeleton)
+			, m_f3Pos(source.m_f3Pos)
+			, m_f3Scale(source.m_f3Scale)
+			, m_quat(source.m_quat)
+			, m_matLocal(source.m_matLocal)
+			, m_strModelName(source.m_strModelName)
+			, m_strFilePath(source.m_strFilePath)
+			, m_vecHierarchyModelNodes(source.m_vecHierarchyModelNodes)
+			, m_vecModelNodes(source.m_vecModelNodes)
+			, m_vecModelInstances(source.m_vecModelInstances)
+		{
+		}
+
+		Model::Model(Model&& source) noexcept
+			: m_key(std::move(source.m_key))
+			, m_isVisible(std::move(source.m_isVisible))
+			, m_isDirtyLocalMatrix(std::move(source.m_isDirtyLocalMatrix))
+			, m_skeleton(std::move(source.m_skeleton))
+			, m_f3Pos(std::move(source.m_f3Pos))
+			, m_f3Scale(std::move(source.m_f3Scale))
+			, m_quat(std::move(source.m_quat))
+			, m_matLocal(std::move(source.m_matLocal))
+			, m_strModelName(std::move(source.m_strModelName))
+			, m_strFilePath(std::move(source.m_strFilePath))
+			, m_vecHierarchyModelNodes(std::move(source.m_vecHierarchyModelNodes))
+			, m_vecModelNodes(std::move(source.m_vecModelNodes))
+			, m_vecModelInstances(std::move(source.m_vecModelInstances))
 		{
 		}
 
@@ -97,11 +130,11 @@ namespace EastEngine
 
 			IncreaseReference();
 
-			if (GetLoadState() == EmLoadState::eComplete)
+			if (GetState() == IResource::eComplete)
 			{
 				pModelInstance->LoadCompleteCallback(true);
 			}
-			else if (GetLoadState() == EmLoadState::eInvalid)
+			else if (GetState() == IResource::eInvalid)
 			{
 				pModelInstance->LoadCompleteCallback(false);
 			}
@@ -127,17 +160,17 @@ namespace EastEngine
 
 		void Model::Ready()
 		{
-			if (GetLoadState() != EmLoadState::eComplete)
+			if (GetState() != IResource::eComplete)
 				return;
 
 			if (m_isDirtyLocalMatrix == true)
 			{
-				m_matLocal = Math::Matrix::Compose(m_f3Scale, m_quat, m_f3Pos);
+				m_matLocal = math::Matrix::Compose(m_f3Scale, m_quat, m_f3Pos);
 				m_isDirtyLocalMatrix = false;
 			}
 		}
 
-		void Model::Update(float fElapsedTime, const Math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance)
+		void Model::Update(float fElapsedTime, const math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance)
 		{
 			std::for_each(m_vecHierarchyModelNodes.begin(), m_vecHierarchyModelNodes.end(), [&](IModelNode* pModelNode)
 			{
@@ -160,7 +193,7 @@ namespace EastEngine
 
 		void Model::LoadCompleteCallback(bool isSuccess)
 		{
-			SetLoadState(isSuccess == true ? EmLoadState::eComplete : EmLoadState::eInvalid);
+			SetState(isSuccess == true ? IResource::eComplete : IResource::eInvalid);
 
 			std::for_each(m_vecModelInstances.begin(), m_vecModelInstances.end(), [isSuccess](ModelInstance* pInstance)
 			{
@@ -198,7 +231,7 @@ namespace EastEngine
 
 			switch (loader.GetLoadModelType())
 			{
-			case EmModelLoader::eFbx:
+			case ModelLoader::eFbx:
 			{
 				isSuccess = FBXImport::GetInstance()->LoadModel(this, loader.GetFilePath().c_str(), loader.GetScaleFactor(), loader.IsFlipZ());
 				if (isSuccess == false)
@@ -207,7 +240,7 @@ namespace EastEngine
 				}
 			}
 			break;
-			case EmModelLoader::eObj:
+			case ModelLoader::eObj:
 			{
 				isSuccess = FBXImport::GetInstance()->LoadModel(this, loader.GetFilePath().c_str(), loader.GetScaleFactor(), loader.IsFlipZ());
 				if (isSuccess == false)
@@ -216,7 +249,7 @@ namespace EastEngine
 				}
 			}
 			break;
-			case EmModelLoader::eXps:
+			case ModelLoader::eXps:
 			{
 				isSuccess = XPSImport::LoadModel(this, loader.GetFilePath().c_str(), loader.GetDevideKeywords(), loader.GetDevideKeywordCount());
 				if (isSuccess == false)
@@ -225,7 +258,7 @@ namespace EastEngine
 				}
 			}
 			break;
-			case EmModelLoader::eEast:
+			case ModelLoader::eEast:
 			{
 				isSuccess = LoadToFile(loader.GetFilePath().c_str());
 				if (isSuccess == false)
@@ -234,7 +267,7 @@ namespace EastEngine
 				}
 			}
 			break;
-			case EmModelLoader::eGeometry:
+			case ModelLoader::eGeometry:
 			{
 				IVertexBuffer* pVertexBuffer = nullptr;
 				IIndexBuffer* pIndexBuffer = nullptr;
@@ -245,16 +278,30 @@ namespace EastEngine
 				{
 					ModelNodeStatic* pModelStatic = new ModelNodeStatic;
 					pModelStatic->SetVertexBuffer(pVertexBuffer);
+					if (pVertexBuffer != nullptr)
+					{
+						pVertexBuffer->DecreaseReference();
+					}
+
 					pModelStatic->SetIndexBuffer(pIndexBuffer);
+					if (pIndexBuffer != nullptr)
+					{
+						pIndexBuffer->DecreaseReference();
+					}
+
 					pModelStatic->SetOriginAABB(aabb);
 
-					IMaterial* pMaterial = IMaterial::Create(&loader.GetMaterial());
+					IMaterial* pMaterial = CreateMaterial(&loader.GetMaterial());
 					pModelStatic->AddMaterial(pMaterial);
+					if (pMaterial != nullptr)
+					{
+						pMaterial->DecreaseReference();
+					}
 
 					ModelSubset modelSubset;
 					modelSubset.nMaterialID = 0;
 					modelSubset.nStartIndex = 0;
-					modelSubset.nIndexCount = pIndexBuffer->GetIndexNum();
+					modelSubset.nIndexCount = pIndexBuffer->GetIndexCount();
 					pModelStatic->AddModelSubset(modelSubset);
 
 					this->AddNode(pModelStatic, strNodeName, true);
@@ -262,18 +309,18 @@ namespace EastEngine
 
 				switch (loader.GetLoadGeometryType())
 				{
-				case EmModelLoader::eCube:
+				case ModelLoader::eCube:
 				{
 					const LoadInfoCube* pLoadInfo = loader.GetCubeInfo();
 					if (pLoadInfo != nullptr)
 					{
 						isSuccess = GeometryModel::CreateCube(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fSize, loader.IsRightHandCoords());
 
-						aabb.Extents = Math::Vector3(pLoadInfo->fSize);
+						aabb.Extents = math::Vector3(pLoadInfo->fSize);
 					}
 				}
 				break;
-				case EmModelLoader::eBox:
+				case ModelLoader::eBox:
 				{
 					const LoadInfoBox* pLoadInfo = loader.GetBoxInfo();
 					if (pLoadInfo != nullptr)
@@ -284,161 +331,161 @@ namespace EastEngine
 					}
 				}
 				break;
-				case EmModelLoader::eSphere:
+				case ModelLoader::eSphere:
 				{
 					const LoadInfoSphere* pLoadInfo = loader.GetSphereInfo();
 					if (pLoadInfo != nullptr)
 					{
 						isSuccess = GeometryModel::CreateSphere(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fDiameter, pLoadInfo->nTessellation, loader.IsRightHandCoords(), loader.IsInvertNormal());
 
-						aabb.Extents = Math::Vector3(pLoadInfo->fDiameter * 0.5f);
+						aabb.Extents = math::Vector3(pLoadInfo->fDiameter * 0.5f);
 					}
 				}
 				break;
-				case EmModelLoader::eGeoSphere:
+				case ModelLoader::eGeoSphere:
 				{
 					const LoadInfoGeoSphere* pLoadInfo = loader.GetGeoSphereInfo();
 					if (pLoadInfo != nullptr)
 					{
 						isSuccess = GeometryModel::CreateGeoSphere(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fDiameter, pLoadInfo->nTessellation, loader.IsRightHandCoords());
 
-						aabb.Extents = Math::Vector3(pLoadInfo->fDiameter * 0.5f);
+						aabb.Extents = math::Vector3(pLoadInfo->fDiameter * 0.5f);
 					}
 				}
 				break;
-				case EmModelLoader::eCylinder:
+				case ModelLoader::eCylinder:
 				{
 					const LoadInfoCylinder* pLoadInfo = loader.GetCylinderInfo();
 					if (pLoadInfo != nullptr)
 					{
 						isSuccess = GeometryModel::CreateCylinder(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fHeight, pLoadInfo->fDiameter, pLoadInfo->nTessellation, loader.IsRightHandCoords());
 
-						aabb.Extents = Math::Vector3(pLoadInfo->fDiameter * 0.5f, pLoadInfo->fHeight, pLoadInfo->fDiameter * 0.5f);
+						aabb.Extents = math::Vector3(pLoadInfo->fDiameter * 0.5f, pLoadInfo->fHeight, pLoadInfo->fDiameter * 0.5f);
 					}
 				}
 				break;
-				case EmModelLoader::eCone:
+				case ModelLoader::eCone:
 				{
 					const LoadInfoCone* pLoadInfo = loader.GetConeInfo();
 					if (pLoadInfo != nullptr)
 					{
 						isSuccess = GeometryModel::CreateCone(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fDiameter, pLoadInfo->fHeight, pLoadInfo->nTessellation, loader.IsRightHandCoords());
 
-						aabb.Extents = Math::Vector3(pLoadInfo->fDiameter * 0.5f, pLoadInfo->fHeight, pLoadInfo->fDiameter * 0.5f);
+						aabb.Extents = math::Vector3(pLoadInfo->fDiameter * 0.5f, pLoadInfo->fHeight, pLoadInfo->fDiameter * 0.5f);
 					}
 				}
 				break;
-				case EmModelLoader::eTorus:
+				case ModelLoader::eTorus:
 				{
 					const LoadInfoTorus* pLoadInfo = loader.GetTorusInfo();
 					if (pLoadInfo != nullptr)
 					{
 						isSuccess = GeometryModel::CreateTorus(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fDiameter, pLoadInfo->fThickness, pLoadInfo->nTessellation, loader.IsRightHandCoords());
 
-						aabb.Extents = Math::Vector3(pLoadInfo->fDiameter * 0.5f, pLoadInfo->fThickness, pLoadInfo->fDiameter * 0.5f);
+						aabb.Extents = math::Vector3(pLoadInfo->fDiameter * 0.5f, pLoadInfo->fThickness, pLoadInfo->fDiameter * 0.5f);
 					}
 				}
 				break;
-				case EmModelLoader::eTetrahedron:
+				case ModelLoader::eTetrahedron:
 				{
 					const LoadInfoTetrahedron* pLoadInfo = loader.GetTetrahedronInfo();
 					if (pLoadInfo != nullptr)
 					{
 						isSuccess = GeometryModel::CreateTetrahedron(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fSize, loader.IsRightHandCoords());
 
-						aabb.Extents = Math::Vector3(pLoadInfo->fSize);
+						aabb.Extents = math::Vector3(pLoadInfo->fSize);
 					}
 				}
 				break;
-				case EmModelLoader::eOctahedron:
+				case ModelLoader::eOctahedron:
 				{
 					const LoadInfoOctahedron* pLoadInfo = loader.GetOctahedronInfo();
 					if (pLoadInfo != nullptr)
 					{
 						isSuccess = GeometryModel::CreateOctahedron(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fSize, loader.IsRightHandCoords());
 
-						aabb.Extents = Math::Vector3(pLoadInfo->fSize);
+						aabb.Extents = math::Vector3(pLoadInfo->fSize);
 					}
 				}
 				break;
-				case EmModelLoader::eDodecahedron:
+				case ModelLoader::eDodecahedron:
 				{
 					const LoadInfoDodecahedron* pLoadInfo = loader.GetDodecahedronInfo();
 					if (pLoadInfo != nullptr)
 					{
 						isSuccess = GeometryModel::CreateDodecahedron(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fSize, loader.IsRightHandCoords());
 
-						aabb.Extents = Math::Vector3(pLoadInfo->fSize);
+						aabb.Extents = math::Vector3(pLoadInfo->fSize);
 					}
 				}
 				break;
-				case EmModelLoader::eIcosahedron:
+				case ModelLoader::eIcosahedron:
 				{
 					const LoadInfoIcosahedron* pLoadInfo = loader.GetIcosahedronInfo();
 					if (pLoadInfo != nullptr)
 					{
 						isSuccess = GeometryModel::CreateIcosahedron(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fSize, loader.IsRightHandCoords());
 
-						aabb.Extents = Math::Vector3(pLoadInfo->fSize);
+						aabb.Extents = math::Vector3(pLoadInfo->fSize);
 					}
 				}
 				break;
-				case EmModelLoader::eTeapot:
+				case ModelLoader::eTeapot:
 				{
 					const LoadInfoTeapot* pLoadInfo = loader.GetTeapotInfo();
 					if (pLoadInfo != nullptr)
 					{
 						isSuccess = GeometryModel::CreateTeapot(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fSize, pLoadInfo->nTessellation, loader.IsRightHandCoords());
 
-						aabb.Extents = Math::Vector3(pLoadInfo->fSize);
+						aabb.Extents = math::Vector3(pLoadInfo->fSize);
 					}
 				}
 				break;
-				case EmModelLoader::eHexagon:
+				case ModelLoader::eHexagon:
 				{
 					const LoadInfoHexagon* pLoadInfo = loader.GetHexagonInfo();
 					if (pLoadInfo != nullptr)
 					{
 						isSuccess = GeometryModel::CreateHexagon(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fRadius, loader.IsRightHandCoords());
 
-						aabb.Extents = Math::Vector3(pLoadInfo->fRadius);
+						aabb.Extents = math::Vector3(pLoadInfo->fRadius);
 					}
 				}
 				break;
-				case EmModelLoader::eCapsule:
+				case ModelLoader::eCapsule:
 				{
 					const LoadInfoCapsule* pLoadInfo = loader.GetCapsuleInfo();
 					if (pLoadInfo != nullptr)
 					{
 						isSuccess = GeometryModel::CreateCapsule(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fRadius, pLoadInfo->fHeight, pLoadInfo->nSubdivisionHeight, pLoadInfo->nSegments);
 
-						aabb.Extents = Math::Vector3(pLoadInfo->fRadius, pLoadInfo->fHeight, pLoadInfo->fRadius);
+						aabb.Extents = math::Vector3(pLoadInfo->fRadius, pLoadInfo->fHeight, pLoadInfo->fRadius);
 					}
 				}
 				break;
-				case EmModelLoader::eGrid:
+				case ModelLoader::eGrid:
 				{
 					const LoadInfoGrid* pLoadInfo = loader.GetGridInfo();
 					if (pLoadInfo != nullptr)
 					{
 						isSuccess = GeometryModel::CreateGrid(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fGridSizeX, pLoadInfo->fGridSizeZ, pLoadInfo->nBlockCountWidth, pLoadInfo->nBlockCountLength);
 
-						aabb.Extents = Math::Vector3(pLoadInfo->fGridSizeX, 0.1f, pLoadInfo->fGridSizeZ);
+						aabb.Extents = math::Vector3(pLoadInfo->fGridSizeX, 0.1f, pLoadInfo->fGridSizeZ);
 					}
 				}
 				break;
-				case EmModelLoader::ePlane:
+				case ModelLoader::ePlane:
 				{
 					const LoadInfoPlane* pLoadInfo = loader.GetPlaneInfo();
 					if (pLoadInfo != nullptr)
 					{
 						isSuccess = GeometryModel::CreatePlane(&pVertexBuffer, &pIndexBuffer, pLoadInfo->fEachLengthX, pLoadInfo->fEachLengthZ, pLoadInfo->nTotalCountX, pLoadInfo->nTotalCountZ);
 
-						aabb.Extents = Math::Vector3(pLoadInfo->fEachLengthX * pLoadInfo->nTotalCountX, 0.1f, pLoadInfo->fEachLengthZ * pLoadInfo->nTotalCountZ);
+						aabb.Extents = math::Vector3(pLoadInfo->fEachLengthX * pLoadInfo->nTotalCountX, 0.1f, pLoadInfo->fEachLengthZ * pLoadInfo->nTotalCountZ);
 					}
 				}
 				break;
-				case EmModelLoader::eCustomStaticModel:
+				case ModelLoader::eCustomStaticModel:
 					break;
 				}
 
@@ -461,7 +508,7 @@ namespace EastEngine
 
 		bool Model::LoadToFile(const char* strFilePath)
 		{
-			std::string strFileExtension = File::GetFileExtension(strFilePath);
+			std::string strFileExtension = file::GetFileExtension(strFilePath);
 			if (strFileExtension != "emod")
 			{
 				LOG_ERROR("Invalid Extension, Required[%s] != Request[%s]", "emod", strFileExtension.c_str());
@@ -471,8 +518,8 @@ namespace EastEngine
 			// 좀 더 구조적으로 쉽고 간편한 Save Load 방식이 필요함
 			// Stream 은 빨라서 좋지만, 데이터 규격이 달라지면 기존 데이터를 사용할 수 없게됨
 			// 또는 확실한 버전 관리로, 버전별 Save Load 로직을 구현한다면 Stream 으로도 문제없음
-			File::Stream file;
-			if (file.Open(strFilePath, File::eRead | File::eBinary) == false)
+			file::Stream file;
+			if (file.Open(strFilePath, file::eRead | file::eBinary) == false)
 			{
 				LOG_WARNING("Can't open to file : %s", strFilePath);
 				return false;
@@ -480,9 +527,9 @@ namespace EastEngine
 
 			// Common
 			std::string strBuf;
-			Math::Vector3 f3Buf;
-			Math::Quaternion quatBuf;
-			Math::Matrix matBuf;
+			math::Vector3 f3Buf;
+			math::Quaternion quatBuf;
+			math::Matrix matBuf;
 
 			file >> strBuf;
 			SetName(strBuf.c_str());
@@ -593,7 +640,7 @@ namespace EastEngine
 						file.Read(&vertex.normal.x, 3);
 					}
 
-					pVertexBuffer = IVertexBuffer::Create(VertexPosTexNor::Format(), vecVertices.size(), &vecVertices.front(), D3D11_USAGE_DYNAMIC, IVertexBuffer::eSaveVertexPos);
+					pVertexBuffer = CreateVertexBuffer(reinterpret_cast<const uint8_t*>(vecVertices.data()), sizeof(VertexPosTexNor) * vecVertices.size(), static_cast<uint32_t>(vecVertices.size()));
 					if (pVertexBuffer == nullptr)
 					{
 						LOG_ERROR("버텍스 버퍼 생성 실패했슴돠");
@@ -615,7 +662,7 @@ namespace EastEngine
 						file.Read(&vertex.boneIndices[0], 4);
 					}
 
-					pVertexBuffer = IVertexBuffer::Create(VertexPosTexNorWeiIdx::Format(), vecVertices.size(), &vecVertices.front(), D3D11_USAGE_DYNAMIC, IVertexBuffer::eSaveVertexPos);
+					pVertexBuffer = CreateVertexBuffer(reinterpret_cast<const uint8_t*>(vecVertices.data()), sizeof(VertexPosTexNorWeiIdx) * vecVertices.size(), static_cast<uint32_t>(vecVertices.size()));
 					if (pVertexBuffer == nullptr)
 					{
 						LOG_ERROR("버텍스 버퍼 생성 실패했슴돠");
@@ -636,7 +683,7 @@ namespace EastEngine
 					file >> vecIndices[j];
 				}
 
-				IIndexBuffer* pIndexBuffer = IIndexBuffer::Create(vecIndices.size(), &vecIndices.front(), D3D11_USAGE_DYNAMIC, IIndexBuffer::eSaveRawValue);
+				IIndexBuffer* pIndexBuffer = CreateIndexBuffer(reinterpret_cast<const uint8_t*>(vecIndices.data()), sizeof(uint32_t) * vecIndices.size(), static_cast<uint32_t>(vecIndices.size()));
 				if (pIndexBuffer == nullptr)
 				{
 					LOG_ERROR("인덱스 버퍼 생성 실패했슴돠");
@@ -654,7 +701,9 @@ namespace EastEngine
 					
 					strBuf.append(".emtl");
 
-					pNode->AddMaterial(IMaterial::Create(strBuf.c_str(), File::GetFilePath(strFilePath).c_str()));
+					IMaterial* pMaterial = CreateMaterial(strBuf.c_str(), file::GetFilePath(strFilePath).c_str());
+					pNode->AddMaterial(pMaterial);
+					pMaterial->DecreaseReference();
 				}
 
 				if (nType == EmModelNode::eSkinned)
@@ -694,10 +743,10 @@ namespace EastEngine
 					std::string strParentName;
 					file >> strParentName;
 
-					Math::Matrix matMotionOffset;
+					math::Matrix matMotionOffset;
 					file.Read(&matMotionOffset._11, 16);
 
-					Math::Matrix matDefaultMotionData;
+					math::Matrix matDefaultMotionData;
 					file.Read(&matDefaultMotionData._11, 16);
 
 					if (strParentName == "NoParent")
@@ -728,12 +777,12 @@ namespace EastEngine
 
 					ModelNodeSkinned* pNodeSkinned = static_cast<ModelNodeSkinned*>(pNode);
 
-					size_t nIncludBoneCount = pNodeSkinned->GetBoneCount();
+					uint32_t nIncludBoneCount = pNodeSkinned->GetBoneCount();
 
 					std::vector<String::StringID> vecBoneNames;
 					vecBoneNames.resize(nIncludBoneCount);
 
-					for (size_t j = 0; j < nIncludBoneCount; ++j)
+					for (uint32_t j = 0; j < nIncludBoneCount; ++j)
 					{
 						vecBoneNames[j] = pNodeSkinned->GetBoneName(j);
 					}

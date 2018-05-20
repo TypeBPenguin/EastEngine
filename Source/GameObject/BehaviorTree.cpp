@@ -6,9 +6,9 @@ namespace StrID
 	RegisterStringID(Root);
 }
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace GameObject
+	namespace gameobject
 	{
 		BehaviorTree::BehaviorTree()
 			: m_pRoot(new Root(StrID::Root))

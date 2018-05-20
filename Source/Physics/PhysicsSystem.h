@@ -8,7 +8,7 @@
 class btBroadphaseInterface;
 class btDiscreteDynamicsWorld;
 
-namespace EastEngine
+namespace eastengine
 {
 	namespace Physics
 	{

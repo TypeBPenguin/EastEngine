@@ -9,9 +9,9 @@
 
 #include "ParticleMgr.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		static boost::object_pool<ParticleInstanceInfo> m_poolParticleInstance;
 
@@ -23,22 +23,22 @@ namespace EastEngine
 			eTopLeft,
 		};
 
-		inline const Math::Vector3& QuadVertex(EmQuad emQuad)
+		inline const math::Vector3& QuadVertex(EmQuad emQuad)
 		{
-			static Math::Vector3 vertex[] =
+			static math::Vector3 vertex[] =
 			{
-				Math::Vector3(-1.f, -1.f, 0.f),	// Bottom Left
-				Math::Vector3(-1.f, 1.f, 0.f),	// Bottom Right
-				Math::Vector3(1.f, 1.f, 0.f),		// Top Right
-				Math::Vector3(1.f, -1.f, 0.f),	// Top Left
+				math::Vector3(-1.f, -1.f, 0.f),	// Bottom Left
+				math::Vector3(-1.f, 1.f, 0.f),	// Bottom Right
+				math::Vector3(1.f, 1.f, 0.f),		// Top Right
+				math::Vector3(1.f, -1.f, 0.f),	// Top Left
 			};
 
 			return vertex[emQuad];
 		};
 
-		inline EmParticleEmitter::ClassifyPoint ClassifyPoint(const Math::Vector3& f3Point, const BouncePlane& plane)
+		inline EmParticleEmitter::ClassifyPoint ClassifyPoint(const math::Vector3& f3Point, const BouncePlane& plane)
 		{
-			Math::Vector3 f3Direction = plane.f3Point - f3Point;
+			math::Vector3 f3Direction = plane.f3Point - f3Point;
 			float fResult = f3Direction.Dot(plane.f3Normal);
 
 			if (fResult < -0.001f)
@@ -77,7 +77,7 @@ namespace EastEngine
 			if (attributes.strTexFile.empty() == false)
 				return false;
 
-			std::string strPath = File::GetDataPath();
+			std::string strPath = file::GetDataPath();
 			strPath.append(attributes.strTexFile);
 
 			std::shared_ptr<ITexture> pTexture = ITexture::Create(strPath);
@@ -98,30 +98,30 @@ namespace EastEngine
 			return true;
 		}
 
-		void ParticleEmitter::Update(float fElapsedTime, const Math::Matrix& matView, const Math::Matrix& matViewProjection, const Collision::Frustum& frustum)
+		void ParticleEmitter::Update(float fElapsedTime, const math::Matrix& matView, const math::Matrix& matViewProjection, const Collision::Frustum& frustum)
 		{
 			if (IsStart() == false)
 				return;
 
 			m_fTime += fElapsedTime;
 
-			Math::Matrix matBilboardView = matView;
+			math::Matrix matBilboardView = matView;
 			matBilboardView = matBilboardView.Invert();
 			matBilboardView.m[3][0] = m_attributes.f3Pos.x;
 			matBilboardView.m[3][1] = m_attributes.f3Pos.y;
 			matBilboardView.m[3][2] = m_attributes.f3Pos.z;
 			matBilboardView.m[3][3] = 1.f;
 
-			Math::Matrix matVP = matBilboardView * matViewProjection;
+			math::Matrix matVP = matBilboardView * matViewProjection;
 
-			Math::Vector3 f3OldPos;
+			math::Vector3 f3OldPos;
 
-			Math::Vector3 f3Vertexs[] = { QuadVertex(eBottomLeft) * m_attributes.fSize,
+			math::Vector3 f3Vertexs[] = { QuadVertex(eBottomLeft) * m_attributes.fSize,
 				QuadVertex(eBottomRight) * m_attributes.fSize,
 				QuadVertex(eTopRight) * m_attributes.fSize,
 				QuadVertex(eTopLeft) * m_attributes.fSize };
 
-			static Math::Vector2 f2UVs[] =
+			static math::Vector2 f2UVs[] =
 			{
 				{ 0.f, 1.f },
 				{ 0.f, 0.f },
@@ -173,8 +173,8 @@ namespace EastEngine
 
 								float factor = plane.fBounceFactor;
 
-								Math::Vector3 n = plane.f3Normal.Dot(pInstance->f3Velocity) * plane.f3Normal;
-								Math::Vector3 t = pInstance->f3Velocity - n;
+								math::Vector3 n = plane.f3Normal.Dot(pInstance->f3Velocity) * plane.f3Normal;
+								math::Vector3 t = pInstance->f3Velocity - n;
 
 								pInstance->f3Velocity = t - factor * n;
 							}
@@ -187,19 +187,19 @@ namespace EastEngine
 							case EmParticleEmitter::eStick:
 							{
 								pInstance->f3Pos = f3OldPos;
-								pInstance->f3Velocity = Math::Vector3::Zero;
+								pInstance->f3Velocity = math::Vector3::Zero;
 							}
 							break;
 							}
 						}
 					}
 
-					Math::Vector3 f3Pos[] =
+					math::Vector3 f3Pos[] =
 					{
-						Math::Vector3::Transform(f3Vertexs[eBottomLeft] + pInstance->f3Pos, matVP),
-						Math::Vector3::Transform(f3Vertexs[eBottomRight] + pInstance->f3Pos, matVP),
-						Math::Vector3::Transform(f3Vertexs[eTopRight] + pInstance->f3Pos, matVP),
-						Math::Vector3::Transform(f3Vertexs[eTopLeft] + pInstance->f3Pos, matVP)
+						math::Vector3::Transform(f3Vertexs[eBottomLeft] + pInstance->f3Pos, matVP),
+						math::Vector3::Transform(f3Vertexs[eBottomRight] + pInstance->f3Pos, matVP),
+						math::Vector3::Transform(f3Vertexs[eTopRight] + pInstance->f3Pos, matVP),
+						math::Vector3::Transform(f3Vertexs[eTopLeft] + pInstance->f3Pos, matVP)
 					};
 
 					for (uint32_t i = 0; i < 4; ++i)
@@ -222,7 +222,7 @@ namespace EastEngine
 
 							if (m_attributes.isRandomColor == true)
 							{
-								Math::Color(Math::Random<float>(0.f, 1.f), Math::Random<float>(0.f, 1.f), Math::Random<float>(0.f, 1.f), 1.f);
+								math::Color(math::Random<float>(0.f, 1.f), math::Random<float>(0.f, 1.f), math::Random<float>(0.f, 1.f), 1.f);
 							}
 
 							particle.vertex[0].color = particle.vertex[1].color =
@@ -263,7 +263,7 @@ namespace EastEngine
 				RendererManager::GetInstance()->AddRender(renderSubset);
 			}
 
-			if (Math::IsZero(m_attributes.fEndTime) == false &&
+			if (math::IsZero(m_attributes.fEndTime) == false &&
 				m_fTime > m_attributes.fEndTime)
 			{
 				SetAlive(false);
@@ -282,11 +282,11 @@ namespace EastEngine
 
 						pInstance->f3Velocity = m_attributes.f3Velocity;
 
-						if (Math::IsZero(m_attributes.fVelocityVar) == false)
+						if (math::IsZero(m_attributes.fVelocityVar) == false)
 						{
-							Math::Vector3 f3RandomDirection(Math::Random<float>(-1.f, 1.f),
-								Math::Random<float>(-1.f, 1.f),
-								Math::Random<float>(-1.f, 1.f));
+							math::Vector3 f3RandomDirection(math::Random<float>(-1.f, 1.f),
+								math::Random<float>(-1.f, 1.f),
+								math::Random<float>(-1.f, 1.f));
 
 							f3RandomDirection.Normalize();
 

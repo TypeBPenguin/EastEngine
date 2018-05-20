@@ -2,14 +2,14 @@
 
 #include "ComponentInterface.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class Camera;
 	}
 
-	namespace GameObject
+	namespace gameobject
 	{
 		class ComponentCamera : public IComponent
 		{
@@ -18,13 +18,13 @@ namespace EastEngine
 			virtual ~ComponentCamera();
 
 		public:
-			void Init(Graphics::Camera* pMainCamera);
-			void Init(Graphics::Camera* pMainCamera, float fLookAtHeight, float fThirdViewDistance = 10.f);
+			void Init(graphics::Camera* pMainCamera);
+			void Init(graphics::Camera* pMainCamera, float fLookAtHeight, float fThirdViewDistance = 10.f);
 
 			virtual void Update(float fElapsedTime) override;
 
 		private:
-			Graphics::Camera* m_pMainCamera;
+			graphics::Camera* m_pMainCamera;
 			bool m_isThirdView;
 			float m_fHeight;
 		};

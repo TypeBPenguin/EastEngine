@@ -1,9 +1,9 @@
 #include "stdafx.h"
 #include "DeviceLost.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		static std::vector<IDeviceLost*> s_vecDeviceLostHandlers;
 

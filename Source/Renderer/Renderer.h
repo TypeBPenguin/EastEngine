@@ -3,9 +3,9 @@
 #include "Instancing.h"
 #include "RenderSubsets.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class Camera;
 

@@ -3,9 +3,9 @@
 #include "Model/ModelInterface.h"
 #include "ComponentInterface.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace GameObject
+	namespace gameobject
 	{
 		class ComponentModel : public IComponent
 		{
@@ -14,25 +14,25 @@ namespace EastEngine
 			virtual ~ComponentModel();
 
 		public:
-			void Init(Graphics::IModelInstance* pModelInst);
-			void Init(Graphics::ModelLoader* pLoader);
+			void Init(graphics::IModelInstance* pModelInst);
+			void Init(graphics::ModelLoader* pLoader);
 			virtual void Update(float fElapsedTime) override;
 
-			virtual bool LoadToFile(File::Stream& file);
-			virtual bool SaveToFile(File::Stream& file);
+			virtual bool LoadToFile(file::Stream& file);
+			virtual bool SaveToFile(file::Stream& file);
 
 		public:
-			Graphics::IModelInstance* GetModelInstance() { return m_pModelInst; }
-			Graphics::IModel* GetModel();
+			graphics::IModelInstance* GetModelInstance() { return m_pModelInst; }
+			graphics::IModel* GetModel();
 			bool IsLoadComplete();
 
 		public:
-			bool PlayMotion(Graphics::EmMotion::Layers emLayer, Graphics::IMotion* pMotion, const Graphics::MotionPlaybackInfo* pMotionState = nullptr);
-			bool PlayMotion(Graphics::EmMotion::Layers emLayer, const Graphics::MotionLoader& loader, const Graphics::MotionPlaybackInfo* pMotionState = nullptr);
-			void StopMotion(Graphics::EmMotion::Layers emLayer, float fStopTime);
+			bool PlayMotion(graphics::EmMotion::Layers emLayer, graphics::IMotion* pMotion, const graphics::MotionPlaybackInfo* pMotionState = nullptr);
+			bool PlayMotion(graphics::EmMotion::Layers emLayer, const graphics::MotionLoader& loader, const graphics::MotionPlaybackInfo* pMotionState = nullptr);
+			void StopMotion(graphics::EmMotion::Layers emLayer, float fStopTime);
 
 		private:
-			Graphics::IModelInstance* m_pModelInst;
+			graphics::IModelInstance* m_pModelInst;
 		};
 	}
 }

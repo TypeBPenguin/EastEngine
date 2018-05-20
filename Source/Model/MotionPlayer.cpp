@@ -1,9 +1,9 @@
 #include "stdafx.h"
 #include "MotionPlayer.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		MotionPlayer::MotionPlayer()
 			: m_isStop(false)
@@ -29,7 +29,7 @@ namespace EastEngine
 
 		float MotionPlayer::GetBlendWeight() const
 		{
-			if (Math::IsZero(m_playBackInfo.fBlendTime) == false && m_fBlendTime <= m_playBackInfo.fBlendTime)
+			if (math::IsZero(m_playBackInfo.fBlendTime) == false && m_fBlendTime <= m_playBackInfo.fBlendTime)
 			{
 				return m_fBlendWeight;
 			}
@@ -78,7 +78,7 @@ namespace EastEngine
 					}
 				}
 
-				if (Math::IsZero(GetBlendWeight()) == false && isEnableTransformUpdate == true)
+				if (math::IsZero(GetBlendWeight()) == false && isEnableTransformUpdate == true)
 				{
 					float fPlayTime = m_fPlayTime;
 					if (m_playBackInfo.isInverse == true)
@@ -89,7 +89,7 @@ namespace EastEngine
 					m_pMotion->Update(&m_motionRecorder, fPlayTime, m_playBackInfo.isInverse);
 				}
 
-				if (Math::IsZero(m_playBackInfo.fBlendTime) == false && m_fBlendTime <= m_playBackInfo.fBlendTime)
+				if (math::IsZero(m_playBackInfo.fBlendTime) == false && m_fBlendTime <= m_playBackInfo.fBlendTime)
 				{
 					m_fBlendWeight = (m_fBlendTime / m_playBackInfo.fBlendTime) * m_playBackInfo.fWeight;
 
@@ -162,7 +162,7 @@ namespace EastEngine
 			m_motionRecorder.Clear();
 		}
 
-		const Math::Transform* MotionPlayer::GetTransform(const String::StringID& strBoneName) const
+		const math::Transform* MotionPlayer::GetTransform(const String::StringID& strBoneName) const
 		{
 			return m_motionRecorder.GetTransform(strBoneName);
 		}

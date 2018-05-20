@@ -9,9 +9,9 @@ namespace StrID
 	RegisterStringID(UI);
 }
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class UIRenderer::Impl
 		{

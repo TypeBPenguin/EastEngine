@@ -80,27 +80,27 @@ namespace StrID
 	RegisterStringID(PostprocessImportanceMapB);
 }
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		// ** WARNING ** if changing anything here, update the corresponding shader code! ** WARNING **
 		struct ASSAOConstants
 		{
-			Math::Vector2 ViewportPixelSize; // .zw == 1.0 / ViewportSize.xy
-			Math::Vector2 HalfViewportPixelSize; // .zw == 1.0 / ViewportHalfSize.xy
+			math::Vector2 ViewportPixelSize; // .zw == 1.0 / ViewportSize.xy
+			math::Vector2 HalfViewportPixelSize; // .zw == 1.0 / ViewportHalfSize.xy
 
-			Math::Vector2 DepthUnpackConsts;
-			Math::Vector2 CameraTanHalfFOV;
+			math::Vector2 DepthUnpackConsts;
+			math::Vector2 CameraTanHalfFOV;
 
-			Math::Vector2 NDCToViewMul;
-			Math::Vector2 NDCToViewAdd;
+			math::Vector2 NDCToViewMul;
+			math::Vector2 NDCToViewAdd;
 
-			Math::Int2 PerPassFullResCoordOffset;
-			Math::Vector2 PerPassFullResUVOffset;
+			math::Int2 PerPassFullResCoordOffset;
+			math::Vector2 PerPassFullResUVOffset;
 
-			Math::Vector2 Viewport2xPixelSize;
-			Math::Vector2 Viewport2xPixelSize_x_025; // Viewport2xPixelSize* 0.25 (for fusing add+mul into mad)
+			math::Vector2 Viewport2xPixelSize;
+			math::Vector2 Viewport2xPixelSize_x_025; // Viewport2xPixelSize* 0.25 (for fusing add+mul into mad)
 
 			float EffectRadius; // world (viewspace) maximum size of the shadow
 			float EffectShadowStrength; // global strength of the effect (0 - 5)
@@ -119,9 +119,9 @@ namespace EastEngine
 
 			float InvSharpness;
 			int PassIndex;
-			Math::Vector2 QuarterResPixelSize; // used for importance map only
+			math::Vector2 QuarterResPixelSize; // used for importance map only
 
-			Math::Vector4 PatternRotScaleMatrices[5];
+			math::Vector4 PatternRotScaleMatrices[5];
 
 			float NormalsUnpackMul;
 			float NormalsUnpackAdd;
@@ -129,7 +129,7 @@ namespace EastEngine
 			float Dummy0;
 
 #if SSAO_ENABLE_NORMAL_WORLD_TO_VIEW_CONVERSION
-			Math::Matrix NormalsWorldToViewspaceMatrix;
+			math::Matrix NormalsWorldToViewspaceMatrix;
 #endif
 		};
 
@@ -141,13 +141,13 @@ namespace EastEngine
 			//ID3D11DepthStencilView* DSV;
 			ID3D11RenderTargetView* RTV;
 			ID3D11UnorderedAccessView* UAV;
-			Math::UInt2 Size;
+			math::UInt2 Size;
 
 			D3D11Texture2D() : Texture2D(nullptr), SRV(nullptr), /*DSV( nullptr ),*/ RTV(nullptr), UAV(nullptr), Size(0, 0) { }
 			~D3D11Texture2D() { Reset(); }
 
-			void Reset() { SafeRelease(Texture2D); SafeRelease(SRV); /*SafeRelease( DSV );*/ SafeRelease(RTV); SafeRelease(UAV); Size = Math::UInt2::Zero; }
-			bool ReCreateIfNeeded(ID3D11Device* device, const Math::UInt2& size, DXGI_FORMAT format, float& inoutTotalSizeSum, uint32_t mipLevels, uint32_t arraySize, bool supportUAVs);
+			void Reset() { SafeRelease(Texture2D); SafeRelease(SRV); /*SafeRelease( DSV );*/ SafeRelease(RTV); SafeRelease(UAV); Size = math::UInt2::Zero; }
+			bool ReCreateIfNeeded(ID3D11Device* device, const math::UInt2& size, DXGI_FORMAT format, float& inoutTotalSizeSum, uint32_t mipLevels, uint32_t arraySize, bool supportUAVs);
 			bool ReCreateMIPViewIfNeeded(ID3D11Device* device, D3D11Texture2D& original, int mipViewSlice);
 			bool ReCreateArrayViewIfNeeded(ID3D11Device* device, D3D11Texture2D& original, int arraySlice);
 		};
@@ -280,11 +280,11 @@ namespace EastEngine
 		private:
 			BufferFormats m_formats;
 
-			Math::UInt2 m_size;
-			Math::UInt2 m_halfSize;
-			Math::UInt2 m_quarterSize;
-			Math::UInt4 m_fullResOutScissorRect;
-			Math::UInt4 m_halfResOutScissorRect;
+			math::UInt2 m_size;
+			math::UInt2 m_halfSize;
+			math::UInt2 m_quarterSize;
+			math::UInt4 m_fullResOutScissorRect;
+			math::UInt4 m_halfResOutScissorRect;
 
 			int m_depthMipLevels;
 
@@ -400,16 +400,16 @@ namespace EastEngine
 		// ASSAODX11 implementation
 		//////////////////////////////////////////////////////////////////////////
 
-		ASSAODX11::ASSAODX11(const ASSAO_CreateDesc& createDesc)
+		ASSAOdx11::ASSAODX11(const ASSAO_CreateDesc& createDesc)
 		{
 			m_device = createDesc.Device;
 			m_device->AddRef();
 
-			m_size = Math::UInt2::Zero;
-			m_halfSize = Math::UInt2::Zero;
-			m_quarterSize = Math::UInt2::Zero;
-			m_fullResOutScissorRect = Math::UInt4::Zero;
-			m_halfResOutScissorRect = Math::UInt4::Zero;
+			m_size = math::UInt2::Zero;
+			m_halfSize = math::UInt2::Zero;
+			m_quarterSize = math::UInt2::Zero;
+			m_fullResOutScissorRect = math::UInt4::Zero;
+			m_halfResOutScissorRect = math::UInt4::Zero;
 			m_depthMipLevels = 0;
 
 			m_constantsBuffer = nullptr;
@@ -457,7 +457,7 @@ namespace EastEngine
 			m_requiresClear = false;
 		}
 
-		ASSAODX11::~ASSAODX11()
+		ASSAOdx11::~ASSAODX11()
 		{
 			DeleteAllocatedVideoMemory();
 			CleanupDX();
@@ -509,7 +509,7 @@ namespace EastEngine
 			return S_OK;
 		}
 
-		bool ASSAODX11::InitializeDX(const ASSAO_CreateDesc& createDesc)
+		bool ASSAOdx11::InitializeDX(const ASSAO_CreateDesc& createDesc)
 		{
 			HRESULT hr = S_OK;
 
@@ -537,9 +537,9 @@ namespace EastEngine
 				std::vector<VertexPosTex> vertices;
 				vertices.resize(3);
 
-				vertices[0].SetVertex(Math::Vector3(-1.f, 1.f, 0.f), Math::Vector2(0.f, 0.f));
-				vertices[1].SetVertex(Math::Vector3(3.f, 1.f, 0.f), Math::Vector2(2.f, 0.f));
-				vertices[2].SetVertex(Math::Vector3(-1.f, -3.f, 0.f), Math::Vector2(0.f, 2.f));
+				vertices[0].SetVertex(math::Vector3(-1.f, 1.f, 0.f), math::Vector2(0.f, 0.f));
+				vertices[1].SetVertex(math::Vector3(3.f, 1.f, 0.f), math::Vector2(2.f, 0.f));
+				vertices[2].SetVertex(math::Vector3(-1.f, -3.f, 0.f), math::Vector2(0.f, 2.f));
 
 				m_pFullScreenVB = IVertexBuffer::Create(VertexPosTex::Format(), vertices.size(), &vertices.front(), D3D11_USAGE_IMMUTABLE);
 				if (m_pFullScreenVB == nullptr)
@@ -765,7 +765,7 @@ namespace EastEngine
 			return true;
 		}
 
-		void ASSAODX11::CleanupDX()
+		void ASSAOdx11::CleanupDX()
 		{
 			SafeRelease(m_constantsBuffer);
 			SafeDelete(m_pFullScreenVB);
@@ -802,7 +802,7 @@ namespace EastEngine
 			SafeRelease(m_device);
 		}
 
-		void ASSAODX11::PreAllocateVideoMemory(const ASSAO_Inputs* _inputs)
+		void ASSAOdx11::PreAllocateVideoMemory(const ASSAO_Inputs* _inputs)
 		{
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			// TODO: dynamic_cast if supported in _DEBUG to check for correct type cast below
@@ -812,17 +812,17 @@ namespace EastEngine
 			UpdateTextures(inputs);
 		}
 
-		void ASSAODX11::DeleteAllocatedVideoMemory()
+		void ASSAOdx11::DeleteAllocatedVideoMemory()
 		{
 
 		}
 
-		unsigned int ASSAODX11::GetAllocatedVideoMemory()
+		unsigned int ASSAOdx11::GetAllocatedVideoMemory()
 		{
 			return m_allocatedVRAM;
 		}
 
-		//void ASSAODX11::FullscreenPassDraw(ID3D11DeviceContext* context, ID3D11PixelShader* pixelShader, ID3D11BlendState* blendState, ID3D11DepthStencilState* depthStencilState, UINT stencilRef)
+		//void ASSAOdx11::FullscreenPassDraw(ID3D11DeviceContext* context, ID3D11PixelShader* pixelShader, ID3D11BlendState* blendState, ID3D11DepthStencilState* depthStencilState, UINT stencilRef)
 		//{
 		//	if (blendState == nullptr) blendState = m_blendStateOpaque;
 		//	if (depthStencilState == nullptr) depthStencilState = m_depthStencilState;
@@ -847,7 +847,7 @@ namespace EastEngine
 		//	context->Draw(3, 0);
 		//}
 
-		void ASSAODX11::FullscreenPassDraw(IDeviceContext* pDeviceContext, ID3D11PixelShader* pixelShader, IBlendState* pBlendState, IDepthStencilState* pDepthStencilState, UINT stencilRef)
+		void ASSAOdx11::FullscreenPassDraw(IDeviceContext* pDeviceContext, ID3D11PixelShader* pixelShader, IBlendState* pBlendState, IDepthStencilState* pDepthStencilState, UINT stencilRef)
 		{
 			if (pBlendState == nullptr) pBlendState = m_pBlendStateOpaque;
 			if (pDepthStencilState == nullptr) pDepthStencilState = m_pDepthStencilState;
@@ -864,7 +864,7 @@ namespace EastEngine
 			pDeviceContext->GetInterface()->VSSetShader(m_vertexShader, nullptr, 0);
 			pDeviceContext->GetInterface()->PSSetShader(pixelShader, nullptr, 0);
 			
-			pDeviceContext->SetBlendState(pBlendState, Math::Vector4::Zero, 0xFFFFFFFF);
+			pDeviceContext->SetBlendState(pBlendState, math::Vector4::Zero, 0xFFFFFFFF);
 			pDeviceContext->SetDepthStencilState(pDepthStencilState, stencilRef);
 			//float blendFactor[4] = { 0, 0, 0, 0 };
 			//context->OMSetBlendState(blendState, blendFactor, 0xFFFFFFFF);
@@ -874,7 +874,7 @@ namespace EastEngine
 			pDeviceContext->Draw(3, 0);
 		}
 
-		void ASSAODX11::PrepareDepths(const ASSAO_Settings& settings, const ASSAO_InputsDX11* inputs)
+		void ASSAOdx11::PrepareDepths(const ASSAO_Settings& settings, const ASSAO_InputsDX11* inputs)
 		{
 			bool generateNormals = inputs->NormalSRV == nullptr;
 
@@ -944,7 +944,7 @@ namespace EastEngine
 			}
 		}
 
-		void ASSAODX11::GenerateSSAO(const ASSAO_Settings& settings, const ASSAO_InputsDX11* inputs, bool adaptiveBasePass)
+		void ASSAOdx11::GenerateSSAO(const ASSAO_Settings& settings, const ASSAO_InputsDX11* inputs, bool adaptiveBasePass)
 		{
 			ID3D11ShaderResourceView* normalmapSRV = (inputs->NormalSRV == nullptr) ? (m_normals.SRV) : (inputs->NormalSRV);
 
@@ -972,7 +972,7 @@ namespace EastEngine
 					continue;
 
 				int blurPasses = settings.BlurPassCount;
-				blurPasses = Math::Min(blurPasses, cMaxBlurPassCount);
+				blurPasses = math::Min(blurPasses, cMaxBlurPassCount);
 
 #ifdef INTEL_SSAO_ENABLE_ADAPTIVE_QUALITY
 				if (settings.QualityLevel == 3)
@@ -984,7 +984,7 @@ namespace EastEngine
 					}
 					else
 					{
-						blurPasses = Math::Max(1, blurPasses);
+						blurPasses = math::Max(1, blurPasses);
 					}
 				}
 				else
@@ -993,7 +993,7 @@ namespace EastEngine
 					if (settings.QualityLevel <= 0)
 					{
 						// just one blur pass allowed for minimum quality 
-						blurPasses = Math::Min(1, settings.BlurPassCount);
+						blurPasses = math::Min(1, settings.BlurPassCount);
 					}
 				}
 
@@ -1028,7 +1028,7 @@ namespace EastEngine
 #endif
 					dx11Context->GetInterface()->PSSetShaderResources(SSAO_TEXTURE_SLOT0, 5, SRVs);
 
-					int shaderIndex = Math::Max(0, (!adaptiveBasePass) ? (settings.QualityLevel) : (4));
+					int shaderIndex = math::Max(0, (!adaptiveBasePass) ? (settings.QualityLevel) : (4));
 					FullscreenPassDraw(dx11Context, m_pixelShaderGenerate[shaderIndex]);
 
 					// remove textures from slots 0, 1, 2, 3 to avoid API complaints
@@ -1038,7 +1038,7 @@ namespace EastEngine
 				// Blur
 				if (blurPasses > 0)
 				{
-					int wideBlursRemaining = Math::Max(0, blurPasses - 2);
+					int wideBlursRemaining = math::Max(0, blurPasses - 2);
 
 					for (int i = 0; i < blurPasses; i++)
 					{
@@ -1082,7 +1082,7 @@ namespace EastEngine
 			}
 		}
 
-		void ASSAODX11::Draw(const ASSAO_Settings& settings, const ASSAO_Inputs* _inputs)
+		void ASSAOdx11::Draw(const ASSAO_Settings& settings, const ASSAO_Inputs* _inputs)
 		{
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			// TODO: dynamic_cast if supported in _DEBUG to check for correct type cast below
@@ -1268,41 +1268,41 @@ namespace EastEngine
 		}
 
 #ifdef _DEBUG
-		static Math::UInt4 GetTextureDimsFromSRV(ID3D11ShaderResourceView* srv)
+		static math::UInt4 GetTextureDimsFromSRV(ID3D11ShaderResourceView* srv)
 		{
 			D3D11_SHADER_RESOURCE_VIEW_DESC desc;
 			srv->GetDesc(&desc);
 
-			assert(desc.ViewDimension == D3D11_SRV_DIMENSION_TEXTURE2D); if (desc.ViewDimension != D3D11_SRV_DIMENSION_TEXTURE2D) return Math::UInt4::Zero;
+			assert(desc.ViewDimension == D3D11_SRV_DIMENSION_TEXTURE2D); if (desc.ViewDimension != D3D11_SRV_DIMENSION_TEXTURE2D) return math::UInt4::Zero;
 
 			ID3D11Resource* res = nullptr;
 			srv->GetResource(&res);
 
-			assert(res != nullptr); if (res == nullptr) return Math::UInt4::Zero;
+			assert(res != nullptr); if (res == nullptr) return math::UInt4::Zero;
 
 			ID3D11Texture2D* tex = QueryResourceInterface<ID3D11Texture2D>(res, c_IID_ID3D11Texture2D);
 			SafeRelease(res);
-			assert(tex != nullptr); if (tex == nullptr) return Math::UInt4::Zero;
+			assert(tex != nullptr); if (tex == nullptr) return math::UInt4::Zero;
 
 			D3D11_TEXTURE2D_DESC texDesc;
 			tex->GetDesc(&texDesc);
 			SafeRelease(tex);
 
-			return Math::UInt4(texDesc.Width, texDesc.Height, texDesc.MipLevels, texDesc.ArraySize);
+			return math::UInt4(texDesc.Width, texDesc.Height, texDesc.MipLevels, texDesc.ArraySize);
 		}
 #endif
 
-		void ASSAODX11::UpdateTextures(const ASSAO_InputsDX11* inputs)
+		void ASSAOdx11::UpdateTextures(const ASSAO_InputsDX11* inputs)
 		{
 #ifdef _DEBUG
-			Math::UInt4 depthTexDims = GetTextureDimsFromSRV(inputs->DepthSRV);
+			math::UInt4 depthTexDims = GetTextureDimsFromSRV(inputs->DepthSRV);
 			assert(depthTexDims.x >= inputs->ViewportWidth);
 			assert(depthTexDims.y >= inputs->ViewportHeight);
 			assert(depthTexDims.w == 1); // no texture arrays supported
 
 			if (inputs->NormalSRV != nullptr)
 			{
-				Math::UInt4 normTexDims = GetTextureDimsFromSRV(inputs->NormalSRV);
+				math::UInt4 normTexDims = GetTextureDimsFromSRV(inputs->NormalSRV);
 				assert(normTexDims.x >= inputs->ViewportWidth);
 				assert(normTexDims.y >= inputs->ViewportHeight);
 			}
@@ -1339,20 +1339,20 @@ namespace EastEngine
 			m_quarterSize.x = (m_halfSize.x + 1) / 2;
 			m_quarterSize.y = (m_halfSize.y + 1) / 2;
 
-			Math::UInt4 prevScissorRect = m_fullResOutScissorRect;
+			math::UInt4 prevScissorRect = m_fullResOutScissorRect;
 
 			if ((inputs->ScissorRight == 0) || (inputs->ScissorBottom == 0))
-				m_fullResOutScissorRect = Math::UInt4(0, 0, width, height);
+				m_fullResOutScissorRect = math::UInt4(0, 0, width, height);
 			else
-				m_fullResOutScissorRect = Math::UInt4(Math::Max(0u, inputs->ScissorLeft), Math::Max(0u, inputs->ScissorTop), Math::Min(width, inputs->ScissorRight), Math::Min(height, inputs->ScissorBottom));
+				m_fullResOutScissorRect = math::UInt4(math::Max(0u, inputs->ScissorLeft), math::Max(0u, inputs->ScissorTop), math::Min(width, inputs->ScissorRight), math::Min(height, inputs->ScissorBottom));
 
 			needsUpdate |= prevScissorRect != m_fullResOutScissorRect;
 			if (!needsUpdate)
 				return;
 
-			m_halfResOutScissorRect = Math::UInt4(m_fullResOutScissorRect.x / 2, m_fullResOutScissorRect.y / 2, (m_fullResOutScissorRect.z + 1) / 2, (m_fullResOutScissorRect.w + 1) / 2);
-			int blurEnlarge = cMaxBlurPassCount + Math::Max(0, cMaxBlurPassCount - 2); // +1 for max normal blurs, +2 for wide blurs
-			m_halfResOutScissorRect = Math::UInt4(Math::Max(0u, m_halfResOutScissorRect.x - blurEnlarge), Math::Max(0u, m_halfResOutScissorRect.y - blurEnlarge), Math::Min(m_halfSize.x, m_halfResOutScissorRect.z + blurEnlarge), Math::Min(m_halfSize.y, m_halfResOutScissorRect.w + blurEnlarge));
+			m_halfResOutScissorRect = math::UInt4(m_fullResOutScissorRect.x / 2, m_fullResOutScissorRect.y / 2, (m_fullResOutScissorRect.z + 1) / 2, (m_fullResOutScissorRect.w + 1) / 2);
+			int blurEnlarge = cMaxBlurPassCount + math::Max(0, cMaxBlurPassCount - 2); // +1 for max normal blurs, +2 for wide blurs
+			m_halfResOutScissorRect = math::UInt4(math::Max(0u, m_halfResOutScissorRect.x - blurEnlarge), math::Max(0u, m_halfResOutScissorRect.y - blurEnlarge), math::Min(m_halfSize.x, m_halfResOutScissorRect.z + blurEnlarge), math::Min(m_halfSize.y, m_halfResOutScissorRect.w + blurEnlarge));
 
 			float totalSizeInMB = 0.f;
 
@@ -1398,7 +1398,7 @@ namespace EastEngine
 			m_requiresClear = true;
 		}
 
-		void ASSAODX11::UpdateConstants(const ASSAO_Settings& settings, const ASSAO_InputsDX11* inputs, int pass)
+		void ASSAOdx11::UpdateConstants(const ASSAO_Settings& settings, const ASSAO_InputsDX11* inputs, int pass)
 		{
 			IDeviceContext* dx11Context = inputs->DeviceContext;
 			bool generateNormals = inputs->NormalSRV == nullptr;
@@ -1413,35 +1413,35 @@ namespace EastEngine
 			{
 				ASSAOConstants& consts = *((ASSAOConstants*)mappedResource.pData);
 
-				const Math::Matrix& proj = inputs->ProjectionMatrix;
+				const math::Matrix& proj = inputs->ProjectionMatrix;
 
-				consts.ViewportPixelSize = Math::Vector2(1.0f / (float)m_size.x, 1.0f / (float)m_size.y);
-				consts.HalfViewportPixelSize = Math::Vector2(1.0f / (float)m_halfSize.x, 1.0f / (float)m_halfSize.y);
+				consts.ViewportPixelSize = math::Vector2(1.0f / (float)m_size.x, 1.0f / (float)m_size.y);
+				consts.HalfViewportPixelSize = math::Vector2(1.0f / (float)m_halfSize.x, 1.0f / (float)m_halfSize.y);
 
-				consts.Viewport2xPixelSize = Math::Vector2(consts.ViewportPixelSize.x* 2.0f, consts.ViewportPixelSize.y* 2.0f);
-				consts.Viewport2xPixelSize_x_025 = Math::Vector2(consts.Viewport2xPixelSize.x* 0.25f, consts.Viewport2xPixelSize.y* 0.25f);
+				consts.Viewport2xPixelSize = math::Vector2(consts.ViewportPixelSize.x* 2.0f, consts.ViewportPixelSize.y* 2.0f);
+				consts.Viewport2xPixelSize_x_025 = math::Vector2(consts.Viewport2xPixelSize.x* 0.25f, consts.Viewport2xPixelSize.y* 0.25f);
 
 				float depthLinearizeMul = (inputs->MatricesRowMajorOrder) ? (-proj.m[3][2]) : (-proj.m[2][3]); // float depthLinearizeMul = ( clipFar* clipNear ) / ( clipFar - clipNear );
 				float depthLinearizeAdd = (inputs->MatricesRowMajorOrder) ? (proj.m[2][2]) : (proj.m[2][2]); // float depthLinearizeAdd = clipFar / ( clipFar - clipNear );
 																													 // correct the handedness issue. need to make sure this below is correct, but I think it is.
 				if (depthLinearizeMul* depthLinearizeAdd < 0)
 					depthLinearizeAdd = -depthLinearizeAdd;
-				consts.DepthUnpackConsts = Math::Vector2(depthLinearizeMul, depthLinearizeAdd);
+				consts.DepthUnpackConsts = math::Vector2(depthLinearizeMul, depthLinearizeAdd);
 
 				float tanHalfFOVY = 1.0f / proj.m[1][1]; // = tanf( drawContext.Camera.GetYFOV( )* 0.5f );
 				float tanHalfFOVX = 1.0F / proj.m[0][0]; // = tanHalfFOVY* drawContext.Camera.GetAspect( );
-				consts.CameraTanHalfFOV = Math::Vector2(tanHalfFOVX, tanHalfFOVY);
+				consts.CameraTanHalfFOV = math::Vector2(tanHalfFOVX, tanHalfFOVY);
 
-				consts.NDCToViewMul = Math::Vector2(consts.CameraTanHalfFOV.x* 2.0f, consts.CameraTanHalfFOV.y* -2.0f);
-				consts.NDCToViewAdd = Math::Vector2(consts.CameraTanHalfFOV.x* -1.0f, consts.CameraTanHalfFOV.y* 1.0f);
+				consts.NDCToViewMul = math::Vector2(consts.CameraTanHalfFOV.x* 2.0f, consts.CameraTanHalfFOV.y* -2.0f);
+				consts.NDCToViewAdd = math::Vector2(consts.CameraTanHalfFOV.x* -1.0f, consts.CameraTanHalfFOV.y* 1.0f);
 
-				consts.EffectRadius = Math::Clamp(settings.Radius, 0.0f, 100000.0f);
-				consts.EffectShadowStrength = Math::Clamp(settings.ShadowMultiplier* 4.3f, 0.0f, 10.0f);
-				consts.EffectShadowPow = Math::Clamp(settings.ShadowPower, 0.0f, 10.0f);
-				consts.EffectShadowClamp = Math::Clamp(settings.ShadowClamp, 0.0f, 1.0f);
+				consts.EffectRadius = math::Clamp(settings.Radius, 0.0f, 100000.0f);
+				consts.EffectShadowStrength = math::Clamp(settings.ShadowMultiplier* 4.3f, 0.0f, 10.0f);
+				consts.EffectShadowPow = math::Clamp(settings.ShadowPower, 0.0f, 10.0f);
+				consts.EffectShadowClamp = math::Clamp(settings.ShadowClamp, 0.0f, 1.0f);
 				consts.EffectFadeOutMul = -1.0f / (settings.FadeOutTo - settings.FadeOutFrom);
 				consts.EffectFadeOutAdd = settings.FadeOutFrom / (settings.FadeOutTo - settings.FadeOutFrom) + 1.0f;
-				consts.EffectHorizonAngleThreshold = Math::Clamp(settings.HorizonAngleThreshold, 0.0f, 1.0f);
+				consts.EffectHorizonAngleThreshold = math::Clamp(settings.HorizonAngleThreshold, 0.0f, 1.0f);
 
 				// 1.2 seems to be around the best trade off - 1.0 means on-screen radius will stop/slow growing when the camera is at 1.0 distance, so, depending on FOV, basically filling up most of the screen
 				// This setting is viewspace-dependent and not screen size dependent intentionally, so that when you change FOV the effect stays (relatively) similar.
@@ -1474,12 +1474,12 @@ namespace EastEngine
 
 				consts.NegRecEffectRadius = -1.0f / consts.EffectRadius;
 
-				consts.PerPassFullResCoordOffset = Math::Int2(pass % 2, pass / 2);
-				consts.PerPassFullResUVOffset = Math::Vector2(((pass % 2) - 0.0f) / m_size.x, ((pass / 2) - 0.0f) / m_size.y);
+				consts.PerPassFullResCoordOffset = math::Int2(pass % 2, pass / 2);
+				consts.PerPassFullResUVOffset = math::Vector2(((pass % 2) - 0.0f) / m_size.x, ((pass / 2) - 0.0f) / m_size.y);
 
-				consts.InvSharpness = Math::Clamp(1.0f - settings.Sharpness, 0.0f, 1.0f);
+				consts.InvSharpness = math::Clamp(1.0f - settings.Sharpness, 0.0f, 1.0f);
 				consts.PassIndex = pass;
-				consts.QuarterResPixelSize = Math::Vector2(1.0f / (float)m_quarterSize.x, 1.0f / (float)m_quarterSize.y);
+				consts.QuarterResPixelSize = math::Vector2(1.0f / (float)m_quarterSize.x, 1.0f / (float)m_quarterSize.y);
 
 				float additionalAngleOffset = settings.TemporalSupersamplingAngleOffset; // if using temporal supersampling approach (like "Progressive Rendering Using Multi-frame Sampling" from GPU Pro 7, etc.)
 				float additionalRadiusScale = settings.TemporalSupersamplingRadiusOffset; // if using temporal supersampling approach (like "Progressive Rendering Using Multi-frame Sampling" from GPU Pro 7, etc.)
@@ -1502,7 +1502,7 @@ namespace EastEngine
 					float scale = 1.0f + (a - 1.5f + (b - (subPassCount - 1.0f)* 0.5f) / (float)subPassCount)* 0.07f;
 					scale *= additionalRadiusScale;
 
-					consts.PatternRotScaleMatrices[subPass] = Math::Vector4(scale* ca, scale* -sa, -scale* sa, -scale* ca);
+					consts.PatternRotScaleMatrices[subPass] = math::Vector4(scale* ca, scale* -sa, -scale* sa, -scale* ca);
 				}
 
 				if (!generateNormals)
@@ -1529,7 +1529,7 @@ namespace EastEngine
 				}
 				else
 				{
-					consts.NormalsWorldToViewspaceMatrix = Math::Matrix::Identity;
+					consts.NormalsWorldToViewspaceMatrix = math::Matrix::Identity;
 				}
 #endif
 
@@ -1663,7 +1663,7 @@ namespace EastEngine
 			return 0;
 		}
 
-		bool D3D11Texture2D::ReCreateIfNeeded(ID3D11Device* device, const Math::UInt2& size, DXGI_FORMAT format, float& inoutTotalSizeSum, uint32_t mipLevels, uint32_t arraySize, bool supportUAVs)
+		bool D3D11Texture2D::ReCreateIfNeeded(ID3D11Device* device, const math::UInt2& size, DXGI_FORMAT format, float& inoutTotalSizeSum, uint32_t mipLevels, uint32_t arraySize, bool supportUAVs)
 		{
 			int approxSize = size.x* size.y* GetPixelSizeInBytes(format);
 			if (mipLevels != 1) approxSize = approxSize* 2; // is this an overestimate?
@@ -1750,8 +1750,8 @@ namespace EastEngine
 				this->Size.x = (this->Size.x + 1) / 2;
 				this->Size.y = (this->Size.y + 1) / 2;
 			}
-			this->Size.x = Math::Max(this->Size.x, 1u);
-			this->Size.y = Math::Max(this->Size.y, 1u);
+			this->Size.x = math::Max(this->Size.x, 1u);
+			this->Size.y = math::Max(this->Size.y, 1u);
 
 			return true;
 		}
@@ -1794,7 +1794,7 @@ namespace EastEngine
 
 		bool ASSAO::Init()
 		{
-			std::string strPath(File::GetPath(File::eFx));
+			std::string strPath(file::GetPath(file::eFx));
 			strPath += "PostProcessing\\ASSAO\\ASSAO.fx";
 
 			ID3DBlob* pBlob = nullptr;
@@ -1822,12 +1822,12 @@ namespace EastEngine
 
 		void ASSAO::Apply(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, IRenderTarget* pResult)
 		{
-			PERF_TRACER_EVENT("ASSAO::Apply", "");
+			TRACER_EVENT("ASSAO::Apply");
 			D3D_PROFILING(pDeviceContext, SSAO);
 
 			int nThreadID = GetThreadID(ThreadType::eRender);
 
-			const Math::Viewport& viewport = pDevice->GetViewport();
+			const math::Viewport& viewport = pDevice->GetViewport();
 
 			ASSAO_InputsDX11 inputs;
 			inputs.ScissorLeft = 0;

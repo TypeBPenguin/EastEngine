@@ -1,9 +1,9 @@
 #include "stdafx.h"
 #include "SamplerState.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		SamplerState::SamplerState()
 			: m_pSamplerState(nullptr)

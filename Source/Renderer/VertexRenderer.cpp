@@ -20,9 +20,9 @@ namespace StrID
 	RegisterStringID(g_color);
 }
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class VertexRenderer::Impl
 		{
@@ -61,9 +61,9 @@ namespace EastEngine
 				struct InstVertexData
 				{
 					InstStaticData worldData;
-					Math::Color colorData;
+					math::Color colorData;
 
-					InstVertexData(const Math::Matrix& matWorld, const Math::Color& color)
+					InstVertexData(const math::Matrix& matWorld, const math::Color& color)
 						: worldData(matWorld)
 						, colorData(color)
 					{
@@ -73,7 +73,7 @@ namespace EastEngine
 				const RenderSubsetVertex* pSubset = nullptr;
 				std::vector<InstVertexData> vecInstData;
 
-				RenderSubsetVertexBatch(const RenderSubsetVertex* pSubset, const Math::Matrix& matWorld, const Math::Color& color)
+				RenderSubsetVertexBatch(const RenderSubsetVertex* pSubset, const math::Matrix& matWorld, const math::Color& color)
 					: pSubset(pSubset)
 				{
 					vecInstData.emplace_back(matWorld, color);
@@ -113,7 +113,7 @@ namespace EastEngine
 
 		void VertexRenderer::Impl::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
 		{
-			PERF_TRACER_EVENT("VertexRenderer::Render", "");
+			TRACER_EVENT("VertexRenderer::Render");
 			D3D_PROFILING(pDeviceContext, VertexRenderer);
 
 			pDeviceContext->ClearState();
@@ -153,7 +153,7 @@ namespace EastEngine
 
 		bool VertexRenderer::Impl::CreateEffect()
 		{
-			std::string strPath(File::GetPath(File::EmPath::eFx));
+			std::string strPath(file::GetPath(file::EmPath::eFx));
 
 #if defined(DEBUG) || defined(_DEBUG)
 			strPath.append("Vertex\\Vertex_D.cso");
@@ -171,13 +171,13 @@ namespace EastEngine
 
 			{
 				uint32_t nVertexCount = 2;
-				Math::Color color = Math::Color::DarkRed;
+				math::Color color = math::Color::DarkRed;
 
 				std::vector<VertexPosCol> vecVertices;
 				vecVertices.reserve(nVertexCount);
 
-				vecVertices.push_back(VertexPosCol(Math::Vector3::Zero, color));
-				vecVertices.push_back(VertexPosCol(Math::Vector3(0.f, 0.f, 1.f), color));
+				vecVertices.push_back(VertexPosCol(math::Vector3::Zero, color));
+				vecVertices.push_back(VertexPosCol(math::Vector3(0.f, 0.f, 1.f), color));
 
 				m_pLineSegmentVertexBuffer = IVertexBuffer::Create(VertexPosCol::Format(), vecVertices.size(), &vecVertices.front(), D3D11_USAGE_DYNAMIC);
 
@@ -206,7 +206,7 @@ namespace EastEngine
 
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-			const Math::Matrix matViewProjection = pCamera->GetViewMatrix(nThreadID) * pCamera->GetProjMatrix(nThreadID);
+			const math::Matrix matViewProjection = pCamera->GetViewMatrix(nThreadID) * pCamera->GetProjMatrix(nThreadID);
 
 			std::map<std::tuple<IVertexBuffer*, IIndexBuffer*, bool>, RenderSubsetVertexBatch> mapVertex;
 			{
@@ -269,7 +269,7 @@ namespace EastEngine
 							continue;
 
 						m_pEffect->SetMatrix(StrID::g_matWVP, pRenderSubset->matWorld * pCamera->GetViewMatrix(nThreadID) * pCamera->GetProjMatrix(nThreadID));
-						m_pEffect->SetVector(StrID::g_color, *reinterpret_cast<const Math::Vector4*>(&pRenderSubset->color));
+						m_pEffect->SetVector(StrID::g_color, *reinterpret_cast<const math::Vector4*>(&pRenderSubset->color));
 
 						uint32_t nPassCount = pEffectTech->GetPassCount();
 						for (uint32_t p = 0; p < nPassCount; ++p)

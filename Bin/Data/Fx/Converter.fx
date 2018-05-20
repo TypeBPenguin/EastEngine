@@ -139,30 +139,43 @@ float3 Unpack3PNFromFP32(float fFloatFromFP32)
 
 float3 CalcTangent(in float3 normal)
 {
-	float3 tangent;
+	float3 result = 0.f;
+
 	float3 c1 = cross(normal, float3(0.f, 0.f, 1.f));
 	float3 c2 = cross(normal, float3(0.f, 1.f, 0.f));
 
-	if (length(c1) > length(c2))
+	int len1 = length(c1);
+	int len2 = length(c2);
+
+	if (len1 > len2)
 	{
-		tangent = c1;
+		if (len1 > 0)
+		{
+			result = normalize(-c1);
+		}
 	}
 	else
 	{
-		tangent = c2;
+		if (len2 > 0)
+		{
+			result = normalize(-c2);
+		}
 	}
 
-	tangent = normalize(-tangent);
-
-	return tangent;
+	return result;
 }
 
 float3 CalcBinormal(in float3 normal, in float3 tangent)
 {
-	float3 binormal = cross(normal, tangent);
-	binormal = normalize(-binormal);
+	float3 result = 0.f;
 
-	return binormal;
+	float3 binormal = cross(normal, tangent);
+	if (length(binormal) > 0)
+	{
+		result = normalize(-binormal);
+	}
+
+	return result ;
 }
 
 #endif

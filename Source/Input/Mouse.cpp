@@ -1,9 +1,9 @@
 #include "stdafx.h"
 #include "Mouse.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Input
+	namespace input
 	{
 		MouseInstance::MouseInstance()
 			: m_pMouse(nullptr)
@@ -19,18 +19,21 @@ namespace EastEngine
 			Release();
 		}
 
-		bool MouseInstance::Init(HWND hWnd, IDirectInput8A* pInput, DWORD mouseCoopFlag)
+		void MouseInstance::Initialize(HWND hWnd, IDirectInput8A* pInput, DWORD mouseCoopFlag)
 		{
 			if (pInput == nullptr)
-				return false;
+				return;
 
 			// 마우스 디바이스 생성
-			pInput->CreateDevice(GUID_SysMouse, &m_pMouse, 0);
+			HRESULT hr = pInput->CreateDevice(GUID_SysMouse, &m_pMouse, 0);
+			if (FAILED(hr))
+			{
+				throw_line("failed to create mouse device");
+			}
+
 			m_pMouse->SetDataFormat(&c_dfDIMouse2);
 			m_pMouse->SetCooperativeLevel(hWnd, mouseCoopFlag);
 			m_pMouse->Acquire();
-
-			return true;
 		}
 
 		void MouseInstance::Release()
@@ -44,7 +47,7 @@ namespace EastEngine
 
 		void MouseInstance::Update()
 		{
-			PERF_TRACER_EVENT("MouseInstance::Update", "");
+			TRACER_EVENT("MouseInstance::Update");
 			Memory::Copy(&m_OldMouseState, sizeof(m_OldMouseState), &m_CurMouseState, sizeof(m_CurMouseState));
 
 			HRESULT hr = m_pMouse->GetDeviceState(sizeof(m_CurMouseState), reinterpret_cast<void**>(&m_CurMouseState));

@@ -5,9 +5,9 @@
 
 #include "Motion.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class MotionManager::Impl
 		{
@@ -46,7 +46,7 @@ namespace EastEngine
 
 		void MotionManager::Impl::Flush(bool isEnableGarbageCollector)
 		{
-			PERF_TRACER_EVENT("MotionManager::Flush", "");
+			TRACER_EVENT("MotionManager::Flush");
 			if (isEnableGarbageCollector == true)
 			{
 				auto iter = m_clnMotions.begin();
@@ -54,8 +54,8 @@ namespace EastEngine
 				{
 					Motion& motion = *iter;
 
-					if (motion.GetLoadState() == EmLoadState::eReady ||
-						motion.GetLoadState() == EmLoadState::eLoading)
+					if (motion.GetState() == IResource::eReady ||
+						motion.GetState() == IResource::eLoading)
 					{
 						++iter;
 						continue;

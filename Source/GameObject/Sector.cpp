@@ -16,9 +16,9 @@ namespace StrID
 	RegisterStringID(Sector_RigidBody);
 }
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace GameObject
+	namespace gameobject
 	{
 		Sector::Sector(SectorMgr* pSectorMgr, float fRadius, int nCoordinateX, int nCoordinateY)
 			: m_pSectorMgr(pSectorMgr)
@@ -26,7 +26,7 @@ namespace EastEngine
 			, m_n2Coordinate(nCoordinateX, nCoordinateY)
 			, m_isVisibleTile(true)
 		{
-			Math::Vector3 f3Pos((float)(nCoordinateX)* fRadius * 1.5f * 1.05f, 1.f, ((float)(nCoordinateY)+(float)(nCoordinateX) * -0.5f) * fRadius * 2.f * 1.05f);
+			math::Vector3 f3Pos((float)(nCoordinateX)* fRadius * 1.5f * 1.05f, 1.f, ((float)(nCoordinateY)+(float)(nCoordinateX) * -0.5f) * fRadius * 2.f * 1.05f);
 
 			String::StringID strName;
 			strName.Format("%s_%d/%d", StrID::Sector.c_str(), nCoordinateX, nCoordinateY);
@@ -38,14 +38,14 @@ namespace EastEngine
 
 			if (pCompModel != nullptr)
 			{
-				Graphics::MaterialInfo materialInfo;
+				graphics::MaterialInfo materialInfo;
 				materialInfo.strName = StrID::Sector;
-				//materialInfo.rasterizerStateKey = Graphics::Device::GetInstance()->GetRasterizerStateKey(Graphics::EmRasterizerState::eWireFrame);
+				//materialInfo.rasterizerStateKey = graphics::Device::GetInstance()->GetRasterizerStateKey(graphics::EmRasterizerState::eWireFrame);
 
-				Graphics::ModelLoader loader;
+				graphics::ModelLoader loader;
 				loader.InitHexagon(StrID::Sector, &materialInfo, fRadius);
 
-				auto pModelInst = Graphics::IModel::CreateInstance(loader);
+				auto pModelInst = graphics::IModel::CreateInstance(loader);
 				pCompModel->Init(pModelInst);
 
 				ComponentPhysics* pCompPhysics = static_cast<ComponentPhysics*>(m_pActor->CreateComponent(EmComponent::ePhysics));

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace EastEngine
+namespace eastengine
 {
 	namespace Log
 	{
@@ -10,6 +10,6 @@ namespace EastEngine
 	}
 }
 
-#define LOG_MESSAGE(format, ...)	EastEngine::Log::Message(__FILE__, __LINE__, format, __VA_ARGS__);
-#define LOG_WARNING(format, ...)	EastEngine::Log::Warning(__FILE__, __LINE__, format, __VA_ARGS__);
-#define LOG_ERROR(format, ...)		EastEngine::Log::Error(__FILE__, __LINE__, format, __VA_ARGS__);
+#define LOG_MESSAGE(format, ...)	eastengine::Log::Message(__FILE__, __LINE__, format, __VA_ARGS__);
+#define LOG_WARNING(format, ...)	eastengine::Log::Warning(__FILE__, __LINE__, format, __VA_ARGS__);
+#define LOG_ERROR(format, ...)		eastengine::Log::Error(__FILE__, __LINE__, format, __VA_ARGS__);

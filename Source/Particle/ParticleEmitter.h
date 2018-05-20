@@ -3,9 +3,9 @@
 #include "ParticleInterface.h"
 #include "DirectX/Vertex.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		namespace EmParticleEmitter
 		{
@@ -26,8 +26,8 @@ namespace EastEngine
 
 		struct BouncePlane
 		{
-			Math::Vector3 f3Normal;
-			Math::Vector3 f3Point;
+			math::Vector3 f3Normal;
+			math::Vector3 f3Point;
 			float fBounceFactor = 0.f;
 			EmParticleEmitter::CollisionResults emResult = EmParticleEmitter::eBounce;
 			String::StringID strName;
@@ -42,7 +42,7 @@ namespace EastEngine
 		public:
 			bool Init(const ParticleEmitterAttributes& attributes);
 
-			virtual void Update(float fElapsedTime, const Math::Matrix& matView, const Math::Matrix& matViewProjection, const Collision::Frustum& frustum) override;
+			virtual void Update(float fElapsedTime, const math::Matrix& matView, const math::Matrix& matViewProjection, const Collision::Frustum& frustum) override;
 
 		private:
 			float m_fTime;
@@ -60,7 +60,7 @@ namespace EastEngine
 			struct EmitterVertex
 			{
 				VertexPosTexCol vertex[4];
-				Math::Vector3 f3Pos;
+				math::Vector3 f3Pos;
 			};
 
 			struct ParticleSortor

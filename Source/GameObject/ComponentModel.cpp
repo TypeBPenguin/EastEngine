@@ -9,9 +9,9 @@
 
 #include "GameObject.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace GameObject
+	namespace gameobject
 	{
 		ComponentModel::ComponentModel(IActor* pOwner)
 			: IComponent(pOwner, EmComponent::eModel)
@@ -20,19 +20,19 @@ namespace EastEngine
 
 		ComponentModel::~ComponentModel()
 		{
-			Graphics::IModel::DestroyInstance(&m_pModelInst);
+			graphics::IModel::DestroyInstance(&m_pModelInst);
 		}
 
-		void ComponentModel::Init(Graphics::IModelInstance* pModelInst)
+		void ComponentModel::Init(graphics::IModelInstance* pModelInst)
 		{
 			m_pModelInst = pModelInst;
 		}
 
-		void ComponentModel::Init(Graphics::ModelLoader* pLoader)
+		void ComponentModel::Init(graphics::ModelLoader* pLoader)
 		{
 			if (pLoader != nullptr)
 			{
-				m_pModelInst = Graphics::IModel::CreateInstance(*pLoader, pLoader->IsEnableThreadLoad());
+				m_pModelInst = graphics::IModel::CreateInstance(*pLoader, pLoader->IsEnableThreadLoad());
 			}
 		}
 
@@ -49,7 +49,7 @@ namespace EastEngine
 			}
 		}
 
-		bool ComponentModel::LoadToFile(File::Stream& file)
+		bool ComponentModel::LoadToFile(file::Stream& file)
 		{
 			std::string strBuf;
 			file >> strBuf;
@@ -58,7 +58,7 @@ namespace EastEngine
 			strFullPath.append(strBuf);
 			strFullPath.append(".emod");
 
-			Graphics::ModelLoader loader;
+			graphics::ModelLoader loader;
 			loader.InitEast(strBuf.c_str(), strFullPath.c_str());
 			//loader.SetEnableThreadLoad(true);
 
@@ -67,9 +67,9 @@ namespace EastEngine
 			return true;
 		}
 
-		bool ComponentModel::SaveToFile(File::Stream& file)
+		bool ComponentModel::SaveToFile(file::Stream& file)
 		{
-			Graphics::IModel* pModel = m_pModelInst->GetModel();
+			graphics::IModel* pModel = m_pModelInst->GetModel();
 
 			file << pModel->GetName().c_str();
 
@@ -77,12 +77,12 @@ namespace EastEngine
 			strFullPath.append(pModel->GetName().c_str());
 			strFullPath.append(".emod");
 
-			Graphics::IModel::SaveToFile(pModel, strFullPath.c_str());
+			graphics::IModel::SaveToFile(pModel, strFullPath.c_str());
 
 			return true;
 		}
 
-		Graphics::IModel* ComponentModel::GetModel()
+		graphics::IModel* ComponentModel::GetModel()
 		{
 			if (m_pModelInst == nullptr)
 				return nullptr;
@@ -101,7 +101,7 @@ namespace EastEngine
 			return m_pModelInst->IsLoadComplete();
 		}
 
-		bool ComponentModel::PlayMotion(Graphics::EmMotion::Layers emLayer, Graphics::IMotion* pMotion, const Graphics::MotionPlaybackInfo* pPlayback)
+		bool ComponentModel::PlayMotion(graphics::EmMotion::Layers emLayer, graphics::IMotion* pMotion, const graphics::MotionPlaybackInfo* pPlayback)
 		{
 			if (m_pModelInst == nullptr || m_pModelInst->GetMotionSystem() == nullptr)
 				return false;
@@ -111,16 +111,16 @@ namespace EastEngine
 			return true;
 		}
 
-		bool ComponentModel::PlayMotion(Graphics::EmMotion::Layers emLayer, const Graphics::MotionLoader& loader, const Graphics::MotionPlaybackInfo* pPlayback)
+		bool ComponentModel::PlayMotion(graphics::EmMotion::Layers emLayer, const graphics::MotionLoader& loader, const graphics::MotionPlaybackInfo* pPlayback)
 		{
-			Graphics::IMotion* pMotion = Graphics::IMotion::Create(loader);
+			graphics::IMotion* pMotion = graphics::IMotion::Create(loader);
 			if (pMotion == nullptr)
 				return false;
 
 			return PlayMotion(emLayer, pMotion, pPlayback);
 		}
 
-		void ComponentModel::StopMotion(Graphics::EmMotion::Layers emLayer, float fStopTime)
+		void ComponentModel::StopMotion(graphics::EmMotion::Layers emLayer, float fStopTime)
 		{
 			if (m_pModelInst == nullptr || m_pModelInst->GetMotionSystem() == nullptr)
 				return;

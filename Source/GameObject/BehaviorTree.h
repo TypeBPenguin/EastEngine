@@ -20,9 +20,9 @@ we are done)             /               \
                   then the door
                   cannot be opened)
 */
-namespace EastEngine
+namespace eastengine
 {
-	namespace GameObject
+	namespace gameobject
 	{
 		class BehaviorTree
 		{
@@ -77,7 +77,7 @@ namespace EastEngine
 				{
 					out_vecRandomNode = m_vecChildNode;
 
-					std::shuffle(out_vecRandomNode.begin(), out_vecRandomNode.end(), Math::mt19937());
+					std::shuffle(out_vecRandomNode.begin(), out_vecRandomNode.end(), math::mt19937());
 				}
 
 			private:

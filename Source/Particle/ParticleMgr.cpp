@@ -6,9 +6,9 @@
 #include "DirectX/D3DInterface.h"
 #include "DirectX/Camera.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		ParticleManager::ParticleManager()
 			: m_isInit(false)
@@ -45,15 +45,15 @@ namespace EastEngine
 
 		void ParticleManager::Update(float fElapsedTime)
 		{
-			PERF_TRACER_EVENT("ParticleManager::Update", "");
+			TRACER_EVENT("ParticleManager::Update");
 
 			Camera* pCamera = Camera::GetInstance();
 			if (pCamera == nullptr)
 				return;
 
 			int nThreadID = GetThreadID(ThreadType::eUpdate);
-			const Math::Matrix& matView = pCamera->GetViewMatrix(nThreadID);
-			Math::Matrix matViewProjection = matView * pCamera->GetProjMatrix(nThreadID);
+			const math::Matrix& matView = pCamera->GetViewMatrix(nThreadID);
+			math::Matrix matViewProjection = matView * pCamera->GetProjMatrix(nThreadID);
 			Collision::Frustum frustum = pCamera->GetFrustum(nThreadID);
 
 			auto iter = m_listParticle.begin();

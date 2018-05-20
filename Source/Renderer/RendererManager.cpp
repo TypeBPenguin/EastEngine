@@ -23,9 +23,9 @@ namespace StrID
 	RegisterStringID(g_sampler);
 }
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class RendererManager::Impl
 		{
@@ -99,7 +99,7 @@ namespace EastEngine
 
 		void RendererManager::Impl::Render()
 		{
-			PERF_TRACER_EVENT("RendererManager::Render", "");
+			TRACER_EVENT("RendererManager::Render");
 
 			IDevice* pDevice = GetDevice();
 			IDeviceContext* pDeviceContext = GetDeferredContext(ThreadType::eRender);
@@ -136,7 +136,7 @@ namespace EastEngine
 
 		void RendererManager::Impl::Flush()
 		{
-			PERF_TRACER_EVENT("RendererManager::Flush", "");
+			TRACER_EVENT("RendererManager::Flush");
 			for (auto& pRenderer : m_pRenderer)
 			{
 				if (pRenderer == nullptr)
@@ -238,7 +238,7 @@ namespace EastEngine
 
 		bool RendererManager::Impl::CreateEffect()
 		{
-			std::string strPath(File::GetPath(File::EmPath::eFx));
+			std::string strPath(file::GetPath(file::EmPath::eFx));
 
 #if defined(DEBUG) || defined(_DEBUG)
 			strPath.append("Copy_D.cso");

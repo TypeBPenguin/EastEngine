@@ -1,9 +1,9 @@
 #include "stdafx.h"
 #include "DepthStencil.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		static int s_nDepthStencilCount = 0;
 

@@ -2,9 +2,9 @@
 
 #include "CommonLib/Singleton.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class IEffect;
 		class IEffectTech;
@@ -25,8 +25,8 @@ namespace EastEngine
 			bool Apply(IDevice* pDevice, IDeviceContext* pDeviceContext, IRenderTarget* pResult, IRenderTarget* pSource);
 
 		public:
-			void SetColorGuide(const Math::Vector3& f3ColorGuide) { m_f3ColorGuide = f3ColorGuide; }
-			const Math::Vector3& GetColorGuide() const { return m_f3ColorGuide; }
+			void SetColorGuide(const math::Vector3& f3ColorGuide) { m_f3ColorGuide = f3ColorGuide; }
+			const math::Vector3& GetColorGuide() const { return m_f3ColorGuide; }
 
 		private:
 			void ClearEffect(IDeviceContext* pd3dDeviceContext, IEffectTech* pTech);
@@ -34,7 +34,7 @@ namespace EastEngine
 		private:
 			bool m_isInit;
 
-			Math::Vector3 m_f3ColorGuide;
+			math::Vector3 m_f3ColorGuide;
 
 			IEffect* m_pEffect;
 			ISamplerState* m_pSamplerState;

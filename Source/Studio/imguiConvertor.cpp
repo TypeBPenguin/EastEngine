@@ -3,9 +3,9 @@
 
 #include "imgui.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Math
+	namespace math
 	{
 	}
 }

@@ -1,8 +1,8 @@
 #pragma once
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		struct MaterialInfo;
 		class ITexture;
@@ -21,8 +21,8 @@ namespace EastEngine
 
 		struct ParticleInstanceInfo
 		{
-			Math::Vector3 f3Pos;
-			Math::Vector3 f3Velocity;
+			math::Vector3 f3Pos;
+			math::Vector3 f3Velocity;
 			float fCreationTime = 0.f;
 
 			DWORD color = 0;
@@ -41,13 +41,13 @@ namespace EastEngine
 			float fLifeCycle = 0.f;
 			float fSize = 0.f;
 
-			Math::Color color = Math::Color::White;
-			Math::Vector3 f3Pos;
-			Math::Vector3 f3Velocity;
+			math::Color color = math::Color::White;
+			math::Vector3 f3Pos;
+			math::Vector3 f3Velocity;
 			float fVelocityVar = 0.f;
 
-			Math::Vector3 f3Gravity;
-			Math::Vector3 f3Wind;
+			math::Vector3 f3Gravity;
+			math::Vector3 f3Wind;
 			bool isAirResistance = false;
 			bool isRandomColor = false;
 
@@ -61,9 +61,9 @@ namespace EastEngine
 		{
 			String::StringID strDecalName;
 
-			Math::Vector3 f3Pos;
-			Math::Vector3 f3Scale = Math::Vector3::One;
-			Math::Quaternion quatRot = Math::Quaternion::Identity;
+			math::Vector3 f3Pos;
+			math::Vector3 f3Scale = math::Vector3::One;
+			math::Quaternion quatRot = math::Quaternion::Identity;
 
 			MaterialInfo* pMaterialInfo;
 
@@ -79,7 +79,7 @@ namespace EastEngine
 		public:
 			static void Destroy(IParticle** ppParticle);
 
-			virtual void Update(float fElapsedTime, const Math::Matrix& matView, const Math::Matrix& matViewProjection, const Collision::Frustum& frustum) = 0;
+			virtual void Update(float fElapsedTime, const math::Matrix& matView, const math::Matrix& matViewProjection, const Collision::Frustum& frustum) = 0;
 
 		public:
 			EmParticle::Type GetType() const { return m_emEffectType; }

@@ -5,9 +5,9 @@
 
 struct D3D11_VIEWPORT;
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Math
+	namespace math
 	{
 		const float PI = 3.1415926535897932384626433832795f;
 		const float PI2 = 6.283185307179586476925286766559f;
@@ -973,9 +973,9 @@ namespace EastEngine
 
 		struct Transform
 		{
-			Math::Vector3 scale;
-			Math::Quaternion rotation;
-			Math::Vector3 position;
+			math::Vector3 scale;
+			math::Quaternion rotation;
+			math::Vector3 position;
 
 			Transform();
 			Transform(const Vector3& scale, const Quaternion& rotation, const Vector3& position);
@@ -1333,17 +1333,17 @@ namespace EastEngine
 // Support for SimpleMath and Standard C++ Library containers
 namespace std
 {
-	template<> struct less<EastEngine::Math::Vector2>
+	template<> struct less<eastengine::math::Vector2>
 	{
-		bool operator()(const EastEngine::Math::Vector2& V1, const EastEngine::Math::Vector2& V2) const
+		bool operator()(const eastengine::math::Vector2& V1, const eastengine::math::Vector2& V2) const
 		{
 			return ((V1.x < V2.x) || ((V1.x == V2.x) && (V1.y < V2.y)));
 		}
 	};
 
-	template<> struct less<EastEngine::Math::Vector3>
+	template<> struct less<eastengine::math::Vector3>
 	{
-		bool operator()(const EastEngine::Math::Vector3& V1, const EastEngine::Math::Vector3& V2) const
+		bool operator()(const eastengine::math::Vector3& V1, const eastengine::math::Vector3& V2) const
 		{
 			return ((V1.x < V2.x)
 				|| ((V1.x == V2.x) && (V1.y < V2.y))
@@ -1351,9 +1351,9 @@ namespace std
 		}
 	};
 
-	template<> struct less<EastEngine::Math::Vector4>
+	template<> struct less<eastengine::math::Vector4>
 	{
-		bool operator()(const EastEngine::Math::Vector4& V1, const EastEngine::Math::Vector4& V2) const
+		bool operator()(const eastengine::math::Vector4& V1, const eastengine::math::Vector4& V2) const
 		{
 			return ((V1.x < V2.x)
 				|| ((V1.x == V2.x) && (V1.y < V2.y))
@@ -1362,9 +1362,9 @@ namespace std
 		}
 	};
 
-	template<> struct less<EastEngine::Math::Matrix>
+	template<> struct less<eastengine::math::Matrix>
 	{
-		bool operator()(const EastEngine::Math::Matrix& M1, const EastEngine::Math::Matrix& M2) const
+		bool operator()(const eastengine::math::Matrix& M1, const eastengine::math::Matrix& M2) const
 		{
 			if (M1._11 != M2._11) return M1._11 < M2._11;
 			if (M1._12 != M2._12) return M1._12 < M2._12;
@@ -1387,9 +1387,9 @@ namespace std
 		}
 	};
 
-	template<> struct less<EastEngine::Math::Plane>
+	template<> struct less<eastengine::math::Plane>
 	{
-		bool operator()(const EastEngine::Math::Plane& P1, const EastEngine::Math::Plane& P2) const
+		bool operator()(const eastengine::math::Plane& P1, const eastengine::math::Plane& P2) const
 		{
 			return ((P1.x < P2.x)
 				|| ((P1.x == P2.x) && (P1.y < P2.y))
@@ -1398,9 +1398,9 @@ namespace std
 		}
 	};
 
-	template<> struct less<EastEngine::Math::Quaternion>
+	template<> struct less<eastengine::math::Quaternion>
 	{
-		bool operator()(const EastEngine::Math::Quaternion& Q1, const EastEngine::Math::Quaternion& Q2) const
+		bool operator()(const eastengine::math::Quaternion& Q1, const eastengine::math::Quaternion& Q2) const
 		{
 			return ((Q1.x < Q2.x)
 				|| ((Q1.x == Q2.x) && (Q1.y < Q2.y))
@@ -1409,9 +1409,9 @@ namespace std
 		}
 	};
 
-	template<> struct less<EastEngine::Math::Color>
+	template<> struct less<eastengine::math::Color>
 	{
-		bool operator()(const EastEngine::Math::Color& C1, const EastEngine::Math::Color& C2) const
+		bool operator()(const eastengine::math::Color& C1, const eastengine::math::Color& C2) const
 		{
 			return ((C1.r < C2.r)
 				|| ((C1.r == C2.r) && (C1.g < C2.g))
@@ -1420,9 +1420,9 @@ namespace std
 		}
 	};
 
-	template<> struct less<EastEngine::Math::Viewport>
+	template<> struct less<eastengine::math::Viewport>
 	{
-		bool operator()(const EastEngine::Math::Viewport& vp1, const EastEngine::Math::Viewport& vp2) const
+		bool operator()(const eastengine::math::Viewport& vp1, const eastengine::math::Viewport& vp2) const
 		{
 			if (vp1.x != vp2.x) return (vp1.x < vp2.x);
 			if (vp1.y != vp2.y) return (vp1.y < vp2.y);

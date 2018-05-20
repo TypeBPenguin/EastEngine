@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "SceneManager.h"
 
-namespace EastEngine
+namespace eastengine
 {
 	class SceneManager::Impl
 	{
@@ -20,7 +20,6 @@ namespace EastEngine
 
 		void ChangeScene(const String::StringID& strSceneName);
 
-		IScene* GetCurScene();
 		IScene* GetScene(const String::StringID& strSceneName);
 
 	private:
@@ -49,33 +48,35 @@ namespace EastEngine
 
 	void SceneManager::Impl::Update(float fElapsedTime)
 	{
-		PERF_TRACER_EVENT("SceneManager::Update", "");
+		TRACER_EVENT("SceneManager::Update");
 		if (m_pCurScene != nullptr)
 		{
-			PERF_TRACER_PUSHARGS("Scene Name", m_pCurScene->GetSceneName().c_str());
+			TRACER_PUSHARGS("Scene Name", m_pCurScene->GetName().c_str());
 			m_pCurScene->Update(fElapsedTime);
 		}
 	}
 
 	void SceneManager::Impl::Flush()
 	{
-		PERF_TRACER_EVENT("SceneManager::Flush", "");
+		TRACER_EVENT("SceneManager::Flush");
 		if (m_pChangeScene != nullptr)
 		{
 			if (m_pCurScene != nullptr)
 			{
-				PERF_TRACER_EVENT("SceneManager::Flush", "Exit");
-				PERF_TRACER_PUSHARGS("Scene Name", m_pCurScene->GetSceneName().c_str());
+				TRACER_BEGINEVENT("Exit");
+				TRACER_PUSHARGS("Scene Name", m_pCurScene->GetName().c_str());
 				m_pCurScene->Exit();
+				TRACER_ENDEVENT();
 			}
 
 			m_pCurScene = m_pChangeScene;
 
 			if (m_pCurScene != nullptr)
 			{
-				PERF_TRACER_EVENT("SceneManager::Flush", "Enter");
-				PERF_TRACER_PUSHARGS("Scene Name", m_pCurScene->GetSceneName().c_str());
+				TRACER_BEGINEVENT("Enter");
+				TRACER_PUSHARGS("Scene Name", m_pCurScene->GetName().c_str());
 				m_pCurScene->Enter();
+				TRACER_ENDEVENT();
 			}
 
 			m_pChangeScene = nullptr;
@@ -89,12 +90,12 @@ namespace EastEngine
 
 		RemoveScene(pScene);
 
-		m_umapScene.emplace(pScene->GetSceneName(), pScene);
+		m_umapScene.emplace(pScene->GetName(), pScene);
 	}
 
 	void SceneManager::Impl::RemoveScene(IScene* pScene)
 	{
-		RemoveScene(pScene->GetSceneName().c_str());
+		RemoveScene(pScene->GetName().c_str());
 	}
 
 	void SceneManager::Impl::RemoveScene(const String::StringID& strSceneName)
@@ -124,7 +125,7 @@ namespace EastEngine
 	{
 		if (m_pCurScene != nullptr)
 		{
-			if (m_pCurScene->GetSceneName() == strSceneName)
+			if (m_pCurScene->GetName() == strSceneName)
 				return;
 		}
 
@@ -170,7 +171,7 @@ namespace EastEngine
 
 	void SceneManager::RemoveScene(IScene* pScene)
 	{
-		m_pImpl->RemoveScene(pScene->GetSceneName());
+		m_pImpl->RemoveScene(pScene->GetName());
 	}
 
 	void SceneManager::RemoveScene(const String::StringID& strSceneName)

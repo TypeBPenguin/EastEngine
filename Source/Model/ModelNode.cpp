@@ -5,11 +5,10 @@
 
 #include "CommonLib/FileStream.h"
 #include "CommonLib/Config.h"
-#include "Renderer/RendererManager.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		ModelNode::ModelNode(EmModelNode::Type emModelNodeType)
 			: m_emModelNodeType(emModelNodeType)
@@ -27,17 +26,17 @@ namespace EastEngine
 		{
 			for (auto& pVertexBuffer : m_pVertexBuffer)
 			{
-				SafeDelete(pVertexBuffer);
+				ReleaseResource(&pVertexBuffer);
 			}
 
 			for (auto& pIndexBuffer : m_pIndexBuffer)
 			{
-				SafeDelete(pIndexBuffer);
+				ReleaseResource(&pIndexBuffer);
 			}
 
 			std::for_each(m_vecMaterial.begin(), m_vecMaterial.end(), [](IMaterial* pMaterial)
 			{
-				IMaterial::Destroy(&pMaterial);
+				ReleaseResource(&pMaterial);
 			});
 			m_vecMaterial.clear();
 
@@ -55,22 +54,28 @@ namespace EastEngine
 
 		IVertexBuffer* ModelNode::GetVertexBuffer(uint32_t nLod) const
 		{
-			return m_pVertexBuffer[Math::Min(nLod, m_nLodMax)];
+			return m_pVertexBuffer[math::Min(nLod, m_nLodMax)];
 		}
 
 		void ModelNode::SetVertexBuffer(IVertexBuffer* pVertexBuffer, uint32_t nLod)
 		{
-			m_pVertexBuffer[Math::Min(nLod, m_nLodMax)] = pVertexBuffer;
+			ReleaseResource(&m_pVertexBuffer[math::Min(nLod, m_nLodMax)]);
+
+			pVertexBuffer->IncreaseReference();
+			m_pVertexBuffer[math::Min(nLod, m_nLodMax)] = pVertexBuffer;
 		}
 
 		IIndexBuffer* ModelNode::GetIndexBuffer(uint32_t nLod) const
 		{
-			return m_pIndexBuffer[Math::Min(nLod, m_nLodMax)];
+			return m_pIndexBuffer[math::Min(nLod, m_nLodMax)];
 		}
 
 		void ModelNode::SetIndexBuffer(IIndexBuffer* pIndexBuffer, uint32_t nLod)
 		{
-			m_pIndexBuffer[Math::Min(nLod, m_nLodMax)] = pIndexBuffer;
+			ReleaseResource(&m_pIndexBuffer[math::Min(nLod, m_nLodMax)]);
+
+			pIndexBuffer->IncreaseReference();
+			m_pIndexBuffer[math::Min(nLod, m_nLodMax)] = pIndexBuffer;
 		}
 
 		void ModelNode::AddMaterial(IMaterial* pMaterial)
@@ -92,12 +97,12 @@ namespace EastEngine
 
 		void ModelNode::AddModelSubset(ModelSubset& modelPiece, uint32_t nLod)
 		{
-			m_vecModelSubsets[Math::Min(nLod, m_nLodMax)].push_back(modelPiece);
+			m_vecModelSubsets[math::Min(nLod, m_nLodMax)].push_back(modelPiece);
 		}
 
 		void ModelNode::AddModelSubsets(const std::vector<ModelSubset>& vecModelPiece, uint32_t nLod)
 		{
-			std::copy(vecModelPiece.begin(), vecModelPiece.end(), std::back_inserter(m_vecModelSubsets[Math::Min(nLod, m_nLodMax)]));
+			std::copy(vecModelPiece.begin(), vecModelPiece.end(), std::back_inserter(m_vecModelSubsets[math::Min(nLod, m_nLodMax)]));
 		}
 
 		IMaterial* ModelNode::GetMaterial(const String::StringID& strMaterialName, uint32_t& nMaterialID_out) const
@@ -107,7 +112,7 @@ namespace EastEngine
 			{
 				if (m_vecMaterial[i]->GetName() == strMaterialName)
 				{
-					nMaterialID_out = i;
+					nMaterialID_out = static_cast<uint32_t>(i);
 					return m_vecMaterial[i];
 				}
 			}
@@ -119,7 +124,7 @@ namespace EastEngine
 		void ModelNode::SetOriginAABB(const Collision::AABB& aabb)
 		{
 			m_originAABB = aabb;
-			m_originAABB.Extents = Math::Vector3::Max(m_originAABB.Extents, Math::Vector3(0.01f));
+			m_originAABB.Extents = math::Vector3::Max(m_originAABB.Extents, math::Vector3(0.01f));
 		}
 	}
 }

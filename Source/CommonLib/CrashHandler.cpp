@@ -9,7 +9,7 @@
 #include <csignal>
 #include <DbgHelp.h>
 
-namespace EastEngine
+namespace eastengine
 {
 	namespace CrashHandler
 	{
@@ -142,7 +142,7 @@ namespace EastEngine
 			
 			std::string strDumpPath = String::Format("%s%s_[%d%02d%02d-%02d%02d%02d]_CrashMiniDump.dmp", 
 				s_strMiniDumpPath.c_str(), 
-				File::GetProgramFileName(),
+				file::GetProgramFileName(),
 				tmTime.tm_year + 1900,
 				tmTime.tm_mon + 1, 
 				tmTime.tm_mday, 

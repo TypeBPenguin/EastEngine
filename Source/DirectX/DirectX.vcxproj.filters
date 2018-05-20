@@ -13,9 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Camera">
-      <UniqueIdentifier>{ae401393-1057-4c38-9cae-9123f90b552d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="DirectX">
       <UniqueIdentifier>{e9e02f5f-4825-4cd5-8f28-2cf680fa22f2}</UniqueIdentifier>
     </Filter>
@@ -85,15 +82,6 @@
     <Filter Include="DirectX\Debug">
       <UniqueIdentifier>{6d215bbb-a456-4ef4-aa31-462ebdcd0896}</UniqueIdentifier>
     </Filter>
-    <Filter Include="DirectX\Sprite">
-      <UniqueIdentifier>{fa190f4e-ec36-46b1-8484-982df34e1d47}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="DirectX\Sprite\Batch">
-      <UniqueIdentifier>{97910a12-10b9-43d5-ac5a-7536facc52eb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="DirectX\Sprite\Font">
-      <UniqueIdentifier>{6c9cc9ae-5204-4e08-8a2a-571ebbffe1cf}</UniqueIdentifier>
-    </Filter>
     <Filter Include="DirectX\OutputMergeState">
       <UniqueIdentifier>{3a12deee-75a2-41b5-b2a2-326e7576e6d0}</UniqueIdentifier>
     </Filter>
@@ -109,18 +97,6 @@
     <Filter Include="DirectX\OutputMergeState\RasterizerState">
       <UniqueIdentifier>{9ca425d3-9fc9-4b87-a56a-9adb9abf3c24}</UniqueIdentifier>
     </Filter>
-    <Filter Include="PostProcessing">
-      <UniqueIdentifier>{e3f4062b-baec-45de-b435-66e053df562e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="PreProcessing">
-      <UniqueIdentifier>{dc53b1a2-adbd-4b98-ba16-2f0f672cd3e0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="PreProcessing\MaskedOcclusionCulling">
-      <UniqueIdentifier>{613a2141-b956-452f-9719-625d732b7cfa}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="PreProcessing\MaskedOcclusionCulling\Library">
-      <UniqueIdentifier>{d298e32a-9d09-47f5-a913-2cebc5fcc5fc}</UniqueIdentifier>
-    </Filter>
     <Filter Include="DirectX\Shader\Fx\PostProcess\ASSAO">
       <UniqueIdentifier>{36882a68-d74e-488c-afaa-accfefc43897}</UniqueIdentifier>
     </Filter>
@@ -129,12 +105,6 @@
     </Filter>
     <Filter Include="VTF">
       <UniqueIdentifier>{ae49573f-0b35-475b-8495-6763a0df38ce}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Shadow">
-      <UniqueIdentifier>{92a7820b-8f3e-43ee-b9a4-292528ec1266}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Shadow\CSM">
-      <UniqueIdentifier>{243925b9-846a-4461-bfa1-fe10931ab2f5}</UniqueIdentifier>
     </Filter>
     <Filter Include="DirectX\Shader\Fx\Particle">
       <UniqueIdentifier>{bcf5020d-ff7c-429a-b732-546aa5aeb338}</UniqueIdentifier>
@@ -162,24 +132,6 @@
     </Filter>
     <Filter Include="DirectX\InputAssembler\StructuredBuffer">
       <UniqueIdentifier>{0ca92ad8-48fb-47aa-acbd-6b6c627544ac}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Light">
-      <UniqueIdentifier>{dd613227-829d-4b72-981d-f16d808ad5cc}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Light\Directional">
-      <UniqueIdentifier>{98697f5b-3e12-42fe-90ad-2a4ddfb6176d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Light\Point">
-      <UniqueIdentifier>{86f4597d-5533-482f-abed-ce04e00802f6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Light\Spot">
-      <UniqueIdentifier>{b7164187-4a64-4620-a007-44cb7d81e441}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Material">
-      <UniqueIdentifier>{c8215de3-4e54-4da0-98e2-eab1742b8a4e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Material\Node">
-      <UniqueIdentifier>{ec4c963a-590f-4c06-a856-312e5dd18437}</UniqueIdentifier>
     </Filter>
     <Filter Include="DirectX\D3D\Device">
       <UniqueIdentifier>{da6fb76a-5cbc-47b3-a0e2-a5f344fae34d}</UniqueIdentifier>
@@ -225,26 +177,8 @@
     <ClInclude Include="IndexBuffer.h">
       <Filter>DirectX\InputAssembler\IndexBuffer</Filter>
     </ClInclude>
-    <ClInclude Include="Vertex.h">
-      <Filter>DirectX\InputAssembler\VertexBuffer</Filter>
-    </ClInclude>
     <ClInclude Include="Texture.h">
       <Filter>DirectX\Texture</Filter>
-    </ClInclude>
-    <ClInclude Include="Material.h">
-      <Filter>Material</Filter>
-    </ClInclude>
-    <ClInclude Include="LightMgr.h">
-      <Filter>Light</Filter>
-    </ClInclude>
-    <ClInclude Include="Camera.h">
-      <Filter>Camera</Filter>
-    </ClInclude>
-    <ClInclude Include="DirectionalLight.h">
-      <Filter>Light\Directional</Filter>
-    </ClInclude>
-    <ClInclude Include="PointLight.h">
-      <Filter>Light\Point</Filter>
     </ClInclude>
     <ClInclude Include="RenderTarget.h">
       <Filter>DirectX\RenderTarget</Filter>
@@ -258,27 +192,6 @@
     <ClInclude Include="SamplerState.h">
       <Filter>DirectX\OutputMergeState\SamplerState</Filter>
     </ClInclude>
-    <ClInclude Include="CullingThreadpool.h">
-      <Filter>PreProcessing\MaskedOcclusionCulling\Library</Filter>
-    </ClInclude>
-    <ClInclude Include="MaskedOcclusionCulling.h">
-      <Filter>PreProcessing\MaskedOcclusionCulling\Library</Filter>
-    </ClInclude>
-    <ClInclude Include="OcclusionCulling.h">
-      <Filter>PreProcessing\MaskedOcclusionCulling</Filter>
-    </ClInclude>
-    <ClInclude Include="ISpriteBatch.h">
-      <Filter>DirectX\Sprite\Batch</Filter>
-    </ClInclude>
-    <ClInclude Include="ISpriteFont.h">
-      <Filter>DirectX\Sprite\Font</Filter>
-    </ClInclude>
-    <ClInclude Include="_SpriteFont.h">
-      <Filter>DirectX\Sprite\Font</Filter>
-    </ClInclude>
-    <ClInclude Include="_SpriteBatch.h">
-      <Filter>DirectX\Sprite\Batch</Filter>
-    </ClInclude>
     <ClInclude Include="BlendState.h">
       <Filter>DirectX\OutputMergeState\BlendState</Filter>
     </ClInclude>
@@ -288,23 +201,8 @@
     <ClInclude Include="DepthStencilState.h">
       <Filter>DirectX\OutputMergeState\DepthStencilState</Filter>
     </ClInclude>
-    <ClInclude Include="CascadedShadows.h">
-      <Filter>Shadow\CSM</Filter>
-    </ClInclude>
     <ClInclude Include="GBuffers.h">
       <Filter>DirectX\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="Light.h">
-      <Filter>Light</Filter>
-    </ClInclude>
-    <ClInclude Include="SpotLight.h">
-      <Filter>Light\Spot</Filter>
-    </ClInclude>
-    <ClInclude Include="MaterialNode.h">
-      <Filter>Material\Node</Filter>
-    </ClInclude>
-    <ClInclude Include="TextureManager.h">
-      <Filter>DirectX\Texture</Filter>
     </ClInclude>
     <ClInclude Include="DeviceLost.h">
       <Filter>DirectX\D3D\Device\DeviceLost</Filter>
@@ -318,9 +216,6 @@
     <ClInclude Include="EffectInterface.h">
       <Filter>DirectX\Shader\Effect\Interface</Filter>
     </ClInclude>
-    <ClInclude Include="Resource.h">
-      <Filter>DirectX\D3D</Filter>
-    </ClInclude>
     <ClInclude Include="Device.h">
       <Filter>DirectX\D3D\Device</Filter>
     </ClInclude>
@@ -332,12 +227,6 @@
     </ClInclude>
     <ClInclude Include="ImageBasedLight.h">
       <Filter>DirectX\Rendering\ImageBasedLight</Filter>
-    </ClInclude>
-    <ClInclude Include="Shadow.h">
-      <Filter>Shadow</Filter>
-    </ClInclude>
-    <ClInclude Include="ShadowCube.h">
-      <Filter>Shadow</Filter>
     </ClInclude>
     <ClInclude Include="d3dDefine.h">
       <Filter>DirectX\D3D</Filter>
@@ -365,59 +254,17 @@
     <ClCompile Include="Texture.cpp">
       <Filter>DirectX\Texture</Filter>
     </ClCompile>
-    <ClCompile Include="Material.cpp">
-      <Filter>Material</Filter>
-    </ClCompile>
-    <ClCompile Include="LightMgr.cpp">
-      <Filter>Light</Filter>
-    </ClCompile>
-    <ClCompile Include="Camera.cpp">
-      <Filter>Camera</Filter>
-    </ClCompile>
-    <ClCompile Include="DirectionalLight.cpp">
-      <Filter>Light\Directional</Filter>
-    </ClCompile>
-    <ClCompile Include="PointLight.cpp">
-      <Filter>Light\Point</Filter>
-    </ClCompile>
     <ClCompile Include="RenderTarget.cpp">
       <Filter>DirectX\RenderTarget</Filter>
     </ClCompile>
     <ClCompile Include="DepthStencil.cpp">
       <Filter>DirectX\DepthStencil</Filter>
     </ClCompile>
-    <ClCompile Include="Vertex.cpp">
-      <Filter>DirectX\InputAssembler\VertexBuffer</Filter>
-    </ClCompile>
     <ClCompile Include="DebugUtil.cpp">
       <Filter>DirectX\Debug</Filter>
     </ClCompile>
     <ClCompile Include="SamplerState.cpp">
       <Filter>DirectX\OutputMergeState\SamplerState</Filter>
-    </ClCompile>
-    <ClCompile Include="CullingThreadpool.cpp">
-      <Filter>PreProcessing\MaskedOcclusionCulling\Library</Filter>
-    </ClCompile>
-    <ClCompile Include="MaskedOcclusionCulling.cpp">
-      <Filter>PreProcessing\MaskedOcclusionCulling\Library</Filter>
-    </ClCompile>
-    <ClCompile Include="MaskedOcclusionCullingAVX2.cpp">
-      <Filter>PreProcessing\MaskedOcclusionCulling\Library</Filter>
-    </ClCompile>
-    <ClCompile Include="OcclusionCulling.cpp">
-      <Filter>PreProcessing\MaskedOcclusionCulling</Filter>
-    </ClCompile>
-    <ClCompile Include="ISpriteBatch.cpp">
-      <Filter>DirectX\Sprite\Batch</Filter>
-    </ClCompile>
-    <ClCompile Include="ISpriteFont.cpp">
-      <Filter>DirectX\Sprite\Font</Filter>
-    </ClCompile>
-    <ClCompile Include="_SpriteFont.cpp">
-      <Filter>DirectX\Sprite\Font</Filter>
-    </ClCompile>
-    <ClCompile Include="_SpriteBatch.cpp">
-      <Filter>DirectX\Sprite\Batch</Filter>
     </ClCompile>
     <ClCompile Include="BlendState.cpp">
       <Filter>DirectX\OutputMergeState\BlendState</Filter>
@@ -431,23 +278,8 @@
     <ClCompile Include="d3dDefine.cpp">
       <Filter>DirectX\D3D</Filter>
     </ClCompile>
-    <ClCompile Include="CascadedShadows.cpp">
-      <Filter>Shadow\CSM</Filter>
-    </ClCompile>
     <ClCompile Include="GBuffers.cpp">
       <Filter>DirectX\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="Light.cpp">
-      <Filter>Light</Filter>
-    </ClCompile>
-    <ClCompile Include="SpotLight.cpp">
-      <Filter>Light\Spot</Filter>
-    </ClCompile>
-    <ClCompile Include="MaterialNode.cpp">
-      <Filter>Material\Node</Filter>
-    </ClCompile>
-    <ClCompile Include="TextureManager.cpp">
-      <Filter>DirectX\Texture</Filter>
     </ClCompile>
     <ClCompile Include="DeviceLost.cpp">
       <Filter>DirectX\D3D\Device\DeviceLost</Filter>
@@ -461,9 +293,6 @@
     <ClCompile Include="EffectInterface.cpp">
       <Filter>DirectX\Shader\Effect\Interface</Filter>
     </ClCompile>
-    <ClCompile Include="Resource.cpp">
-      <Filter>DirectX\D3D</Filter>
-    </ClCompile>
     <ClCompile Include="D3DInterface.cpp">
       <Filter>DirectX\D3D\Interface</Filter>
     </ClCompile>
@@ -475,15 +304,6 @@
     </ClCompile>
     <ClCompile Include="Device.cpp">
       <Filter>DirectX\D3D\Device</Filter>
-    </ClCompile>
-    <ClCompile Include="Shadow.cpp">
-      <Filter>Shadow</Filter>
-    </ClCompile>
-    <ClCompile Include="ShadowCube.cpp">
-      <Filter>Shadow</Filter>
-    </ClCompile>
-    <ClCompile Include="MaskedOcclusionCullingAVX512.cpp">
-      <Filter>PreProcessing\MaskedOcclusionCulling\Library</Filter>
     </ClCompile>
     <ClCompile Include="DeferredContext.cpp">
       <Filter>DirectX\D3D\Device\DeviceContext\DeferredContext</Filter>
@@ -558,9 +378,6 @@
     <None Include="..\..\Bin\Data\Fx\Converter.fx">
       <Filter>DirectX\Shader\Fx</Filter>
     </None>
-    <None Include="MaskedOcclusionCullingCommon.inl">
-      <Filter>PreProcessing\MaskedOcclusionCulling\Library</Filter>
-    </None>
     <None Include="..\..\Bin\Data\Fx\Model\BRDF.fx">
       <Filter>DirectX\Shader\Fx\Model\Deferred\BRDF</Filter>
     </None>
@@ -578,9 +395,6 @@
     </None>
     <None Include="..\..\Bin\Data\Fx\Model\Common.fx">
       <Filter>DirectX\Shader\Fx\Model</Filter>
-    </None>
-    <None Include="CompilerSpecific.inl">
-      <Filter>PreProcessing\MaskedOcclusionCulling\Library</Filter>
     </None>
   </ItemGroup>
 </Project>

@@ -1,9 +1,9 @@
 #include "stdafx.h"
 #include "StructuredBuffer.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		StructuredBuffer::StructuredBuffer()
 			: m_nByteWidth(0)

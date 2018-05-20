@@ -1,9 +1,9 @@
 #include "stdafx.h"
 #include "ComponentTimer.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace GameObject
+	namespace gameobject
 	{
 		ComponentTimer::ComponentTimer(IActor* pOwner)
 			: IComponent(pOwner, EmComponent::eTimer)

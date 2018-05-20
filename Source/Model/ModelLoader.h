@@ -1,55 +1,18 @@
 #pragma once
 
+#include <variant>
+
 #include "ModelInterface.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class IModel;
 		class IVertexBuffer;
 		class IIndexBuffer;
 
 		struct MaterialInfo;
-
-		namespace EmModelLoader
-		{
-			enum LoadType
-			{
-				eGeometry = 0,
-				eFbx,
-				eObj,
-				eXps,
-				eEast,
-			};
-
-			enum GeometryType
-			{
-				eCustomStaticModel = 0,
-				eCube,
-				eBox,
-				eSphere,
-				eGeoSphere,
-				eCylinder,
-				eCone,
-				eTorus,
-				eTetrahedron,
-				eOctahedron,
-				eDodecahedron,
-				eIcosahedron,
-				eTeapot,
-				eHexagon,
-				eCapsule,
-				eGrid,
-				ePlane,
-
-				eInvalid,
-				GeometryCount = eInvalid,
-			};
-
-			GeometryType GetGeometryType(const char* strType);
-			const char* GetGeometryTypeToSTring(GeometryType emType);
-		}
 
 		struct LoadInfoCube
 		{
@@ -58,7 +21,7 @@ namespace EastEngine
 
 		struct LoadInfoBox
 		{
-			Math::Vector3 f3Size;
+			math::Vector3 f3Size;
 		};
 
 		struct LoadInfoSphere
@@ -159,6 +122,43 @@ namespace EastEngine
 		class ModelLoader
 		{
 		public:
+			enum LoadType
+			{
+				eGeometry = 0,
+				eFbx,
+				eObj,
+				eXps,
+				eEast,
+			};
+
+			enum GeometryType
+			{
+				eCustomStaticModel = 0,
+				eCube,
+				eBox,
+				eSphere,
+				eGeoSphere,
+				eCylinder,
+				eCone,
+				eTorus,
+				eTetrahedron,
+				eOctahedron,
+				eDodecahedron,
+				eIcosahedron,
+				eTeapot,
+				eHexagon,
+				eCapsule,
+				eGrid,
+				ePlane,
+
+				eInvalid,
+				GeometryCount = eInvalid,
+			};
+
+			GeometryType GetGeometryType(const char* strType);
+			const char* GetGeometryTypeToSTring(GeometryType emType);
+
+		public:
 			ModelLoader(std::function<void(bool)> funcCallback = nullptr);
 			~ModelLoader();
 
@@ -169,7 +169,7 @@ namespace EastEngine
 			void InitEast(const String::StringID& strModelName, const char* strFilePath);
 
 			void InitCube(const String::StringID& strModelName, MaterialInfo* pMaterialInfo = nullptr, float fSize = 1.f, bool rhcoords = false);
-			void InitBox(const String::StringID& strModelName, MaterialInfo* pMaterialInfo = nullptr, const Math::Vector3& size = Math::Vector3(1.f, 1.f, 1.f), bool rhcoords = false, bool invertn = false);
+			void InitBox(const String::StringID& strModelName, MaterialInfo* pMaterialInfo = nullptr, const math::Vector3& size = math::Vector3(1.f, 1.f, 1.f), bool rhcoords = false, bool invertn = false);
 			void InitSphere(const String::StringID& strModelName, MaterialInfo* pMaterialInfo = nullptr, float diameter = 1.f, uint32_t nTessellation = 16, bool rhcoords = false, bool invertn = false);
 			void InitGeoSphere(const String::StringID& strModelName, MaterialInfo* pMaterialInfo = nullptr, float diameter = 1.f, uint32_t nTessellation = 3, bool rhcoords = false);
 			void InitCylinder(const String::StringID& strModelName, MaterialInfo* pMaterialInfo = nullptr, float height = 1.f, float diameter = 1.f, uint32_t nTessellation = 32, bool rhcoords = false);
@@ -200,15 +200,15 @@ namespace EastEngine
 			bool IsEnableThreadLoad() const { return m_isEnableThreadLoad; }
 			void SetEnableThreadLoad(bool isEnableThreadLoad) { m_isEnableThreadLoad = isEnableThreadLoad; }
 
-			const Math::Vector3& GetLocalPosition() const { return m_f3Pos; }
-			void SetLocalPosition(const Math::Vector3& f3Pos) { m_f3Pos = f3Pos; }
-			const Math::Vector3& GetLocalScale() const { return m_f3Scale; }
-			void SetLocalScale(const Math::Vector3& f3Scale) { m_f3Scale = f3Scale; }
-			const Math::Quaternion& GetLocalRotation() const { return m_quatRotation; }
-			void SetLocalRotation(const Math::Quaternion& quatRotation) { m_quatRotation = quatRotation; }
+			const math::Vector3& GetLocalPosition() const { return m_f3Pos; }
+			void SetLocalPosition(const math::Vector3& f3Pos) { m_f3Pos = f3Pos; }
+			const math::Vector3& GetLocalScale() const { return m_f3Scale; }
+			void SetLocalScale(const math::Vector3& f3Scale) { m_f3Scale = f3Scale; }
+			const math::Quaternion& GetLocalRotation() const { return m_quatRotation; }
+			void SetLocalRotation(const math::Quaternion& quatRotation) { m_quatRotation = quatRotation; }
 
-			EmModelLoader::LoadType GetLoadModelType() const { return m_emLoadModelType; }
-			EmModelLoader::GeometryType GetLoadGeometryType() const { return m_emLoadGeometryType; }
+			LoadType GetLoadModelType() const { return m_emLoadModelType; }
+			GeometryType GetLoadGeometryType() const { return m_emLoadGeometryType; }
 
 			const std::string& GetFilePath() const { return m_strFilePath; }
 			const String::StringID& GetModelName() const { return m_strModelName; }
@@ -245,13 +245,13 @@ namespace EastEngine
 		private:
 			bool m_isEnableThreadLoad;
 
-			Math::Vector3 m_f3Pos;
-			Math::Vector3 m_f3Scale;
-			Math::Quaternion m_quatRotation;
+			math::Vector3 m_f3Pos;
+			math::Vector3 m_f3Scale;
+			math::Quaternion m_quatRotation;
 
 			std::function<void(bool)> m_funcCallback;
-			EmModelLoader::LoadType m_emLoadModelType;
-			EmModelLoader::GeometryType m_emLoadGeometryType;
+			LoadType m_emLoadModelType;
+			GeometryType m_emLoadGeometryType;
 
 			std::list<std::string> m_listAnimationList;
 			std::vector<std::string> m_vecDevideByKeywords;

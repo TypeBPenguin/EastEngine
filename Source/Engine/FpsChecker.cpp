@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "FpsChecker.h"
 
-namespace EastEngine
+namespace eastengine
 {
 	FpsChecker::FpsChecker()
 		: m_fFps(0.f)

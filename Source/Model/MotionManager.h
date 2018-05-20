@@ -4,9 +4,9 @@
 
 #include "MotionLoader.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class Motion;
 		class IMotion;

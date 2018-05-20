@@ -2,9 +2,9 @@
 
 #include "ParticleInterface.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class IMaterial;
 
@@ -17,15 +17,15 @@ namespace EastEngine
 		public:
 			bool Init(const ParticleDecalAttributes& attributes);
 
-			virtual void Update(float fElapsedTime, const Math::Matrix& matView, const Math::Matrix& matViewProjection, const Collision::Frustum& frustum) override;
+			virtual void Update(float fElapsedTime, const math::Matrix& matView, const math::Matrix& matViewProjection, const Collision::Frustum& frustum) override;
 
 		public:
-			const Math::Vector3& GetScale() { return m_attributes.f3Scale; }
-			void SetScale(const Math::Vector3 f3Scale) { m_attributes.f3Scale = f3Scale; m_isDirtyWorldMatrix = true; }
-			const Math::Vector3& GetPosition() { return m_attributes.f3Pos; }
-			void SetPosition(const Math::Vector3& f3Pos) { m_attributes.f3Pos = f3Pos; m_isDirtyWorldMatrix = true; }
-			const Math::Quaternion& GetRotation() { return m_attributes.quatRot; }
-			void SetRotation(const Math::Quaternion& quat) { m_attributes.quatRot = quat; m_isDirtyWorldMatrix = true; }
+			const math::Vector3& GetScale() { return m_attributes.f3Scale; }
+			void SetScale(const math::Vector3 f3Scale) { m_attributes.f3Scale = f3Scale; m_isDirtyWorldMatrix = true; }
+			const math::Vector3& GetPosition() { return m_attributes.f3Pos; }
+			void SetPosition(const math::Vector3& f3Pos) { m_attributes.f3Pos = f3Pos; m_isDirtyWorldMatrix = true; }
+			const math::Quaternion& GetRotation() { return m_attributes.quatRot; }
+			void SetRotation(const math::Quaternion& quat) { m_attributes.quatRot = quat; m_isDirtyWorldMatrix = true; }
 
 		private:
 			bool m_isDirtyWorldMatrix;
@@ -34,7 +34,7 @@ namespace EastEngine
 			float m_fLastUpdate;
 			float m_fSafeTime;
 
-			Math::Matrix m_matWorld;
+			math::Matrix m_matWorld;
 
 			ParticleDecalAttributes m_attributes;
 

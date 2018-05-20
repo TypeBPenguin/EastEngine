@@ -13,9 +13,9 @@ namespace StrID
 	RegisterStringID(g_sssWidth);
 }
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		SSS::SSS()
 			: m_isInit(false)
@@ -36,7 +36,7 @@ namespace EastEngine
 
 			m_isInit = true;
 
-			std::string strPath(File::GetPath(File::EmPath::eFx));
+			std::string strPath(file::GetPath(file::EmPath::eFx));
 
 #if defined(DEBUG) || defined(_DEBUG)
 			strPath.append("PostProcessing\\SSS\\SSS_D.cso");
@@ -71,7 +71,7 @@ namespace EastEngine
 			if (pSource == nullptr || pSource->GetTexture() == nullptr)
 				return false;
 
-			PERF_TRACER_EVENT("SSS::Apply", "");
+			TRACER_EVENT("SSS::Apply");
 			D3D_PROFILING(pDeviceContext, SSS);
 
 			pDeviceContext->ClearState();
@@ -85,7 +85,7 @@ namespace EastEngine
 			m_pEffect->SetTexture(StrID::g_texDepth, pDepth);
 			m_pEffect->SetTexture(StrID::g_texColor, pSource->GetTexture());
 
-			Math::Viewport viewport;
+			math::Viewport viewport;
 			viewport.width = static_cast<float>(pResult->GetSize().x);
 			viewport.height = static_cast<float>(pResult->GetSize().y);
 			pDeviceContext->SetViewport(viewport);

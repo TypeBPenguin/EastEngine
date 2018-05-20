@@ -2,9 +2,9 @@
 
 #include "DeviceContext.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class DeferredContext : public DeviceContext, public IDeferredContext
 		{

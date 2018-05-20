@@ -51,9 +51,9 @@ namespace StrID
 	RegisterStringID(g_samplerState);
 }
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		namespace EmParticleShader
 		{
@@ -129,7 +129,7 @@ namespace EastEngine
 			static std::string strPath;
 			if (strPath.empty() == true)
 			{
-				strPath.append(File::GetPath(File::EmPath::eFx));
+				strPath.append(file::GetPath(file::EmPath::eFx));
 				strPath.append("Particle\\Particle.fx");
 			}
 
@@ -192,10 +192,10 @@ namespace EastEngine
 		{
 			uint32_t nCopyCount = 0;
 
-			std::vector<Math::Matrix> vecInstMatWVP;
-			std::vector<Math::Matrix> vecInstMatWorld;
-			std::vector<Math::Matrix> vecInstMatInvWorldView;
-			std::vector<Math::Color> vecInstColor;
+			std::vector<math::Matrix> vecInstMatWVP;
+			std::vector<math::Matrix> vecInstMatWorld;
+			std::vector<math::Matrix> vecInstMatInvWorldView;
+			std::vector<math::Color> vecInstColor;
 		};
 
 		class ParticleRenderer::Impl
@@ -318,7 +318,7 @@ namespace EastEngine
 				// A box has six faces, each one pointing in a different direction.
 				const int FaceCount = 6;
 
-				const Math::Vector3 faceNormals[FaceCount] =
+				const math::Vector3 faceNormals[FaceCount] =
 				{
 					{ 0, 0, 1 },
 				{ 0, 0, -1 },
@@ -328,18 +328,18 @@ namespace EastEngine
 				{ 0, -1, 0 },
 				};
 
-				Math::Vector3 tsize = Math::Vector3(0.5f, 0.5f, 0.5f);
+				math::Vector3 tsize = math::Vector3(0.5f, 0.5f, 0.5f);
 
 				// Create each face in turn.
 				for (int i = 0; i < FaceCount; ++i)
 				{
-					Math::Vector3 normal = faceNormals[i];
+					math::Vector3 normal = faceNormals[i];
 
 					// Get two vectors perpendicular both to the face normal and to each other.
-					Math::Vector3 basis = (i >= 4) ? Math::Vector3(0.f, 0.f, 1.f) : Math::Vector3(0.f, 1.f, 0.f);
+					math::Vector3 basis = (i >= 4) ? math::Vector3(0.f, 0.f, 1.f) : math::Vector3(0.f, 1.f, 0.f);
 
-					Math::Vector3 side1 = normal.Cross(basis);
-					Math::Vector3 side2 = normal.Cross(side1);
+					math::Vector3 side1 = normal.Cross(basis);
+					math::Vector3 side2 = normal.Cross(side1);
 
 					// Six indices (two triangles) per face.
 					size_t vbase = vecVertices.size();
@@ -375,7 +375,7 @@ namespace EastEngine
 
 		void ParticleRenderer::Impl::RenderEmitter(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera)
 		{
-			PERF_TRACER_EVENT("ParticleRenderer::RenderEmitter", "");
+			TRACER_EVENT("ParticleRenderer::RenderEmitter");
 			D3D_PROFILING(pDeviceContext, Particle);
 
 			if (m_queueEmitter.empty())
@@ -526,15 +526,15 @@ namespace EastEngine
 
 		void ParticleRenderer::Impl::RenderDecal(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera)
 		{
-			PERF_TRACER_EVENT("ParticleRenderer::RenderDecal", "");
+			TRACER_EVENT("ParticleRenderer::RenderDecal");
 			D3D_PROFILING(pDeviceContext, Decal);
 
 			if (m_listDecal.empty())
 				return;
 
 			int nThreadID = GetThreadID(ThreadType::eRender);
-			const Math::Matrix& matView = pCamera->GetViewMatrix(nThreadID);
-			const Math::Matrix& matProj = pCamera->GetProjMatrix(nThreadID);
+			const math::Matrix& matView = pCamera->GetViewMatrix(nThreadID);
+			const math::Matrix& matProj = pCamera->GetProjMatrix(nThreadID);
 
 			std::map<IMaterial*, ClassifyDecal> mapClassifyDecal;
 
@@ -559,7 +559,7 @@ namespace EastEngine
 					mapClassifyDecal[iter.pMaterial].vecInstMatWVP.emplace_back(iter.matWVP);
 					mapClassifyDecal[iter.pMaterial].vecInstMatWorld.emplace_back(iter.matWorld);
 
-					Math::Matrix matInvWorldView = iter.matWorld * matView;
+					math::Matrix matInvWorldView = iter.matWorld * matView;
 					matInvWorldView = matInvWorldView.Invert();
 
 					mapClassifyDecal[iter.pMaterial].vecInstMatInvWorldView.emplace_back(matInvWorldView);
@@ -584,8 +584,8 @@ namespace EastEngine
 				pDeviceContext->SetVertexBuffers(m_pDecalVB, m_pDecalVB->GetFormatSize(), 0);
 				pDeviceContext->SetIndexBuffer(m_pDecalIB, 0);
 
-				Math::Vector4 f4CornersTopRight(Math::Vector4::One);
-				f4CornersTopRight = Math::Vector4::Transform(f4CornersTopRight, matProj.Invert());
+				math::Vector4 f4CornersTopRight(math::Vector4::One);
+				f4CornersTopRight = math::Vector4::Transform(f4CornersTopRight, matProj.Invert());
 				f4CornersTopRight /= f4CornersTopRight.w;
 
 				for (auto& iter : mapClassifyDecal)
@@ -602,7 +602,7 @@ namespace EastEngine
 							if (pTexture == nullptr)
 								return false;
 
-							return pTexture->GetLoadState() == EmLoadState::eComplete;
+							return pTexture->GetState() == EmLoadState::eComplete;
 						};
 
 						SetBitMask64(nMask, IsValidTexture(EmMaterial::eAlbedo) == true ? EmParticleShader::eUseTexAlbedo : -1);
@@ -642,7 +642,7 @@ namespace EastEngine
 
 					pEffect->SetSamplerState(StrID::g_sampler, pDevice->GetSamplerState(EmSamplerState::eMinMagMipLinearWrap), 0);
 
-					pEffect->SetVector(StrID::g_f3CameraTopRight, Math::Vector3(f4CornersTopRight.x, -f4CornersTopRight.y, f4CornersTopRight.z));
+					pEffect->SetVector(StrID::g_f3CameraTopRight, math::Vector3(f4CornersTopRight.x, -f4CornersTopRight.y, f4CornersTopRight.z));
 					pEffect->SetVector(StrID::g_f3CameraPos, pCamera->GetPosition());
 
 					pEffect->SetMatrix(StrID::g_matView, matView);
@@ -652,8 +652,8 @@ namespace EastEngine
 
 					if (pMaterial != nullptr)
 					{
-						pEffect->SetVector(StrID::g_f4AlbedoColor, reinterpret_cast<const Math::Vector4&>(pMaterial->GetAlbedoColor()));
-						pEffect->SetVector(StrID::g_f4EmissiveColor, reinterpret_cast<const Math::Vector4&>(pMaterial->GetEmissiveColor()));
+						pEffect->SetVector(StrID::g_f4AlbedoColor, reinterpret_cast<const math::Vector4&>(pMaterial->GetAlbedoColor()));
+						pEffect->SetVector(StrID::g_f4EmissiveColor, reinterpret_cast<const math::Vector4&>(pMaterial->GetEmissiveColor()));
 
 						pEffect->SetVector(StrID::g_f4PaddingRoughMetEmi, pMaterial->GetPaddingRoughMetEmi());
 						pEffect->SetVector(StrID::g_f4SurSpecTintAniso, pMaterial->GetSurSpecTintAniso());
@@ -683,12 +683,12 @@ namespace EastEngine
 					}
 					else
 					{
-						pEffect->SetVector(StrID::g_f4AlbedoColor, reinterpret_cast<const Math::Vector4&>(Math::Color::White));
-						pEffect->SetVector(StrID::g_f4EmissiveColor, reinterpret_cast<const Math::Vector4&>(Math::Color::Black));
+						pEffect->SetVector(StrID::g_f4AlbedoColor, reinterpret_cast<const math::Vector4&>(math::Color::White));
+						pEffect->SetVector(StrID::g_f4EmissiveColor, reinterpret_cast<const math::Vector4&>(math::Color::Black));
 
-						pEffect->SetVector(StrID::g_f4PaddingRoughMetEmi, reinterpret_cast<const Math::Vector4&>(Math::Color::Transparent));
-						pEffect->SetVector(StrID::g_f4SurSpecTintAniso, reinterpret_cast<const Math::Vector4&>(Math::Color::Transparent));
-						pEffect->SetVector(StrID::g_f4SheenTintClearcoatGloss, reinterpret_cast<const Math::Vector4&>(Math::Color::Transparent));
+						pEffect->SetVector(StrID::g_f4PaddingRoughMetEmi, reinterpret_cast<const math::Vector4&>(math::Color::Transparent));
+						pEffect->SetVector(StrID::g_f4SurSpecTintAniso, reinterpret_cast<const math::Vector4&>(math::Color::Transparent));
+						pEffect->SetVector(StrID::g_f4SheenTintClearcoatGloss, reinterpret_cast<const math::Vector4&>(math::Color::Transparent));
 
 						ClearEffect(pDeviceContext, pEffect, pEffectTech);
 

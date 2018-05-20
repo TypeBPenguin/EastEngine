@@ -2,9 +2,9 @@
 
 #include "D3DInterface.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class StructuredBuffer : public IStructuredBuffer
 		{

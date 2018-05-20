@@ -1,0 +1,898 @@
+#include "stdafx.h"
+#include "DeviceDX12.h"
+
+#include "GraphicsInterface/Window.h"
+
+#include "UtilDX12.h"
+
+#include "UploadDX12.h"
+#include "GBufferDX12.h"
+#include "RenderManagerDX12.h"
+#include "DescriptorHeapDX12.h"
+#include "VTFManagerDX12.h"
+
+namespace eastengine
+{
+	namespace graphics
+	{
+		namespace dx12
+		{
+			class Device::Impl : public Window
+			{
+			public:
+				Impl();
+				virtual ~Impl();
+
+			private:
+				virtual void Update() override;
+				virtual void Render() override;
+
+			public:
+				void Initialize(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const String::StringID& strApplicationTitle, const String::StringID& strApplicationName);
+				void Release();
+
+				void Flush(float fElapsedTime);
+
+			public:
+				RenderTarget* GetRenderTarget(const D3D12_RESOURCE_DESC* pDesc, const math::Color& clearColor, bool isIncludeLastUseRenderTarget = true);
+				void ReleaseRenderTarget(RenderTarget** ppRenderTarget, uint32_t nSize = 1, bool isSetLastRenderTarget = true);
+
+			public:
+				void HandleMessage(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam);
+				void EnableShaderBasedValidation();
+
+			public:
+				HWND GetHwnd() const { return m_hWnd; }
+				HINSTANCE GetHInstance() const { return m_hInstance; }
+				const math::UInt2& GetScreenSize() const { return m_n2ScreenSize; }
+				const D3D12_VIEWPORT* GetViewport() const { return &m_viewport; }
+				const math::Rect* GetScissorRect() const { return &m_scissorRect; }
+
+				ID3D12Device* GetInterface() const { return m_pDevice; }
+				ID3D12CommandAllocator* GetCommandAllocator() const { return m_pCommandAllocators[m_nFrameIndex]; }
+				ID3D12CommandQueue* GetCommandQueue() const { return m_pCommandQueue; }
+
+				ID3D12Fence* GetFence() const { return m_pFences[m_nFrameIndex]; }
+				uint64_t GetFenceValue() const { return m_nFenceValues[m_nFrameIndex]; }
+				uint32_t GetFrameIndex() const { return m_nFrameIndex; }
+
+				RenderTarget* GetSwapChainRenderTarget(int nFrameIndex) const { return m_pSwapChainRenderTargets[nFrameIndex].get(); }
+				RenderTarget* GetLastUseRenderTarget() const { return m_pLastUseRenderTarget; }
+
+				GBuffer* GetGBuffer(int nFrameIndex) const { return m_pGBuffers[nFrameIndex].get(); }
+				ImageBasedLight* GetImageBasedLight() const { return m_pImageBasedLight.get(); }
+				RenderManager* GetRenderManager() const { return m_pRenderManager.get(); }
+				VTFManager* GetVTFManager() const { return m_pVTFManager.get(); }
+
+				Uploader* GetUploader() const { return m_pUploader.get(); }
+
+				DescriptorHeap* GetRTVDescriptorHeap() const { return m_pRTVDescriptorHeap.get(); }
+				DescriptorHeap* GetSRVDescriptorHeap() const { return m_pSRVDescriptorHeap.get(); }
+				DescriptorHeap* GetDSVDescriptorHeap() const { return m_pDSVDescriptorHeap.get(); }
+				DescriptorHeap* GetUAVDescriptorHeap() const { return m_pUAVDescriptorHeap.get(); }
+				DescriptorHeap* GetSamplerDescriptorHeap() const { return m_pSamplerDescriptorHeap.get(); }
+
+			public:
+				ID3D12GraphicsCommandList2 * PopCommandList(ID3D12PipelineState* pPipeliseState);
+				void PushCommandList(ID3D12GraphicsCommandList2* pCommandList);
+
+				const D3D12_DESCRIPTOR_RANGE* GetStandardDescriptorRanges() const { return m_standardDescriptorRangeDescs.data(); }
+
+			private:
+				void InitializeD3D();
+				void InitializeSampler();
+
+				void Resize(uint32_t nWidth, uint32_t nHeight);
+
+				void WaitForPreviousFrame(bool isDestroy = false);
+
+			private:
+				bool m_isInitislized{ false };
+				bool m_isVSync{ false };
+
+				D3D12_VIEWPORT m_viewport{};
+				math::Rect m_scissorRect{};
+
+				uint32_t m_nFrameIndex{ 0 };
+				HANDLE m_hFenceEvent{ INVALID_HANDLE_VALUE };
+				std::array<uint64_t, eFrameBufferCount> m_nFenceValues{ 0 };
+				std::array<ID3D12Fence*, eFrameBufferCount> m_pFences{ nullptr };
+
+				ID3D12Debug1* m_pDebug{ nullptr };
+
+				ID3D12Device3* m_pDevice{ nullptr };
+				IDXGISwapChain3* m_pSwapChain{ nullptr };
+				ID3D12CommandQueue* m_pCommandQueue{ nullptr };
+
+				std::array<std::unique_ptr<RenderTarget>, eFrameBufferCount> m_pSwapChainRenderTargets;
+				std::array<ID3D12CommandAllocator*, eFrameBufferCount> m_pCommandAllocators{ nullptr };
+
+				std::mutex m_mutex;
+				std::condition_variable m_condition;
+
+				std::queue<ID3D12GraphicsCommandList2*> m_queueCommandLists;
+
+				std::array<D3D12_DESCRIPTOR_RANGE, eStandardDescriptorRangesCount> m_standardDescriptorRangeDescs{};
+
+				std::array<std::unique_ptr<GBuffer>, eFrameBufferCount> m_pGBuffers;
+				std::unique_ptr<ImageBasedLight> m_pImageBasedLight;
+
+				std::unique_ptr<RenderManager> m_pRenderManager;
+				std::unique_ptr<VTFManager> m_pVTFManager;
+
+				std::unique_ptr<Uploader> m_pUploader;
+
+				std::unique_ptr<DescriptorHeap> m_pRTVDescriptorHeap;
+				std::unique_ptr<DescriptorHeap> m_pSRVDescriptorHeap;
+				std::unique_ptr<DescriptorHeap> m_pDSVDescriptorHeap;
+				std::unique_ptr<DescriptorHeap> m_pUAVDescriptorHeap;
+				std::unique_ptr<DescriptorHeap> m_pSamplerDescriptorHeap;
+
+				std::mutex m_mutexRT;
+
+				struct RenderTargetPool
+				{
+					std::unique_ptr<RenderTarget> pRenderTarget;
+					bool isUsing{ false };
+					float fUnusedTime{ 0.f };
+
+					RenderTargetPool() = default;
+					RenderTargetPool(RenderTargetPool&& source) noexcept
+						: pRenderTarget(std::move(source.pRenderTarget))
+						, isUsing(std::move(source.isUsing))
+						, fUnusedTime(std::move(source.fUnusedTime))
+					{
+					}
+				};
+				std::unordered_multimap<RenderTarget::Key, RenderTargetPool> m_ummapRenderTargetPool;
+				RenderTarget* m_pLastUseRenderTarget{ nullptr };
+
+				uint32_t m_nNullTextureIndex{ 0 };
+				std::array<uint32_t, EmSamplerState::TypeCount> m_nSamplerStates{ 0 };
+			};
+
+			Device::Impl::Impl()
+			{
+				AddMessageHandler([&](HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
+				{
+					HandleMessage(hWnd, nMsg, wParam, lParam);
+				});
+			}
+
+			Device::Impl::~Impl()
+			{
+				Release();
+			}
+
+			void Device::Impl::Update()
+			{
+			}
+
+			void Device::Impl::Render()
+			{
+				WaitForPreviousFrame();
+
+				HRESULT hr = m_pCommandAllocators[m_nFrameIndex]->Reset();
+				if (FAILED(hr))
+				{
+					throw_line("failed to command allocator reset");
+				}
+
+				m_pRenderManager->Render();
+
+				m_pUploader->EndFrame(m_pCommandQueue);
+
+				hr = m_pCommandQueue->Signal(m_pFences[m_nFrameIndex], m_nFenceValues[m_nFrameIndex]);
+				if (FAILED(hr))
+				{
+					throw_line("failed to command queue signal");
+				}
+
+				hr = m_pSwapChain->Present(m_isVSync ? 1 : 0, 0);
+				if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
+				{
+					LOG_ERROR("Device Lost : Reason code 0x%08X", (hr == DXGI_ERROR_DEVICE_REMOVED) ? m_pDevice->GetDeviceRemovedReason() : hr);
+
+					//HandleDeviceLost();
+				}
+				else if (FAILED(hr))
+				{
+					throw_line("failed to swapchain present");
+				}
+
+				m_pRTVDescriptorHeap->EndFrame();
+				m_pSRVDescriptorHeap->EndFrame();
+				m_pDSVDescriptorHeap->EndFrame();
+				m_pUAVDescriptorHeap->EndFrame();
+				m_pSamplerDescriptorHeap->EndFrame();
+				m_pVTFManager->EndFrame();
+			}
+
+			void Device::Impl::Initialize(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const String::StringID& strApplicationTitle, const String::StringID& strApplicationName)
+			{
+				if (m_isInitislized == true)
+					return;
+
+#if defined(DEBUG) || defined(_DEBUG)
+				//EnableShaderBasedValidation();
+#endif
+
+				InitializeWindow(nWidth, nHeight, isFullScreen, strApplicationTitle, strApplicationName);
+				InitializeD3D();
+
+				m_pVTFManager = std::make_unique<VTFManager>();
+				m_pRenderManager = std::make_unique<RenderManager>();
+
+				m_isInitislized = true;
+			}
+
+			void Device::Impl::Release()
+			{
+				m_pRenderManager.reset();
+				m_pVTFManager.reset();
+
+				for (uint32_t i = 0; i < EmSamplerState::TypeCount; ++i)
+				{
+					m_pSamplerDescriptorHeap->FreePersistent(m_nSamplerStates[i]);
+				}
+				m_nSamplerStates.fill(0);
+				m_pSRVDescriptorHeap->FreePersistent(m_nNullTextureIndex);
+
+				for (int i = 0; i < eFrameBufferCount; ++i)
+				{
+					m_pGBuffers[i].reset();
+				}
+				m_pImageBasedLight.reset();
+
+				m_pUploader.reset();
+
+				for (uint32_t i = 0; i < eFrameBufferCount; ++i)
+				{
+					m_nFrameIndex = i;
+					WaitForPreviousFrame(true);
+				}
+				CloseHandle(m_hFenceEvent);
+				m_hFenceEvent = INVALID_HANDLE_VALUE;
+
+				BOOL fs = FALSE;
+				m_pSwapChain->GetFullscreenState(&fs, nullptr);
+
+				if (fs == TRUE)
+				{
+					m_pSwapChain->SetFullscreenState(FALSE, nullptr);
+				}
+
+				while (m_queueCommandLists.empty() == false)
+				{
+					ID3D12GraphicsCommandList2* pCommandList = m_queueCommandLists.front();
+					m_queueCommandLists.pop();
+
+					SafeRelease(pCommandList);
+				}
+
+				m_ummapRenderTargetPool.clear();
+
+				for (int i = 0; i < eFrameBufferCount; ++i)
+				{
+					m_pSwapChainRenderTargets[i].reset();
+					SafeRelease(m_pCommandAllocators[i]);
+					SafeRelease(m_pFences[i]);
+				};
+
+				SafeRelease(m_pSwapChain);
+
+				m_pRTVDescriptorHeap.reset();
+				m_pSRVDescriptorHeap.reset();
+				m_pDSVDescriptorHeap.reset();
+				m_pUAVDescriptorHeap.reset();
+				m_pSamplerDescriptorHeap.reset();
+
+				SafeRelease(m_pCommandQueue);
+				SafeRelease(m_pDevice);
+
+				SafeRelease(m_pDebug);
+			}
+
+			void Device::Impl::Flush(float fElapsedTime)
+			{
+				m_pRenderManager->Flush();
+
+				for (auto iter = m_ummapRenderTargetPool.begin(); iter != m_ummapRenderTargetPool.end();)
+				{
+					if (iter->second.isUsing == false)
+					{
+						iter->second.fUnusedTime += fElapsedTime;
+
+						if (iter->second.fUnusedTime > 120.f)
+						{
+							iter = m_ummapRenderTargetPool.erase(iter);
+							continue;
+						}
+					}
+
+					++iter;
+				}
+			}
+
+			RenderTarget* Device::Impl::GetRenderTarget(const D3D12_RESOURCE_DESC* pDesc, const math::Color& clearColor, bool isIncludeLastUseRenderTarget)
+			{
+				std::lock_guard<std::mutex> lock(m_mutexRT);
+
+				RenderTarget::Key key = RenderTarget::BuildKey(pDesc, clearColor);
+				auto iter_range = m_ummapRenderTargetPool.equal_range(key);
+				for (auto iter = iter_range.first; iter != iter_range.second; ++iter)
+				{
+					RenderTargetPool& pool = iter->second;
+					if (pool.isUsing == false)
+					{
+						if (isIncludeLastUseRenderTarget == false &&
+							pool.pRenderTarget.get() == m_pLastUseRenderTarget)
+							continue;
+
+						pool.isUsing = true;
+						pool.fUnusedTime = 0.f;
+						return pool.pRenderTarget.get();
+					}
+				}
+
+				RenderTargetPool pool;
+				pool.pRenderTarget = RenderTarget::Create(L"RenderTarget", pDesc, clearColor);
+				if (pool.pRenderTarget == nullptr)
+				{
+					throw_line("failed to create render target");
+				}
+
+				auto iter_result = m_ummapRenderTargetPool.emplace(key, std::move(pool));
+				return iter_result->second.pRenderTarget.get();
+			}
+
+			void Device::Impl::ReleaseRenderTarget(RenderTarget** ppRenderTarget, uint32_t nSize, bool isSetLastRenderTarget)
+			{
+				std::lock_guard<std::mutex> lock(m_mutexRT);
+
+				for (uint32_t i = 0; i < nSize; ++i)
+				{
+					if (ppRenderTarget[i] == nullptr)
+						continue;
+
+					auto iter_range = m_ummapRenderTargetPool.equal_range(ppRenderTarget[i]->GetKey());
+					for (auto iter = iter_range.first; iter != iter_range.second; ++iter)
+					{
+						if (iter->second.pRenderTarget.get() == ppRenderTarget[i])
+						{
+							iter->second.isUsing = false;
+
+							if (isSetLastRenderTarget == true)
+							{
+								m_pLastUseRenderTarget = iter->second.pRenderTarget.get();
+							}
+							ppRenderTarget[i] = nullptr;
+							break;
+						}
+					}
+				}
+			}
+
+			void Device::Impl::HandleMessage(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
+			{
+				switch (nMsg)
+				{
+				case WM_SIZE:
+					if (m_pDevice != nullptr && wParam != SIZE_MINIMIZED)
+					{
+						uint32_t nWidth = LOWORD(lParam);
+						uint32_t nHeight = HIWORD(lParam);
+
+						Resize(nWidth, nHeight);
+					}
+					break;
+				}
+			}
+
+			void Device::Impl::EnableShaderBasedValidation()
+			{
+				HRESULT hr = D3D12GetDebugInterface(IID_PPV_ARGS(&m_pDebug));
+				if (FAILED(hr))
+				{
+					throw_line("faile to enable shader based validation");
+				}
+
+				m_pDebug->EnableDebugLayer();
+				m_pDebug->SetEnableGPUBasedValidation(true);
+			}
+
+			ID3D12GraphicsCommandList2* Device::Impl::PopCommandList(ID3D12PipelineState* pPipeliseState)
+			{
+				ID3D12GraphicsCommandList2* pCommandList = nullptr;
+				{
+					std::unique_lock<std::mutex> lock(m_mutex);
+					m_condition.wait(lock, [&]()
+					{
+						return m_queueCommandLists.empty() == false;
+					});
+
+					pCommandList = m_queueCommandLists.front();
+					m_queueCommandLists.pop();
+				}
+				assert(pCommandList != nullptr);
+
+				HRESULT hr = pCommandList->Reset(m_pCommandAllocators[m_nFrameIndex], pPipeliseState);
+				if (FAILED(hr))
+				{
+					throw_line("failed to command list reset");
+				}
+
+				return pCommandList;
+			}
+
+			void Device::Impl::PushCommandList(ID3D12GraphicsCommandList2* pCommandList)
+			{
+				HRESULT hr = pCommandList->Close();
+				if (FAILED(hr))
+				{
+					throw_line("failed to command list close");
+				}
+
+				{
+					std::lock_guard<std::mutex> lock(m_mutex);
+					ID3D12CommandList* ppCommandLists[] = { pCommandList };
+					m_pCommandQueue->ExecuteCommandLists(1, ppCommandLists);
+
+					m_queueCommandLists.push(pCommandList);
+				}
+
+				m_condition.notify_one();
+			}
+
+			void Device::Impl::InitializeD3D()
+			{
+				IDXGIFactory4* pDxgiFactory{ nullptr };
+				HRESULT hr = CreateDXGIFactory(IID_PPV_ARGS(&pDxgiFactory));
+				if (FAILED(hr))
+				{
+					throw_line("failed to create dxgi factory");
+				}
+
+				IDXGIAdapter1* pAdapter{ nullptr };
+				int nAdapterIndex{ 0 };
+				bool isAdapterFound{ false };
+
+				while (pDxgiFactory->EnumAdapters1(nAdapterIndex, &pAdapter) != DXGI_ERROR_NOT_FOUND)
+				{
+					DXGI_ADAPTER_DESC1 desc;
+					pAdapter->GetDesc1(&desc);
+
+					if (desc.Flags& DXGI_ADAPTER_FLAG_SOFTWARE)
+					{
+						++nAdapterIndex;
+						continue;
+					}
+
+					hr = D3D12CreateDevice(pAdapter, D3D_FEATURE_LEVEL_11_0, __uuidof(ID3D12Device), nullptr);
+					if (SUCCEEDED(hr))
+					{
+						isAdapterFound = true;
+						break;
+					}
+
+					++nAdapterIndex;
+				}
+
+				if (isAdapterFound == false)
+				{
+					throw_line("failed to find GPUs with DirectX 12 support!");
+				}
+
+				hr = D3D12CreateDevice(pAdapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&m_pDevice));
+				if (FAILED(hr))
+				{
+					throw_line("failed to create d3d device");
+				}
+
+				D3D12_COMMAND_QUEUE_DESC cqDesc{};
+				cqDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+				cqDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+				hr = m_pDevice->CreateCommandQueue(&cqDesc, IID_PPV_ARGS(&m_pCommandQueue));
+				if (FAILED(hr))
+				{
+					throw_line("failed to create command queue");
+				}
+
+				m_pRTVDescriptorHeap = std::make_unique<DescriptorHeap>(256, 0, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, false, L"RTVDescriptorHeap");
+				m_pSRVDescriptorHeap = std::make_unique<DescriptorHeap>(1024, 1024, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, true, L"SRVDescriptorHeap");
+				m_pDSVDescriptorHeap = std::make_unique<DescriptorHeap>(256, 0, D3D12_DESCRIPTOR_HEAP_TYPE_DSV, false, L"DSVDescriptorHeap");
+				m_pUAVDescriptorHeap = std::make_unique<DescriptorHeap>(256, 0, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, false, L"UAVDescriptorHeap");
+				m_pSamplerDescriptorHeap = std::make_unique<DescriptorHeap>(EmSamplerState::TypeCount, 0, D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, true, L"SamplerDescriptorHeap");
+
+				{
+					D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+					srvDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+					srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+					srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+					srvDesc.Texture2D.MipLevels = 1;
+					srvDesc.Texture2D.MostDetailedMip = 0;
+					srvDesc.Texture2D.PlaneSlice = 0;
+					srvDesc.Texture2D.ResourceMinLODClamp = 0.f;
+
+					PersistentDescriptorAlloc srvAlloc = m_pSRVDescriptorHeap->AllocatePersistent();
+					for (uint32_t i = 0; i < eFrameBufferCount; ++i)
+					{
+						m_pDevice->CreateShaderResourceView(nullptr, &srvDesc, srvAlloc.cpuHandles[i]);
+					}
+					m_nNullTextureIndex = srvAlloc.nIndex;
+					assert(m_nNullTextureIndex == 0);
+				}
+
+				DXGI_MODE_DESC backBufferDesc{};
+				backBufferDesc.Width = m_n2ScreenSize.x;
+				backBufferDesc.Height = m_n2ScreenSize.y;
+				backBufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+
+				DXGI_SAMPLE_DESC sampleDesc{};
+				sampleDesc.Count = 1;
+
+				DXGI_SWAP_CHAIN_DESC swapChainDesc{};
+				swapChainDesc.BufferCount = eFrameBufferCount;
+				swapChainDesc.BufferDesc = backBufferDesc;
+				swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+				swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+				swapChainDesc.OutputWindow = m_hWnd;
+				swapChainDesc.SampleDesc = sampleDesc;
+				swapChainDesc.Windowed = m_isFullScreen == false;
+
+				IDXGISwapChain* pTempSwapChain{ nullptr };
+				hr = pDxgiFactory->CreateSwapChain(m_pCommandQueue, &swapChainDesc, &pTempSwapChain);
+				if (FAILED(hr))
+				{
+					throw_line("failed to create swapchain");
+				}
+
+				m_pSwapChain = static_cast<IDXGISwapChain3*>(pTempSwapChain);
+				math::Color clearColor;
+				m_pSwapChain->GetBackgroundColor(reinterpret_cast<DXGI_RGBA*>(&clearColor));
+
+				m_nFrameIndex = m_pSwapChain->GetCurrentBackBufferIndex();
+
+				for (int i = 0; i < eFrameBufferCount; ++i)
+				{
+					ID3D12Resource* pResource = nullptr;
+					hr = m_pSwapChain->GetBuffer(i, IID_PPV_ARGS(&pResource));
+					if (FAILED(hr))
+					{
+						throw_line("failed to create render target");
+					}
+					m_pSwapChainRenderTargets[i] = RenderTarget::Create(pResource, clearColor);
+
+					hr = m_pDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_pCommandAllocators[i]));
+					if (FAILED(hr))
+					{
+						throw_line("failed to create command allocator");
+					}
+				}
+
+				InitializeSampler();
+
+				const uint32_t nThreadCount = std::thread::hardware_concurrency();
+				for (uint32_t i = 0; i < nThreadCount; ++i)
+				{
+					ID3D12GraphicsCommandList2* pCommandList = nullptr;
+					hr = m_pDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandAllocators[0], nullptr, IID_PPV_ARGS(&pCommandList));
+					if (FAILED(hr))
+					{
+						throw_line("failed to create command list");
+					}
+
+					pCommandList->Close();
+					m_queueCommandLists.push(pCommandList);
+				}
+
+				for (int i = 0; i < eFrameBufferCount; ++i)
+				{
+					hr = m_pDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_pFences[i]));
+					if (FAILED(hr))
+					{
+						throw_line("failed to create fence");
+					}
+				}
+
+				m_hFenceEvent = CreateEventEx(nullptr, FALSE, FALSE, EVENT_ALL_ACCESS);
+				if (m_hFenceEvent == nullptr || m_hFenceEvent == INVALID_HANDLE_VALUE)
+				{
+					throw_line("failed to create fence event");
+				}
+
+				m_viewport.TopLeftX = 0;
+				m_viewport.TopLeftY = 0;
+				m_viewport.Width = static_cast<float>(m_n2ScreenSize.x);
+				m_viewport.Height = static_cast<float>(m_n2ScreenSize.y);
+				m_viewport.MinDepth = 0.f;
+				m_viewport.MaxDepth = 1.f;
+
+				m_scissorRect.left = 0;
+				m_scissorRect.top = 0;
+				m_scissorRect.right = m_n2ScreenSize.x;
+				m_scissorRect.bottom = m_n2ScreenSize.y;
+
+				for (uint32_t i = 0; i < eStandardDescriptorRangesCount; ++i)
+				{
+					m_standardDescriptorRangeDescs[i].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+					m_standardDescriptorRangeDescs[i].NumDescriptors = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+					m_standardDescriptorRangeDescs[i].BaseShaderRegister = 0;
+					m_standardDescriptorRangeDescs[i].RegisterSpace = i;
+					m_standardDescriptorRangeDescs[i].OffsetInDescriptorsFromTableStart = 0;
+				}
+
+				m_pUploader = std::make_unique<Uploader>();
+
+				for (int i = 0; i < eFrameBufferCount; ++i)
+				{
+					m_pGBuffers[i] = std::make_unique<GBuffer>(m_n2ScreenSize.x, m_n2ScreenSize.y);
+				}
+				m_pImageBasedLight = std::make_unique<ImageBasedLight>();
+			}
+
+			void Device::Impl::InitializeSampler()
+			{
+				for (uint32_t i = 0; i < EmSamplerState::TypeCount; ++i)
+				{
+					EmSamplerState::Type emSamplerState = static_cast<EmSamplerState::Type>(i);
+
+					PersistentDescriptorAlloc samplerAlloc = m_pSamplerDescriptorHeap->AllocatePersistent();
+
+					D3D12_SAMPLER_DESC samplerDesc = util::GetSamplerDesc(emSamplerState);
+					for (int j = 0; j < eFrameBufferCount; ++j)
+					{
+						m_pDevice->CreateSampler(&samplerDesc, samplerAlloc.cpuHandles[j]);
+					}
+					m_nSamplerStates[emSamplerState] = samplerAlloc.nIndex;
+				}
+			}
+
+			void Device::Impl::Resize(uint32_t nWidth, uint32_t nHeight)
+			{
+				if (nWidth == m_n2ScreenSize.x && nHeight == m_n2ScreenSize.y)
+					return;
+
+				for (int i = 0; i < eFrameBufferCount; ++i)
+				{
+					m_pSwapChainRenderTargets[i].reset();
+				}
+				m_ummapRenderTargetPool.clear();
+				m_pLastUseRenderTarget = nullptr;
+
+				HRESULT hr = m_pSwapChain->ResizeBuffers(0, nWidth, nHeight, DXGI_FORMAT_UNKNOWN, 0);
+				if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
+				{
+					LOG_WARNING("Device Lost : Reason code 0x%08X", (hr == DXGI_ERROR_DEVICE_REMOVED) ? m_pDevice->GetDeviceRemovedReason() : hr);
+
+					//HandleDeviceLost();
+
+					return;
+				}
+
+				math::Color clearColor;
+				m_pSwapChain->GetBackgroundColor(reinterpret_cast<DXGI_RGBA*>(&clearColor));
+
+				for (int i = 0; i < eFrameBufferCount; ++i)
+				{
+					ID3D12Resource* pResource = nullptr;
+					hr = m_pSwapChain->GetBuffer(i, IID_PPV_ARGS(&pResource));
+					if (FAILED(hr))
+					{
+						throw_line("failed to create render target");
+					}
+					m_pSwapChainRenderTargets[i] = RenderTarget::Create(pResource, clearColor);
+				}
+
+				DXGI_SWAP_CHAIN_DESC1 desc{};
+				if (FAILED(m_pSwapChain->GetDesc1(&desc)))
+				{
+					throw_line("failed to get DXGI_SWAP_CHAIN_DESC1");
+				}
+
+				m_nFrameIndex = m_pSwapChain->GetCurrentBackBufferIndex();
+
+				m_n2ScreenSize.x = desc.Width;
+				m_n2ScreenSize.y = desc.Height;
+
+				m_viewport.TopLeftX = 0.0f;
+				m_viewport.TopLeftY = 0.0f;
+				m_viewport.Width = static_cast<float>(desc.Width);
+				m_viewport.Height = static_cast<float>(desc.Height);
+				m_viewport.MinDepth = 0.0f;
+				m_viewport.MaxDepth = 1.0f;
+
+				m_scissorRect.left = 0;
+				m_scissorRect.top = 0;
+				m_scissorRect.right = m_n2ScreenSize.x;
+				m_scissorRect.bottom = m_n2ScreenSize.y;
+
+				for (int i = 0; i < eFrameBufferCount; ++i)
+				{
+					m_pGBuffers[i]->Resize(m_n2ScreenSize.x, m_n2ScreenSize.y);
+				}
+			}
+
+			void Device::Impl::WaitForPreviousFrame(bool isDestroy)
+			{
+				if (isDestroy == false)
+				{
+					m_nFrameIndex = m_pSwapChain->GetCurrentBackBufferIndex();
+				}
+
+				util::WaitForFence(m_pFences[m_nFrameIndex], m_nFenceValues[m_nFrameIndex], m_hFenceEvent);
+
+				++m_nFenceValues[m_nFrameIndex];
+			}
+
+			Device::Device()
+				: m_pImpl{ std::make_unique<Impl>() }
+			{
+			}
+
+			Device::~Device()
+			{
+			}
+
+			void Device::Initialize(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const String::StringID& strApplicationTitle, const String::StringID& strApplicationName)
+			{
+				m_pImpl->Initialize(nWidth, nHeight, isFullScreen, strApplicationTitle, strApplicationName);
+			}
+
+			void Device::Run(std::function<void()> funcUpdate)
+			{
+				m_pImpl->Run(funcUpdate);
+			}
+
+			void Device::Flush(float fElapsedTime)
+			{
+				m_pImpl->Flush(fElapsedTime);
+			}
+
+			RenderTarget* Device::GetRenderTarget(const D3D12_RESOURCE_DESC* pDesc, const math::Color& clearColor, bool isIncludeLastUseRenderTarget)
+			{
+				return m_pImpl->GetRenderTarget(pDesc, clearColor, isIncludeLastUseRenderTarget);
+			}
+
+			void Device::ReleaseRenderTarget(RenderTarget** ppRenderTarget, uint32_t nSize, bool isSetLastRenderTarget)
+			{
+				m_pImpl->ReleaseRenderTarget(ppRenderTarget, nSize, isSetLastRenderTarget);
+			}
+
+			HWND Device::GetHwnd() const
+			{
+				return m_pImpl->GetHwnd();
+			}
+
+			HINSTANCE Device::GetHInstance() const
+			{
+				return m_pImpl->GetHInstance();
+			}
+
+			void Device::AddMessageHandler(std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler)
+			{
+				m_pImpl->AddMessageHandler(funcHandler);
+			}
+
+			const math::UInt2& Device::GetScreenSize() const
+			{
+				return m_pImpl->GetScreenSize();
+			}
+
+			const D3D12_VIEWPORT* Device::GetViewport() const
+			{
+				return m_pImpl->GetViewport();
+			}
+
+			const math::Rect* Device::GetScissorRect() const
+			{
+				return m_pImpl->GetScissorRect();
+			}
+
+			ID3D12Device* Device::GetInterface() const
+			{
+				return m_pImpl->GetInterface();
+			}
+
+			ID3D12CommandAllocator* Device::GetCommandAllocator() const
+			{
+				return m_pImpl->GetCommandAllocator();
+			}
+
+			ID3D12CommandQueue* Device::GetCommandQueue() const
+			{
+				return m_pImpl->GetCommandQueue();
+			}
+
+			ID3D12Fence* Device::GetFence() const
+			{
+				return m_pImpl->GetFence();
+			}
+
+			uint64_t Device::GetFenceValue() const
+			{
+				return m_pImpl->GetFenceValue();
+			}
+
+			uint32_t Device::GetFrameIndex() const
+			{
+				return m_pImpl->GetFrameIndex();
+			}
+
+			RenderTarget* Device::GetSwapChainRenderTarget(int nFrameIndex) const
+			{
+				return m_pImpl->GetSwapChainRenderTarget(nFrameIndex);
+			}
+
+			RenderTarget* Device::GetLastUseRenderTarget() const
+			{
+				return m_pImpl->GetLastUseRenderTarget();
+			}
+
+			GBuffer* Device::GetGBuffer(int nFrameIndex) const
+			{
+				return m_pImpl->GetGBuffer(nFrameIndex);
+			}
+
+			ImageBasedLight* Device::GetImageBasedLight() const
+			{
+				return m_pImpl->GetImageBasedLight();
+			}
+
+			RenderManager* Device::GetRenderManager() const
+			{
+				return m_pImpl->GetRenderManager();
+			}
+
+			VTFManager* Device::GetVTFManager() const
+			{
+				return m_pImpl->GetVTFManager();
+			}
+
+			Uploader* Device::GetUploader() const
+			{
+				return m_pImpl->GetUploader();
+			}
+
+			DescriptorHeap* Device::GetRTVDescriptorHeap() const
+			{
+				return m_pImpl->GetRTVDescriptorHeap();
+			}
+
+			DescriptorHeap* Device::GetSRVDescriptorHeap() const
+			{
+				return m_pImpl->GetSRVDescriptorHeap();
+			}
+
+			DescriptorHeap* Device::GetDSVDescriptorHeap() const
+			{
+				return m_pImpl->GetDSVDescriptorHeap();
+			}
+
+			DescriptorHeap* Device::GetUAVDescriptorHeap() const
+			{
+				return m_pImpl->GetUAVDescriptorHeap();
+			}
+
+			DescriptorHeap* Device::GetSamplerDescriptorHeap() const
+			{
+				return m_pImpl->GetSamplerDescriptorHeap();
+			}
+
+			ID3D12GraphicsCommandList2* Device::PopCommandList(ID3D12PipelineState* pPipeliseState)
+			{
+				return m_pImpl->PopCommandList(pPipeliseState);
+			}
+
+			void Device::PushCommandList(ID3D12GraphicsCommandList2* pCommandList)
+			{
+				m_pImpl->PushCommandList(pCommandList);
+			}
+
+			const D3D12_DESCRIPTOR_RANGE* Device::GetStandardDescriptorRanges() const
+			{
+				return m_pImpl->GetStandardDescriptorRanges();
+			}
+		}
+	}
+}

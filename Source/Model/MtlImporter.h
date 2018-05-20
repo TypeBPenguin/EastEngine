@@ -1,16 +1,16 @@
 #pragma once
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class IMaterial;
 
-		class CMtlImporter
+		class MtlImporter
 		{
 		public:
-			CMtlImporter();
-			~CMtlImporter();
+			MtlImporter();
+			~MtlImporter();
 
 			bool Init(const char* strFileName, const char* strPath);
 			void Release();

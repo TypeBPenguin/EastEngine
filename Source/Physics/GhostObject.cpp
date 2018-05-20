@@ -6,7 +6,7 @@
 
 #include "BulletCollision/CollisionDispatch/btGhostObject.h"
 
-namespace EastEngine
+namespace eastengine
 {
 	namespace Physics
 	{
@@ -20,7 +20,7 @@ namespace EastEngine
 			bool Initialize(const GhostProperty& ghostProperty);
 
 		public:
-			Math::Matrix GetWorldMatrix() const;
+			math::Matrix GetWorldMatrix() const;
 
 		public:
 			btPairCachingGhostObject* GetInterface();
@@ -70,8 +70,8 @@ namespace EastEngine
 
 			btTransform transform;
 			transform.setIdentity();
-			transform.setOrigin(Math::ConvertToBt(ghostProperty.f3OriginPos));
-			transform.setRotation(Math::ConvertToBt(ghostProperty.originQuat));
+			transform.setOrigin(math::ConvertToBt(ghostProperty.f3OriginPos));
+			transform.setRotation(math::ConvertToBt(ghostProperty.originQuat));
 
 			m_pGhostObject = std::make_unique<btPairCachingGhostObject>();
 			m_pGhostObject->setWorldTransform(transform);
@@ -83,9 +83,9 @@ namespace EastEngine
 			return true;
 		}
 
-		Math::Matrix GhostObject::Impl::GetWorldMatrix() const
+		math::Matrix GhostObject::Impl::GetWorldMatrix() const
 		{
-			return Math::Convert(m_pGhostObject->getWorldTransform());
+			return math::Convert(m_pGhostObject->getWorldTransform());
 		}
 
 		btPairCachingGhostObject* GhostObject::Impl::GetInterface()
@@ -119,7 +119,7 @@ namespace EastEngine
 			return pGhostObject;
 		}
 
-		Math::Matrix GhostObject::GetWorldMatrix() const
+		math::Matrix GhostObject::GetWorldMatrix() const
 		{
 			return m_pImpl->GetWorldMatrix();
 		}

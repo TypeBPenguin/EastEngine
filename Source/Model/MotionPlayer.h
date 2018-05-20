@@ -3,9 +3,9 @@
 #include "ModelInterface.h"
 #include "MotionRecorder.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class MotionPlayer : public IMotionPlayer
 		{
@@ -45,7 +45,7 @@ namespace EastEngine
 
 			void Reset();
 
-			const Math::Transform* GetTransform(const String::StringID& strBoneName) const;
+			const math::Transform* GetTransform(const String::StringID& strBoneName) const;
 
 		private:
 			bool m_isStop;

@@ -16,9 +16,9 @@ namespace StrID
 	RegisterStringID(g_samplerLinear);
 }
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		Downscale::Downscale()
 			: m_isInit(false)
@@ -39,7 +39,7 @@ namespace EastEngine
 
 			m_isInit = true;
 
-			std::string strPath(File::GetPath(File::EmPath::eFx));
+			std::string strPath(file::GetPath(file::EmPath::eFx));
 
 #if defined(DEBUG) || defined(_DEBUG)
 			strPath.append("PostProcessing\\Downscale\\Downscale_D.cso");
@@ -83,13 +83,13 @@ namespace EastEngine
 		
 		void ApplyDownscale(IDeviceContext* pDeviceContext, IEffect* pEffect, IEffectTech* pTech, IRenderTarget* pResult, IRenderTarget* pSource)
 		{
-			Math::Viewport viewport;
+			math::Viewport viewport;
 			viewport.width = static_cast<float>(pResult->GetSize().x);
 			viewport.height = static_cast<float>(pResult->GetSize().y);
 			pDeviceContext->SetViewport(viewport);
 			pDeviceContext->SetRenderTargets(&pResult, 1);
 
-			Math::Vector2 f2Size;
+			math::Vector2 f2Size;
 			f2Size.x = static_cast<float>(pSource->GetSize().x);
 			f2Size.y = static_cast<float>(pSource->GetSize().y);
 			pEffect->SetVector(StrID::g_f2SourceDimensions, f2Size);
@@ -112,7 +112,7 @@ namespace EastEngine
 			if (pSource == nullptr || pSource->GetTexture() == nullptr)
 				return false;
 
-			PERF_TRACER_EVENT("Downscale::Apply4SW", "");
+			TRACER_EVENT("Downscale::Apply4SW");
 			D3D_PROFILING(pDeviceContext, Downscale);
 
 			pDeviceContext->ClearState();
@@ -145,7 +145,7 @@ namespace EastEngine
 			if (pSource == nullptr || pSource->GetTexture() == nullptr)
 				return false;
 
-			PERF_TRACER_EVENT("Downscale::Apply16SW", "");
+			TRACER_EVENT("Downscale::Apply16SW");
 			D3D_PROFILING(pDeviceContext, Downscale);
 
 			pDeviceContext->ClearState();
@@ -192,7 +192,7 @@ namespace EastEngine
 			if (pSource == nullptr || pSource->GetTexture() == nullptr)
 				return false;
 
-			PERF_TRACER_EVENT("Downscale::ApplyHW", "");
+			TRACER_EVENT("Downscale::ApplyHW");
 			D3D_PROFILING(pDeviceContext, Downscale);
 
 			pDeviceContext->ClearState();
@@ -222,7 +222,7 @@ namespace EastEngine
 			if (pSource == nullptr || pSource->GetTexture() == nullptr)
 				return false;
 
-			PERF_TRACER_EVENT("Downscale::Apply16HW", "");
+			TRACER_EVENT("Downscale::Apply16HW");
 			D3D_PROFILING(pDeviceContext, Downscale);
 
 			pDeviceContext->ClearState();

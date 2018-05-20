@@ -11,9 +11,9 @@
 
 #include "ComponentInterface.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class IVertexBuffer;
 		class IIndexBuffer;
@@ -21,18 +21,18 @@ namespace EastEngine
 		class IModelNode;
 	}
 
-	namespace GameObject
+	namespace gameobject
 	{
 		class RagDoll;
 
 		struct PhysicsNode
 		{
-			const Math::Matrix* pMatWorld = nullptr;
+			const math::Matrix* pMatWorld = nullptr;
 			Physics::RigidBody* pRigidBody = nullptr;
-			Graphics::IModelInstance* pPhysicsModelInstance = nullptr;
-			Graphics::IModelInstance* pModelInstance = nullptr;
+			graphics::IModelInstance* pPhysicsModelInstance = nullptr;
+			graphics::IModelInstance* pModelInstance = nullptr;
 
-			PhysicsNode(const Math::Matrix* pMatWorld, Physics::RigidBody* pRigidBody, Graphics::IModelInstance* pPhysicsModelInstance, Graphics::IModelInstance* pModelInstance);
+			PhysicsNode(const math::Matrix* pMatWorld, Physics::RigidBody* pRigidBody, graphics::IModelInstance* pPhysicsModelInstance, graphics::IModelInstance* pModelInstance);
 		};
 
 		class ComponentPhysics : public IComponent
@@ -45,8 +45,8 @@ namespace EastEngine
 
 		public:
 			void Init(const Physics::RigidBodyProperty& rigidBodyProperty, bool isCollisionModelVisible = false);
-			void Init(Graphics::IModelInstance* pModelInstance, const Physics::RigidBodyProperty& rigidBodyProperty, uint32_t nTargetLod = 0, bool isCollisionModelVisible = false);
-			void Init(const String::StringID& strID, const Graphics::IVertexBuffer* pVertexBuffer, const Graphics::IIndexBuffer* pIndexBuffer, Math::Matrix* pMatWorld, const Physics::RigidBodyProperty& rigidBodyProperty, bool isCollisionModelVisible = false);
+			void Init(graphics::IModelInstance* pModelInstance, const Physics::RigidBodyProperty& rigidBodyProperty, uint32_t nTargetLod = 0, bool isCollisionModelVisible = false);
+			void Init(const String::StringID& strID, const graphics::IVertexBuffer* pVertexBuffer, const graphics::IIndexBuffer* pIndexBuffer, math::Matrix* pMatWorld, const Physics::RigidBodyProperty& rigidBodyProperty, bool isCollisionModelVisible = false);
 			virtual void Update(float fElapsedTime) override;
 
 		public:
@@ -62,7 +62,7 @@ namespace EastEngine
 			}
 
 		private:
-			void initPhysics(const String::StringID& strID, const Physics::RigidBodyProperty& rigidBodyProperty, const Math::Matrix* pMatWorld, Graphics::IModelInstance* pModelInstance);
+			void initPhysics(const String::StringID& strID, const Physics::RigidBodyProperty& rigidBodyProperty, const math::Matrix* pMatWorld, graphics::IModelInstance* pModelInstance);
 
 		private:
 			bool m_isInit;
@@ -90,11 +90,11 @@ namespace EastEngine
 
 			struct ModelRigidBody
 			{
-				Graphics::IModelInstance* pModelInstance = nullptr;
+				graphics::IModelInstance* pModelInstance = nullptr;
 				Physics::RigidBodyProperty rigidBodyProperty;
 				uint32_t nTargetLod = 0;
 
-				void Set(Graphics::IModelInstance* _pModelInstance, const Physics::RigidBodyProperty& _rigidBodyProperty, uint32_t _nTargetLod)
+				void Set(graphics::IModelInstance* _pModelInstance, const Physics::RigidBodyProperty& _rigidBodyProperty, uint32_t _nTargetLod)
 				{
 					pModelInstance = _pModelInstance;
 					rigidBodyProperty = _rigidBodyProperty;
@@ -105,12 +105,12 @@ namespace EastEngine
 			struct CustomRigidBody
 			{
 				String::StringID strID;
-				const Graphics::IVertexBuffer* pVertexBuffer = nullptr;
-				const Graphics::IIndexBuffer* pIndexBuffer = nullptr;
-				Math::Matrix* pMatWorld = nullptr;
+				const graphics::IVertexBuffer* pVertexBuffer = nullptr;
+				const graphics::IIndexBuffer* pIndexBuffer = nullptr;
+				math::Matrix* pMatWorld = nullptr;
 				Physics::RigidBodyProperty rigidBodyProperty;
 
-				void Set(const String::StringID& _strID, const Graphics::IVertexBuffer* _pVertexBuffer, const Graphics::IIndexBuffer* _pIndexBuffer, Math::Matrix* _pMatWorld, const Physics::RigidBodyProperty& _rigidBodyProperty)
+				void Set(const String::StringID& _strID, const graphics::IVertexBuffer* _pVertexBuffer, const graphics::IIndexBuffer* _pIndexBuffer, math::Matrix* _pMatWorld, const Physics::RigidBodyProperty& _rigidBodyProperty)
 				{
 					strID = _strID;
 					pVertexBuffer = _pVertexBuffer;

@@ -5,9 +5,9 @@
 class SkeletonController;
 class MaterialNodeManager;
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace GameObject
+	namespace gameobject
 	{
 		class SectorMgr;
 		class ISkybox;
@@ -19,7 +19,7 @@ namespace Contents
 	class Sun;
 }
 
-class SceneStudio : public EastEngine::IScene
+class SceneStudio : public eastengine::IScene
 {
 public:
 	SceneStudio();
@@ -40,8 +40,8 @@ private:
 private:
 	SkeletonController* m_pSkeletonController;
 	MaterialNodeManager* m_pMaterialNodeManager;
-	EastEngine::GameObject::SectorMgr* m_pSectorMgr;
+	eastengine::gameobject::SectorMgr* m_pSectorMgr;
 
 	std::vector<Contents::Sun*> m_vecSuns;
-	EastEngine::GameObject::ISkybox* m_pSkybox{ nullptr };
+	eastengine::gameobject::ISkybox* m_pSkybox{ nullptr };
 };

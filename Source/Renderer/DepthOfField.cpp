@@ -23,9 +23,9 @@ namespace StrID
 	RegisterStringID(g_samplerLinear);
 }
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		DepthOfField::DepthOfField()
 			: m_isInit(false)
@@ -47,7 +47,7 @@ namespace EastEngine
 
 			m_isInit = true;
 
-			std::string strPath(File::GetPath(File::EmPath::eFx));
+			std::string strPath(file::GetPath(file::EmPath::eFx));
 
 #if defined(DEBUG) || defined(_DEBUG)
 			strPath.append("PostProcessing\\DepthOfField\\DepthOfField_D.cso");
@@ -88,7 +88,7 @@ namespace EastEngine
 			if (pSource == nullptr || pSource->GetTexture() == nullptr)
 				return false;
 
-			PERF_TRACER_EVENT("DepthOfField::Apply", "");
+			TRACER_EVENT("DepthOfField::Apply");
 			D3D_PROFILING(pDeviceContext, DepthOfField);
 
 			int nThreadID = GetThreadID(ThreadType::eRender);
@@ -110,7 +110,7 @@ namespace EastEngine
 			m_pEffect->SetTexture(StrID::g_texDepth, pDepth);
 			m_pEffect->SetTexture(StrID::g_texColor, pSource->GetTexture());
 
-			Math::Viewport viewport;
+			math::Viewport viewport;
 			viewport.width = static_cast<float>(pResult->GetSize().x);
 			viewport.height = static_cast<float>(pResult->GetSize().y);
 			pDeviceContext->SetViewport(viewport);
@@ -128,19 +128,19 @@ namespace EastEngine
 			float dy = 0.5f / static_cast<float>(pSource->GetSize().y);
 
 			// Generate the texture coordinate offsets for our disc
-			Math::Vector2 discOffsets[12];
-			discOffsets[0] = Math::Vector2(-0.326212f * dx, -0.40581f * dy);
-			discOffsets[1] = Math::Vector2(-0.840144f * dx, -0.07358f * dy);
-			discOffsets[2] = Math::Vector2(-0.840144f * dx, 0.457137f * dy);
-			discOffsets[3] = Math::Vector2(-0.203345f * dx, 0.620716f * dy);
-			discOffsets[4] = Math::Vector2(0.96234f * dx, -0.194983f * dy);
-			discOffsets[5] = Math::Vector2(0.473434f * dx, -0.480026f * dy);
-			discOffsets[6] = Math::Vector2(0.519456f * dx, 0.767022f * dy);
-			discOffsets[7] = Math::Vector2(0.185461f * dx, -0.893124f * dy);
-			discOffsets[8] = Math::Vector2(0.507431f * dx, 0.064425f * dy);
-			discOffsets[9] = Math::Vector2(0.89642f * dx, 0.412458f * dy);
-			discOffsets[10] = Math::Vector2(-0.32194f * dx, -0.932615f * dy);
-			discOffsets[11] = Math::Vector2(-0.791559f * dx, -0.59771f * dy);
+			math::Vector2 discOffsets[12];
+			discOffsets[0] = math::Vector2(-0.326212f * dx, -0.40581f * dy);
+			discOffsets[1] = math::Vector2(-0.840144f * dx, -0.07358f * dy);
+			discOffsets[2] = math::Vector2(-0.840144f * dx, 0.457137f * dy);
+			discOffsets[3] = math::Vector2(-0.203345f * dx, 0.620716f * dy);
+			discOffsets[4] = math::Vector2(0.96234f * dx, -0.194983f * dy);
+			discOffsets[5] = math::Vector2(0.473434f * dx, -0.480026f * dy);
+			discOffsets[6] = math::Vector2(0.519456f * dx, 0.767022f * dy);
+			discOffsets[7] = math::Vector2(0.185461f * dx, -0.893124f * dy);
+			discOffsets[8] = math::Vector2(0.507431f * dx, 0.064425f * dy);
+			discOffsets[9] = math::Vector2(0.89642f * dx, 0.412458f * dy);
+			discOffsets[10] = math::Vector2(-0.32194f * dx, -0.932615f * dy);
+			discOffsets[11] = math::Vector2(-0.791559f * dx, -0.59771f * dy);
 
 			m_pEffect->SetVectorArray(StrID::g_f2FilterTaps, discOffsets, 0, 12);
 

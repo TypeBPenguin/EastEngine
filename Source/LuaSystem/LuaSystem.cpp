@@ -3,7 +3,7 @@
 
 #include "LuaThread.h"
 
-namespace EastEngine
+namespace eastengine
 {
 	namespace Lua
 	{
@@ -90,7 +90,7 @@ namespace EastEngine
 
 			//luaL_dofile(m_pLuaState, strFile);
 
-			/*StringID strFileName = AloFile::GetFileName(strFile);
+			/*StringID strFileName = Alofile::GetFileName(strFile);
 			auto iter = m_umapCompiledLua.find(strFileName);
 			if (iter != m_umapCompiledLua.end())
 			{

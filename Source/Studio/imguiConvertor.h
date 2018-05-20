@@ -2,9 +2,9 @@
 
 struct ImVec2;
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Math
+	namespace math
 	{
 		inline const ImVec2& Convert(const Vector2& vec2)
 		{

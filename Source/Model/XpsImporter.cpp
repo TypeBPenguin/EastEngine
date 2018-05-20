@@ -10,9 +10,9 @@
 #include "CommonLib/FileStream.h"
 #include "CommonLib/FileUtil.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		namespace XPSImport
 		{
@@ -33,11 +33,11 @@ namespace EastEngine
 
 			struct XPS_Vertex
 			{
-				Math::Vector3 vertex;
-				Math::Vector3 normal;
+				math::Vector3 vertex;
+				math::Vector3 normal;
 				uint8_t color[4] = {};
-				std::vector<Math::Vector2> texCoord;	// [numUVLayers]
-				std::vector<Math::Vector4> tangent;		// [numUVLayers]
+				std::vector<math::Vector2> texCoord;	// [numUVLayers]
+				std::vector<math::Vector4> tangent;		// [numUVLayers]
 				uint16_t boneIndex[4] = {};				// Only if the model has bones
 				float boneWeight[4] = {};				// Only if the model has bones
 			};
@@ -54,7 +54,7 @@ namespace EastEngine
 				std::vector<uint32_t> elements;	// [numElements];
 			};
 
-			std::string GetString(File::Stream& file)
+			std::string GetString(file::Stream& file)
 			{
 				if (file.GetOpenMode() == 0)
 				{
@@ -77,12 +77,12 @@ namespace EastEngine
 
 			bool LoadModel(Model* pModel, const char* strFilePath, const std::string* pStrDevideModels, size_t nKeywordCount)
 			{
-				File::Stream file;
-				if (file.Open(strFilePath, File::eRead | File::eBinary) == false)
+				file::Stream file;
+				if (file.Open(strFilePath, file::eRead | file::eBinary) == false)
 					return false;
 
-				std::string strPath = File::GetFilePath(strFilePath);
-				std::string strFileName = File::GetFileName(strFilePath);
+				std::string strPath = file::GetFilePath(strFilePath);
+				std::string strFileName = file::GetFileName(strFilePath);
 
 				uint32_t nBoneCount = 0;
 				file.Read(&nBoneCount);
@@ -116,6 +116,11 @@ namespace EastEngine
 
 					int8_t byte = 0;
 					file.Read(&byte);
+
+					if (byte > 2)
+					{
+						file.Seekg(-1, 1);
+					}
 
 					strTemp.clear();
 					strTemp.resize(length);
@@ -177,7 +182,7 @@ namespace EastEngine
 					file.Read(strTemp.data(), nReadSize);
 
 					//uint8_t nTemp8 = 0;
-					file.Read(&nTemp16);
+					//file.Read(&nTemp8);
 
 					file.Read(&nBoneCount);
 				}
@@ -264,7 +269,7 @@ namespace EastEngine
 
 					mesh.elements.resize(mesh.numElements);
 
-					file.Read(mesh.elements.data(), mesh.elements.size());
+					file.Read(mesh.elements.data(), static_cast<uint32_t>(mesh.elements.size()));
 				}
 
 				{
@@ -305,12 +310,12 @@ namespace EastEngine
 
 							if (mesh.numTextures == 1)
 							{
-								strAlbedo = File::GetFileName(mesh.textures[0].filename);
+								strAlbedo = file::GetFileName(mesh.textures[0].filename);
 							}
 							else if (mesh.numTextures == 3 || mesh.numTextures == 4)
 							{
-								strAlbedo = File::GetFileName(mesh.textures[0].filename);
-								strNormal = File::GetFileName(mesh.textures[2].filename);
+								strAlbedo = file::GetFileName(mesh.textures[0].filename);
+								strNormal = file::GetFileName(mesh.textures[2].filename);
 							}
 
 							for (size_t j = 0; j < nKeywordCount; ++j)
@@ -366,7 +371,7 @@ namespace EastEngine
 							materianInfo.strName = meshOptimizer.strName;
 							materianInfo.strTextureNameArray[EmMaterial::eAlbedo] = std::get<0>(key).c_str();
 							materianInfo.strTextureNameArray[EmMaterial::eNormal] = std::get<1>(key).c_str();
-							vecMaterial[nIndex] = IMaterial::Create(&materianInfo);
+							vecMaterial[nIndex] = CreateMaterial(&materianInfo);
 
 							++nIndex;
 
@@ -437,20 +442,20 @@ namespace EastEngine
 
 							if (mesh.numTextures == 1)
 							{
-								materianInfo.strTextureNameArray[EmMaterial::eAlbedo] = File::GetFileName(mesh.textures[0].filename).c_str();
+								materianInfo.strTextureNameArray[EmMaterial::eAlbedo] = file::GetFileName(mesh.textures[0].filename).c_str();
 							}
 							else if (mesh.numTextures == 3)
 							{
-								materianInfo.strTextureNameArray[EmMaterial::eAlbedo] = File::GetFileName(mesh.textures[0].filename).c_str();
-								materianInfo.strTextureNameArray[EmMaterial::eNormal] = File::GetFileName(mesh.textures[1].filename).c_str();
+								materianInfo.strTextureNameArray[EmMaterial::eAlbedo] = file::GetFileName(mesh.textures[0].filename).c_str();
+								materianInfo.strTextureNameArray[EmMaterial::eNormal] = file::GetFileName(mesh.textures[1].filename).c_str();
 							}
 							else if (mesh.numTextures == 4)
 							{
-								materianInfo.strTextureNameArray[EmMaterial::eAlbedo] = File::GetFileName(mesh.textures[0].filename).c_str();
-								materianInfo.strTextureNameArray[EmMaterial::eNormal] = File::GetFileName(mesh.textures[2].filename).c_str();
+								materianInfo.strTextureNameArray[EmMaterial::eAlbedo] = file::GetFileName(mesh.textures[0].filename).c_str();
+								materianInfo.strTextureNameArray[EmMaterial::eNormal] = file::GetFileName(mesh.textures[2].filename).c_str();
 							}
 
-							vecMaterial[i] = IMaterial::Create(&materianInfo);
+							vecMaterial[i] = CreateMaterial(&materianInfo);
 
 							for (uint32_t j = 0; j < mesh.numVertices; ++j)
 							{
@@ -477,14 +482,22 @@ namespace EastEngine
 						}
 					}
 
-					IVertexBuffer* pVertexBuffer = IVertexBuffer::Create(VertexPosTexNorWeiIdx::Format(), vecVertices.size(), vecVertices.data(), D3D11_USAGE_DYNAMIC);
-					IIndexBuffer* pIndexBuffer = IIndexBuffer::Create(vecIndices.size(), vecIndices.data(), D3D11_USAGE_DYNAMIC);
 
+					IVertexBuffer* pVertexBuffer = CreateVertexBuffer(reinterpret_cast<uint8_t*>(vecVertices.data()), static_cast<uint32_t>(sizeof(VertexPosTexNorWeiIdx) * vecVertices.size()), static_cast<uint32_t>(vecVertices.size()));
 					pSkinnedNode->SetVertexBuffer(pVertexBuffer);
+					ReleaseResource(&pVertexBuffer);
+
+					IIndexBuffer* pIndexBuffer = CreateIndexBuffer(reinterpret_cast<uint8_t*>(vecIndices.data()), static_cast<uint32_t>(sizeof(VertexPosTexNorWeiIdx) * vecIndices.size()), static_cast<uint32_t>(vecIndices.size()));
 					pSkinnedNode->SetIndexBuffer(pIndexBuffer);
+					ReleaseResource(&pIndexBuffer);
 
 					pSkinnedNode->AddModelSubsets(vecModelSubset);
+
 					pSkinnedNode->AddMaterialArray(vecMaterial.data(), vecMaterial.size());
+					for (auto& pMaterial : vecMaterial)
+					{
+						ReleaseResource(&pMaterial);
+					}
 
 					Collision::AABB aabb;
 					Collision::AABB::CreateFromPoints(aabb, vecVertices.size(), &vecVertices[0].pos, VertexPosTexNorWeiIdx::Size());
@@ -493,7 +506,7 @@ namespace EastEngine
 
 					pModel->AddNode(pSkinnedNode, pSkinnedNode->GetName(), true);
 
-					std::unordered_map<uint16_t, std::pair<String::StringID, Math::Matrix>> umapBones;
+					std::unordered_map<uint16_t, std::pair<String::StringID, math::Matrix>> umapBones;
 					umapBones.reserve(nBoneCount);
 
 					std::vector<String::StringID> vecBoneNames;
@@ -507,8 +520,8 @@ namespace EastEngine
 
 						vecBoneNames[i] = bone.name.c_str();
 
-						Math::Matrix matDefaultMotionData = Math::Matrix::CreateTranslation(bone.defaultPositionX, bone.defaultPositionY, bone.defaultPositionZ);
-						Math::Matrix matParent;
+						math::Matrix matDefaultMotionData = math::Matrix::CreateTranslation(bone.defaultPositionX, bone.defaultPositionY, bone.defaultPositionZ);
+						math::Matrix matParent;
 
 						String::StringID strParentBoneName;
 						auto iter = umapBones.find(bone.parentIndex);
@@ -518,8 +531,8 @@ namespace EastEngine
 							matParent = iter->second.second;
 						}
 
-						Math::Matrix matDefault = matParent.Invert() * matDefaultMotionData;
-						Math::Matrix matMotionOffset = matDefaultMotionData.Invert();
+						math::Matrix matDefault = matParent.Invert() * matDefaultMotionData;
+						math::Matrix matMotionOffset = matDefaultMotionData.Invert();
 
 						String::StringID strBoneName = bone.name.c_str();
 						if (strParentBoneName.empty() == false)
@@ -539,8 +552,8 @@ namespace EastEngine
 
 				Skeleton* pSkeleton = static_cast<Skeleton*>(pModel->GetSkeleton());
 
-				const size_t nNodeCount = pModel->GetNodeCount();
-				for (size_t i = 0; i < nNodeCount; ++i)
+				const uint32_t nNodeCount = pModel->GetNodeCount();
+				for (uint32_t i = 0; i < nNodeCount; ++i)
 				{
 					IModelNode* pModelNode = pModel->GetNode(i);
 					if (pModelNode == nullptr)
@@ -551,12 +564,12 @@ namespace EastEngine
 
 					ModelNodeSkinned* pSkinnedNode = static_cast<ModelNodeSkinned*>(pModelNode);
 
-					const size_t nSkinnedBoneCount = pSkinnedNode->GetBoneCount();
+					const uint32_t nSkinnedBoneCount = pSkinnedNode->GetBoneCount();
 
 					std::vector<String::StringID> vecBoneNames;
 					vecBoneNames.resize(nSkinnedBoneCount);
 
-					for (size_t j = 0; j < nSkinnedBoneCount; ++j)
+					for (uint32_t j = 0; j < nSkinnedBoneCount; ++j)
 					{
 						vecBoneNames[j] = pSkinnedNode->GetBoneName(j);
 					}
@@ -571,8 +584,8 @@ namespace EastEngine
 
 			bool LoadMotion(Motion* pMotion, const char* strFilePath)
 			{
-				File::Stream file;
-				if (file.Open(strFilePath, File::eRead | File::eBinary) == false)
+				file::Stream file;
+				if (file.Open(strFilePath, file::eRead | file::eBinary) == false)
 					return false;
 
 				pMotion->SetInfo(0.f, 0.f, 0.f);
@@ -587,7 +600,7 @@ namespace EastEngine
 						std::vector<Motion::Keyframe> vecKeyframes;
 
 						String::StringID strName;
-						Math::Vector3 f3Rotation;
+						math::Vector3 f3Rotation;
 
 						Motion::Keyframe keyframe;
 
@@ -606,7 +619,7 @@ namespace EastEngine
 							&keyframe.transform.position.x, &keyframe.transform.position.y, &keyframe.transform.position.z,
 							&keyframe.transform.scale.x, &keyframe.transform.scale.y, &keyframe.transform.scale.z);
 
-						keyframe.transform.rotation = Math::Quaternion::CreateFromYawPitchRoll(f3Rotation.y, f3Rotation.x, f3Rotation.z);
+						keyframe.transform.rotation = math::Quaternion::CreateFromYawPitchRoll(f3Rotation.y, f3Rotation.x, f3Rotation.z);
 
 						vecKeyframes.emplace_back(keyframe);
 

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace EastEngine
+namespace eastengine
 {
 	namespace Physics
 	{
@@ -8,13 +8,13 @@ namespace EastEngine
 		class ConstraintInterface;
 	}
 
-	namespace Graphics
+	namespace graphics
 	{
 		class IModelInstance;
 		class ISkeletonInstance;
 	}
 
-	namespace GameObject
+	namespace gameobject
 	{
 		class RagDoll
 		{
@@ -23,18 +23,18 @@ namespace EastEngine
 			{
 				String::StringID strName;
 				Physics::RigidBody* pRigidBody = nullptr;
-				Graphics::IModelInstance* pPhysicsModelInstance = nullptr;
-				Graphics::ISkeletonInstance::IBone* pBone = nullptr;
+				graphics::IModelInstance* pPhysicsModelInstance = nullptr;
+				graphics::ISkeletonInstance::IBone* pBone = nullptr;
 
-				Math::Vector3 f3Offset;
+				math::Vector3 f3Offset;
 				float fHeight;
 				bool isChildBone;
 				bool isRootNode = false;
 
-				Math::Matrix matOrigin;
-				Math::Matrix matBodyOrigin;
+				math::Matrix matOrigin;
+				math::Matrix matBodyOrigin;
 
-				BodyPart(const String::StringID& strName, Physics::RigidBody* pRigidBody, Graphics::IModelInstance* pPhysicsModelInstance, Graphics::ISkeletonInstance::IBone* pBone)
+				BodyPart(const String::StringID& strName, Physics::RigidBody* pRigidBody, graphics::IModelInstance* pPhysicsModelInstance, graphics::ISkeletonInstance::IBone* pBone)
 					: strName(strName)
 					, pRigidBody(pRigidBody)
 					, pPhysicsModelInstance(pPhysicsModelInstance)
@@ -47,12 +47,12 @@ namespace EastEngine
 			{
 				String::StringID strName;
 				Physics::ConstraintInterface* pConstraint = nullptr;
-				Graphics::IModelInstance* pPhysicsModelInstance = nullptr;
+				graphics::IModelInstance* pPhysicsModelInstance = nullptr;
 
 				BodyPart* pBodyPartA = nullptr;
 				BodyPart* pBodyPartB = nullptr;
 
-				Joint(const String::StringID& strName, Physics::ConstraintInterface* pConstraint, Graphics::IModelInstance* pPhysicsModelInstance = nullptr)
+				Joint(const String::StringID& strName, Physics::ConstraintInterface* pConstraint, graphics::IModelInstance* pPhysicsModelInstance = nullptr)
 					: strName(strName)
 					, pConstraint(pConstraint)
 					, pPhysicsModelInstance(pPhysicsModelInstance)
@@ -64,11 +64,11 @@ namespace EastEngine
 			RagDoll();
 			~RagDoll();
 
-			bool BuildBipadRagDoll(Graphics::ISkeletonInstance* pSkeleton, const Math::Vector3& f3Pos, const Math::Quaternion& quatRotation, float fScale);
+			bool BuildBipadRagDoll(graphics::ISkeletonInstance* pSkeleton, const math::Vector3& f3Pos, const math::Quaternion& quatRotation, float fScale);
 			void Update(float fElapsedTime);
 
-			BodyPart* AddBodyPart(const String::StringID& strPartName, const Physics::RigidBodyProperty& rigidBodyProperty, Graphics::IModelInstance* pPhysicsModelInstance, Graphics::ISkeletonInstance::IBone* pBone);
-			Joint* AddJoint(const String::StringID& strJointName, const Physics::ConstraintProperty& constraintProperty, BodyPart* pBodyPartA, BodyPart* pBodyPartB, Graphics::IModelInstance* pPhysicsModelInstance);
+			BodyPart* AddBodyPart(const String::StringID& strPartName, const Physics::RigidBodyProperty& rigidBodyProperty, graphics::IModelInstance* pPhysicsModelInstance, graphics::ISkeletonInstance::IBone* pBone);
+			Joint* AddJoint(const String::StringID& strJointName, const Physics::ConstraintProperty& constraintProperty, BodyPart* pBodyPartA, BodyPart* pBodyPartB, graphics::IModelInstance* pPhysicsModelInstance);
 
 			Physics::RigidBody* GetBodyPort(const String::StringID& strPartName);
 			Physics::ConstraintInterface* GetJoint(const String::StringID& strJointName);
@@ -86,7 +86,7 @@ namespace EastEngine
 			std::vector<BodyPart*> m_vecBodyParts;
 			std::vector<Joint*> m_vecJoints;
 
-			Graphics::ISkeletonInstance* m_pSkeletonInst;
+			graphics::ISkeletonInstance* m_pSkeletonInst;
 		};
 	}
 }

@@ -1,9 +1,9 @@
 #include "stdafx.h"
 #include "DeferredContext.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		DeferredContext::DeferredContext(ID3D11DeviceContext* pDeviceContext)
 			: DeviceContext(pDeviceContext)

@@ -6,7 +6,7 @@
 #define CHECK_DUPLICATE_STRING_KEY 0
 #endif
 
-namespace EastEngine
+namespace eastengine
 {
 	namespace String
 	{
@@ -74,34 +74,34 @@ namespace EastEngine
 		};
 	}
 
-	#define RegisterStringID(name)	static const EastEngine::String::StringID name(#name);
+	#define RegisterStringID(name)	static const eastengine::String::StringID name(#name);
 }
 
 constexpr std::uint64_t operator "" _s(const char* str, std::size_t)
 {
-	return EastEngine::String::Hash(str);
+	return eastengine::String::Hash(str);
 }
 
 namespace StrID
 {
-	static const EastEngine::String::StringID Unregistered("");
+	static const eastengine::String::StringID Unregistered("");
 }
 
 namespace std
 {
 	template <>
-	struct hash<EastEngine::String::StringKey>
+	struct hash<eastengine::String::StringKey>
 	{
-		std::uint64_t operator()(const EastEngine::String::StringKey& key) const
+		std::uint64_t operator()(const eastengine::String::StringKey& key) const
 		{
 			return key.value;
 		}
 	};
 
 	template <>
-	struct hash<EastEngine::String::StringID>
+	struct hash<eastengine::String::StringID>
 	{
-		std::uint64_t operator()(const EastEngine::String::StringID& key) const
+		std::uint64_t operator()(const eastengine::String::StringID& key) const
 		{
 			return key.Key().value;
 		}

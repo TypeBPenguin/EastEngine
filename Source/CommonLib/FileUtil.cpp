@@ -3,9 +3,9 @@
 
 #include "StringUtil.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace File
+	namespace file
 	{
 		std::string GetFileName(const std::string& strPath)
 		{
@@ -15,7 +15,7 @@ namespace EastEngine
 		std::string GetFileNameWithoutExtension(const char* strPath)
 		{
 			std::string strName = GetFileName(strPath);
-			uint32_t pos = strName.find_last_of(".");
+			size_t pos = strName.find_last_of(".");
 			if (pos != std::string::npos)
 			{
 				strName = strName.substr(0, pos);
@@ -32,7 +32,7 @@ namespace EastEngine
 		std::wstring GetFileNameWithoutExtension(const wchar_t* strPath)
 		{
 			std::wstring strName = GetFileName(strPath);
-			uint32_t pos = strName.find_last_of(L".");
+			size_t pos = strName.find_last_of(L".");
 			if (pos != std::wstring::npos)
 			{
 				strName = strName.substr(0, pos);
@@ -74,7 +74,7 @@ namespace EastEngine
 		{
 			std::string str = strPath;
 
-			uint32_t pos = str.find_last_of("\\");
+			size_t pos = str.find_last_of("\\");
 			if (pos != std::string::npos)
 			{
 				str = str.substr(0, pos + 1);
@@ -92,7 +92,7 @@ namespace EastEngine
 		{
 			std::wstring str = strPath;
 
-			uint32_t pos = str.find_last_of(L"\\");
+			size_t pos = str.find_last_of(L"\\");
 			if (pos != std::wstring::npos)
 			{
 				str = str.substr(0, pos + 1);

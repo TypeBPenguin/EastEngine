@@ -6,7 +6,7 @@
 #include <boost/tokenizer.hpp>
 #include <atlstr.h>
 
-namespace EastEngine
+namespace eastengine
 {
 	namespace String
 	{
@@ -80,12 +80,12 @@ namespace EastEngine
 			uint32_t size = std::vsnprintf(nullptr, 0, format, args) + 1;
 			va_end(args);
 
-			std::unique_ptr<char[]> buf(new char[size]);
+			std::unique_ptr<char[]> buf = std::make_unique<char[]>(size);
 			va_start(args, format);
 			std::vsnprintf(buf.get(), size, format, args);
 			va_end(args);
 
-			return buf.get();
+			return { buf.get() };
 		}
 
 		std::string RandomString(uint32_t nLength, bool isOnlyAlphabet)
@@ -110,7 +110,7 @@ namespace EastEngine
 						'v','w','x','y','z'
 					};
 
-					return CharacterSet[Math::Random<int>(0, sizeof(CharacterSet) - 1)];
+					return CharacterSet[math::Random<int>(0, sizeof(CharacterSet) - 1)];
 				};
 
 				std::generate_n(strRandom.begin(), nLength, CharRandomOnlyAlphabet);
@@ -135,7 +135,7 @@ namespace EastEngine
 						'v','w','x','y','z'
 					};
 
-					return CharacterSet[Math::Random<int>(0, sizeof(CharacterSet) - 1)];
+					return CharacterSet[math::Random<int>(0, sizeof(CharacterSet) - 1)];
 				};
 
 				std::generate_n(strRandom.begin(), nLength, CharRandom);

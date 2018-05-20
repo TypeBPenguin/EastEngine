@@ -4,7 +4,7 @@
 
 #include "Scene.h"
 
-namespace EastEngine
+namespace eastengine
 {
 	class SceneManager : public Singleton<SceneManager>
 	{
@@ -24,7 +24,6 @@ namespace EastEngine
 		
 		void ChangeScene(const String::StringID& strSceneName);
 
-		IScene* GetCurScene();
 		IScene* GetScene(const String::StringID& strSceneName);
 
 	private:

@@ -4,7 +4,7 @@
 
 class btPairCachingGhostObject;
 
-namespace EastEngine
+namespace eastengine
 {
 	namespace Physics
 	{
@@ -12,8 +12,8 @@ namespace EastEngine
 		{
 			int nCollisionFlag = EmCollision::eCharacterObject;
 
-			Math::Vector3 f3OriginPos;
-			Math::Quaternion originQuat;
+			math::Vector3 f3OriginPos;
+			math::Quaternion originQuat;
 
 			Shape shapeInfo;
 
@@ -31,7 +31,7 @@ namespace EastEngine
 			static GhostObject* Create(const GhostProperty& ghostProperty);
 
 		public:
-			Math::Matrix GetWorldMatrix() const;
+			math::Matrix GetWorldMatrix() const;
 
 		public:
 			btPairCachingGhostObject* GetInterface();

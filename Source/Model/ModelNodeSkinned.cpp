@@ -1,12 +1,11 @@
 #include "stdafx.h"
 #include "ModelNodeSkinned.h"
 
-#include "DirectX/VTFManager.h"
-#include "Renderer/RendererManager.h"
 
-namespace EastEngine
+
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		ModelNodeSkinned::ModelNodeSkinned(uint32_t nLodMax)
 			: ModelNode(EmModelNode::eSkinned)
@@ -18,36 +17,38 @@ namespace EastEngine
 		{
 		}
 
-		void ModelNodeSkinned::Update(float fElapsedTime, const Math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance, bool isModelVisible) const
+		void ModelNodeSkinned::Update(float fElapsedTime, const math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance, bool isModelVisible) const
 		{
-			Math::Matrix matTransformation = matParent;
+			math::Matrix matTransformation = matParent;
 			if (m_strAttachedBoneName.empty() == false && pSkeletonInstance != nullptr)
 			{
 				ISkeletonInstance::IBone* pBone = pSkeletonInstance->GetBone(m_strAttachedBoneName);
 				if (pBone != nullptr)
 				{
-					const Math::Matrix& matMotionTransform = pBone->GetSkinningMatrix();
+					const math::Matrix& matMotionTransform = pBone->GetSkinningMatrix();
 					matTransformation = matMotionTransform * matParent;
 				}
 			}
 
 			if (m_isVisible == true && isModelVisible == true)
 			{
-				size_t nVTFID = eInvalidVTFID;
-				Math::Matrix* pMatrixBuffer = nullptr;
-				if (pSkeletonInstance != nullptr && VTFManager::GetInstance()->Allocate(m_vecBoneName.size(), &pMatrixBuffer, nVTFID) == true)
+				IVTFManager* pVTFManager = GetVTFManager();
+
+				uint32_t nVTFID = IVTFManager::eInvalidVTFID;
+				math::Matrix* pMatrixBuffer = nullptr;
+				if (pSkeletonInstance != nullptr && pVTFManager->Allocate(static_cast<uint32_t>(m_vecBoneName.size()), &pMatrixBuffer, nVTFID) == true)
 				{
-					if (nVTFID != eInvalidVTFID)
+					if (nVTFID != IVTFManager::eInvalidVTFID)
 					{
-						const Math::Matrix** ppSkinnedMatrix = nullptr;
-						size_t nElementCount = 0;
+						const math::Matrix** ppSkinnedMatrix = nullptr;
+						uint32_t nElementCount = 0;
 						pSkeletonInstance->GetSkinnedData(GetName(), &ppSkinnedMatrix, nElementCount);
 
 						if (ppSkinnedMatrix != nullptr && nElementCount > 0)
 						{
-							for (size_t i = 0; i < nElementCount; ++i)
+							for (uint32_t i = 0; i < nElementCount; ++i)
 							{
-								Math::Matrix& matBone = pMatrixBuffer[i];
+								math::Matrix& matBone = pMatrixBuffer[i];
 
 								if (ppSkinnedMatrix[i] != nullptr)
 								{
@@ -59,7 +60,7 @@ namespace EastEngine
 								}
 								else
 								{
-									matBone = Math::Matrix::Identity;
+									matBone = math::Matrix::Identity;
 									matBone._14 = matBone._41;
 									matBone._24 = matBone._42;
 									matBone._34 = matBone._43;
@@ -70,14 +71,14 @@ namespace EastEngine
 						else
 						{
 							assert(false);
-							nVTFID = eInvalidVTFID;
+							nVTFID = IVTFManager::eInvalidVTFID;
 						}
 					}
 				}
 
-				if (nVTFID != eInvalidVTFID)
+				if (nVTFID != IVTFManager::eInvalidVTFID)
 				{
-					uint32_t nLevel = Math::Min(m_nLod, m_nLodMax);
+					uint32_t nLevel = math::Min(m_nLod, m_nLodMax);
 					if (m_pVertexBuffer[nLevel] == nullptr || m_pIndexBuffer[nLevel] == nullptr)
 					{
 						LOG_WARNING("Model Data is nullptr, LOD : %d", nLevel);
@@ -85,7 +86,7 @@ namespace EastEngine
 					else
 					{
 						// 검증되지 않은 방식, 추후 수정 필요
-						Math::Matrix matBoneTransformation;
+						math::Matrix matBoneTransformation;
 						if (pSkeletonInstance != nullptr)
 						{
 							ISkeletonInstance::IBone* pBone = pSkeletonInstance->GetBone(m_vecBoneName[0]);
@@ -119,8 +120,8 @@ namespace EastEngine
 							if (pMaterial != nullptr && pMaterial->IsVisible() == false)
 								continue;
 
-							RenderSubsetSkinned subset(&modelSubset, m_pVertexBuffer[nLevel], m_pIndexBuffer[nLevel], pMaterial, matTransformation, modelSubset.nStartIndex, modelSubset.nIndexCount, nVTFID, m_fDistanceFromCamera);
-							RendererManager::GetInstance()->AddRender(subset);
+							RenderJobSkinned subset(&modelSubset, m_pVertexBuffer[nLevel], m_pIndexBuffer[nLevel], pMaterial, matTransformation, modelSubset.nStartIndex, modelSubset.nIndexCount, nVTFID, m_fDistanceFromCamera);
+							PushRenderJob(subset);
 						}
 					}
 				}

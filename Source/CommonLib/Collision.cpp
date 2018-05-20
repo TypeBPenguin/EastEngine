@@ -4,17 +4,17 @@
 #include <DirectXMath.h>
 #include <DirectXCollision.h>
 
-namespace EastEngine
+namespace eastengine
 {
 	namespace Collision
 	{
 		Sphere::Sphere() {}
-		Sphere::Sphere(_In_ const Math::Vector3& center, _In_ float radius)
+		Sphere::Sphere(_In_ const math::Vector3& center, _In_ float radius)
 			: Center(center), Radius(radius) {}
 		Sphere::Sphere(_In_ const Sphere& sp)
 			: Center(sp.Center), Radius(sp.Radius) {}
 
-		void __vectorcall Sphere::Transform(_Out_ Sphere& Out, _In_ const Math::Matrix& matrix) const
+		void __vectorcall Sphere::Transform(_Out_ Sphere& Out, _In_ const math::Matrix& matrix) const
 		{
 			using namespace DirectX;
 
@@ -40,7 +40,7 @@ namespace EastEngine
 			Out.Radius = Radius * Scale;
 		}
 
-		void __vectorcall Sphere::Transform(_Out_ Sphere& Out, _In_ float Scale, _In_ const Math::Quaternion& Rotation, _In_ const Math::Vector3& Translation) const
+		void __vectorcall Sphere::Transform(_Out_ Sphere& Out, _In_ float Scale, _In_ const math::Quaternion& Rotation, _In_ const math::Vector3& Translation) const
 		{
 			using namespace DirectX;
 
@@ -60,7 +60,7 @@ namespace EastEngine
 			Out.Radius = Radius * Scale;
 		}
 
-		EmContainment::Type __vectorcall Sphere::Contains(_In_ const Math::Vector3& Point) const
+		EmContainment::Type __vectorcall Sphere::Contains(_In_ const math::Vector3& Point) const
 		{
 			using namespace DirectX;
 
@@ -75,7 +75,7 @@ namespace EastEngine
 			return XMVector3LessOrEqual(DistanceSquared, RadiusSquared) ? EmContainment::eContains : EmContainment::eDisjoint;
 		}
 
-		EmContainment::Type __vectorcall Sphere::Contains(_In_ const Math::Vector3& V0, _In_ const Math::Vector3& V1, _In_ const Math::Vector3& V2) const
+		EmContainment::Type __vectorcall Sphere::Contains(_In_ const math::Vector3& V0, _In_ const math::Vector3& V1, _In_ const math::Vector3& V2) const
 		{
 			using namespace DirectX;
 
@@ -250,7 +250,7 @@ namespace EastEngine
 		bool Sphere::Intersects(_In_ const OBB& box) const { return box.Intersects(*this); }
 		bool Sphere::Intersects(_In_ const Frustum& fr) const { return fr.Intersects(*this); }
 
-		bool __vectorcall Sphere::Intersects(_In_ const Math::Vector3& v0, _In_ const Math::Vector3& v1, _In_ const Math::Vector3& v2) const
+		bool __vectorcall Sphere::Intersects(_In_ const math::Vector3& v0, _In_ const math::Vector3& v1, _In_ const math::Vector3& v2) const
 		{
 			using namespace DirectX;
 
@@ -310,7 +310,7 @@ namespace EastEngine
 			return XMVector4EqualInt(XMVectorAndCInt(Intersection, NoIntersection), XMVectorTrueInt());
 		}
 
-		EmPlaneIntersection::Type __vectorcall Sphere::Intersects(_In_ Math::Plane& Plane) const
+		EmPlaneIntersection::Type __vectorcall Sphere::Intersects(_In_ math::Plane& Plane) const
 		{
 			using namespace DirectX;
 
@@ -340,7 +340,7 @@ namespace EastEngine
 			return EmPlaneIntersection::eIntersecting;
 		}
 
-		bool __vectorcall Sphere::Intersects(_In_ const Math::Vector3& Origin, _In_ const Math::Vector3& Direction, _Out_ float& Dist) const
+		bool __vectorcall Sphere::Intersects(_In_ const math::Vector3& Origin, _In_ const math::Vector3& Direction, _Out_ float& Dist) const
 		{
 			using namespace DirectX;
 
@@ -394,8 +394,8 @@ namespace EastEngine
 			return false;
 		}
 
-		EmContainment::Type __vectorcall Sphere::ContainedBy(_In_ const Math::Plane& Plane0, _In_ const Math::Plane& Plane1, _In_ const Math::Plane& Plane2,
-			_In_ const Math::Plane& Plane3, _In_ const Math::Plane& Plane4, _In_ const Math::Plane& Plane5) const
+		EmContainment::Type __vectorcall Sphere::ContainedBy(_In_ const math::Plane& Plane0, _In_ const math::Plane& Plane1, _In_ const math::Plane& Plane2,
+			_In_ const math::Plane& Plane3, _In_ const math::Plane& Plane4, _In_ const math::Plane& Plane5) const
 		{
 			using namespace DirectX;
 
@@ -517,7 +517,7 @@ namespace EastEngine
 		}
 
 		void Sphere::CreateFromPoints(_Out_ Sphere& Out, _In_ size_t Count,
-			_In_reads_bytes_(sizeof(Math::Vector3) + Stride*(Count - 1)) const Math::Vector3* pPoints, _In_ size_t Stride)
+			_In_reads_bytes_(sizeof(math::Vector3) + Stride*(Count - 1)) const math::Vector3* pPoints, _In_ size_t Stride)
 		{
 			using namespace DirectX;
 
@@ -625,19 +625,19 @@ namespace EastEngine
 		{
 			using namespace DirectX;
 
-			Math::Vector3 Corners[Frustum::CORNER_COUNT];
+			math::Vector3 Corners[Frustum::CORNER_COUNT];
 			fr.GetCorners(Corners);
 
-			CreateFromPoints(Out, Frustum::CORNER_COUNT, Corners, sizeof(Math::Vector3));
+			CreateFromPoints(Out, Frustum::CORNER_COUNT, Corners, sizeof(math::Vector3));
 		}
 
 		AABB::AABB() {}
-		AABB::AABB(_In_ const Math::Vector3& center, _In_ const Math::Vector3& extents)
+		AABB::AABB(_In_ const math::Vector3& center, _In_ const math::Vector3& extents)
 			: Center(center), Extents(extents) {}
 		AABB::AABB(_In_ const AABB& box)
 			: Center(box.Center), Extents(box.Extents) {}
 
-		void __vectorcall AABB::Transform(_Out_ AABB& Out, _In_ const Math::Matrix& matrix) const
+		void __vectorcall AABB::Transform(_Out_ AABB& Out, _In_ const math::Matrix& matrix) const
 		{
 			using namespace DirectX;
 
@@ -668,7 +668,7 @@ namespace EastEngine
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&Out.Extents), (Max - Min) * 0.5f);
 		}
 
-		void __vectorcall AABB::Transform(_Out_ AABB& Out, _In_ float Scale, _In_ const Math::Quaternion& Rotation, _In_ const Math::Vector3& Translation) const
+		void __vectorcall AABB::Transform(_Out_ AABB& Out, _In_ float Scale, _In_ const math::Quaternion& Rotation, _In_ const math::Vector3& Translation) const
 		{
 			using namespace DirectX;
 
@@ -704,7 +704,7 @@ namespace EastEngine
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&Out.Extents), (Max - Min) * 0.5f);
 		}
 
-		void AABB::GetCorners(_Out_writes_(8) Math::Vector3* Corners) const
+		void AABB::GetCorners(_Out_writes_(8) math::Vector3* Corners) const
 		{
 			using namespace DirectX;
 
@@ -721,7 +721,7 @@ namespace EastEngine
 			}
 		}
 
-		EmContainment::Type __vectorcall AABB::Contains(_In_ const Math::Vector3& Point) const
+		EmContainment::Type __vectorcall AABB::Contains(_In_ const math::Vector3& Point) const
 		{
 			using namespace DirectX;
 
@@ -732,7 +732,7 @@ namespace EastEngine
 			return XMVector3InBounds(P - vCenter, vExtents) ? EmContainment::eContains : EmContainment::eDisjoint;
 		}
 
-		EmContainment::Type __vectorcall AABB::Contains(_In_ const Math::Vector3& v0, _In_ const Math::Vector3& v1, _In_ const Math::Vector3& v2) const
+		EmContainment::Type __vectorcall AABB::Contains(_In_ const math::Vector3& v0, _In_ const math::Vector3& v1, _In_ const math::Vector3& v2) const
 		{
 			using namespace DirectX;
 
@@ -868,7 +868,7 @@ namespace EastEngine
 			if (fr.Intersects(*this) == false)
 				return EmContainment::eDisjoint;
 
-			Math::Vector3 Corners[Frustum::CORNER_COUNT];
+			math::Vector3 Corners[Frustum::CORNER_COUNT];
 			fr.GetCorners(Corners);
 
 			XMVECTOR vCenter = Center;
@@ -948,7 +948,7 @@ namespace EastEngine
 		bool AABB::Intersects(_In_ const OBB& box) const { return box.Intersects(*this); }
 		bool AABB::Intersects(_In_ const Frustum& fr) const { return fr.Intersects(*this); }
 
-		bool __vectorcall AABB::Intersects(_In_ const Math::Vector3& v0, _In_ const Math::Vector3& v1, _In_ const Math::Vector3& v2) const
+		bool __vectorcall AABB::Intersects(_In_ const math::Vector3& v0, _In_ const math::Vector3& v1, _In_ const math::Vector3& v2) const
 		{
 			using namespace DirectX;
 
@@ -1117,7 +1117,7 @@ namespace EastEngine
 			return XMVector4NotEqualInt(NoIntersection, XMVectorTrueInt());
 		}
 
-		EmPlaneIntersection::Type __vectorcall AABB::Intersects(_In_ const Math::Plane& Plane) const
+		EmPlaneIntersection::Type __vectorcall AABB::Intersects(_In_ const math::Plane& Plane) const
 		{
 			using namespace DirectX;
 
@@ -1146,7 +1146,7 @@ namespace EastEngine
 			return EmPlaneIntersection::eIntersecting;
 		}
 
-		bool __vectorcall AABB::Intersects(_In_ const Math::Vector3& Origin, _In_ const Math::Vector3& Direction, _Out_ float& Dist) const
+		bool __vectorcall AABB::Intersects(_In_ const math::Vector3& Origin, _In_ const math::Vector3& Direction, _Out_ float& Dist) const
 		{
 			using namespace DirectX;
 
@@ -1207,8 +1207,8 @@ namespace EastEngine
 			return false;
 		}
 
-		EmContainment::Type __vectorcall AABB::ContainedBy(_In_ const Math::Plane& Plane0, _In_ const Math::Plane& Plane1, _In_ const Math::Plane& Plane2,
-			_In_ const Math::Plane& Plane3, _In_ const Math::Plane& Plane4, _In_ const Math::Plane& Plane5) const
+		EmContainment::Type __vectorcall AABB::ContainedBy(_In_ const math::Plane& Plane0, _In_ const math::Plane& Plane1, _In_ const math::Plane& Plane2,
+			_In_ const math::Plane& Plane3, _In_ const math::Plane& Plane4, _In_ const math::Plane& Plane5) const
 		{
 			using namespace DirectX;
 
@@ -1305,7 +1305,7 @@ namespace EastEngine
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&Out.Extents), (Max - Min) * 0.5f);
 		}
 
-		void __vectorcall AABB::CreateFromPoints(_Out_ AABB& Out, _In_ const Math::Vector3& pt1, _In_ const Math::Vector3& pt2)
+		void __vectorcall AABB::CreateFromPoints(_Out_ AABB& Out, _In_ const math::Vector3& pt1, _In_ const math::Vector3& pt2)
 		{
 			using namespace DirectX;
 
@@ -1321,7 +1321,7 @@ namespace EastEngine
 		}
 
 		void AABB::CreateFromPoints(_Out_ AABB& Out, _In_ size_t Count,
-			_In_reads_bytes_(sizeof(Math::Vector3) + Stride*(Count - 1)) const Math::Vector3* pPoints, _In_ size_t Stride)
+			_In_reads_bytes_(sizeof(math::Vector3) + Stride*(Count - 1)) const math::Vector3* pPoints, _In_ size_t Stride)
 		{
 			using namespace DirectX;
 
@@ -1347,12 +1347,12 @@ namespace EastEngine
 		}
 
 		OBB::OBB() {}
-		OBB::OBB(_In_ const Math::Vector3& Center, _In_ const Math::Vector3& Extents, _In_ const Math::Quaternion& Orientation)
+		OBB::OBB(_In_ const math::Vector3& Center, _In_ const math::Vector3& Extents, _In_ const math::Quaternion& Orientation)
 			: Center(Center), Extents(Extents), Orientation(Orientation) {}
 		OBB::OBB(_In_ const OBB& box)
 			: Center(box.Center), Extents(box.Extents), Orientation(box.Orientation) {}
 
-		void __vectorcall OBB::Transform(_Out_ OBB& Out, _In_ const Math::Matrix& matrix) const
+		void __vectorcall OBB::Transform(_Out_ OBB& Out, _In_ const math::Matrix& matrix) const
 		{
 			using namespace DirectX;
 
@@ -1392,7 +1392,7 @@ namespace EastEngine
 			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&Out.Orientation), vOrientation);
 		}
 
-		void __vectorcall OBB::Transform(_Out_ OBB& Out, _In_ float Scale, _In_ const Math::Quaternion& Rotation, _In_ const Math::Vector3& Translation) const
+		void __vectorcall OBB::Transform(_Out_ OBB& Out, _In_ float Scale, _In_ const math::Quaternion& Rotation, _In_ const math::Vector3& Translation) const
 		{
 			using namespace DirectX;
 
@@ -1425,7 +1425,7 @@ namespace EastEngine
 			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&Out.Orientation), vOrientation);
 		}
 
-		void OBB::GetCorners(_Out_writes_(8) Math::Vector3* Corners) const
+		void OBB::GetCorners(_Out_writes_(8) math::Vector3* Corners) const
 		{
 			using namespace DirectX;
 
@@ -1445,7 +1445,7 @@ namespace EastEngine
 			}
 		}
 
-		EmContainment::Type __vectorcall OBB::Contains(_In_ const Math::Vector3& Point) const
+		EmContainment::Type __vectorcall OBB::Contains(_In_ const math::Vector3& Point) const
 		{
 			using namespace DirectX;
 
@@ -1460,7 +1460,7 @@ namespace EastEngine
 			return XMVector3InBounds(TPoint, vExtents) ? EmContainment::eContains : EmContainment::eDisjoint;
 		}
 
-		EmContainment::Type __vectorcall OBB::Contains(_In_ const Math::Vector3& v0, _In_ const Math::Vector3& v1, _In_ const Math::Vector3& v2) const
+		EmContainment::Type __vectorcall OBB::Contains(_In_ const math::Vector3& v0, _In_ const math::Vector3& v1, _In_ const math::Vector3& v2) const
 		{
 			using namespace DirectX;
 
@@ -1478,7 +1478,7 @@ namespace EastEngine
 			XMVECTOR TV2 = XMVector3InverseRotate(V2 - vCenter, vOrientation);
 
 			AABB box;
-			box.Center = Math::Vector3(0.0f, 0.0f, 0.0f);
+			box.Center = math::Vector3(0.0f, 0.0f, 0.0f);
 			box.Extents = Extents;
 
 			// Use the triangle vs axis aligned box intersection routine.
@@ -1538,7 +1538,7 @@ namespace EastEngine
 		EmContainment::Type OBB::Contains(_In_ const AABB& box) const
 		{
 			// Make the axis aligned box oriented and do an OBB vs OBB test.
-			OBB obox(box.Center, box.Extents, Math::Quaternion::Identity);
+			OBB obox(box.Center, box.Extents, math::Quaternion::Identity);
 			return Contains(obox);
 		}
 
@@ -1586,7 +1586,7 @@ namespace EastEngine
 			if (fr.Intersects(*this) == false)
 				return EmContainment::eDisjoint;
 
-			Math::Vector3 Corners[Frustum::CORNER_COUNT];
+			math::Vector3 Corners[Frustum::CORNER_COUNT];
 			fr.GetCorners(Corners);
 
 			// Load the box
@@ -1652,7 +1652,7 @@ namespace EastEngine
 		bool OBB::Intersects(_In_ const AABB& box) const
 		{
 			// Make the axis aligned box oriented and do an OBB vs OBB test.
-			OBB obox(box.Center, box.Extents, Math::Quaternion::Identity);
+			OBB obox(box.Center, box.Extents, math::Quaternion::Identity);
 			return Intersects(obox);
 		}
 
@@ -1863,7 +1863,7 @@ namespace EastEngine
 			return fr.Intersects(*this);
 		}
 
-		bool __vectorcall OBB::Intersects(_In_ const Math::Vector3& v0, _In_ const Math::Vector3& v1, _In_ const Math::Vector3& v2) const
+		bool __vectorcall OBB::Intersects(_In_ const math::Vector3& v0, _In_ const math::Vector3& v1, _In_ const math::Vector3& v2) const
 		{
 			using namespace DirectX;
 
@@ -1881,14 +1881,14 @@ namespace EastEngine
 			XMVECTOR TV2 = XMVector3InverseRotate(V2 - vCenter, vOrientation);
 
 			AABB box;
-			box.Center = Math::Vector3(0.0f, 0.0f, 0.0f);
+			box.Center = math::Vector3(0.0f, 0.0f, 0.0f);
 			box.Extents = Extents;
 
 			// Use the triangle vs axis aligned box intersection routine.
 			return box.Intersects(TV0, TV1, TV2);
 		}
 
-		EmPlaneIntersection::Type __vectorcall OBB::Intersects(_In_ const Math::Plane& Plane) const
+		EmPlaneIntersection::Type __vectorcall OBB::Intersects(_In_ const math::Plane& Plane) const
 		{
 			using namespace DirectX;
 
@@ -1924,7 +1924,7 @@ namespace EastEngine
 			return EmPlaneIntersection::eIntersecting;
 		}
 
-		bool __vectorcall OBB::Intersects(_In_ const Math::Vector3& Origin, _In_ const Math::Vector3& Direction, _Out_ float& Dist) const
+		bool __vectorcall OBB::Intersects(_In_ const math::Vector3& Origin, _In_ const math::Vector3& Direction, _Out_ float& Dist) const
 		{
 			using namespace DirectX;
 
@@ -2005,8 +2005,8 @@ namespace EastEngine
 			return false;
 		}
 
-		EmContainment::Type __vectorcall OBB::ContainedBy(_In_ const Math::Plane& Plane0, _In_ const Math::Plane& Plane1, _In_ const Math::Plane& Plane2,
-			_In_ const Math::Plane& Plane3, _In_ const Math::Plane& Plane4, _In_ const Math::Plane& Plane5) const
+		EmContainment::Type __vectorcall OBB::ContainedBy(_In_ const math::Plane& Plane0, _In_ const math::Plane& Plane1, _In_ const math::Plane& Plane2,
+			_In_ const math::Plane& Plane3, _In_ const math::Plane& Plane4, _In_ const math::Plane& Plane5) const
 		{
 			using namespace DirectX;
 
@@ -2074,11 +2074,11 @@ namespace EastEngine
 		{
 			Out.Center = box.Center;
 			Out.Extents = box.Extents;
-			Out.Orientation = Math::Quaternion::Identity;
+			Out.Orientation = math::Quaternion::Identity;
 		}
 
 		void OBB::CreateFromPoints(_Out_ OBB& Out, _In_ size_t Count,
-			_In_reads_bytes_(sizeof(Math::Vector3) + Stride*(Count - 1)) const Math::Vector3* pPoints, _In_ size_t Stride)
+			_In_reads_bytes_(sizeof(math::Vector3) + Stride*(Count - 1)) const math::Vector3* pPoints, _In_ size_t Stride)
 		{
 			using namespace DirectX;
 
@@ -2182,15 +2182,15 @@ namespace EastEngine
 		}
 
 		Frustum::Frustum() {}
-		Frustum::Frustum(_In_ const Math::Vector3& Origin, _In_ const Math::Quaternion& Orientation,
+		Frustum::Frustum(_In_ const math::Vector3& Origin, _In_ const math::Quaternion& Orientation,
 			_In_ float RightSlope, _In_ float LeftSlope, _In_ float TopSlope, _In_ float BottomSlope,
 			_In_ float Near, _In_ float Far)
 			: Origin(Origin), Orientation(Orientation), RightSlope(RightSlope), LeftSlope(LeftSlope), TopSlope(TopSlope), BottomSlope(BottomSlope), Near(Near), Far(Far) {}
 		Frustum::Frustum(_In_ const Frustum& fr)
 			: Origin(fr.Origin), Orientation(fr.Orientation), RightSlope(fr.RightSlope), LeftSlope(fr.LeftSlope), TopSlope(fr.TopSlope), BottomSlope(fr.BottomSlope), Near(fr.Near), Far(fr.Far) {}
-		Frustum::Frustum(_In_ const Math::Matrix& Projection) { CreateFromMatrix(*this, Projection); }
+		Frustum::Frustum(_In_ const math::Matrix& Projection) { CreateFromMatrix(*this, Projection); }
 
-		void __vectorcall Frustum::Transform(_In_ const Math::Matrix& matrix)
+		void __vectorcall Frustum::Transform(_In_ const math::Matrix& matrix)
 		{
 			using namespace DirectX;
 
@@ -2236,7 +2236,7 @@ namespace EastEngine
 			BottomSlope = BottomSlope;
 		}
 
-		void __vectorcall Frustum::Transform(_In_ float Scale, _In_ const Math::Quaternion& Rotation, _In_ const Math::Vector3& Translation)
+		void __vectorcall Frustum::Transform(_In_ float Scale, _In_ const math::Quaternion& Rotation, _In_ const math::Vector3& Translation)
 		{
 			using namespace DirectX;
 
@@ -2272,7 +2272,7 @@ namespace EastEngine
 			BottomSlope = BottomSlope;
 		}
 
-		void Frustum::GetCorners(_Out_writes_(8) Math::Vector3* Corners) const
+		void Frustum::GetCorners(_Out_writes_(8) math::Vector3* Corners) const
 		{
 			using namespace DirectX;
 
@@ -2316,7 +2316,7 @@ namespace EastEngine
 			}
 		}
 
-		EmContainment::Type __vectorcall Frustum::Contains(_In_ const Math::Vector3& Point) const
+		EmContainment::Type __vectorcall Frustum::Contains(_In_ const math::Vector3& Point) const
 		{
 			using namespace DirectX;
 
@@ -2356,7 +2356,7 @@ namespace EastEngine
 			return XMVector4NotEqualInt(Outside, XMVectorTrueInt()) ? EmContainment::eContains : EmContainment::eDisjoint;
 		}
 
-		EmContainment::Type __vectorcall Frustum::Contains(_In_ const Math::Vector3& V0, _In_ const Math::Vector3& V1, _In_ const Math::Vector3& V2) const
+		EmContainment::Type __vectorcall Frustum::Contains(_In_ const math::Vector3& V0, _In_ const math::Vector3& V1, _In_ const math::Vector3& V2) const
 		{
 			using namespace DirectX;
 
@@ -2713,7 +2713,7 @@ namespace EastEngine
 			using namespace DirectX;
 
 			// Make the axis aligned box oriented and do an OBB vs frustum test.
-			OBB obox(box.Center, box.Extents, Math::Quaternion::Identity);
+			OBB obox(box.Center, box.Extents, math::Quaternion::Identity);
 			return Intersects(obox);
 		}
 
@@ -3126,7 +3126,7 @@ namespace EastEngine
 			return true;
 		}
 
-		bool __vectorcall Frustum::Intersects(_In_ const Math::Vector3& v0, _In_ const Math::Vector3& v1, _In_ const Math::Vector3& v2) const
+		bool __vectorcall Frustum::Intersects(_In_ const math::Vector3& v0, _In_ const math::Vector3& v1, _In_ const math::Vector3& v2) const
 		{
 			using namespace DirectX;
 
@@ -3279,7 +3279,7 @@ namespace EastEngine
 			return true;
 		}
 
-		EmPlaneIntersection::Type __vectorcall Frustum::Intersects(_In_ const Math::Plane& Plane) const
+		EmPlaneIntersection::Type __vectorcall Frustum::Intersects(_In_ const math::Plane& Plane) const
 		{
 			using namespace DirectX;
 
@@ -3333,7 +3333,7 @@ namespace EastEngine
 			return EmPlaneIntersection::eIntersecting;
 		}
 
-		bool __vectorcall Frustum::Intersects(_In_ const Math::Vector3& rayOrigin, _In_ const Math::Vector3& Direction, _Out_ float& Dist) const
+		bool __vectorcall Frustum::Intersects(_In_ const math::Vector3& rayOrigin, _In_ const math::Vector3& Direction, _Out_ float& Dist) const
 		{
 			using namespace DirectX;
 
@@ -3430,8 +3430,8 @@ namespace EastEngine
 			return false;
 		}
 
-		EmContainment::Type __vectorcall Frustum::ContainedBy(_In_ const Math::Plane& Plane0, _In_ const Math::Plane& Plane1, _In_ const Math::Plane& Plane2,
-			_In_ const Math::Plane& Plane3, _In_ const Math::Plane& Plane4, _In_ const Math::Plane& Plane5) const
+		EmContainment::Type __vectorcall Frustum::ContainedBy(_In_ const math::Plane& Plane0, _In_ const math::Plane& Plane1, _In_ const math::Plane& Plane2,
+			_In_ const math::Plane& Plane3, _In_ const math::Plane& Plane4, _In_ const math::Plane& Plane5) const
 		{
 			using namespace DirectX;
 
@@ -3524,8 +3524,8 @@ namespace EastEngine
 		}
 		// Test frustum against six planes (see Frustum::GetPlanes)
 
-		void Frustum::GetPlanes(_Out_opt_ Math::Plane* NearPlane, _Out_opt_ Math::Plane* FarPlane, _Out_opt_ Math::Plane* RightPlane,
-			_Out_opt_ Math::Plane* LeftPlane, _Out_opt_ Math::Plane* TopPlane, _Out_opt_ Math::Plane* BottomPlane) const
+		void Frustum::GetPlanes(_Out_opt_ math::Plane* NearPlane, _Out_opt_ math::Plane* FarPlane, _Out_opt_ math::Plane* RightPlane,
+			_Out_opt_ math::Plane* LeftPlane, _Out_opt_ math::Plane* TopPlane, _Out_opt_ math::Plane* BottomPlane) const
 		{
 			using namespace DirectX;
 
@@ -3577,7 +3577,7 @@ namespace EastEngine
 		}
 
 		// Static methods
-		void __vectorcall Frustum::CreateFromMatrix(_Out_ Frustum& Out, _In_ const Math::Matrix& Projection)
+		void __vectorcall Frustum::CreateFromMatrix(_Out_ Frustum& Out, _In_ const math::Matrix& Projection)
 		{
 			using namespace DirectX;
 
@@ -3607,8 +3607,8 @@ namespace EastEngine
 				Points[i] = XMVector4Transform(HomogenousPoints[i], matInverse);
 			}
 
-			Out.Origin = Math::Vector3::Zero;
-			Out.Orientation = Math::Quaternion::Identity;
+			Out.Origin = math::Vector3::Zero;
+			Out.Orientation = math::Quaternion::Identity;
 
 			// Compute the slopes.
 			Points[0] = Points[0] * XMVectorReciprocal(XMVectorSplatZ(Points[0]));
@@ -3630,7 +3630,7 @@ namespace EastEngine
 		}
 
 		Ray::Ray() : position(0.f, 0.f, 0.f), direction(0.f, 0.f, 1.f) {}
-		Ray::Ray(const Math::Vector3& pos, const Math::Vector3& dir) : position(pos), direction(dir) {}
+		Ray::Ray(const math::Vector3& pos, const math::Vector3& dir) : position(pos), direction(dir) {}
 
 		bool Ray::operator == (const Ray& r) const
 		{
@@ -3667,12 +3667,12 @@ namespace EastEngine
 			return box.Intersects(position, direction, Dist);
 		}
 
-		bool Ray::Intersects(const Math::Vector3& tri0, const Math::Vector3& tri1, const Math::Vector3& tri2, _Out_ float& Dist) const
+		bool Ray::Intersects(const math::Vector3& tri0, const math::Vector3& tri1, const math::Vector3& tri2, _Out_ float& Dist) const
 		{
 			return DirectX::TriangleTests::Intersects(position, direction, tri0, tri1, tri2, Dist);
 		}
 
-		bool Ray::Intersects(const Math::Plane& plane, _Out_ float& Dist) const
+		bool Ray::Intersects(const math::Plane& plane, _Out_ float& Dist) const
 		{
 			using namespace DirectX;
 
@@ -3707,16 +3707,16 @@ namespace EastEngine
 			}
 		}
 
-		Ray __vectorcall Ray::CreateFromScreenCoordinates(const Math::Int2& n2ScreenPoint, const Math::UInt2& n2ScreenSize, const Math::Matrix& matView, const Math::Matrix& matProjection)
+		Ray __vectorcall Ray::CreateFromScreenCoordinates(const math::Int2& n2ScreenPoint, const math::UInt2& n2ScreenSize, const math::Matrix& matView, const math::Matrix& matProjection)
 		{
-			Math::Vector2 f2Point;
+			math::Vector2 f2Point;
 			f2Point.x = (((2.f * n2ScreenPoint.x) / n2ScreenSize.x) - 1.f) / matProjection._11;
 			f2Point.y = -(((2.f * n2ScreenPoint.y) / n2ScreenSize.y) - 1.f) / matProjection._22;
 
-			Math::Matrix matInvView = matView.Invert();
+			math::Matrix matInvView = matView.Invert();
 
-			Math::Vector3 f3Position(matInvView._41, matInvView._42, matInvView._43);
-			Math::Vector3 f3Direction(f2Point.x * matInvView._11 + f2Point.y * matInvView._21 + matInvView._31,
+			math::Vector3 f3Position(matInvView._41, matInvView._42, matInvView._43);
+			math::Vector3 f3Direction(f2Point.x * matInvView._11 + f2Point.y * matInvView._21 + matInvView._31,
 				f2Point.x * matInvView._12 + f2Point.y * matInvView._22 + matInvView._32,
 				f2Point.x * matInvView._13 + f2Point.y * matInvView._23 + matInvView._33);
 			f3Direction.Normalize();
@@ -3727,27 +3727,27 @@ namespace EastEngine
 		//-----------------------------------------------------------------------------
 		// TriangleTests Function
 		//-----------------------------------------------------------------------------
-		bool __vectorcall TriangleTests::Intersects(_In_ const Math::Vector3& Origin, _In_ const Math::Vector3& Direction, _In_ const Math::Vector3& V0, _In_ const Math::Vector3& V1, _In_ const Math::Vector3& V2, _Out_ float& Dist)
+		bool __vectorcall TriangleTests::Intersects(_In_ const math::Vector3& Origin, _In_ const math::Vector3& Direction, _In_ const math::Vector3& V0, _In_ const math::Vector3& V1, _In_ const math::Vector3& V2, _Out_ float& Dist)
 		{
 			return DirectX::TriangleTests::Intersects(Origin, Direction, V0, V1, V2, Dist);
 		}
 		// Ray-Triangle
 
-		bool __vectorcall TriangleTests::Intersects(_In_ const Math::Vector3& A0, _In_ const Math::Vector3& A1, _In_ const Math::Vector3& A2, _In_ const Math::Vector3& B0, _In_ const Math::Vector3& B1, _In_ const Math::Vector3& B2)
+		bool __vectorcall TriangleTests::Intersects(_In_ const math::Vector3& A0, _In_ const math::Vector3& A1, _In_ const math::Vector3& A2, _In_ const math::Vector3& B0, _In_ const math::Vector3& B1, _In_ const math::Vector3& B2)
 		{
 			return DirectX::TriangleTests::Intersects(A0, A1, A2, B0, B1, B2);
 		}
 		// Triangle-Triangle
 
-		EmPlaneIntersection::Type __vectorcall TriangleTests::Intersects(_In_ const Math::Vector3& V0, _In_ const Math::Vector3& V1, _In_ const Math::Vector3& V2, _In_ const Math::Plane& Plane)
+		EmPlaneIntersection::Type __vectorcall TriangleTests::Intersects(_In_ const math::Vector3& V0, _In_ const math::Vector3& V1, _In_ const math::Vector3& V2, _In_ const math::Plane& Plane)
 		{
 			return static_cast<EmPlaneIntersection::Type>(DirectX::TriangleTests::Intersects(V0, V1, V2, Plane));
 		}
 		// Plane-Triangle
 
-		EmContainment::Type __vectorcall TriangleTests::ContainedBy(_In_ const Math::Vector3& V0, _In_ const Math::Vector3& V1, _In_ const Math::Vector3& V2,
-			_In_ const Math::Vector3& Plane0, _In_ const Math::Vector3& Plane1, _In_ const Math::Vector3& Plane2,
-			_In_ const Math::Vector3& Plane3, _In_ const Math::Vector3& Plane4, _In_ const Math::Vector3& Plane5)
+		EmContainment::Type __vectorcall TriangleTests::ContainedBy(_In_ const math::Vector3& V0, _In_ const math::Vector3& V1, _In_ const math::Vector3& V2,
+			_In_ const math::Vector3& Plane0, _In_ const math::Vector3& Plane1, _In_ const math::Vector3& Plane2,
+			_In_ const math::Vector3& Plane3, _In_ const math::Vector3& Plane4, _In_ const math::Vector3& Plane5)
 		{
 			return static_cast<EmContainment::Type>(DirectX::TriangleTests::ContainedBy(V0, V1, V2, Plane0, Plane1, Plane2, Plane3, Plane4, Plane5));
 		}

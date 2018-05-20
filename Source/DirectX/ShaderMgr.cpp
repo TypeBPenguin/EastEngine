@@ -7,9 +7,9 @@
 
 #include "Effect.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class ShaderManager::Impl
 		{
@@ -67,7 +67,7 @@ namespace EastEngine
 
 		ShaderManager::Impl::Impl()
 		{
-			File::DirectoryMonitor::GetInstance()->AddDirectoryMonitor(File::GetPath(File::EmPath::eFx), DirectoryMonitorCallback);
+			file::DirectoryMonitor::GetInstance()->AddDirectoryMonitor(file::GetPath(file::EmPath::eFx), DirectoryMonitorCallback);
 		}
 
 		ShaderManager::Impl::~Impl()
@@ -82,7 +82,7 @@ namespace EastEngine
 
 		void ShaderManager::Impl::Flush()
 		{
-			PERF_TRACER_EVENT("ShaderManager::Flush", "");
+			TRACER_EVENT("ShaderManager::Flush");
 			while (m_conQueueCompleteEffectAsyncLoader.empty() == false)
 			{
 				CompleteEffectAsyncLoader loader;

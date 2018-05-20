@@ -4,11 +4,10 @@
 #include "GeometryModel.h"
 
 #include "CommonLib/Config.h"
-#include "Renderer/RendererManager.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		ModelNodeStatic::ModelNodeStatic(uint32_t nLodMax)
 			: ModelNode(EmModelNode::eStatic)
@@ -20,22 +19,22 @@ namespace EastEngine
 		{
 		}
 
-		void ModelNodeStatic::Update(float fElapsedTime, const Math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance, bool isModelVisible) const
+		void ModelNodeStatic::Update(float fElapsedTime, const math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance, bool isModelVisible) const
 		{
-			Math::Matrix matTransformation = matParent;
+			math::Matrix matTransformation = matParent;
 			if (m_strAttachedBoneName.empty() == false && pSkeletonInstance != nullptr)
 			{
 				ISkeletonInstance::IBone* pBone = pSkeletonInstance->GetBone(m_strAttachedBoneName);
 				if (pBone != nullptr)
 				{
-					const Math::Matrix& matMotionTransform = pBone->GetSkinningMatrix();
+					const math::Matrix& matMotionTransform = pBone->GetSkinningMatrix();
 					matTransformation = matMotionTransform * matParent;
 				}
 			}
 
 			if (m_isVisible == true && isModelVisible == true)
 			{
-				uint32_t nLevel = Math::Min(m_nLod, m_nLodMax);
+				uint32_t nLevel = math::Min(m_nLod, m_nLodMax);
 				if (m_pVertexBuffer[nLevel] == nullptr || m_pIndexBuffer[nLevel] == nullptr)
 				{
 					LOG_WARNING("Model Data is nullptr, LOD : %d, %d", nLevel, m_nLodMax);
@@ -66,8 +65,8 @@ namespace EastEngine
 						if (pMaterial != nullptr && pMaterial->IsVisible() == false)
 							continue;
 
-						RenderSubsetStatic subset(&modelSubset, m_pVertexBuffer[nLevel], m_pIndexBuffer[nLevel], pMaterial, matTransformation, modelSubset.nStartIndex, modelSubset.nIndexCount, m_fDistanceFromCamera, boundingSphere);
-						RendererManager::GetInstance()->AddRender(subset);
+						RenderJobStatic subset(&modelSubset, m_pVertexBuffer[nLevel], m_pIndexBuffer[nLevel], pMaterial, matTransformation, modelSubset.nStartIndex, modelSubset.nIndexCount, m_fDistanceFromCamera, boundingSphere);
+						PushRenderJob(subset);
 					}
 				}
 			}

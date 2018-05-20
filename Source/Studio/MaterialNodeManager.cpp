@@ -4,15 +4,15 @@
 #include "imgui.h"
 #include "imguiConvertor.h"
 
-using namespace EastEngine;
+using namespace eastengine;
 
 const float NODE_SLOT_RADIUS = 4.f;
-const Math::Vector2 NODE_WINDOW_PADDING(8.f, 8.f);
+const math::Vector2 NODE_WINDOW_PADDING(8.f, 8.f);
 
 static inline ImVec2 operator+(const ImVec2& lhs, const ImVec2& rhs) { return ImVec2(lhs.x + rhs.x, lhs.y + rhs.y); }
 static inline ImVec2 operator-(const ImVec2& lhs, const ImVec2& rhs) { return ImVec2(lhs.x - rhs.x, lhs.y - rhs.y); }
 
-void MaterialNode::InOutSlot::Render(ImDrawList* pDrawList, const EastEngine::Math::Vector2& f2Offset)
+void MaterialNode::InOutSlot::Render(ImDrawList* pDrawList, const eastengine::math::Vector2& f2Offset)
 {
 	isActive = false;
 	isHovered = false;
@@ -24,7 +24,7 @@ void MaterialNode::InOutSlot::Render(ImDrawList* pDrawList, const EastEngine::Ma
 	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImColor(0, 0, 0, 0));
 	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImColor(0, 0, 0, 0));
 
-	ImGui::Button(strLabel.c_str(), Math::Convert(f2ButtonSize));
+	ImGui::Button(strLabel.c_str(), math::Convert(f2ButtonSize));
 
 	ImGui::PopStyleColor(3);
 	ImGui::PopID();
@@ -55,11 +55,11 @@ void MaterialNode::InOutSlot::Render(ImDrawList* pDrawList, const EastEngine::Ma
 		}
 	}
 
-	Math::Vector2 f2CursorPos(Math::Convert(ImGui::GetCursorPos()));
+	math::Vector2 f2CursorPos(math::Convert(ImGui::GetCursorPos()));
 	
-	if (f2Size == Math::Vector2::Zero)
+	if (f2Size == math::Vector2::Zero)
 	{
-		f2Size = Math::Convert(ImGui::GetItemRectSize());
+		f2Size = math::Convert(ImGui::GetItemRectSize());
 	}
 
 	f2Pos = f2LinkerPos = f2CursorPos;
@@ -75,12 +75,12 @@ void MaterialNode::InOutSlot::Render(ImDrawList* pDrawList, const EastEngine::Ma
 	}
 }
 
-void MaterialNode::InOutSlot::RenderBackground(ImDrawList* pDrawList, const EastEngine::Math::Vector2& f2Offset)
+void MaterialNode::InOutSlot::RenderBackground(ImDrawList* pDrawList, const eastengine::math::Vector2& f2Offset)
 {
-	Math::Vector2 f2RectMin(f2Offset + f2Pos);
+	math::Vector2 f2RectMin(f2Offset + f2Pos);
 	f2RectMin.y -= f2Size.y;
 
-	Math::Vector2 f2RectMax(f2RectMin + f2Size);
+	math::Vector2 f2RectMax(f2RectMin + f2Size);
 
 	ImColor color;
 	switch (emValueType)
@@ -135,13 +135,13 @@ void MaterialNode::InOutSlot::RenderBackground(ImDrawList* pDrawList, const East
 		break;
 	}
 
-	pDrawList->AddRectFilled(Math::Convert(f2RectMin), Math::Convert(f2RectMax), color, 4.f);
-	pDrawList->AddRect(Math::Convert(f2RectMin), Math::Convert(f2RectMax), color, 4.f);
+	pDrawList->AddRectFilled(math::Convert(f2RectMin), math::Convert(f2RectMax), color, 4.f);
+	pDrawList->AddRect(math::Convert(f2RectMin), math::Convert(f2RectMax), color, 4.f);
 
-	pDrawList->AddCircleFilled(Math::Convert(f2Offset + f2LinkerPos), NODE_SLOT_RADIUS, ImColor(150, 150, 150, 150));
+	pDrawList->AddCircleFilled(math::Convert(f2Offset + f2LinkerPos), NODE_SLOT_RADIUS, ImColor(150, 150, 150, 150));
 }
 
-void MaterialNode::RenderNode(ImDrawList* pDrawList, const EastEngine::Math::Vector2& f2Offset)
+void MaterialNode::RenderNode(ImDrawList* pDrawList, const eastengine::math::Vector2& f2Offset)
 {
 	ImGui::Text("%s", m_strName.c_str());
 
@@ -168,7 +168,7 @@ void MaterialNode::RenderNode(ImDrawList* pDrawList, const EastEngine::Math::Vec
 	}
 }
 
-void MaterialNode::RenderNodeBackground(ImDrawList* pDrawList, const EastEngine::Math::Vector2& f2Offset)
+void MaterialNode::RenderNodeBackground(ImDrawList* pDrawList, const eastengine::math::Vector2& f2Offset)
 {
 	if (m_vecInputSlot.empty() == false)
 	{
@@ -187,16 +187,16 @@ void MaterialNode::RenderNodeBackground(ImDrawList* pDrawList, const EastEngine:
 	}
 }
 
-void MaterialNode::Update(ImDrawList* pDrawList, const EastEngine::Math::Vector2& f2Offset)
+void MaterialNode::Update(ImDrawList* pDrawList, const eastengine::math::Vector2& f2Offset)
 {
 	ImGui::PushID(m_nID);
-	EastEngine::Math::Vector2 f2NodeRectMin(f2Offset + m_f2Pos);
+	eastengine::math::Vector2 f2NodeRectMin(f2Offset + m_f2Pos);
 
 	// Display node contents first
 	pDrawList->ChannelsSetCurrent(1); // Foreground
 	bool isOldAnyActive = ImGui::IsAnyItemActive();
 
-	ImGui::SetCursorScreenPos(Math::Convert(f2NodeRectMin + NODE_WINDOW_PADDING));
+	ImGui::SetCursorScreenPos(math::Convert(f2NodeRectMin + NODE_WINDOW_PADDING));
 
 	ImGui::BeginGroup(); // Lock horizontal position
 
@@ -206,16 +206,16 @@ void MaterialNode::Update(ImDrawList* pDrawList, const EastEngine::Math::Vector2
 
 	// Save the size of what we have emitted and whether any of the widgets are being used
 	bool isNodeActive = (!isOldAnyActive && ImGui::IsAnyItemActive());
-	m_f2Size = Math::Convert(ImGui::GetItemRectSize()) + NODE_WINDOW_PADDING + NODE_WINDOW_PADDING;
+	m_f2Size = math::Convert(ImGui::GetItemRectSize()) + NODE_WINDOW_PADDING + NODE_WINDOW_PADDING;
 
-	Math::Vector2 f2NodeRectMax(f2NodeRectMin + m_f2Size);
+	math::Vector2 f2NodeRectMax(f2NodeRectMin + m_f2Size);
 
 	// Display node box
 	pDrawList->ChannelsSetCurrent(0); // Background
 
-	ImGui::SetCursorScreenPos(Math::Convert(f2NodeRectMin));
+	ImGui::SetCursorScreenPos(math::Convert(f2NodeRectMin));
 
-	ImGui::InvisibleButton("node", Math::Convert(m_f2Size));
+	ImGui::InvisibleButton("node", math::Convert(m_f2Size));
 
 	if (ImGui::IsItemHovered())
 	{
@@ -234,20 +234,20 @@ void MaterialNode::Update(ImDrawList* pDrawList, const EastEngine::Math::Vector2
 
 	if (isNodeMovingActive && ImGui::IsMouseDragging(0))
 	{
-		m_f2Pos += Math::Convert(ImGui::GetIO().MouseDelta);
+		m_f2Pos += math::Convert(ImGui::GetIO().MouseDelta);
 	}
 
 	ImU32 nodeBgColor = (m_pManager->GetHoveredNodeIDInList() == m_nID || m_pManager->GetHoveredNodeIDInScene() == m_nID || (m_pManager->GetHoveredNodeIDInList() == -1 && m_pManager->GetSelectedNodeID() == m_nID)) ? ImColor(75, 75, 75) : ImColor(60, 60, 60);
 
-	pDrawList->AddRectFilled(Math::Convert(f2NodeRectMin), Math::Convert(f2NodeRectMax), nodeBgColor, 4.f);
-	pDrawList->AddRect(Math::Convert(f2NodeRectMin), Math::Convert(f2NodeRectMax), ImColor(100, 100, 100), 4.f);
+	pDrawList->AddRectFilled(math::Convert(f2NodeRectMin), math::Convert(f2NodeRectMax), nodeBgColor, 4.f);
+	pDrawList->AddRect(math::Convert(f2NodeRectMin), math::Convert(f2NodeRectMax), ImColor(100, 100, 100), 4.f);
 
 	RenderNodeBackground(pDrawList, f2Offset);
 
 	ImGui::PopID();
 }
 
-void MaterialNodeManager::ValueFloatNode::RenderNode(ImDrawList* pDrawList, const EastEngine::Math::Vector2& f2Offset)
+void MaterialNodeManager::ValueFloatNode::RenderNode(ImDrawList* pDrawList, const eastengine::math::Vector2& f2Offset)
 {
 	ImGui::Text("%s", m_strName.c_str());
 
@@ -280,25 +280,25 @@ void MaterialNodeManager::ValueFloatNode::RenderNode(ImDrawList* pDrawList, cons
 	}
 }
 
-void MaterialNodeManager::ValueFloatNode::RenderNodeBackground(ImDrawList* pDrawList, const EastEngine::Math::Vector2& f2Offset)
+void MaterialNodeManager::ValueFloatNode::RenderNodeBackground(ImDrawList* pDrawList, const eastengine::math::Vector2& f2Offset)
 {
-	Math::Vector2 f2NodeRectMin(f2Offset + m_f2Pos);
+	math::Vector2 f2NodeRectMin(f2Offset + m_f2Pos);
 	f2NodeRectMin.x += m_f2Size.x * 0.1f;
 	f2NodeRectMin.y += m_f2Size.y * 0.25f;
 
-	Math::Vector2 f2NodeRectMax(f2NodeRectMin);
+	math::Vector2 f2NodeRectMax(f2NodeRectMin);
 	f2NodeRectMax.x += m_f2Size.x * 0.7f;
 	f2NodeRectMax.y += m_f2Size.y * 0.25f;
 
 	ImColor color(m_fValue, 0.f, 0.f, 1.f);
 
-	pDrawList->AddRectFilled(Math::Convert(f2NodeRectMin), Math::Convert(f2NodeRectMax), color, 4.f);
-	pDrawList->AddRect(Math::Convert(f2NodeRectMin), Math::Convert(f2NodeRectMax), ImColor(100, 100, 100), 4.f);
+	pDrawList->AddRectFilled(math::Convert(f2NodeRectMin), math::Convert(f2NodeRectMax), color, 4.f);
+	pDrawList->AddRect(math::Convert(f2NodeRectMin), math::Convert(f2NodeRectMax), ImColor(100, 100, 100), 4.f);
 
 	MaterialNode::RenderNodeBackground(pDrawList, f2Offset);
 }
 
-void MaterialNodeManager::ValueFloat2Node::RenderNode(ImDrawList* pDrawList, const EastEngine::Math::Vector2& f2Offset)
+void MaterialNodeManager::ValueFloat2Node::RenderNode(ImDrawList* pDrawList, const eastengine::math::Vector2& f2Offset)
 {
 	ImGui::Text("%s", m_strName.c_str());
 
@@ -333,20 +333,20 @@ void MaterialNodeManager::ValueFloat2Node::RenderNode(ImDrawList* pDrawList, con
 	}
 }
 
-void MaterialNodeManager::ValueFloat2Node::RenderNodeBackground(ImDrawList* pDrawList, const EastEngine::Math::Vector2& f2Offset)
+void MaterialNodeManager::ValueFloat2Node::RenderNodeBackground(ImDrawList* pDrawList, const eastengine::math::Vector2& f2Offset)
 {
-	Math::Vector2 f2NodeRectMin(f2Offset + m_f2Pos);
+	math::Vector2 f2NodeRectMin(f2Offset + m_f2Pos);
 	f2NodeRectMin.x += m_f2Size.x * 0.075f;
 	f2NodeRectMin.y += m_f2Size.y * 0.175f;
 
-	Math::Vector2 f2NodeRectMax(f2NodeRectMin);
+	math::Vector2 f2NodeRectMax(f2NodeRectMin);
 	f2NodeRectMax.x += m_f2Size.x * 0.85f;
 	f2NodeRectMax.y += m_f2Size.y * 0.15f;
 
 	ImColor color(m_f2Value.x, m_f2Value.y, 0.f, 1.f);
 
-	pDrawList->AddRectFilled(Math::Convert(f2NodeRectMin), Math::Convert(f2NodeRectMax), color, 4.f);
-	pDrawList->AddRect(Math::Convert(f2NodeRectMin), Math::Convert(f2NodeRectMax), ImColor(100, 100, 100), 4.f);
+	pDrawList->AddRectFilled(math::Convert(f2NodeRectMin), math::Convert(f2NodeRectMax), color, 4.f);
+	pDrawList->AddRect(math::Convert(f2NodeRectMin), math::Convert(f2NodeRectMax), ImColor(100, 100, 100), 4.f);
 
 	MaterialNode::RenderNodeBackground(pDrawList, f2Offset);
 }
@@ -363,8 +363,8 @@ MaterialNodeManager::MaterialNodeManager()
 	, m_nHoveredNodeSlotIndex(-1)
 	, m_emSelectedSlotType(MaterialNode::InOutSlot::eNone)
 {
-	m_vecNodes.emplace_back(new InputNode(this, AllocateID(), Math::Vector2(50.f, 50.f)));
-	m_vecNodes.emplace_back(new OutputNode(this, AllocateID(), Math::Vector2(350.f, 50.f)));
+	m_vecNodes.emplace_back(new InputNode(this, AllocateID(), math::Vector2(50.f, 50.f)));
+	m_vecNodes.emplace_back(new OutputNode(this, AllocateID(), math::Vector2(350.f, 50.f)));
 }
 
 MaterialNodeManager::~MaterialNodeManager()
@@ -438,7 +438,7 @@ void MaterialNodeManager::Update(bool& isOpend)
 	ImGui::BeginChild("scrolling_region", ImVec2(0, 0), true, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove);
 	ImGui::PushItemWidth(120.0f);
 
-	Math::Vector2 f2Offset = Math::Convert(ImGui::GetCursorScreenPos()) - m_f2Scrolling;
+	math::Vector2 f2Offset = math::Convert(ImGui::GetCursorScreenPos()) - m_f2Scrolling;
 	ImDrawList* pDrawList = ImGui::GetWindowDrawList();
 	pDrawList->ChannelsSplit(2);
 
@@ -531,9 +531,9 @@ void MaterialNodeManager::Update(bool& isOpend)
 					if (pSlot != nullptr)
 					{
 						p1 = ImVec2(ImGui::GetMousePos());
-						p2 = ImVec2(Math::Convert(f2Offset + pSlot->GetLinkerPos()));
+						p2 = ImVec2(math::Convert(f2Offset + pSlot->GetLinkerPos()));
 
-						fDistance = Math::Vector2::Distance(Math::Convert(p1), Math::Convert(p2)) * 0.5f;
+						fDistance = math::Vector2::Distance(math::Convert(p1), math::Convert(p2)) * 0.5f;
 					}
 				}
 				else if (m_emSelectedSlotType == MaterialNode::InOutSlot::eOut)
@@ -541,10 +541,10 @@ void MaterialNodeManager::Update(bool& isOpend)
 					pSlot = pNode->GetOutputSlot(m_nSelectedNodeSlotIndex);
 					if (pSlot != nullptr)
 					{
-						p1 = ImVec2(Math::Convert(f2Offset + pSlot->GetLinkerPos()));
+						p1 = ImVec2(math::Convert(f2Offset + pSlot->GetLinkerPos()));
 						p2 = ImVec2(ImGui::GetMousePos());
 
-						fDistance = Math::Vector2::Distance(Math::Convert(p1), Math::Convert(p2)) * 0.5f;
+						fDistance = math::Vector2::Distance(math::Convert(p1), math::Convert(p2)) * 0.5f;
 					}
 				}
 
@@ -616,10 +616,10 @@ void MaterialNodeManager::Update(bool& isOpend)
 				const MaterialNode::InOutSlot* pInputSlot = pInputNode->GetInputSlot(link.nInputNodeSlotIndex);
 				if (pOutputSlot != nullptr && pInputSlot != nullptr)
 				{
-					ImVec2 p1(Math::Convert(f2Offset + pOutputSlot->GetLinkerPos()));
-					ImVec2 p2(Math::Convert(f2Offset + pInputSlot->GetLinkerPos()));
+					ImVec2 p1(math::Convert(f2Offset + pOutputSlot->GetLinkerPos()));
+					ImVec2 p2(math::Convert(f2Offset + pInputSlot->GetLinkerPos()));
 
-					float fDistance = Math::Vector2::Distance(Math::Convert(p1), Math::Convert(p2)) * 0.5f;
+					float fDistance = math::Vector2::Distance(math::Convert(p1), math::Convert(p2)) * 0.5f;
 
 					switch (pOutputSlot->GetValueType())
 					{
@@ -717,7 +717,7 @@ void MaterialNodeManager::Update(bool& isOpend)
 	{
 		MaterialNode* pNode = GetMaterialNode(m_nSelectedNodeID);
 
-		Math::Vector2 f2ScenePos(Math::Convert(ImGui::GetMousePosOnOpeningCurrentPopup()));
+		math::Vector2 f2ScenePos(math::Convert(ImGui::GetMousePosOnOpeningCurrentPopup()));
 		f2ScenePos -= f2Offset;
 
 		if (pNode != nullptr)
@@ -793,7 +793,7 @@ void MaterialNodeManager::Update(bool& isOpend)
 	// Scrolling
 	if (ImGui::IsWindowHovered() && ImGui::IsAnyItemActive() == false && ImGui::IsMouseDragging(2, 0.f))
 	{
-		m_f2Scrolling -= Math::Convert(ImGui::GetIO().MouseDelta);
+		m_f2Scrolling -= math::Convert(ImGui::GetIO().MouseDelta);
 	}
 
 	ImGui::PopItemWidth();

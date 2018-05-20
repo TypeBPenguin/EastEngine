@@ -5,7 +5,7 @@
 
 #include "CommonLib/FileUtil.h"
 
-namespace EastEngine
+namespace eastengine
 {
 	namespace Sound
 	{
@@ -33,10 +33,10 @@ namespace EastEngine
 		public:
 			void Update(float fElapsedTime);
 
-			bool Play(const String::StringID& strSoundFile, float fVolume = 1.f, const Math::Vector3* pf3Pos = nullptr, int mode = eLoopOff | e2D | eHardware);
+			bool Play(const String::StringID& strSoundFile, float fVolume = 1.f, const math::Vector3* pf3Pos = nullptr, int mode = eLoopOff | e2D | eHardware);
 			void Stop(const String::StringID& strSoundFile);
 
-			void SetListenerPosition(const Math::Vector3* pf3ListenerPos);
+			void SetListenerPosition(const math::Vector3* pf3ListenerPos);
 
 		private:
 			FMOD::Sound* CreateSoundInst(const String::StringID& strSoundFile, int mode = eLoopOff | e2D | eHardware);
@@ -44,7 +44,7 @@ namespace EastEngine
 		private:
 			bool m_isInitialized{ false };
 			FMOD::System* m_pSystem{ nullptr };
-			const Math::Vector3* m_pf3ListenerPos{ nullptr };
+			const math::Vector3* m_pf3ListenerPos{ nullptr };
 
 			std::unordered_map<String::StringID, SoundInstance*> m_umapSoundInst;
 			std::list<String::StringID> m_listReqStopSound;
@@ -85,9 +85,9 @@ namespace EastEngine
 			if (m_isInitialized == false)
 				return;
 
-			PERF_TRACER_EVENT("SoundSystem::Update", "");
+			TRACER_EVENT("SoundSystem::Update");
 			{
-				PERF_TRACER_BEGINEVENT("SoundSystem::Update", "RequestStopSound");
+				TRACER_BEGINEVENT("SoundSystem::Update", "RequestStopSound");
 				auto iter = m_listReqStopSound.begin();
 				while (iter != m_listReqStopSound.end())
 				{
@@ -125,11 +125,11 @@ namespace EastEngine
 						++iter;
 					}
 				}
-				PERF_TRACER_ENDEVENT();
+				TRACER_ENDEVENT();
 			}
 
 			{
-				PERF_TRACER_BEGINEVENT("SoundSystem::Update", "GarbageCollect");
+				TRACER_BEGINEVENT("SoundSystem::Update", "GarbageCollect");
 				auto iter = m_umapSoundInst.begin();
 				while (iter != m_umapSoundInst.end())
 				{
@@ -165,11 +165,11 @@ namespace EastEngine
 						}
 					}
 				}
-				PERF_TRACER_ENDEVENT();
+				TRACER_ENDEVENT();
 			}
 
 			{
-				PERF_TRACER_BEGINEVENT("SoundSystem::Update", "FMOD System Update");
+				TRACER_BEGINEVENT("SoundSystem::Update", "FMOD System Update");
 				m_pSystem->update();
 
 				if (m_pf3ListenerPos != nullptr)
@@ -179,11 +179,11 @@ namespace EastEngine
 					FMOD_VECTOR vUp = { 0.f, 0.f, 1.f };
 					m_pSystem->set3DListenerAttributes(0, &vPos, nullptr, &vForward, &vUp);
 				}
-				PERF_TRACER_ENDEVENT();
+				TRACER_ENDEVENT();
 			}
 		}
 
-		bool System::Impl::Play(const String::StringID& strSoundFile, float fVolume, const Math::Vector3* pf3Pos, int mode)
+		bool System::Impl::Play(const String::StringID& strSoundFile, float fVolume, const math::Vector3* pf3Pos, int mode)
 		{
 			if (m_isInitialized == false)
 				return false;
@@ -251,7 +251,7 @@ namespace EastEngine
 			m_listReqStopSound.emplace_back(strSoundFile);
 		}
 
-		void System::Impl::SetListenerPosition(const Math::Vector3* pf3ListenerPos)
+		void System::Impl::SetListenerPosition(const math::Vector3* pf3ListenerPos)
 		{
 			if (m_isInitialized == false)
 				return;
@@ -265,7 +265,7 @@ namespace EastEngine
 				return nullptr;
 
 			// 사운드 로딩
-			std::string strFile = File::GetPath(File::eSound);
+			std::string strFile = file::GetPath(file::eSound);
 			strFile.append(strSoundFile.c_str());
 
 			FMOD_RESULT fm_result;
@@ -286,7 +286,7 @@ namespace EastEngine
 		{
 		}
 
-		bool System::Play(const String::StringID& strSoundFile, float fVolume, const Math::Vector3* pf3Pos, int mode)
+		bool System::Play(const String::StringID& strSoundFile, float fVolume, const math::Vector3* pf3Pos, int mode)
 		{
 			return m_pImpl->Play(strSoundFile, fVolume, pf3Pos, mode);
 		}
@@ -296,7 +296,7 @@ namespace EastEngine
 			m_pImpl->Stop(strSoundFile);
 		}
 
-		void System::SetListenerPosition(const Math::Vector3* pf3ListenerPos)
+		void System::SetListenerPosition(const math::Vector3* pf3ListenerPos)
 		{
 			m_pImpl->SetListenerPosition(pf3ListenerPos);
 		}

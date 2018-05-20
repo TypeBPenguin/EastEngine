@@ -15,9 +15,9 @@
 #include "RasterizerState.h"
 #include "DepthStencilState.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		Device::Device()
 			: m_hWnd(nullptr)
@@ -460,7 +460,7 @@ namespace EastEngine
 			int nThreadID = GetThreadID(ThreadType::eRender);
 
 			// 백버퍼의 내용을 지웁니다.
-			m_pd3dDeferredContext[nThreadID]->ClearRenderTargetView(m_pMainRenderTarget, Math::Color(r, g, b, a));
+			m_pd3dDeferredContext[nThreadID]->ClearRenderTargetView(m_pMainRenderTarget, math::Color(r, g, b, a));
 
 			// 깊이 버퍼를 지웁니다.
 			m_pd3dDeferredContext[nThreadID]->ClearDepthStencilView(m_pDepthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL);
@@ -468,7 +468,7 @@ namespace EastEngine
 			for (uint32_t i = 0; i < EmGBuffer::Count; ++i)
 			{
 				EmGBuffer::Type emType = static_cast<EmGBuffer::Type>(i);
-				m_pd3dDeferredContext[nThreadID]->ClearRenderTargetView(m_pGBuffers->GetGBuffer(emType), Math::Color::Transparent);
+				m_pd3dDeferredContext[nThreadID]->ClearRenderTargetView(m_pGBuffers->GetGBuffer(emType), math::Color::Transparent);
 			}
 		}
 
@@ -498,7 +498,7 @@ namespace EastEngine
 
 		void Device::Flush()
 		{
-			PERF_TRACER_EVENT("Device::Flush", "");
+			TRACER_EVENT("Device::Flush");
 			std::swap(m_nThreadID[ThreadType::eUpdate], m_nThreadID[ThreadType::eRender]);
 		}
 

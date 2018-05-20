@@ -2,9 +2,9 @@
 
 #include "MotionPlayer.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class MotionSystem : public IMotionSystem
 		{
@@ -34,8 +34,8 @@ namespace EastEngine
 
 			struct MotionTransform
 			{
-				Math::Transform motionTransform;
-				Math::Transform defaultTransform;
+				math::Transform motionTransform;
+				math::Transform defaultTransform;
 			};
 			std::vector<MotionTransform> m_vecMotionTransforms;
 

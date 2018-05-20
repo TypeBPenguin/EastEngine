@@ -4,9 +4,9 @@
 
 #include "Renderer.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class IEffect;
 		class IEffectTech;

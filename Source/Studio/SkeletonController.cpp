@@ -19,7 +19,7 @@
 #include "imgui.h"
 #include "imguiConvertor.h"
 
-using namespace EastEngine;
+using namespace eastengine;
 
 SkeletonController::SkeletonController()
 	: m_pSelectedBone(nullptr)
@@ -43,18 +43,18 @@ SkeletonController::SkeletonController()
 				switch (j)
 				{
 				case Axis::eX:
-					controller.matTransform = Math::Matrix::CreateFromYawPitchRoll(0.f, 0.f, Math::ToRadians(-90.f));
+					controller.matTransform = math::Matrix::CreateFromYawPitchRoll(0.f, 0.f, math::ToRadians(-90.f));
 					break;
 				case Axis::eY:
 					break;
 				case Axis::eZ:
-					controller.matTransform = Math::Matrix::CreateFromYawPitchRoll(0.f, Math::ToRadians(90.f), 0.f);
+					controller.matTransform = math::Matrix::CreateFromYawPitchRoll(0.f, math::ToRadians(90.f), 0.f);
 					break;
 				}
 
-				Graphics::GeometryModel::CreateCone(&controller.pVertexBuffer, &controller.pIndexBuffer, 0.01f, 0.05f);
+				graphics::GeometryModel::CreateCone(&controller.pVertexBuffer, &controller.pIndexBuffer, 0.01f, 0.05f);
 
-				rigidBodyProperty.shapeInfo.SetTriangleMesh(reinterpret_cast<const Math::Vector3*>(controller.pVertexBuffer->GetVertexPosPtr()), controller.pVertexBuffer->GetVertexNum(), controller.pIndexBuffer->GetRawValuePtr(), controller.pIndexBuffer->GetIndexNum());
+				rigidBodyProperty.shapeInfo.SetTriangleMesh(reinterpret_cast<const math::Vector3*>(controller.pVertexBuffer->GetVertexPosPtr()), controller.pVertexBuffer->GetVertexNum(), controller.pIndexBuffer->GetRawValuePtr(), controller.pIndexBuffer->GetIndexNum());
 				controller.pRigidBody = Physics::RigidBody::Create(rigidBodyProperty);
 			}
 			break;
@@ -67,18 +67,18 @@ SkeletonController::SkeletonController()
 				switch (j)
 				{
 				case Axis::eX:
-					controller.matTransform = Math::Matrix::CreateFromYawPitchRoll(0.f, 0.f, Math::ToRadians(-90.f));
+					controller.matTransform = math::Matrix::CreateFromYawPitchRoll(0.f, 0.f, math::ToRadians(-90.f));
 					break;
 				case Axis::eY:
 					break;
 				case Axis::eZ:
-					controller.matTransform = Math::Matrix::CreateFromYawPitchRoll(0.f, Math::ToRadians(90.f), 0.f);
+					controller.matTransform = math::Matrix::CreateFromYawPitchRoll(0.f, math::ToRadians(90.f), 0.f);
 					break;
 				}
 
-				Graphics::GeometryModel::CreateTorus(&controller.pVertexBuffer, &controller.pIndexBuffer, 0.2f, 0.003f);
+				graphics::GeometryModel::CreateTorus(&controller.pVertexBuffer, &controller.pIndexBuffer, 0.2f, 0.003f);
 
-				rigidBodyProperty.shapeInfo.SetTriangleMesh(reinterpret_cast<const Math::Vector3*>(controller.pVertexBuffer->GetVertexPosPtr()), controller.pVertexBuffer->GetVertexNum(), controller.pIndexBuffer->GetRawValuePtr(), controller.pIndexBuffer->GetIndexNum());
+				rigidBodyProperty.shapeInfo.SetTriangleMesh(reinterpret_cast<const math::Vector3*>(controller.pVertexBuffer->GetVertexPosPtr()), controller.pVertexBuffer->GetVertexNum(), controller.pIndexBuffer->GetRawValuePtr(), controller.pIndexBuffer->GetIndexNum());
 				controller.pRigidBody = Physics::RigidBody::Create(rigidBodyProperty);
 			}
 			break;
@@ -103,46 +103,46 @@ SkeletonController::~SkeletonController()
 
 bool SkeletonController::Process(float fElapsedTime)
 {
-	Graphics::Camera* pCamera = Graphics::Camera::GetInstance();
+	graphics::Camera* pCamera = graphics::Camera::GetInstance();
 	if (pCamera == nullptr)
 		return false;
 
-	int nThreadID = Graphics::GetThreadID(Graphics::eUpdate);
-	const Math::Int2 n2MousePoint(Input::Mouse::GetX(), Input::Mouse::GetY());
-	const Math::UInt2 n2ScreenSize = Graphics::GetDevice()->GetScreenSize();
-	const Math::Matrix& matView = pCamera->GetViewMatrix(nThreadID);
-	const Math::Matrix& matProjection = pCamera->GetProjMatrix(nThreadID);
+	int nThreadID = graphics::GetThreadID(graphics::eUpdate);
+	const math::Int2 n2MousePoint(input::Mouse::GetX(), input::Mouse::GetY());
+	const math::UInt2 n2ScreenSize = graphics::GetDevice()->GetScreenSize();
+	const math::Matrix& matView = pCamera->GetViewMatrix(nThreadID);
+	const math::Matrix& matProjection = pCamera->GetProjMatrix(nThreadID);
 
 	const Collision::Ray rayScreen = Collision::Ray::CreateFromScreenCoordinates(n2MousePoint, n2ScreenSize, matView, matProjection);
 
-	const bool isEnableRayTest = Input::Mouse::IsButtonDown(Input::Mouse::eLeft);
+	const bool isEnableRayTest = input::Mouse::IsButtonDown(input::Mouse::eLeft);
 	float fNearDistance = std::numeric_limits<float>::max();
-	Graphics::ISkeletonInstance::IBone* pNearBone = nullptr;
+	graphics::ISkeletonInstance::IBone* pNearBone = nullptr;
 	bool isExistsCollisionBone = false;
 
-	const size_t nActorCount = GameObject::ActorManager::GetInstance()->GetActorCount();
+	const size_t nActorCount = gameobject::ActorManager::GetInstance()->GetActorCount();
 	for (size_t i = 0; i < nActorCount; ++i)
 	{
-		GameObject::IActor* pActor = GameObject::ActorManager::GetInstance()->GetActor(i);
-		GameObject::ComponentModel* pCompModel = static_cast<GameObject::ComponentModel*>(pActor->GetComponent(GameObject::EmComponent::eModel));
+		gameobject::IActor* pActor = gameobject::ActorManager::GetInstance()->GetActor(i);
+		gameobject::ComponentModel* pCompModel = static_cast<gameobject::ComponentModel*>(pActor->GetComponent(gameobject::EmComponent::eModel));
 		if (pCompModel != nullptr && pCompModel->IsLoadComplete() == true)
 		{
-			Graphics::IModelInstance* pModelInstance = pCompModel->GetModelInstance();
-			Graphics::ISkeletonInstance* pSkeletonInstance = pModelInstance->GetSkeleton();
+			graphics::IModelInstance* pModelInstance = pCompModel->GetModelInstance();
+			graphics::ISkeletonInstance* pSkeletonInstance = pModelInstance->GetSkeleton();
 			if (pSkeletonInstance != nullptr)
 			{
 				const size_t nBoneCount = pSkeletonInstance->GetBoneCount();
 				for (size_t j = 0; j < nBoneCount; ++j)
 				{
-					Graphics::ISkeletonInstance::IBone* pBone = pSkeletonInstance->GetBone(j);
+					graphics::ISkeletonInstance::IBone* pBone = pSkeletonInstance->GetBone(j);
 					if (pBone != nullptr)
 					{
-						Math::Vector3 f3Scale;
-						Math::Vector3 f3Pos;
-						Math::Quaternion quatRot;
+						math::Vector3 f3Scale;
+						math::Vector3 f3Pos;
+						math::Quaternion quatRot;
 						pBone->GetGlobalMatrix().Decompose(f3Scale, quatRot, f3Pos);
 
-						const Collision::OBB obb(f3Pos, Math::Vector3(0.02f), quatRot);
+						const Collision::OBB obb(f3Pos, math::Vector3(0.02f), quatRot);
 
 						if (isEnableRayTest == true)
 						{
@@ -163,19 +163,19 @@ bool SkeletonController::Process(float fElapsedTime)
 
 						if (Config::IsEnable("VisibleSkeleton"_s))
 						{
-							Graphics::RenderSubsetVertex aabb;
-							aabb.matWorld = Math::Matrix::CreateScale(0.02f) * pBone->GetGlobalMatrix();
+							graphics::RenderSubsetVertex aabb;
+							aabb.matWorld = math::Matrix::CreateScale(0.02f) * pBone->GetGlobalMatrix();
 							aabb.isWireframe = true;
 							aabb.isIgnoreDepth = true;
-							Graphics::GeometryModel::GetDebugModel(Graphics::GeometryModel::EmDebugModel::eBox, &aabb.pVertexBuffer, &aabb.pIndexBuffer);
-							Graphics::RendererManager::GetInstance()->AddRender(aabb);
+							graphics::GeometryModel::GetDebugModel(graphics::GeometryModel::EmDebugModel::eBox, &aabb.pVertexBuffer, &aabb.pIndexBuffer);
+							graphics::RendererManager::GetInstance()->AddRender(aabb);
 
 							if (pBone->GetParent() != nullptr)
 							{
-								const Math::Vector3* pStartPos = reinterpret_cast<const Math::Vector3*>(&pBone->GetParent()->GetGlobalMatrix()._41);
-								const Math::Vector3* pEndPos = reinterpret_cast<const Math::Vector3*>(&pBone->GetGlobalMatrix()._41);
-								Graphics::RenderSubsetLineSegment line(*pStartPos, Math::Color::Blue, *pEndPos, Math::Color::Blue, true);
-								Graphics::RendererManager::GetInstance()->AddRender(line);
+								const math::Vector3* pStartPos = reinterpret_cast<const math::Vector3*>(&pBone->GetParent()->GetGlobalMatrix()._41);
+								const math::Vector3* pEndPos = reinterpret_cast<const math::Vector3*>(&pBone->GetGlobalMatrix()._41);
+								graphics::RenderSubsetLineSegment line(*pStartPos, math::Color::Blue, *pEndPos, math::Color::Blue, true);
+								graphics::RendererManager::GetInstance()->AddRender(line);
 							}
 						}
 					}
@@ -192,14 +192,14 @@ bool SkeletonController::Process(float fElapsedTime)
 	else
 	{
 		static float fDist = 0.f;
-		if (m_pSelectedBone != nullptr && Input::Mouse::IsButtonDown(Input::Mouse::eMiddle) == true)
+		if (m_pSelectedBone != nullptr && input::Mouse::IsButtonDown(input::Mouse::eMiddle) == true)
 		{
-			Math::Vector3 f3Scale;
-			Math::Vector3 f3Pos;
-			Math::Quaternion quatRot;
+			math::Vector3 f3Scale;
+			math::Vector3 f3Pos;
+			math::Quaternion quatRot;
 			m_pSelectedBone->GetGlobalMatrix().Decompose(f3Scale, quatRot, f3Pos);
 
-			const Collision::OBB obb(f3Pos, Math::Vector3(0.02f), quatRot);
+			const Collision::OBB obb(f3Pos, math::Vector3(0.02f), quatRot);
 
 			fDist = 0.f;
 			if (rayScreen.Intersects(obb, fDist) == true)
@@ -211,18 +211,18 @@ bool SkeletonController::Process(float fElapsedTime)
 				m_isBoneMoveMode = false;
 			}
 		}
-		else if (Input::Mouse::IsButtonUp(Input::Mouse::eMiddle) == true)
+		else if (input::Mouse::IsButtonUp(input::Mouse::eMiddle) == true)
 		{
 			m_isBoneMoveMode = false;
 		}
 
 		if (m_isBoneMoveMode == true)
 		{
-			Math::Matrix matInvView = matView;
-			Math::Vector3 sideward = matInvView.Right() * fDist * 0.001f * static_cast<float>(Input::Mouse::GetMoveX());
-			Math::Vector3 upward = matInvView.Up() * fDist * 0.001f * -static_cast<float>(Input::Mouse::GetMoveY());
+			math::Matrix matInvView = matView;
+			math::Vector3 sideward = matInvView.Right() * fDist * 0.001f * static_cast<float>(input::Mouse::GetMoveX());
+			math::Vector3 upward = matInvView.Up() * fDist * 0.001f * -static_cast<float>(input::Mouse::GetMoveY());
 
-			//Math::Vector3 f3Position = m_pSelectedBone->GetUserOffsetPosition() + sideward + upward;
+			//math::Vector3 f3Position = m_pSelectedBone->GetUserOffsetPosition() + sideward + upward;
 			//m_pSelectedBone->SetUserOffsetPosition(f3Position);
 
 			isExistsCollisionBone = true;
@@ -231,13 +231,13 @@ bool SkeletonController::Process(float fElapsedTime)
 
 	if (m_pSelectedBone != nullptr)
 	{
-		Graphics::RenderSubsetVertex aabb;
-		aabb.matWorld = Math::Matrix::CreateScale(0.02f) * m_pSelectedBone->GetGlobalMatrix();
+		graphics::RenderSubsetVertex aabb;
+		aabb.matWorld = math::Matrix::CreateScale(0.02f) * m_pSelectedBone->GetGlobalMatrix();
 		aabb.isWireframe = true;
 		aabb.isIgnoreDepth = true;
-		aabb.color = Math::Color::LightGreen;
-		Graphics::GeometryModel::GetDebugModel(Graphics::GeometryModel::EmDebugModel::eBox, &aabb.pVertexBuffer, &aabb.pIndexBuffer);
-		Graphics::RendererManager::GetInstance()->AddRender(aabb);
+		aabb.color = math::Color::LightGreen;
+		graphics::GeometryModel::GetDebugModel(graphics::GeometryModel::EmDebugModel::eBox, &aabb.pVertexBuffer, &aabb.pIndexBuffer);
+		graphics::RendererManager::GetInstance()->AddRender(aabb);
 
 		for (int i = 0; i < Type::TypeCount; ++i)
 		{
@@ -245,23 +245,23 @@ bool SkeletonController::Process(float fElapsedTime)
 			{
 				Controller& controller = m_controllers[j][i];
 
-				Graphics::RenderSubsetVertex renderSubsetController;
+				graphics::RenderSubsetVertex renderSubsetController;
 				renderSubsetController.isIgnoreDepth = true;
 				renderSubsetController.pVertexBuffer = controller.pVertexBuffer;
 				renderSubsetController.pIndexBuffer = controller.pIndexBuffer;
 
-				const Math::Color ControllerColor[] = 
+				const math::Color ControllerColor[] = 
 				{
-					Math::Color::Red,
-					Math::Color::Green,
-					Math::Color::Blue,
+					math::Color::Red,
+					math::Color::Green,
+					math::Color::Blue,
 				};
 
-				const Math::Color SelectedControllerColor[] =
+				const math::Color SelectedControllerColor[] =
 				{
-					Math::Color::Orange,
-					Math::Color::LightGreen,
-					Math::Color::LightBlue,
+					math::Color::Orange,
+					math::Color::LightGreen,
+					math::Color::LightBlue,
 				};
 				renderSubsetController.color = ControllerColor[j];
 
@@ -269,11 +269,11 @@ bool SkeletonController::Process(float fElapsedTime)
 				{
 				case Type::ePosition:
 				{
-					Math::Vector3 f3StartPos = m_pSelectedBone->GetGlobalMatrix().Translation();
-					Math::Vector3 f3EndPos(0.f, 0.08f, 0.f);
-					f3EndPos = Math::Vector3::TransformNormal(f3EndPos, controller.matTransform * m_pSelectedBone->GetGlobalMatrix());
+					math::Vector3 f3StartPos = m_pSelectedBone->GetGlobalMatrix().Translation();
+					math::Vector3 f3EndPos(0.f, 0.08f, 0.f);
+					f3EndPos = math::Vector3::TransformNormal(f3EndPos, controller.matTransform * m_pSelectedBone->GetGlobalMatrix());
 
-					Math::Matrix matWorld = controller.matTransform * m_pSelectedBone->GetGlobalMatrix() * Math::Matrix::CreateTranslation(f3EndPos);
+					math::Matrix matWorld = controller.matTransform * m_pSelectedBone->GetGlobalMatrix() * math::Matrix::CreateTranslation(f3EndPos);
 					if (controller.pRigidBody != nullptr)
 					{
 						controller.pRigidBody->SetWorldMatrix(matWorld);
@@ -284,12 +284,12 @@ bool SkeletonController::Process(float fElapsedTime)
 					}
 
 					renderSubsetController.matWorld = matWorld;
-					Graphics::RendererManager::GetInstance()->AddRender(renderSubsetController);
+					graphics::RendererManager::GetInstance()->AddRender(renderSubsetController);
 
 					f3EndPos += f3StartPos;
 
-					Graphics::RenderSubsetLineSegment line(f3StartPos, renderSubsetController.color, f3EndPos, renderSubsetController.color, true);
-					Graphics::RendererManager::GetInstance()->AddRender(line);
+					graphics::RenderSubsetLineSegment line(f3StartPos, renderSubsetController.color, f3EndPos, renderSubsetController.color, true);
+					graphics::RendererManager::GetInstance()->AddRender(line);
 				}
 				break;
 				case Type::eScale:
@@ -298,7 +298,7 @@ bool SkeletonController::Process(float fElapsedTime)
 				break;
 				case Type::eRotation:
 				{
-					Math::Matrix matWorld = controller.matTransform * Math::Matrix::CreateTranslation(m_pSelectedBone->GetGlobalMatrix().Translation());
+					math::Matrix matWorld = controller.matTransform * math::Matrix::CreateTranslation(m_pSelectedBone->GetGlobalMatrix().Translation());
 					if (controller.pRigidBody != nullptr)
 					{
 						controller.pRigidBody->SetWorldMatrix(matWorld);
@@ -309,7 +309,7 @@ bool SkeletonController::Process(float fElapsedTime)
 					}
 
 					renderSubsetController.matWorld = matWorld;
-					Graphics::RendererManager::GetInstance()->AddRender(renderSubsetController);
+					graphics::RendererManager::GetInstance()->AddRender(renderSubsetController);
 				}
 				break;
 				}
@@ -338,13 +338,13 @@ void SkeletonController::RenderUI()
 		{
 		case 0:
 		{
-			//Math::Vector3 f3Scale = m_pSelectedBone->GetUserOffsetScale();
-			//Math::Vector3 f3Rotation = m_pSelectedBone->GetUserOffsetRotation();
-			//Math::Vector3 f3Position = m_pSelectedBone->GetUserOffsetPosition();
+			//math::Vector3 f3Scale = m_pSelectedBone->GetUserOffsetScale();
+			//math::Vector3 f3Rotation = m_pSelectedBone->GetUserOffsetRotation();
+			//math::Vector3 f3Position = m_pSelectedBone->GetUserOffsetPosition();
 
-			//f3Rotation.x = Math::ToDegrees(f3Rotation.x);
-			//f3Rotation.y = Math::ToDegrees(f3Rotation.y);
-			//f3Rotation.z = Math::ToDegrees(f3Rotation.z);
+			//f3Rotation.x = math::ToDegrees(f3Rotation.x);
+			//f3Rotation.y = math::ToDegrees(f3Rotation.y);
+			//f3Rotation.z = math::ToDegrees(f3Rotation.z);
 
 			//static float values[7] = { 0.0f, 0.60f, 0.35f, 0.9f, 0.70f, 0.20f, 0.0f };
 			//ImGui::PushID("SelectedBone");
@@ -372,9 +372,9 @@ void SkeletonController::RenderUI()
 			//ImGui::BeginGroup();
 			//ImGui::PushID("Rotation");
 			//ImGui::Text("Rotation");
-			////ImGui::DragFloat("x", &f3Rotation.x, 0.001f, -Math::PI, Math::PI, "%.3f");
-			////ImGui::DragFloat("y", &f3Rotation.y, 0.001f, -Math::PI, Math::PI, "%.3f");
-			////ImGui::DragFloat("z", &f3Rotation.z, 0.001f, -Math::PI, Math::PI, "%.3f");
+			////ImGui::DragFloat("x", &f3Rotation.x, 0.001f, -math::PI, math::PI, "%.3f");
+			////ImGui::DragFloat("y", &f3Rotation.y, 0.001f, -math::PI, math::PI, "%.3f");
+			////ImGui::DragFloat("z", &f3Rotation.z, 0.001f, -math::PI, math::PI, "%.3f");
 			//ImGui::DragFloat("x", &f3Rotation.x, 0.1f, -360.f, 360.f, "%.3f");
 			//ImGui::DragFloat("y", &f3Rotation.y, 0.1f, -360.f, 360.f, "%.3f");
 			//ImGui::DragFloat("z", &f3Rotation.z, 0.1f, -360.f, 360.f, "%.3f");
@@ -389,15 +389,15 @@ void SkeletonController::RenderUI()
 
 			//if (isReset == true)
 			//{
-			//	m_pSelectedBone->SetUserOffsetScale(Math::Vector3::One);
-			//	m_pSelectedBone->SetUserOffsetRotation(Math::Vector3::Zero);
-			//	m_pSelectedBone->SetUserOffsetPosition(Math::Vector3::Zero);
+			//	m_pSelectedBone->SetUserOffsetScale(math::Vector3::One);
+			//	m_pSelectedBone->SetUserOffsetRotation(math::Vector3::Zero);
+			//	m_pSelectedBone->SetUserOffsetPosition(math::Vector3::Zero);
 			//}
 			//else
 			//{
-			//	f3Rotation.x = Math::ToRadians(f3Rotation.x);
-			//	f3Rotation.y = Math::ToRadians(f3Rotation.y);
-			//	f3Rotation.z = Math::ToRadians(f3Rotation.z);
+			//	f3Rotation.x = math::ToRadians(f3Rotation.x);
+			//	f3Rotation.y = math::ToRadians(f3Rotation.y);
+			//	f3Rotation.z = math::ToRadians(f3Rotation.z);
 
 			//	m_pSelectedBone->SetUserOffsetScale(f3Scale);
 			//	m_pSelectedBone->SetUserOffsetRotation(f3Rotation);
@@ -407,7 +407,7 @@ void SkeletonController::RenderUI()
 		break;
 		case 1:
 		{
-			//Math::Transform transform = m_pSelectedBone->GetMotionMatrix();
+			//math::Transform transform = m_pSelectedBone->GetMotionMatrix();
 		}
 		break;
 		}

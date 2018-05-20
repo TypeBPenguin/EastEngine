@@ -5,14 +5,14 @@ namespace ATG
 	class ExportScene;
 }
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class Motion;
 		class Model;
 
-		bool WriteModel(Model* pModel, const std::unordered_map<String::StringID, Math::Matrix>& umapMotionOffset);
+		bool WriteModel(Model* pModel, const std::unordered_map<String::StringID, math::Matrix>& umapMotionOffset);
 		bool WriteMotion(Motion* pMotion);
 	}
 }

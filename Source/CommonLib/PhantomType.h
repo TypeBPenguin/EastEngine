@@ -1,6 +1,6 @@
 #pragma once
 
-namespace EastEngine
+namespace eastengine
 {
 	template <typename PHANTOM_TYPE, typename VALUE>
 	struct PhantomType
@@ -9,6 +9,11 @@ namespace EastEngine
 
 		explicit PhantomType(const VALUE& value)
 			: value(value)
+		{
+		}
+
+		PhantomType(VALUE&& value) noexcept
+			: value(std::move(value))
 		{
 		}
 

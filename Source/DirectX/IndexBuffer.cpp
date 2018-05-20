@@ -1,9 +1,9 @@
 #include "stdafx.h"
 #include "IndexBuffer.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		IndexBuffer::IndexBuffer()
 			: m_pIndexBuffer(nullptr)

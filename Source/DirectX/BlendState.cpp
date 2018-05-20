@@ -1,9 +1,9 @@
 #include "stdafx.h"
 #include "BlendState.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		BlendState::BlendState()
 			: m_pBlendState(nullptr)

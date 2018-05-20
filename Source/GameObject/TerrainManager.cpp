@@ -5,9 +5,9 @@
 
 #include "Terrain.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace GameObject
+	namespace gameobject
 	{
 		class TerrainManager::Impl
 		{
@@ -40,7 +40,7 @@ namespace EastEngine
 
 		void TerrainManager::Impl::Update(float fElapsedTime)
 		{
-			PERF_TRACER_EVENT("TerrainManager::Update", "");
+			TRACER_EVENT("TerrainManager::Update");
 			auto iter = m_colonyTerrain.begin();
 			auto iter_end = m_colonyTerrain.end();
 			while (iter != iter_end)

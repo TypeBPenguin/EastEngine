@@ -4,9 +4,9 @@
 
 #include "Singleton.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Thread
+	namespace thread
 	{
 		class ThreadPool;
 
@@ -35,11 +35,8 @@ namespace EastEngine
 			void SetState(State emState);
 
 		private:
-			std::atomic<State> m_emState;
-			std::condition_variable m_condition;
-			std::mutex m_mutex;
-
-			std::thread m_thread;
+			class Impl;
+			std::unique_ptr<Impl> m_pImpl;
 		};
 
 		class ThreadPool : public Singleton<ThreadPool>
@@ -49,37 +46,12 @@ namespace EastEngine
 			ThreadPool();
 			virtual ~ThreadPool();
 
-			struct RequestTask
-			{
-				std::promise<Task*> promiseThread;
-				std::function<void()> funcTask;
-
-				RequestTask(std::function<void()> funcTask);
-			};
-
-		public:
-			bool Init(uint32_t nThreadCount);
-			void Release();
-
 		public:
 			std::future<Task*> Push(std::function<void()> funcTask);
 
-			bool IsStop() { return m_isStop.load(); }
-			bool IsEmptyTask() { return m_queueTasks.empty(); }
-
 		private:
-			void SetTaskState(Task* pTask, Task::State emState) { pTask->SetState(emState); }
-
-		private:
-			bool m_isInit;
-
-			std::atomic<bool> m_isStop;
-
-			std::vector<Task*> m_vecTaskWorkers;
-			std::queue<RequestTask> m_queueTasks;
-
-			std::mutex m_mutex;
-			std::condition_variable m_condition;
+			class Impl;
+			std::unique_ptr<Impl> m_pImpl;
 		};
 
 		std::future<Task*> CreateTask(std::function<void()> funcTask);

@@ -1,9 +1,9 @@
 #include "stdafx.h"
 #include "MotionSystem.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		MotionSystem::MotionSystem()
 			: m_fBlemdTime(0.f)
@@ -33,7 +33,7 @@ namespace EastEngine
 				{
 					isMotionUpdated = true;
 
-					if (Math::IsEqual(m_motionPlayers[i].GetBlendWeight(), 1.f))
+					if (math::IsEqual(m_motionPlayers[i].GetBlendWeight(), 1.f))
 					{
 						isEnableTransformUpdate = false;
 					}
@@ -69,20 +69,20 @@ namespace EastEngine
 			m_pSkeletonInstance->SetIdentity();
 
 			ISkeleton* pSkeleton = m_pSkeletonInstance->GetSkeleton();
-			size_t nBoneCount = pSkeleton->GetBoneCount();
+			uint32_t nBoneCount = pSkeleton->GetBoneCount();
 			m_vecMotionTransforms.resize(nBoneCount);
 
-			for (size_t i = 0; i < nBoneCount; ++i)
+			for (uint32_t i = 0; i < nBoneCount; ++i)
 			{
 				ISkeleton::IBone* pBone = pSkeleton->GetBone(i);
 				if (pBone != nullptr)
 				{
-					const Math::Matrix& matDefaultMotionData = pBone->GetDefaultMotionData();
+					const math::Matrix& matDefaultMotionData = pBone->GetDefaultMotionData();
 
 					MotionTransform& keyframe = m_vecMotionTransforms[i];
 
-					Math::Transform& motionTransform = keyframe.motionTransform;
-					Math::Transform& defaultTransform = keyframe.defaultTransform;
+					math::Transform& motionTransform = keyframe.motionTransform;
+					math::Transform& defaultTransform = keyframe.defaultTransform;
 
 					matDefaultMotionData.Decompose(motionTransform.scale, motionTransform.rotation, motionTransform.position);
 					matDefaultMotionData.Decompose(defaultTransform.scale, defaultTransform.rotation, defaultTransform.position);
@@ -115,7 +115,7 @@ namespace EastEngine
 
 		void MotionSystem::BlendingLayers(const MotionPlayer& player)
 		{
-			if (player.IsPlaying() == false || Math::IsZero(player.GetBlendWeight()) == true)
+			if (player.IsPlaying() == false || math::IsZero(player.GetBlendWeight()) == true)
 				return;
 
 			const float fWeight = player.GetBlendWeight();
@@ -126,15 +126,15 @@ namespace EastEngine
 				if (pBone == nullptr)
 					continue;
 				
-				const Math::Transform* pSourceTransform = player.GetTransform(pBone->GetName());
+				const math::Transform* pSourceTransform = player.GetTransform(pBone->GetName());
 				if (pSourceTransform != nullptr)
 				{
 					MotionTransform& destKeyframe = m_vecMotionTransforms[i];
-					Math::Transform& motionTransform = destKeyframe.motionTransform;
+					math::Transform& motionTransform = destKeyframe.motionTransform;
 
-					Math::Vector3::Lerp(motionTransform.scale, pSourceTransform->scale, fWeight, motionTransform.scale);
-					Math::Quaternion::Lerp(motionTransform.rotation, pSourceTransform->rotation, fWeight, motionTransform.rotation);
-					Math::Vector3::Lerp(motionTransform.position, pSourceTransform->position, fWeight, motionTransform.position);
+					math::Vector3::Lerp(motionTransform.scale, pSourceTransform->scale, fWeight, motionTransform.scale);
+					math::Quaternion::Lerp(motionTransform.rotation, pSourceTransform->rotation, fWeight, motionTransform.rotation);
+					math::Vector3::Lerp(motionTransform.position, pSourceTransform->position, fWeight, motionTransform.position);
 				}
 			}
 		}

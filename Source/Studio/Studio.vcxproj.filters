@@ -31,6 +31,9 @@
     <Filter Include="Util">
       <UniqueIdentifier>{e0521d7f-82f6-4a6b-be40-744632ac4ded}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Scene\New">
+      <UniqueIdentifier>{e811fc85-bf62-42e6-a75a-0eb0a63e523c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -75,6 +78,9 @@
     <ClInclude Include="SkeletonController.h">
       <Filter>Util</Filter>
     </ClInclude>
+    <ClInclude Include="SceneNewStudio.h">
+      <Filter>Scene\New</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -106,6 +112,9 @@
     </ClCompile>
     <ClCompile Include="SkeletonController.cpp">
       <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneNewStudio.cpp">
+      <Filter>Scene\New</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -2,9 +2,9 @@
 
 #include "InputInterface.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Input
+	namespace input
 	{
 		class GamePadInstance
 		{

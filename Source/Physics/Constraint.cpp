@@ -5,7 +5,7 @@
 #include "MathConvertor.h"
 #include "RigidBody.h"
 
-namespace EastEngine
+namespace eastengine
 {
 	namespace Physics
 	{
@@ -76,20 +76,20 @@ namespace EastEngine
 			if (pRigidBodyA != nullptr || pRigidBodyB != nullptr)
 			{
 				bool isEnableLinearReferenceFrameA = constraintProperty.generic6Dof.isEnableLinearRefrenceFrameA;
-				Math::Matrix matA = Math::Matrix::Compose(Math::Vector3::One, constraintProperty.generic6Dof.originQuatA, constraintProperty.generic6Dof.f3OriginPosA);
-				Math::Matrix matB = Math::Matrix::Compose(Math::Vector3::One, constraintProperty.generic6Dof.originQuatB, constraintProperty.generic6Dof.f3OriginPosB);
+				math::Matrix matA = math::Matrix::Compose(math::Vector3::One, constraintProperty.generic6Dof.originQuatA, constraintProperty.generic6Dof.f3OriginPosA);
+				math::Matrix matB = math::Matrix::Compose(math::Vector3::One, constraintProperty.generic6Dof.originQuatB, constraintProperty.generic6Dof.f3OriginPosB);
 
 				pGeneric6DofConstraint = new Generic6DofConstraint;
-				pGeneric6DofConstraint->m_pGeneric6DofConstraint = new btGeneric6DofConstraint(*pRigidBodyA->GetInterface(), *pRigidBodyB->GetInterface(), Math::ConvertToBt(matA), Math::ConvertToBt(matB), isEnableLinearReferenceFrameA);
+				pGeneric6DofConstraint->m_pGeneric6DofConstraint = new btGeneric6DofConstraint(*pRigidBodyA->GetInterface(), *pRigidBodyB->GetInterface(), math::ConvertToBt(matA), math::ConvertToBt(matB), isEnableLinearReferenceFrameA);
 
 			}
 			else if (pRigidBodyA == nullptr || pRigidBodyB != nullptr)
 			{
 				bool isEnableLinearReferenceFrameA = constraintProperty.generic6Dof.isEnableLinearRefrenceFrameA;
-				Math::Matrix matB = Math::Matrix::Compose(Math::Vector3::One, constraintProperty.generic6Dof.originQuatB, constraintProperty.generic6Dof.f3OriginPosB);
+				math::Matrix matB = math::Matrix::Compose(math::Vector3::One, constraintProperty.generic6Dof.originQuatB, constraintProperty.generic6Dof.f3OriginPosB);
 
 				pGeneric6DofConstraint = new Generic6DofConstraint;
-				pGeneric6DofConstraint->m_pGeneric6DofConstraint = new btGeneric6DofConstraint(*pRigidBodyB->GetInterface(), Math::ConvertToBt(matB), isEnableLinearReferenceFrameA);
+				pGeneric6DofConstraint->m_pGeneric6DofConstraint = new btGeneric6DofConstraint(*pRigidBodyB->GetInterface(), math::ConvertToBt(matB), isEnableLinearReferenceFrameA);
 			}
 
 			if (pGeneric6DofConstraint == nullptr)
@@ -105,9 +105,9 @@ namespace EastEngine
 			return m_pGeneric6DofConstraint;
 		}
 
-		void Generic6DofConstraint::CalculateTransforms(const Math::Matrix& transA, const Math::Matrix& transB)
+		void Generic6DofConstraint::CalculateTransforms(const math::Matrix& transA, const math::Matrix& transB)
 		{
-			m_pGeneric6DofConstraint->calculateTransforms(Math::ConvertToBt(transA), Math::ConvertToBt(transB));
+			m_pGeneric6DofConstraint->calculateTransforms(math::ConvertToBt(transA), math::ConvertToBt(transB));
 		}
 
 		void Generic6DofConstraint::CalculateTransforms()
@@ -115,34 +115,34 @@ namespace EastEngine
 			m_pGeneric6DofConstraint->calculateTransforms();
 		}
 
-		Math::Matrix Generic6DofConstraint::GetCalculatedTransformA() const
+		math::Matrix Generic6DofConstraint::GetCalculatedTransformA() const
 		{
-			return Math::Convert(m_pGeneric6DofConstraint->getCalculatedTransformA());
+			return math::Convert(m_pGeneric6DofConstraint->getCalculatedTransformA());
 		}
 
-		Math::Matrix Generic6DofConstraint::GetCalculatedTransformB() const
+		math::Matrix Generic6DofConstraint::GetCalculatedTransformB() const
 		{
-			return Math::Convert(m_pGeneric6DofConstraint->getCalculatedTransformB());
+			return math::Convert(m_pGeneric6DofConstraint->getCalculatedTransformB());
 		}
 
-		Math::Matrix Generic6DofConstraint::GetFrameOffSetA() const
+		math::Matrix Generic6DofConstraint::GetFrameOffSetA() const
 		{
-			return Math::Convert(m_pGeneric6DofConstraint->getFrameOffsetA());
+			return math::Convert(m_pGeneric6DofConstraint->getFrameOffsetA());
 		}
 
-		Math::Matrix Generic6DofConstraint::GetFrameOffSetB() const
+		math::Matrix Generic6DofConstraint::GetFrameOffSetB() const
 		{
-			return Math::Convert(m_pGeneric6DofConstraint->getFrameOffsetB());
+			return math::Convert(m_pGeneric6DofConstraint->getFrameOffsetB());
 		}
 
-		Math::Matrix Generic6DofConstraint::GetFrameOffSetA()
+		math::Matrix Generic6DofConstraint::GetFrameOffSetA()
 		{
-			return Math::Convert(m_pGeneric6DofConstraint->getFrameOffsetA());
+			return math::Convert(m_pGeneric6DofConstraint->getFrameOffsetA());
 		}
 
-		Math::Matrix Generic6DofConstraint::GetFrameOffSetB()
+		math::Matrix Generic6DofConstraint::GetFrameOffSetB()
 		{
-			return Math::Convert(m_pGeneric6DofConstraint->getFrameOffsetB());
+			return math::Convert(m_pGeneric6DofConstraint->getFrameOffsetB());
 		}
 
 		void Generic6DofConstraint::BuildJacobian()
@@ -155,9 +155,9 @@ namespace EastEngine
 			m_pGeneric6DofConstraint->updateRHS(fTimeStep);
 		}
 
-		Math::Vector3 Generic6DofConstraint::GetAxis(int nAxis_index) const
+		math::Vector3 Generic6DofConstraint::GetAxis(int nAxis_index) const
 		{
-			return Math::Convert(m_pGeneric6DofConstraint->getAxis(nAxis_index));
+			return math::Convert(m_pGeneric6DofConstraint->getAxis(nAxis_index));
 		}
 
 		float Generic6DofConstraint::GetAngle(int nAxis_index) const
@@ -170,9 +170,9 @@ namespace EastEngine
 			return m_pGeneric6DofConstraint->getRelativePivotPosition(nAxis_index);
 		}
 
-		void Generic6DofConstraint::SetFrames(const Math::Matrix& frameA, const Math::Matrix& frameB)
+		void Generic6DofConstraint::SetFrames(const math::Matrix& frameA, const math::Matrix& frameB)
 		{
-			m_pGeneric6DofConstraint->setFrames(Math::ConvertToBt(frameA), Math::ConvertToBt(frameB));
+			m_pGeneric6DofConstraint->setFrames(math::ConvertToBt(frameA), math::ConvertToBt(frameB));
 		}
 
 		bool Generic6DofConstraint::TestAngularLimitMotor(int nAxis_index)
@@ -180,56 +180,56 @@ namespace EastEngine
 			return m_pGeneric6DofConstraint->testAngularLimitMotor(nAxis_index);
 		}
 
-		void Generic6DofConstraint::SetLinearLowerLimit(const Math::Vector3& f3LinearLower)
+		void Generic6DofConstraint::SetLinearLowerLimit(const math::Vector3& f3LinearLower)
 		{
-			m_pGeneric6DofConstraint->setLinearLowerLimit(Math::ConvertToBt(f3LinearLower));
+			m_pGeneric6DofConstraint->setLinearLowerLimit(math::ConvertToBt(f3LinearLower));
 		}
 
-		void Generic6DofConstraint::GetLinearLowerLimit(Math::Vector3& f3LinearLower) const
+		void Generic6DofConstraint::GetLinearLowerLimit(math::Vector3& f3LinearLower) const
 		{
 			btVector3 f3Temp;
 			m_pGeneric6DofConstraint->getLinearLowerLimit(f3Temp);
 
-			f3LinearLower = Math::Convert(f3Temp);
+			f3LinearLower = math::Convert(f3Temp);
 		}
 
-		void Generic6DofConstraint::SetLinearUpperLimit(const Math::Vector3& f3LinearUpper)
+		void Generic6DofConstraint::SetLinearUpperLimit(const math::Vector3& f3LinearUpper)
 		{
-			m_pGeneric6DofConstraint->setLinearUpperLimit(Math::ConvertToBt(f3LinearUpper));
+			m_pGeneric6DofConstraint->setLinearUpperLimit(math::ConvertToBt(f3LinearUpper));
 		}
 
-		void Generic6DofConstraint::GetLinearUpperLimit(Math::Vector3& f3LinearUpper) const
+		void Generic6DofConstraint::GetLinearUpperLimit(math::Vector3& f3LinearUpper) const
 		{
 			btVector3 f3Temp;
 			m_pGeneric6DofConstraint->getLinearUpperLimit(f3Temp);
 
-			f3LinearUpper = Math::Convert(f3Temp);
+			f3LinearUpper = math::Convert(f3Temp);
 		}
 
-		void Generic6DofConstraint::SetAngularLowerLimit(const Math::Vector3& f3AngularLower)
+		void Generic6DofConstraint::SetAngularLowerLimit(const math::Vector3& f3AngularLower)
 		{
-			m_pGeneric6DofConstraint->setAngularLowerLimit(Math::ConvertToBt(f3AngularLower));
+			m_pGeneric6DofConstraint->setAngularLowerLimit(math::ConvertToBt(f3AngularLower));
 		}
 
-		void Generic6DofConstraint::GetAngularLowerLimit(Math::Vector3& f3AngularLower) const
+		void Generic6DofConstraint::GetAngularLowerLimit(math::Vector3& f3AngularLower) const
 		{
 			btVector3 f3Temp;
 			m_pGeneric6DofConstraint->getAngularLowerLimit(f3Temp);
 
-			f3AngularLower = Math::Convert(f3Temp);
+			f3AngularLower = math::Convert(f3Temp);
 		}
 
-		void Generic6DofConstraint::SetAngularUpperLimit(const Math::Vector3& f3AngularUpper)
+		void Generic6DofConstraint::SetAngularUpperLimit(const math::Vector3& f3AngularUpper)
 		{
-			m_pGeneric6DofConstraint->setAngularUpperLimit(Math::ConvertToBt(f3AngularUpper));
+			m_pGeneric6DofConstraint->setAngularUpperLimit(math::ConvertToBt(f3AngularUpper));
 		}
 
-		void Generic6DofConstraint::GetAngularUpperLimit(Math::Vector3& f3AngularUpper) const
+		void Generic6DofConstraint::GetAngularUpperLimit(math::Vector3& f3AngularUpper) const
 		{
 			btVector3 f3Temp;
 			m_pGeneric6DofConstraint->getAngularUpperLimit(f3Temp);
 
-			f3AngularUpper = Math::Convert(f3Temp);
+			f3AngularUpper = math::Convert(f3Temp);
 		}
 
 		void Generic6DofConstraint::SetLimit(int nAxis, float lo, float hi)
@@ -277,9 +277,9 @@ namespace EastEngine
 			return m_pGeneric6DofConstraint->getParam(nNum, nAxis);
 		}
 
-		void Generic6DofConstraint::SetAxis(const Math::Vector3& f3Axis1, const Math::Vector3& f3Axis2)
+		void Generic6DofConstraint::SetAxis(const math::Vector3& f3Axis1, const math::Vector3& f3Axis2)
 		{
-			m_pGeneric6DofConstraint->setAxis(Math::ConvertToBt(f3Axis1), Math::ConvertToBt(f3Axis2));
+			m_pGeneric6DofConstraint->setAxis(math::ConvertToBt(f3Axis1), math::ConvertToBt(f3Axis2));
 		}
 
 		int Generic6DofConstraint::GetFlags() const

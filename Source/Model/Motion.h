@@ -2,9 +2,9 @@
 
 #include "ModelInterface.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class Motion : public IMotion
 		{
@@ -37,8 +37,8 @@ namespace EastEngine
 				virtual void Update(float fInterval, IMotionRecorder* pRecorder, float fPlayTime, bool isInverse) const override;
 
 			public:
-				virtual size_t GetKeyframeCount() const override { return m_vecKeyframes.size(); }
-				virtual const Keyframe* GetKeyframe(size_t nIndex) const override { return &m_vecKeyframes[nIndex]; }
+				virtual uint32_t GetKeyframeCount() const override { return static_cast<uint32_t>(m_vecKeyframes.size()); }
+				virtual const Keyframe* GetKeyframe(uint32_t nIndex) const override { return &m_vecKeyframes[nIndex]; }
 
 			private:
 				String::StringID m_strBoneName;
@@ -48,6 +48,8 @@ namespace EastEngine
 
 		public:
 			Motion(Key key);
+			Motion(const Motion& source);
+			Motion(Motion&& source) noexcept;
 			virtual ~Motion() = default;
 
 		public:
@@ -63,20 +65,9 @@ namespace EastEngine
 			virtual const String::StringID& GetName() const override { return m_strName; }
 			virtual const std::string& GetFilePath() const override { return m_strFilePath; }
 
-			virtual size_t GetBoneCount() const override { return m_vecBones.size(); }
-			virtual const IBone* GetBone(size_t nIndex) const override { return &m_vecBones[nIndex]; }
+			virtual uint32_t GetBoneCount() const override { return static_cast<uint32_t>(m_vecBones.size()); }
+			virtual const IBone* GetBone(uint32_t nIndex) const override { return &m_vecBones[nIndex]; }
 			virtual const IBone* GetBone(const String::StringID& strBoneName) const override;
-
-		public:
-			virtual int GetReferenceCount() const override { return m_nReferenceCount; }
-			virtual int IncreaseReference() override
-			{
-				++m_nReferenceCount;
-				SetAlive(true);
-
-				return m_nReferenceCount;
-			}
-			virtual int DecreaseReference() override { return --m_nReferenceCount; }
 
 		public:
 			void SetName(const String::StringID& strName) { m_strName; }
@@ -86,7 +77,6 @@ namespace EastEngine
 
 		private:
 			const Key m_key;
-			int m_nReferenceCount{ 0 };
 
 			String::StringID m_strName;
 			std::string m_strFilePath;

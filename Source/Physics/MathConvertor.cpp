@@ -1,9 +1,9 @@
 #include "stdafx.h"
 #include "MathConvertor.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Math
+	namespace math
 	{
 		Vector3 Convert(const btVector3& v)
 		{

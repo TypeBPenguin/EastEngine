@@ -7,9 +7,9 @@
 #define STEREOSCALE 1.77777f
 #define INVSTEREOSCALE (1.f / STEREOSCALE)
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Math
+	namespace math
 	{
 		static std::random_device s_randDevice;
 		static std::mt19937 s_rand(s_randDevice());
@@ -3409,7 +3409,7 @@ namespace EastEngine
 			/*float m00 = 1.f - (2.f * ((y * y) + z * z));
 			float m01 = 2.f * (x * y + w * z);
 
-			Math::Vector3 result
+			math::Vector3 result
 			(
 				std::atan2(2.f * (y * z + w * x), 1.f - (2.f * ((x * x) + (y * y)))),
 				std::atan2(-2.f * (x * z - w * y), std::sqrt((m00 * m00) + (m01 * m01))),
@@ -3421,15 +3421,15 @@ namespace EastEngine
 			double check = x * y + z * w;
 			if (check > 0.499)
 			{
-				return Math::Vector3(2 * std::atan2(x, w), Math::PI / 2, 0);
+				return math::Vector3(2 * std::atan2(x, w), math::PI / 2, 0);
 			}
 			else if (check < -0.499)
 			{
-				return Math::Vector3(-2 * std::atan2(x, w), -Math::PI / 2, 0);
+				return math::Vector3(-2 * std::atan2(x, w), -math::PI / 2, 0);
 			}
 			else
 			{
-				return Math::Vector3
+				return math::Vector3
 				(
 					std::atan2(2 * x * w - 2 * y * z, 1 - 2 * x * x - 2 * z * z),
 					static_cast<float>(std::asin(2 * check)),
@@ -3437,7 +3437,7 @@ namespace EastEngine
 				);
 			}
 
-			/*Math::Vector3 v;
+			/*math::Vector3 v;
 
 			v.z = (float)std::atan2
 			(
@@ -3604,7 +3604,7 @@ namespace EastEngine
 		const Quaternion Quaternion::Identity = { 0.f, 0.f, 0.f, 1.f };
 
 		Transform::Transform() : scale(Vector3::One) {}
-		Transform::Transform(const Math::Vector3& scale, const Math::Quaternion& rotation, const Math::Vector3& position) : scale(scale), rotation(rotation), position(position) {}
+		Transform::Transform(const math::Vector3& scale, const math::Quaternion& rotation, const math::Vector3& position) : scale(scale), rotation(rotation), position(position) {}
 		Transform::Transform(const Matrix& matrix)
 		{
 			matrix.Decompose(scale, rotation, position);

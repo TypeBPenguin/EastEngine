@@ -24,9 +24,9 @@ using namespace ATG;
 extern ATG::ExportScene* g_pScene;
 extern ExportPath g_CurrentInputFileName;
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		// 언젠가는 고정된 포맷이 아닌, D3DDECLUSAGE 에 대응해서 다양한 포맷에 대응할 수 있는 기능을 만들어야한다.
 		template <typename T>
@@ -57,40 +57,40 @@ namespace EastEngine
 					case D3DDECLUSAGE::D3DDECLUSAGE_POSITION:
 					{
 						assert(pVertexElements[j].Type == D3DDECLTYPE::D3DDECLTYPE_FLOAT3);
-						Math::Vector3* pPos = reinterpret_cast<Math::Vector3*>(pData);
-						*pPos = *reinterpret_cast<const Math::Vector3*>(pVertexData);
+						math::Vector3* pPos = reinterpret_cast<math::Vector3*>(pData);
+						*pPos = *reinterpret_cast<const math::Vector3*>(pVertexData);
 					}
 					break;
 					case D3DDECLUSAGE::D3DDECLUSAGE_TEXCOORD:
 					{
 						assert(pVertexElements[j].Type == D3DDECLTYPE::D3DDECLTYPE_FLOAT2);
-						const size_t nOffset = sizeof(Math::Vector3);
-						Math::Vector2* pUV = reinterpret_cast<Math::Vector2*>(pData + nOffset);
-						*pUV = *reinterpret_cast<const Math::Vector2*>(pVertexData);
+						const size_t nOffset = sizeof(math::Vector3);
+						math::Vector2* pUV = reinterpret_cast<math::Vector2*>(pData + nOffset);
+						*pUV = *reinterpret_cast<const math::Vector2*>(pVertexData);
 					}
 					break;
 					case D3DDECLUSAGE::D3DDECLUSAGE_NORMAL:
 					{
 						assert(pVertexElements[j].Type == D3DDECLTYPE::D3DDECLTYPE_FLOAT3);
-						const size_t nOffset = sizeof(Math::Vector3) + sizeof(Math::Vector2);
-						Math::Vector3* pNormal = reinterpret_cast<Math::Vector3*>(pData + nOffset);
-						*pNormal = *reinterpret_cast<const Math::Vector3*>(pVertexData);
+						const size_t nOffset = sizeof(math::Vector3) + sizeof(math::Vector2);
+						math::Vector3* pNormal = reinterpret_cast<math::Vector3*>(pData + nOffset);
+						*pNormal = *reinterpret_cast<const math::Vector3*>(pVertexData);
 					}
 					break;
 					case D3DDECLUSAGE::D3DDECLUSAGE_BLENDWEIGHT:
 					{
 						assert(pVertexElements[j].Type == D3DDECLTYPE::D3DDECLTYPE_UBYTE4N);
-						const size_t nOffset = sizeof(Math::Vector3) + sizeof(Math::Vector2) + sizeof(Math::Vector3);
-						const Math::UByte4* pBlendData = reinterpret_cast<const Math::UByte4*>(pVertexData);
-						Math::Vector3* pBlend = reinterpret_cast<Math::Vector3*>(pData + nOffset);
-						*pBlend = Math::Vector3(static_cast<float>(pBlendData->x) / 255.f, static_cast<float>(pBlendData->y) / 255.f, static_cast<float>(pBlendData->z) / 255.f);
+						const size_t nOffset = sizeof(math::Vector3) + sizeof(math::Vector2) + sizeof(math::Vector3);
+						const math::UByte4* pBlendData = reinterpret_cast<const math::UByte4*>(pVertexData);
+						math::Vector3* pBlend = reinterpret_cast<math::Vector3*>(pData + nOffset);
+						*pBlend = math::Vector3(static_cast<float>(pBlendData->x) / 255.f, static_cast<float>(pBlendData->y) / 255.f, static_cast<float>(pBlendData->z) / 255.f);
 					}
 					break;
 					case D3DDECLUSAGE::D3DDECLUSAGE_BLENDINDICES:
 					{
 						assert(pVertexElements[j].Type == D3DDECLTYPE::D3DDECLTYPE_UBYTE4);
-						const size_t nOffset = sizeof(Math::Vector3) + sizeof(Math::Vector2) + sizeof(Math::Vector3) + sizeof(Math::Vector3);
-						const Math::UByte4* pIndexData = reinterpret_cast<const Math::UByte4*>(pVertexData);
+						const size_t nOffset = sizeof(math::Vector3) + sizeof(math::Vector2) + sizeof(math::Vector3) + sizeof(math::Vector3);
+						const math::UByte4* pIndexData = reinterpret_cast<const math::UByte4*>(pVertexData);
 						uint16_t* pIndex = reinterpret_cast<uint16_t*>(pData + nOffset);
 						pIndex[0] = static_cast<uint16_t>(pIndexData->x);
 						pIndex[1] = static_cast<uint16_t>(pIndexData->y);
@@ -104,7 +104,7 @@ namespace EastEngine
 				}
 			}
 
-			return IVertexBuffer::Create(T::Format(), vecVertices.size(), vecVertices.data(), D3D11_USAGE::D3D11_USAGE_DYNAMIC);
+			return CreateVertexBuffer(reinterpret_cast<uint8_t*>(vecVertices.data()), static_cast<uint32_t>(sizeof(T) * vecVertices.size()), static_cast<uint32_t>(vecVertices.size()));
 		}
 
 		IIndexBuffer* WriteIndexBuffer(ExportIB* pIB)
@@ -120,8 +120,8 @@ namespace EastEngine
 			}
 			else
 			{
-				const uint32_t* pIndices = reinterpret_cast<const uint32_t*>(pIB->GetIndexData());
-				return IIndexBuffer::Create(nIndexCount, pIndices, D3D11_USAGE_DYNAMIC);
+				const uint8_t* pIndices = reinterpret_cast<const uint8_t*>(pIB->GetIndexData());
+				return CreateIndexBuffer(pIndices, static_cast<uint32_t>(sizeof(uint32_t) * nIndexCount), static_cast<uint32_t>(nIndexCount));
 			}
 
 			return nullptr;
@@ -154,11 +154,11 @@ namespace EastEngine
 			ExportMaterialParameter* pColor = pExportMaterial->FindParameter("DiffuseColor");
 			if (pColor != nullptr)
 			{
-				materialInfo.colorAlbedo = Math::Color(pColor->ValueFloat[0], pColor->ValueFloat[1], pColor->ValueFloat[2], pColor->ValueFloat[3]);
+				materialInfo.colorAlbedo = math::Color(pColor->ValueFloat[0], pColor->ValueFloat[1], pColor->ValueFloat[2], pColor->ValueFloat[3]);
 			}
 			else
 			{
-				materialInfo.colorAlbedo = Math::Color::White;
+				materialInfo.colorAlbedo = math::Color::White;
 			}
 
 			// 없음
@@ -167,11 +167,11 @@ namespace EastEngine
 			pColor = pExportMaterial->FindParameter("EmissiveColor");
 			if (pColor != nullptr)
 			{
-				materialInfo.colorEmissive = Math::Color(pColor->ValueFloat[0], pColor->ValueFloat[1], pColor->ValueFloat[2], 0.f);
+				materialInfo.colorEmissive = math::Color(pColor->ValueFloat[0], pColor->ValueFloat[1], pColor->ValueFloat[2], 0.f);
 			}
 			else
 			{
-				materialInfo.colorEmissive = Math::Color::Transparent;
+				materialInfo.colorEmissive = math::Color::Transparent;
 			}
 
 			// SpecularColor는 albedo 컬러에서 계산하거나 texture 만 사용함
@@ -207,12 +207,12 @@ namespace EastEngine
 			switch (pMesh->GetSmallestBound())
 			{
 			case ExportMeshBase::SphereBound:
-				aabb.Center = *reinterpret_cast<Math::Vector3*>(&pMesh->GetBoundingSphere().Center);
-				aabb.Extents = Math::Vector3(pMesh->GetBoundingSphere().Radius);
+				aabb.Center = *reinterpret_cast<math::Vector3*>(&pMesh->GetBoundingSphere().Center);
+				aabb.Extents = math::Vector3(pMesh->GetBoundingSphere().Radius);
 				break;
 			case ExportMeshBase::AxisAlignedBoxBound:
-				aabb.Center = *reinterpret_cast<Math::Vector3*>(&pMesh->GetBoundingAABB().Center);
-				aabb.Extents = *reinterpret_cast<Math::Vector3*>(&pMesh->GetBoundingAABB().Extents);
+				aabb.Center = *reinterpret_cast<math::Vector3*>(&pMesh->GetBoundingAABB().Center);
+				aabb.Extents = *reinterpret_cast<math::Vector3*>(&pMesh->GetBoundingAABB().Extents);
 				break;
 			}
 
@@ -295,20 +295,20 @@ namespace EastEngine
 						{
 							if (String::IsEquals(vecMaterials[j]->GetName().c_str(), pBinding->pMaterial->GetName()) == true)
 							{
-								vecSubsets[i].nMaterialID = j;
+								vecSubsets[i].nMaterialID = static_cast<uint32_t>(j);
 								break;
 							}
 						}
 
 						if (vecSubsets[i].nMaterialID == std::numeric_limits<uint32_t>::max())
 						{
-							vecSubsets[i].nMaterialID = vecMaterials.size();
+							vecSubsets[i].nMaterialID = static_cast<uint32_t>(vecMaterials.size());
 
 							MaterialInfo materialInfo;
-							materialInfo.strPath = File::GetFilePath(pModel->GetFilePath());
+							materialInfo.strPath = file::GetFilePath(pModel->GetFilePath());
 							WriteMaterial(pBinding->pMaterial, materialInfo);
 
-							vecMaterials.emplace_back(IMaterial::Create(&materialInfo));
+							vecMaterials.emplace_back(CreateMaterial(&materialInfo));
 						}
 					}
 
@@ -318,6 +318,14 @@ namespace EastEngine
 					{
 						pModelNode->AddMaterialArray(vecMaterials.data(), vecMaterials.size());
 					}
+
+					ReleaseResource(&pVertexBuffer);
+					ReleaseResource(&pIndexBuffer);
+					for (auto& pMaterial : vecMaterials)
+					{
+						ReleaseResource(&pMaterial);
+					}
+					vecMaterials.clear();
 
 					pModelNode->SetOriginAABB(aabb);
 				}
@@ -330,7 +338,7 @@ namespace EastEngine
 			return nullptr;
 		}
 
-		void CreateModel(ExportFrame* pFrame, Model* pModel, ModelNode* pParentNode, const std::unordered_map<String::StringID, Math::Matrix>& umapMotionOffset, Skeleton* pSkeleton, const String::StringID& strParentBoneName)
+		void CreateModel(ExportFrame* pFrame, Model* pModel, ModelNode* pParentNode, const std::unordered_map<String::StringID, math::Matrix>& umapMotionOffset, Skeleton* pSkeleton, const String::StringID& strParentBoneName)
 		{
 			ModelNode* pModelNode = nullptr;
 			String::StringID strBoneName;
@@ -373,7 +381,7 @@ namespace EastEngine
 
 				strBoneName = pFrame->GetName().SafeString();
 
-				Math::Matrix matMotionOffset;
+				math::Matrix matMotionOffset;
 				const String::StringID strName = pFrame->GetName().SafeString();
 				auto iter = umapMotionOffset.find(strName);
 				if (iter != umapMotionOffset.end())
@@ -381,7 +389,7 @@ namespace EastEngine
 					matMotionOffset = iter->second;
 				}
 
-				const Math::Matrix& matDefaultMotionData = *reinterpret_cast<const Math::Matrix*>(&pFrame->Transform().Matrix());
+				const math::Matrix& matDefaultMotionData = *reinterpret_cast<const math::Matrix*>(&pFrame->Transform().Matrix());
 
 				if (strParentBoneName.empty() == true)
 				{
@@ -401,7 +409,7 @@ namespace EastEngine
 			}
 		}
 
-		bool WriteModel(Model* pModel, const std::unordered_map<String::StringID, Math::Matrix>& umapMotionOffset)
+		bool WriteModel(Model* pModel, const std::unordered_map<String::StringID, math::Matrix>& umapMotionOffset)
 		{
 			if (g_pScene == nullptr || pModel == nullptr)
 				return false;
@@ -411,8 +419,8 @@ namespace EastEngine
 			Skeleton* pSkeleton = static_cast<Skeleton*>(pModel->GetSkeleton());
 			if (pSkeleton != nullptr && pSkeleton->GetBoneCount() > 0)
 			{
-				const size_t nNodeCount = pModel->GetNodeCount();
-				for (size_t i = 0; i < nNodeCount; ++i)
+				const uint32_t nNodeCount = pModel->GetNodeCount();
+				for (uint32_t i = 0; i < nNodeCount; ++i)
 				{
 					IModelNode* pModelNode = pModel->GetNode(i);
 					if (pModelNode == nullptr)
@@ -423,12 +431,12 @@ namespace EastEngine
 
 					ModelNodeSkinned* pSkinnedNode = static_cast<ModelNodeSkinned*>(pModelNode);
 
-					const size_t nBoneCount = pSkinnedNode->GetBoneCount();
+					const uint32_t nBoneCount = pSkinnedNode->GetBoneCount();
 
 					std::vector<String::StringID> vecBoneNames;
 					vecBoneNames.resize(nBoneCount);
 
-					for (size_t j = 0; j < nBoneCount; ++j)
+					for (uint32_t j = 0; j < nBoneCount; ++j)
 					{
 						vecBoneNames[j] = pSkinnedNode->GetBoneName(j);
 					}
@@ -474,7 +482,7 @@ namespace EastEngine
 
 				if (isEndKey == false)
 				{
-					pDestKeys[i].transform.position = *reinterpret_cast<Math::Vector3*>(&StartKey.Position);
+					pDestKeys[i].transform.position = *reinterpret_cast<math::Vector3*>(&StartKey.Position);
 				}
 				else
 				{
@@ -530,7 +538,7 @@ namespace EastEngine
 
 				if (isEndKey == false)
 				{
-					pDestKeys[i].transform.rotation = *reinterpret_cast<Math::Quaternion*>(&StartKey.Orientation);
+					pDestKeys[i].transform.rotation = *reinterpret_cast<math::Quaternion*>(&StartKey.Orientation);
 				}
 				else
 				{
@@ -586,7 +594,7 @@ namespace EastEngine
 
 				if (isEndKey == false)
 				{
-					pDestKeys[i].transform.scale = *reinterpret_cast<Math::Vector3*>(&StartKey.Scale);
+					pDestKeys[i].transform.scale = *reinterpret_cast<math::Vector3*>(&StartKey.Scale);
 				}
 				else
 				{

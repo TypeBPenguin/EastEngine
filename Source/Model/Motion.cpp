@@ -1,9 +1,9 @@
 #include "stdafx.h"
 #include "Motion.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		Motion::Bone::Bone(const String::StringID& strBoneName, const std::vector<Keyframe>& _vecKeyframes, float fFrameInterval)
 			: m_strBoneName(strBoneName)
@@ -21,7 +21,7 @@ namespace EastEngine
 			if (m_vecKeyframes.empty() == true)
 				return;
 
-			Math::Transform transform;
+			math::Transform transform;
 
 			if (fPlayTime <= m_vecKeyframes.front().fTime)
 			{
@@ -63,9 +63,9 @@ namespace EastEngine
 						{
 							float lerpPercent = (fPlayTime - keyframe1.fTime) / (keyframe2.fTime - keyframe1.fTime);
 
-							Math::Vector3::Lerp(keyframe1.transform.scale, keyframe2.transform.scale, lerpPercent, transform.scale);
-							Math::Quaternion::Lerp(keyframe1.transform.rotation, keyframe2.transform.rotation, lerpPercent, transform.rotation);
-							Math::Vector3::Lerp(keyframe1.transform.position, keyframe2.transform.position, lerpPercent, transform.position);
+							math::Vector3::Lerp(keyframe1.transform.scale, keyframe2.transform.scale, lerpPercent, transform.scale);
+							math::Quaternion::Lerp(keyframe1.transform.rotation, keyframe2.transform.rotation, lerpPercent, transform.rotation);
+							math::Vector3::Lerp(keyframe1.transform.position, keyframe2.transform.position, lerpPercent, transform.position);
 
 							isSuccess = true;
 
@@ -98,9 +98,9 @@ namespace EastEngine
 							{
 								float lerpPercent = (fPlayTime - keyframe1.fTime) / (keyframe2.fTime - keyframe1.fTime);
 
-								Math::Vector3::Lerp(keyframe1.transform.scale, keyframe2.transform.scale, lerpPercent, transform.scale);
-								Math::Quaternion::Lerp(keyframe1.transform.rotation, keyframe2.transform.rotation, lerpPercent, transform.rotation);
-								Math::Vector3::Lerp(keyframe1.transform.position, keyframe2.transform.position, lerpPercent, transform.position);
+								math::Vector3::Lerp(keyframe1.transform.scale, keyframe2.transform.scale, lerpPercent, transform.scale);
+								math::Quaternion::Lerp(keyframe1.transform.rotation, keyframe2.transform.rotation, lerpPercent, transform.rotation);
+								math::Vector3::Lerp(keyframe1.transform.position, keyframe2.transform.position, lerpPercent, transform.position);
 
 								break;
 							}
@@ -119,9 +119,9 @@ namespace EastEngine
 						{
 							float lerpPercent = (fPlayTime - keyframe1.fTime) / (keyframe2.fTime - keyframe1.fTime);
 
-							Math::Vector3::Lerp(keyframe1.transform.scale, keyframe2.transform.scale, lerpPercent, transform.scale);
-							Math::Quaternion::Lerp(keyframe1.transform.rotation, keyframe2.transform.rotation, lerpPercent, transform.rotation);
-							Math::Vector3::Lerp(keyframe1.transform.position, keyframe2.transform.position, lerpPercent, transform.position);
+							math::Vector3::Lerp(keyframe1.transform.scale, keyframe2.transform.scale, lerpPercent, transform.scale);
+							math::Quaternion::Lerp(keyframe1.transform.rotation, keyframe2.transform.rotation, lerpPercent, transform.rotation);
+							math::Vector3::Lerp(keyframe1.transform.position, keyframe2.transform.position, lerpPercent, transform.position);
 
 							isSuccess = true;
 
@@ -154,9 +154,9 @@ namespace EastEngine
 							{
 								float lerpPercent = (fPlayTime - keyframe1.fTime) / (keyframe2.fTime - keyframe1.fTime);
 
-								Math::Vector3::Lerp(keyframe1.transform.scale, keyframe2.transform.scale, lerpPercent, transform.scale);
-								Math::Quaternion::Lerp(keyframe1.transform.rotation, keyframe2.transform.rotation, lerpPercent, transform.rotation);
-								Math::Vector3::Lerp(keyframe1.transform.position, keyframe2.transform.position, lerpPercent, transform.position);
+								math::Vector3::Lerp(keyframe1.transform.scale, keyframe2.transform.scale, lerpPercent, transform.scale);
+								math::Quaternion::Lerp(keyframe1.transform.rotation, keyframe2.transform.rotation, lerpPercent, transform.rotation);
+								math::Vector3::Lerp(keyframe1.transform.position, keyframe2.transform.position, lerpPercent, transform.position);
 
 								break;
 							}
@@ -170,6 +170,30 @@ namespace EastEngine
 
 		Motion::Motion(Key key)
 			: m_key(key)
+		{
+		}
+
+		Motion::Motion(const Motion& source)
+			: m_key(source.m_key)
+			, m_strName(source.m_strName)
+			, m_strFilePath(source.m_strFilePath)
+			, m_vecBones(source.m_vecBones)
+			, m_umapBones(source.m_umapBones)
+			, m_fStartTime(source.m_fStartTime)
+			, m_fEndTime(source.m_fEndTime)
+			, m_fFrameInterval(source.m_fFrameInterval)
+		{
+		}
+
+		Motion::Motion(Motion&& source) noexcept
+			: m_key(std::move(source.m_key))
+			, m_strName(std::move(source.m_strName))
+			, m_strFilePath(std::move(source.m_strFilePath))
+			, m_vecBones(std::move(source.m_vecBones))
+			, m_umapBones(std::move(source.m_umapBones))
+			, m_fStartTime(std::move(source.m_fStartTime))
+			, m_fEndTime(std::move(source.m_fEndTime))
+			, m_fFrameInterval(std::move(source.m_fFrameInterval))
 		{
 		}
 

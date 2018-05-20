@@ -1,9 +1,9 @@
 #include "stdafx.h"
 #include "RasterizerState.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		RasterizerState::RasterizerState()
 			: m_pRasterizerState(nullptr)

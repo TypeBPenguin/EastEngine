@@ -5,9 +5,9 @@
 
 #include "OcclusionCulling.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		VertexBuffer::VertexBuffer()
 			: m_pVertexBuffer(nullptr)

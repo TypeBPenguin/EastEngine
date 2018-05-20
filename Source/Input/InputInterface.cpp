@@ -6,9 +6,9 @@
 #include "Keyboard.h"
 #include "GamePad.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Input
+	namespace input
 	{
 		namespace Mouse
 		{

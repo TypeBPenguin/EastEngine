@@ -3,9 +3,9 @@
 
 #include "TextureManager.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		Texture::Texture(const Key& key)
 			: m_key(key)
@@ -125,7 +125,7 @@ namespace EastEngine
 			m_pTexture2D = pTexture2D;
 			m_pShaderResourceView = pShaderResourceView;
 
-			Graphics::TextureDesc2D desc;
+			graphics::TextureDesc2D desc;
 			m_pTexture2D->GetDesc(&desc);
 
 			m_n2Size.x = desc.Width;

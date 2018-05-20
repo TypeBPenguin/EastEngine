@@ -2,9 +2,9 @@
 
 #include "D3DInterface.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class RenderTarget : public IRenderTarget
 		{
@@ -25,14 +25,14 @@ namespace EastEngine
 			virtual void SetMipLevel(uint32_t nMipLevel) { m_nMipLevel = std::min(nMipLevel, m_nMaxMipLevel); }
 			virtual uint32_t GetMipLevel() { return m_nMipLevel; }
 			
-			virtual void SetClear(const Math::Color& color) { m_isNeedClear = true; m_colorClear = color; }
+			virtual void SetClear(const math::Color& color) { m_isNeedClear = true; m_colorClear = color; }
 			virtual void OnClear(IDeviceContext* pImmediateContext);
 			
 			virtual const RenderTargetDesc1D& GetDesc1D() { return m_renderTargetDesc1D; }
 			virtual const RenderTargetDesc2D& GetDesc2D() { return m_renderTargetDesc2D; }
 			virtual const RenderTargetKey& GetKey() { return m_keyRenderTarget; }
 			
-			virtual const Math::UInt2& GetSize() { return m_vecSize[std::min(m_nMipLevel, m_nMaxMipLevel)]; }
+			virtual const math::UInt2& GetSize() { return m_vecSize[std::min(m_nMipLevel, m_nMaxMipLevel)]; }
 
 		protected:
 			uint32_t m_nMipLevel;
@@ -45,10 +45,10 @@ namespace EastEngine
 			std::shared_ptr<ITexture> m_pTexture;
 			std::vector<ID3D11RenderTargetView*> m_vecRenderTargetView;
 			std::vector<ID3D11UnorderedAccessView*> m_vecUav;
-			std::vector<Math::UInt2> m_vecSize;
+			std::vector<math::UInt2> m_vecSize;
 
 			bool m_isNeedClear;
-			Math::Color m_colorClear;
+			math::Color m_colorClear;
 		};
 	}
 }

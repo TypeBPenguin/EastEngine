@@ -1,8 +1,8 @@
 #pragma once
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		enum ThreadType
 		{
@@ -14,101 +14,6 @@ namespace EastEngine
 			eImmediate = 3,
 		};
 
-		namespace EmRasterizerState
-		{
-			enum Type
-			{
-				eSolidCCW = 0,
-				eSolidCW,
-				eSolidCullNone,
-				eWireframeCCW,
-				eWireframeCW,
-				eWireframeCullNone,
-
-				TypeCount,
-			};
-		}
-
-		namespace EmDepthStencilState
-		{
-			enum Type
-			{
-				eRead_Write_On = 0,
-				eRead_Write_Off,
-				eRead_On_Write_Off,
-				eRead_Off_Write_On,
-
-				TypeCount,
-			};
-		}
-
-		namespace EmBlendState
-		{
-			enum Type
-			{
-				eOff = 0,			// 알파 OFF
-				eLinear,			// 선형합성
-				eAdditive,			// 가산합성
-				eSubTractive,		// 감산합성
-				eMultiplicative,	// 곱셈합성
-				eSquared,			// 제곱합성
-				eNegative,			// 반전합성
-				eOpacity,			// 불투명합성
-				eAlphaBlend,
-
-				TypeCount,
-			};
-		};
-
-		namespace EmSamplerState
-		{
-			enum Type
-			{
-				eMinMagMipLinearWrap = 0,
-				eMinMagMipLinearClamp,
-				eMinMagMipLinearBorder,
-				eMinMagMipLinearMirror,
-				eMinMagMipLinearMirrorOnce,
-				eMinMagLinearMipPointWrap,
-				eMinMagLinearMipPointClamp,
-				eMinMagLinearMipPointBorder,
-				eMinMagLinearMipPointMirror,
-				eMinMagLinearMipPointMirrorOnce,
-				eAnisotropicWrap,
-				eAnisotropicClamp,
-				eAnisotropicBorder,
-				eAnisotropicMirror,
-				eAnisotropicMirrorOnce,
-				eMinMagMipPointWrap,
-				eMinMagMipPointClamp,
-				eMinMagMipPointBorder,
-				eMinMagMipPointMirror,
-				eMinMagMipPointMirrorOnce,
-
-				TypeCount,
-			};
-		};
-
-		namespace EmSprite
-		{
-			enum SortMode
-			{
-				eDeferred = 0,
-				eImmediate,
-				eTexture,
-				eBackToFront,
-				eFrontToBack,
-			};
-
-			enum Effects
-			{
-				eNone = 0,
-				eFlipHorizontally = 1,
-				eFlipVertically = 2,
-				eFlipBoth = eFlipHorizontally | eFlipVertically,
-			};
-		}
-
 		namespace EmGBuffer
 		{
 			enum Type
@@ -118,39 +23,6 @@ namespace EastEngine
 				eDisneyBRDF,
 
 				Count,
-			};
-		}
-
-		namespace EmMaterial
-		{
-			enum Type
-			{
-				eAlbedo = 0,
-				eMask,
-
-				eNormal,
-
-				// 기존 데이터와의 호환성을 위해, 제거가 아닌 빈공간으로 처리
-				// 나중에 수정할것
-				ePadding1,
-				ePadding2,
-
-				eRoughness,
-				eMetallic,
-				eEmissive,
-				eEmissiveColor,
-
-				eSubsurface,
-				eSpecular,
-				eSpecularTint,
-				eAnisotropic,
-
-				eSheen,
-				eSheenTint,
-				eClearcoat,
-				eClearcoatGloss,
-
-				TypeCount,
 			};
 		}
 
@@ -540,45 +412,45 @@ namespace EastEngine
 namespace std
 {
 	template <>
-	struct hash<EastEngine::Graphics::SamplerStateKey>
+	struct hash<eastengine::graphics::SamplerStateKey>
 	{
-		std::uint64_t operator()(const EastEngine::Graphics::SamplerStateKey& key) const
+		std::uint64_t operator()(const eastengine::graphics::SamplerStateKey& key) const
 		{
 			return key.value.value;
 		}
 	};
 
 	template <>
-	struct hash<EastEngine::Graphics::BlendStateKey>
+	struct hash<eastengine::graphics::BlendStateKey>
 	{
-		std::uint64_t operator()(const EastEngine::Graphics::BlendStateKey& key) const
+		std::uint64_t operator()(const eastengine::graphics::BlendStateKey& key) const
 		{
 			return key.value.value;
 		}
 	};
 
 	template <>
-	struct hash<EastEngine::Graphics::DepthStencilStateKey>
+	struct hash<eastengine::graphics::DepthStencilStateKey>
 	{
-		std::uint64_t operator()(const EastEngine::Graphics::DepthStencilStateKey& key) const
+		std::uint64_t operator()(const eastengine::graphics::DepthStencilStateKey& key) const
 		{
 			return key.value.value;
 		}
 	};
 
 	template <>
-	struct hash<EastEngine::Graphics::RasterizerStateKey>
+	struct hash<eastengine::graphics::RasterizerStateKey>
 	{
-		std::uint64_t operator()(const EastEngine::Graphics::RasterizerStateKey& key) const
+		std::uint64_t operator()(const eastengine::graphics::RasterizerStateKey& key) const
 		{
 			return key.value.value;
 		}
 	};
 
 	template <>
-	struct hash<EastEngine::Graphics::RenderTargetKey>
+	struct hash<eastengine::graphics::RenderTargetKey>
 	{
-		std::uint64_t operator()(const EastEngine::Graphics::RenderTargetKey& key) const
+		std::uint64_t operator()(const eastengine::graphics::RenderTargetKey& key) const
 		{
 			return key.value.value;
 		}

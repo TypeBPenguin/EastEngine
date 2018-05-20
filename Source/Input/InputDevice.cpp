@@ -5,9 +5,9 @@
 #include "Keyboard.h"
 #include "GamePad.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Input
+	namespace input
 	{
 		static_assert(eExclusive == DISCL_EXCLUSIVE, "dinput.h mismatch");
 		static_assert(eNoneExclusive == DISCL_NONEXCLUSIVE, "dinput.h mismatch");
@@ -22,7 +22,7 @@ namespace EastEngine
 			~Impl();
 
 		public:
-			bool Initialize(HINSTANCE hInstance, HWND hWnd, DWORD keyboardCoopFlag = eNoneExclusive | eForeGround, DWORD mouseCoopFlag = eNoneExclusive | eForeGround);
+			void Initialize(HINSTANCE hInstance, HWND hWnd, DWORD keyboardCoopFlag = eNoneExclusive | eForeGround, DWORD mouseCoopFlag = eNoneExclusive | eForeGround);
 
 		public:
 			void Update(float fElapsedTime);
@@ -42,7 +42,6 @@ namespace EastEngine
 			GamePadInstance m_gamePad;
 
 			bool m_isInitialized{ false };
-			bool m_isFocus{ false };
 		};
 
 		Device::Impl::Impl()
@@ -54,32 +53,26 @@ namespace EastEngine
 			SafeRelease(m_pInput);
 		}
 
-		bool Device::Impl::Initialize(HINSTANCE hInstance, HWND hWnd, DWORD keyboardCoopFlag, DWORD mouseCoopFlag)
+		void Device::Impl::Initialize(HINSTANCE hInstance, HWND hWnd, DWORD keyboardCoopFlag, DWORD mouseCoopFlag)
 		{
 			if (m_isInitialized == true)
-				return true;
+				return;
 
 			HRESULT hr = DirectInput8Create(hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8, reinterpret_cast<void**>(&m_pInput), 0);
 			if (FAILED(hr))
-				return false;
+			{
+				throw_line("failed to create input device");
+			}
 
-			if (m_pInput == nullptr)
-				return false;
-
-			if (m_mouse.Init(hWnd, m_pInput, mouseCoopFlag) == false)
-				return false;
-
-			if (m_keyboard.Init(hWnd, m_pInput, keyboardCoopFlag) == false)
-				return false;
+			m_mouse.Initialize(hWnd, m_pInput, mouseCoopFlag);
+			m_keyboard.Initialize(hWnd, m_pInput, keyboardCoopFlag);
 
 			m_isInitialized = true;
-
-			return true;
 		}
 
 		void Device::Impl::Update(float fElapsedTime)
 		{
-			PERF_TRACER_EVENT("InputDevice::Update", "");
+			TRACER_EVENT("InputDevice::Update");
 			m_mouse.Update();
 			m_keyboard.Update();
 			m_gamePad.Update(fElapsedTime);
@@ -89,16 +82,6 @@ namespace EastEngine
 		{
 			switch (nMsg)
 			{
-			case WM_ACTIVATEAPP:
-				if (wParam)
-				{
-					m_isFocus = true;
-				}
-				else
-				{
-					m_isFocus = false;
-				}
-				break;
 			case WM_MOUSEMOVE:
 				m_mouse.HandleMouse(hWnd, nMsg, wParam, lParam);
 				break;
@@ -116,9 +99,9 @@ namespace EastEngine
 		{
 		}
 
-		bool Device::Initialize(HINSTANCE hInstance, HWND hWnd, DWORD keyboardCoopFlag, DWORD mouseCoopFlag)
+		void Device::Initialize(HINSTANCE hInstance, HWND hWnd, DWORD keyboardCoopFlag, DWORD mouseCoopFlag)
 		{
-			return m_pImpl->Initialize(hInstance, hWnd, keyboardCoopFlag, mouseCoopFlag);
+			m_pImpl->Initialize(hInstance, hWnd, keyboardCoopFlag, mouseCoopFlag);
 		}
 
 		void Device::Update(float fElapsedTime)

@@ -3,29 +3,16 @@
 #define WIN32_LEAN_AND_MEAN             // 거의 사용되지 않는 내용은 Windows 헤더에서 제외합니다.
 #define NOMINMAX
 
-#ifndef IGNORE_DX_LIB
-	#include <d3d11_1.h>
-#endif
-
 #include <assert.h>
 #include <Windows.h>
+#include <stdexcept>
 #include <algorithm>
-#include <cassert>
-#include <vector>
-#include <list>
-#include <queue>
-#include <stack>
-#include <map>
-#include <set>
-#include <variant>
-#include <optional>
-#include <numeric>
+#include <memory>
 #include <array>
-#include <string>
-#include <future>
 
-#include <ppl.h>
-#include <concurrent_queue.h>
+#include <map>
+#include <future>
+#include <atomic>
 
 inline void SetBitMask(int& nMask, int nBit)
 {
@@ -42,7 +29,17 @@ inline void SetBitMask64(long long& nMask, int nBit)
 	nMask |= (1ui64 << nBit);
 }
 
+inline void SetBitMask64(unsigned long long& nMask, int nBit)
+{
+	nMask |= (1ui64 << nBit);
+}
+
 inline bool GetBitMask64(long long nMask, int nBit)
+{
+	return (nMask & (1ui64 << nBit)) != 0;
+}
+
+inline bool GetBitMask64(unsigned long long nMask, int nBit)
 {
 	return (nMask & (1ui64 << nBit)) != 0;
 }
@@ -129,6 +126,19 @@ struct ReleaseSTLMapObject
 		SafeRelease(MapPair.second);
 	}
 };
+
+class my_exception : public std::runtime_error
+{
+public:
+	my_exception(const char* expression, const char* fileName, unsigned int lineNo);
+	~my_exception() {}
+
+	const char* what() const throw();
+
+private:
+	std::string m_strMsg;
+};
+#define throw_line(expression) throw my_exception(expression, __FILE__, __LINE__);
 
 #include "Memory.h"
 #include "Math.h"

@@ -14,9 +14,9 @@ namespace StrID
 	RegisterStringID(g_samLinearWrap);
 }
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		ColorGrading::ColorGrading()
 			: m_isInit(false)
@@ -38,7 +38,7 @@ namespace EastEngine
 
 			m_isInit = true;
 
-			std::string strPath(File::GetPath(File::EmPath::eFx));
+			std::string strPath(file::GetPath(file::EmPath::eFx));
 
 #if defined(DEBUG) || defined(_DEBUG)
 			strPath.append("PostProcessing\\ColorGrading\\ColorGrading_D.cso");
@@ -75,7 +75,7 @@ namespace EastEngine
 			if (pSource == nullptr || pSource->GetTexture() == nullptr)
 				return false;
 
-			PERF_TRACER_EVENT("ColorGrading::Apply", "");
+			TRACER_EVENT("ColorGrading::Apply");
 			D3D_PROFILING(pDeviceContext, ColorGrading);
 
 			IEffectTech* pEffectTech = m_pEffect->GetTechnique(StrID::ColorGrading);
@@ -87,7 +87,7 @@ namespace EastEngine
 
 			pDeviceContext->ClearState();
 
-			Math::Viewport viewport;
+			math::Viewport viewport;
 			viewport.width = static_cast<float>(pResult->GetSize().x);
 			viewport.height = static_cast<float>(pResult->GetSize().y);
 			pDeviceContext->SetViewport(viewport);

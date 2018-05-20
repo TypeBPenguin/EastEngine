@@ -7,7 +7,7 @@ namespace tinyxml2
 	class XMLDocument;
 }
 
-namespace EastEngine
+namespace eastengine
 {
 	namespace XML
 	{

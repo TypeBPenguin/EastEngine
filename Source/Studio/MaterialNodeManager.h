@@ -35,15 +35,15 @@ public:
 		int nSlotIdx = -1;
 		std::string strLabel;
 
-		EastEngine::Math::Vector2 f2Pos;
-		EastEngine::Math::Vector2 f2Size;
+		eastengine::math::Vector2 f2Pos;
+		eastengine::math::Vector2 f2Size;
 
-		EastEngine::Math::Vector2 f2LinkerPos;
+		eastengine::math::Vector2 f2LinkerPos;
 
-		EastEngine::Math::Vector2 f2ButtonSize;
+		eastengine::math::Vector2 f2ButtonSize;
 
 		InOutSlot() {}
-		InOutSlot(MaterialNodeManager* pManager, Type emType, int nNodeID, int nSlotIdx, const char* strLabel, const EastEngine::Math::Vector2& f2ButtonSize, ValueType emValueType = ValueType::eFloat)
+		InOutSlot(MaterialNodeManager* pManager, Type emType, int nNodeID, int nSlotIdx, const char* strLabel, const eastengine::math::Vector2& f2ButtonSize, ValueType emValueType = ValueType::eFloat)
 			: pManager(pManager)
 			, nNodeID(nNodeID)
 			, emType(emType)
@@ -60,12 +60,12 @@ public:
 		bool IsHovered() const { return isHovered; }
 		bool IsActive() const { return isActive; }
 
-		const EastEngine::Math::Vector2& GetLinkerPos() const { return f2LinkerPos; }
-		const EastEngine::Math::Vector2& GetPos() const { return f2Pos; }
-		const EastEngine::Math::Vector2& GetSize() const { return f2Size; }
+		const eastengine::math::Vector2& GetLinkerPos() const { return f2LinkerPos; }
+		const eastengine::math::Vector2& GetPos() const { return f2Pos; }
+		const eastengine::math::Vector2& GetSize() const { return f2Size; }
 
-		void Render(ImDrawList* pDrawList, const EastEngine::Math::Vector2& f2Offset);
-		void RenderBackground(ImDrawList* pDrawList, const EastEngine::Math::Vector2& f2Offset);
+		void Render(ImDrawList* pDrawList, const eastengine::math::Vector2& f2Offset);
+		void RenderBackground(ImDrawList* pDrawList, const eastengine::math::Vector2& f2Offset);
 	};
 
 	struct Link
@@ -87,7 +87,7 @@ public:
 	};
 
 public:
-	MaterialNode(MaterialNodeManager* pManager, int nID, const char* name, const EastEngine::Math::Vector2& pos)
+	MaterialNode(MaterialNodeManager* pManager, int nID, const char* name, const eastengine::math::Vector2& pos)
 		: m_pManager(pManager)
 		, m_nID(nID)
 		, m_strName(name)
@@ -118,9 +118,9 @@ public:
 		return &m_vecOutputSlot[nSlotIndex];
 	}
 
-	virtual void RenderNode(ImDrawList* pDrawList, const EastEngine::Math::Vector2& f2Offset);
-	virtual void RenderNodeBackground(ImDrawList* pDrawList, const EastEngine::Math::Vector2& f2Offset);
-	virtual void Update(ImDrawList* pDrawList, const EastEngine::Math::Vector2& f2Offset);
+	virtual void RenderNode(ImDrawList* pDrawList, const eastengine::math::Vector2& f2Offset);
+	virtual void RenderNodeBackground(ImDrawList* pDrawList, const eastengine::math::Vector2& f2Offset);
+	virtual void Update(ImDrawList* pDrawList, const eastengine::math::Vector2& f2Offset);
 
 	bool IsSlotHovered() const
 	{
@@ -185,16 +185,16 @@ public:
 	std::list<Link>& GetLinkToOutput() { return m_listLinkToOutput; }
 
 protected:
-	void CreateInputSlot(const char* strLabel, MaterialNode::InOutSlot::ValueType emValueType = MaterialNode::InOutSlot::ValueType::eFloat, const EastEngine::Math::Vector2& f2ButtonSize = EastEngine::Math::Vector2(125.f, 20.f)) { m_vecInputSlot.emplace_back(m_pManager, InOutSlot::eIn, m_nID, m_vecInputSlot.size(), strLabel, f2ButtonSize, emValueType); }
-	void CreateOutputSlot(const char* strLabel, MaterialNode::InOutSlot::ValueType emValueType = MaterialNode::InOutSlot::ValueType::eFloat, const EastEngine::Math::Vector2& f2ButtonSize = EastEngine::Math::Vector2(125.f, 20.f)) { m_vecOutputSlot.emplace_back(m_pManager, InOutSlot::eOut, m_nID, m_vecOutputSlot.size(), strLabel, f2ButtonSize, emValueType); }
+	void CreateInputSlot(const char* strLabel, MaterialNode::InOutSlot::ValueType emValueType = MaterialNode::InOutSlot::ValueType::eFloat, const eastengine::math::Vector2& f2ButtonSize = eastengine::math::Vector2(125.f, 20.f)) { m_vecInputSlot.emplace_back(m_pManager, InOutSlot::eIn, m_nID, m_vecInputSlot.size(), strLabel, f2ButtonSize, emValueType); }
+	void CreateOutputSlot(const char* strLabel, MaterialNode::InOutSlot::ValueType emValueType = MaterialNode::InOutSlot::ValueType::eFloat, const eastengine::math::Vector2& f2ButtonSize = eastengine::math::Vector2(125.f, 20.f)) { m_vecOutputSlot.emplace_back(m_pManager, InOutSlot::eOut, m_nID, m_vecOutputSlot.size(), strLabel, f2ButtonSize, emValueType); }
 
 protected:
 	MaterialNodeManager* m_pManager;
 
 	int m_nID;
 	std::string m_strName;
-	EastEngine::Math::Vector2 m_f2Pos;
-	EastEngine::Math::Vector2 m_f2Size;
+	eastengine::math::Vector2 m_f2Pos;
+	eastengine::math::Vector2 m_f2Size;
 
 	std::vector<InOutSlot> m_vecInputSlot;
 	std::vector<InOutSlot> m_vecOutputSlot;
@@ -209,7 +209,7 @@ private:
 	class OutputNode : public MaterialNode
 	{
 	public:
-		OutputNode(MaterialNodeManager* pManager, int nID, const EastEngine::Math::Vector2& f2Pos)
+		OutputNode(MaterialNodeManager* pManager, int nID, const eastengine::math::Vector2& f2Pos)
 			: MaterialNode(pManager, nID, "Output", f2Pos)
 		{
 			m_vecInputSlot.reserve(13);
@@ -240,7 +240,7 @@ private:
 	class InputNode : public MaterialNode
 	{
 	public:
-		InputNode(MaterialNodeManager* pManager, int nID, const EastEngine::Math::Vector2& f2Pos)
+		InputNode(MaterialNodeManager* pManager, int nID, const eastengine::math::Vector2& f2Pos)
 			: MaterialNode(pManager, nID, "Input", f2Pos)
 		{
 			m_vecOutputSlot.reserve(8);
@@ -260,19 +260,19 @@ private:
 	class ValueFloatNode : public MaterialNode
 	{
 	public:
-		ValueFloatNode(MaterialNodeManager* pManager, int nID, const EastEngine::Math::Vector2& f2Pos)
+		ValueFloatNode(MaterialNodeManager* pManager, int nID, const eastengine::math::Vector2& f2Pos)
 			: MaterialNode(pManager, nID, "Float", f2Pos)
 			, m_fValue(0.f)
 		{
 			m_vecOutputSlot.reserve(1);
 
-			CreateOutputSlot("x", MaterialNode::InOutSlot::eFloat, EastEngine::Math::Vector2(50.f, 20.f));
+			CreateOutputSlot("x", MaterialNode::InOutSlot::eFloat, eastengine::math::Vector2(50.f, 20.f));
 		}
 
 		virtual ~ValueFloatNode() {}
 
-		virtual void RenderNode(ImDrawList* pDrawList, const EastEngine::Math::Vector2& f2Offset);
-		virtual void RenderNodeBackground(ImDrawList* pDrawList, const EastEngine::Math::Vector2& f2Offset);
+		virtual void RenderNode(ImDrawList* pDrawList, const eastengine::math::Vector2& f2Offset);
+		virtual void RenderNodeBackground(ImDrawList* pDrawList, const eastengine::math::Vector2& f2Offset);
 
 	private:
 		float m_fValue;
@@ -281,27 +281,27 @@ private:
 	class ValueFloat2Node : public MaterialNode
 	{
 	public:
-		ValueFloat2Node(MaterialNodeManager* pManager, int nID, const EastEngine::Math::Vector2& f2Pos)
+		ValueFloat2Node(MaterialNodeManager* pManager, int nID, const eastengine::math::Vector2& f2Pos)
 			: MaterialNode(pManager, nID, "Float2", f2Pos)
 		{
-			CreateOutputSlot("xy", MaterialNode::InOutSlot::eFloat2, EastEngine::Math::Vector2(50.f, 20.f));
-			CreateOutputSlot("x", MaterialNode::InOutSlot::eFloat, EastEngine::Math::Vector2(50.f, 20.f));
-			CreateOutputSlot("y", MaterialNode::InOutSlot::eFloat, EastEngine::Math::Vector2(50.f, 20.f));
+			CreateOutputSlot("xy", MaterialNode::InOutSlot::eFloat2, eastengine::math::Vector2(50.f, 20.f));
+			CreateOutputSlot("x", MaterialNode::InOutSlot::eFloat, eastengine::math::Vector2(50.f, 20.f));
+			CreateOutputSlot("y", MaterialNode::InOutSlot::eFloat, eastengine::math::Vector2(50.f, 20.f));
 		}
 
 		virtual ~ValueFloat2Node() {}
 
-		virtual void RenderNode(ImDrawList* pDrawList, const EastEngine::Math::Vector2& f2Offset);
-		virtual void RenderNodeBackground(ImDrawList* pDrawList, const EastEngine::Math::Vector2& f2Offset);
+		virtual void RenderNode(ImDrawList* pDrawList, const eastengine::math::Vector2& f2Offset);
+		virtual void RenderNodeBackground(ImDrawList* pDrawList, const eastengine::math::Vector2& f2Offset);
 
 	private:
-		EastEngine::Math::Vector2 m_f2Value;
+		eastengine::math::Vector2 m_f2Value;
 	};
 
 	class FuncAddNode : public MaterialNode
 	{
 	public:
-		FuncAddNode(MaterialNodeManager* pManager, int nID, const EastEngine::Math::Vector2& f2Pos)
+		FuncAddNode(MaterialNodeManager* pManager, int nID, const eastengine::math::Vector2& f2Pos)
 			: MaterialNode(pManager, nID, "Add", f2Pos)
 		{
 			CreateInputSlot("A");
@@ -316,7 +316,7 @@ private:
 	class FuncSubtractNode : public MaterialNode
 	{
 	public:
-		FuncSubtractNode(MaterialNodeManager* pManager, int nID, const EastEngine::Math::Vector2& f2Pos)
+		FuncSubtractNode(MaterialNodeManager* pManager, int nID, const eastengine::math::Vector2& f2Pos)
 			: MaterialNode(pManager, nID, "Subtract", f2Pos)
 		{
 			CreateInputSlot("A");
@@ -331,7 +331,7 @@ private:
 	class FuncMultiplyNode : public MaterialNode
 	{
 	public:
-		FuncMultiplyNode(MaterialNodeManager* pManager, int nID, const EastEngine::Math::Vector2& f2Pos)
+		FuncMultiplyNode(MaterialNodeManager* pManager, int nID, const eastengine::math::Vector2& f2Pos)
 			: MaterialNode(pManager, nID, "Multiply", f2Pos)
 		{
 			CreateInputSlot("A");
@@ -346,7 +346,7 @@ private:
 	class FuncDivideNode : public MaterialNode
 	{
 	public:
-		FuncDivideNode(MaterialNodeManager* pManager, int nID, const EastEngine::Math::Vector2& f2Pos)
+		FuncDivideNode(MaterialNodeManager* pManager, int nID, const eastengine::math::Vector2& f2Pos)
 			: MaterialNode(pManager, nID, "Divide", f2Pos)
 		{
 			CreateInputSlot("A");
@@ -361,7 +361,7 @@ private:
 	class FuncReciprocalNode : public MaterialNode
 	{
 	public:
-		FuncReciprocalNode(MaterialNodeManager* pManager, int nID, const EastEngine::Math::Vector2& f2Pos)
+		FuncReciprocalNode(MaterialNodeManager* pManager, int nID, const eastengine::math::Vector2& f2Pos)
 			: MaterialNode(pManager, nID, "Reciprocal", f2Pos)
 		{
 			CreateInputSlot("A");
@@ -375,7 +375,7 @@ private:
 	class FuncPowerNode : public MaterialNode
 	{
 	public:
-		FuncPowerNode(MaterialNodeManager* pManager, int nID, const EastEngine::Math::Vector2& f2Pos)
+		FuncPowerNode(MaterialNodeManager* pManager, int nID, const eastengine::math::Vector2& f2Pos)
 			: MaterialNode(pManager, nID, "Power", f2Pos)
 		{
 			CreateInputSlot("Val");
@@ -390,7 +390,7 @@ private:
 	class FuncSqrtNode : public MaterialNode
 	{
 	public:
-		FuncSqrtNode(MaterialNodeManager* pManager, int nID, const EastEngine::Math::Vector2& f2Pos)
+		FuncSqrtNode(MaterialNodeManager* pManager, int nID, const eastengine::math::Vector2& f2Pos)
 			: MaterialNode(pManager, nID, "Sqrt", f2Pos)
 		{
 			CreateInputSlot("A");
@@ -404,7 +404,7 @@ private:
 	class FuncLogNode : public MaterialNode
 	{
 	public:
-		FuncLogNode(MaterialNodeManager* pManager, int nID, const EastEngine::Math::Vector2& f2Pos)
+		FuncLogNode(MaterialNodeManager* pManager, int nID, const eastengine::math::Vector2& f2Pos)
 			: MaterialNode(pManager, nID, "Log", f2Pos)
 		{
 			CreateInputSlot("A");
@@ -418,7 +418,7 @@ private:
 	class FuncMinNode : public MaterialNode
 	{
 	public:
-		FuncMinNode(MaterialNodeManager* pManager, int nID, const EastEngine::Math::Vector2& f2Pos)
+		FuncMinNode(MaterialNodeManager* pManager, int nID, const eastengine::math::Vector2& f2Pos)
 			: MaterialNode(pManager, nID, "Min", f2Pos)
 		{
 			CreateInputSlot("A");
@@ -432,7 +432,7 @@ private:
 	class FuncMaxNode : public MaterialNode
 	{
 	public:
-		FuncMaxNode(MaterialNodeManager* pManager, int nID, const EastEngine::Math::Vector2& f2Pos)
+		FuncMaxNode(MaterialNodeManager* pManager, int nID, const eastengine::math::Vector2& f2Pos)
 			: MaterialNode(pManager, nID, "Max", f2Pos)
 		{
 			CreateInputSlot("A");
@@ -446,7 +446,7 @@ private:
 	class FuncAbsNode : public MaterialNode
 	{
 	public:
-		FuncAbsNode(MaterialNodeManager* pManager, int nID, const EastEngine::Math::Vector2& f2Pos)
+		FuncAbsNode(MaterialNodeManager* pManager, int nID, const eastengine::math::Vector2& f2Pos)
 			: MaterialNode(pManager, nID, "Abs", f2Pos)
 		{
 			CreateInputSlot("A");
@@ -460,7 +460,7 @@ private:
 	class FuncSignNode : public MaterialNode
 	{
 	public:
-		FuncSignNode(MaterialNodeManager* pManager, int nID, const EastEngine::Math::Vector2& f2Pos)
+		FuncSignNode(MaterialNodeManager* pManager, int nID, const eastengine::math::Vector2& f2Pos)
 			: MaterialNode(pManager, nID, "Sign", f2Pos)
 		{
 			CreateInputSlot("A");
@@ -474,7 +474,7 @@ private:
 	class FuncCeilNode : public MaterialNode
 	{
 	public:
-		FuncCeilNode(MaterialNodeManager* pManager, int nID, const EastEngine::Math::Vector2& f2Pos)
+		FuncCeilNode(MaterialNodeManager* pManager, int nID, const eastengine::math::Vector2& f2Pos)
 			: MaterialNode(pManager, nID, "Ceil", f2Pos)
 		{
 			CreateInputSlot("A");
@@ -488,7 +488,7 @@ private:
 	class FuncRoundNode : public MaterialNode
 	{
 	public:
-		FuncRoundNode(MaterialNodeManager* pManager, int nID, const EastEngine::Math::Vector2& f2Pos)
+		FuncRoundNode(MaterialNodeManager* pManager, int nID, const eastengine::math::Vector2& f2Pos)
 			: MaterialNode(pManager, nID, "Round", f2Pos)
 		{
 			CreateInputSlot("A");
@@ -502,7 +502,7 @@ private:
 	class FuncFloorNode : public MaterialNode
 	{
 	public:
-		FuncFloorNode(MaterialNodeManager* pManager, int nID, const EastEngine::Math::Vector2& f2Pos)
+		FuncFloorNode(MaterialNodeManager* pManager, int nID, const eastengine::math::Vector2& f2Pos)
 			: MaterialNode(pManager, nID, "Floor", f2Pos)
 		{
 			CreateInputSlot("A");
@@ -516,7 +516,7 @@ private:
 	class FuncTruncNode : public MaterialNode
 	{
 	public:
-		FuncTruncNode(MaterialNodeManager* pManager, int nID, const EastEngine::Math::Vector2& f2Pos)
+		FuncTruncNode(MaterialNodeManager* pManager, int nID, const eastengine::math::Vector2& f2Pos)
 			: MaterialNode(pManager, nID, "Trunc", f2Pos)
 		{
 			CreateInputSlot("A");
@@ -530,7 +530,7 @@ private:
 	class FuncStepNode : public MaterialNode
 	{
 	public:
-		FuncStepNode(MaterialNodeManager* pManager, int nID, const EastEngine::Math::Vector2& f2Pos)
+		FuncStepNode(MaterialNodeManager* pManager, int nID, const eastengine::math::Vector2& f2Pos)
 			: MaterialNode(pManager, nID, "Step", f2Pos)
 		{
 			CreateInputSlot("A");
@@ -545,7 +545,7 @@ private:
 	class FuncSmoothstepNode : public MaterialNode
 	{
 	public:
-		FuncSmoothstepNode(MaterialNodeManager* pManager, int nID, const EastEngine::Math::Vector2& f2Pos)
+		FuncSmoothstepNode(MaterialNodeManager* pManager, int nID, const eastengine::math::Vector2& f2Pos)
 			: MaterialNode(pManager, nID, "Smoothstep", f2Pos)
 		{
 			CreateInputSlot("A");
@@ -561,7 +561,7 @@ private:
 	class FuncIfNode : public MaterialNode
 	{
 	public:
-		FuncIfNode(MaterialNodeManager* pManager, int nID, const EastEngine::Math::Vector2& f2Pos)
+		FuncIfNode(MaterialNodeManager* pManager, int nID, const eastengine::math::Vector2& f2Pos)
 			: MaterialNode(pManager, nID, "If", f2Pos)
 		{
 			CreateInputSlot("A");
@@ -576,7 +576,7 @@ private:
 	class FuncFracNode : public MaterialNode
 	{
 	public:
-		FuncFracNode(MaterialNodeManager* pManager, int nID, const EastEngine::Math::Vector2& f2Pos)
+		FuncFracNode(MaterialNodeManager* pManager, int nID, const eastengine::math::Vector2& f2Pos)
 			: MaterialNode(pManager, nID, "Frac", f2Pos)
 		{
 			CreateInputSlot("A");
@@ -590,7 +590,7 @@ private:
 	class FuncFmodNode : public MaterialNode
 	{
 	public:
-		FuncFmodNode(MaterialNodeManager* pManager, int nID, const EastEngine::Math::Vector2& f2Pos)
+		FuncFmodNode(MaterialNodeManager* pManager, int nID, const eastengine::math::Vector2& f2Pos)
 			: MaterialNode(pManager, nID, "Fmod", f2Pos)
 		{
 			CreateInputSlot("A");
@@ -604,7 +604,7 @@ private:
 	class FuncClampNode : public MaterialNode
 	{
 	public:
-		FuncClampNode(MaterialNodeManager* pManager, int nID, const EastEngine::Math::Vector2& f2Pos)
+		FuncClampNode(MaterialNodeManager* pManager, int nID, const eastengine::math::Vector2& f2Pos)
 			: MaterialNode(pManager, nID, "Clamp", f2Pos)
 		{
 			CreateInputSlot("A");
@@ -618,7 +618,7 @@ private:
 	class FuncLerpNode : public MaterialNode
 	{
 	public:
-		FuncLerpNode(MaterialNodeManager* pManager, int nID, const EastEngine::Math::Vector2& f2Pos)
+		FuncLerpNode(MaterialNodeManager* pManager, int nID, const eastengine::math::Vector2& f2Pos)
 			: MaterialNode(pManager, nID, "Lerp", f2Pos)
 		{
 			CreateInputSlot("A");
@@ -634,7 +634,7 @@ private:
 	class FuncDotNode : public MaterialNode
 	{
 	public:
-		FuncDotNode(MaterialNodeManager* pManager, int nID, const EastEngine::Math::Vector2& f2Pos)
+		FuncDotNode(MaterialNodeManager* pManager, int nID, const eastengine::math::Vector2& f2Pos)
 			: MaterialNode(pManager, nID, "Dot", f2Pos)
 		{
 			CreateInputSlot("A");
@@ -649,7 +649,7 @@ private:
 	class FuncCrossNode : public MaterialNode
 	{
 	public:
-		FuncCrossNode(MaterialNodeManager* pManager, int nID, const EastEngine::Math::Vector2& f2Pos)
+		FuncCrossNode(MaterialNodeManager* pManager, int nID, const eastengine::math::Vector2& f2Pos)
 			: MaterialNode(pManager, nID, "Cross", f2Pos)
 		{
 			CreateInputSlot("A");
@@ -664,7 +664,7 @@ private:
 	class FuncReflectNode : public MaterialNode
 	{
 	public:
-		FuncReflectNode(MaterialNodeManager* pManager, int nID, const EastEngine::Math::Vector2& f2Pos)
+		FuncReflectNode(MaterialNodeManager* pManager, int nID, const eastengine::math::Vector2& f2Pos)
 			: MaterialNode(pManager, nID, "Reflect", f2Pos)
 		{
 			CreateInputSlot("A");
@@ -679,7 +679,7 @@ private:
 	class FuncNormalizeNode : public MaterialNode
 	{
 	public:
-		FuncNormalizeNode(MaterialNodeManager* pManager, int nID, const EastEngine::Math::Vector2& f2Pos)
+		FuncNormalizeNode(MaterialNodeManager* pManager, int nID, const eastengine::math::Vector2& f2Pos)
 			: MaterialNode(pManager, nID, "Normalize", f2Pos)
 		{
 			CreateInputSlot("A");
@@ -694,7 +694,7 @@ private:
 	class FuncSinNode : public MaterialNode
 	{
 	public:
-		FuncSinNode(MaterialNodeManager* pManager, int nID, const EastEngine::Math::Vector2& f2Pos)
+		FuncSinNode(MaterialNodeManager* pManager, int nID, const eastengine::math::Vector2& f2Pos)
 			: MaterialNode(pManager, nID, "Sin", f2Pos)
 		{
 			CreateInputSlot("A");
@@ -708,7 +708,7 @@ private:
 	class FuncCosNode : public MaterialNode
 	{
 	public:
-		FuncCosNode(MaterialNodeManager* pManager, int nID, const EastEngine::Math::Vector2& f2Pos)
+		FuncCosNode(MaterialNodeManager* pManager, int nID, const eastengine::math::Vector2& f2Pos)
 			: MaterialNode(pManager, nID, "Cos", f2Pos)
 		{
 			CreateInputSlot("A");
@@ -722,7 +722,7 @@ private:
 	class FuncTanNode : public MaterialNode
 	{
 	public:
-		FuncTanNode(MaterialNodeManager* pManager, int nID, const EastEngine::Math::Vector2& f2Pos)
+		FuncTanNode(MaterialNodeManager* pManager, int nID, const eastengine::math::Vector2& f2Pos)
 			: MaterialNode(pManager, nID, "Tan", f2Pos)
 		{
 			CreateInputSlot("A");
@@ -736,7 +736,7 @@ private:
 	class FuncArcSinNode : public MaterialNode
 	{
 	public:
-		FuncArcSinNode(MaterialNodeManager* pManager, int nID, const EastEngine::Math::Vector2& f2Pos)
+		FuncArcSinNode(MaterialNodeManager* pManager, int nID, const eastengine::math::Vector2& f2Pos)
 			: MaterialNode(pManager, nID, "ArcSin", f2Pos)
 		{
 			CreateInputSlot("A");
@@ -750,7 +750,7 @@ private:
 	class FuncArcCosNode : public MaterialNode
 	{
 	public:
-		FuncArcCosNode(MaterialNodeManager* pManager, int nID, const EastEngine::Math::Vector2& f2Pos)
+		FuncArcCosNode(MaterialNodeManager* pManager, int nID, const eastengine::math::Vector2& f2Pos)
 			: MaterialNode(pManager, nID, "ArcCos", f2Pos)
 		{
 			CreateInputSlot("A");
@@ -764,7 +764,7 @@ private:
 	class FuncArcTanNode : public MaterialNode
 	{
 	public:
-		FuncArcTanNode(MaterialNodeManager* pManager, int nID, const EastEngine::Math::Vector2& f2Pos)
+		FuncArcTanNode(MaterialNodeManager* pManager, int nID, const eastengine::math::Vector2& f2Pos)
 			: MaterialNode(pManager, nID, "ArcTan", f2Pos)
 		{
 			CreateInputSlot("A");
@@ -778,7 +778,7 @@ private:
 	class FuncArcTan2Node : public MaterialNode
 	{
 	public:
-		FuncArcTan2Node(MaterialNodeManager* pManager, int nID, const EastEngine::Math::Vector2& f2Pos)
+		FuncArcTan2Node(MaterialNodeManager* pManager, int nID, const eastengine::math::Vector2& f2Pos)
 			: MaterialNode(pManager, nID, "ArcTan2", f2Pos)
 		{
 			CreateInputSlot("A");
@@ -854,7 +854,7 @@ private:
 	int m_nHoveredNodeSlotIndex;
 
 	MaterialNode::InOutSlot::Type m_emSelectedSlotType;
-	EastEngine::Math::Vector2 m_f2Scrolling;
+	eastengine::math::Vector2 m_f2Scrolling;
 
 	/*struct NodeLink
 	{

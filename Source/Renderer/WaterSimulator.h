@@ -1,8 +1,8 @@
 #pragma once
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class IEffect;
 		class IEffectTech;
@@ -24,7 +24,7 @@ namespace EastEngine
 			// Amplitude for transverse wave. Around 1.0
 			float wave_amplitude;
 			// Wind direction. Normalization not required.
-			Math::Vector2 wind_dir;
+			math::Vector2 wind_dir;
 			// Around 100 ~ 1000
 			float wind_speed;
 			// This value damps out the waves against the wind direction.
@@ -85,7 +85,7 @@ namespace EastEngine
 
 		private:
 			// Initialize the vector field.
-			void InitHeightMap(OceanParameter& params, Math::Vector2* out_h0, float* out_omega);
+			void InitHeightMap(OceanParameter& params, math::Vector2* out_h0, float* out_omega);
 
 			void ClearEffect(IDeviceContext* pd3dDeviceContext, IEffectTech* pEffectTech);
 			void ClearEffect_FFT(IDeviceContext* pd3dDeviceContext, IEffectTech* pEffectTech);

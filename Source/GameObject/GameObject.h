@@ -3,15 +3,15 @@
 #include "Physics/RigidBody.h"
 #include "ComponentInterface.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class ITexture;
 		class IVertexBuffer;
 	}
 
-	namespace GameObject
+	namespace gameobject
 	{
 		enum EmObjectType
 		{
@@ -61,24 +61,24 @@ namespace EastEngine
 			virtual const String::StringID& GetName() const = 0;
 			virtual void SetName(const String::StringID& strActorName) = 0;
 
-			virtual const Math::Matrix* GetWorldMatrixPtr() const = 0;
-			virtual const Math::Matrix& GetWorldMatrix() const = 0;
-			virtual const Math::Matrix& CalcWorldMatrix() = 0;
+			virtual const math::Matrix* GetWorldMatrixPtr() const = 0;
+			virtual const math::Matrix& GetWorldMatrix() const = 0;
+			virtual const math::Matrix& CalcWorldMatrix() = 0;
 
-			virtual const Math::Vector3& GetPosition() const = 0;
-			virtual void SetPosition(const Math::Vector3& f3Pos) = 0;
-			virtual const Math::Vector3& GetPrevPosition() const = 0;
+			virtual const math::Vector3& GetPosition() const = 0;
+			virtual void SetPosition(const math::Vector3& f3Pos) = 0;
+			virtual const math::Vector3& GetPrevPosition() const = 0;
 
-			virtual const Math::Vector3& GetScale() const = 0;
-			virtual void SetScale(const Math::Vector3& f3Scale) = 0;
-			virtual const Math::Vector3& GetPrevScale() const = 0;
+			virtual const math::Vector3& GetScale() const = 0;
+			virtual void SetScale(const math::Vector3& f3Scale) = 0;
+			virtual const math::Vector3& GetPrevScale() const = 0;
 
-			virtual const Math::Quaternion& GetRotation() const = 0;
-			virtual void SetRotation(const Math::Quaternion& quat) = 0;
-			virtual const Math::Quaternion& GetPrevRotation() const = 0;
+			virtual const math::Quaternion& GetRotation() const = 0;
+			virtual void SetRotation(const math::Quaternion& quat) = 0;
+			virtual const math::Quaternion& GetPrevRotation() const = 0;
 
-			virtual const Math::Vector3& GetVelocity() const = 0;
-			virtual void SetVelocity(const Math::Vector3& f3Velocity) = 0;
+			virtual const math::Vector3& GetVelocity() const = 0;
+			virtual void SetVelocity(const math::Vector3& f3Velocity) = 0;
 
 			virtual void SetVisible(bool bVisible) = 0;
 			virtual bool IsVisible() const = 0;
@@ -86,15 +86,15 @@ namespace EastEngine
 
 		struct TerrainProperty
 		{
-			Math::Int2 n2Size = Math::Int2(1024, 1024);
+			math::Int2 n2Size = math::Int2(1024, 1024);
 
-			Math::Int2 n2Patches = Math::Int2(64, 64);
+			math::Int2 n2Patches = math::Int2(64, 64);
 
 			float fHeightScale = 300.f;
 
-			Math::Vector3 f3Position;
-			Math::Quaternion quatRotation;
-			Math::Vector3 f3Scale = Math::Vector3::One;
+			math::Vector3 f3Position;
+			math::Quaternion quatRotation;
+			math::Vector3 f3Scale = math::Vector3::One;
 
 			std::string strTexHeightMap;
 			std::string strTexColorMap;
@@ -171,8 +171,8 @@ namespace EastEngine
 			virtual void SetVisible(bool bVisible) = 0;
 			virtual bool IsVisible() const = 0;
 
-			virtual std::shared_ptr<Graphics::ITexture> GetTexture() const = 0;
-			virtual void SetTexture(const std::shared_ptr<Graphics::ITexture>& pTexture) = 0;
+			virtual std::shared_ptr<graphics::ITexture> GetTexture() const = 0;
+			virtual void SetTexture(const std::shared_ptr<graphics::ITexture>& pTexture) = 0;
 		};
 	}
 }

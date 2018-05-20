@@ -1,13 +1,13 @@
 #pragma once
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace File
+	namespace file
 	{
 		class Stream;
 	}
 
-	namespace GameObject
+	namespace gameobject
 	{
 		namespace EmComponent
 		{
@@ -38,8 +38,8 @@ namespace EastEngine
 		public:
 			virtual void Update(float fElapsedTime) = 0;
 
-			virtual bool LoadToFile(File::Stream& file) { return true; }
-			virtual bool SaveToFile(File::Stream& file) { return true; }
+			virtual bool LoadToFile(file::Stream& file) { return true; }
+			virtual bool SaveToFile(file::Stream& file) { return true; }
 
 		public:
 			IComponent* AddComponent(IComponent* pComponent);

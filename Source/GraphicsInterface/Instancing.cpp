@@ -1,0 +1,35 @@
+#include "stdafx.h"
+#include "Instancing.h"
+
+namespace eastengine
+{
+	namespace graphics
+	{
+		TransformInstancingData::TransformInstancingData()
+		{
+		}
+
+		TransformInstancingData::TransformInstancingData(const math::Matrix& f4x4World)
+		{
+			EncodeMatrix(f4x4World);
+		}
+
+		MotionInstancingData::MotionInstancingData()
+		{
+		}
+
+		MotionInstancingData::MotionInstancingData(uint32_t nVTFOffset)
+			: nVTFOffset(nVTFOffset)
+		{
+		}
+		
+		SkinningInstancingData::SkinningInstancingData()
+		{
+		}
+
+		SkinningInstancingData::SkinningInstancingData(const math::Matrix& matWorld, MotionInstancingData motionData)
+			: worldData(matWorld), motionData(motionData)
+		{
+		}
+	}
+}

@@ -2,9 +2,9 @@
 
 #include "ModelNode.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class ModelNodeStatic : public ModelNode
 		{
@@ -12,7 +12,7 @@ namespace EastEngine
 			ModelNodeStatic(uint32_t nMaxLod = 0);
 			virtual ~ModelNodeStatic();
 
-			virtual void Update(float fElapsedTime, const Math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance, bool isModelVisible) const override;
+			virtual void Update(float fElapsedTime, const math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance, bool isModelVisible) const override;
 		};
 	}
 }

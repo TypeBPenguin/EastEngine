@@ -6,9 +6,9 @@
 #include "ParticleDecal.h"
 #include "ParticleEmitter.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		static boost::object_pool<ParticleEmitter> s_poolEmitter;
 		static boost::object_pool<ParticleDecal> s_poolDecal;

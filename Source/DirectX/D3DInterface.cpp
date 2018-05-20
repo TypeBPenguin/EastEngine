@@ -20,9 +20,9 @@
 #include "DepthStencilState.h"
 #include "Material.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		static boost::object_pool<Material> s_poolMaterial;
 		static std::mutex s_mutexMaterial;
@@ -91,7 +91,7 @@ namespace EastEngine
 				return nullptr;
 			}
 
-			pTexture->SetLoadState(EmLoadState::eComplete);
+			pTexture->SetState(EmLoadState::eComplete);
 
 			return pTexture;
 		}
@@ -110,7 +110,7 @@ namespace EastEngine
 				return nullptr;
 			}
 
-			pTexture->SetLoadState(EmLoadState::eComplete);
+			pTexture->SetState(EmLoadState::eComplete);
 
 			return pTexture;
 		}
@@ -129,7 +129,7 @@ namespace EastEngine
 				return nullptr;
 			}
 
-			pTexture->SetLoadState(EmLoadState::eComplete);
+			pTexture->SetState(EmLoadState::eComplete);
 
 			return pTexture;
 		}
@@ -148,7 +148,7 @@ namespace EastEngine
 				return nullptr;
 			}
 
-			pTexture->SetLoadState(EmLoadState::eComplete);
+			pTexture->SetState(EmLoadState::eComplete);
 
 			return pTexture;
 		}
@@ -177,12 +177,12 @@ namespace EastEngine
 
 				if (isLoaded == true)
 				{
-					pTexture->SetLoadState(EmLoadState::eComplete);
+					pTexture->SetState(EmLoadState::eComplete);
 					pTexture->SetAlive(true);
 				}
 				else
 				{
-					pTexture->SetLoadState(EmLoadState::eInvalid);
+					pTexture->SetState(EmLoadState::eInvalid);
 					pTexture->SetAlive(false);
 				}
 			}
@@ -365,12 +365,12 @@ namespace EastEngine
 		{
 			strName.clear();
 
-			colorAlbedo = Math::Color(1.f, 1.f, 1.f, 1.f);
-			colorEmissive = Math::Color(0.f, 0.f, 0.f, 1.f);
+			colorAlbedo = math::Color(1.f, 1.f, 1.f, 1.f);
+			colorEmissive = math::Color(0.f, 0.f, 0.f, 1.f);
 
-			f4PaddingRoughMetEmi = Math::Vector4::Zero;
-			f4SurSpecTintAniso = Math::Vector4::Zero;
-			f4SheenTintClearcoatGloss = Math::Vector4::Zero;
+			f4PaddingRoughMetEmi = math::Vector4::Zero;
+			f4SurSpecTintAniso = math::Vector4::Zero;
+			f4SheenTintClearcoatGloss = math::Vector4::Zero;
 
 			fStippleTransparencyFactor = 0.f;
 			fTessellationFactor = 256.f;
@@ -445,8 +445,8 @@ namespace EastEngine
 			std::string strFullPath(strFilePath);
 			strFullPath.append(strFileName);
 
-			File::Stream file;
-			if (file.Open(strFullPath.c_str(), File::eRead | File::eBinary) == false)
+			file::Stream file;
+			if (file.Open(strFullPath.c_str(), file::eRead | file::eBinary) == false)
 			{
 				LOG_WARNING("아 실패함");
 				return nullptr;
@@ -515,8 +515,8 @@ namespace EastEngine
 			strFullPath.append(pMaterial->GetName().c_str());
 			strFullPath.append(".emtl");
 
-			File::Stream file;
-			if (file.Open(strFullPath.c_str(), File::eWrite | File::eBinary) == false)
+			file::Stream file;
+			if (file.Open(strFullPath.c_str(), file::eWrite | file::eBinary) == false)
 			{
 				LOG_WARNING("아 실패함");
 				return false;

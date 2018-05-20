@@ -26,9 +26,9 @@ namespace StrID
 	RegisterStringID(g_samLinearWrap);
 }
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class SkyRenderer::Impl
 		{
@@ -94,7 +94,7 @@ namespace EastEngine
 
 		void SkyRenderer::Impl::Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag)
 		{
-			PERF_TRACER_EVENT("SkyRenderer::Render", "");
+			TRACER_EVENT("SkyRenderer::Render");
 			D3D_PROFILING(pDeviceContext, SkyRenderer);
 
 			IEffectTech* pEffectTech = m_pEffect->GetTechnique(StrID::Skybox);
@@ -135,7 +135,7 @@ namespace EastEngine
 				pRenderTarget = pDevice->GetRenderTarget(desc);
 			}
 
-			pDeviceContext->ClearRenderTargetView(pRenderTarget, Math::Color::Black);
+			pDeviceContext->ClearRenderTargetView(pRenderTarget, math::Color::Black);
 			pDeviceContext->SetRenderTargets(&pRenderTarget, 1, nullptr);
 
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -148,7 +148,7 @@ namespace EastEngine
 				pDeviceContext->SetVertexBuffers(renderSubset.pVertexBuffer, renderSubset.pVertexBuffer->GetFormatSize(), 0);
 				pDeviceContext->SetIndexBuffer(renderSubset.pIndexBuffer, 0);
 
-				Math::Matrix matWorld = Math::Matrix::CreateTranslation(pCamera->GetViewMatrix(nThreadID).Invert().Translation());
+				math::Matrix matWorld = math::Matrix::CreateTranslation(pCamera->GetViewMatrix(nThreadID).Invert().Translation());
 				m_pEffect->SetMatrix(StrID::g_matWVP, matWorld * pCamera->GetViewMatrix(nThreadID) * pCamera->GetProjMatrix(nThreadID));
 
 				m_pEffect->SetTexture(StrID::g_texSkyCubemap, renderSubset.pTexSkyCubemap);
@@ -174,8 +174,8 @@ namespace EastEngine
 
 			m_pEffect->SetMatrix(StrID::g_matWVP, *renderSubset.pMatrix * pCamera->GetViewMatrix() * pCamera->GetProjMatrix());
 
-			m_pEffect->SetVector(StrID::g_colorApex, reinterpret_cast<Math::Vector4&>(*renderSubset.pColorApex));
-			m_pEffect->SetVector(StrID::g_colorCenter, reinterpret_cast<Math::Vector4&>(*renderSubset.pColorCenter));
+			m_pEffect->SetVector(StrID::g_colorApex, reinterpret_cast<math::Vector4&>(*renderSubset.pColorApex));
+			m_pEffect->SetVector(StrID::g_colorCenter, reinterpret_cast<math::Vector4&>(*renderSubset.pColorCenter));
 
 			uint32_t nPassCount = pEffectTech->GetPassCount();
 			for (uint32_t p = 0; p < nPassCount; ++p)
@@ -272,7 +272,7 @@ namespace EastEngine
 
 		bool SkyRenderer::Impl::CreateEffect()
 		{
-			std::string strPath(File::GetPath(File::EmPath::eFx));
+			std::string strPath(file::GetPath(file::EmPath::eFx));
 
 #if defined(DEBUG) || defined(_DEBUG)
 			strPath.append("Sky\\Sky_D.cso");

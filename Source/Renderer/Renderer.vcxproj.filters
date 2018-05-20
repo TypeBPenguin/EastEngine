@@ -102,9 +102,6 @@
     <ClInclude Include="ModelRenderer.h">
       <Filter>Renderer\Model</Filter>
     </ClInclude>
-    <ClInclude Include="Instancing.h">
-      <Filter>Instancing</Filter>
-    </ClInclude>
     <ClInclude Include="DeferredRenderer.h">
       <Filter>Renderer\Deferred</Filter>
     </ClInclude>
@@ -131,9 +128,6 @@
     </ClInclude>
     <ClInclude Include="HDRFilter.h">
       <Filter>Renderer\PostProcessing\HDR</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderSubsets.h">
-      <Filter>Subsets</Filter>
     </ClInclude>
     <ClInclude Include="ASSAO.h">
       <Filter>Renderer\PostProcessing\ASSAO</Filter>
@@ -176,9 +170,6 @@
     <ClCompile Include="ModelRenderer.cpp">
       <Filter>Renderer\Model</Filter>
     </ClCompile>
-    <ClCompile Include="Instancing.cpp">
-      <Filter>Instancing</Filter>
-    </ClCompile>
     <ClCompile Include="PostProcessingRenderer.cpp">
       <Filter>Renderer\PostProcessing</Filter>
     </ClCompile>
@@ -202,9 +193,6 @@
     </ClCompile>
     <ClCompile Include="HDRFilter.cpp">
       <Filter>Renderer\PostProcessing\HDR</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderSubsets.cpp">
-      <Filter>Subsets</Filter>
     </ClCompile>
     <ClCompile Include="ASSAO.cpp">
       <Filter>Renderer\PostProcessing\ASSAO</Filter>

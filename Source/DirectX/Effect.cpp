@@ -6,9 +6,9 @@
 
 #include <D3DCompiler.h>
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		EffectTech::EffectTech(ID3DX11EffectTechnique* pTech, EmVertexFormat::Type emLayoutFormat, const String::StringID& strTechName)
 			: m_pTech(pTech)
@@ -499,7 +499,7 @@ namespace EastEngine
 			}
 		}
 
-		void Effect::SetVector(const String::StringID& strName, const Math::Int2& n2Value)
+		void Effect::SetVector(const String::StringID& strName, const math::Int2& n2Value)
 		{
 			EffectVectorHandle* pHandle = GetVectorHandle(strName);
 			if (pHandle != nullptr)
@@ -508,7 +508,7 @@ namespace EastEngine
 			}
 		}
 
-		void Effect::SetVector(const String::StringID& strName, const Math::Int3& n3Value)
+		void Effect::SetVector(const String::StringID& strName, const math::Int3& n3Value)
 		{
 			EffectVectorHandle* pHandle = GetVectorHandle(strName);
 			if (pHandle != nullptr)
@@ -517,7 +517,7 @@ namespace EastEngine
 			}
 		}
 
-		void Effect::SetVector(const String::StringID& strName, const Math::Int4& n4Value)
+		void Effect::SetVector(const String::StringID& strName, const math::Int4& n4Value)
 		{
 			EffectVectorHandle* pHandle = GetVectorHandle(strName);
 			if (pHandle != nullptr)
@@ -526,7 +526,7 @@ namespace EastEngine
 			}
 		}
 
-		void Effect::SetVector(const String::StringID& strName, const Math::Vector2& f2Value)
+		void Effect::SetVector(const String::StringID& strName, const math::Vector2& f2Value)
 		{
 			EffectVectorHandle* pHandle = GetVectorHandle(strName);
 			if (pHandle != nullptr)
@@ -535,7 +535,7 @@ namespace EastEngine
 			}
 		}
 
-		void Effect::SetVector(const String::StringID& strName, const Math::Vector3& f3Value)
+		void Effect::SetVector(const String::StringID& strName, const math::Vector3& f3Value)
 		{
 			EffectVectorHandle* pHandle = GetVectorHandle(strName);
 			if (pHandle != nullptr)
@@ -544,7 +544,7 @@ namespace EastEngine
 			}
 		}
 
-		void Effect::SetVector(const String::StringID& strName, const Math::Vector4& f4Value)
+		void Effect::SetVector(const String::StringID& strName, const math::Vector4& f4Value)
 		{
 			EffectVectorHandle* pHandle = GetVectorHandle(strName);
 			if (pHandle != nullptr)
@@ -553,7 +553,7 @@ namespace EastEngine
 			}
 		}
 
-		void Effect::SetVectorArray(const String::StringID& strName, const Math::Int2* pn2Value, uint32_t nOffset, uint32_t nCount)
+		void Effect::SetVectorArray(const String::StringID& strName, const math::Int2* pn2Value, uint32_t nOffset, uint32_t nCount)
 		{
 			EffectVectorHandle* pHandle = GetVectorHandle(strName);
 			if (pHandle != nullptr)
@@ -562,7 +562,7 @@ namespace EastEngine
 			}
 		}
 
-		void Effect::SetVectorArray(const String::StringID& strName, const Math::Int3* pn3Value, uint32_t nOffset, uint32_t nCount)
+		void Effect::SetVectorArray(const String::StringID& strName, const math::Int3* pn3Value, uint32_t nOffset, uint32_t nCount)
 		{
 			EffectVectorHandle* pHandle = GetVectorHandle(strName);
 			if (pHandle != nullptr)
@@ -571,7 +571,7 @@ namespace EastEngine
 			}
 		}
 
-		void Effect::SetVectorArray(const String::StringID& strName, const Math::Int4* pn4Value, uint32_t nOffset, uint32_t nCount)
+		void Effect::SetVectorArray(const String::StringID& strName, const math::Int4* pn4Value, uint32_t nOffset, uint32_t nCount)
 		{
 			EffectVectorHandle* pHandle = GetVectorHandle(strName);
 			if (pHandle != nullptr)
@@ -580,7 +580,7 @@ namespace EastEngine
 			}
 		}
 
-		void Effect::SetVectorArray(const String::StringID& strName, const Math::Vector2* pf2Value, uint32_t nOffset, uint32_t nCount)
+		void Effect::SetVectorArray(const String::StringID& strName, const math::Vector2* pf2Value, uint32_t nOffset, uint32_t nCount)
 		{
 			EffectVectorHandle* pHandle = GetVectorHandle(strName);
 			if (pHandle != nullptr)
@@ -589,7 +589,7 @@ namespace EastEngine
 			}
 		}
 
-		void Effect::SetVectorArray(const String::StringID& strName, const Math::Vector3* pf3Value, uint32_t nOffset, uint32_t nCount)
+		void Effect::SetVectorArray(const String::StringID& strName, const math::Vector3* pf3Value, uint32_t nOffset, uint32_t nCount)
 		{
 			EffectVectorHandle* pHandle = GetVectorHandle(strName);
 			if (pHandle != nullptr)
@@ -598,7 +598,7 @@ namespace EastEngine
 			}
 		}
 
-		void Effect::SetVectorArray(const String::StringID& strName, const Math::Vector4* pf4Value, uint32_t nOffset, uint32_t nCount)
+		void Effect::SetVectorArray(const String::StringID& strName, const math::Vector4* pf4Value, uint32_t nOffset, uint32_t nCount)
 		{
 			EffectVectorHandle* pHandle = GetVectorHandle(strName);
 			if (pHandle != nullptr)
@@ -607,7 +607,7 @@ namespace EastEngine
 			}
 		}
 
-		void Effect::SetMatrix(const String::StringID& strName, const Math::Matrix& matrix)
+		void Effect::SetMatrix(const String::StringID& strName, const math::Matrix& matrix)
 		{
 			EffectMatrixHandle* pHandle = GetMatrixHandle(strName);
 			if (pHandle != nullptr)
@@ -616,7 +616,7 @@ namespace EastEngine
 			}
 		}
 
-		void Effect::SetMatrixArray(const String::StringID& strName, const Math::Matrix* pMatrix, uint32_t nOffset, uint32_t nCount)
+		void Effect::SetMatrixArray(const String::StringID& strName, const math::Matrix* pMatrix, uint32_t nOffset, uint32_t nCount)
 		{
 			EffectMatrixHandle* pHandle = GetMatrixHandle(strName);
 			if (pHandle != nullptr)
@@ -865,7 +865,7 @@ namespace EastEngine
 			SafeRelease(pVector);
 		}
 
-		void EffectVectorVariable::SetVector(const Math::Int2& n2Value)
+		void EffectVectorVariable::SetVector(const math::Int2& n2Value)
 		{
 			if (IsValid() == false)
 				return;
@@ -873,7 +873,7 @@ namespace EastEngine
 			pVector->SetIntVector(&n2Value.x);
 		}
 
-		void EffectVectorVariable::SetVector(const Math::Int3& n3Value)
+		void EffectVectorVariable::SetVector(const math::Int3& n3Value)
 		{
 			if (IsValid() == false)
 				return;
@@ -881,7 +881,7 @@ namespace EastEngine
 			pVector->SetIntVector(&n3Value.x);
 		}
 
-		void EffectVectorVariable::SetVector(const Math::Int4& n4Value)
+		void EffectVectorVariable::SetVector(const math::Int4& n4Value)
 		{
 			if (IsValid() == false)
 				return;
@@ -889,7 +889,7 @@ namespace EastEngine
 			pVector->SetIntVector(&n4Value.x);
 		}
 
-		void EffectVectorVariable::SetVector(const Math::Vector2& f2Value)
+		void EffectVectorVariable::SetVector(const math::Vector2& f2Value)
 		{
 			if (IsValid() == false)
 				return;
@@ -897,7 +897,7 @@ namespace EastEngine
 			pVector->SetFloatVector(&f2Value.x);
 		}
 
-		void EffectVectorVariable::SetVector(const Math::Vector3& f3Value)
+		void EffectVectorVariable::SetVector(const math::Vector3& f3Value)
 		{
 			if (IsValid() == false)
 				return;
@@ -905,7 +905,7 @@ namespace EastEngine
 			pVector->SetFloatVector(&f3Value.x);
 		}
 
-		void EffectVectorVariable::SetVector(const Math::Vector4& f4Value)
+		void EffectVectorVariable::SetVector(const math::Vector4& f4Value)
 		{
 			if (IsValid() == false)
 				return;
@@ -913,7 +913,7 @@ namespace EastEngine
 			pVector->SetFloatVector(&f4Value.x);
 		}
 
-		void EffectVectorVariable::SetVectorArray(const Math::Int2* pData, uint32_t nOffset, uint32_t nCount)
+		void EffectVectorVariable::SetVectorArray(const math::Int2* pData, uint32_t nOffset, uint32_t nCount)
 		{
 			if (IsValid() == false)
 				return;
@@ -921,7 +921,7 @@ namespace EastEngine
 			pVector->SetIntVectorArray(&pData->x, nOffset, nCount);
 		}
 
-		void EffectVectorVariable::SetVectorArray(const Math::Int3* pData, uint32_t nOffset, uint32_t nCount)
+		void EffectVectorVariable::SetVectorArray(const math::Int3* pData, uint32_t nOffset, uint32_t nCount)
 		{
 			if (IsValid() == false)
 				return;
@@ -929,7 +929,7 @@ namespace EastEngine
 			pVector->SetIntVectorArray(&pData->x, nOffset, nCount);
 		}
 
-		void EffectVectorVariable::SetVectorArray(const Math::Int4* pData, uint32_t nOffset, uint32_t nCount)
+		void EffectVectorVariable::SetVectorArray(const math::Int4* pData, uint32_t nOffset, uint32_t nCount)
 		{
 			if (IsValid() == false)
 				return;
@@ -937,7 +937,7 @@ namespace EastEngine
 			pVector->SetIntVectorArray(&pData->x, nOffset, nCount);
 		}
 
-		void EffectVectorVariable::SetVectorArray(const Math::Vector2* pData, uint32_t nOffset, uint32_t nCount)
+		void EffectVectorVariable::SetVectorArray(const math::Vector2* pData, uint32_t nOffset, uint32_t nCount)
 		{
 			if (IsValid() == false)
 				return;
@@ -945,7 +945,7 @@ namespace EastEngine
 			pVector->SetFloatVectorArray(&pData->x, nOffset, nCount);
 		}
 
-		void EffectVectorVariable::SetVectorArray(const Math::Vector3* pData, uint32_t nOffset, uint32_t nCount)
+		void EffectVectorVariable::SetVectorArray(const math::Vector3* pData, uint32_t nOffset, uint32_t nCount)
 		{
 			if (IsValid() == false)
 				return;
@@ -953,7 +953,7 @@ namespace EastEngine
 			pVector->SetFloatVectorArray(&pData->x, nOffset, nCount);
 		}
 
-		void EffectVectorVariable::SetVectorArray(const Math::Vector4* pData, uint32_t nOffset, uint32_t nCount)
+		void EffectVectorVariable::SetVectorArray(const math::Vector4* pData, uint32_t nOffset, uint32_t nCount)
 		{
 			if (IsValid() == false)
 				return;
@@ -972,7 +972,7 @@ namespace EastEngine
 			SafeRelease(pMatrix);
 		}
 
-		void EffectMatrixVariable::SetMatrix(const Math::Matrix& matrix)
+		void EffectMatrixVariable::SetMatrix(const math::Matrix& matrix)
 		{
 			if (IsValid() == false)
 				return;
@@ -980,7 +980,7 @@ namespace EastEngine
 			pMatrix->SetMatrix(&matrix._11);
 		}
 
-		void EffectMatrixVariable::SetMatrixArray(const Math::Matrix* pData, uint32_t nOffset, uint32_t nCount)
+		void EffectMatrixVariable::SetMatrixArray(const math::Matrix* pData, uint32_t nOffset, uint32_t nCount)
 		{
 			if (IsValid() == false)
 				return;
@@ -1023,7 +1023,7 @@ namespace EastEngine
 			if (IsValid() == false)
 				return;
 
-			if (pTexture != nullptr && pTexture->GetLoadState() == EmLoadState::eComplete)
+			if (pTexture != nullptr && pTexture->GetState() == EmLoadState::eComplete)
 			{
 				pShaderResource->SetResource(pTexture->GetShaderResourceView());
 			}
@@ -1045,7 +1045,7 @@ namespace EastEngine
 
 				for (uint32_t i = 0; i < nCount; ++i)
 				{
-					if (pTextures[i] != nullptr && pTextures[i]->GetLoadState() == EmLoadState::eComplete)
+					if (pTextures[i] != nullptr && pTextures[i]->GetState() == EmLoadState::eComplete)
 					{
 						vecResources.emplace_back(pTextures[i]->GetShaderResourceView());
 					}

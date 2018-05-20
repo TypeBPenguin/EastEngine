@@ -2,8 +2,28 @@
 
 #include "Singleton.h"
 
-namespace EastEngine
+namespace eastengine
 {
+	class Counter
+	{
+	public:
+		Counter();
+		~Counter();
+
+	public:
+		void Start();
+		void End();
+
+		double Count() const;
+		int64_t MilliSec() const;
+		int64_t MicroSec() const;
+		int64_t NanoSec() const;
+
+	private:
+		class Impl;
+		std::unique_ptr<Impl> m_pImpl;
+	};
+
 	class Timer : public Singleton<Timer>
 	{
 		friend Singleton<Timer>;

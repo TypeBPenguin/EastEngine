@@ -5,9 +5,9 @@
 #include "Skeleton.h"
 #include "MotionSystem.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class MaterialInstance : public IMaterialInstance
 		{
@@ -48,9 +48,9 @@ namespace EastEngine
 				ModelInstance* pInstance{ nullptr };
 				String::StringID strNodeName;
 				Type emType = Type::eNone;
-				Math::Matrix matOffset;
+				math::Matrix matOffset;
 
-				AttachmentNode(ModelInstance* pInstance, const String::StringID& strNodeName, const Math::Matrix& matOffset, Type emAttachNodeType);
+				AttachmentNode(ModelInstance* pInstance, const String::StringID& strNodeName, const math::Matrix& matOffset, Type emAttachNodeType);
 			};
 
 		public:
@@ -62,10 +62,10 @@ namespace EastEngine
 			void UpdateModel();
 
 		public:
-			virtual void Update(float fElapsedTime, const Math::Matrix& matParent) override;
+			virtual void Update(float fElapsedTime, const math::Matrix& matParent) override;
 
-			virtual bool Attachment(IModelInstance* pInstance, const String::StringID& strNodeName, const Math::Matrix& matOffset = Math::Matrix::Identity) override;
-			virtual bool Attachment(IModelInstance* pInstance, const Math::Matrix& matOffset = Math::Matrix::Identity) override;
+			virtual bool Attachment(IModelInstance* pInstance, const String::StringID& strNodeName, const math::Matrix& matOffset = math::Matrix::Identity) override;
+			virtual bool Attachment(IModelInstance* pInstance, const math::Matrix& matOffset = math::Matrix::Identity) override;
 			virtual IModelInstance* GetAttachment(size_t nIndex) const override { return m_vecAttachmentNode[nIndex].pInstance; }
 			virtual size_t GetAttachmentCount() const override { return m_vecAttachmentNode.size(); }
 			virtual bool IsAttachment() const override { return m_isAttachment; }
@@ -85,7 +85,7 @@ namespace EastEngine
 			virtual IMotionSystem* GetMotionSystem() override { return &m_motionSystem; }
 			virtual ISkeletonInstance* GetSkeleton() override { return &m_skeletonInstance; }
 
-			virtual const Math::Matrix& GetWorldMatrix() const { return m_matWorld; }
+			virtual const math::Matrix& GetWorldMatrix() const { return m_matWorld; }
 
 		public:
 			void LoadCompleteCallback(bool bSuccess);
@@ -98,9 +98,9 @@ namespace EastEngine
 			IModel* m_pModel;
 
 			float m_fElapsedTime;
-			Math::Matrix m_matParent;
+			math::Matrix m_matParent;
 
-			Math::Matrix m_matWorld;
+			math::Matrix m_matWorld;
 
 			MotionSystem m_motionSystem;
 			SkeletonInstance m_skeletonInstance;

@@ -2,9 +2,9 @@
 
 #include "GameObject.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace GameObject
+	namespace gameobject
 	{
 		class Skybox : public ISkybox
 		{
@@ -22,8 +22,8 @@ namespace EastEngine
 			virtual void SetVisible(bool bVisible) override { m_isVisible = bVisible; }
 			virtual bool IsVisible() const override { return m_isVisible; }
 
-			virtual std::shared_ptr<Graphics::ITexture> GetTexture() const override { return m_pTexture; }
-			virtual void SetTexture(const std::shared_ptr<Graphics::ITexture>& pTexture) override { m_pTexture = pTexture; }
+			virtual std::shared_ptr<graphics::ITexture> GetTexture() const override { return m_pTexture; }
+			virtual void SetTexture(const std::shared_ptr<graphics::ITexture>& pTexture) override { m_pTexture = pTexture; }
 
 		public:
 			void SetDestroy(bool isDestroy) { m_isDestroy = isDestroy; }
@@ -40,10 +40,10 @@ namespace EastEngine
 
 			SkyboxProperty m_property;
 
-			Graphics::IVertexBuffer* m_pVertexBuffer;
-			Graphics::IIndexBuffer* m_pIndexBuffer;
+			graphics::IVertexBuffer* m_pVertexBuffer;
+			graphics::IIndexBuffer* m_pIndexBuffer;
 
-			std::shared_ptr<Graphics::ITexture> m_pTexture;
+			std::shared_ptr<graphics::ITexture> m_pTexture;
 		};
 	}
 }

@@ -1,8 +1,10 @@
 #pragma once
 
+#include <variant>
+
 class btCollisionShape;
 
-namespace EastEngine
+namespace eastengine
 {
 	namespace Physics
 	{
@@ -63,7 +65,7 @@ namespace EastEngine
 		{
 			struct Box
 			{
-				Math::Vector3 f3Size = Math::Vector3::One;
+				math::Vector3 f3Size = math::Vector3::One;
 			};
 
 			struct Sphere
@@ -73,7 +75,7 @@ namespace EastEngine
 
 			struct Cylinder
 			{
-				Math::Vector3 f3HalfExtents = Math::Vector3::One;
+				math::Vector3 f3HalfExtents = math::Vector3::One;
 			};
 
 			struct Capsule
@@ -90,23 +92,23 @@ namespace EastEngine
 
 			struct Hull
 			{
-				const Math::Vector3* pVertices = nullptr;
-				size_t nVertexCount = 0;
+				const math::Vector3* pVertices = nullptr;
+				uint32_t nVertexCount = 0;
 				const uint32_t* pIndices = nullptr;
-				size_t nIndexCount = 0;
+				uint32_t nIndexCount = 0;
 			};
 
 			struct TriangleMesh
 			{
-				const Math::Vector3* pVertices = nullptr;
-				size_t nVertexCount = 0;
+				const math::Vector3* pVertices = nullptr;
+				uint32_t nVertexCount = 0;
 				const uint32_t* pIndices = nullptr;
-				size_t nIndexCount = 0;
+				uint32_t nIndexCount = 0;
 			};
 
 			struct Terrain
 			{
-				Math::Int2 n2Size = Math::Int2::One;
+				math::Int2 n2Size = math::Int2::One;
 				float fHeightScale = 1.f;
 				float fHeightMax = 1.f;
 				float fHeightMin = 1.f;
@@ -138,7 +140,7 @@ namespace EastEngine
 				return *this;
 			}
 
-			void SetBox(const Math::Vector3& f3Size)
+			void SetBox(const math::Vector3& f3Size)
 			{
 				Box& box = element.emplace<Box>();
 
@@ -154,7 +156,7 @@ namespace EastEngine
 				emPhysicsShapeType = Physics::EmPhysicsShape::eSphere;
 			}
 
-			void SetCylinder(const Math::Vector3& f3HalfExtents)
+			void SetCylinder(const math::Vector3& f3HalfExtents)
 			{
 				Cylinder& cylinder = element.emplace<Cylinder>();
 
@@ -162,7 +164,7 @@ namespace EastEngine
 				emPhysicsShapeType = Physics::EmPhysicsShape::eCylinder;
 			}
 
-			void SetCylinderX(const Math::Vector3& f3HalfExtents)
+			void SetCylinderX(const math::Vector3& f3HalfExtents)
 			{
 				Cylinder& cylinder = element.emplace<Cylinder>();
 
@@ -170,7 +172,7 @@ namespace EastEngine
 				emPhysicsShapeType = Physics::EmPhysicsShape::eCylinder_X;
 			}
 
-			void SetCylinderZ(const Math::Vector3& f3HalfExtents)
+			void SetCylinderZ(const math::Vector3& f3HalfExtents)
 			{
 				Cylinder& cylinder = element.emplace<Cylinder>();
 
@@ -239,7 +241,7 @@ namespace EastEngine
 				emPhysicsShapeType = Physics::EmPhysicsShape::eHull;
 			}
 
-			void SetHull(const Math::Vector3* pVertices, size_t nVertexCount, const uint32_t* pIndices, size_t nIndexCount)
+			void SetHull(const math::Vector3* pVertices, uint32_t nVertexCount, const uint32_t* pIndices, uint32_t nIndexCount)
 			{
 				Hull& hull = element.emplace<Hull>();
 
@@ -257,7 +259,7 @@ namespace EastEngine
 				emPhysicsShapeType = Physics::EmPhysicsShape::eTriangleMesh;
 			}
 
-			void SetTriangleMesh(const Math::Vector3* pVertices, size_t nVertexCount)
+			void SetTriangleMesh(const math::Vector3* pVertices, uint32_t nVertexCount)
 			{
 				TriangleMesh& triangleMesh = element.emplace<TriangleMesh>();
 
@@ -268,7 +270,7 @@ namespace EastEngine
 				emPhysicsShapeType = Physics::EmPhysicsShape::eTriangleMesh;
 			}
 
-			void SetTriangleMesh(const Math::Vector3* pVertices, size_t nVertexCount, const uint32_t* pIndices, size_t nIndexCount)
+			void SetTriangleMesh(const math::Vector3* pVertices, uint32_t nVertexCount, const uint32_t* pIndices, uint32_t nIndexCount)
 			{
 				TriangleMesh& triangleMesh = element.emplace<TriangleMesh>();
 
@@ -281,7 +283,7 @@ namespace EastEngine
 
 			// 이거 누가.. 사용 방법 좀 연구해주셈;;
 			// btHeightfieldTerrainShape
-			//void SetTerrain(const Math::Int2& n2Size, const float fHeightScale, const float fHeightMax, const float fHeightMin, const float* pHeightArray, uint32_t nHeightArarySize)
+			//void SetTerrain(const math::Int2& n2Size, const float fHeightScale, const float fHeightMax, const float fHeightMin, const float* pHeightArray, uint32_t nHeightArarySize)
 			//{
 			//	Terrain& terrain = element.emplace<Terrain>();
 			//

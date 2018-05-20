@@ -3,7 +3,7 @@
 
 using namespace tinyxml2;
 
-namespace EastEngine
+namespace eastengine
 {
 	namespace XML
 	{

@@ -1,10 +1,10 @@
 #pragma once
 
-#include "DirectX/Vertex.h"
+#include "GraphicsInterface/Vertex.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class IVertexBuffer;
 		class IIndexBuffer;
@@ -23,12 +23,12 @@ namespace EastEngine
 
 			void GetDebugModel(EmDebugModel emDebugModel, IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer);
 
-			void CalculateTangentBinormal(const VertexPosTex& vertex1, const VertexPosTex& vertex2, const VertexPosTex& vertex3, Math::Vector3& tangent, Math::Vector3& binormal);
-			void CalculateTangentBinormal(const Math::Vector3& normal, Math::Vector3& tangent, Math::Vector3& binormal);
-			void CalculateNormal(const Math::Vector3& vPos0, const Math::Vector3& vPos1, const Math::Vector3& vPos2, Math::Vector3& vNormal);
+			void CalculateTangentBinormal(const VertexPosTex& vertex1, const VertexPosTex& vertex2, const VertexPosTex& vertex3, math::Vector3& tangent, math::Vector3& binormal);
+			void CalculateTangentBinormal(const math::Vector3& normal, math::Vector3& tangent, math::Vector3& binormal);
+			void CalculateNormal(const math::Vector3& vPos0, const math::Vector3& vPos1, const math::Vector3& vPos2, math::Vector3& vNormal);
 
 			bool CreateCube(IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer, float size = 1.f, bool rhcoords = false);
-			bool CreateBox(IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer, const Math::Vector3& size = Math::Vector3(1.f, 1.f, 1.f), bool rhcoords = false, bool invertn = false);
+			bool CreateBox(IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer, const math::Vector3& size = math::Vector3(1.f, 1.f, 1.f), bool rhcoords = false, bool invertn = false);
 			bool CreateSphere(IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer, float diameter = 1.f, uint32_t tessellation = 16, bool rhcoords = false, bool invertn = false);
 			bool CreateGeoSphere(IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer, float diameter = 1.f, uint32_t tessellation = 3, bool rhcoords = false);
 			bool CreateCylinder(IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer, float height = 1.f, float diameter = 1.f, uint32_t tessellation = 32, bool rhcoords = false);

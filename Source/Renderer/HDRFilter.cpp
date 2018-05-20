@@ -53,9 +53,9 @@ namespace StrID
 	RegisterStringID(InputTexture3);
 }
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		class HDRFilter::Impl
 		{
@@ -93,7 +93,7 @@ namespace EastEngine
 
 		HDRFilter::Impl::Impl()
 		{
-			std::string strPath(File::GetPath(File::EmPath::eFx));
+			std::string strPath(file::GetPath(file::EmPath::eFx));
 
 #if defined(DEBUG) || defined(_DEBUG)
 			strPath.append("PostProcessing\\HDRFilter\\HDRFilter_D.cso");
@@ -144,7 +144,7 @@ namespace EastEngine
 
 		bool HDRFilter::Impl::Apply(IDevice* pDevice, IDeviceContext* pDeviceContext, IRenderTarget* pResult, IRenderTarget* pSource)
 		{
-			PERF_TRACER_EVENT("HDRFilter::Apply", "");
+			TRACER_EVENT("HDRFilter::Apply");
 			D3D_PROFILING(pDeviceContext, HDRFilter);
 
 			pDeviceContext->ClearState();
@@ -197,20 +197,20 @@ namespace EastEngine
 
 					uint32_t nMipLevel = srDesc.Texture2D.MostDetailedMip;
 
-					Math::Vector2 f2Result;
+					math::Vector2 f2Result;
 					f2Result.x = static_cast<float>(std::max(desc.Width / (1 << nMipLevel), 1u));
 					f2Result.y = static_cast<float>(std::max(desc.Height / (1 << nMipLevel), 1u));
 
 					return f2Result;
 				};
 
-				Math::Vector2 OutputSize;
+				math::Vector2 OutputSize;
 
 				for (size_t i = 0; i < nSourceCount; ++i)
 				{
 					String::StringID strSizeName;
 					strSizeName.Format("InputSize%d", i);
-					Math::Vector2 InputSize = GetSize(ppSource[i]);
+					math::Vector2 InputSize = GetSize(ppSource[i]);
 					m_pEffect->SetVector(strSizeName, InputSize);
 
 					String::StringID strTextureName;
@@ -224,7 +224,7 @@ namespace EastEngine
 				m_pEffect->SetSamplerState(StrID::PointSampler, pDevice->GetSamplerState(EmSamplerState::eMinMagMipPointClamp), 0);
 				m_pEffect->SetSamplerState(StrID::LinearSampler, pDevice->GetSamplerState(EmSamplerState::eMinMagMipLinearClamp), 0);
 
-				Math::Viewport viewport;
+				math::Viewport viewport;
 				viewport.width = OutputSize.x;
 				viewport.height = OutputSize.y;
 
@@ -261,7 +261,7 @@ namespace EastEngine
 			// Bloom
 			IRenderTarget* pBloom = nullptr;
 			{
-				const Math::UInt2& n2Size = pResult->GetSize();
+				const math::UInt2& n2Size = pResult->GetSize();
 				RenderTargetDesc2D desc = pResult->GetDesc2D();
 				desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 				desc.Width = n2Size.x / 1;

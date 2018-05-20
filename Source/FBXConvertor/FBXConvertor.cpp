@@ -8,7 +8,7 @@
 #include "Model/ModelManager.h"
 #include "Model/MotionManager.h"
 
-using namespace EastEngine;
+using namespace eastengine;
 
 enum EmFlag
 {
@@ -83,19 +83,19 @@ int main(int argn, char** argc)
 
 	ShowWindow(Windows::GetHwnd(), SW_HIDE);
 
-	if (Graphics::Device::GetInstance()->Initialize(Windows::GetHwnd(), 800, 600, false, true) == false)
+	if (graphics::Device::GetInstance()->Initialize(Windows::GetHwnd(), 800, 600, false, true) == false)
 	{
 		std::cout << "초기화 실패" << std::endl;
 	}
 
-	Graphics::ModelManager::GetInstance();
-	Graphics::MotionManager::GetInstance();
+	graphics::ModelManager::GetInstance();
+	graphics::MotionManager::GetInstance();
 
 	std::cout << "추출 시작 : S(성공), F(실패)" << std::endl;
 	std::cout << "추출 타입 : " << strLoadType.c_str() << ", 스케일 : " << fScale << std::endl;
 
-	std::list<Graphics::IModel*> listModel;
-	std::list<Graphics::IMotion*> listMotion;
+	std::list<graphics::IModel*> listModel;
+	std::list<graphics::IMotion*> listMotion;
 
 	int nModelFailedCount = 0;
 	int nMotionFailedCount = 0;
@@ -104,16 +104,16 @@ int main(int argn, char** argc)
 	{
 		if ((nFlag & eModel) != 0)
 		{
-			Graphics::ModelLoader loader;
-			loader.InitFBX(File::GetFileNameWithoutExtension(argc[i]).c_str(), argc[i], fScale);
-			Graphics::IModel* pModel = Graphics::IModel::Create(loader, false);
+			graphics::ModelLoader loader;
+			loader.InitFBX(file::GetFileNameWithoutExtension(argc[i]).c_str(), argc[i], fScale);
+			graphics::IModel* pModel = graphics::IModel::Create(loader, false);
 
-			if (pModel->GetLoadState() == Graphics::EmLoadState::eComplete)
+			if (pModel->GetState() == graphics::EmLoadState::eComplete)
 			{
-				std::string strPath = File::GetFilePath(argc[i]);
-				strPath.append(File::GetFileNameWithoutExtension(argc[i]));
+				std::string strPath = file::GetFilePath(argc[i]);
+				strPath.append(file::GetFileNameWithoutExtension(argc[i]));
 				strPath.append(".emod");
-				if (Graphics::IModel::SaveToFile(pModel, strPath.c_str()) == true)
+				if (graphics::IModel::SaveToFile(pModel, strPath.c_str()) == true)
 				{
 					std::cout << "Model[S] : " << argc[i] << std::endl;
 					listModel.emplace_back(pModel);
@@ -135,16 +135,16 @@ int main(int argn, char** argc)
 
 		if ((nFlag & eMotion) != 0)
 		{
-			Graphics::MotionLoader loader;
-			loader.InitFBX(File::GetFileNameWithoutExtension(argc[i]).c_str(), argc[i], fScale);
-			Graphics::IMotion* pMotion = Graphics::IMotion::Create(loader);
+			graphics::MotionLoader loader;
+			loader.InitFBX(file::GetFileNameWithoutExtension(argc[i]).c_str(), argc[i], fScale);
+			graphics::IMotion* pMotion = graphics::IMotion::Create(loader);
 
-			if (pMotion->GetLoadState() == Graphics::EmLoadState::eComplete)
+			if (pMotion->GetState() == graphics::EmLoadState::eComplete)
 			{
-				std::string strPath = File::GetFilePath(argc[i]);
-				strPath.append(File::GetFileNameWithoutExtension(argc[i]));
+				std::string strPath = file::GetFilePath(argc[i]);
+				strPath.append(file::GetFileNameWithoutExtension(argc[i]));
 				strPath.append(".emot");
-				if (Graphics::IMotion::SaveToFile(pMotion, strPath.c_str()) == true)
+				if (graphics::IMotion::SaveToFile(pMotion, strPath.c_str()) == true)
 				{
 					std::cout << "Motion[S] : " << argc[i] << std::endl;
 					listMotion.emplace_back(pMotion);
@@ -176,11 +176,11 @@ int main(int argn, char** argc)
 		std::cout << "모션 : S(" << listMotion.size() << "), F(" << nMotionFailedCount << ")" << std::endl;
 	}
 
-	Graphics::ModelManager::DestroyInstance();
-	Graphics::MotionManager::DestroyInstance();
+	graphics::ModelManager::DestroyInstance();
+	graphics::MotionManager::DestroyInstance();
 
-	Graphics::Device::GetInstance()->Release();
-	Graphics::Device::DestroyInstance();
+	graphics::Device::GetInstance()->Release();
+	graphics::Device::DestroyInstance();
 
 	Windows::WindowsManager::DestroyInstance();
 

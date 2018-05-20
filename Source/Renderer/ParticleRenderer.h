@@ -2,9 +2,9 @@
 
 #include "Renderer.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace Graphics
+	namespace graphics
 	{
 		struct ParticleSortor
 		{

@@ -1,9 +1,9 @@
 #include "stdafx.h"
 #include "ComponentLight.h"
 
-namespace EastEngine
+namespace eastengine
 {
-	namespace GameObject
+	namespace gameobject
 	{
 		ComponentLight::ComponentLight(IActor* pOwner)
 			: IComponent(pOwner, EmComponent::eLight)
