@@ -70,13 +70,16 @@ namespace eastengine
 
 			if (pVertexBuffer != nullptr && pIndexBuffer != nullptr)
 			{
-				const math::Vector3* pVertexPos = reinterpret_cast<const math::Vector3*>(pVertexBuffer->GetVertexPosPtr());
-				uint32_t nVertexCount = pVertexBuffer->GetVertexNum();
+				// 고치시오
+				assert(false);
 
-				const uint32_t* pIndices = static_cast<const uint32_t*>(pIndexBuffer->GetRawValuePtr());
-				uint32_t nIndexCount = pIndexBuffer->GetIndexNum();
-
-				customRigidBody.rigidBodyProperty.shapeInfo.SetTriangleMesh(pVertexPos, nVertexCount, pIndices, nIndexCount);
+				//const math::Vector3* pVertexPos = reinterpret_cast<const math::Vector3*>(pVertexBuffer->GetVertexPosPtr());
+				//uint32_t nVertexCount = pVertexBuffer->GetVertexNum();
+				//
+				//const uint32_t* pIndices = static_cast<const uint32_t*>(pIndexBuffer->GetRawValuePtr());
+				//uint32_t nIndexCount = pIndexBuffer->GetIndexNum();
+				//
+				//customRigidBody.rigidBodyProperty.shapeInfo.SetTriangleMesh(pVertexPos, nVertexCount, pIndices, nIndexCount);
 			}
 
 			m_isCollisionModelVisible = isCollisionModelVisible;
@@ -108,16 +111,19 @@ namespace eastengine
 
 						for (uint32_t i = 0; i < nNodeCount; ++i)
 						{
-							graphics::IModelNode* pModelNode = pModel->GetNode(i);
+							// 고치시오
+							assert(false);
 
-							modelRigidBody.rigidBodyProperty.shapeInfo.SetTriangleMesh(
-								reinterpret_cast<const math::Vector3*>(pModelNode->GetVertexBuffer()->GetVertexPosPtr()), pModelNode->GetVertexBuffer()->GetVertexNum(),
-								pModelNode->GetIndexBuffer()->GetRawValuePtr(), pModelNode->GetIndexBuffer()->GetIndexNum());
-
-							String::StringID strName;
-							strName.Format("%s_%s", modelRigidBody.rigidBodyProperty.strName.c_str(), pModelNode->GetName().c_str());
-
-							initPhysics(strName, modelRigidBody.rigidBodyProperty, nullptr, nullptr);
+							//graphics::IModelNode* pModelNode = pModel->GetNode(i);
+							//
+							//modelRigidBody.rigidBodyProperty.shapeInfo.SetTriangleMesh(
+							//	reinterpret_cast<const math::Vector3*>(pModelNode->GetVertexBuffer()->GetVertexPosPtr()), pModelNode->GetVertexBuffer()->GetVertexNum(),
+							//	pModelNode->GetIndexBuffer()->GetRawValuePtr(), pModelNode->GetIndexBuffer()->GetIndexNum());
+							//
+							//String::StringID strName;
+							//strName.Format("%s_%s", modelRigidBody.rigidBodyProperty.strName.c_str(), pModelNode->GetName().c_str());
+							//
+							//initPhysics(strName, modelRigidBody.rigidBodyProperty, nullptr, nullptr);
 						}
 
 						m_isInit = true;

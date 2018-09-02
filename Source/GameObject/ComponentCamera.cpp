@@ -1,7 +1,8 @@
 #include "stdafx.h"
 #include "ComponentCamera.h"
 
-#include "DirectX/Camera.h"
+#include "GraphicsInterface/Camera.h"
+
 #include "Input/InputInterface.h"
 
 #include "GameObject.h"

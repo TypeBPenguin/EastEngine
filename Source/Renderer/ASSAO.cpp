@@ -972,7 +972,7 @@ namespace eastengine
 					continue;
 
 				int blurPasses = settings.BlurPassCount;
-				blurPasses = math::Min(blurPasses, cMaxBlurPassCount);
+				blurPasses = std::min(blurPasses, cMaxBlurPassCount);
 
 #ifdef INTEL_SSAO_ENABLE_ADAPTIVE_QUALITY
 				if (settings.QualityLevel == 3)
@@ -984,7 +984,7 @@ namespace eastengine
 					}
 					else
 					{
-						blurPasses = math::Max(1, blurPasses);
+						blurPasses = std::max(1, blurPasses);
 					}
 				}
 				else
@@ -993,7 +993,7 @@ namespace eastengine
 					if (settings.QualityLevel <= 0)
 					{
 						// just one blur pass allowed for minimum quality 
-						blurPasses = math::Min(1, settings.BlurPassCount);
+						blurPasses = std::min(1, settings.BlurPassCount);
 					}
 				}
 
@@ -1028,7 +1028,7 @@ namespace eastengine
 #endif
 					dx11Context->GetInterface()->PSSetShaderResources(SSAO_TEXTURE_SLOT0, 5, SRVs);
 
-					int shaderIndex = math::Max(0, (!adaptiveBasePass) ? (settings.QualityLevel) : (4));
+					int shaderIndex = std::max(0, (!adaptiveBasePass) ? (settings.QualityLevel) : (4));
 					FullscreenPassDraw(dx11Context, m_pixelShaderGenerate[shaderIndex]);
 
 					// remove textures from slots 0, 1, 2, 3 to avoid API complaints
@@ -1038,7 +1038,7 @@ namespace eastengine
 				// Blur
 				if (blurPasses > 0)
 				{
-					int wideBlursRemaining = math::Max(0, blurPasses - 2);
+					int wideBlursRemaining = std::max(0, blurPasses - 2);
 
 					for (int i = 0; i < blurPasses; i++)
 					{
@@ -1344,15 +1344,15 @@ namespace eastengine
 			if ((inputs->ScissorRight == 0) || (inputs->ScissorBottom == 0))
 				m_fullResOutScissorRect = math::UInt4(0, 0, width, height);
 			else
-				m_fullResOutScissorRect = math::UInt4(math::Max(0u, inputs->ScissorLeft), math::Max(0u, inputs->ScissorTop), math::Min(width, inputs->ScissorRight), math::Min(height, inputs->ScissorBottom));
+				m_fullResOutScissorRect = math::UInt4(std::max(0u, inputs->ScissorLeft), std::max(0u, inputs->ScissorTop), std::min(width, inputs->ScissorRight), std::min(height, inputs->ScissorBottom));
 
 			needsUpdate |= prevScissorRect != m_fullResOutScissorRect;
 			if (!needsUpdate)
 				return;
 
 			m_halfResOutScissorRect = math::UInt4(m_fullResOutScissorRect.x / 2, m_fullResOutScissorRect.y / 2, (m_fullResOutScissorRect.z + 1) / 2, (m_fullResOutScissorRect.w + 1) / 2);
-			int blurEnlarge = cMaxBlurPassCount + math::Max(0, cMaxBlurPassCount - 2); // +1 for max normal blurs, +2 for wide blurs
-			m_halfResOutScissorRect = math::UInt4(math::Max(0u, m_halfResOutScissorRect.x - blurEnlarge), math::Max(0u, m_halfResOutScissorRect.y - blurEnlarge), math::Min(m_halfSize.x, m_halfResOutScissorRect.z + blurEnlarge), math::Min(m_halfSize.y, m_halfResOutScissorRect.w + blurEnlarge));
+			int blurEnlarge = cMaxBlurPassCount + std::max(0, cMaxBlurPassCount - 2); // +1 for max normal blurs, +2 for wide blurs
+			m_halfResOutScissorRect = math::UInt4(std::max(0u, m_halfResOutScissorRect.x - blurEnlarge), std::max(0u, m_halfResOutScissorRect.y - blurEnlarge), std::min(m_halfSize.x, m_halfResOutScissorRect.z + blurEnlarge), std::min(m_halfSize.y, m_halfResOutScissorRect.w + blurEnlarge));
 
 			float totalSizeInMB = 0.f;
 
@@ -1435,13 +1435,13 @@ namespace eastengine
 				consts.NDCToViewMul = math::Vector2(consts.CameraTanHalfFOV.x* 2.0f, consts.CameraTanHalfFOV.y* -2.0f);
 				consts.NDCToViewAdd = math::Vector2(consts.CameraTanHalfFOV.x* -1.0f, consts.CameraTanHalfFOV.y* 1.0f);
 
-				consts.EffectRadius = math::Clamp(settings.Radius, 0.0f, 100000.0f);
-				consts.EffectShadowStrength = math::Clamp(settings.ShadowMultiplier* 4.3f, 0.0f, 10.0f);
-				consts.EffectShadowPow = math::Clamp(settings.ShadowPower, 0.0f, 10.0f);
-				consts.EffectShadowClamp = math::Clamp(settings.ShadowClamp, 0.0f, 1.0f);
+				consts.EffectRadius = std::clamp(settings.Radius, 0.0f, 100000.0f);
+				consts.EffectShadowStrength = std::clamp(settings.ShadowMultiplier* 4.3f, 0.0f, 10.0f);
+				consts.EffectShadowPow = std::clamp(settings.ShadowPower, 0.0f, 10.0f);
+				consts.EffectShadowClamp = std::clamp(settings.ShadowClamp, 0.0f, 1.0f);
 				consts.EffectFadeOutMul = -1.0f / (settings.FadeOutTo - settings.FadeOutFrom);
 				consts.EffectFadeOutAdd = settings.FadeOutFrom / (settings.FadeOutTo - settings.FadeOutFrom) + 1.0f;
-				consts.EffectHorizonAngleThreshold = math::Clamp(settings.HorizonAngleThreshold, 0.0f, 1.0f);
+				consts.EffectHorizonAngleThreshold = std::clamp(settings.HorizonAngleThreshold, 0.0f, 1.0f);
 
 				// 1.2 seems to be around the best trade off - 1.0 means on-screen radius will stop/slow growing when the camera is at 1.0 distance, so, depending on FOV, basically filling up most of the screen
 				// This setting is viewspace-dependent and not screen size dependent intentionally, so that when you change FOV the effect stays (relatively) similar.
@@ -1477,7 +1477,7 @@ namespace eastengine
 				consts.PerPassFullResCoordOffset = math::Int2(pass % 2, pass / 2);
 				consts.PerPassFullResUVOffset = math::Vector2(((pass % 2) - 0.0f) / m_size.x, ((pass / 2) - 0.0f) / m_size.y);
 
-				consts.InvSharpness = math::Clamp(1.0f - settings.Sharpness, 0.0f, 1.0f);
+				consts.InvSharpness = std::clamp(1.0f - settings.Sharpness, 0.0f, 1.0f);
 				consts.PassIndex = pass;
 				consts.QuarterResPixelSize = math::Vector2(1.0f / (float)m_quarterSize.x, 1.0f / (float)m_quarterSize.y);
 
@@ -1750,8 +1750,8 @@ namespace eastengine
 				this->Size.x = (this->Size.x + 1) / 2;
 				this->Size.y = (this->Size.y + 1) / 2;
 			}
-			this->Size.x = math::Max(this->Size.x, 1u);
-			this->Size.y = math::Max(this->Size.y, 1u);
+			this->Size.x = std::max(this->Size.x, 1u);
+			this->Size.y = std::max(this->Size.y, 1u);
 
 			return true;
 		}

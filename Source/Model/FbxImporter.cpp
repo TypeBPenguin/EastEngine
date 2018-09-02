@@ -335,6 +335,7 @@ namespace eastengine
 			if (m_pFBXScene != nullptr)
 			{
 				m_pFBXScene->Clear();
+				m_pFBXScene->Destroy();
 				m_pFBXScene = nullptr;
 			}
 
@@ -349,6 +350,8 @@ namespace eastengine
 				m_pSDKManager->Destroy();
 				m_pSDKManager = nullptr;
 			}
+
+			ExportString::ReleaseStringList();
 		}
 
 		bool FBXImport::LoadModel(Model* pModel, const char* strFilePath, float fScale, bool isFlipZ)
@@ -356,7 +359,7 @@ namespace eastengine
 			if (pModel == nullptr || strFilePath == nullptr)
 				return false;
 
-			std::lock_guard<std::mutex> lock(m_mutex);
+			thread::AutoLock autoLock(&m_lock);
 
 			if (Initialize() == false)
 			{
@@ -412,7 +415,7 @@ namespace eastengine
 			if (pMotion == nullptr || strFilePath == nullptr)
 				return false;
 
-			std::lock_guard<std::mutex> lock(m_mutex);
+			thread::AutoLock autoLock(&m_lock);
 
 			if (Initialize() == false)
 			{
@@ -1038,11 +1041,12 @@ namespace eastengine
 			// set animation quality settings
 			ExportAnimation::SetAnimationExportQuality(g_pScene->Settings().iAnimPositionExportQuality, g_pScene->Settings().iAnimOrientationExportQuality, 50);
 
+			// FbxArray<FbxString*> 메모리릭 있음
 			FbxArray<FbxString*> AnimStackNameArray;
 			pFbxScene->FillAnimStackNameArray(AnimStackNameArray);
 
-			uint32_t nAnimStackCount = static_cast<uint32_t>(AnimStackNameArray.GetCount());
-			for (uint32_t i = 0; i < nAnimStackCount; ++i)
+			int nAnimStackCount = AnimStackNameArray.GetCount();
+			for (int i = 0; i < nAnimStackCount; ++i)
 			{
 				ParseAnimStack(pFbxScene, AnimStackNameArray.GetAt(i));
 			}

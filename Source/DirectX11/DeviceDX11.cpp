@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "DeviceDX11.h"
 
+#include "CommonLib/Lock.h"
+
 #include "GraphicsInterface/Window.h"
 
 #include "UtilDX11.h"
@@ -33,7 +35,7 @@ namespace eastengine
 
 			public:
 				RenderTarget* GetRenderTarget(const D3D11_TEXTURE2D_DESC* pDesc, bool isIncludeLastUseRenderTarget);
-				void ReleaseRenderTarget(RenderTarget** ppRenderTarget, uint32_t nSize, bool isSetLastRenderTarget);
+				void ReleaseRenderTargets(RenderTarget** ppRenderTarget, uint32_t nSize, bool isSetLastRenderTarget);
 
 			public:
 				void HandleMessage(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam);
@@ -44,7 +46,8 @@ namespace eastengine
 				const math::UInt2& GetScreenSize() const { return m_n2ScreenSize; }
 				const D3D11_VIEWPORT* GetViewport() const { return &m_viewport; }
 				const GBuffer* GetGBuffer() const { return m_pGBuffer.get(); }
-				ImageBasedLight* GetImageBasedLight() const { return m_pImageBasedLight.get(); }
+				IImageBasedLight* GetImageBasedLight() const { return m_pImageBasedLight; }
+				void SetImageBasedLight(IImageBasedLight* pImageBasedLight) { m_pImageBasedLight = pImageBasedLight; }
 				RenderManager* GetRenderManager() const { return m_pRenderManager.get(); }
 				VTFManager* GetVTFManager() const { return m_pVTFManager.get(); }
 
@@ -52,12 +55,14 @@ namespace eastengine
 				ID3D11DeviceContext* GetImmediateContext() const { return m_pImmediateContext; }
 
 				RenderTarget* GetSwapChainRenderTarget() const { return m_pSwapChainRenderTarget.get(); }
-				RenderTarget* GetLastUseRenderTarget() const { return m_pLastUseRenderTarget; }
+				RenderTarget* GetLastUsedRenderTarget() const { return m_pLastUseRenderTarget; }
 
 				ID3D11RasterizerState* GetRasterizerState(EmRasterizerState::Type emType) const { return m_pRasterizerStates[emType]; }
 				ID3D11BlendState* GetBlendState(EmBlendState::Type emType) const { return m_pBlendStates[emType]; }
 				ID3D11SamplerState* GetSamplerState(EmSamplerState::Type emType) const { return m_pSamplerStates[emType]; }
 				ID3D11DepthStencilState* GetDepthStencilState(EmDepthStencilState::Type emType) const { return m_pDepthStencilStates[emType]; }
+
+				ID3DUserDefinedAnnotation* GetUserDefinedAnnotation() const { return m_pUserDefinedAnnotation; }
 
 			private:
 				void InitializeD3D();
@@ -75,7 +80,7 @@ namespace eastengine
 				std::string m_strVideoCardDescription;
 				std::vector<DXGI_MODE_DESC> m_vecDisplayModes;
 
-				std::mutex m_mutex;
+				thread::Lock m_lock;
 
 				D3D11_VIEWPORT m_viewport{};
 
@@ -107,8 +112,10 @@ namespace eastengine
 				std::array<ID3D11SamplerState*, EmSamplerState::TypeCount> m_pSamplerStates{ nullptr };
 				std::array<ID3D11DepthStencilState*, EmDepthStencilState::TypeCount> m_pDepthStencilStates{ nullptr };
 
+				ID3DUserDefinedAnnotation* m_pUserDefinedAnnotation{ nullptr };
+
 				std::unique_ptr<GBuffer> m_pGBuffer;
-				std::unique_ptr<ImageBasedLight> m_pImageBasedLight;
+				IImageBasedLight* m_pImageBasedLight{ nullptr };
 
 				std::unique_ptr<RenderManager> m_pRenderManager;
 				std::unique_ptr<VTFManager> m_pVTFManager;
@@ -180,7 +187,6 @@ namespace eastengine
 				m_pVTFManager.reset();
 
 				m_pGBuffer.reset();
-				m_pImageBasedLight.reset();
 
 				BOOL fs = FALSE;
 				m_pSwapChain->GetFullscreenState(&fs, nullptr);
@@ -201,6 +207,8 @@ namespace eastengine
 
 				std::for_each(m_pDepthStencilStates.begin(), m_pDepthStencilStates.end(), ReleaseSTLObject());
 				m_pDepthStencilStates.fill(nullptr);
+
+				SafeRelease(m_pUserDefinedAnnotation);
 
 				m_ummapRenderTargetPool.clear();
 
@@ -241,7 +249,7 @@ namespace eastengine
 
 			RenderTarget* Device::Impl::GetRenderTarget(const D3D11_TEXTURE2D_DESC* pDesc, bool isIncludeLastUseRenderTarget)
 			{
-				std::lock_guard<std::mutex> lock(m_mutex);
+				thread::AutoLock autoLock(&m_lock);
 
 				RenderTarget::Key key = RenderTarget::BuildKey(pDesc);
 				auto iter_range = m_ummapRenderTargetPool.equal_range(key);
@@ -271,9 +279,9 @@ namespace eastengine
 				return iter_result->second.pRenderTarget.get();
 			}
 
-			void Device::Impl::ReleaseRenderTarget(RenderTarget** ppRenderTarget, uint32_t nSize, bool isSetLastRenderTarget)
+			void Device::Impl::ReleaseRenderTargets(RenderTarget** ppRenderTarget, uint32_t nSize, bool isSetLastRenderTarget)
 			{
-				std::lock_guard<std::mutex> lock(m_mutex);
+				thread::AutoLock autoLock(&m_lock);
 
 				for (uint32_t i = 0; i < nSize; ++i)
 				{
@@ -448,6 +456,12 @@ namespace eastengine
 				SafeRelease(pAdapter);
 				SafeRelease(pDxgiFactory);
 
+				hr = m_pImmediateContext->QueryInterface(__uuidof(ID3DUserDefinedAnnotation), reinterpret_cast<void**>(&m_pUserDefinedAnnotation));
+				if (FAILED(hr))
+				{
+					assert(false);
+				}
+
 				// Setup the viewport for rendering.
 				m_viewport.TopLeftX = 0.0f;
 				m_viewport.TopLeftY = 0.0f;
@@ -460,7 +474,6 @@ namespace eastengine
 				m_n2ScreenSize.y = swapChainDesc.Height;
 
 				m_pGBuffer = std::make_unique<GBuffer>(m_n2ScreenSize.x, m_n2ScreenSize.y);
-				m_pImageBasedLight = std::make_unique<ImageBasedLight>();
 			}
 
 			void Device::Impl::InitializeRasterizerState()
@@ -1119,9 +1132,9 @@ namespace eastengine
 				return m_pImpl->GetRenderTarget(pDesc, isIncludeLastUseRenderTarget);
 			}
 
-			void Device::ReleaseRenderTarget(RenderTarget** ppRenderTarget, uint32_t nSize, bool isSetLastRenderTarget)
+			void Device::ReleaseRenderTargets(RenderTarget** ppRenderTarget, uint32_t nSize, bool isSetLastRenderTarget)
 			{
-				m_pImpl->ReleaseRenderTarget(ppRenderTarget, nSize, isSetLastRenderTarget);
+				m_pImpl->ReleaseRenderTargets(ppRenderTarget, nSize, isSetLastRenderTarget);
 			}
 
 			HWND Device::GetHwnd() const
@@ -1154,9 +1167,14 @@ namespace eastengine
 				return m_pImpl->GetGBuffer();
 			}
 
-			ImageBasedLight* Device::GetImageBasedLight() const
+			IImageBasedLight* Device::GetImageBasedLight() const
 			{
 				return m_pImpl->GetImageBasedLight();
+			}
+
+			void Device::SetImageBasedLight(IImageBasedLight* pImageBasedLight)
+			{
+				m_pImpl->SetImageBasedLight(pImageBasedLight);
 			}
 
 			RenderManager* Device::GetRenderManager() const
@@ -1184,9 +1202,9 @@ namespace eastengine
 				return m_pImpl->GetSwapChainRenderTarget();
 			}
 
-			RenderTarget* Device::GetLastUseRenderTarget() const
+			RenderTarget* Device::GetLastUsedRenderTarget() const
 			{
-				return m_pImpl->GetLastUseRenderTarget();
+				return m_pImpl->GetLastUsedRenderTarget();
 			}
 
 			ID3D11RasterizerState* Device::GetRasterizerState(EmRasterizerState::Type emType) const
@@ -1207,6 +1225,11 @@ namespace eastengine
 			ID3D11DepthStencilState* Device::GetDepthStencilState(EmDepthStencilState::Type emType) const
 			{
 				return m_pImpl->GetDepthStencilState(emType);
+			}
+
+			ID3DUserDefinedAnnotation* Device::GetUserDefinedAnnotation() const
+			{
+				return m_pImpl->GetUserDefinedAnnotation();
 			}
 		}
 	}

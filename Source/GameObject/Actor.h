@@ -9,7 +9,7 @@ namespace eastengine
 		class Actor : public IActor
 		{
 		public:
-			Actor();
+			Actor(const Handle& handle);
 			virtual ~Actor();
 
 		public:
@@ -21,8 +21,6 @@ namespace eastengine
 			virtual IComponent* GetComponent(EmComponent::Type emComponentType) override;
 
 		public:
-			virtual uint32_t GetActorID() const override { return reinterpret_cast<uint32_t>(this); }
-
 			virtual const String::StringID& GetName() const override { return m_strActorName; }
 			virtual void SetName(const String::StringID& strActorName) override { m_strActorName = strActorName; }
 

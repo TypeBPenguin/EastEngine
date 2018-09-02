@@ -5,8 +5,8 @@
 struct D3D12_VIEWPORT;
 
 struct ID3D12Device;
-struct ID3D12CommandAllocator;
 struct ID3D12CommandQueue;
+struct ID3D12CommandList;
 struct ID3D12GraphicsCommandList2;
 struct ID3D12PipelineState;
 
@@ -21,7 +21,7 @@ namespace eastengine
 {
 	namespace graphics
 	{
-		class ImageBasedLight;
+		class IImageBasedLight;
 
 		namespace dx12
 		{
@@ -48,7 +48,7 @@ namespace eastengine
 
 			public:
 				RenderTarget* GetRenderTarget(const D3D12_RESOURCE_DESC* pDesc, const math::Color& clearColor, bool isIncludeLastUseRenderTarget = true);
-				void ReleaseRenderTarget(RenderTarget** ppRenderTarget, uint32_t nSize = 1, bool isSetLastRenderTarget = true);
+				void ReleaseRenderTargets(RenderTarget** ppRenderTarget, uint32_t nSize = 1, bool isSetLastRenderTarget = true);
 
 			public:
 				HWND GetHwnd() const;
@@ -60,7 +60,6 @@ namespace eastengine
 				const math::Rect* GetScissorRect() const;
 
 				ID3D12Device* GetInterface() const;
-				ID3D12CommandAllocator* GetCommandAllocator() const;
 				ID3D12CommandQueue* GetCommandQueue() const;
 
 				ID3D12Fence* GetFence() const;
@@ -69,10 +68,12 @@ namespace eastengine
 				uint32_t GetFrameIndex() const;
 
 				RenderTarget* GetSwapChainRenderTarget(int nFrameIndex) const;
-				RenderTarget* GetLastUseRenderTarget() const;
+				RenderTarget* GetLastUsedRenderTarget() const;
 
 				GBuffer* GetGBuffer(int nFrameIndex) const;
-				ImageBasedLight* GetImageBasedLight() const;
+				IImageBasedLight* GetImageBasedLight() const;
+				void SetImageBasedLight(IImageBasedLight* pImageBasedLight);
+
 				RenderManager* GetRenderManager() const;
 				VTFManager* GetVTFManager() const;
 
@@ -85,8 +86,16 @@ namespace eastengine
 				DescriptorHeap* GetSamplerDescriptorHeap() const;
 
 			public:
-				ID3D12GraphicsCommandList2* PopCommandList(ID3D12PipelineState* pPipeliseState);
-				void PushCommandList(ID3D12GraphicsCommandList2* pCommandList);
+				size_t GetCommandListCount() const;
+
+				void ResetCommandList(size_t nIndex, ID3D12PipelineState* pPipelineState);
+				ID3D12GraphicsCommandList2* GetCommandList(size_t nIndex) const;
+				void GetCommandLists(ID3D12GraphicsCommandList2** ppCommandLists_out) const;
+				void ExecuteCommandList(ID3D12CommandList* pCommandList);
+				void ExecuteCommandLists(ID3D12CommandList* const* ppCommandList, size_t nCount);
+				void ExecuteCommandLists(ID3D12GraphicsCommandList2* const* ppCommandList, size_t nCount);
+
+				ID3D12GraphicsCommandList2* CreateBundle(ID3D12PipelineState* pPipelineState);
 
 				const D3D12_DESCRIPTOR_RANGE* GetStandardDescriptorRanges() const;
 

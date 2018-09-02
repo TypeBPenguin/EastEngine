@@ -1,47 +1,118 @@
 #include "stdafx.h"
 #include "StringTable.h"
 
+#include "Lock.h"
 #include "Log.h"
-
-#define STRING_TABLE_SIZE (4096 * 1024)
 
 namespace eastengine
 {
 	namespace String
 	{
+		struct StringData
+		{
+			const char* pString{ nullptr };
+			size_t nLength = 0;
+
+			StringData* pNext{ nullptr };
+
+			~StringData()
+			{
+				delete[] pString;
+			}
+		};
+
 		struct StringTable
 		{
-			struct Data
+			static const size_t TABLE_SIZE{ 4096 * 512 };
+
+			std::vector<StringData*> tables;
+			size_t nCount{ 0 };
+
+			thread::Lock lock;
+
+			StringTable()
 			{
-				std::unique_ptr<const char[]> pString;
-				size_t nLength = 0;
-
-				Data(std::unique_ptr<const char[]> pString, size_t nLength)
-					: pString(std::move(pString))
-					, nLength(nLength)
-				{
-				}
-			};
-
-			std::unordered_map<StringKey, Data> umapStringTable;
-			size_t nRegisteredKeyCount = 0;
-
-			std::mutex mutex;
+				tables.resize(TABLE_SIZE);
+			}
 
 			~StringTable()
 			{
-				Release();
+				for (size_t i = 0; i < TABLE_SIZE; ++i)
+				{
+					StringData* pData = tables[i];
+
+					while (pData != nullptr)
+					{
+						StringData* pNext = pData->pNext;
+
+						if (pData != nullptr)
+						{
+							delete pData;
+							pData = nullptr;
+						}
+
+						pData = pNext;
+					}
+				}
+				tables.clear();
 			}
 
-			void Init()
+			size_t GetCount() const { return nCount; }
+
+			const StringData* Register(const char* str, size_t nLength)
 			{
-				umapStringTable.reserve(STRING_TABLE_SIZE);
-				nRegisteredKeyCount = 0;
+				if (str == nullptr)
+					return StrID::EmptyString.Key();
+
+				const uint32_t key = Hash(str);
+
+				thread::AutoLock autoLock(&lock);
+
+				const StringData* pStringData = tables[key % TABLE_SIZE];
+				if (pStringData != nullptr)
+				{
+					while (pStringData != nullptr)
+					{
+						if (pStringData->nLength == nLength && String::IsEquals(pStringData->pString, str) == true)
+							return pStringData;
+
+						pStringData = pStringData->pNext;
+					}
+				}
+
+				StringData* pNewStringData = new StringData;
+				char* pNewString = new char[nLength + 1];
+				String::Copy(pNewString, nLength + 1, str);
+
+				pNewStringData->pString = pNewString;
+				pNewStringData->nLength = nLength;
+
+				pNewStringData->pNext = tables[key % TABLE_SIZE];
+				tables[key % TABLE_SIZE] = pNewStringData;
+
+				++nCount;
+				return pNewStringData;
 			}
 
-			void Release()
+			const StringData* Register(const char* str)
 			{
-				umapStringTable.clear();
+				if (str == nullptr)
+					return StrID::EmptyString.Key();
+
+				const size_t nLength = String::Length(str);
+
+				return Register(str, nLength);
+			}
+
+			uint32_t Hash(const char* pString) const
+			{
+				uint32_t v = 1;
+				while (char c = *pString++)
+				{
+					v = (v << 6) + (v << 16) - v + c;
+				}
+
+				return v;
 			}
 		};
 
@@ -49,20 +120,6 @@ namespace eastengine
 		// exe 프로젝트에서 한번, 라이브러리 프로젝트에서 한번
 		// 총 2번 초기화 하는 현상이 발생하게 되어, 메모리릭이 생기게 됨
 		static StringTable* s_pStringTable = nullptr;
-
-		inline const StringTable::Data* GetStringPtr(const StringKey& key)
-		{
-			auto iter = s_pStringTable->umapStringTable.find(key);
-			if (iter != s_pStringTable->umapStringTable.end())
-				return &iter->second;
-
-			return nullptr;
-		}
-
-		inline void SetStringPtr(const StringKey& key, std::unique_ptr<const char[]> str, size_t nLength)
-		{
-			s_pStringTable->umapStringTable.emplace(key, StringTable::Data(std::move(str), nLength));
-		}
 
 		bool Init()
 		{ 
@@ -73,7 +130,6 @@ namespace eastengine
 			}
 
 			s_pStringTable = new StringTable;
-			s_pStringTable->Init();
 
 			return true;
 		}
@@ -83,76 +139,28 @@ namespace eastengine
 			if (s_pStringTable == nullptr)
 				return;
 
-			s_pStringTable->Release();
 			delete s_pStringTable;
 			s_pStringTable = nullptr;
 		}
 
-		StringKey Register(const char* str)
+		const StringData* Register(const char* str, size_t nLength)
 		{
 			if (s_pStringTable == nullptr)
 			{
 				Init();
 			}
 
-			std::lock_guard<std::mutex> lock(s_pStringTable->mutex);
-
-			if (str == nullptr)
-				return UnregisteredKey;
-
-			StringKey hashKey(Hash(str));
-
-			if (hashKey == UnregisteredKey)
-				return UnregisteredKey;
-
-			const StringTable::Data* pExistStringData = GetStringPtr(hashKey);
-			if (pExistStringData != nullptr)
-			{
-			#if CHECK_DUPLICATE_STRING_KEY != 0 || defined(DEBUG) || defined(_DEBUG)
-				if (String::IsEquals(str, pExistStringData->pString.get()) == false)
-				{
-					LOG_ERROR("String Hash Crash, Duplicate String Key!! Hash : %u / %s != %s", hashKey, str, pExistStringData->pString.get());
-				}
-			#endif
-
-				return hashKey;
-			}
-
-			size_t nLength = String::Length(str);
-			std::unique_ptr<char[]> pNewStr = std::make_unique<char[]>(nLength + 1);
-			String::Copy(pNewStr.get(), nLength + 1, str);
-
-			SetStringPtr(hashKey, std::move(pNewStr), nLength);
-
-			++s_pStringTable->nRegisteredKeyCount;
-
-			return hashKey;
+			return s_pStringTable->Register(str, nLength);
 		}
 
-		const char* GetString(const StringKey& key, size_t* pLength_out)
+		const StringData* Register(const char* str)
 		{
-			std::lock_guard<std::mutex> lock(s_pStringTable->mutex);
-
-			const StringTable::Data* pStringData = GetStringPtr(key);
-			if (pStringData != nullptr)
+			if (s_pStringTable == nullptr)
 			{
-				if (pLength_out != nullptr)
-				{
-					*pLength_out = pStringData->nLength;
-				}
-				return pStringData->pString.get();
+				Init();
 			}
 
-			if (pLength_out != nullptr)
-			{
-				*pLength_out = 0;
-			}
-			return StrID::Unregistered.c_str();
-		}
-
-		StringKey GetKey(const char* str)
-		{
-			return Register(str);
+			return s_pStringTable->Register(str);
 		}
 
 		size_t GetRegisteredStringCount()
@@ -160,7 +168,81 @@ namespace eastengine
 			if (s_pStringTable == nullptr)
 				return 0;
 
-			return s_pStringTable->nRegisteredKeyCount;
+			return s_pStringTable->nCount;
+		}
+
+		StringID::StringID()
+		{
+		}
+
+		StringID::StringID(const char* str)
+			: m_pStringData(Register(str))
+		{
+		}
+
+		StringID::StringID(const StringID& source)
+			: m_pStringData(source.m_pStringData)
+		{
+		}
+
+		StringID::~StringID()
+		{
+		}
+
+		bool StringID::operator == (const char* rValue) const
+		{
+			return String::IsEquals(c_str(), rValue);
+		}
+
+		bool StringID::operator != (const char* rValue) const
+		{
+			return String::IsEquals(c_str(), rValue) == false;
+		}
+
+		const char* StringID::c_str() const
+		{
+			if (m_pStringData == nullptr)
+				return "";
+
+			return m_pStringData->pString;
+		}
+
+		size_t StringID::length() const
+		{
+			if (m_pStringData == nullptr)
+				return 0;
+
+			return m_pStringData->nLength;
+		}
+
+		bool StringID::empty() const
+		{
+			if (m_pStringData == nullptr)
+				return true;
+
+			return m_pStringData->nLength == 0;
+		}
+
+		void StringID::clear()
+		{
+			m_pStringData = nullptr;
+		}
+
+		StringID& StringID::Format(const char* format, ...)
+		{
+			va_list args;
+			va_start(args, format);
+			std::size_t size = std::vsnprintf(nullptr, 0, format, args) + 1;
+			va_end(args);
+
+			std::unique_ptr<char[]> buf = std::make_unique<char[]>(size);
+			va_start(args, format);
+			std::vsnprintf(buf.get(), size, format, args);
+			va_end(args);
+
+			m_pStringData = Register(buf.get(), size);
+
+			return *this;
 		}
 	};
 }

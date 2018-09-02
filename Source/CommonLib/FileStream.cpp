@@ -231,6 +231,7 @@ namespace eastengine
 			}
 			else
 			{
+				// + 1 해주는거 지워야함
 				size_t size = value.length() + 1;
 				*this << static_cast<uint32_t>(size);
 				m_file.write(value.c_str(), size);
@@ -254,8 +255,11 @@ namespace eastengine
 				if (size <= 0)
 					return *this;
 
+				// + 1 해주고 있는거 지워야함
 				value.resize(size);
 				m_file.read(value.data(), size);
+
+				value = value.substr(0, value.size() - 1);
 			}
 
 			return *this;

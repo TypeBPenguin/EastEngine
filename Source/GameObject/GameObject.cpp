@@ -3,19 +3,26 @@
 
 #include "CommonLib/FileStream.h"
 
-#include "ActorManager.h"
 #include "Actor.h"
-
-#include "TerrainManager.h"
 #include "Terrain.h"
-
-#include "SkyManager.h"
 #include "Skybox.h"
+
+#include "GameObjectManager.h"
 
 namespace eastengine
 {
 	namespace gameobject
 	{
+		IGameObject::IGameObject(const Handle& handle)
+			: m_handle(handle)
+		{
+		}
+
+		IActor::IActor(const Handle& handle)
+			: IGameObject(handle)
+		{
+		}
+
 		IActor* IActor::CreateByFile(const char* strFilePath)
 		{
 			file::Stream file;
@@ -28,7 +35,7 @@ namespace eastengine
 			std::string strBuf;
 			file >> strBuf;
 
-			IActor* pActor = ActorManager::GetInstance()->CreateActor(strBuf.c_str());
+			IActor* pActor = GameObjectManager::GetInstance()->CreateActor(strBuf.c_str());
 
 			uint32_t nComponentSize = 0;
 			file >> nComponentSize;
@@ -53,7 +60,7 @@ namespace eastengine
 
 		IActor* IActor::Create(const String::StringID& strName)
 		{
-			return ActorManager::GetInstance()->CreateActor(strName);
+			return GameObjectManager::GetInstance()->CreateActor(strName);
 		}
 
 		void IActor::Destroy(IActor** ppActor)
@@ -106,14 +113,19 @@ namespace eastengine
 			return true;
 		}
 
+		ITerrain::ITerrain(const Handle& handle)
+			: IGameObject(handle)
+		{
+		}
+
 		ITerrain* ITerrain::Create(const String::StringID& strName, const TerrainProperty& terrainProperty)
 		{
-			return TerrainManager::GetInstance()->CreateTerrain(strName, terrainProperty);
+			return GameObjectManager::GetInstance()->CreateTerrain(strName, terrainProperty);
 		}
 
 		ITerrain* ITerrain::CreateAsync(const String::StringID& strName, const TerrainProperty& terrainProperty)
 		{
-			return TerrainManager::GetInstance()->CreateTerrainAsync(strName, terrainProperty);
+			return GameObjectManager::GetInstance()->CreateTerrainAsync(strName, terrainProperty);
 		}
 
 		void ITerrain::Destroy(ITerrain** ppTerrain)
@@ -127,9 +139,14 @@ namespace eastengine
 			*ppTerrain = nullptr;
 		}
 
+		ISkybox::ISkybox(const Handle& handle)
+			: IGameObject(handle)
+		{
+		}
+
 		ISkybox* ISkybox::Create(const String::StringID& strName, const SkyboxProperty& property)
 		{
-			return SkyManager::GetInstance()->CreateSkybox(strName, property);
+			return GameObjectManager::GetInstance()->CreateSkybox(strName, property);
 		}
 
 		void ISkybox::Destroy(ISkybox** ppSkybox)

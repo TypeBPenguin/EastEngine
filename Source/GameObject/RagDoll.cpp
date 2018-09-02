@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "RagDoll.h"
 
-#include "Model/ModelInterface.h"
+#include "Model/ModelLoader.h"
 
 namespace StrID
 {
@@ -457,8 +457,8 @@ namespace eastengine
 				{
 					Joint* pJoint = *iter;
 
-					auto iter = setBody.find(pJoint->pBodyPartA);
-					if (iter == setBody.end())
+					auto iter_find = setBody.find(pJoint->pBodyPartA);
+					if (iter_find == setBody.end())
 					{
 						UpdateBodyPart(pJoint->pBodyPartA);
 						setBody.emplace(pJoint->pBodyPartA);

@@ -4,17 +4,17 @@
 
 namespace eastengine
 {
-	class Counter
+	class Stopwatch
 	{
 	public:
-		Counter();
-		~Counter();
+		Stopwatch();
+		~Stopwatch();
 
 	public:
 		void Start();
-		void End();
+		void Stop();
 
-		double Count() const;
+		double Elapsed() const;
 		int64_t MilliSec() const;
 		int64_t MicroSec() const;
 		int64_t NanoSec() const;

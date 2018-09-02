@@ -9,7 +9,7 @@ namespace eastengine
 {
 	namespace graphics
 	{
-		namespace GeometryModel
+		namespace geometry
 		{
 			const float SQRT2 = 1.41421356237309504880f;
 			const float SQRT3 = 1.73205080756887729352f;
@@ -506,7 +506,7 @@ namespace eastengine
 				// we'll just ensure that the larger of the two goes first. This'll simplify things greatly.
 				auto makeUndirectedEdge = [](uint32_t a, uint32_t b)
 				{
-					return std::make_pair(math::Max(a, b), math::Min(a, b));
+					return std::make_pair(std::max(a, b), std::min(a, b));
 				};
 
 				// Key: an edge
@@ -2179,7 +2179,7 @@ namespace eastengine
 						t.err[0] = calculate_error(t.v[0], t.v[1], p, nullptr, nullptr);
 						t.err[1] = calculate_error(t.v[1], t.v[2], p, nullptr, nullptr);
 						t.err[2] = calculate_error(t.v[2], t.v[0], p, nullptr, nullptr);
-						t.err[3] = math::Min(t.err[0], math::Min(t.err[1], t.err[2]));
+						t.err[3] = std::min(t.err[0], std::min(t.err[1], t.err[2]));
 						refs.push_back(r);
 					}
 				}
@@ -2245,7 +2245,7 @@ namespace eastengine
 							{
 								t.err[j] = calculate_error(t.v[j], t.v[(j + 1) % 3], p, nullptr, nullptr);
 							}
-							t.err[3] = math::Min(t.err[0], math::Min(t.err[1], t.err[2]));
+							t.err[3] = std::min(t.err[0], std::min(t.err[1], t.err[2]));
 						}
 					}
 
@@ -2428,7 +2428,7 @@ namespace eastengine
 						float error2 = vertex_error(q, p2.x, p2.y, p2.z);
 						float error3 = vertex_error(q, p3.x, p3.y, p3.z);
 
-						error = math::Min(error1, math::Min(error2, error3));
+						error = std::min(error1, std::min(error2, error3));
 
 						if (error1 == error)
 						{

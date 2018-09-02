@@ -24,9 +24,9 @@ namespace eastengine
 			}
 
 			// Scale into 0-1 range.
-			float scaledValue = fValue / (fMaxValue - fDeadZoneSize);
+			const float scaledValue = fValue / (fMaxValue - fDeadZoneSize);
 
-			return math::Max(-1.f, math::Min(scaledValue, 1.f));
+			return std::clamp(scaledValue, -1.f, 1.f);
 		}
 
 		void ApplyStickDeadZone(float x, float y, GamePad::DeadZone emDeadZoneMode, float fMaxValue, float fDeadZoneSize,
@@ -40,13 +40,13 @@ namespace eastengine
 				break;
 			case GamePad::eCircular:
 			{
-				float dist = sqrtf(x*x + y*y);
-				float wanted = ApplyLinearDeadZone(dist, fMaxValue, fDeadZoneSize);
+				const float dist = sqrtf(x*x + y*y);
+				const float wanted = ApplyLinearDeadZone(dist, fMaxValue, fDeadZoneSize);
 
-				float scale = (wanted > 0.f) ? (wanted / dist) : 0.f;
+				const float scale = (wanted > 0.f) ? (wanted / dist) : 0.f;
 
-				fResultX_out = math::Max(-1.f, math::Min(x * scale, 1.f));
-				fResultY_out = math::Max(-1.f, math::Min(y * scale, 1.f));
+				fResultX_out = std::clamp(x * scale, -1.f, 1.f);
+				fResultY_out = std::clamp(y * scale, -1.f, 1.f);
 			}
 			break;
 			default: // GamePad::DEAD_ZONE_NONE

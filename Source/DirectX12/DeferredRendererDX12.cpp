@@ -20,10 +20,18 @@ namespace eastengine
 	{
 		namespace dx12
 		{
-			namespace deferredshader
+			namespace shader
 			{
-				struct LightContents
+				struct CommonContents
 				{
+					math::Vector3 f3CameraPos;
+					int nEnableShadowCount{ 0 };
+
+					uint32_t nTexDiffuseHDRIndex{ 0 };
+					uint32_t nTexSpecularHDRIndex{ 0 };
+					uint32_t nTexSpecularBRDFIndex{ 0 };
+					uint32_t nTexShadowMapIndex{ 0 };
+
 					uint32_t nDirectionalLightCount{ 0 };
 					uint32_t nPointLightCount{ 0 };
 					uint32_t nSpotLightCount{ 0 };
@@ -34,29 +42,21 @@ namespace eastengine
 					std::array<SpotLightData, ILight::eMaxSpotLightCount> lightSpot{};
 				};
 
-				struct CommonContents
+				struct DeferredContents
 				{
 					math::Matrix matInvView;
 					math::Matrix matInvProj;
-
-					math::Vector3 f3CameraPos;
-					int nEnableShadowCount{ 0 };
 
 					uint32_t nTexDepthIndex{ 0 };
 					uint32_t nTexNormalIndex{ 0 };
 					uint32_t nTexAlbedoSpecularIndex{ 0 };
 					uint32_t nTexDisneyBRDFIndex{ 0 };
-
-					uint32_t nTexDiffuseHDRIndex{ 0 };
-					uint32_t nTexSpecularHDRIndex{ 0 };
-					uint32_t nTexSpecularBRDFIndex{ 0 };
-					uint32_t nTexShadowMapIndex{ 0 };
 				};
 
 				enum CBSlot
 				{
-					eCB_LightContents = 0,
-					eCB_CommonContents,
+					eCB_DeferredContents = 0,
+					eCB_CommonContents = 5,
 				};
 			}
 
@@ -75,7 +75,7 @@ namespace eastengine
 				{
 					eRP_StandardDescriptor = 0,
 
-					eRP_LightContentsCB,
+					eRP_DeferrecContentsCB,
 					eRP_CommonContentsCB,
 
 					eRP_Count,
@@ -93,8 +93,10 @@ namespace eastengine
 				ID3D12PipelineState* m_pPipelineState{ nullptr };
 				ID3D12RootSignature* m_pRootSignature{ nullptr };
 
-				ConstantBuffer<deferredshader::CommonContents> m_commonContentsBuffer;
-				ConstantBuffer<deferredshader::LightContents> m_lightContentsBuffer;
+				std::array<ID3D12GraphicsCommandList2*, eFrameBufferCount> m_pBundles;
+
+				ConstantBuffer<shader::DeferredContents> m_deferredContentsBuffer;
+				ConstantBuffer<shader::CommonContents> m_commonContentsBuffer;
 			};
 
 			DeferredRenderer::Impl::Impl()
@@ -111,48 +113,71 @@ namespace eastengine
 
 				CreatePipelineState(pDevice);
 
-				auto SetGPUAddress = [](ID3D12Resource* pResource, uint8_t** ppViewGPUAddress, D3D12_GPU_VIRTUAL_ADDRESS* pGPUAddress, size_t nSize)
-				{
-					CD3DX12_RANGE readRange(0, 0);
-					HRESULT hr = pResource->Map(0, &readRange, reinterpret_cast<void**>(ppViewGPUAddress));
-					if (FAILED(hr))
-					{
-						throw_line("failed to map, constant buffer upload heap");
-					}
-
-					Memory::Clear(*ppViewGPUAddress, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);
-
-					*pGPUAddress = pResource->GetGPUVirtualAddress();
-				};
-
 				for (int i = 0; i < eFrameBufferCount; ++i)
 				{
-					if (util::CreateConstantBuffer(pDevice, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT, &m_commonContentsBuffer.pUploadHeaps[i], L"CommonContents") == false)
-					{
-						throw_line("failed to create constant buffer, CommonContents");
-					}
-					SetGPUAddress(m_commonContentsBuffer.pUploadHeaps[i], &m_commonContentsBuffer.pViewGPUAddress[i], &m_commonContentsBuffer.gpuAddress[i], D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);
-
-					if (util::CreateConstantBuffer(pDevice, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT, &m_lightContentsBuffer.pUploadHeaps[i], L"LightContents") == false)
+					if (util::CreateConstantBuffer(pDevice, m_deferredContentsBuffer.AlignedSize(), &m_deferredContentsBuffer.pUploadHeaps[i], L"LightContents") == false)
 					{
 						throw_line("failed to create constant buffer, LightContents");
 					}
-					SetGPUAddress(m_lightContentsBuffer.pUploadHeaps[i], &m_lightContentsBuffer.pViewGPUAddress[i], &m_lightContentsBuffer.gpuAddress[i], D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);
+
+					if (util::CreateConstantBuffer(pDevice, m_commonContentsBuffer.AlignedSize(), &m_commonContentsBuffer.pUploadHeaps[i], L"CommonContents") == false)
+					{
+						throw_line("failed to create constant buffer, CommonContents");
+					}
 				}
 
+				m_deferredContentsBuffer.Initialize(m_deferredContentsBuffer.AlignedSize());
+				m_commonContentsBuffer.Initialize(m_commonContentsBuffer.AlignedSize());
+
 				SafeRelease(m_pShaderBlob);
+
+				DescriptorHeap* pSRVDescriptorHeap = Device::GetInstance()->GetSRVDescriptorHeap();
+
+				for (int i = 0; i < eFrameBufferCount; ++i)
+				{
+					m_pBundles[i] = Device::GetInstance()->CreateBundle(m_pPipelineState);
+
+					m_pBundles[i]->SetGraphicsRootSignature(m_pRootSignature);
+
+					ID3D12DescriptorHeap* pDescriptorHeaps[] =
+					{
+						pSRVDescriptorHeap->GetHeap(i),
+					};
+					m_pBundles[i]->SetDescriptorHeaps(_countof(pDescriptorHeaps), pDescriptorHeaps);
+
+					m_pBundles[i]->SetGraphicsRootDescriptorTable(eRP_StandardDescriptor, pSRVDescriptorHeap->GetStartGPUHandle(i));
+					m_pBundles[i]->SetGraphicsRootConstantBufferView(eRP_DeferrecContentsCB, m_deferredContentsBuffer.GPUAddress(i));
+					m_pBundles[i]->SetGraphicsRootConstantBufferView(eRP_CommonContentsCB, m_commonContentsBuffer.GPUAddress(i));
+
+					m_pBundles[i]->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+					m_pBundles[i]->IASetVertexBuffers(0, 0, nullptr);
+					m_pBundles[i]->IASetIndexBuffer(nullptr);
+
+					m_pBundles[i]->DrawInstanced(4, 1, 0, 0);
+
+					HRESULT hr = m_pBundles[i]->Close();
+					if (FAILED(hr))
+					{
+						throw_line("failed to close bundle");
+					}
+				}
 			}
 
 			DeferredRenderer::Impl::~Impl()
 			{
 				for (int i = 0; i < eFrameBufferCount; ++i)
 				{
+					SafeRelease(m_deferredContentsBuffer.pUploadHeaps[i]);
 					SafeRelease(m_commonContentsBuffer.pUploadHeaps[i]);
-					SafeRelease(m_lightContentsBuffer.pUploadHeaps[i]);
 				}
 
 				SafeRelease(m_pPipelineState);
 				SafeRelease(m_pRootSignature);
+
+				for (auto& pBundle : m_pBundles)
+				{
+					SafeRelease(pBundle);
+				}
 			}
 
 			void DeferredRenderer::Impl::Render(Camera* pCamera)
@@ -160,18 +185,22 @@ namespace eastengine
 				Device* pDeviceInstance = Device::GetInstance();
 				LightManager* pLightManager = LightManager::GetInstance();
 
-				int nFrameIndex = pDeviceInstance->GetFrameIndex();
-				const GBuffer* pGBuffer = pDeviceInstance->GetGBuffer(nFrameIndex);
+				const int nFrameIndex = pDeviceInstance->GetFrameIndex();
+				GBuffer* pGBuffer = pDeviceInstance->GetGBuffer(nFrameIndex);
+				const IImageBasedLight* pImageBasedLight = pDeviceInstance->GetImageBasedLight();
 				DescriptorHeap* pSRVDescriptorHeap = pDeviceInstance->GetSRVDescriptorHeap();
-				DescriptorHeap* pSamplerDescriptorHeap = pDeviceInstance->GetSamplerDescriptorHeap();
 
 				const D3D12_VIEWPORT* pViewport = pDeviceInstance->GetViewport();
 				const D3D12_RECT* pScissorRect = pDeviceInstance->GetScissorRect();
 
-				RenderTarget* pSwapChainRenderTarget = pDeviceInstance->GetSwapChainRenderTarget(nFrameIndex);
-				D3D12_RESOURCE_DESC desc = pSwapChainRenderTarget->GetDesc();
+				D3D12_RESOURCE_DESC desc = pDeviceInstance->GetSwapChainRenderTarget(nFrameIndex)->GetDesc();
 
-				RenderTarget* pRenderTarget = pDeviceInstance->GetRenderTarget(&desc, math::Color::Black, true);
+				if (GetOptions().OnHDR == true)
+				{
+					desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				}
+
+				RenderTarget* pRenderTarget = pDeviceInstance->GetRenderTarget(&desc, math::Color::Transparent, true);
 				if (pRenderTarget == nullptr)
 				{
 					throw_line("failed to get render target");
@@ -183,19 +212,22 @@ namespace eastengine
 				};
 
 				{
-					deferredshader::CommonContents* pCommonContents = m_commonContentsBuffer.Cast(nFrameIndex, 0);
-					pCommonContents->matInvView = pCamera->GetViewMatrix().Invert().Transpose();
-					pCommonContents->matInvProj = pCamera->GetProjMatrix().Invert().Transpose();
+					shader::DeferredContents* pDeferredContents = m_deferredContentsBuffer.Cast(nFrameIndex);
+					pDeferredContents->matInvView = pCamera->GetViewMatrix().Invert().Transpose();
+					pDeferredContents->matInvProj = pCamera->GetProjMatrix().Invert().Transpose();
+
+					pDeferredContents->nTexDepthIndex = pGBuffer->GetDepthStencil()->GetTexture()->GetDescriptorIndex();
+					pDeferredContents->nTexNormalIndex = pGBuffer->GetRenderTarget(EmGBuffer::eNormals)->GetTexture()->GetDescriptorIndex();
+					pDeferredContents->nTexAlbedoSpecularIndex = pGBuffer->GetRenderTarget(EmGBuffer::eColors)->GetTexture()->GetDescriptorIndex();
+					pDeferredContents->nTexDisneyBRDFIndex = pGBuffer->GetRenderTarget(EmGBuffer::eDisneyBRDF)->GetTexture()->GetDescriptorIndex();
+				}
+
+				{
+					shader::CommonContents* pCommonContents = m_commonContentsBuffer.Cast(nFrameIndex);
 
 					pCommonContents->f3CameraPos = pCamera->GetPosition();
 					pCommonContents->nEnableShadowCount = 0;
 
-					pCommonContents->nTexDepthIndex = pGBuffer->GetDepthStencil()->GetTexture()->GetDescriptorIndex();
-					pCommonContents->nTexNormalIndex = pGBuffer->GetRenderTarget(EmGBuffer::eNormals)->GetTexture()->GetDescriptorIndex();
-					pCommonContents->nTexAlbedoSpecularIndex = pGBuffer->GetRenderTarget(EmGBuffer::eColors)->GetTexture()->GetDescriptorIndex();
-					pCommonContents->nTexDisneyBRDFIndex = pGBuffer->GetRenderTarget(EmGBuffer::eDisneyBRDF)->GetTexture()->GetDescriptorIndex();
-
-					const ImageBasedLight* pImageBasedLight = pDeviceInstance->GetImageBasedLight();
 					Texture* pDiffuseHDR = static_cast<Texture*>(pImageBasedLight->GetDiffuseHDR());
 					pCommonContents->nTexDiffuseHDRIndex = pDiffuseHDR->GetDescriptorIndex();
 
@@ -204,62 +236,61 @@ namespace eastengine
 
 					Texture* pSpecularBRDF = static_cast<Texture*>(pImageBasedLight->GetSpecularBRDF());
 					pCommonContents->nTexSpecularBRDFIndex = pSpecularBRDF->GetDescriptorIndex();
-				}
 
-				{
-					deferredshader::LightContents* pLightContents = m_lightContentsBuffer.Cast(nFrameIndex, 0);
 					const DirectionalLightData* pDirectionalLightData = nullptr;
-					pLightManager->GetDirectionalLightData(&pDirectionalLightData, &pLightContents->nDirectionalLightCount);
-					Memory::Copy(pLightContents->lightDirectional.data(), sizeof(pLightContents->lightDirectional), pDirectionalLightData, sizeof(DirectionalLightData) * pLightContents->nDirectionalLightCount);
+					pLightManager->GetDirectionalLightData(&pDirectionalLightData, &pCommonContents->nDirectionalLightCount);
+					Memory::Copy(pCommonContents->lightDirectional.data(), sizeof(pCommonContents->lightDirectional), pDirectionalLightData, sizeof(DirectionalLightData) * pCommonContents->nDirectionalLightCount);
 
 					const PointLightData* pPointLightData = nullptr;
-					pLightManager->GetPointLightData(&pPointLightData, &pLightContents->nPointLightCount);
-					Memory::Copy(pLightContents->lightPoint.data(), sizeof(pLightContents->lightPoint), pPointLightData, sizeof(PointLightData) * pLightContents->nPointLightCount);
+					pLightManager->GetPointLightData(&pPointLightData, &pCommonContents->nPointLightCount);
+					Memory::Copy(pCommonContents->lightPoint.data(), sizeof(pCommonContents->lightPoint), pPointLightData, sizeof(PointLightData) * pCommonContents->nPointLightCount);
 
 					const SpotLightData* pSpotLightData = nullptr;
-					pLightManager->GetSpotLightData(&pSpotLightData, &pLightContents->nSpotLightCount);
-					Memory::Copy(pLightContents->lightSpot.data(), sizeof(pLightContents->lightSpot), pSpotLightData, sizeof(SpotLightData) * pLightContents->nSpotLightCount);
+					pLightManager->GetSpotLightData(&pSpotLightData, &pCommonContents->nSpotLightCount);
+					Memory::Copy(pCommonContents->lightSpot.data(), sizeof(pCommonContents->lightSpot), pSpotLightData, sizeof(SpotLightData) * pCommonContents->nSpotLightCount);
 				}
 
-				ID3D12GraphicsCommandList2* pCommandList = pDeviceInstance->PopCommandList(m_pPipelineState);
+				ID3D12GraphicsCommandList2* pCommandList = pDeviceInstance->GetCommandList(0);
+				pDeviceInstance->ResetCommandList(0, nullptr);
 
-				CD3DX12_RESOURCE_BARRIER transition[] =
+				const D3D12_RESOURCE_BARRIER transition[] =
 				{
-					CD3DX12_RESOURCE_BARRIER::Transition(pGBuffer->GetRenderTarget(EmGBuffer::eNormals)->GetResource(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
-					CD3DX12_RESOURCE_BARRIER::Transition(pGBuffer->GetRenderTarget(EmGBuffer::eColors)->GetResource(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
-					CD3DX12_RESOURCE_BARRIER::Transition(pGBuffer->GetRenderTarget(EmGBuffer::eDisneyBRDF)->GetResource(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
-					CD3DX12_RESOURCE_BARRIER::Transition(pGBuffer->GetDepthStencil()->GetResource(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
+					pGBuffer->GetRenderTarget(EmGBuffer::eNormals)->Transition(D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
+					pGBuffer->GetRenderTarget(EmGBuffer::eColors)->Transition(D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
+					pGBuffer->GetRenderTarget(EmGBuffer::eDisneyBRDF)->Transition(D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
+					pGBuffer->GetDepthStencil()->Transition(D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
 				};
 				pCommandList->ResourceBarrier(_countof(transition), transition);
+
+				if (pImageBasedLight->GetEnvironmentHDR() == nullptr ||
+					pImageBasedLight->GetEnvironmentSphereVB() == nullptr ||
+					pImageBasedLight->GetEnvironmentSphereIB() == nullptr)
+				{
+					pRenderTarget->Clear(pCommandList);
+				}
+
+				pCommandList->RSSetViewports(1, pViewport);
+				pCommandList->RSSetScissorRects(1, pScissorRect);
+				pCommandList->OMSetRenderTargets(_countof(rtvHandles), rtvHandles, FALSE, nullptr);
 
 				pCommandList->SetGraphicsRootSignature(m_pRootSignature);
 
 				ID3D12DescriptorHeap* pDescriptorHeaps[] =
 				{
 					pSRVDescriptorHeap->GetHeap(),
-					pSamplerDescriptorHeap->GetHeap(),
 				};
 				pCommandList->SetDescriptorHeaps(_countof(pDescriptorHeaps), pDescriptorHeaps);
 
-				pCommandList->RSSetViewports(1, pViewport);
-				pCommandList->RSSetScissorRects(1, pScissorRect);
-				pCommandList->OMSetRenderTargets(_countof(rtvHandles), rtvHandles, FALSE, nullptr);
+				pCommandList->ExecuteBundle(m_pBundles[nFrameIndex]);
 
-				pCommandList->ClearRenderTargetView(pRenderTarget->GetCPUHandle(), &math::Color::Black.r, 0, nullptr);
+				HRESULT hr = pCommandList->Close();
+				if (FAILED(hr))
+				{
+					throw_line("failed to close command list");
+				}
 
-				pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-				pCommandList->IASetIndexBuffer(nullptr);
-				pCommandList->IASetVertexBuffers(0, 0, nullptr);
-
-				pCommandList->SetGraphicsRootDescriptorTable(eRP_StandardDescriptor, pSRVDescriptorHeap->GetStartGPUHandle(nFrameIndex));
-				pCommandList->SetGraphicsRootConstantBufferView(eRP_LightContentsCB, m_lightContentsBuffer.gpuAddress[nFrameIndex]);
-				pCommandList->SetGraphicsRootConstantBufferView(eRP_CommonContentsCB, m_commonContentsBuffer.gpuAddress[nFrameIndex]);
-
-				pCommandList->DrawInstanced(4, 1, 0, 0);
-
-				pDeviceInstance->PushCommandList(pCommandList);
-
-				pDeviceInstance->ReleaseRenderTarget(&pRenderTarget);
+				pDeviceInstance->ExecuteCommandList(pCommandList);
+				pDeviceInstance->ReleaseRenderTargets(&pRenderTarget);
 			}
 
 			void DeferredRenderer::Impl::Flush()
@@ -272,20 +303,20 @@ namespace eastengine
 				D3D12_ROOT_PARAMETER& standardDescriptorTable = vecRootParameters.emplace_back();
 				standardDescriptorTable.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
 				standardDescriptorTable.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-				standardDescriptorTable.DescriptorTable.NumDescriptorRanges = eStandardDescriptorRangesCount;
+				standardDescriptorTable.DescriptorTable.NumDescriptorRanges = eStandardDescriptorRangesCount_SRV;
 				standardDescriptorTable.DescriptorTable.pDescriptorRanges = Device::GetInstance()->GetStandardDescriptorRanges();
 
 				D3D12_ROOT_PARAMETER& lightContentsParameter = vecRootParameters.emplace_back();
 				lightContentsParameter.ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
 				lightContentsParameter.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-				lightContentsParameter.Descriptor.ShaderRegister = deferredshader::eCB_LightContents;
-				lightContentsParameter.Descriptor.RegisterSpace = 100;
+				lightContentsParameter.Descriptor.ShaderRegister = shader::eCB_DeferredContents;
+				lightContentsParameter.Descriptor.RegisterSpace = 0;
 
 				D3D12_ROOT_PARAMETER& commonContentsParameter = vecRootParameters.emplace_back();
 				commonContentsParameter.ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
 				commonContentsParameter.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-				commonContentsParameter.Descriptor.ShaderRegister = deferredshader::eCB_CommonContents;
-				commonContentsParameter.Descriptor.RegisterSpace = 100;
+				commonContentsParameter.Descriptor.ShaderRegister = shader::eCB_CommonContents;
+				commonContentsParameter.Descriptor.RegisterSpace = 0;
 
 				const D3D12_STATIC_SAMPLER_DESC staticSamplerDesc[]
 				{
@@ -296,7 +327,6 @@ namespace eastengine
 				CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc{};
 				rootSignatureDesc.Init(static_cast<uint32_t>(vecRootParameters.size()), vecRootParameters.data(),
 					_countof(staticSamplerDesc), staticSamplerDesc,
-					D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
 					D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
 					D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
 					D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS);
@@ -368,7 +398,17 @@ namespace eastengine
 				psoDesc.RasterizerState = util::GetRasterizerDesc(EmRasterizerState::eSolidCullNone);
 				psoDesc.BlendState = util::GetBlendDesc(EmBlendState::eOff);
 				psoDesc.NumRenderTargets = 1;
-				psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+
+				if (GetOptions().OnHDR == true)
+				{
+					psoDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				}
+				else
+				{
+					D3D12_RESOURCE_DESC desc = Device::GetInstance()->GetSwapChainRenderTarget(0)->GetDesc();
+					psoDesc.RTVFormats[0] = desc.Format;
+				}
+
 				psoDesc.DSVFormat = DXGI_FORMAT_UNKNOWN;
 				psoDesc.DepthStencilState = util::GetDepthStencilDesc(EmDepthStencilState::eRead_Write_Off);
 

@@ -67,38 +67,34 @@ namespace eastengine
 
 		std::string GetFilePath(const std::string& strPath)
 		{
-			return GetFilePath(strPath.c_str());
+			size_t pos = strPath.find_last_of("\\");
+			if (pos != std::string::npos)
+			{
+				return strPath.substr(0, pos + 1);
+			}
+
+			return strPath;
 		}
 
 		std::string GetFilePath(const char* strPath)
 		{
-			std::string str = strPath;
-
-			size_t pos = str.find_last_of("\\");
-			if (pos != std::string::npos)
-			{
-				str = str.substr(0, pos + 1);
-			}
-
-			return str;
+			return GetFilePath(std::string(strPath));
 		}
 
 		std::wstring GetFilePath(const std::wstring& strPath)
 		{
-			return GetFilePath(strPath.c_str());
+			size_t pos = strPath.find_last_of(L"\\");
+			if (pos != std::wstring::npos)
+			{
+				return strPath.substr(0, pos + 1);
+			}
+
+			return strPath;
 		}
 
 		std::wstring GetFilePath(const wchar_t* strPath)
 		{
-			std::wstring str = strPath;
-
-			size_t pos = str.find_last_of(L"\\");
-			if (pos != std::wstring::npos)
-			{
-				str = str.substr(0, pos + 1);
-			}
-
-			return str;
+			return GetFilePath(std::wstring(strPath));
 		}
 
 		bool IsExists(const char* strPath)

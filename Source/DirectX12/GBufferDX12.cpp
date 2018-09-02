@@ -27,7 +27,7 @@ namespace eastengine
 				
 				{
 					desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-					m_pRenderTargets[EmGBuffer::eNormals] = RenderTarget::Create(L"GBuffer_Normals", &desc, math::Color::Transparent, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+					m_pRenderTargets[EmGBuffer::eNormals] = RenderTarget::Create(&desc, math::Color::Transparent, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 					if (m_pRenderTargets[EmGBuffer::eNormals] == nullptr)
 					{
 						throw_line("failed to create normal GBuffer");
@@ -36,7 +36,7 @@ namespace eastengine
 
 				{
 					desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-					m_pRenderTargets[EmGBuffer::eColors] = RenderTarget::Create(L"GBuffer_Colors", &desc, math::Color::Transparent, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+					m_pRenderTargets[EmGBuffer::eColors] = RenderTarget::Create(&desc, math::Color::Transparent, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 					if (m_pRenderTargets[EmGBuffer::eColors] == nullptr)
 					{
 						throw_line("failed to create color GBuffer");
@@ -45,7 +45,7 @@ namespace eastengine
 
 				{
 					desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-					m_pRenderTargets[EmGBuffer::eDisneyBRDF] = RenderTarget::Create(L"GBuffer_DisneyBRDF", &desc, math::Color::Transparent, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+					m_pRenderTargets[EmGBuffer::eDisneyBRDF] = RenderTarget::Create(&desc, math::Color::Transparent, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 					if (m_pRenderTargets[EmGBuffer::eDisneyBRDF] == nullptr)
 					{
 						throw_line("failed to create disneyBRDF GBuffer");
@@ -74,12 +74,11 @@ namespace eastengine
 
 			void GBuffer::Clear(ID3D12GraphicsCommandList* pCommandList)
 			{
-				for (uint32_t i = 0; i < EmGBuffer::Count; ++i)
+				for (auto& pRenderTarget : m_pRenderTargets)
 				{
-					pCommandList->ClearRenderTargetView(m_pRenderTargets[i]->GetCPUHandle(), math::Color::Transparent, 0, nullptr);
+					pRenderTarget->Clear(pCommandList);
 				}
-
-				pCommandList->ClearDepthStencilView(m_pDepthStencil->GetCPUHandle(), D3D12_CLEAR_FLAG_DEPTH, 1.f, 0, 0, nullptr);
+				m_pDepthStencil->Clear(pCommandList);
 			}
 		}
 	}

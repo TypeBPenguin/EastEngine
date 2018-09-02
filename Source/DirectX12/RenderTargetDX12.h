@@ -15,7 +15,7 @@ namespace eastengine
 				struct tKey {};
 
 			public:
-				using Key = PhantomType<tKey, const String::StringKey>;
+				using Key = PhantomType<tKey, const String::StringID>;
 
 			public:
 				RenderTarget(const Key& key);
@@ -23,8 +23,13 @@ namespace eastengine
 
 			public:
 				static std::unique_ptr<RenderTarget> Create(ID3D12Resource* pResource, const math::Color& clearColor = math::Color::Black);
-				static std::unique_ptr<RenderTarget> Create(const wchar_t* wstrDebugName, const D3D12_RESOURCE_DESC* pResourceDesc, const math::Color& clearColor, D3D12_RESOURCE_STATES resourceState = D3D12_RESOURCE_STATE_RENDER_TARGET, uint32_t nMipSlice = 0, uint32_t nFirstArraySlice = 0, uint32_t nArraySize = -1);
+				static std::unique_ptr<RenderTarget> Create(const D3D12_RESOURCE_DESC* pResourceDesc, const math::Color& clearColor, D3D12_RESOURCE_STATES resourceState = D3D12_RESOURCE_STATE_RENDER_TARGET, uint32_t nMipSlice = 0, uint32_t nFirstArraySlice = 0, uint32_t nArraySize = -1);
 				static Key BuildKey(const D3D12_RESOURCE_DESC* pDesc, const math::Color& clearColor);
+
+			public:
+				void Clear(ID3D12GraphicsCommandList* pCommandList);
+				D3D12_RESOURCE_BARRIER Transition(D3D12_RESOURCE_STATES changeState);
+				D3D12_RESOURCE_STATES GetState() const { return m_state; }
 
 			public:
 				const Key& GetKey() const { return m_key; }
@@ -42,6 +47,9 @@ namespace eastengine
 
 				uint32_t m_nDescriptorIndex{ eInvalidDescriptorIndex };
 				std::unique_ptr<Texture> m_pTexture;
+				math::Color m_colorClearValue{ math::Color::Transparent };
+
+				D3D12_RESOURCE_STATES m_state{ D3D12_RESOURCE_STATE_RENDER_TARGET };
 			};
 		}
 	}
@@ -52,9 +60,9 @@ namespace std
 	template <>
 	struct hash<eastengine::graphics::dx12::RenderTarget::Key>
 	{
-		std::uint64_t operator()(const eastengine::graphics::dx12::RenderTarget::Key& key) const
+		const eastengine::String::StringData* operator()(const eastengine::graphics::dx12::RenderTarget::Key& key) const
 		{
-			return key.value.value;
+			return key.value.Key();
 		}
 	};
 }

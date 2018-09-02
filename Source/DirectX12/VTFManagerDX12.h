@@ -8,6 +8,8 @@ namespace eastengine
 	{
 		namespace dx12
 		{
+			class Texture;
+
 			class VTFManager : public IVTFManager
 			{
 			public:
@@ -18,7 +20,11 @@ namespace eastengine
 				virtual bool Allocate(uint32_t nMatrixCount, math::Matrix** ppDest_Out, uint32_t& nVTFID_Out) override;
 
 			public:
+				bool Bake();
 				void EndFrame();
+
+			public:
+				Texture* GetTexture() const;
 
 			private:
 				class Impl;

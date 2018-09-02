@@ -3,18 +3,24 @@
 
 #include "CommonLib/FileUtil.h"
 #include "CommonLib/Lock.h"
+#include "CommonLib/ThreadPool.h"
+#include "CommonLib/Timer.h"
 
 #include "GraphicsInterface/Instancing.h"
 #include "GraphicsInterface/Camera.h"
+#include "GraphicsInterface/LightManager.h"
 
 #include "UtilDX12.h"
 #include "DeviceDX12.h"
 #include "GBufferDX12.h"
+#include "VTFManagerDX12.h"
 #include "DescriptorHeapDX12.h"
 
 #include "VertexBufferDX12.h"
 #include "IndexBufferDX12.h"
 #include "TextureDX12.h"
+
+#include <queue>
 
 namespace eastengine
 {
@@ -60,6 +66,9 @@ namespace eastengine
 				struct VSConstantsBuffer
 				{
 					math::Matrix matViewProj;
+
+					uint32_t nTexVTFIndex;
+					math::Vector3 padding;
 				};
 
 				struct SRVIndexConstants
@@ -82,6 +91,26 @@ namespace eastengine
 					uint32_t nSamplerStateIndex{ 0 };
 				};
 
+				struct CommonContents
+				{
+					math::Vector3 f3CameraPos;
+					int nEnableShadowCount{ 0 };
+
+					uint32_t nTexDiffuseHDRIndex{ 0 };
+					uint32_t nTexSpecularHDRIndex{ 0 };
+					uint32_t nTexSpecularBRDFIndex{ 0 };
+					uint32_t nTexShadowMapIndex{ 0 };
+
+					uint32_t nDirectionalLightCount{ 0 };
+					uint32_t nPointLightCount{ 0 };
+					uint32_t nSpotLightCount{ 0 };
+					uint32_t padding{ 0 };
+
+					std::array<DirectionalLightData, ILight::eMaxDirectionalLightCount> lightDirectional{};
+					std::array<PointLightData, ILight::eMaxPointLightCount> lightPoint{};
+					std::array<SpotLightData, ILight::eMaxSpotLightCount> lightSpot{};
+				};
+
 				enum CBSlot
 				{
 					eCB_SkinningInstancingData = 0,
@@ -90,6 +119,15 @@ namespace eastengine
 					eCB_VSConstants,
 
 					eCB_SRVIndex,
+
+					eCB_CommonContents = 5,
+				};
+
+				enum Pass
+				{
+					ePass_Deferred = 0,
+					ePass_AlphaBlend_Pre,
+					ePass_AlphaBlend_Post,
 				};
 
 				enum Mask : uint32_t
@@ -112,8 +150,9 @@ namespace eastengine
 
 					eUseInstancing = 1 << 15,
 					eUseSkinning = 1 << 16,
+					eUseAlphaBlending = 1 << 17,
 
-					MaskCount = 17,
+					MaskCount = 18,
 				};
 
 				const char* GetMaskName(uint32_t nMask)
@@ -137,11 +176,12 @@ namespace eastengine
 						"USE_TEX_CLEARCOATGLOSS",
 						"USE_INSTANCING",
 						"USE_SKINNING",
+						"USE_ALPHABLENDING",
+
 						"USE_WRITEDEPTH",
 						"USE_CUBEMAP",
 						"USE_TESSELLATION",
 						"USE_ALBEDO_ALPHA_IS_MASK_MAP",
-						"USE_ALPHABLENDING",
 					};
 
 					return s_strMaskName[nMask].c_str();
@@ -200,6 +240,37 @@ namespace eastengine
 					return nMask;
 				}
 
+				PSOKey GetPSOKey(ModelRenderer::Group emGroup, Pass emPass, uint32_t nMask, const IMaterial* pMaterial)
+				{
+					EmRasterizerState::Type emRasterizerState = EmRasterizerState::eSolidCCW;
+					EmBlendState::Type emBlendState = EmBlendState::eOff;
+					EmDepthStencilState::Type emDepthStencilState = EmDepthStencilState::eRead_Write_On;
+
+					if (pMaterial != nullptr)
+					{
+						emBlendState = pMaterial->GetBlendState();
+						emRasterizerState = pMaterial->GetRasterizerState();
+						emDepthStencilState = pMaterial->GetDepthStencilState();
+
+						if (emGroup == ModelRenderer::eAlphaBlend &&
+							emPass == shader::ePass_AlphaBlend_Pre)
+						{
+							if (pMaterial->GetDepthStencilState() == EmDepthStencilState::eRead_Write_On)
+							{
+								emRasterizerState = EmRasterizerState::eSolidCullNone;
+								emDepthStencilState = EmDepthStencilState::eRead_On_Write_Off;
+							}
+							else if (pMaterial->GetDepthStencilState() == EmDepthStencilState::eRead_Off_Write_On)
+							{
+								emRasterizerState = EmRasterizerState::eSolidCullNone;
+								emDepthStencilState = EmDepthStencilState::eRead_Write_Off;
+							}
+						}
+					}
+
+					return { nMask, emRasterizerState, emBlendState, emDepthStencilState };
+				}
+
 				void SetObjectData(ObjectDataBuffer* pObjectDataBuffer,
 					const IMaterial* pMaterial, const math::Matrix& matWorld, uint32_t nVTFID = 0)
 				{
@@ -215,7 +286,7 @@ namespace eastengine
 						pObjectDataBuffer->f4SheenTintClearcoatGloss = pMaterial->GetSheenTintClearcoatGloss();
 
 						pObjectDataBuffer->fStippleTransparencyFactor = pMaterial->GetStippleTransparencyFactor();
-						pObjectDataBuffer->nVTFID = 0;
+						pObjectDataBuffer->nVTFID = nVTFID;
 
 						pObjectDataBuffer->f2Padding = {};
 					}
@@ -229,7 +300,7 @@ namespace eastengine
 						pObjectDataBuffer->f4SheenTintClearcoatGloss = math::Vector4::Zero;
 
 						pObjectDataBuffer->fStippleTransparencyFactor = 0.f;
-						pObjectDataBuffer->nVTFID = 0;
+						pObjectDataBuffer->nVTFID = nVTFID;
 
 						pObjectDataBuffer->f2Padding = {};
 					}
@@ -266,7 +337,42 @@ namespace eastengine
 					SetSRVIndex(pMaterial, EmMaterial::eClearcoat, &pSRVIndexContantBuffer->nTexClearcoatIndex);
 					SetSRVIndex(pMaterial, EmMaterial::eClearcoatGloss, &pSRVIndexContantBuffer->nTexClearcoatGlossIndex);
 
-					pSRVIndexContantBuffer->nSamplerStateIndex = pMaterial->GetSamplerState();
+					if (pMaterial != nullptr)
+					{
+						pSRVIndexContantBuffer->nSamplerStateIndex = pMaterial->GetSamplerState();
+					}
+					else
+					{
+						pSRVIndexContantBuffer->nSamplerStateIndex = EmSamplerState::eMinMagMipLinearWrap;
+					}
+				}
+
+				void SetCommonContents_ForAlpha(CommonContents* pCommonContents,
+					const IImageBasedLight* pImageBasedLight, const LightManager* pLightManager, const math::Vector3& f3CameraPos, int nEnableShadowCount)
+				{
+					pCommonContents->f3CameraPos = f3CameraPos;
+					pCommonContents->nEnableShadowCount = nEnableShadowCount;
+
+					Texture* pDiffuseHDR = static_cast<Texture*>(pImageBasedLight->GetDiffuseHDR());
+					pCommonContents->nTexDiffuseHDRIndex = pDiffuseHDR->GetDescriptorIndex();
+
+					Texture* pSpecularHDR = static_cast<Texture*>(pImageBasedLight->GetSpecularHDR());
+					pCommonContents->nTexSpecularHDRIndex = pSpecularHDR->GetDescriptorIndex();
+
+					Texture* pSpecularBRDF = static_cast<Texture*>(pImageBasedLight->GetSpecularBRDF());
+					pCommonContents->nTexSpecularBRDFIndex = pSpecularBRDF->GetDescriptorIndex();
+
+					const DirectionalLightData* pDirectionalLightData = nullptr;
+					pLightManager->GetDirectionalLightData(&pDirectionalLightData, &pCommonContents->nDirectionalLightCount);
+					Memory::Copy(pCommonContents->lightDirectional, pDirectionalLightData, sizeof(DirectionalLightData) * pCommonContents->nDirectionalLightCount);
+
+					const PointLightData* pPointLightData = nullptr;
+					pLightManager->GetPointLightData(&pPointLightData, &pCommonContents->nPointLightCount);
+					Memory::Copy(pCommonContents->lightPoint, pPointLightData, sizeof(PointLightData) * pCommonContents->nPointLightCount);
+
+					const SpotLightData* pSpotLightData = nullptr;
+					pLightManager->GetSpotLightData(&pSpotLightData, &pCommonContents->nSpotLightCount);
+					Memory::Copy(pCommonContents->lightSpot, pSpotLightData, sizeof(SpotLightData) * pCommonContents->nSpotLightCount);
 				}
 			}
 
@@ -285,6 +391,10 @@ namespace eastengine
 				void PushJob(const RenderJobSkinned& job);
 
 			private:
+				void RenderStaticElement(Device* pDeviceInstance, ID3D12Device* pDevice, Camera* pCamera, Group emGroup, shader::Pass emPass, const D3D12_CPU_DESCRIPTOR_HANDLE* pRTVHandles, size_t nRTVHandleCount, const D3D12_CPU_DESCRIPTOR_HANDLE* pDSVHandle, std::unordered_map<const IMaterial*, uint32_t>& umapMaterialMask);
+				void RenderSkinnedElement(Device* pDeviceInstance, ID3D12Device* pDevice, Camera* pCamera, Group emGroup, shader::Pass emPass, const D3D12_CPU_DESCRIPTOR_HANDLE* pRTVHandles, size_t nRTVHandleCount, const D3D12_CPU_DESCRIPTOR_HANDLE* pDSVHandle, std::unordered_map<const IMaterial*, uint32_t>& umapMaterialMask);
+
+			private:
 				enum RootParameters : uint32_t
 				{
 					eRP_StandardDescriptor = 0,
@@ -295,7 +405,8 @@ namespace eastengine
 					eRP_ObjectDataCB,
 					eRP_SkinningInstancingDataCB,
 					eRP_StaticInstancingDataCB,
-					eRP_MaterialSRV,
+
+					eRP_CommonContentsCB,
 
 					eRP_Count,
 
@@ -315,9 +426,14 @@ namespace eastengine
 				void CreatePipelineState(ID3D12Device* pDevice, uint32_t nMask, EmRasterizerState::Type emRasterizerState, EmBlendState::Type emBlendState, EmDepthStencilState::Type emDepthStencilState);
 
 			private:
-				thread::Lock m_lock;
+				thread::Lock m_lock_job;
+				thread::Lock m_lock_pipelines;
+				thread::Lock m_lock_logic;
+
 				std::string m_strShaderPath;
 				ID3DBlob* m_pShaderBlob{ nullptr };
+
+				std::atomic<size_t> m_nShaderBufferIndex{ 0 };
 
 				std::unordered_map<shader::PSOKey, RenderPipeline> m_umapRenderPipelines;
 
@@ -326,12 +442,13 @@ namespace eastengine
 				ConstantBuffer<shader::ObjectDataBuffer> m_objectDataBuffer;
 				ConstantBuffer<shader::VSConstantsBuffer> m_vsConstantsBuffer;
 				ConstantBuffer<shader::SRVIndexConstants> m_srvIndexConstantsBuffer;
-
+				ConstantBuffer<shader::CommonContents> m_commonContentsBuffer;
+				
 				struct JobStatic
 				{
 					std::pair<const void*, const IMaterial*> pairKey;
 					RenderJobStatic data;
-					bool isCulling = false;
+					bool isCulling{ false };
 
 					void Set(const RenderJobStatic& source)
 					{
@@ -343,7 +460,7 @@ namespace eastengine
 
 				struct JobStaticBatch
 				{
-					const JobStatic* pJob = nullptr;
+					const JobStatic* pJob{ nullptr };
 					std::vector<math::Matrix> vecInstanceData;
 
 					JobStaticBatch(const JobStatic* pJob, const math::Matrix& matWorld)
@@ -364,7 +481,7 @@ namespace eastengine
 				{
 					std::pair<const void*, const IMaterial*> pairKey;
 					RenderJobSkinned data;
-					bool isCulling = false;
+					bool isCulling{ false };
 
 					void Set(const RenderJobSkinned& source)
 					{
@@ -376,7 +493,7 @@ namespace eastengine
 
 				struct JobSkinnedBatch
 				{
-					const JobSkinned* pJob = nullptr;
+					const JobSkinned* pJob{ nullptr };
 					std::vector<SkinningInstancingData> vecInstanceData;
 
 					JobSkinnedBatch(const JobSkinned* pJob, const math::Matrix& matWorld, uint32_t nVTFID)
@@ -407,7 +524,14 @@ namespace eastengine
 				ID3D12Device* pDevice = Device::GetInstance()->GetInterface();
 
 				CreatePipelineState(pDevice, 0, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On);
-				CreatePipelineState(pDevice, shader::eUseTexAlbedo, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On);
+				CreatePipelineState(pDevice, shader::eUseInstancing, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On);
+				CreatePipelineState(pDevice, shader::eUseAlphaBlending, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On);
+				CreatePipelineState(pDevice, shader::eUseInstancing | shader::eUseAlphaBlending, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On);
+
+				CreatePipelineState(pDevice, shader::eUseSkinning, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On);
+				CreatePipelineState(pDevice, shader::eUseSkinning | shader::eUseInstancing, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On);
+				CreatePipelineState(pDevice, shader::eUseSkinning | shader::eUseAlphaBlending, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On);
+				CreatePipelineState(pDevice, shader::eUseSkinning | shader::eUseInstancing | shader::eUseAlphaBlending, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On);
 
 				for (int i = 0; i < eFrameBufferCount; ++i)
 				{
@@ -426,7 +550,7 @@ namespace eastengine
 						throw_line("failed to create constant buffer, ObjectDataBuffer");
 					}
 
-					if (util::CreateConstantBuffer(pDevice, m_vsConstantsBuffer.AlignedSize() * shader::eMaxJobCount, &m_vsConstantsBuffer.pUploadHeaps[i], L"VSConstantsBuffer") == false)
+					if (util::CreateConstantBuffer(pDevice, m_vsConstantsBuffer.AlignedSize(), &m_vsConstantsBuffer.pUploadHeaps[i], L"VSConstantsBuffer") == false)
 					{
 						throw_line("failed to create constant buffer, VSConstantsBuffer");
 					}
@@ -435,13 +559,19 @@ namespace eastengine
 					{
 						throw_line("failed to create constant buffer, SRVIndexConstantsBuffer");
 					}
+
+					if (util::CreateConstantBuffer(pDevice, m_commonContentsBuffer.AlignedSize(), &m_commonContentsBuffer.pUploadHeaps[i], L"CommonContentsBuffer") == false)
+					{
+						throw_line("failed to create constant buffer, CommonContentsBuffer");
+					}
 				}
 
 				m_skinningInstancingDataBuffer.Initialize(m_skinningInstancingDataBuffer.AlignedSize() * shader::eMaxInstancingJobCount);
 				m_staticInstancingDataBuffer.Initialize(m_staticInstancingDataBuffer.AlignedSize() * shader::eMaxInstancingJobCount);
 				m_objectDataBuffer.Initialize(m_objectDataBuffer.AlignedSize() * shader::eMaxJobCount);
-				m_vsConstantsBuffer.Initialize(m_vsConstantsBuffer.AlignedSize() * shader::eMaxJobCount);
+				m_vsConstantsBuffer.Initialize(m_vsConstantsBuffer.AlignedSize());
 				m_srvIndexConstantsBuffer.Initialize(m_srvIndexConstantsBuffer.AlignedSize() * shader::eMaxJobCount);
+				m_commonContentsBuffer.Initialize(m_commonContentsBuffer.AlignedSize());
 
 				m_umapJobStaticMasterBatchs.rehash(512);
 				m_umapJobSkinnedMasterBatchs.rehash(128);
@@ -456,6 +586,7 @@ namespace eastengine
 					SafeRelease(m_objectDataBuffer.pUploadHeaps[i]);
 					SafeRelease(m_vsConstantsBuffer.pUploadHeaps[i]);
 					SafeRelease(m_srvIndexConstantsBuffer.pUploadHeaps[i]);
+					SafeRelease(m_commonContentsBuffer.pUploadHeaps[i]);
 				}
 
 				std::for_each(m_umapRenderPipelines.begin(), m_umapRenderPipelines.end(), [](std::pair<const shader::PSOKey, RenderPipeline>& iter)
@@ -471,57 +602,235 @@ namespace eastengine
 
 			void ModelRenderer::Impl::Render(Camera* pCamera, Group emGroup)
 			{
+				const bool isAlphaBlend = emGroup == Group::eAlphaBlend;
+
+				if (isAlphaBlend == true && m_nJobStaticCount[emGroup] == 0 && m_nJobSkinnedCount[emGroup] == 0)
+					return;
+
 				Device* pDeviceInstance = Device::GetInstance();
 				ID3D12Device* pDevice = pDeviceInstance->GetInterface();
 
 				int nFrameIndex = pDeviceInstance->GetFrameIndex();
 				GBuffer* pGBuffer = pDeviceInstance->GetGBuffer(nFrameIndex);
-				DescriptorHeap* pSRVDescriptorHeap = pDeviceInstance->GetSRVDescriptorHeap();
-				DescriptorHeap* pSamplerDescriptorHeap = pDeviceInstance->GetSamplerDescriptorHeap();
 
-				const RenderTarget* pNormalsRT = pGBuffer->GetRenderTarget(EmGBuffer::eNormals);
-				const RenderTarget* pColorsRT = pGBuffer->GetRenderTarget(EmGBuffer::eColors);
-				const RenderTarget* pDisneyBRDFRT = pGBuffer->GetRenderTarget(EmGBuffer::eDisneyBRDF);
-				const DepthStencil* pDepthStencil = pGBuffer->GetDepthStencil();
+				DepthStencil* pDepthStencil = pGBuffer->GetDepthStencil();
 
-				const D3D12_VIEWPORT* pViewport = pDeviceInstance->GetViewport();
-				const D3D12_RECT* pScissorRect = pDeviceInstance->GetScissorRect();
-				const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[] =
+				RenderTarget* pRenderTarget = nullptr;
+				std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> vecRTVHandles;
+				if (isAlphaBlend == true)
 				{
-					pNormalsRT->GetCPUHandle(),
-					pColorsRT->GetCPUHandle(),
-					pDisneyBRDFRT->GetCPUHandle(),
-				};
+					D3D12_RESOURCE_DESC desc = pDeviceInstance->GetSwapChainRenderTarget(nFrameIndex)->GetDesc();
+
+					if (GetOptions().OnHDR == true)
+					{
+						desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+					}
+
+					pRenderTarget = pDeviceInstance->GetRenderTarget(&desc, math::Color::Transparent, true);
+
+					vecRTVHandles.emplace_back(pRenderTarget->GetCPUHandle());
+				}
+				else
+				{
+					const RenderTarget* pNormalsRT = pGBuffer->GetRenderTarget(EmGBuffer::eNormals);
+					const RenderTarget* pColorsRT = pGBuffer->GetRenderTarget(EmGBuffer::eColors);
+					const RenderTarget* pDisneyBRDFRT = pGBuffer->GetRenderTarget(EmGBuffer::eDisneyBRDF);
+
+					vecRTVHandles = 
+					{
+						pNormalsRT->GetCPUHandle(),
+						pColorsRT->GetCPUHandle(),
+						pDisneyBRDFRT->GetCPUHandle(),
+					};
+				}
 				const D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = pDepthStencil->GetCPUHandle();
 
 				{
-					ID3D12GraphicsCommandList2* pCommandList =  pDeviceInstance->PopCommandList(nullptr);
+					VTFManager* pVTFManager = pDeviceInstance->GetVTFManager();
+					Texture* pVTFTexture = pVTFManager->GetTexture();
 
-					CD3DX12_RESOURCE_BARRIER transition[] =
-					{
-						CD3DX12_RESOURCE_BARRIER::Transition(pNormalsRT->GetResource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET),
-						CD3DX12_RESOURCE_BARRIER::Transition(pColorsRT->GetResource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET),
-						CD3DX12_RESOURCE_BARRIER::Transition(pDisneyBRDFRT->GetResource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET),
-						CD3DX12_RESOURCE_BARRIER::Transition(pDepthStencil->GetResource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE),
-					};
-					pCommandList->ResourceBarrier(_countof(transition), transition);
-
-					pGBuffer->Clear(pCommandList);
-
-					pDeviceInstance->PushCommandList(pCommandList);
-				}
-
-				{
-					shader::VSConstantsBuffer* pVSConstantsBuffer = m_vsConstantsBuffer.Cast(nFrameIndex, 0);
+					shader::VSConstantsBuffer* pVSConstantsBuffer = m_vsConstantsBuffer.Cast(nFrameIndex);
 					pVSConstantsBuffer->matViewProj = pCamera->GetViewMatrix() * pCamera->GetProjMatrix();
 					pVSConstantsBuffer->matViewProj = pVSConstantsBuffer->matViewProj.Transpose();
+
+					pVSConstantsBuffer->nTexVTFIndex = pVTFTexture->GetDescriptorIndex();
 				}
 
 				std::unordered_map<const IMaterial*, uint32_t> umapMaterialMask;
 				umapMaterialMask.rehash(m_umapJobStaticMasterBatchs.size() + m_umapJobSkinnedMasterBatchs.size());
 
-				// Job Static
+				if (isAlphaBlend == true)
+				{
+					const LightManager* pLightManager = LightManager::GetInstance();
+					const IImageBasedLight* pImageBasedLight = pDeviceInstance->GetImageBasedLight();
+
+					shader::CommonContents* pCommonContents = m_commonContentsBuffer.Cast(nFrameIndex);
+					shader::SetCommonContents_ForAlpha(pCommonContents, pImageBasedLight, pLightManager, pCamera->GetPosition(), 0);
+
+					if (pRenderTarget->GetState() != D3D12_RESOURCE_STATE_RENDER_TARGET ||
+						pDepthStencil->GetState() != D3D12_RESOURCE_STATE_DEPTH_WRITE)
+					{
+						ID3D12GraphicsCommandList2* pCommandList = pDeviceInstance->GetCommandList(0);
+						pDeviceInstance->ResetCommandList(0, nullptr);
+
+						if (pRenderTarget->GetState() != D3D12_RESOURCE_STATE_RENDER_TARGET)
+						{
+							const D3D12_RESOURCE_BARRIER transition[] =
+							{
+								pRenderTarget->Transition(D3D12_RESOURCE_STATE_RENDER_TARGET),
+							};
+							pCommandList->ResourceBarrier(_countof(transition), transition);
+						}
+
+						if (pDepthStencil->GetState() != D3D12_RESOURCE_STATE_DEPTH_WRITE)
+						{
+							const D3D12_RESOURCE_BARRIER transition[] =
+							{
+								pDepthStencil->Transition(D3D12_RESOURCE_STATE_DEPTH_WRITE)
+							};
+							pCommandList->ResourceBarrier(_countof(transition), transition);
+						}
+
+						pCommandList->Close();
+						pDeviceInstance->ExecuteCommandList(pCommandList);
+					}
+
+					RenderStaticElement(pDeviceInstance, pDevice, pCamera, emGroup, shader::ePass_AlphaBlend_Pre, vecRTVHandles.data(), vecRTVHandles.size(), &dsvHandle, umapMaterialMask);
+					RenderSkinnedElement(pDeviceInstance, pDevice, pCamera, emGroup, shader::ePass_AlphaBlend_Pre, vecRTVHandles.data(), vecRTVHandles.size(), &dsvHandle, umapMaterialMask);
+
+					RenderStaticElement(pDeviceInstance, pDevice, pCamera, emGroup, shader::ePass_AlphaBlend_Post, vecRTVHandles.data(), vecRTVHandles.size(), &dsvHandle, umapMaterialMask);
+					RenderSkinnedElement(pDeviceInstance, pDevice, pCamera, emGroup, shader::ePass_AlphaBlend_Post, vecRTVHandles.data(), vecRTVHandles.size(), &dsvHandle, umapMaterialMask);
+
+					{
+						ID3D12GraphicsCommandList2* pCommandList = pDeviceInstance->GetCommandList(0);
+						pDeviceInstance->ResetCommandList(0, nullptr);
+
+						const D3D12_RESOURCE_BARRIER transition[] =
+						{
+							pDepthStencil->Transition(D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
+						};
+						pCommandList->ResourceBarrier(_countof(transition), transition);
+
+						pCommandList->Close();
+						pDeviceInstance->ExecuteCommandList(pCommandList);
+					}
+				}
+				else
+				{
+					RenderStaticElement(pDeviceInstance, pDevice, pCamera, emGroup, shader::ePass_Deferred, vecRTVHandles.data(), vecRTVHandles.size(), &dsvHandle, umapMaterialMask);
+					RenderSkinnedElement(pDeviceInstance, pDevice, pCamera, emGroup, shader::ePass_Deferred, vecRTVHandles.data(), vecRTVHandles.size(), &dsvHandle, umapMaterialMask);
+				}
+
+				if (isAlphaBlend == true)
+				{
+					pDeviceInstance->ReleaseRenderTargets(&pRenderTarget, 1);
+				}
+			}
+
+			void ModelRenderer::Impl::Flush()
+			{
+				m_nJobStaticCount.fill(0);
+				m_nJobSkinnedCount.fill(0);
+				m_nShaderBufferIndex = 0;
+			}
+
+			void ModelRenderer::Impl::PushJob(const RenderJobStatic& job)
+			{
+				Group emGroup;
+
+				const IMaterial* pMaterial = job.pMaterial;
+				if (pMaterial == nullptr || pMaterial->GetBlendState() == EmBlendState::eOff)
+				{
+					emGroup = eDeferred;
+				}
+				else
+				{
+					emGroup = eAlphaBlend;
+				}
+
+				thread::AutoLock autoLock(&m_lock_job);
+
+				const size_t nIndex = m_nJobStaticCount[emGroup];
+				m_vecJobStatics[emGroup][nIndex].Set(job);
+				++m_nJobStaticCount[emGroup];
+			}
+
+			void ModelRenderer::Impl::PushJob(const RenderJobSkinned& job)
+			{
+				Group emGroup;
+
+				const IMaterial* pMaterial = job.pMaterial;
+				if (pMaterial == nullptr || pMaterial->GetBlendState() == EmBlendState::eOff)
+				{
+					emGroup = eDeferred;
+				}
+				else
+				{
+					emGroup = eAlphaBlend;
+				}
+
+				thread::AutoLock autoLock(&m_lock_job);
+
+				const size_t nIndex = m_nJobSkinnedCount[emGroup];
+				m_vecJobSkinneds[emGroup][nIndex].Set(job);
+				++m_nJobSkinnedCount[emGroup];
+			}
+
+			const ModelRenderer::Impl::RenderPipeline* ModelRenderer::Impl::GetRenderPipeline(ID3D12Device* pDevice, const shader::PSOKey& psoKey)
+			{
+				const RenderPipeline* pRenderPipeline = nullptr;
+
+				bool isRequestCreatePipeline = false;
+				{
+					thread::AutoLock autoLock(&m_lock_pipelines);
+
+					auto iter = m_umapRenderPipelines.find(psoKey);
+					if (iter != m_umapRenderPipelines.end())
+					{
+						pRenderPipeline = &iter->second;
+					}
+					else
+					{
+						RenderPipeline& renderPipeline = m_umapRenderPipelines[psoKey];
+						renderPipeline.pPipelineState = nullptr;
+						renderPipeline.pRootSignature = nullptr;
+						renderPipeline.nRootParameterIndex.fill(0);
+
+						pRenderPipeline = &renderPipeline;
+
+						isRequestCreatePipeline = true;
+					}
+				}
+
+				if (isRequestCreatePipeline == true)
+				{
+					thread::CreateTask([&, psoKey = psoKey]()
+					{
+						Stopwatch stopwatch;
+						stopwatch.Start();
+					
+						CreatePipelineState(Device::GetInstance()->GetInterface(), psoKey.nMask, psoKey.emRasterizerState, psoKey.emBlendState, psoKey.emDepthStencilState);
+					
+						stopwatch.Stop();
+						LOG_MESSAGE("CreatePipelineState[%u_%d_%d_%d] : ElapsedTime[%lf]", psoKey.nMask, psoKey.emRasterizerState, psoKey.emBlendState, psoKey.emDepthStencilState, stopwatch.Elapsed());
+					});
+				}
+
+				return pRenderPipeline;
+			}
+
+			void ModelRenderer::Impl::RenderStaticElement(Device* pDeviceInstance, ID3D12Device* pDevice, Camera* pCamera, Group emGroup, shader::Pass emPass, const D3D12_CPU_DESCRIPTOR_HANDLE* pRTVHandles, size_t nRTVHandleCount, const D3D12_CPU_DESCRIPTOR_HANDLE* pDSVHandle, std::unordered_map<const IMaterial*, uint32_t>& umapMaterialMask)
+			{
+				int nFrameIndex = pDeviceInstance->GetFrameIndex();
+				DescriptorHeap* pSRVDescriptorHeap = pDeviceInstance->GetSRVDescriptorHeap();
+				DescriptorHeap* pSamplerDescriptorHeap = pDeviceInstance->GetSamplerDescriptorHeap();
+
+				const D3D12_VIEWPORT* pViewport = pDeviceInstance->GetViewport();
+				const D3D12_RECT* pScissorRect = pDeviceInstance->GetScissorRect();
+
 				m_umapJobStaticMasterBatchs.clear();
+
+				if (m_nJobStaticCount[emGroup] > 0)
 				{
 					for (size_t i = 0; i < m_nJobStaticCount[emGroup]; ++i)
 					{
@@ -574,34 +883,29 @@ namespace eastengine
 								nMask |= shader::eUseInstancing;
 							}
 
-							EmRasterizerState::Type emRasterizerState = EmRasterizerState::eSolidCCW;
-							EmBlendState::Type emBlendState = EmBlendState::eOff;
-							EmDepthStencilState::Type emDepthStencilState = EmDepthStencilState::eRead_Write_On;
-
-							if (jobBatch.pJob->data.pMaterial != nullptr)
+							if (emGroup == Group::eAlphaBlend)
 							{
-								emRasterizerState = jobBatch.pJob->data.pMaterial->GetRasterizerState();
-								emBlendState = jobBatch.pJob->data.pMaterial->GetBlendState();
-								emDepthStencilState = jobBatch.pJob->data.pMaterial->GetDepthStencilState();
+								nMask |= shader::eUseAlphaBlending;
 							}
 
-							shader::PSOKey maskKey(nMask, emRasterizerState, emBlendState, emDepthStencilState);
+							shader::PSOKey maskKey = GetPSOKey(emGroup, emPass, nMask, jobBatch.pJob->data.pMaterial);
 							umapJobStaticMaskBatch[maskKey].emplace_back(&jobBatch);
 						}
 					}
 
-					std::atomic<size_t> nJobIndex = 0;
-					std::for_each(umapJobStaticMaskBatch.begin(), umapJobStaticMaskBatch.end(), [&](std::pair<const shader::PSOKey, std::vector<const JobStaticBatch*>>& iter)
+					const size_t nCommandListCount = pDeviceInstance->GetCommandListCount();
+					std::vector<ID3D12GraphicsCommandList2*> vecCommandLists(nCommandListCount);
+					pDeviceInstance->GetCommandLists(vecCommandLists.data());
+
+					auto iter = umapJobStaticMaskBatch.begin();
+
+					Concurrency::parallel_for(0llu, vecCommandLists.size(), [&](const size_t nIndex)
 					{
-						std::vector<const JobStaticBatch*>& vecJobBatch = iter.second;
+						const IVertexBuffer* pPrevVertexBuffer = nullptr;
+						const IIndexBuffer* pPrevIndexBuffer = nullptr;
 
-						const RenderPipeline* pRenderPipeline = GetRenderPipeline(pDevice, iter.first);
-						if (pRenderPipeline == nullptr)
-							return;
-
-						ID3D12GraphicsCommandList2* pCommandList = pDeviceInstance->PopCommandList(pRenderPipeline->pPipelineState);
-
-						pCommandList->SetGraphicsRootSignature(pRenderPipeline->pRootSignature);
+						ID3D12GraphicsCommandList2* pCommandList = vecCommandLists[nIndex];
+						pDeviceInstance->ResetCommandList(nIndex, nullptr);
 
 						ID3D12DescriptorHeap* pDescriptorHeaps[] =
 						{
@@ -609,249 +913,558 @@ namespace eastengine
 							pSamplerDescriptorHeap->GetHeap(),
 						};
 						pCommandList->SetDescriptorHeaps(_countof(pDescriptorHeaps), pDescriptorHeaps);
-						 
+
 						pCommandList->RSSetViewports(1, pViewport);
 						pCommandList->RSSetScissorRects(1, pScissorRect);
-						pCommandList->OMSetRenderTargets(_countof(rtvHandles), rtvHandles, FALSE, &dsvHandle);
-
 						pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-						if (pRenderPipeline->nRootParameterIndex[eRP_StandardDescriptor] != eRP_InvalidIndex)
+						pCommandList->OMSetRenderTargets(static_cast<uint32_t>(nRTVHandleCount), pRTVHandles, FALSE, pDSVHandle);
+
+						while (true)
 						{
-							pCommandList->SetGraphicsRootDescriptorTable(
-								pRenderPipeline->nRootParameterIndex[eRP_StandardDescriptor],
-								pSRVDescriptorHeap->GetStartGPUHandle(nFrameIndex));
-						}
+							const RenderPipeline* pRenderPipeline = nullptr;
 
-						if (pRenderPipeline->nRootParameterIndex[eRP_SamplerStates] != eRP_InvalidIndex)
-						{
-							pCommandList->SetGraphicsRootDescriptorTable(
-								pRenderPipeline->nRootParameterIndex[eRP_SamplerStates],
-								pSamplerDescriptorHeap->GetStartGPUHandle(nFrameIndex));
-						}
-
-						if (pRenderPipeline->nRootParameterIndex[eRP_VSConstantsCB] != eRP_InvalidIndex)
-						{
-							pCommandList->SetGraphicsRootConstantBufferView(
-								pRenderPipeline->nRootParameterIndex[eRP_VSConstantsCB],
-								m_vsConstantsBuffer.gpuAddress[nFrameIndex]);
-						}
-
-						const IMaterial* pMaterial = vecJobBatch[0]->pJob->data.pMaterial;
-
-						if ((iter.first.nMask & shader::eUseInstancing) == shader::eUseInstancing)
-						{
-							bool isCompleteConstantBufferSetup = false;
-
-							for (auto& pJobBatch : vecJobBatch)
+							const shader::PSOKey* pPSOKey = nullptr;
+							std::vector<const JobStaticBatch*>* pJobBatchs = nullptr;
 							{
-								const RenderJobStatic& job = pJobBatch->pJob->data;
+								thread::AutoLock autoLock(&m_lock_logic);
 
-								size_t nCurJobIndex = nJobIndex++;
+								if (iter == umapJobStaticMaskBatch.end())
+									break;
 
-								if (isCompleteConstantBufferSetup == false)
+								pPSOKey = &iter->first;
+								pJobBatchs = &iter->second;
+								++iter;
+
+								pRenderPipeline = GetRenderPipeline(pDevice, *pPSOKey);
+
+								if (pRenderPipeline == nullptr || pRenderPipeline->pPipelineState == nullptr || pRenderPipeline->pRootSignature == nullptr)
 								{
+									const uint32_t nMask = (pPSOKey->nMask & shader::eUseAlphaBlending) | (pPSOKey->nMask & shader::eUseInstancing);
+
+									const shader::PSOKey psoDefaultStaticKey(nMask, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On);
+									pRenderPipeline = GetRenderPipeline(pDevice, psoDefaultStaticKey);
+									if (pRenderPipeline == nullptr || pRenderPipeline->pPipelineState == nullptr || pRenderPipeline->pRootSignature == nullptr)
+									{
+										throw_line("invalid default static pipeline state");
+										continue;
+									}
+								}
+							}
+
+							pCommandList->SetPipelineState(pRenderPipeline->pPipelineState);
+							pCommandList->SetGraphicsRootSignature(pRenderPipeline->pRootSignature);
+
+							if (pPSOKey->emBlendState != EmBlendState::eOff)
+							{
+								pCommandList->OMSetBlendFactor(&math::Vector4::Zero.x);
+							}
+
+							if (pRenderPipeline->nRootParameterIndex[eRP_StandardDescriptor] != eRP_InvalidIndex)
+							{
+								pCommandList->SetGraphicsRootDescriptorTable(
+									pRenderPipeline->nRootParameterIndex[eRP_StandardDescriptor],
+									pSRVDescriptorHeap->GetStartGPUHandle(nFrameIndex));
+							}
+
+							if (pRenderPipeline->nRootParameterIndex[eRP_SamplerStates] != eRP_InvalidIndex)
+							{
+								pCommandList->SetGraphicsRootDescriptorTable(
+									pRenderPipeline->nRootParameterIndex[eRP_SamplerStates],
+									pSamplerDescriptorHeap->GetStartGPUHandle(nFrameIndex));
+							}
+
+							if (pRenderPipeline->nRootParameterIndex[eRP_VSConstantsCB] != eRP_InvalidIndex)
+							{
+								pCommandList->SetGraphicsRootConstantBufferView(
+									pRenderPipeline->nRootParameterIndex[eRP_VSConstantsCB],
+									m_vsConstantsBuffer.GPUAddress(nFrameIndex));
+							}
+
+							if (pRenderPipeline->nRootParameterIndex[eRP_CommonContentsCB] != eRP_InvalidIndex)
+							{
+								pCommandList->SetGraphicsRootConstantBufferView(
+									pRenderPipeline->nRootParameterIndex[eRP_CommonContentsCB],
+									m_commonContentsBuffer.GPUAddress(nFrameIndex));
+							}
+
+							if ((pPSOKey->nMask & shader::eUseInstancing) == shader::eUseInstancing)
+							{
+								for (auto& pJobBatch : (*pJobBatchs))
+								{
+									const RenderJobStatic& job = pJobBatch->pJob->data;
+
+									const size_t nShaderBufferIndex = m_nShaderBufferIndex++;
+
 									if (pRenderPipeline->nRootParameterIndex[eRP_ObjectDataCB] != eRP_InvalidIndex)
 									{
-										shader::ObjectDataBuffer* pBuffer = m_objectDataBuffer.Cast(nFrameIndex, nCurJobIndex);
-										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_objectDataBuffer.GPUAddress(nFrameIndex, nCurJobIndex);
+										shader::ObjectDataBuffer* pBuffer = m_objectDataBuffer.Cast(nFrameIndex, nShaderBufferIndex);
+										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_objectDataBuffer.GPUAddress(nFrameIndex, nShaderBufferIndex);
 
-										shader::SetObjectData(pBuffer, pMaterial, math::Matrix::Identity);
+										shader::SetObjectData(pBuffer, job.pMaterial, math::Matrix::Identity);
 
 										pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->nRootParameterIndex[eRP_ObjectDataCB], gpuAddress);
 									}
 
 									if (pRenderPipeline->nRootParameterIndex[eRP_SRVIndicesCB] != eRP_InvalidIndex)
 									{
-										shader::SRVIndexConstants* pBuffer = m_srvIndexConstantsBuffer.Cast(nFrameIndex, nCurJobIndex);
-										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_srvIndexConstantsBuffer.GPUAddress(nFrameIndex, nCurJobIndex);
+										shader::SRVIndexConstants* pBuffer = m_srvIndexConstantsBuffer.Cast(nFrameIndex, nShaderBufferIndex);
+										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_srvIndexConstantsBuffer.GPUAddress(nFrameIndex, nShaderBufferIndex);
 
-										shader::SetMaterial(pBuffer, pMaterial);
+										shader::SetMaterial(pBuffer, job.pMaterial);
 
 										pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->nRootParameterIndex[eRP_SRVIndicesCB], gpuAddress);
 									}
 
-									isCompleteConstantBufferSetup = true;
+									const size_t nInstanceCount = pJobBatch->vecInstanceData.size();
+
+									const size_t nLoopCount = nInstanceCount / eMaxInstancingCount + 1;
+									for (size_t i = 0; i < nLoopCount; ++i)
+									{
+										const size_t nEnableDrawCount = std::min(eMaxInstancingCount * (i + 1), nInstanceCount);
+										const size_t nDrawInstanceCount = nEnableDrawCount - i * eMaxInstancingCount;
+
+										if (nDrawInstanceCount <= 0)
+											break;
+
+										shader::StaticInstancingDataBuffer* pStaticInstancingData = m_staticInstancingDataBuffer.Cast(nFrameIndex, nShaderBufferIndex);
+										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_staticInstancingDataBuffer.GPUAddress(nFrameIndex, nShaderBufferIndex);
+
+										Memory::Copy(pStaticInstancingData->data.data(), sizeof(shader::StaticInstancingDataBuffer),
+											pJobBatch->vecInstanceData.data(), sizeof(math::Matrix) * nInstanceCount);
+
+										pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->nRootParameterIndex[eRP_StaticInstancingDataCB], gpuAddress);
+
+										if (pPrevVertexBuffer != job.pVertexBuffer)
+										{
+											const VertexBuffer* pVertexBuffer = static_cast<const VertexBuffer*>(job.pVertexBuffer);
+											pCommandList->IASetVertexBuffers(0, 1, pVertexBuffer->GetView());
+
+											pPrevVertexBuffer = job.pVertexBuffer;
+										}
+
+										if (job.pIndexBuffer != nullptr)
+										{
+											if (pPrevIndexBuffer != job.pIndexBuffer)
+											{
+												const IndexBuffer* pIndexBuffer = static_cast<const IndexBuffer*>(job.pIndexBuffer);
+												pCommandList->IASetIndexBuffer(pIndexBuffer->GetView());
+
+												pPrevIndexBuffer = job.pIndexBuffer;
+											}
+
+											pCommandList->DrawIndexedInstanced(job.nIndexCount, static_cast<uint32_t>(nInstanceCount), job.nStartIndex, 0, 0);
+										}
+										else
+										{
+											pCommandList->IASetIndexBuffer(nullptr);
+											pPrevIndexBuffer = nullptr;
+
+											pCommandList->DrawInstanced(job.nIndexCount, static_cast<uint32_t>(nInstanceCount), 0, 0);
+										}
+									}
 								}
-
-								const size_t nInstanceCount = pJobBatch->vecInstanceData.size();
-
-								const size_t nLoopCount = nInstanceCount / eMaxInstancingCount + 1;
-								for (size_t i = 0; i < nLoopCount; ++i)
+							}
+							else
+							{
+								std::sort(pJobBatchs->begin(), pJobBatchs->end(), [](const JobStaticBatch* a, const JobStaticBatch* b)
 								{
-									const size_t nEnableDrawCount = std::min(eMaxInstancingCount * (i + 1), nInstanceCount);
-									const size_t nDrawInstanceCount = nEnableDrawCount - i * eMaxInstancingCount;
+									return a->pJob->data.fDepth < b->pJob->data.fDepth;
+								});
 
-									if (nDrawInstanceCount <= 0)
-										break;
+								for (auto& pJobBatch : (*pJobBatchs))
+								{
+									const RenderJobStatic& job = pJobBatch->pJob->data;
 
-									shader::StaticInstancingDataBuffer* pStaticInstancingData = m_staticInstancingDataBuffer.Cast(nFrameIndex, nCurJobIndex);
-									D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_staticInstancingDataBuffer.GPUAddress(nFrameIndex, nCurJobIndex);
+									const size_t nShaderBufferIndex = m_nShaderBufferIndex++;
 
-									Memory::Copy(pStaticInstancingData->data.data(), sizeof(shader::StaticInstancingDataBuffer),
-										pJobBatch->vecInstanceData.data(), sizeof(math::Matrix) * nInstanceCount);
+									if (pRenderPipeline->nRootParameterIndex[eRP_SRVIndicesCB] != eRP_InvalidIndex)
+									{
+										shader::SRVIndexConstants* pBuffer = m_srvIndexConstantsBuffer.Cast(nFrameIndex, nShaderBufferIndex);
+										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_srvIndexConstantsBuffer.GPUAddress(nFrameIndex, nShaderBufferIndex);
 
-									pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->nRootParameterIndex[eRP_StaticInstancingDataCB], gpuAddress);
+										shader::SetMaterial(pBuffer, job.pMaterial);
 
-									if (job.pVertexBuffer != nullptr)
+										pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->nRootParameterIndex[eRP_SRVIndicesCB], gpuAddress);
+									}
+
+									if (pRenderPipeline->nRootParameterIndex[eRP_ObjectDataCB] != eRP_InvalidIndex)
+									{
+										shader::ObjectDataBuffer* pBuffer = m_objectDataBuffer.Cast(nFrameIndex, nShaderBufferIndex);
+										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_objectDataBuffer.GPUAddress(nFrameIndex, nShaderBufferIndex);
+
+										shader::SetObjectData(pBuffer, job.pMaterial, job.matWorld);
+
+										pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->nRootParameterIndex[eRP_ObjectDataCB], gpuAddress);
+									}
+
+									if (pPrevVertexBuffer != job.pVertexBuffer)
 									{
 										const VertexBuffer* pVertexBuffer = static_cast<const VertexBuffer*>(job.pVertexBuffer);
 										pCommandList->IASetVertexBuffers(0, 1, pVertexBuffer->GetView());
+
+										pPrevVertexBuffer = job.pVertexBuffer;
 									}
 
 									if (job.pIndexBuffer != nullptr)
 									{
-										const IndexBuffer* pIndexBuffer = static_cast<const IndexBuffer*>(job.pIndexBuffer);
-										pCommandList->IASetIndexBuffer(pIndexBuffer->GetView());
+										if (pPrevIndexBuffer != job.pIndexBuffer)
+										{
+											const IndexBuffer* pIndexBuffer = static_cast<const IndexBuffer*>(job.pIndexBuffer);
+											pCommandList->IASetIndexBuffer(pIndexBuffer->GetView());
 
-										pCommandList->DrawIndexedInstanced(job.nIndexCount, static_cast<uint32_t>(nInstanceCount), job.nStartIndex, 0, 0);
+											pPrevIndexBuffer = job.pIndexBuffer;
+										}
+
+										pCommandList->DrawIndexedInstanced(job.nIndexCount, 1, job.nStartIndex, 0, 0);
 									}
 									else
 									{
 										pCommandList->IASetIndexBuffer(nullptr);
+										pPrevIndexBuffer = nullptr;
 
-										pCommandList->DrawInstanced(job.nIndexCount, static_cast<uint32_t>(nInstanceCount), 0, 0);
+										pCommandList->DrawInstanced(job.nIndexCount, 1, 0, 0);
 									}
 								}
 							}
 						}
+
+						HRESULT hr = pCommandList->Close();
+						if (FAILED(hr))
+						{
+							throw_line("failed to close command list");
+						}
+					});
+
+					pDeviceInstance->ExecuteCommandLists(vecCommandLists.data(), vecCommandLists.size());
+				}
+
+				m_umapJobStaticMasterBatchs.clear();
+			}
+
+			void ModelRenderer::Impl::RenderSkinnedElement(Device* pDeviceInstance, ID3D12Device* pDevice, Camera* pCamera, Group emGroup, shader::Pass emPass, const D3D12_CPU_DESCRIPTOR_HANDLE* pRTVHandles, size_t nRTVHandleCount, const D3D12_CPU_DESCRIPTOR_HANDLE* pDSVHandle, std::unordered_map<const IMaterial*, uint32_t>& umapMaterialMask)
+			{
+				int nFrameIndex = pDeviceInstance->GetFrameIndex();
+				DescriptorHeap* pSRVDescriptorHeap = pDeviceInstance->GetSRVDescriptorHeap();
+				DescriptorHeap* pSamplerDescriptorHeap = pDeviceInstance->GetSamplerDescriptorHeap();
+
+				const D3D12_VIEWPORT* pViewport = pDeviceInstance->GetViewport();
+				const D3D12_RECT* pScissorRect = pDeviceInstance->GetScissorRect();
+
+				m_umapJobSkinnedMasterBatchs.clear();
+
+				if (m_nJobSkinnedCount[emGroup] > 0)
+				{
+					for (size_t i = 0; i < m_nJobSkinnedCount[emGroup]; ++i)
+					{
+						const JobSkinned& job = m_vecJobSkinneds[emGroup][i];
+
+						if (job.isCulling == true)
+							continue;
+
+						//if (frustum.Contains(job.data.boundingSphere) == Collision::EmContainment::eDisjoint)
+						//	continue;
+
+						UMapJobSkinnedBatch& umapJobSkinnedBatch = m_umapJobSkinnedMasterBatchs[job.data.pMaterial];
+
+						auto iter = umapJobSkinnedBatch.find(job.data.pKey);
+						if (iter != umapJobSkinnedBatch.end())
+						{
+							iter->second.vecInstanceData.emplace_back(job.data.matWorld, job.data.nVTFID);
+						}
 						else
 						{
-							std::sort(vecJobBatch.begin(), vecJobBatch.end(), [](const JobStaticBatch* a, const JobStaticBatch* b)
+							umapJobSkinnedBatch.emplace(job.data.pKey, JobSkinnedBatch(&job, job.data.matWorld, job.data.nVTFID));
+						}
+					}
+
+					std::unordered_map<shader::PSOKey, std::vector<const JobSkinnedBatch*>> umapJobSkinnedMaskBatch;
+					umapJobSkinnedMaskBatch.rehash(m_umapJobSkinnedMasterBatchs.size());
+
+					for (auto& iter_master : m_umapJobSkinnedMasterBatchs)
+					{
+						const UMapJobSkinnedBatch& umapJobSkinnedBatch = iter_master.second;
+
+						for (auto& iter : umapJobSkinnedBatch)
+						{
+							const JobSkinnedBatch& jobBatch = iter.second;
+
+							uint32_t nMask = 0;
+							auto iter_find = umapMaterialMask.find(jobBatch.pJob->data.pMaterial);
+							if (iter_find != umapMaterialMask.end())
 							{
-								return a->pJob->data.fDepth < b->pJob->data.fDepth;
-							});
-
-							bool isCompleteMaterialSetup = false;
-
-							for (auto& pJobBatch : vecJobBatch)
+								nMask = iter_find->second;
+							}
+							else
 							{
-								const RenderJobStatic& job = pJobBatch->pJob->data;
+								nMask = shader::GetMaterialMask(jobBatch.pJob->data.pMaterial);
+								umapMaterialMask.emplace(jobBatch.pJob->data.pMaterial, nMask);
+							}
 
-								size_t nCurJobIndex = nJobIndex++;
+							if (jobBatch.vecInstanceData.size() > 1)
+							{
+								nMask |= shader::eUseInstancing;
+							}
 
-								if (isCompleteMaterialSetup == false && pRenderPipeline->nRootParameterIndex[eRP_SRVIndicesCB] != eRP_InvalidIndex)
+							if (emGroup == Group::eAlphaBlend)
+							{
+								nMask |= shader::eUseAlphaBlending;
+							}
+
+							nMask |= shader::eUseSkinning;
+
+							shader::PSOKey maskKey = GetPSOKey(emGroup, emPass, nMask, jobBatch.pJob->data.pMaterial);
+							umapJobSkinnedMaskBatch[maskKey].emplace_back(&jobBatch);
+						}
+					}
+
+					const size_t nCommandListCount = pDeviceInstance->GetCommandListCount();
+					std::vector<ID3D12GraphicsCommandList2*> vecCommandLists(nCommandListCount);
+					pDeviceInstance->GetCommandLists(vecCommandLists.data());
+
+					auto iter = umapJobSkinnedMaskBatch.begin();
+
+					Concurrency::parallel_for(0llu, vecCommandLists.size(), [&](const size_t nIndex)
+					{
+						const IVertexBuffer* pPrevVertexBuffer = nullptr;
+						const IIndexBuffer* pPrevIndexBuffer = nullptr;
+
+						ID3D12GraphicsCommandList2* pCommandList = vecCommandLists[nIndex];
+						pDeviceInstance->ResetCommandList(nIndex, nullptr);
+
+						ID3D12DescriptorHeap* pDescriptorHeaps[] =
+						{
+							pSRVDescriptorHeap->GetHeap(),
+							pSamplerDescriptorHeap->GetHeap(),
+						};
+						pCommandList->SetDescriptorHeaps(_countof(pDescriptorHeaps), pDescriptorHeaps);
+
+						pCommandList->RSSetViewports(1, pViewport);
+						pCommandList->RSSetScissorRects(1, pScissorRect);
+						pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+						pCommandList->OMSetRenderTargets(static_cast<uint32_t>(nRTVHandleCount), pRTVHandles, FALSE, pDSVHandle);
+
+						while (true)
+						{
+							const RenderPipeline* pRenderPipeline = nullptr;
+
+							const shader::PSOKey* pPSOKey = nullptr;
+							std::vector<const JobSkinnedBatch*>* pJobBatchs = nullptr;
+							{
+								thread::AutoLock autoLock(&m_lock_logic);
+
+								if (iter == umapJobSkinnedMaskBatch.end())
+									break;
+
+								pPSOKey = &iter->first;
+								pJobBatchs = &iter->second;
+								++iter;
+
+								pRenderPipeline = GetRenderPipeline(pDevice, *pPSOKey);
+
+								if (pRenderPipeline == nullptr || pRenderPipeline->pPipelineState == nullptr || pRenderPipeline->pRootSignature == nullptr)
 								{
-									shader::SRVIndexConstants* pBuffer = m_srvIndexConstantsBuffer.Cast(nFrameIndex, nCurJobIndex);
-									D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_srvIndexConstantsBuffer.GPUAddress(nFrameIndex, nCurJobIndex);
+									const uint32_t nMask = shader::eUseSkinning | (pPSOKey->nMask & shader::eUseAlphaBlending) | (pPSOKey->nMask & shader::eUseInstancing);
 
-									shader::SetMaterial(pBuffer, pMaterial);
-
-									pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->nRootParameterIndex[eRP_SRVIndicesCB], gpuAddress);
-
-									isCompleteMaterialSetup = true;
+									const shader::PSOKey psoDefaultSkinnedKey(nMask, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On);
+									pRenderPipeline = GetRenderPipeline(pDevice, psoDefaultSkinnedKey);
+									if (pRenderPipeline == nullptr || pRenderPipeline->pPipelineState == nullptr || pRenderPipeline->pRootSignature == nullptr)
+									{
+										throw_line("invalid default skinned pipeline state");
+										continue;
+									}
 								}
+							}
 
-								if (pRenderPipeline->nRootParameterIndex[eRP_ObjectDataCB] != eRP_InvalidIndex)
+							pCommandList->SetPipelineState(pRenderPipeline->pPipelineState);
+							pCommandList->SetGraphicsRootSignature(pRenderPipeline->pRootSignature);
+
+							if (pPSOKey->emBlendState != EmBlendState::eOff)
+							{
+								pCommandList->OMSetBlendFactor(&math::Vector4::Zero.x);
+							}
+
+							if (pRenderPipeline->nRootParameterIndex[eRP_StandardDescriptor] != eRP_InvalidIndex)
+							{
+								pCommandList->SetGraphicsRootDescriptorTable(
+									pRenderPipeline->nRootParameterIndex[eRP_StandardDescriptor],
+									pSRVDescriptorHeap->GetStartGPUHandle(nFrameIndex));
+							}
+
+							if (pRenderPipeline->nRootParameterIndex[eRP_SamplerStates] != eRP_InvalidIndex)
+							{
+								pCommandList->SetGraphicsRootDescriptorTable(
+									pRenderPipeline->nRootParameterIndex[eRP_SamplerStates],
+									pSamplerDescriptorHeap->GetStartGPUHandle(nFrameIndex));
+							}
+
+							if (pRenderPipeline->nRootParameterIndex[eRP_VSConstantsCB] != eRP_InvalidIndex)
+							{
+								pCommandList->SetGraphicsRootConstantBufferView(
+									pRenderPipeline->nRootParameterIndex[eRP_VSConstantsCB],
+									m_vsConstantsBuffer.GPUAddress(nFrameIndex));
+							}
+
+							if (pRenderPipeline->nRootParameterIndex[eRP_CommonContentsCB] != eRP_InvalidIndex)
+							{
+								pCommandList->SetGraphicsRootConstantBufferView(
+									pRenderPipeline->nRootParameterIndex[eRP_CommonContentsCB],
+									m_commonContentsBuffer.GPUAddress(nFrameIndex));
+							}
+
+							if ((pPSOKey->nMask & shader::eUseInstancing) == shader::eUseInstancing)
+							{
+								for (auto& pJobBatch : (*pJobBatchs))
 								{
-									shader::ObjectDataBuffer* pBuffer = m_objectDataBuffer.Cast(nFrameIndex, nCurJobIndex);
-									D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_objectDataBuffer.GPUAddress(nFrameIndex, nCurJobIndex);
+									const RenderJobSkinned& job = pJobBatch->pJob->data;
 
-									shader::SetObjectData(pBuffer, job.pMaterial, job.matWorld);
+									const size_t nShaderBufferIndex = m_nShaderBufferIndex++;
 
-									pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->nRootParameterIndex[eRP_ObjectDataCB], gpuAddress);
+									if (pRenderPipeline->nRootParameterIndex[eRP_ObjectDataCB] != eRP_InvalidIndex)
+									{
+										shader::ObjectDataBuffer* pBuffer = m_objectDataBuffer.Cast(nFrameIndex, nShaderBufferIndex);
+										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_objectDataBuffer.GPUAddress(nFrameIndex, nShaderBufferIndex);
+
+										shader::SetObjectData(pBuffer, job.pMaterial, math::Matrix::Identity);
+
+										pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->nRootParameterIndex[eRP_ObjectDataCB], gpuAddress);
+									}
+
+									if (pRenderPipeline->nRootParameterIndex[eRP_SRVIndicesCB] != eRP_InvalidIndex)
+									{
+										shader::SRVIndexConstants* pBuffer = m_srvIndexConstantsBuffer.Cast(nFrameIndex, nShaderBufferIndex);
+										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_srvIndexConstantsBuffer.GPUAddress(nFrameIndex, nShaderBufferIndex);
+
+										shader::SetMaterial(pBuffer, job.pMaterial);
+
+										pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->nRootParameterIndex[eRP_SRVIndicesCB], gpuAddress);
+									}
+
+									const size_t nInstanceCount = pJobBatch->vecInstanceData.size();
+
+									const size_t nLoopCount = nInstanceCount / eMaxInstancingCount + 1;
+									for (size_t i = 0; i < nLoopCount; ++i)
+									{
+										const size_t nEnableDrawCount = std::min(eMaxInstancingCount * (i + 1), nInstanceCount);
+										const size_t nDrawInstanceCount = nEnableDrawCount - i * eMaxInstancingCount;
+
+										if (nDrawInstanceCount <= 0)
+											break;
+
+										shader::SkinningInstancingDataBuffer* pSkinnedInstancingData = m_skinningInstancingDataBuffer.Cast(nFrameIndex, nShaderBufferIndex);
+										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_skinningInstancingDataBuffer.GPUAddress(nFrameIndex, nShaderBufferIndex);
+
+										Memory::Copy(pSkinnedInstancingData->data.data(), sizeof(shader::SkinningInstancingDataBuffer),
+											pJobBatch->vecInstanceData.data(), sizeof(math::Matrix) * nInstanceCount);
+
+										pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->nRootParameterIndex[eRP_SkinningInstancingDataCB], gpuAddress);
+
+										if (pPrevVertexBuffer != job.pVertexBuffer)
+										{
+											const VertexBuffer* pVertexBuffer = static_cast<const VertexBuffer*>(job.pVertexBuffer);
+											pCommandList->IASetVertexBuffers(0, 1, pVertexBuffer->GetView());
+
+											pPrevVertexBuffer = job.pVertexBuffer;
+										}
+
+										if (job.pIndexBuffer != nullptr)
+										{
+											if (pPrevIndexBuffer != job.pIndexBuffer)
+											{
+												const IndexBuffer* pIndexBuffer = static_cast<const IndexBuffer*>(job.pIndexBuffer);
+												pCommandList->IASetIndexBuffer(pIndexBuffer->GetView());
+
+												pPrevIndexBuffer = job.pIndexBuffer;
+											}
+
+											pCommandList->DrawIndexedInstanced(job.nIndexCount, static_cast<uint32_t>(nInstanceCount), job.nStartIndex, 0, 0);
+										}
+										else
+										{
+											pCommandList->IASetIndexBuffer(nullptr);
+											pPrevIndexBuffer = nullptr;
+
+											pCommandList->DrawInstanced(job.nIndexCount, static_cast<uint32_t>(nInstanceCount), 0, 0);
+										}
+									}
 								}
-
-								if (job.pVertexBuffer != nullptr)
+							}
+							else
+							{
+								std::sort(pJobBatchs->begin(), pJobBatchs->end(), [](const JobSkinnedBatch* a, const JobSkinnedBatch* b)
 								{
-									const VertexBuffer* pVertexBuffer = static_cast<const VertexBuffer*>(job.pVertexBuffer);
-									pCommandList->IASetVertexBuffers(0, 1, pVertexBuffer->GetView());
-								}
+									return a->pJob->data.fDepth < b->pJob->data.fDepth;
+								});
 
-								if (job.pIndexBuffer != nullptr)
+								for (auto& pJobBatch : (*pJobBatchs))
 								{
-									const IndexBuffer* pIndexBuffer = static_cast<const IndexBuffer*>(job.pIndexBuffer);
-									pCommandList->IASetIndexBuffer(pIndexBuffer->GetView());
+									const RenderJobSkinned& job = pJobBatch->pJob->data;
 
-									pCommandList->DrawIndexedInstanced(job.nIndexCount, 1, job.nStartIndex, 0, 0);
-								}
-								else
-								{
-									pCommandList->IASetIndexBuffer(nullptr);
+									const size_t nShaderBufferIndex = m_nShaderBufferIndex++;
 
-									pCommandList->DrawInstanced(job.nIndexCount, 1, 0, 0);
+									if (pRenderPipeline->nRootParameterIndex[eRP_SRVIndicesCB] != eRP_InvalidIndex)
+									{
+										shader::SRVIndexConstants* pBuffer = m_srvIndexConstantsBuffer.Cast(nFrameIndex, nShaderBufferIndex);
+										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_srvIndexConstantsBuffer.GPUAddress(nFrameIndex, nShaderBufferIndex);
+
+										shader::SetMaterial(pBuffer, job.pMaterial);
+
+										pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->nRootParameterIndex[eRP_SRVIndicesCB], gpuAddress);
+									}
+
+									if (pRenderPipeline->nRootParameterIndex[eRP_ObjectDataCB] != eRP_InvalidIndex)
+									{
+										shader::ObjectDataBuffer* pBuffer = m_objectDataBuffer.Cast(nFrameIndex, nShaderBufferIndex);
+										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_objectDataBuffer.GPUAddress(nFrameIndex, nShaderBufferIndex);
+
+										shader::SetObjectData(pBuffer, job.pMaterial, job.matWorld, job.nVTFID);
+
+										pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->nRootParameterIndex[eRP_ObjectDataCB], gpuAddress);
+									}
+
+									if (pPrevVertexBuffer != job.pVertexBuffer)
+									{
+										const VertexBuffer* pVertexBuffer = static_cast<const VertexBuffer*>(job.pVertexBuffer);
+										pCommandList->IASetVertexBuffers(0, 1, pVertexBuffer->GetView());
+
+										pPrevVertexBuffer = job.pVertexBuffer;
+									}
+
+									if (job.pIndexBuffer != nullptr)
+									{
+										if (pPrevIndexBuffer != job.pIndexBuffer)
+										{
+											const IndexBuffer* pIndexBuffer = static_cast<const IndexBuffer*>(job.pIndexBuffer);
+											pCommandList->IASetIndexBuffer(pIndexBuffer->GetView());
+
+											pPrevIndexBuffer = job.pIndexBuffer;
+										}
+
+										pCommandList->DrawIndexedInstanced(job.nIndexCount, 1, job.nStartIndex, 0, 0);
+									}
+									else
+									{
+										pCommandList->IASetIndexBuffer(nullptr);
+										pPrevIndexBuffer = nullptr;
+
+										pCommandList->DrawInstanced(job.nIndexCount, 1, 0, 0);
+									}
 								}
 							}
 						}
 
-						pDeviceInstance->PushCommandList(pCommandList);
+						HRESULT hr = pCommandList->Close();
+						if (FAILED(hr))
+						{
+							throw_line("failed to close command list");
+						}
 					});
-				}
-				m_umapJobStaticMasterBatchs.clear();
-			}
 
-			void ModelRenderer::Impl::Flush()
-			{
-				m_nJobStaticCount.fill(0);
-				m_nJobSkinnedCount.fill(0);
-			}
-
-			void ModelRenderer::Impl::PushJob(const RenderJobStatic& job)
-			{
-				Group emGroup;
-
-				const IMaterial* pMaterial = job.pMaterial;
-				if (pMaterial == nullptr || pMaterial->GetBlendState() == EmBlendState::eOff)
-				{
-					emGroup = eDeferred;
-				}
-				else
-				{
-					emGroup = eAlphaBlend;
+					pDeviceInstance->ExecuteCommandLists(vecCommandLists.data(), vecCommandLists.size());
 				}
 
-				thread::AutoLock autoLock(&m_lock);
-
-				size_t nIndex = m_nJobStaticCount[emGroup];
-				m_vecJobStatics[emGroup][nIndex].Set(job);
-				++m_nJobStaticCount[emGroup];
-			}
-
-			void ModelRenderer::Impl::PushJob(const RenderJobSkinned& job)
-			{
-				Group emGroup;
-
-				const IMaterial* pMaterial = job.pMaterial;
-				if (pMaterial == nullptr || pMaterial->GetBlendState() == EmBlendState::eOff)
-				{
-					emGroup = eDeferred;
-				}
-				else
-				{
-					emGroup = eAlphaBlend;
-				}
-
-				thread::AutoLock autoLock(&m_lock);
-
-				size_t nIndex = m_nJobStaticCount[emGroup];
-				m_vecJobSkinneds[emGroup][nIndex].Set(job);
-				++m_nJobStaticCount[emGroup];
-			}
-
-			const ModelRenderer::Impl::RenderPipeline* ModelRenderer::Impl::GetRenderPipeline(ID3D12Device* pDevice, const shader::PSOKey& psoKey)
-			{
-				const RenderPipeline* pRenderPipeline = nullptr;
-
-				auto iter = m_umapRenderPipelines.find(psoKey);
-				if (iter != m_umapRenderPipelines.end())
-				{
-					pRenderPipeline = &iter->second;
-				}
-				else
-				{
-					CreatePipelineState(pDevice, psoKey.nMask, psoKey.emRasterizerState, psoKey.emBlendState, psoKey.emDepthStencilState);
-
-					iter = m_umapRenderPipelines.find(psoKey);
-					if (iter != m_umapRenderPipelines.end())
-					{
-						pRenderPipeline = &iter->second;
-					}
-				}
-
-				if (pRenderPipeline == nullptr || pRenderPipeline->pPipelineState == nullptr || pRenderPipeline->pRootSignature == nullptr)
-					return nullptr;
-
-				return pRenderPipeline;
+				m_umapJobSkinnedMasterBatchs.clear();
 			}
 
 			ID3D12RootSignature* ModelRenderer::Impl::CreateRootSignature(ID3D12Device* pDevice, uint32_t nMask, std::array<uint32_t, eRP_Count>& nRootParameterIndex_out)
@@ -859,8 +1472,8 @@ namespace eastengine
 				std::vector<D3D12_ROOT_PARAMETER> vecRootParameters;
 				D3D12_ROOT_PARAMETER& standardDescriptorTable = vecRootParameters.emplace_back();
 				standardDescriptorTable.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-				standardDescriptorTable.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-				standardDescriptorTable.DescriptorTable.NumDescriptorRanges = eStandardDescriptorRangesCount;
+				standardDescriptorTable.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+				standardDescriptorTable.DescriptorTable.NumDescriptorRanges = eStandardDescriptorRangesCount_SRV;
 				standardDescriptorTable.DescriptorTable.pDescriptorRanges = Device::GetInstance()->GetStandardDescriptorRanges();
 				nRootParameterIndex_out[eRP_StandardDescriptor] = static_cast<uint32_t>(vecRootParameters.size() - 1);
 
@@ -919,9 +1532,26 @@ namespace eastengine
 					}
 				}
 
+				std::vector<D3D12_STATIC_SAMPLER_DESC> vecStaticSamplers;
+				if ((nMask & shader::eUseAlphaBlending) == shader::eUseAlphaBlending)
+				{
+					D3D12_ROOT_PARAMETER& commonContentsParameter = vecRootParameters.emplace_back();
+					commonContentsParameter.ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+					commonContentsParameter.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+					commonContentsParameter.Descriptor.ShaderRegister = shader::eCB_CommonContents;
+					commonContentsParameter.Descriptor.RegisterSpace = 0;
+					nRootParameterIndex_out[eRP_CommonContentsCB] = static_cast<uint32_t>(vecRootParameters.size() - 1);
+
+					vecStaticSamplers = 
+					{
+						util::GetStaticSamplerDesc(EmSamplerState::eMinMagMipPointClamp, 0, 100, D3D12_SHADER_VISIBILITY_PIXEL),
+						util::GetStaticSamplerDesc(EmSamplerState::eMinMagMipLinearClamp, 1, 100, D3D12_SHADER_VISIBILITY_PIXEL),
+					};
+				}
+
 				CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc{};
 				rootSignatureDesc.Init(static_cast<uint32_t>(vecRootParameters.size()), vecRootParameters.data(),
-					0, nullptr,
+					static_cast<uint32_t>(vecStaticSamplers.size()), vecStaticSamplers.data(),
 					D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
 					D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
 					D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
@@ -978,11 +1608,11 @@ namespace eastengine
 				size_t nElementCount = 0;
 				if ((nMask & shader::eUseSkinning) == shader::eUseSkinning)
 				{
-					util::GetInputElementDesc(VertexPosTexNorWeiIdx::Format(), &pInputElements, nElementCount);
+					util::GetInputElementDesc(VertexPosTexNorWeiIdx::Format(), &pInputElements, &nElementCount);
 				}
 				else
 				{
-					util::GetInputElementDesc(VertexPosTexNor::Format(), &pInputElements, nElementCount);
+					util::GetInputElementDesc(VertexPosTexNor::Format(), &pInputElements, &nElementCount);
 				}
 
 				D3D12_INPUT_LAYOUT_DESC inputLayoutDesc{};
@@ -1012,10 +1642,31 @@ namespace eastengine
 				psoDesc.SampleMask = 0xffffffff;
 				psoDesc.RasterizerState = util::GetRasterizerDesc(emRasterizerState);
 				psoDesc.BlendState = util::GetBlendDesc(emBlendState);
-				psoDesc.NumRenderTargets = EmGBuffer::Count;
-				psoDesc.RTVFormats[EmGBuffer::eNormals] = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				psoDesc.RTVFormats[EmGBuffer::eColors] = DXGI_FORMAT_R32G32B32A32_FLOAT;
-				psoDesc.RTVFormats[EmGBuffer::eDisneyBRDF] = DXGI_FORMAT_R32G32B32A32_FLOAT;
+
+				if ((nMask & shader::eUseAlphaBlending) == shader::eUseAlphaBlending)
+				{
+					psoDesc.NumRenderTargets = 1;
+
+					if (GetOptions().OnHDR == true)
+					{
+						psoDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+					}
+					else
+					{
+						RenderTarget* pRenderTarget = Device::GetInstance()->GetSwapChainRenderTarget(0);
+						psoDesc.RTVFormats[0] = pRenderTarget->GetDesc().Format;
+					}
+				}
+				else
+				{
+					GBuffer* pGBuffer = Device::GetInstance()->GetGBuffer(0);
+					
+					psoDesc.NumRenderTargets = EmGBuffer::Count;
+					psoDesc.RTVFormats[EmGBuffer::eNormals] = pGBuffer->GetRenderTarget(EmGBuffer::eNormals)->GetDesc().Format;
+					psoDesc.RTVFormats[EmGBuffer::eColors] = pGBuffer->GetRenderTarget(EmGBuffer::eColors)->GetDesc().Format;
+					psoDesc.RTVFormats[EmGBuffer::eDisneyBRDF] = pGBuffer->GetRenderTarget(EmGBuffer::eDisneyBRDF)->GetDesc().Format;
+				}
+
 				psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
 				psoDesc.DepthStencilState = util::GetDepthStencilDesc(emDepthStencilState);
 
@@ -1027,10 +1678,14 @@ namespace eastengine
 				}
 				pPipelineState->SetName(wstrName.c_str());
 
-				RenderPipeline& renderPipeline = m_umapRenderPipelines[key];
-				renderPipeline.pPipelineState = pPipelineState;
-				renderPipeline.pRootSignature = pRootSignature;
-				renderPipeline.nRootParameterIndex = nRootParameterIndex;
+				{
+					thread::AutoLock autoLock(&m_lock_pipelines);
+
+					RenderPipeline& renderPipeline = m_umapRenderPipelines[key];
+					renderPipeline.pPipelineState = pPipelineState;
+					renderPipeline.pRootSignature = pRootSignature;
+					renderPipeline.nRootParameterIndex = nRootParameterIndex;
+				}
 
 				SafeRelease(pVertexShaderBlob);
 				SafeRelease(pPixelShaderBlob);

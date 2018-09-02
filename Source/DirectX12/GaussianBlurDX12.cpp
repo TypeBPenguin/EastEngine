@@ -1,0 +1,448 @@
+#include "stdafx.h"
+#include "GaussianBlurDX12.h"
+
+#include "CommonLib/FileUtil.h"
+
+#include "UtilDX12.h"
+#include "DeviceDX12.h"
+
+#include "DescriptorHeapDX12.h"
+#include "RenderTargetDX12.h"
+#include "DepthStencilDX12.h"
+
+namespace eastengine
+{
+	namespace graphics
+	{
+		namespace dx12
+		{
+			namespace shader
+			{
+				struct GaussianBlurContents
+				{
+					float fSigma{ 0.5f };
+					math::Vector2 f2SourceDimensions;
+					float padding{ 0.f };
+
+					uint32_t nTexColorIndex{ 0 };
+					uint32_t nTexDepthIndex{ 0 };
+					math::Vector2 padding2;
+				};
+
+				enum CBSlot
+				{
+					eCB_GaussianBlurContents = 0,
+				};
+
+				enum PSType
+				{
+					ePS_GaussianBlurH = 0,
+					ePS_GaussianBlurV,
+					ePS_GaussianDepthBlurH,
+					ePS_GaussianDepthBlurV,
+
+					ePS_Count,
+				};
+
+				const char* GetGaussianBlurPSTypeString(PSType emPSType)
+				{
+					switch (emPSType)
+					{
+					case ePS_GaussianBlurH:
+						return "GaussianBlurH_PS";
+					case ePS_GaussianBlurV:
+						return "GaussianBlurV_PS";
+					case ePS_GaussianDepthBlurH:
+						return "GaussianDepthBlurH_PS";
+					case ePS_GaussianDepthBlurV:
+						return "GaussianDepthBlurV_PS";
+					default:
+						throw_line("unknown ps type");
+						break;
+					}
+				}
+
+				void SetGaussianBlurContents(GaussianBlurContents* pGaussianBlurContents, 
+					float fSigma, const math::Vector2& f2SourceDimensions,
+					uint32_t nTexColorIndex, uint32_t nTexDepthIndex)
+				{
+					pGaussianBlurContents->fSigma = fSigma;
+					pGaussianBlurContents->f2SourceDimensions = f2SourceDimensions;
+					pGaussianBlurContents->padding = 0.f;
+
+					pGaussianBlurContents->nTexColorIndex = nTexColorIndex;
+					pGaussianBlurContents->nTexDepthIndex = nTexDepthIndex;
+					pGaussianBlurContents->padding2 = {};
+				}
+			}
+
+			class GaussianBlur::Impl
+			{
+			public:
+				Impl();
+				~Impl();
+
+			public:
+				void Apply(const RenderTarget* pSource, RenderTarget* pResult, float fSigma);
+				void Apply(const RenderTarget* pSource, const DepthStencil* pDepth, RenderTarget* pResult, float fSigma);
+
+			private:
+				enum RootParameters : uint32_t
+				{
+					eRP_StandardDescriptor = 0,
+
+					eRP_GaussianBlurContents,
+
+					eRP_Count,
+
+					eRP_InvalidIndex = std::numeric_limits<uint32_t>::max(),
+				};
+
+				ID3D12RootSignature* CreateRootSignature(ID3D12Device* pDevice);
+				void CreatePipelineState(ID3D12Device* pDevice, ID3DBlob* pShaderBlob, const char* strShaderPath, shader::PSType emPSType);
+
+				void ApplyBlur(Device* pDeviceInstance, shader::PSType emPSType, float fSigma, const RenderTarget* pSource, const DepthStencil* pDepth, RenderTarget* pResult);
+
+			private:
+				struct RenderState
+				{
+					ID3D12PipelineState* pPipelineState{ nullptr };
+					ID3D12RootSignature* pRootSignature{ nullptr };
+				};
+				std::array<RenderState, shader::ePS_Count> m_renderStates;
+
+				std::array<std::array<ID3D12GraphicsCommandList2*, shader::ePS_Count>, eFrameBufferCount> m_pBundles;
+
+				ConstantBuffer<shader::GaussianBlurContents> m_gaussianBlurContents;
+			};
+
+			GaussianBlur::Impl::Impl()
+			{
+				std::string strShaderPath = file::GetPath(file::eFx);
+				strShaderPath.append("PostProcessing\\GaussianBlur\\GaussianBlur.hlsl");
+
+				ID3DBlob* pShaderBlob{ nullptr };
+				if (FAILED(D3DReadFileToBlob(String::MultiToWide(strShaderPath).c_str(), &pShaderBlob)))
+				{
+					throw_line("failed to read shader file : GaussianBlur.hlsl");
+				}
+
+				ID3D12Device* pDevice = Device::GetInstance()->GetInterface();
+
+				for (int i = 0; i < shader::ePS_Count; ++i)
+				{
+					CreatePipelineState(pDevice, pShaderBlob, strShaderPath.c_str(), static_cast<shader::PSType>(i));
+				}
+
+				for (int i = 0; i < eFrameBufferCount; ++i)
+				{
+					if (util::CreateConstantBuffer(pDevice, m_gaussianBlurContents.AlignedSize(), &m_gaussianBlurContents.pUploadHeaps[i], L"GaussianBlurContents") == false)
+					{
+						throw_line("failed to create constant buffer, GaussianBlurContents");
+					}
+				}
+
+				m_gaussianBlurContents.Initialize(m_gaussianBlurContents.AlignedSize());
+
+				SafeRelease(pShaderBlob);
+
+				DescriptorHeap* pSRVDescriptorHeap = Device::GetInstance()->GetSRVDescriptorHeap();
+
+				for (int i = 0; i < eFrameBufferCount; ++i)
+				{
+					for (int j = 0; j < shader::ePS_Count; ++j)
+					{
+						m_pBundles[i][j] = Device::GetInstance()->CreateBundle(m_renderStates[j].pPipelineState);
+
+						ID3D12GraphicsCommandList2* pCommandList = m_pBundles[i][j];
+
+						pCommandList->SetGraphicsRootSignature(m_renderStates[j].pRootSignature);
+
+						ID3D12DescriptorHeap* pDescriptorHeaps[] =
+						{
+							pSRVDescriptorHeap->GetHeap(i),
+						};
+						pCommandList->SetDescriptorHeaps(_countof(pDescriptorHeaps), pDescriptorHeaps);
+
+						pCommandList->SetGraphicsRootDescriptorTable(eRP_StandardDescriptor, pSRVDescriptorHeap->GetStartGPUHandle(i));
+						pCommandList->SetGraphicsRootConstantBufferView(eRP_GaussianBlurContents, m_gaussianBlurContents.GPUAddress(i));
+
+						pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+						pCommandList->IASetVertexBuffers(0, 0, nullptr);
+						pCommandList->IASetIndexBuffer(nullptr);
+
+						pCommandList->DrawInstanced(4, 1, 0, 0);
+
+						HRESULT hr = pCommandList->Close();
+						if (FAILED(hr))
+						{
+							throw_line("failed to close bundle");
+						}
+					}
+				}
+			}
+
+			GaussianBlur::Impl::~Impl()
+			{
+				for (auto& psCommandLists : m_pBundles)
+				{
+					for (auto& pCommandList : psCommandLists)
+					{
+						SafeRelease(pCommandList);
+					}
+				}
+
+				for (int i = 0; i < eFrameBufferCount; ++i)
+				{
+					SafeRelease(m_gaussianBlurContents.pUploadHeaps[i]);
+				}
+
+				for (auto& renderState : m_renderStates)
+				{
+					SafeRelease(renderState.pPipelineState);
+					SafeRelease(renderState.pRootSignature);
+				}
+			}
+
+			void GaussianBlur::Impl::Apply(const RenderTarget* pSource, RenderTarget* pResult, float fSigma)
+			{
+				if (pSource == nullptr || pResult == nullptr)
+					return;
+
+				Device* pDeviceInstance = Device::GetInstance();
+
+				const D3D12_RESOURCE_DESC desc = pSource->GetDesc();
+				RenderTarget* pGaussianBlur = pDeviceInstance->GetRenderTarget(&desc, math::Color::Transparent, false);
+
+				ApplyBlur(pDeviceInstance, shader::ePS_GaussianBlurH, fSigma, pSource, nullptr, pGaussianBlur);
+				ApplyBlur(pDeviceInstance, shader::ePS_GaussianBlurV, fSigma, pGaussianBlur, nullptr, pResult);
+
+				pDeviceInstance->ReleaseRenderTargets(&pGaussianBlur);
+			}
+
+			void GaussianBlur::Impl::Apply(const RenderTarget* pSource, const DepthStencil* pDepth, RenderTarget* pResult, float fSigma)
+			{
+				if (pSource == nullptr || pDepth == nullptr || pResult == nullptr)
+					return;
+
+				Device* pDeviceInstance = Device::GetInstance();
+
+				const D3D12_RESOURCE_DESC desc = pSource->GetDesc();
+				RenderTarget* pGaussianBlur = pDeviceInstance->GetRenderTarget(&desc, math::Color::Transparent, false);
+
+				ApplyBlur(pDeviceInstance, shader::ePS_GaussianDepthBlurH, fSigma, pSource, pDepth, pGaussianBlur);
+				ApplyBlur(pDeviceInstance, shader::ePS_GaussianDepthBlurV, fSigma, pGaussianBlur, pDepth, pResult);
+
+				pDeviceInstance->ReleaseRenderTargets(&pGaussianBlur);
+			}
+
+			ID3D12RootSignature* GaussianBlur::Impl::CreateRootSignature(ID3D12Device* pDevice)
+			{
+				std::vector<D3D12_ROOT_PARAMETER> vecRootParameters;
+				D3D12_ROOT_PARAMETER& standardDescriptorTable = vecRootParameters.emplace_back();
+				standardDescriptorTable.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+				standardDescriptorTable.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+				standardDescriptorTable.DescriptorTable.NumDescriptorRanges = eStandardDescriptorRangesCount_SRV;
+				standardDescriptorTable.DescriptorTable.pDescriptorRanges = Device::GetInstance()->GetStandardDescriptorRanges();
+
+				D3D12_ROOT_PARAMETER& lightContentsParameter = vecRootParameters.emplace_back();
+				lightContentsParameter.ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+				lightContentsParameter.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+				lightContentsParameter.Descriptor.ShaderRegister = shader::eCB_GaussianBlurContents;
+				lightContentsParameter.Descriptor.RegisterSpace = 0;
+
+				const D3D12_STATIC_SAMPLER_DESC staticSamplerDesc[]
+				{
+					util::GetStaticSamplerDesc(EmSamplerState::eAnisotropicWrap, 0, 100, D3D12_SHADER_VISIBILITY_PIXEL),
+				};
+
+				CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc{};
+				rootSignatureDesc.Init(static_cast<uint32_t>(vecRootParameters.size()), vecRootParameters.data(),
+					_countof(staticSamplerDesc), staticSamplerDesc,
+					D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
+					D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
+					D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS);
+
+				ID3DBlob* pError = nullptr;
+				ID3DBlob* pSignature = nullptr;
+				HRESULT hr = D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &pSignature, &pError);
+				if (FAILED(hr))
+				{
+					std::string strError = String::Format("%s : %s", "failed to serialize root signature", pError->GetBufferPointer());
+					SafeRelease(pError);
+					throw_line(strError.c_str());
+				}
+
+				ID3D12RootSignature* pRootSignature{ nullptr };
+				hr = pDevice->CreateRootSignature(0, pSignature->GetBufferPointer(), pSignature->GetBufferSize(), IID_PPV_ARGS(&pRootSignature));
+				if (FAILED(hr))
+				{
+					throw_line("failed to create root signature");
+				}
+				SafeRelease(pSignature);
+
+				return pRootSignature;
+			}
+
+			void GaussianBlur::Impl::CreatePipelineState(ID3D12Device* pDevice, ID3DBlob* pShaderBlob, const char* strShaderPath, shader::PSType emPSType)
+			{
+				const D3D_SHADER_MACRO macros[] =
+				{
+					{ "DX12", "1" },
+					{ nullptr, nullptr },
+				};
+
+				ID3DBlob* pVertexShaderBlob = nullptr;
+				bool isSuccess = util::CompileShader(pShaderBlob, macros, strShaderPath, "VS", "vs_5_1", &pVertexShaderBlob);
+				if (isSuccess == false)
+				{
+					throw_line("failed to compile vertex shader");
+				}
+
+				ID3DBlob* pPixelShaderBlob = nullptr;
+				isSuccess = util::CompileShader(pShaderBlob, macros, strShaderPath, GetGaussianBlurPSTypeString(emPSType), "ps_5_1", &pPixelShaderBlob);
+				if (isSuccess == false)
+				{
+					throw_line("failed to compile pixel shader");
+				}
+
+				D3D12_SHADER_BYTECODE vertexShaderBytecode{};
+				vertexShaderBytecode.BytecodeLength = pVertexShaderBlob->GetBufferSize();
+				vertexShaderBytecode.pShaderBytecode = pVertexShaderBlob->GetBufferPointer();
+
+				D3D12_SHADER_BYTECODE pixelShaderBytecode{};
+				pixelShaderBytecode.BytecodeLength = pPixelShaderBlob->GetBufferSize();
+				pixelShaderBytecode.pShaderBytecode = pPixelShaderBlob->GetBufferPointer();
+
+				DXGI_SAMPLE_DESC sampleDesc{};
+				sampleDesc.Count = 1;
+
+				std::wstring wstrDebugName = String::MultiToWide(GetGaussianBlurPSTypeString(emPSType));
+
+				ID3D12RootSignature* pRootSignature = CreateRootSignature(pDevice);
+				pRootSignature->SetName(wstrDebugName.c_str());
+
+				D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc{};
+				psoDesc.pRootSignature = pRootSignature;
+				psoDesc.VS = vertexShaderBytecode;
+				psoDesc.PS = pixelShaderBytecode;
+				psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+				psoDesc.SampleDesc = sampleDesc;
+				psoDesc.SampleMask = 0xffffffff;
+				psoDesc.RasterizerState = util::GetRasterizerDesc(EmRasterizerState::eSolidCullNone);
+				psoDesc.BlendState = util::GetBlendDesc(EmBlendState::eOff);
+				psoDesc.NumRenderTargets = 1;
+
+				if (GetOptions().OnHDR == true)
+				{
+					psoDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				}
+				else
+				{
+					D3D12_RESOURCE_DESC desc = Device::GetInstance()->GetSwapChainRenderTarget(0)->GetDesc();
+					psoDesc.RTVFormats[0] = desc.Format;
+				}
+
+				psoDesc.DSVFormat = DXGI_FORMAT_UNKNOWN;
+				psoDesc.DepthStencilState = util::GetDepthStencilDesc(EmDepthStencilState::eRead_Write_Off);
+
+				ID3D12PipelineState* pPipelineState = nullptr;
+				HRESULT hr = pDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pPipelineState));
+				if (FAILED(hr))
+				{
+					throw_line("failed to create graphics pipeline state");
+				}
+				pPipelineState->SetName(wstrDebugName.c_str());
+
+				m_renderStates[emPSType].pPipelineState = pPipelineState;
+				m_renderStates[emPSType].pRootSignature = pRootSignature;
+
+				SafeRelease(pVertexShaderBlob);
+				SafeRelease(pPixelShaderBlob);
+			}
+
+			void GaussianBlur::Impl::ApplyBlur(Device* pDeviceInstance, shader::PSType emPSType, float fSigma, const RenderTarget* pSource, const DepthStencil* pDepth, RenderTarget* pResult)
+			{
+				const int nFrameIndex = pDeviceInstance->GetFrameIndex();
+				const DescriptorHeap* pSRVDescriptorHeap = pDeviceInstance->GetSRVDescriptorHeap();
+
+				const D3D12_RESOURCE_DESC desc = pResult->GetDesc();
+
+				D3D12_VIEWPORT viewport{};
+				viewport.TopLeftX = 0.f;
+				viewport.TopLeftY = 0.f;
+				viewport.Width = static_cast<float>(desc.Width);
+				viewport.Height = static_cast<float>(desc.Height);
+				viewport.MinDepth = 0.f;
+				viewport.MaxDepth = 1.f;
+
+				D3D12_RECT scissorRect{};
+				scissorRect.left = 0;
+				scissorRect.top = 0;
+				scissorRect.right = static_cast<long>(desc.Width);
+				scissorRect.bottom = static_cast<long>(desc.Height);
+
+				const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[] =
+				{
+					pResult->GetCPUHandle(),
+				};
+
+				{
+					const uint32_t nTexColorIndex = pSource->GetTexture()->GetDescriptorIndex();
+					const uint32_t nTexDepthIndex = pDepth != nullptr ? pDepth->GetTexture()->GetDescriptorIndex() : 0;
+
+					const D3D12_RESOURCE_DESC desc_source = pSource->GetDesc();
+
+					shader::GaussianBlurContents* pGaussianBlurContents = m_gaussianBlurContents.Cast(nFrameIndex);
+					shader::SetGaussianBlurContents(pGaussianBlurContents,
+						fSigma, { static_cast<float>(desc_source.Width), static_cast<float>(desc_source.Height) },
+						nTexColorIndex, nTexDepthIndex);
+				}
+
+				ID3D12GraphicsCommandList2* pCommandList = pDeviceInstance->GetCommandList(0);
+				pDeviceInstance->ResetCommandList(0, nullptr);
+
+				pCommandList->RSSetViewports(1, &viewport);
+				pCommandList->RSSetScissorRects(1, &scissorRect);
+				pCommandList->OMSetRenderTargets(_countof(rtvHandles), rtvHandles, FALSE, nullptr);
+
+				pCommandList->SetGraphicsRootSignature(m_renderStates[emPSType].pRootSignature);
+
+				ID3D12DescriptorHeap* pDescriptorHeaps[] =
+				{
+					pSRVDescriptorHeap->GetHeap(),
+				};
+				pCommandList->SetDescriptorHeaps(_countof(pDescriptorHeaps), pDescriptorHeaps);
+
+				pCommandList->ExecuteBundle(m_pBundles[nFrameIndex][emPSType]);
+
+				HRESULT hr = pCommandList->Close();
+				if (FAILED(hr))
+				{
+					throw_line("failed to close command list");
+				}
+
+				pDeviceInstance->ExecuteCommandList(pCommandList);
+			}
+
+			GaussianBlur::GaussianBlur()
+				: m_pImpl{ std::make_unique<Impl>() }
+			{
+			}
+
+			GaussianBlur::~GaussianBlur()
+			{
+			}
+
+			void GaussianBlur::Apply(const RenderTarget* pSource, RenderTarget* pResult, float fSigma)
+			{
+				m_pImpl->Apply(pSource, pResult, fSigma);
+			}
+
+			void GaussianBlur::Apply(const RenderTarget* pSource, const DepthStencil* pDepth, RenderTarget* pResult, float fSigma)
+			{
+				m_pImpl->Apply(pSource, pDepth, pResult, fSigma);
+			}
+		}
+	}
+}

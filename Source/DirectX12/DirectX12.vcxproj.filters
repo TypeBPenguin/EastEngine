@@ -55,6 +55,36 @@
     <Filter Include="VTF">
       <UniqueIdentifier>{ea4fbdbc-a4b3-4a09-8924-6d5b4b4342a2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Renderer\Environment">
+      <UniqueIdentifier>{629e3b6c-c561-4b69-8f1d-27a1dd5911bc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\PostProcessing">
+      <UniqueIdentifier>{c844a12a-e239-4961-a29a-f20dda074e0c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\PostProcessing\FXAA">
+      <UniqueIdentifier>{65a748a8-8a7c-4a7f-921d-c4bdf58b55a7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\PostProcessing\DepthOfField">
+      <UniqueIdentifier>{8ff74fde-62f4-4a2c-b7ef-ca510c99f1af}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\PostProcessing\DownScale">
+      <UniqueIdentifier>{e4e85c91-3902-4782-8c55-aaaa20c6bdad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\PostProcessing\GaussianBlur">
+      <UniqueIdentifier>{c44bb560-fedf-45c7-9334-3c288802ee6f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\PostProcessing\ASSAO">
+      <UniqueIdentifier>{b9550e4d-ba2d-4c6e-b5c1-f2a760184225}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\PostProcessing\ColorGrading">
+      <UniqueIdentifier>{25f9be58-4857-4b3d-864e-ddba17f85a05}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\PostProcessing\BloomFilter">
+      <UniqueIdentifier>{1d748ae4-b53e-4031-b02c-9c40d08b3b23}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\PostProcessing\SSS">
+      <UniqueIdentifier>{c8398a3a-05d2-4321-ad16-96d5efbd39c4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -111,6 +141,33 @@
     <ClInclude Include="VTFManagerDX12.h">
       <Filter>VTF</Filter>
     </ClInclude>
+    <ClInclude Include="EnvironmentRendererDX12.h">
+      <Filter>Renderer\Environment</Filter>
+    </ClInclude>
+    <ClInclude Include="FxaaDX12.h">
+      <Filter>Renderer\PostProcessing\FXAA</Filter>
+    </ClInclude>
+    <ClInclude Include="GaussianBlurDX12.h">
+      <Filter>Renderer\PostProcessing\GaussianBlur</Filter>
+    </ClInclude>
+    <ClInclude Include="DownScaleDX12.h">
+      <Filter>Renderer\PostProcessing\DownScale</Filter>
+    </ClInclude>
+    <ClInclude Include="DepthOfFieldDX12.h">
+      <Filter>Renderer\PostProcessing\DepthOfField</Filter>
+    </ClInclude>
+    <ClInclude Include="AssaoDX12.h">
+      <Filter>Renderer\PostProcessing\ASSAO</Filter>
+    </ClInclude>
+    <ClInclude Include="ColorGradingDX12.h">
+      <Filter>Renderer\PostProcessing\ColorGrading</Filter>
+    </ClInclude>
+    <ClInclude Include="BloomFilterDX12.h">
+      <Filter>Renderer\PostProcessing\BloomFilter</Filter>
+    </ClInclude>
+    <ClInclude Include="SSSDX12.h">
+      <Filter>Renderer\PostProcessing\SSS</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -160,6 +217,33 @@
     </ClCompile>
     <ClCompile Include="VTFManagerDX12.cpp">
       <Filter>VTF</Filter>
+    </ClCompile>
+    <ClCompile Include="EnvironmentRendererDX12.cpp">
+      <Filter>Renderer\Environment</Filter>
+    </ClCompile>
+    <ClCompile Include="FxaaDX12.cpp">
+      <Filter>Renderer\PostProcessing\FXAA</Filter>
+    </ClCompile>
+    <ClCompile Include="GaussianBlurDX12.cpp">
+      <Filter>Renderer\PostProcessing\GaussianBlur</Filter>
+    </ClCompile>
+    <ClCompile Include="DownScaleDX12.cpp">
+      <Filter>Renderer\PostProcessing\DownScale</Filter>
+    </ClCompile>
+    <ClCompile Include="DepthOfFieldDX12.cpp">
+      <Filter>Renderer\PostProcessing\DepthOfField</Filter>
+    </ClCompile>
+    <ClCompile Include="AssaoDX12.cpp">
+      <Filter>Renderer\PostProcessing\ASSAO</Filter>
+    </ClCompile>
+    <ClCompile Include="ColorGradingDX12.cpp">
+      <Filter>Renderer\PostProcessing\ColorGrading</Filter>
+    </ClCompile>
+    <ClCompile Include="BloomFilterDX12.cpp">
+      <Filter>Renderer\PostProcessing\BloomFilter</Filter>
+    </ClCompile>
+    <ClCompile Include="SSSDX12.cpp">
+      <Filter>Renderer\PostProcessing\SSS</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

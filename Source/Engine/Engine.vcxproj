@@ -207,6 +207,9 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\GameObject\GameObject.vcxproj">
+      <Project>{965eec9e-9cfb-40f0-959a-0f0b0339f4e8}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\Graphics\Graphics.vcxproj">
       <Project>{388c8bce-27cc-4468-b2c3-514eaa2ba568}</Project>
     </ProjectReference>

@@ -225,15 +225,4 @@
       <Filter>Renderer\Deferred</Filter>
     </ClCompile>
   </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="..\..\Bin\Data\Fx\PostProcessing\SSS\SSS.fx">
-      <Filter>Renderer\PostProcessing\SSS</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\Bin\Data\Fx\PostProcessing\BloomFilter\BloomFilter.fx">
-      <Filter>Renderer\PostProcessing\BloomFilter</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\Bin\Data\Fx\PostProcessing\HDRFilter\HDRFilter.fx">
-      <Filter>Renderer\PostProcessing\HDR</Filter>
-    </FxCompile>
-  </ItemGroup>
 </Project>

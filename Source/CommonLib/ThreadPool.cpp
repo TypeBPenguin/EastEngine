@@ -1,8 +1,6 @@
 #include "stdafx.h"
 #include "ThreadPool.h"
 
-#include "Log.h"
-
 namespace eastengine
 {
 	namespace thread
@@ -10,7 +8,7 @@ namespace eastengine
 		class Task::Impl
 		{
 		public:
-			Impl(std::thread& thread);
+			Impl(std::function<void(Task*)> func, Task* pInterface);
 			~Impl();
 
 		public:
@@ -28,9 +26,9 @@ namespace eastengine
 			std::thread m_thread;
 		};
 
-		Task::Impl::Impl(std::thread& thread)
+		Task::Impl::Impl(std::function<void(Task*)> func, Task* pInterface)
+			: m_thread{ func, pInterface }
 		{
-			m_thread.swap(thread);
 		}
 
 		Task::Impl::~Impl()
@@ -66,8 +64,8 @@ namespace eastengine
 			}
 		}
 
-		Task::Task(std::thread& thread)
-			: m_pImpl{ std::make_unique<Impl>(thread) }
+		Task::Task(std::function<void(Task*)> func)
+			: m_pImpl{ std::make_unique<Impl>(func, this) }
 		{
 		}
 
@@ -120,7 +118,7 @@ namespace eastengine
 			void SetTaskState(Task* pTask, Task::State emState) { pTask->SetState(emState); }
 
 		private:
-			std::atomic<bool> m_isStop{ true };
+			std::atomic<bool> m_isStop{ false };
 
 			std::vector<Task*> m_vecTaskWorkers;
 			std::queue<RequestTask> m_queueTasks;
@@ -131,18 +129,14 @@ namespace eastengine
 
 		ThreadPool::Impl::Impl()
 		{
-			size_t nThreadCount = std::thread::hardware_concurrency() - 1;
+			const size_t nThreadCount = std::thread::hardware_concurrency() - 1;
 			m_vecTaskWorkers.resize(nThreadCount);
 
 			for (uint32_t i = 0; i < nThreadCount; ++i)
 			{
-				std::promise<Task*> promiseThread;
-
-				std::thread thread([this](std::future<Task*> futureThread)
+				m_vecTaskWorkers[i] = new Task([&](Task* pWorker)
 				{
-					Task* pWorker = futureThread.get();
-
-					while (1)
+					while (true)
 					{
 						RequestTask task(nullptr);
 
@@ -151,11 +145,11 @@ namespace eastengine
 
 							m_condition.wait(lock, [&]()
 							{
-								return this->IsStop() || this->IsEmptyTask() == false;
+								return IsStop() == true || IsEmptyTask() == false;
 							});
 
-							if (this->IsStop() == true && m_queueTasks.empty() == true)
-								return false;
+							if (IsStop() == true && IsEmptyTask() == true)
+								return;
 
 							task = std::move(m_queueTasks.front());
 							m_queueTasks.pop();
@@ -168,13 +162,7 @@ namespace eastengine
 
 						SetTaskState(pWorker, Task::State::eIdle);
 					}
-				}, promiseThread.get_future());
-
-				// Aㅏ.. 뭔가 지저분하다. 순환참조잖아?
-				Task* pTask = new Task(thread);
-				promiseThread.set_value(pTask);
-
-				m_vecTaskWorkers[i] = pTask;
+				});
 			}
 		}
 

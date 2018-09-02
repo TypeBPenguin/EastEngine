@@ -10,11 +10,15 @@ namespace eastengine
 	{
 		namespace dx12
 		{
-			Uploader::Uploader()
+			Uploader::Uploader(uint32_t nBufferSize, uint32_t nSubmissionCount, uint32_t nTempBufferSize)
+				: m_nBufferSize(nBufferSize)
+				, m_nSubmissionCount(nSubmissionCount)
+				, m_nTempBufferSize(nTempBufferSize)
 			{
 				ID3D12Device* pDevice = Device::GetInstance()->GetInterface();
 
-				for (uint64_t i = 0; i < eMaxUploadSubmissions; ++i)
+				m_uploadSubmissions.resize(m_nSubmissionCount);
+				for (uint64_t i = 0; i < m_nSubmissionCount; ++i)
 				{
 					UploadSubmission& submission = m_uploadSubmissions[i];
 
@@ -56,7 +60,7 @@ namespace eastengine
 
 				D3D12_RESOURCE_DESC resourceDesc{};
 				resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-				resourceDesc.Width = static_cast<uint32_t>(eUploadBufferSize);
+				resourceDesc.Width = static_cast<uint32_t>(m_nBufferSize);
 				resourceDesc.Height = 1;
 				resourceDesc.DepthOrArraySize = 1;
 				resourceDesc.MipLevels = 1;
@@ -89,7 +93,7 @@ namespace eastengine
 				}
 
 				// Temporary buffer memory that swaps every frame
-				resourceDesc.Width = eTempBufferSize;
+				resourceDesc.Width = m_nTempBufferSize;
 
 				for (uint64_t i = 0; i < eFrameBufferCount; ++i)
 				{
@@ -122,7 +126,7 @@ namespace eastengine
 				m_hFenceEvent = INVALID_HANDLE_VALUE;
 				SafeRelease(m_pUploadFence);
 
-				for (uint64_t i = 0; i < eMaxUploadSubmissions; ++i)
+				for (uint64_t i = 0; i < m_nSubmissionCount; ++i)
 				{
 					SafeRelease(m_uploadSubmissions[i].pCommandAllocator);
 					SafeRelease(m_uploadSubmissions[i].pCommandList);
@@ -131,37 +135,35 @@ namespace eastengine
 
 			void Uploader::EndFrame(ID3D12CommandQueue* pCommandQueue)
 			{
-				if (TryAcquireSRWLockExclusive(&m_uploadSubmissionLock))
+				if (m_uploadSubmissionLock.TryEnter() == true)
 				{
 					ClearFinishedUploads(0);
 
-					ReleaseSRWLockExclusive(&m_uploadSubmissionLock);
+					m_uploadSubmissionLock.Leave();
 				}
 
 				{
-					AcquireSRWLockExclusive(&m_uploadQueueLock);
+					thread::AutoLock autoLock(&m_uploadQueueLock);
 
 					ClearFinishedUploads(0);
 					if (FAILED(pCommandQueue->Wait(m_pUploadFence, m_nUploadFenceValue)))
 					{
 						throw_line("failed to command queue wait");
 					}
-
-					ReleaseSRWLockExclusive(&m_uploadQueueLock);
 				}
 			}
 
 			UploadContext Uploader::BeginResourceUpload(uint64_t size)
 			{
-				size = util::AlignTo(size, 512);
+				size = util::Align(size, 512);
 
-				assert(size <= eUploadBufferSize);
+				assert(size <= m_nBufferSize);
 				assert(size > 0);
 
 				UploadSubmission* pSubmission = nullptr;
 
 				{
-					AcquireSRWLockExclusive(&m_uploadSubmissionLock);
+					thread::AutoLock autoLock(&m_uploadSubmissionLock);
 
 					ClearFinishedUploads(0);
 
@@ -171,8 +173,6 @@ namespace eastengine
 						ClearFinishedUploads(1);
 						pSubmission = AllocUploadSubmission(size);
 					}
-
-					ReleaseSRWLockExclusive(&m_uploadSubmissionLock);
 				}
 
 				if (FAILED(pSubmission->pCommandAllocator->Reset()))
@@ -202,7 +202,7 @@ namespace eastengine
 				UploadSubmission* pSubmission = reinterpret_cast<UploadSubmission*>(context.pSubmission);
 
 				{
-					AcquireSRWLockExclusive(&m_uploadQueueLock);
+					thread::AutoLock autoLock(&m_uploadQueueLock);
 
 					// Finish off and execute the command list
 					if (FAILED(pSubmission->pCommandList->Close()))
@@ -219,8 +219,6 @@ namespace eastengine
 						throw_line("failed to command queue signal");
 					}
 					pSubmission->nFenceValue = m_nUploadFenceValue;
-
-					ReleaseSRWLockExclusive(&m_uploadQueueLock);
 				}
 
 				context = UploadContext();
@@ -234,9 +232,9 @@ namespace eastengine
 				uint64_t nOffset = InterlockedAdd64(&m_nTempFrameUsed, nAllocSize) - nAllocSize;
 				if (nAlignment > 0)
 				{
-					nOffset = util::AlignTo(nOffset, nAlignment);
+					nOffset = util::Align(nOffset, nAlignment);
 				}
-				assert(nOffset + nSize <= eTempBufferSize);
+				assert(nOffset + nSize <= m_nTempBufferSize);
 
 				MapResult result;
 				result.pCPUAddress = m_pTempFrameCPUMem[nFrameIndex] + nOffset;
@@ -253,7 +251,7 @@ namespace eastengine
 				const uint64_t nUsed = m_nUploadSubmissionUsed;
 				for (uint64_t i = 0; i < nUsed; ++i)
 				{
-					const uint64_t nIndex = (nStart + i) % eMaxUploadSubmissions;
+					const uint64_t nIndex = (nStart + i) % m_nSubmissionCount;
 					UploadSubmission& subMission = m_uploadSubmissions[nIndex];
 					assert(subMission.nSize > 0);
 					assert(m_nUploadBufferUsed >= subMission.nSize);
@@ -269,12 +267,12 @@ namespace eastengine
 
 					if (m_pUploadFence->GetCompletedValue() >= subMission.nFenceValue)
 					{
-						m_nUploadSubmissionStart = (m_nUploadSubmissionStart + 1) % eMaxUploadSubmissions;
+						m_nUploadSubmissionStart = (m_nUploadSubmissionStart + 1) % m_nSubmissionCount;
 						m_nUploadSubmissionUsed -= 1;
-						m_nUploadBufferStart = (m_nUploadBufferStart + subMission.nPadding) % eUploadBufferSize;
+						m_nUploadBufferStart = (m_nUploadBufferStart + subMission.nPadding) % m_nBufferSize;
 						assert(subMission.nOffset == m_nUploadBufferStart);
-						assert(m_nUploadBufferStart + subMission.nSize <= eUploadBufferSize);
-						m_nUploadBufferStart = (m_nUploadBufferStart + subMission.nSize) % eUploadBufferSize;
+						assert(m_nUploadBufferStart + subMission.nSize <= m_nBufferSize);
+						m_nUploadBufferStart = (m_nUploadBufferStart + subMission.nSize) % m_nBufferSize;
 						m_nUploadBufferUsed -= (subMission.nSize + subMission.nPadding);
 						subMission.Reset();
 
@@ -288,25 +286,25 @@ namespace eastengine
 
 			Uploader::UploadSubmission* Uploader::AllocUploadSubmission(uint64_t nSize)
 			{
-				assert(m_nUploadSubmissionUsed <= eMaxUploadSubmissions);
+				assert(m_nUploadSubmissionUsed <= m_nSubmissionCount);
 
-				if (m_nUploadSubmissionUsed == eMaxUploadSubmissions)
+				if (m_nUploadSubmissionUsed == m_nSubmissionCount)
 					return nullptr;
 
-				const uint64_t nSubmissionIndex = (m_nUploadSubmissionStart + m_nUploadSubmissionUsed) % eMaxUploadSubmissions;
+				const uint64_t nSubmissionIndex = (m_nUploadSubmissionStart + m_nUploadSubmissionUsed) % m_nSubmissionCount;
 				assert(m_uploadSubmissions[nSubmissionIndex].nSize == 0);
 
-				assert(m_nUploadBufferUsed <= eUploadBufferSize);
-				if (nSize > (eUploadBufferSize - m_nUploadBufferUsed))
+				assert(m_nUploadBufferUsed <= m_nBufferSize);
+				if (nSize > (m_nBufferSize - m_nUploadBufferUsed))
 					return nullptr;
 
 				const uint64_t nStart = m_nUploadBufferStart;
 				const uint64_t nEnd = m_nUploadBufferStart + m_nUploadBufferUsed;
 				uint64_t nAllocOffset = std::numeric_limits<uint64_t>::max();
 				uint64_t nPadding = 0;
-				if (nEnd < eUploadBufferSize)
+				if (nEnd < m_nBufferSize)
 				{
-					const uint64_t nEndAmt = eUploadBufferSize - nEnd;
+					const uint64_t nEndAmt = m_nBufferSize - nEnd;
 					if (nEndAmt >= nSize)
 					{
 						nAllocOffset = nEnd;
@@ -321,7 +319,7 @@ namespace eastengine
 				}
 				else
 				{
-					const uint64_t nWrappedEnd = nEnd % eUploadBufferSize;
+					const uint64_t nWrappedEnd = nEnd % m_nBufferSize;
 					if ((nStart - nWrappedEnd) >= nSize)
 					{
 						nAllocOffset = nWrappedEnd;

@@ -49,9 +49,6 @@
     <Filter Include="Model\Skeleton">
       <UniqueIdentifier>{86d986b1-3c96-49c8-abdd-c98b91cebaba}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Motion\Manager">
-      <UniqueIdentifier>{4c9cef71-96d1-4aa6-b8d7-d3c657cf82fc}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Interface">
       <UniqueIdentifier>{40f7557c-4855-4f60-a709-6a99a0f52357}</UniqueIdentifier>
     </Filter>
@@ -120,9 +117,6 @@
     <ClInclude Include="ModelManager.h">
       <Filter>Model</Filter>
     </ClInclude>
-    <ClInclude Include="MotionManager.h">
-      <Filter>Motion\Manager</Filter>
-    </ClInclude>
     <ClInclude Include="FbxWriter.h">
       <Filter>Model\Importer\FBX</Filter>
     </ClInclude>
@@ -187,9 +181,6 @@
     </ClCompile>
     <ClCompile Include="ModelManager.cpp">
       <Filter>Model</Filter>
-    </ClCompile>
-    <ClCompile Include="MotionManager.cpp">
-      <Filter>Motion\Manager</Filter>
     </ClCompile>
     <ClCompile Include="FbxWriter.cpp">
       <Filter>Model\Importer\FBX</Filter>

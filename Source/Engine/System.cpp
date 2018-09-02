@@ -3,11 +3,12 @@
 
 #include "CommonLib/FileUtil.h"
 #include "CommonLib/Timer.h"
+#include "CommonLib/ThreadPool.h"
 #include "CommonLib/CrashHandler.h"
 
 #include "Input/InputDevice.h"
 #include "Model/ModelManager.h"
-//#include "GameObject/ActorManager.h"
+#include "GameObject/GameObjectManager.h"
 
 #include "FpsChecker.h"
 #include "SceneManager.h"
@@ -40,8 +41,8 @@ namespace eastengine
 
 		SceneManager* s_pSceneManager{ nullptr };
 		input::Device* s_pInputDevice{ nullptr };
-		//gameobject::ActorManager* s_pActorManager{ nullptr };
 		graphics::ModelManager* s_pModelManager{ nullptr };
+		gameobject::GameObjectManager* s_pGameObjectManager{ nullptr };
 	};
 
 	MainSystem::Impl::Impl()
@@ -61,6 +62,8 @@ namespace eastengine
 		if (CrashHandler::Initialize(strDumpPath.c_str()) == false)
 			return false;
 
+		thread::ThreadPool::GetInstance();
+
 		s_pTimer = Timer::GetInstance();
 
 		graphics::Initialize(emAPI, nWidth, nHeight, isFullScreen, strApplicationTitle, strApplicationName);
@@ -74,6 +77,7 @@ namespace eastengine
 		});
 
 		s_pModelManager = graphics::ModelManager::GetInstance();
+		s_pGameObjectManager = gameobject::GameObjectManager::GetInstance();
 
 		s_pSceneManager = SceneManager::GetInstance();
 
@@ -82,11 +86,13 @@ namespace eastengine
 
 	void MainSystem::Impl::Release()
 	{
+		thread::ThreadPool::DestroyInstance();
+
 		SceneManager::DestroyInstance();
 		s_pSceneManager = nullptr;
 
-		//gameobject::ActorManager::DestroyInstance();
-		//s_pActorManager = nullptr;
+		gameobject::GameObjectManager::DestroyInstance();
+		s_pGameObjectManager = nullptr;
 
 		graphics::ModelManager::DestroyInstance();
 		s_pModelManager = nullptr;
@@ -134,7 +140,7 @@ namespace eastengine
 	{
 		s_pInputDevice->Update(fElapsedTime);
 		s_pSceneManager->Update(fElapsedTime);
-		//s_pActorManager->Update(fElapsedTime);
+		s_pGameObjectManager->Update(fElapsedTime);
 		s_pModelManager->Update();
 		graphics::Update(fElapsedTime);
 	}

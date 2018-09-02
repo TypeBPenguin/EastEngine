@@ -12,12 +12,24 @@ namespace eastengine
 			Move(destination, sizeof(T) * size, pSource, nSourceSize);
 		}
 
+		template <typename T, std::size_t size>
+		inline void Move(std::array<T, size>& destination, const void* pSource, std::size_t nSourceSize = _TRUNCATE)
+		{
+			Move(destination.data(), sizeof(T) * size, pSource, nSourceSize);
+		}
+
 		void Copy(void* pDestination, std::size_t nDestinationSize, const void* pSource, std::size_t nSourceSize = _TRUNCATE);
 		
 		template <typename T, std::size_t size>
 		inline void Copy(T(&destination)[size], const void* pSource, std::size_t nSourceSize = _TRUNCATE)
 		{
 			Copy(destination, sizeof(T) * size, pSource, nSourceSize);
+		}
+
+		template <typename T, std::size_t size>
+		inline void Copy(std::array<T, size>& destination, const void* pSource, std::size_t nSourceSize = _TRUNCATE)
+		{
+			Copy(destination.data(), sizeof(T) * size, pSource, nSourceSize);
 		}
 
 		void Fill(void* pDestination, std::size_t nDestinationSize, int nValue);

@@ -40,22 +40,14 @@ namespace eastengine
 				pDescriptorHeap->FreePersistent(m_nDescriptorIndex);
 			}
 
-			bool Texture::Initialize(const D3D12_RESOURCE_DESC* pDesc, bool isDynamic)
+			bool Texture::Initialize(const D3D12_RESOURCE_DESC* pDesc)
 			{
 				String::StringID strName(m_key.value);
 
 				ID3D12Device* pDevice = Device::GetInstance()->GetInterface();
 
-				ID3D12Resource* pResource = nullptr;
-
 				CD3DX12_HEAP_PROPERTIES heapProperties(D3D12_HEAP_TYPE_DEFAULT, 0, 0);
-				if (isDynamic == true)
-				{
-					heapProperties.Type = D3D12_HEAP_TYPE_READBACK;
-					heapProperties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
-					heapProperties.MemoryPoolPreference = D3D12_MEMORY_POOL_L0;
-				}
-
+				ID3D12Resource* pResource = nullptr;
 				HRESULT hr = pDevice->CreateCommittedResource(&heapProperties, D3D12_HEAP_FLAG_NONE, pDesc,
 					D3D12_RESOURCE_STATE_COMMON, nullptr, IID_PPV_ARGS(&pResource));
 				if (FAILED(hr))
@@ -72,13 +64,13 @@ namespace eastengine
 				uint32_t* numRows = static_cast<uint32_t*>(_alloca(sizeof(uint32_t) * numSubResources));
 				uint64_t* rowSizes = static_cast<uint64_t*>(_alloca(sizeof(uint64_t) * numSubResources));
 
-				uint64_t textureMemSize = 0;
-				pDevice->GetCopyableFootprints(pDesc, 0, uint32_t(numSubResources), 0, layouts, numRows, rowSizes, &textureMemSize);
+				uint64_t nTextureMemSize = 0;
+				pDevice->GetCopyableFootprints(pDesc, 0, uint32_t(numSubResources), 0, layouts, numRows, rowSizes, &nTextureMemSize);
 
 				Uploader* pUploader = Device::GetInstance()->GetUploader();
 
 				// Get a GPU upload buffer
-				UploadContext uploadContext = pUploader->BeginResourceUpload(textureMemSize);
+				UploadContext uploadContext = pUploader->BeginResourceUpload(nTextureMemSize);
 				uint8_t* uploadMem = reinterpret_cast<uint8_t*>(uploadContext.pCPUAddress);
 
 				for (uint64_t arrayIdx = 0; arrayIdx < pDesc->DepthOrArraySize; ++arrayIdx)
@@ -155,17 +147,37 @@ namespace eastengine
 				if (String::IsEqualsNoCase(strFileExtension.c_str(), "dds"))
 				{
 					hr = DirectX::LoadFromDDSFile(String::MultiToWide(strFilePath).c_str(), DirectX::DDS_FLAGS_NONE, nullptr, image);
+
+					if (FAILED(hr))
+					{
+						LOG_ERROR("failed to load texture : %s", strFilePath);
+						return false;
+					}
 				}
 				else if (String::IsEqualsNoCase(strFileExtension.c_str(), "tga"))
 				{
 					DirectX::ScratchImage tempImage;
 					hr = DirectX::LoadFromTGAFile(String::MultiToWide(strFilePath).c_str(), nullptr, tempImage);
+
+					if (FAILED(hr))
+					{
+						LOG_ERROR("failed to load texture : %s", strFilePath);
+						return false;
+					}
+
 					hr = DirectX::GenerateMipMaps(*tempImage.GetImage(0, 0, 0), DirectX::TEX_FILTER_DEFAULT, 0, image, false);
 				}
 				else
 				{
 					DirectX::ScratchImage tempImage;
 					hr = DirectX::LoadFromWICFile(String::MultiToWide(strFilePath).c_str(), DirectX::WIC_FLAGS_NONE, nullptr, tempImage);
+
+					if (FAILED(hr))
+					{
+						LOG_ERROR("failed to load texture : %s", strFilePath);
+						return false;
+					}
+
 					hr = DirectX::GenerateMipMaps(*tempImage.GetImage(0, 0, 0), DirectX::TEX_FILTER_DEFAULT, 0, image, false);
 				}
 
@@ -274,13 +286,13 @@ namespace eastengine
 				uint32_t* numRows = static_cast<uint32_t*>(_alloca(sizeof(uint32_t) * numSubResources));
 				uint64_t* rowSizes = static_cast<uint64_t*>(_alloca(sizeof(uint64_t) * numSubResources));
 
-				uint64_t textureMemSize = 0;
-				pDevice->GetCopyableFootprints(&textureDesc, 0, uint32_t(numSubResources), 0, layouts, numRows, rowSizes, &textureMemSize);
+				uint64_t nTextureMemSize = 0;
+				pDevice->GetCopyableFootprints(&textureDesc, 0, uint32_t(numSubResources), 0, layouts, numRows, rowSizes, &nTextureMemSize);
 
 				Uploader* pUploader = Device::GetInstance()->GetUploader();
 
 				// Get a GPU upload buffer
-				UploadContext uploadContext = pUploader->BeginResourceUpload(textureMemSize);
+				UploadContext uploadContext = pUploader->BeginResourceUpload(nTextureMemSize);
 				uint8_t* uploadMem = reinterpret_cast<uint8_t*>(uploadContext.pCPUAddress);
 
 				for (uint64_t arrayIdx = 0; arrayIdx < metaData.arraySize; ++arrayIdx)
@@ -336,6 +348,7 @@ namespace eastengine
 			bool Texture::Bind(ID3D12Resource* pResource, const D3D12_SHADER_RESOURCE_VIEW_DESC* pDesc)
 			{
 				m_pResource = pResource;
+				m_pResource->AddRef();
 
 				ID3D12Device* pDevice = Device::GetInstance()->GetInterface();
 

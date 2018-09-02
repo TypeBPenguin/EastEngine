@@ -22,7 +22,7 @@ namespace eastengine
 					}
 				}
 
-				void GetInputElementDesc(EmVertexFormat::Type emType, const D3D12_INPUT_ELEMENT_DESC** ppInputElements_out, size_t& nElementCount_out)
+				void GetInputElementDesc(EmVertexFormat::Type emType, const D3D12_INPUT_ELEMENT_DESC** ppInputElements_out, size_t* pElementCount_out)
 				{
 					switch (emType)
 					{
@@ -37,7 +37,11 @@ namespace eastengine
 						{
 							*ppInputElements_out = inputElements;
 						}
-						nElementCount_out = _countof(inputElements);
+
+						if (pElementCount_out != nullptr)
+						{
+							*pElementCount_out = _countof(inputElements);
+						}
 					}
 					break;
 					case EmVertexFormat::ePos4:
@@ -51,7 +55,11 @@ namespace eastengine
 						{
 							*ppInputElements_out = inputElements;
 						}
-						nElementCount_out = _countof(inputElements);
+
+						if (pElementCount_out != nullptr)
+						{
+							*pElementCount_out = _countof(inputElements);
+						}
 					}
 					break;
 					case EmVertexFormat::ePosCol:
@@ -66,7 +74,11 @@ namespace eastengine
 						{
 							*ppInputElements_out = inputElements;
 						}
-						nElementCount_out = _countof(inputElements);
+
+						if (pElementCount_out != nullptr)
+						{
+							*pElementCount_out = _countof(inputElements);
+						}
 					}
 					break;
 					case EmVertexFormat::ePosTex:
@@ -81,7 +93,11 @@ namespace eastengine
 						{
 							*ppInputElements_out = inputElements;
 						}
-						nElementCount_out = _countof(inputElements);
+
+						if (pElementCount_out != nullptr)
+						{
+							*pElementCount_out = _countof(inputElements);
+						}
 					}
 					break;
 					case EmVertexFormat::ePosTexCol:
@@ -97,7 +113,11 @@ namespace eastengine
 						{
 							*ppInputElements_out = inputElements;
 						}
-						nElementCount_out = _countof(inputElements);
+
+						if (pElementCount_out != nullptr)
+						{
+							*pElementCount_out = _countof(inputElements);
+						}
 					}
 					break;
 					case EmVertexFormat::ePosTexNor:
@@ -113,7 +133,11 @@ namespace eastengine
 						{
 							*ppInputElements_out = inputElements;
 						}
-						nElementCount_out = _countof(inputElements);
+
+						if (pElementCount_out != nullptr)
+						{
+							*pElementCount_out = _countof(inputElements);
+						}
 					}
 					break;
 					case EmVertexFormat::ePosTexNorCol:
@@ -130,7 +154,11 @@ namespace eastengine
 						{
 							*ppInputElements_out = inputElements;
 						}
-						nElementCount_out = _countof(inputElements);
+
+						if (pElementCount_out != nullptr)
+						{
+							*pElementCount_out = _countof(inputElements);
+						}
 					}
 					break;
 					case EmVertexFormat::ePosTexNorTanBin:
@@ -148,7 +176,11 @@ namespace eastengine
 						{
 							*ppInputElements_out = inputElements;
 						}
-						nElementCount_out = _countof(inputElements);
+
+						if (pElementCount_out != nullptr)
+						{
+							*pElementCount_out = _countof(inputElements);
+						}
 					}
 					break;
 					case EmVertexFormat::ePosTexNorWeiIdx:
@@ -166,12 +198,23 @@ namespace eastengine
 						{
 							*ppInputElements_out = inputElements;
 						}
-						nElementCount_out = _countof(inputElements);
+
+						if (pElementCount_out != nullptr)
+						{
+							*pElementCount_out = _countof(inputElements);
+						}
 					}
 					break;
 					default:
-						*ppInputElements_out = nullptr;
-						nElementCount_out = 0;
+						if (ppInputElements_out != nullptr)
+						{
+							*ppInputElements_out = nullptr;
+						}
+
+						if (pElementCount_out != nullptr)
+						{
+							*pElementCount_out = 0;
+						}
 						break;
 					}
 				}
@@ -198,7 +241,7 @@ namespace eastengine
 
 				bool CreateConstantBuffer(ID3D12Device* pDevice, size_t nSize, ID3D12Resource** ppBuffer_out, const wchar_t* wstrDebugName)
 				{
-					size_t nAlignedSize = AlignTo(nSize, D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+					size_t nAlignedSize = Align(nSize, D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 
 					CD3DX12_HEAP_PROPERTIES heapProperties(D3D12_HEAP_TYPE_UPLOAD);
 					CD3DX12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(nAlignedSize);
@@ -215,6 +258,131 @@ namespace eastengine
 					}
 
 					return false;
+				}
+
+				int GetPixelSizeInBytes(DXGI_FORMAT val)
+				{
+					switch (val)
+					{
+					case DXGI_FORMAT_UNKNOWN: return 0;
+					case DXGI_FORMAT_R32G32B32A32_TYPELESS: return 4 * 4;
+					case DXGI_FORMAT_R32G32B32A32_FLOAT: return 4 * 4;
+					case DXGI_FORMAT_R32G32B32A32_UINT: return 4 * 4;
+					case DXGI_FORMAT_R32G32B32A32_SINT: return 4 * 4;
+					case DXGI_FORMAT_R32G32B32_TYPELESS: return 3 * 4;
+					case DXGI_FORMAT_R32G32B32_FLOAT: return 3 * 4;
+					case DXGI_FORMAT_R32G32B32_UINT: return 3 * 4;
+					case DXGI_FORMAT_R32G32B32_SINT: return 3 * 4;
+					case DXGI_FORMAT_R16G16B16A16_TYPELESS: return 4 * 2;
+					case DXGI_FORMAT_R16G16B16A16_FLOAT: return 4 * 2;
+					case DXGI_FORMAT_R16G16B16A16_UNORM: return 4 * 2;
+					case DXGI_FORMAT_R16G16B16A16_UINT: return 4 * 2;
+					case DXGI_FORMAT_R16G16B16A16_SNORM: return 4 * 2;
+					case DXGI_FORMAT_R16G16B16A16_SINT: return 4 * 2;
+					case DXGI_FORMAT_R32G32_TYPELESS: return 2 * 4;
+					case DXGI_FORMAT_R32G32_FLOAT: return 2 * 4;
+					case DXGI_FORMAT_R32G32_UINT: return 2 * 4;
+					case DXGI_FORMAT_R32G32_SINT: return 2 * 4;
+					case DXGI_FORMAT_R32G8X24_TYPELESS: return 4 + 1;
+					case DXGI_FORMAT_D32_FLOAT_S8X24_UINT: return 4 + 1;
+					case DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS: return 4 + 1;
+					case DXGI_FORMAT_X32_TYPELESS_G8X24_UINT: return 4 + 1;
+					case DXGI_FORMAT_R10G10B10A2_TYPELESS: return 4;
+					case DXGI_FORMAT_R10G10B10A2_UNORM: return 4;
+					case DXGI_FORMAT_R10G10B10A2_UINT: return 4;
+					case DXGI_FORMAT_R11G11B10_FLOAT: return 4;
+					case DXGI_FORMAT_R8G8B8A8_TYPELESS: return 4;
+					case DXGI_FORMAT_R8G8B8A8_UNORM: return 4;
+					case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB: return 4;
+					case DXGI_FORMAT_R8G8B8A8_UINT: return 4;
+					case DXGI_FORMAT_R8G8B8A8_SNORM: return 4;
+					case DXGI_FORMAT_R8G8B8A8_SINT: return 4;
+					case DXGI_FORMAT_R16G16_TYPELESS: return 4;
+					case DXGI_FORMAT_R16G16_FLOAT: return 4;
+					case DXGI_FORMAT_R16G16_UNORM: return 4;
+					case DXGI_FORMAT_R16G16_UINT: return 4;
+					case DXGI_FORMAT_R16G16_SNORM: return 4;
+					case DXGI_FORMAT_R16G16_SINT: return 4;
+					case DXGI_FORMAT_R32_TYPELESS: return 4;
+					case DXGI_FORMAT_D32_FLOAT: return 4;
+					case DXGI_FORMAT_R32_FLOAT: return 4;
+					case DXGI_FORMAT_R32_UINT: return 4;
+					case DXGI_FORMAT_R32_SINT: return 4;
+					case DXGI_FORMAT_R24G8_TYPELESS: return 4;
+					case DXGI_FORMAT_D24_UNORM_S8_UINT: return 4;
+					case DXGI_FORMAT_R24_UNORM_X8_TYPELESS: return 4;
+					case DXGI_FORMAT_X24_TYPELESS_G8_UINT: return 4;
+					case DXGI_FORMAT_R8G8_TYPELESS: return 2;
+					case DXGI_FORMAT_R8G8_UNORM: return 2;
+					case DXGI_FORMAT_R8G8_UINT: return 2;
+					case DXGI_FORMAT_R8G8_SNORM: return 2;
+					case DXGI_FORMAT_R8G8_SINT: return 2;
+					case DXGI_FORMAT_R16_TYPELESS: return 2;
+					case DXGI_FORMAT_R16_FLOAT: return 2;
+					case DXGI_FORMAT_D16_UNORM: return 2;
+					case DXGI_FORMAT_R16_UNORM: return 2;
+					case DXGI_FORMAT_R16_UINT: return 2;
+					case DXGI_FORMAT_R16_SNORM: return 2;
+					case DXGI_FORMAT_R16_SINT: return 2;
+					case DXGI_FORMAT_R8_TYPELESS: return 1;
+					case DXGI_FORMAT_R8_UNORM: return 1;
+					case DXGI_FORMAT_R8_UINT: return 1;
+					case DXGI_FORMAT_R8_SNORM: return 1;
+					case DXGI_FORMAT_R8_SINT: return 1;
+					case DXGI_FORMAT_A8_UNORM: return 1;
+					case DXGI_FORMAT_R1_UNORM: return 1;
+					case DXGI_FORMAT_R9G9B9E5_SHAREDEXP: return 4;
+					case DXGI_FORMAT_R8G8_B8G8_UNORM: return 4;
+					case DXGI_FORMAT_G8R8_G8B8_UNORM: return 4;
+					case DXGI_FORMAT_BC1_TYPELESS: assert(false); return 0; // not supported for compressed formats
+					case DXGI_FORMAT_BC1_UNORM: assert(false); return 0; // not supported for compressed formats
+					case DXGI_FORMAT_BC1_UNORM_SRGB: assert(false); return 0; // not supported for compressed formats
+					case DXGI_FORMAT_BC2_TYPELESS: assert(false); return 0; // not supported for compressed formats
+					case DXGI_FORMAT_BC2_UNORM: assert(false); return 0; // not supported for compressed formats
+					case DXGI_FORMAT_BC2_UNORM_SRGB: assert(false); return 0; // not supported for compressed formats
+					case DXGI_FORMAT_BC3_TYPELESS: assert(false); return 0; // not supported for compressed formats
+					case DXGI_FORMAT_BC3_UNORM: assert(false); return 0; // not supported for compressed formats
+					case DXGI_FORMAT_BC3_UNORM_SRGB: assert(false); return 0; // not supported for compressed formats
+					case DXGI_FORMAT_BC4_TYPELESS: assert(false); return 0; // not supported for compressed formats
+					case DXGI_FORMAT_BC4_UNORM: assert(false); return 0; // not supported for compressed formats
+					case DXGI_FORMAT_BC4_SNORM: assert(false); return 0; // not supported for compressed formats
+					case DXGI_FORMAT_BC5_TYPELESS: assert(false); return 0; // not supported for compressed formats
+					case DXGI_FORMAT_BC5_UNORM: assert(false); return 0; // not supported for compressed formats
+					case DXGI_FORMAT_BC5_SNORM: assert(false); return 0; // not supported for compressed formats
+					case DXGI_FORMAT_B5G6R5_UNORM: return 2;
+					case DXGI_FORMAT_B5G5R5A1_UNORM: return 2;
+					case DXGI_FORMAT_B8G8R8A8_UNORM: return 4;
+					case DXGI_FORMAT_B8G8R8X8_UNORM: return 4;
+					case DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM: return 4;
+					case DXGI_FORMAT_B8G8R8A8_TYPELESS: return 4;
+					case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB: return 4;
+					case DXGI_FORMAT_B8G8R8X8_TYPELESS: return 4;
+					case DXGI_FORMAT_B8G8R8X8_UNORM_SRGB: return 4;
+					case DXGI_FORMAT_BC6H_TYPELESS: assert(false); return 0; // not supported for compressed formats
+					case DXGI_FORMAT_BC6H_UF16: assert(false); return 0; // not supported for compressed formats
+					case DXGI_FORMAT_BC6H_SF16: assert(false); return 0; // not supported for compressed formats
+					case DXGI_FORMAT_BC7_TYPELESS: assert(false); return 0; // not supported for compressed formats
+					case DXGI_FORMAT_BC7_UNORM: assert(false); return 0; // not supported for compressed formats
+					case DXGI_FORMAT_BC7_UNORM_SRGB: assert(false); return 0; // not supported for compressed formats
+					case DXGI_FORMAT_AYUV: assert(false); return 0; // not yet implemented
+					case DXGI_FORMAT_Y410: assert(false); return 0; // not yet implemented
+					case DXGI_FORMAT_Y416: assert(false); return 0; // not yet implemented
+					case DXGI_FORMAT_NV12: assert(false); return 0; // not yet implemented
+					case DXGI_FORMAT_P010: assert(false); return 0; // not yet implemented
+					case DXGI_FORMAT_P016: assert(false); return 0; // not yet implemented
+					case DXGI_FORMAT_YUY2: assert(false); return 0; // not yet implemented
+					case DXGI_FORMAT_Y210: assert(false); return 0; // not yet implemented
+					case DXGI_FORMAT_Y216: assert(false); return 0; // not yet implemented
+					case DXGI_FORMAT_NV11: assert(false); return 0; // not yet implemented
+					case DXGI_FORMAT_AI44: assert(false); return 0; // not yet implemented
+					case DXGI_FORMAT_IA44: assert(false); return 0; // not yet implemented
+					case DXGI_FORMAT_P8: return 1;
+					case DXGI_FORMAT_A8P8: return 2;
+					case DXGI_FORMAT_B4G4R4A4_UNORM: return 2;
+					default: break;
+					}
+					assert(false);
+					return 0;
 				}
 
 				D3D12_STATIC_SAMPLER_DESC GetStaticSamplerDesc(EmSamplerState::Type emSamplerState, uint32_t nShaderRegister, uint32_t nRegisterSpace, D3D12_SHADER_VISIBILITY shaderVisibility)

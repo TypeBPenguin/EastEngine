@@ -64,6 +64,9 @@
     <Filter Include="GameObject\Sky">
       <UniqueIdentifier>{4acaefaf-c7ca-4009-84f1-f814244625f9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="GameObject\Manager">
+      <UniqueIdentifier>{c2fdd33c-9e94-4f12-88e4-2bfcc9ee01a0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -111,23 +114,17 @@
     <ClInclude Include="ComponentTimer.h">
       <Filter>Component\Timer</Filter>
     </ClInclude>
-    <ClInclude Include="ActorManager.h">
-      <Filter>GameObject\Actor</Filter>
-    </ClInclude>
     <ClInclude Include="ComponentLight.h">
       <Filter>Component\Light</Filter>
     </ClInclude>
     <ClInclude Include="GameObject.h">
       <Filter>GameObject\Interface</Filter>
     </ClInclude>
-    <ClInclude Include="TerrainManager.h">
-      <Filter>GameObject\Terrain</Filter>
-    </ClInclude>
     <ClInclude Include="Skybox.h">
       <Filter>GameObject\Sky</Filter>
     </ClInclude>
-    <ClInclude Include="SkyManager.h">
-      <Filter>GameObject\Sky</Filter>
+    <ClInclude Include="GameObjectManager.h">
+      <Filter>GameObject\Manager</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -170,23 +167,17 @@
     <ClCompile Include="ComponentTimer.cpp">
       <Filter>Component\Timer</Filter>
     </ClCompile>
-    <ClCompile Include="ActorManager.cpp">
-      <Filter>GameObject\Actor</Filter>
-    </ClCompile>
     <ClCompile Include="ComponentLight.cpp">
       <Filter>Component\Light</Filter>
     </ClCompile>
     <ClCompile Include="GameObject.cpp">
       <Filter>GameObject\Interface</Filter>
     </ClCompile>
-    <ClCompile Include="TerrainManager.cpp">
-      <Filter>GameObject\Terrain</Filter>
-    </ClCompile>
     <ClCompile Include="Skybox.cpp">
       <Filter>GameObject\Sky</Filter>
     </ClCompile>
-    <ClCompile Include="SkyManager.cpp">
-      <Filter>GameObject\Sky</Filter>
+    <ClCompile Include="GameObjectManager.cpp">
+      <Filter>GameObject\Manager</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

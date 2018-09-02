@@ -83,11 +83,11 @@ namespace eastengine
 			std::vsnprintf(buf.get(), size, msg, args);
 			va_end(args);
 
-			const int nInfoLength = static_cast<int>(sizeof(s_strMessage) + sizeof(s_strInfo1) + sizeof(s_strInfo2) + sizeof(s_strInfo3));
+			const size_t nInfoLength = sizeof(s_strMessage) + sizeof(s_strInfo1) + sizeof(s_strInfo2) + sizeof(s_strInfo3);
 			std::string strLine = std::to_string(line);
 
 			std::string strBuffer;
-			strBuffer.resize(size + nInfoLength + strlen(file) + strLine.size());
+			strBuffer.resize(static_cast<size_t>(size) + nInfoLength + strlen(file) + strLine.size());
 
 			strBuffer = s_strMessage;
 			strBuffer.append(buf.get());
@@ -112,11 +112,11 @@ namespace eastengine
 			std::vsnprintf(buf.get(), size, msg, args);
 			va_end(args);
 
-			const int nInfoLength = static_cast<int>(sizeof(s_strWarning) + sizeof(s_strInfo1) + sizeof(s_strInfo2) + sizeof(s_strInfo3));
+			const size_t nInfoLength = sizeof(s_strWarning) + sizeof(s_strInfo1) + sizeof(s_strInfo2) + sizeof(s_strInfo3);
 			std::string strLine = std::to_string(line);
 
 			std::string strBuffer;
-			strBuffer.resize(size + nInfoLength + strlen(file) + strLine.size());
+			strBuffer.resize(static_cast<size_t>(size) + nInfoLength + strlen(file) + strLine.size());
 
 			strBuffer = s_strWarning;
 			strBuffer.append(buf.get());
@@ -141,11 +141,11 @@ namespace eastengine
 			std::vsnprintf(buf.get(), size, msg, args);
 			va_end(args);
 
-			const int nInfoLength = static_cast<int>(sizeof(s_strError) + sizeof(s_strInfo1) + sizeof(s_strInfo2) + sizeof(s_strInfo3));
+			const size_t nInfoLength = sizeof(s_strError) + sizeof(s_strInfo1) + sizeof(s_strInfo2) + sizeof(s_strInfo3);
 			std::string strLine = std::to_string(line);
 
 			std::string strBuffer;
-			strBuffer.resize(size + nInfoLength + strlen(file) + strLine.size());
+			strBuffer.resize(static_cast<size_t>(size) + nInfoLength + strlen(file) + strLine.size());
 
 			strBuffer = s_strError;
 			strBuffer.append(buf.get());

@@ -15,7 +15,9 @@
 #define _SCL_SECURE_NO_WARNINGS
 #endif
 
+#include <optional>
+#include <set>
+
 #include "CommonLib/CommonLib.h"
-#include "Model/ModelManager.h"
-#include "Renderer/RendererManager.h"
+#include "Graphics/Graphics.h"
 #include "Physics/PhysicsSystem.h"

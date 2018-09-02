@@ -16,6 +16,77 @@ namespace eastengine
 {
 	namespace graphics
 	{
+		struct Options
+		{
+			bool OnHDR{ false };
+			bool OnFXAA{ false };
+			bool OnDOF{ false };
+			bool OnASSAO{ false };
+			bool OnColorGrading{ false };
+			bool OnBloomFilter{ false };
+			bool OnSSS{ false };
+
+			struct DepthOfFieldConfig
+			{
+				float FocalDistnace{ 5.f };
+				float FocalWidth{ 20.f };
+			};
+			DepthOfFieldConfig depthOfFieldConfig;
+
+			struct AssaoConfig
+			{
+				float Radius{ 1.2f };								// [0.0,  ~ ] World (view) space size of the occlusion sphere.
+				float ShadowMultiplier{ 1.f };						// [0.0, 5.0] Effect strength linear multiplier
+				float ShadowPower{ 1.5f };							// [0.5, 5.0] Effect strength pow modifier
+				float ShadowClamp{ 0.98f };							// [0.0, 1.0] Effect max limit (applied after multiplier but before blur)
+				float HorizonAngleThreshold{ 0.06f };				// [0.0, 0.2] Limits self-shadowing (makes the sampling area less of a hemisphere, more of a spherical cone, to avoid self-shadowing and various artifacts due to low tessellation and depth buffer imprecision, etc.)
+				float FadeOutFrom{ 50.f };							// [0.0,  ~ ] Distance to start start fading out the effect.
+				float FadeOutTo{ 300.f };							// [0.0,  ~ ] Distance at which the effect is faded out.
+				float AdaptiveQualityLimit{ 0.45f };				// [0.0, 1.0] (only for Quality Level 3)
+				int QualityLevel{ 2 };								// [ -1,  3 ] Effect quality{}; -1 - lowest (low, half res checkerboard), 0 - low, 1 - medium, 2 - high, 3 - very high / adaptive{}; each quality level is roughly 2x more costly than the previous, except the q3 which is variable but, in general, above q2.
+				int BlurPassCount{ 2 };								// [  0,   6] Number of edge-sensitive smart blur passes to apply. Quality 0 is an exception with only one 'dumb' blur pass used.
+				float Sharpness{ 0.98f };							// [0.0, 1.0] (How much to bleed over edges{}; 1: not at all, 0.5: half-half{}; 0.0: completely ignore edges)
+				float TemporalSupersamplingAngleOffset{ 0.f };		// [0.0,  PI] Used to rotate sampling kernel{}; If using temporal AA / supersampling, suggested to rotate by ( (frame%3)/3.0*PI ) or similar. Kernel is already symmetrical, which is why we use PI and not 2*PI.
+				float TemporalSupersamplingRadiusOffset{ 1.f };		// [0.0, 2.0] Used to scale sampling kernel{}; If using temporal AA / supersampling, suggested to scale by ( 1.0f + (((frame%3)-1.0)/3.0)*0.1 ) or similar.
+				float DetailShadowStrength{ 0.5f };					// [0.0, 5.0] Used for high-res detail AO using neighboring depth pixels: adds a lot of detail but also reduces temporal stability (adds aliasing).
+			};
+			AssaoConfig assaoConfig;
+
+			struct ColorGradingConfig
+			{
+				math::Vector3 colorGuide{ 1.f, 0.588f, 0.529f };
+			};
+			ColorGradingConfig colorGradingConfig;
+
+			struct BloomFilterConfig
+			{
+				enum Presets
+				{
+					eWide = 0,
+					eFocussed,
+					eSmall,
+					eSuperWide,
+					eCheap,
+					eOne,
+				};
+
+				Presets emPreset{ Presets::eWide };
+				float fThreshold{ 0.2f };
+				float fStrengthMultiplier{ 1.f };
+				bool isEnableLuminance{ false };
+			};
+			BloomFilterConfig bloomFilterConfig;
+
+			struct SSSConfig
+			{
+				float fWidth{ 1.f };
+			};
+			SSSConfig sssConfig;
+		};
+
+		const Options& GetOptions();
+		void SetOptions(const Options& options);
+
 		class IVertexBuffer : public IResource
 		{
 		protected:
@@ -62,7 +133,7 @@ namespace eastengine
 			struct tKey {};
 
 		public:
-			using Key = PhantomType<tKey, const String::StringKey>;
+			using Key = PhantomType<tKey, const String::StringID>;
 
 		public:
 			virtual const Key& GetKey() const = 0;
@@ -167,46 +238,30 @@ namespace eastengine
 			virtual bool IsLoadComplete() const = 0;
 		};
 
-		class ImageBasedLight
+		class IImageBasedLight
 		{
 		public:
-			ImageBasedLight() = default;
-			virtual ~ImageBasedLight();
+			IImageBasedLight() = default;
 
-		private:
-			void SetTexture(ITexture** ppDest, ITexture* pSource)
-			{
-				if (*ppDest != nullptr)
-				{
-					(*ppDest)->DecreaseReference();
-				}
-
-				*ppDest = pSource;
-
-				if (*ppDest != nullptr)
-				{
-					(*ppDest)->IncreaseReference();
-				}
-			}
+		protected:
+			virtual ~IImageBasedLight() = default;
 
 		public:
-			ITexture* GetEnvHDR() const { return m_pEnvHDR; }
-			void SetEnvHDR(ITexture* pEnvHDR) { SetTexture(&m_pEnvHDR, pEnvHDR); }
+			virtual ITexture* GetEnvironmentHDR() const = 0;
+			virtual void SetEnvironmentHDR(ITexture* pEnvironmentHDR) = 0;
 
-			ITexture* GetDiffuseHDR() const { return m_pDiffuseHDR; }
-			void SetDiffuseHDR(ITexture* pDiffuseHDR) { SetTexture(&m_pDiffuseHDR, pDiffuseHDR); }
+			virtual ITexture* GetDiffuseHDR() const = 0;
+			virtual void SetDiffuseHDR(ITexture* pDiffuseHDR) = 0;
 
-			ITexture* GetSpecularHDR() const { return m_pSpecularHDR; }
-			void SetSpecularHDR(ITexture* pSpecularHDR) { SetTexture(&m_pSpecularHDR, pSpecularHDR); }
+			virtual ITexture* GetSpecularHDR() const = 0;
+			virtual void SetSpecularHDR(ITexture* pSpecularHDR) = 0;
 
-			ITexture* GetSpecularBRDF() const { return m_pSpecularBRDF; }
-			void SetSpecularBRDF(ITexture* pSpecularBRDF) { SetTexture(&m_pSpecularBRDF, pSpecularBRDF); }
+			virtual ITexture* GetSpecularBRDF() const = 0;
+			virtual void SetSpecularBRDF(ITexture* pSpecularBRDF) = 0;
 
-		public:
-			ITexture* m_pEnvHDR{ nullptr };
-			ITexture* m_pDiffuseHDR{ nullptr };
-			ITexture* m_pSpecularHDR{ nullptr };
-			ITexture* m_pSpecularBRDF{ nullptr };
+			virtual IVertexBuffer* GetEnvironmentSphereVB() const = 0;
+			virtual IIndexBuffer* GetEnvironmentSphereIB() const = 0;
+			virtual void SetEnvironmentSphere(IVertexBuffer* pEnvironmentSphereVB, IIndexBuffer* pEnvironmentSphereIB) = 0;
 		};
 
 		class IVTFManager
@@ -234,9 +289,9 @@ namespace std
 	template <>
 	struct hash<eastengine::graphics::ITexture::Key>
 	{
-		std::uint64_t operator()(const eastengine::graphics::ITexture::Key& key) const
+		const eastengine::String::StringData* operator()(const eastengine::graphics::ITexture::Key& key) const
 		{
-			return key.value.value;
+			return key.value.Key();
 		}
 	};
 }

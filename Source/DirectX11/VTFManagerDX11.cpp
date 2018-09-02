@@ -36,7 +36,7 @@ namespace eastengine
 				initialData.SysMemPitch = eTextureWidth * sizeof(math::Vector4);
 				initialData.SysMemSlicePitch = 1;
 
-				ITexture::Key key(StrID::EastEngine_VTF.Key());
+				ITexture::Key key(StrID::EastEngine_VTF);
 				Texture* pVTFTexture = new Texture(key);
 				pVTFTexture->Initialize(&desc, &initialData);
 
@@ -45,8 +45,7 @@ namespace eastengine
 
 			VTFManager::~VTFManager()
 			{
-				Texture* pTexture = static_cast<Texture*>(m_vtfInstance.pVTF);
-				SafeDelete(pTexture);
+				SafeDelete(m_vtfInstance.pVTF);
 			}
 
 			bool VTFManager::Allocate(uint32_t nMatrixCount, math::Matrix** ppDest_Out, uint32_t& nVTFID_Out)
@@ -75,18 +74,17 @@ namespace eastengine
 
 				ID3D11DeviceContext* pDeviceContext = Device::GetInstance()->GetImmediateContext();
 
-				Texture* pTexture = static_cast<Texture*>(m_vtfInstance.pVTF);
-
 				D3D11_MAPPED_SUBRESOURCE mapped{};
-				HRESULT hr = pDeviceContext->Map(pTexture->GetTexture2D(), 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &mapped);
+				HRESULT hr = pDeviceContext->Map(m_vtfInstance.pVTF->GetTexture2D(), 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &mapped);
 				if (FAILED(hr))
 					return false;
 
 				const uint32_t nDestSize = sizeof(math::Matrix) * eBufferCapacity;
-
 				Memory::Copy(mapped.pData, nDestSize, m_vtfInstance.buffer.data(), sizeof(math::Matrix) * m_vtfInstance.nAllocatedCount);
 
-				pDeviceContext->Unmap(pTexture->GetTexture2D(), 0);
+				pDeviceContext->Unmap(m_vtfInstance.pVTF->GetTexture2D(), 0);
+
+				m_vtfInstance.nAllocatedCount = 0;
 
 				return true;
 			}

@@ -102,6 +102,7 @@ namespace eastengine
 			{
 				const math::Vector3* pVertices = nullptr;
 				uint32_t nVertexCount = 0;
+				uint32_t nStride = 0;
 				const uint32_t* pIndices = nullptr;
 				uint32_t nIndexCount = 0;
 			};
@@ -276,6 +277,18 @@ namespace eastengine
 
 				triangleMesh.pVertices = pVertices;
 				triangleMesh.nVertexCount = nVertexCount;
+				triangleMesh.pIndices = pIndices;
+				triangleMesh.nIndexCount = nIndexCount;
+				emPhysicsShapeType = Physics::EmPhysicsShape::eTriangleMesh;
+			}
+
+			void SetTriangleMesh(const math::Vector3* pVertices, uint32_t nVertexCount, uint32_t nStride, const uint32_t* pIndices, uint32_t nIndexCount)
+			{
+				TriangleMesh& triangleMesh = element.emplace<TriangleMesh>();
+
+				triangleMesh.pVertices = pVertices;
+				triangleMesh.nVertexCount = nVertexCount;
+				triangleMesh.nStride = nStride;
 				triangleMesh.pIndices = pIndices;
 				triangleMesh.nIndexCount = nIndexCount;
 				emPhysicsShapeType = Physics::EmPhysicsShape::eTriangleMesh;

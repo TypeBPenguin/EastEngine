@@ -1,11 +1,11 @@
 #include "stdafx.h"
 #include "ComponentModel.h"
 
-#include "../CommonLib/FileStream.h"
+#include "CommonLib/FileStream.h"
 
-#include "../Model/MotionSystem.h"
-#include "../Model/MotionManager.h"
-#include "../Model/Model.h"
+#include "Model/MotionSystem.h"
+#include "Model/Model.h"
+#include "Model/ModelLoader.h"
 
 #include "GameObject.h"
 
@@ -54,7 +54,7 @@ namespace eastengine
 			std::string strBuf;
 			file >> strBuf;
 
-			std::string strFullPath(file.GetPath());
+			std::string strFullPath(file.GetFilePath());
 			strFullPath.append(strBuf);
 			strFullPath.append(".emod");
 
@@ -73,7 +73,7 @@ namespace eastengine
 
 			file << pModel->GetName().c_str();
 
-			std::string strFullPath(file.GetPath());
+			std::string strFullPath(file.GetFilePath());
 			strFullPath.append(pModel->GetName().c_str());
 			strFullPath.append(".emod");
 

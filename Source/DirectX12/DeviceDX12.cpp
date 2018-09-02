@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "DeviceDX12.h"
 
+#include "CommonLib/Lock.h"
+
 #include "GraphicsInterface/Window.h"
 
 #include "UtilDX12.h"
@@ -35,7 +37,7 @@ namespace eastengine
 
 			public:
 				RenderTarget* GetRenderTarget(const D3D12_RESOURCE_DESC* pDesc, const math::Color& clearColor, bool isIncludeLastUseRenderTarget = true);
-				void ReleaseRenderTarget(RenderTarget** ppRenderTarget, uint32_t nSize = 1, bool isSetLastRenderTarget = true);
+				void ReleaseRenderTargets(RenderTarget** ppRenderTarget, uint32_t nSize = 1, bool isSetLastRenderTarget = true);
 
 			public:
 				void HandleMessage(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam);
@@ -49,7 +51,6 @@ namespace eastengine
 				const math::Rect* GetScissorRect() const { return &m_scissorRect; }
 
 				ID3D12Device* GetInterface() const { return m_pDevice; }
-				ID3D12CommandAllocator* GetCommandAllocator() const { return m_pCommandAllocators[m_nFrameIndex]; }
 				ID3D12CommandQueue* GetCommandQueue() const { return m_pCommandQueue; }
 
 				ID3D12Fence* GetFence() const { return m_pFences[m_nFrameIndex]; }
@@ -57,10 +58,11 @@ namespace eastengine
 				uint32_t GetFrameIndex() const { return m_nFrameIndex; }
 
 				RenderTarget* GetSwapChainRenderTarget(int nFrameIndex) const { return m_pSwapChainRenderTargets[nFrameIndex].get(); }
-				RenderTarget* GetLastUseRenderTarget() const { return m_pLastUseRenderTarget; }
+				RenderTarget* GetLastUsedRenderTarget() const { return m_pLastUseRenderTarget; }
 
 				GBuffer* GetGBuffer(int nFrameIndex) const { return m_pGBuffers[nFrameIndex].get(); }
-				ImageBasedLight* GetImageBasedLight() const { return m_pImageBasedLight.get(); }
+				IImageBasedLight* GetImageBasedLight() const { return m_pImageBasedLight; }
+				void SetImageBasedLight(IImageBasedLight* pImageBasedLight) { m_pImageBasedLight = pImageBasedLight; }
 				RenderManager* GetRenderManager() const { return m_pRenderManager.get(); }
 				VTFManager* GetVTFManager() const { return m_pVTFManager.get(); }
 
@@ -73,10 +75,18 @@ namespace eastengine
 				DescriptorHeap* GetSamplerDescriptorHeap() const { return m_pSamplerDescriptorHeap.get(); }
 
 			public:
-				ID3D12GraphicsCommandList2 * PopCommandList(ID3D12PipelineState* pPipeliseState);
-				void PushCommandList(ID3D12GraphicsCommandList2* pCommandList);
+				size_t GetCommandListCount() const { return m_vecCommandLists.size(); }
 
-				const D3D12_DESCRIPTOR_RANGE* GetStandardDescriptorRanges() const { return m_standardDescriptorRangeDescs.data(); }
+				void ResetCommandList(size_t nIndex, ID3D12PipelineState* pPipelineState);
+				ID3D12GraphicsCommandList2* GetCommandList(size_t nIndex) const;
+				void GetCommandLists(ID3D12GraphicsCommandList2** ppGraphicsCommandLists_out) const;
+				void ExecuteCommandList(ID3D12CommandList* pCommandList);
+				void ExecuteCommandLists(ID3D12CommandList* const* ppCommandLists, size_t nCount);
+				void ExecuteCommandLists(ID3D12GraphicsCommandList2* const* ppGraphicsCommandLists, size_t nCount);
+
+				ID3D12GraphicsCommandList2* CreateBundle(ID3D12PipelineState* pPipelineState);
+
+				const D3D12_DESCRIPTOR_RANGE* GetStandardDescriptorRanges() const { return m_standardDescriptorRangeDescs_SRV.data(); }
 
 			private:
 				void InitializeD3D();
@@ -105,17 +115,15 @@ namespace eastengine
 				ID3D12CommandQueue* m_pCommandQueue{ nullptr };
 
 				std::array<std::unique_ptr<RenderTarget>, eFrameBufferCount> m_pSwapChainRenderTargets;
-				std::array<ID3D12CommandAllocator*, eFrameBufferCount> m_pCommandAllocators{ nullptr };
 
-				std::mutex m_mutex;
-				std::condition_variable m_condition;
+				std::array<std::vector<ID3D12CommandAllocator*>, eFrameBufferCount> m_pCommandAllocators;
+				ID3D12CommandAllocator* m_pBundleAllocators{ nullptr };
+				std::vector<ID3D12GraphicsCommandList2*> m_vecCommandLists;
 
-				std::queue<ID3D12GraphicsCommandList2*> m_queueCommandLists;
-
-				std::array<D3D12_DESCRIPTOR_RANGE, eStandardDescriptorRangesCount> m_standardDescriptorRangeDescs{};
+				std::array<D3D12_DESCRIPTOR_RANGE, eStandardDescriptorRangesCount_SRV> m_standardDescriptorRangeDescs_SRV{};
 
 				std::array<std::unique_ptr<GBuffer>, eFrameBufferCount> m_pGBuffers;
-				std::unique_ptr<ImageBasedLight> m_pImageBasedLight;
+				IImageBasedLight* m_pImageBasedLight{ nullptr };
 
 				std::unique_ptr<RenderManager> m_pRenderManager;
 				std::unique_ptr<VTFManager> m_pVTFManager;
@@ -128,7 +136,7 @@ namespace eastengine
 				std::unique_ptr<DescriptorHeap> m_pUAVDescriptorHeap;
 				std::unique_ptr<DescriptorHeap> m_pSamplerDescriptorHeap;
 
-				std::mutex m_mutexRT;
+				thread::Lock m_lockRT;
 
 				struct RenderTargetPool
 				{
@@ -172,11 +180,18 @@ namespace eastengine
 			{
 				WaitForPreviousFrame();
 
-				HRESULT hr = m_pCommandAllocators[m_nFrameIndex]->Reset();
-				if (FAILED(hr))
+				HRESULT hr;
+
+				for (auto pCommandAllocator : m_pCommandAllocators[m_nFrameIndex])
 				{
-					throw_line("failed to command allocator reset");
+					hr = pCommandAllocator->Reset();
+					if (FAILED(hr))
+					{
+						throw_line("failed to command allocator reset");
+					}
 				}
+
+				m_pVTFManager->Bake();
 
 				m_pRenderManager->Render();
 
@@ -214,7 +229,7 @@ namespace eastengine
 					return;
 
 #if defined(DEBUG) || defined(_DEBUG)
-				//EnableShaderBasedValidation();
+				EnableShaderBasedValidation();
 #endif
 
 				InitializeWindow(nWidth, nHeight, isFullScreen, strApplicationTitle, strApplicationName);
@@ -242,7 +257,6 @@ namespace eastengine
 				{
 					m_pGBuffers[i].reset();
 				}
-				m_pImageBasedLight.reset();
 
 				m_pUploader.reset();
 
@@ -262,20 +276,24 @@ namespace eastengine
 					m_pSwapChain->SetFullscreenState(FALSE, nullptr);
 				}
 
-				while (m_queueCommandLists.empty() == false)
+				for (ID3D12GraphicsCommandList2* pCommandList : m_vecCommandLists)
 				{
-					ID3D12GraphicsCommandList2* pCommandList = m_queueCommandLists.front();
-					m_queueCommandLists.pop();
-
 					SafeRelease(pCommandList);
 				}
+				m_vecCommandLists.clear();
 
 				m_ummapRenderTargetPool.clear();
+
+				SafeRelease(m_pBundleAllocators);
 
 				for (int i = 0; i < eFrameBufferCount; ++i)
 				{
 					m_pSwapChainRenderTargets[i].reset();
-					SafeRelease(m_pCommandAllocators[i]);
+					for (ID3D12CommandAllocator* pAllocator : m_pCommandAllocators[i])
+					{
+						SafeRelease(pAllocator);
+					}
+
 					SafeRelease(m_pFences[i]);
 				};
 
@@ -288,9 +306,8 @@ namespace eastengine
 				m_pSamplerDescriptorHeap.reset();
 
 				SafeRelease(m_pCommandQueue);
-				SafeRelease(m_pDevice);
-
 				SafeRelease(m_pDebug);
+				SafeRelease(m_pDevice);
 			}
 
 			void Device::Impl::Flush(float fElapsedTime)
@@ -316,7 +333,7 @@ namespace eastengine
 
 			RenderTarget* Device::Impl::GetRenderTarget(const D3D12_RESOURCE_DESC* pDesc, const math::Color& clearColor, bool isIncludeLastUseRenderTarget)
 			{
-				std::lock_guard<std::mutex> lock(m_mutexRT);
+				thread::AutoLock autoLock(&m_lockRT);
 
 				RenderTarget::Key key = RenderTarget::BuildKey(pDesc, clearColor);
 				auto iter_range = m_ummapRenderTargetPool.equal_range(key);
@@ -336,7 +353,7 @@ namespace eastengine
 				}
 
 				RenderTargetPool pool;
-				pool.pRenderTarget = RenderTarget::Create(L"RenderTarget", pDesc, clearColor);
+				pool.pRenderTarget = RenderTarget::Create(pDesc, clearColor);
 				if (pool.pRenderTarget == nullptr)
 				{
 					throw_line("failed to create render target");
@@ -346,9 +363,9 @@ namespace eastengine
 				return iter_result->second.pRenderTarget.get();
 			}
 
-			void Device::Impl::ReleaseRenderTarget(RenderTarget** ppRenderTarget, uint32_t nSize, bool isSetLastRenderTarget)
+			void Device::Impl::ReleaseRenderTargets(RenderTarget** ppRenderTarget, uint32_t nSize, bool isSetLastRenderTarget)
 			{
-				std::lock_guard<std::mutex> lock(m_mutexRT);
+				thread::AutoLock autoLock(&m_lockRT);
 
 				for (uint32_t i = 0; i < nSize; ++i)
 				{
@@ -401,47 +418,62 @@ namespace eastengine
 				m_pDebug->SetEnableGPUBasedValidation(true);
 			}
 
-			ID3D12GraphicsCommandList2* Device::Impl::PopCommandList(ID3D12PipelineState* pPipeliseState)
+			void Device::Impl::ResetCommandList(size_t nIndex, ID3D12PipelineState* pPipelineState)
 			{
-				ID3D12GraphicsCommandList2* pCommandList = nullptr;
-				{
-					std::unique_lock<std::mutex> lock(m_mutex);
-					m_condition.wait(lock, [&]()
-					{
-						return m_queueCommandLists.empty() == false;
-					});
-
-					pCommandList = m_queueCommandLists.front();
-					m_queueCommandLists.pop();
-				}
-				assert(pCommandList != nullptr);
-
-				HRESULT hr = pCommandList->Reset(m_pCommandAllocators[m_nFrameIndex], pPipeliseState);
+				HRESULT hr = m_vecCommandLists[nIndex]->Reset(m_pCommandAllocators[m_nFrameIndex][nIndex], pPipelineState);
 				if (FAILED(hr))
 				{
-					throw_line("failed to command list reset");
+					throw_line("failed to reset command list");
 				}
-
-				return pCommandList;
 			}
 
-			void Device::Impl::PushCommandList(ID3D12GraphicsCommandList2* pCommandList)
+			ID3D12GraphicsCommandList2* Device::Impl::GetCommandList(size_t nIndex) const
 			{
-				HRESULT hr = pCommandList->Close();
+				if (nIndex >= m_vecCommandLists.size())
+					return nullptr;
+
+				return m_vecCommandLists[nIndex];
+			}
+
+			void Device::Impl::GetCommandLists(ID3D12GraphicsCommandList2** ppGraphicsCommandLists_out) const
+			{
+				const size_t nSize = m_vecCommandLists.size();
+				for (size_t i = 0; i < nSize; ++i)
+				{
+					ppGraphicsCommandLists_out[i] = m_vecCommandLists[i];
+				}
+			}
+
+			void Device::Impl::ExecuteCommandList(ID3D12CommandList* pCommandList)
+			{
+				m_pCommandQueue->ExecuteCommandLists(1, &pCommandList);
+			}
+
+			void Device::Impl::ExecuteCommandLists(ID3D12CommandList* const* ppCommandLists, size_t nCount)
+			{
+				m_pCommandQueue->ExecuteCommandLists(static_cast<uint32_t>(nCount), ppCommandLists);
+			}
+
+			void Device::Impl::ExecuteCommandLists(ID3D12GraphicsCommandList2* const* ppGraphicsCommandLists, size_t nCount)
+			{
+				ID3D12CommandList** ppCommandLists = static_cast<ID3D12CommandList**>(_alloca(sizeof(ID3D12CommandList*) * nCount));
+				for (size_t i = 0; i < nCount; ++i)
+				{
+					ppCommandLists[i] = ppGraphicsCommandLists[i];
+				}
+				m_pCommandQueue->ExecuteCommandLists(static_cast<uint32_t>(nCount), ppCommandLists);
+			}
+
+			ID3D12GraphicsCommandList2* Device::Impl::CreateBundle(ID3D12PipelineState* pPipelineState)
+			{
+				ID3D12GraphicsCommandList2* pBundle = nullptr;
+				HRESULT hr = m_pDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_BUNDLE, m_pBundleAllocators, pPipelineState, IID_PPV_ARGS(&pBundle));
 				if (FAILED(hr))
 				{
-					throw_line("failed to command list close");
+					throw_line("failed to create bundle");
 				}
 
-				{
-					std::lock_guard<std::mutex> lock(m_mutex);
-					ID3D12CommandList* ppCommandLists[] = { pCommandList };
-					m_pCommandQueue->ExecuteCommandLists(1, ppCommandLists);
-
-					m_queueCommandLists.push(pCommandList);
-				}
-
-				m_condition.notify_one();
+				return pBundle;
 			}
 
 			void Device::Impl::InitializeD3D()
@@ -553,6 +585,8 @@ namespace eastengine
 
 				m_nFrameIndex = m_pSwapChain->GetCurrentBackBufferIndex();
 
+				const uint32_t nThreadCount = std::thread::hardware_concurrency();
+
 				for (int i = 0; i < eFrameBufferCount; ++i)
 				{
 					ID3D12Resource* pResource = nullptr;
@@ -563,27 +597,36 @@ namespace eastengine
 					}
 					m_pSwapChainRenderTargets[i] = RenderTarget::Create(pResource, clearColor);
 
-					hr = m_pDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_pCommandAllocators[i]));
-					if (FAILED(hr))
+					m_pCommandAllocators[i].resize(nThreadCount);
+
+					for (uint32_t j = 0; j < nThreadCount; ++j)
 					{
-						throw_line("failed to create command allocator");
+						hr = m_pDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_pCommandAllocators[i][j]));
+						if (FAILED(hr))
+						{
+							throw_line("failed to create command allocator");
+						}
 					}
 				}
 
-				InitializeSampler();
 
-				const uint32_t nThreadCount = std::thread::hardware_concurrency();
+				hr = m_pDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_BUNDLE, IID_PPV_ARGS(&m_pBundleAllocators));
+				if (FAILED(hr))
+				{
+					throw_line("failed to create command allocator");
+				}
+
+				m_vecCommandLists.resize(nThreadCount);
+
 				for (uint32_t i = 0; i < nThreadCount; ++i)
 				{
-					ID3D12GraphicsCommandList2* pCommandList = nullptr;
-					hr = m_pDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandAllocators[0], nullptr, IID_PPV_ARGS(&pCommandList));
+					hr = m_pDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandAllocators[0][0], nullptr, IID_PPV_ARGS(&m_vecCommandLists[i]));
 					if (FAILED(hr))
 					{
 						throw_line("failed to create command list");
 					}
 
-					pCommandList->Close();
-					m_queueCommandLists.push(pCommandList);
+					m_vecCommandLists[i]->Close();
 				}
 
 				for (int i = 0; i < eFrameBufferCount; ++i)
@@ -601,6 +644,8 @@ namespace eastengine
 					throw_line("failed to create fence event");
 				}
 
+				InitializeSampler();
+
 				m_viewport.TopLeftX = 0;
 				m_viewport.TopLeftY = 0;
 				m_viewport.Width = static_cast<float>(m_n2ScreenSize.x);
@@ -613,13 +658,13 @@ namespace eastengine
 				m_scissorRect.right = m_n2ScreenSize.x;
 				m_scissorRect.bottom = m_n2ScreenSize.y;
 
-				for (uint32_t i = 0; i < eStandardDescriptorRangesCount; ++i)
+				for (uint32_t i = 0; i < eStandardDescriptorRangesCount_SRV; ++i)
 				{
-					m_standardDescriptorRangeDescs[i].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-					m_standardDescriptorRangeDescs[i].NumDescriptors = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-					m_standardDescriptorRangeDescs[i].BaseShaderRegister = 0;
-					m_standardDescriptorRangeDescs[i].RegisterSpace = i;
-					m_standardDescriptorRangeDescs[i].OffsetInDescriptorsFromTableStart = 0;
+					m_standardDescriptorRangeDescs_SRV[i].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+					m_standardDescriptorRangeDescs_SRV[i].NumDescriptors = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+					m_standardDescriptorRangeDescs_SRV[i].BaseShaderRegister = 0;
+					m_standardDescriptorRangeDescs_SRV[i].RegisterSpace = i;
+					m_standardDescriptorRangeDescs_SRV[i].OffsetInDescriptorsFromTableStart = 0;
 				}
 
 				m_pUploader = std::make_unique<Uploader>();
@@ -628,7 +673,6 @@ namespace eastengine
 				{
 					m_pGBuffers[i] = std::make_unique<GBuffer>(m_n2ScreenSize.x, m_n2ScreenSize.y);
 				}
-				m_pImageBasedLight = std::make_unique<ImageBasedLight>();
 			}
 
 			void Device::Impl::InitializeSampler()
@@ -754,9 +798,9 @@ namespace eastengine
 				return m_pImpl->GetRenderTarget(pDesc, clearColor, isIncludeLastUseRenderTarget);
 			}
 
-			void Device::ReleaseRenderTarget(RenderTarget** ppRenderTarget, uint32_t nSize, bool isSetLastRenderTarget)
+			void Device::ReleaseRenderTargets(RenderTarget** ppRenderTarget, uint32_t nSize, bool isSetLastRenderTarget)
 			{
-				m_pImpl->ReleaseRenderTarget(ppRenderTarget, nSize, isSetLastRenderTarget);
+				m_pImpl->ReleaseRenderTargets(ppRenderTarget, nSize, isSetLastRenderTarget);
 			}
 
 			HWND Device::GetHwnd() const
@@ -794,11 +838,6 @@ namespace eastengine
 				return m_pImpl->GetInterface();
 			}
 
-			ID3D12CommandAllocator* Device::GetCommandAllocator() const
-			{
-				return m_pImpl->GetCommandAllocator();
-			}
-
 			ID3D12CommandQueue* Device::GetCommandQueue() const
 			{
 				return m_pImpl->GetCommandQueue();
@@ -824,9 +863,9 @@ namespace eastengine
 				return m_pImpl->GetSwapChainRenderTarget(nFrameIndex);
 			}
 
-			RenderTarget* Device::GetLastUseRenderTarget() const
+			RenderTarget* Device::GetLastUsedRenderTarget() const
 			{
-				return m_pImpl->GetLastUseRenderTarget();
+				return m_pImpl->GetLastUsedRenderTarget();
 			}
 
 			GBuffer* Device::GetGBuffer(int nFrameIndex) const
@@ -834,9 +873,14 @@ namespace eastengine
 				return m_pImpl->GetGBuffer(nFrameIndex);
 			}
 
-			ImageBasedLight* Device::GetImageBasedLight() const
+			IImageBasedLight* Device::GetImageBasedLight() const
 			{
 				return m_pImpl->GetImageBasedLight();
+			}
+
+			void Device::SetImageBasedLight(IImageBasedLight* pImageBasedLight)
+			{
+				m_pImpl->SetImageBasedLight(pImageBasedLight);
 			}
 
 			RenderManager* Device::GetRenderManager() const
@@ -879,14 +923,44 @@ namespace eastengine
 				return m_pImpl->GetSamplerDescriptorHeap();
 			}
 
-			ID3D12GraphicsCommandList2* Device::PopCommandList(ID3D12PipelineState* pPipeliseState)
+			size_t Device::GetCommandListCount() const
 			{
-				return m_pImpl->PopCommandList(pPipeliseState);
+				return m_pImpl->GetCommandListCount();
 			}
 
-			void Device::PushCommandList(ID3D12GraphicsCommandList2* pCommandList)
+			void Device::ResetCommandList(size_t nIndex, ID3D12PipelineState* pPipelineState)
 			{
-				m_pImpl->PushCommandList(pCommandList);
+				return m_pImpl->ResetCommandList(nIndex, pPipelineState);
+			}
+
+			ID3D12GraphicsCommandList2* Device::GetCommandList(size_t nIndex) const
+			{
+				return m_pImpl->GetCommandList(nIndex);
+			}
+
+			void Device::GetCommandLists(ID3D12GraphicsCommandList2** ppGraphicsCommandLists_out) const
+			{
+				m_pImpl->GetCommandLists(ppGraphicsCommandLists_out);
+			}
+
+			void Device::ExecuteCommandList(ID3D12CommandList* pCommandList)
+			{
+				m_pImpl->ExecuteCommandList(pCommandList);
+			}
+
+			void Device::ExecuteCommandLists(ID3D12CommandList* const* ppCommandLists, size_t nCount)
+			{
+				m_pImpl->ExecuteCommandLists(ppCommandLists, nCount);
+			}
+
+			void Device::ExecuteCommandLists(ID3D12GraphicsCommandList2* const* ppGraphicsCommandLists, size_t nCount)
+			{
+				m_pImpl->ExecuteCommandLists(ppGraphicsCommandLists, nCount);
+			}
+
+			ID3D12GraphicsCommandList2* Device::CreateBundle(ID3D12PipelineState* pPipelineState)
+			{
+				return m_pImpl->CreateBundle(pPipelineState);
 			}
 
 			const D3D12_DESCRIPTOR_RANGE* Device::GetStandardDescriptorRanges() const

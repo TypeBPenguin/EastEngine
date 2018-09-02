@@ -1,3 +1,7 @@
+#ifdef DX12
+#include "../DescriptorTablesDX12.hlsl"
+#endif
+
 #include "Common.hlsl"
 
 #ifdef DX11
@@ -12,12 +16,29 @@ Texture2D g_texNormal : register(t1);
 Texture2D g_texAlbedoSpecular : register(t2);
 Texture2D g_texDisneyBRDF : register(t3);
 
+cbuffer cbDeferredContents : register(b0)
+{
+	float4x4 g_matInvView;
+	float4x4 g_matInvProj;
+};
+
 #elif DX12
 
 #define TexDepth(uv)	Tex2DTable[g_nTexDepthIndex].Sample(SamplerPointClamp, uv)
 #define TexNormal(uv)	Tex2DTable[g_nTexNormalIndex].Sample(SamplerPointClamp, uv)
 #define TexAlbedoSpecular(uv)	Tex2DTable[g_nTexAlbedoSpecularIndex].Sample(SamplerPointClamp, uv)
 #define TexDisneyBRDF(uv)	Tex2DTable[g_nTexDisneyBRDFIndex].Sample(SamplerPointClamp, uv)
+
+cbuffer cbDeferredContents : register(b0)
+{
+	float4x4 g_matInvView;
+	float4x4 g_matInvProj;
+
+	uint g_nTexDepthIndex;
+	uint g_nTexNormalIndex;
+	uint g_nTexAlbedoSpecularIndex;
+	uint g_nTexDisneyBRDFIndex;
+};
 
 #endif
 

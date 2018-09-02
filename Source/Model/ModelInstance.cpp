@@ -167,7 +167,7 @@ namespace eastengine
 			ModelInstance* pModelInstance = static_cast<ModelInstance*>(pInstance);
 			pModelInstance->SetAttachment(true);
 
-			m_vecAttachmentNode.emplace_back(pModelInstance, StrID::Unregistered, matOffset, AttachmentNode::Type::eNone);
+			m_vecAttachmentNode.emplace_back(pModelInstance, StrID::EmptyString, matOffset, AttachmentNode::Type::eNone);
 
 			return true;
 		}

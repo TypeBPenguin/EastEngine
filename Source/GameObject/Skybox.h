@@ -9,7 +9,7 @@ namespace eastengine
 		class Skybox : public ISkybox
 		{
 		public:
-			Skybox();
+			Skybox(const Handle& handle);
 			virtual ~Skybox();
 
 		public:
@@ -22,8 +22,8 @@ namespace eastengine
 			virtual void SetVisible(bool bVisible) override { m_isVisible = bVisible; }
 			virtual bool IsVisible() const override { return m_isVisible; }
 
-			virtual std::shared_ptr<graphics::ITexture> GetTexture() const override { return m_pTexture; }
-			virtual void SetTexture(const std::shared_ptr<graphics::ITexture>& pTexture) override { m_pTexture = pTexture; }
+			virtual graphics::ITexture* GetTexture() const override { return m_pTexture; }
+			virtual void SetTexture(graphics::ITexture* pTexture) override;
 
 		public:
 			void SetDestroy(bool isDestroy) { m_isDestroy = isDestroy; }
@@ -35,15 +35,15 @@ namespace eastengine
 		private:
 			String::StringID m_strName;
 
-			bool m_isDestroy;
-			bool m_isVisible;
+			bool m_isDestroy{ false };
+			bool m_isVisible{ true };
 
 			SkyboxProperty m_property;
 
-			graphics::IVertexBuffer* m_pVertexBuffer;
-			graphics::IIndexBuffer* m_pIndexBuffer;
+			graphics::IVertexBuffer* m_pVertexBuffer{ nullptr };
+			graphics::IIndexBuffer* m_pIndexBuffer{ nullptr };
 
-			std::shared_ptr<graphics::ITexture> m_pTexture;
+			graphics::ITexture* m_pTexture{ nullptr };
 		};
 	}
 }

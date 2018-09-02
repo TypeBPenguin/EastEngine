@@ -11,6 +11,8 @@
 #include "ModelNodeStatic.h"
 #include "GeometryModel.h"
 
+#include "Motion.h"
+
 #include "FbxImporter.h"
 #include "ObjImporter.h"
 
@@ -37,6 +39,20 @@ namespace eastengine
 
 			IModel* GetModel(const IModel::Key& key) const;
 
+		public:
+			// FilePath or ModelName
+			IMotion* AllocateMotion(const IMotion::Key& key);
+
+			// FilePath or ModelName
+			IMotion* GetMotion(const IMotion::Key& key);
+			IMotion* GetMotion(const size_t nIndex);
+
+			size_t GetMotionCount() const;
+
+		public:
+			bool LoadModelFBX(Model* pModel, const char* strFilePath, float fScale, bool isFlipZ);
+			bool LoadMotionFBX(Motion* pMotion, const char* strFilePath, float fScale);
+
 		private:
 			struct RequestLoadModelInfo
 			{
@@ -56,10 +72,16 @@ namespace eastengine
 			bool m_isLoading{ false };
 			float m_fTime{ 0.f };
 
+			std::unique_ptr<FBXImport> m_pFBXImport;
+
 			plf::colony<Model> m_clnModel;
 			plf::colony<ModelInstance> m_clnModelInstance;
 
-			std::unordered_map<Model::Key, Model*> m_umapModelCaching;
+			plf::colony<Motion> m_clnMotions;
+
+			std::unordered_map<IModel::Key, Model*> m_umapModelCaching;
+
+			std::unordered_map<IMotion::Key, Motion*> m_umapMotions;
 
 			Concurrency::concurrent_queue<RequestLoadModelInfo> m_conQueueRequestModelLoader;
 			Concurrency::concurrent_queue<ResultLoadModelInfo> m_conFuncLoadCompleteCallback;
@@ -67,7 +89,7 @@ namespace eastengine
 
 		ModelManager::Impl::Impl()
 		{
-			if (GeometryModel::Initialize() == false)
+			if (geometry::Initialize() == false)
 			{
 				assert(false);
 				return;
@@ -77,12 +99,13 @@ namespace eastengine
 			m_clnModelInstance.reserve(1024);
 
 			ObjImporter::GetInstance();
+
+			m_pFBXImport = std::make_unique<FBXImport>();
 		}
 
 		ModelManager::Impl::~Impl()
 		{
-			FBXImport::GetInstance()->Release();
-			FBXImport::DestroyInstance();
+			SafeRelease(m_pFBXImport);
 
 			ObjImporter::GetInstance()->ClearData();
 			ObjImporter::DestroyInstance();
@@ -90,7 +113,7 @@ namespace eastengine
 			m_clnModel.clear();
 			m_clnModelInstance.clear();
 
-			GeometryModel::Release();
+			geometry::Release();
 		}
 
 		void ModelManager::Impl::Update()
@@ -118,9 +141,10 @@ namespace eastengine
 
 		void ModelManager::Impl::Flush(float fElapsedTime)
 		{
+			TRACER_EVENT("ModelManager::Flush");
+
 			m_fTime += fElapsedTime;
 
-			TRACER_EVENT("ModelManager::Flush");
 			if (m_conQueueRequestModelLoader.empty() == false && m_isLoading == false)
 			{
 				RequestLoadModelInfo loader;
@@ -284,6 +308,62 @@ namespace eastengine
 			return nullptr;
 		}
 
+		IMotion* ModelManager::Impl::AllocateMotion(const IMotion::Key& key)
+		{
+			auto iter_find = m_umapMotions.find(key);
+			if (iter_find != m_umapMotions.end())
+			{
+				assert(false);
+				return iter_find->second;
+			}
+
+			auto iter = m_clnMotions.emplace(key);
+			if (iter != m_clnMotions.end())
+			{
+				Motion* pMotion = &(*iter);
+				m_umapMotions.emplace(key, pMotion);
+
+				return pMotion;
+			}
+
+			return nullptr;
+		}
+
+		IMotion* ModelManager::Impl::GetMotion(const IMotion::Key& key)
+		{
+			auto iter = m_umapMotions.find(key);
+			if (iter != m_umapMotions.end())
+				return iter->second;
+
+			return nullptr;
+		}
+
+		IMotion* ModelManager::Impl::GetMotion(const size_t nIndex)
+		{
+			auto iter = m_clnMotions.begin();
+			m_clnMotions.advance(iter, nIndex);
+
+			if (iter != m_clnMotions.end())
+				return &(*iter);
+
+			return nullptr;
+		}
+
+		size_t ModelManager::Impl::GetMotionCount() const
+		{
+			return m_clnMotions.size();
+		}
+
+		bool ModelManager::Impl::LoadModelFBX(Model* pModel, const char* strFilePath, float fScale, bool isFlipZ)
+		{
+			return m_pFBXImport->LoadModel(pModel, strFilePath, fScale, isFlipZ);
+		}
+
+		bool ModelManager::Impl::LoadMotionFBX(Motion* pMotion, const char* strFilePath, float fScale)
+		{
+			return m_pFBXImport->LoadMotion(pMotion, strFilePath, fScale);
+		}
+
 		ModelManager::ModelManager()
 			: m_pImpl{ std::make_unique<Impl>() }
 		{
@@ -310,7 +390,7 @@ namespace eastengine
 
 		IModel* ModelManager::AllocateModel(const String::StringID& strKey)
 		{
-			IModel::Key key(strKey.Key());
+			IModel::Key key(strKey);
 			return m_pImpl->AllocateModel(key);
 		}
 
@@ -326,8 +406,40 @@ namespace eastengine
 
 		IModel* ModelManager::GetModel(const String::StringID& strKey) const
 		{
-			IModel::Key key(strKey.Key());
+			IModel::Key key(strKey);
 			return m_pImpl->GetModel(key);
+		}
+
+		IMotion* ModelManager::AllocateMotion(const String::StringID& strKey)
+		{
+			IMotion::Key key(strKey);
+			return m_pImpl->AllocateMotion(key);
+		}
+
+		IMotion* ModelManager::GetMotion(const String::StringID& strKey)
+		{
+			IMotion::Key key(strKey);
+			return m_pImpl->GetMotion(key);
+		}
+
+		IMotion* ModelManager::GetMotion(const size_t nIndex)
+		{
+			return m_pImpl->GetMotion(nIndex);
+		}
+
+		size_t ModelManager::GetMotionCount() const
+		{
+			return m_pImpl->GetMotionCount();
+		}
+
+		bool ModelManager::LoadModelFBX(Model* pModel, const char* strFilePath, float fScale, bool isFlipZ)
+		{
+			return m_pImpl->LoadModelFBX(pModel, strFilePath, fScale, isFlipZ);
+		}
+
+		bool ModelManager::LoadMotionFBX(Motion* pMotion, const char* strFilePath, float fScale)
+		{
+			return m_pImpl->LoadMotionFBX(pMotion, strFilePath, fScale);
 		}
 	}
 }

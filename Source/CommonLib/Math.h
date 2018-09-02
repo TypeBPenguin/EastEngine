@@ -94,30 +94,6 @@ namespace eastengine
 		}
 
 		template <typename T>
-		inline T Min(const T& a, const T& b)
-		{
-			return (a < b) ? (a) : (b);
-		}
-
-		template <typename T>
-		inline T Max(const T& a, const T& b)
-		{
-			return (a > b) ? (a) : (b);
-		}
-
-		template <typename T>
-		inline float Clamp(const T& value, const T& min, const T& max)
-		{
-			if (value < min)
-				return min;
-
-			if (value > max)
-				return max;
-
-			return value;
-		}
-
-		template <typename T>
 		T Random(T min = -RAND_MAX, T max = RAND_MAX);
 
 		struct Vector2;

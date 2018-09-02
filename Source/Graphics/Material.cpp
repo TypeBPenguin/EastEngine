@@ -90,10 +90,18 @@ namespace eastengine
 				}
 			}
 
-			file >> *reinterpret_cast<int*>(&materialInfo.emSamplerState);
-			file >> *reinterpret_cast<int*>(&materialInfo.emBlendState);
-			file >> *reinterpret_cast<int*>(&materialInfo.emRasterizerState);
-			file >> *reinterpret_cast<int*>(&materialInfo.emDepthStencilState);
+			int nValue = 0;
+			file >> nValue;
+			materialInfo.emSamplerState = static_cast<EmSamplerState::Type>(nValue);
+
+			file >> nValue;
+			materialInfo.emBlendState = static_cast<EmBlendState::Type>(nValue);
+
+			file >> nValue;
+			materialInfo.emRasterizerState = static_cast<EmRasterizerState::Type>(nValue);
+
+			file >> nValue;
+			materialInfo.emDepthStencilState = static_cast<EmDepthStencilState::Type>(nValue);
 
 			file.Close();
 
@@ -156,10 +164,10 @@ namespace eastengine
 				}
 			}
 
-			file << GetSamplerState();
-			file << GetBlendState();
-			file << GetRasterizerState();
-			file << GetDepthStencilState();
+			file << static_cast<int>(GetSamplerState());
+			file << static_cast<int>(GetBlendState());
+			file << static_cast<int>(GetRasterizerState());
+			file << static_cast<int>(GetDepthStencilState());
 
 			file.Close();
 
@@ -179,10 +187,7 @@ namespace eastengine
 				else
 				{
 					std::string strTexPath = GetPath();
-					if (m_info.isIncludeTextureForder == true)
-					{
-						strTexPath.append("Texture\\");
-					}
+					strTexPath.append("Texture\\");
 					strTexPath.append(GetTextureName(emType).c_str());
 
 					ITexture* pTexture = nullptr;

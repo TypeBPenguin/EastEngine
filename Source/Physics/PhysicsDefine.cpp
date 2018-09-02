@@ -197,7 +197,7 @@ namespace eastengine
 					pIndexedMesh.m_numTriangles = nIndexCount / 3;
 					pIndexedMesh.m_numVertices = nVertexCount;
 					pIndexedMesh.m_triangleIndexStride = 3 * sizeof(uint32_t);
-					pIndexedMesh.m_vertexStride = sizeof(float) * 3;
+					pIndexedMesh.m_vertexStride = pShapeInfo->nStride != 0 ? pShapeInfo->nStride : sizeof(float) * 3;
 					pIndexedMesh.m_vertexType = PHY_ScalarType::PHY_FLOAT;
 					pIndexedMesh.m_triangleIndexBase = reinterpret_cast<const unsigned char*>(pIndices);
 					pIndexedMesh.m_vertexBase = reinterpret_cast<const unsigned char*>(pVertices);

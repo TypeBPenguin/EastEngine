@@ -85,7 +85,7 @@ namespace eastengine
 			struct tKey {};
 
 		public:
-			using Key = PhantomType<tKey, const String::StringKey>;
+			using Key = PhantomType<tKey, const String::StringID>;
 			virtual Key GetKey() const = 0;
 
 		public:
@@ -156,9 +156,9 @@ namespace eastengine
 
 		struct MotionPlaybackInfo
 		{
-			enum : size_t
+			enum : uint32_t
 			{
-				eMaxLoopCount = std::numeric_limits<size_t>::max(),
+				eMaxLoopCount = std::numeric_limits<uint32_t>::max(),
 			};
 
 			float fSpeed = 1.f;
@@ -290,7 +290,7 @@ namespace eastengine
 		private:
 			struct tKey {};
 		public:
-			using Key = PhantomType<tKey, const String::StringKey>;
+			using Key = PhantomType<tKey, const String::StringID>;
 			virtual Key GetKey() const = 0;
 
 		protected:
@@ -459,18 +459,18 @@ namespace std
 	template <>
 	struct hash<eastengine::graphics::IModel::Key>
 	{
-		std::uint64_t operator()(const eastengine::graphics::IModel::Key& key) const
+		const eastengine::String::StringData* operator()(const eastengine::graphics::IModel::Key& key) const
 		{
-			return key.value.value;
+			return key.value.Key();
 		}
 	};
 
 	template <>
 	struct hash<eastengine::graphics::IMotion::Key>
 	{
-		std::uint64_t operator()(const eastengine::graphics::IMotion::Key& key) const
+		const eastengine::String::StringData* operator()(const eastengine::graphics::IMotion::Key& key) const
 		{
-			return key.value.value;
+			return key.value.Key();
 		}
 	};
 }

@@ -431,7 +431,7 @@ namespace eastengine
 						std::vector<VertexPosTexNor> vecVertexOut;
 						std::vector<uint32_t> vecIndexOut;
 
-						if (GeometryModel::Simplify::GenerateSimplificationMesh(vecVertexIn, vecIndexIn,
+						if (geometry::Simplify::GenerateSimplificationMesh(vecVertexIn, vecIndexIn,
 							vecVertexOut, vecIndexOut, lodReductionRate.fLv[i]) == false)
 							continue;
 

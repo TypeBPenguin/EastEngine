@@ -11,8 +11,9 @@ namespace eastengine
 {
 	namespace gameobject
 	{
-		Actor::Actor()
-			: m_f3Scale(math::Vector3::One)
+		Actor::Actor(const Handle& handle)
+			: IActor(handle)
+			, m_f3Scale(math::Vector3::One)
 			, m_f3PrevScale(math::Vector3::One)
 			, m_isDestroy(false)
 			, m_isVisible(true)

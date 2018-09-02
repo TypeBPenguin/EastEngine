@@ -8,3 +8,7 @@
 // 나중에 수정된 버전이 나오면 버전업을 하고 해당 선언문을 지워주도록 하자
 #define _SILENCE_CXX17_OLD_ALLOCATOR_MEMBERS_DEPRECATION_WARNING
 #define _SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING
+
+#define _CRTDBG_MAP_ALLOC
+#include <stdlib.h>
+#include <crtdbg.h>  

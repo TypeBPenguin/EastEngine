@@ -2,7 +2,6 @@
 #include "SceneStudio.h"
 
 #include "CommonLib/FileUtil.h"
-#include "CommonLib/Config.h"
 #include "CommonLib/Performance.h"
 
 #include "DirectX/Camera.h"
@@ -1206,8 +1205,8 @@ void SceneStudio::ShowConfig()
 				if (isVisible == true)
 				{
 					ImVec2 f2Size(static_cast<float>(pTexture->GetSize().x), static_cast<float>(pTexture->GetSize().y));
-					f2Size.x = math::Min(f2Size.x, 512.f);
-					f2Size.y = math::Min(f2Size.y, 512.f);
+					f2Size.x = std::min(f2Size.x, 512.f);
+					f2Size.y = std::min(f2Size.y, 512.f);
 
 					ImGui::SetNextWindowSize(f2Size, ImGuiSetCond_FirstUseEver);
 					ImGui::Begin(pTexture->GetName().c_str(), &isVisible, ImGuiWindowFlags_AlwaysAutoResize);
@@ -2015,8 +2014,8 @@ void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nInd
 				if (isShow == true)
 				{
 					ImVec2 f2Size(static_cast<float>(pTexture->GetSize().x), static_cast<float>(pTexture->GetSize().y));
-					f2Size.x = math::Min(f2Size.x, 512.f);
-					f2Size.y = math::Min(f2Size.y, 512.f);
+					f2Size.x = std::min(f2Size.x, 512.f);
+					f2Size.y = std::min(f2Size.y, 512.f);
 
 					ImGui::SetNextWindowSize(f2Size, ImGuiSetCond_FirstUseEver);
 					ImGui::Begin(pTexture->GetName().c_str(), &isShow, ImGuiWindowFlags_AlwaysAutoResize);
@@ -2503,7 +2502,7 @@ void SceneStudio::RenderUI()
 					ImGui::PushID("Component");
 
 					static gameobject::EmComponent::Type emType = gameobject::EmComponent::TypeCount;
-					nCurItem = math::Min(nCurItem, static_cast<int>(vecComponents.size() - 1));
+					nCurItem = std::min(nCurItem, static_cast<int>(vecComponents.size() - 1));
 					if (ImGui::Combo("Add Component", &nCurItem, &vecComponents.front(), vecComponents.size()) == true)
 					{
 						emType = static_cast<gameobject::EmComponent::Type>(nCurItem);

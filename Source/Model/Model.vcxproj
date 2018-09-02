@@ -195,7 +195,6 @@
     <ClInclude Include="ModelNodeStatic.h" />
     <ClInclude Include="Motion.h" />
     <ClInclude Include="MotionLoader.h" />
-    <ClInclude Include="MotionManager.h" />
     <ClInclude Include="MotionPlayer.h" />
     <ClInclude Include="MotionRecorder.h" />
     <ClInclude Include="MotionSystem.h" />
@@ -220,7 +219,6 @@
     <ClCompile Include="ModelNodeStatic.cpp" />
     <ClCompile Include="Motion.cpp" />
     <ClCompile Include="MotionLoader.cpp" />
-    <ClCompile Include="MotionManager.cpp" />
     <ClCompile Include="MotionPlayer.cpp" />
     <ClCompile Include="MotionRecorder.cpp" />
     <ClCompile Include="MotionSystem.cpp" />

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "GameObject.h"
+
 namespace eastengine
 {
 	namespace gameobject
@@ -75,7 +77,7 @@ namespace eastengine
 			math::Int2 m_n2Coordinate;
 
 			std::vector<Sector*> m_vecNearSector;
-			std::unordered_map<uint32_t, IActor*> m_umapActor;
+			std::unordered_map<IGameObject::Handle, IActor*> m_umapActor;
 
 			bool m_isVisibleTile;
 		};

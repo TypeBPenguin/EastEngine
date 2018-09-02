@@ -14,10 +14,8 @@
 #include "Skeleton.h"
 
 #include "Motion.h"
-#include "MotionManager.h"
 #include "MotionSystem.h"
 
-#include "FbxImporter.h"
 #include "XpsImporter.h"
 
 namespace eastengine
@@ -46,11 +44,11 @@ namespace eastengine
 		{
 			String::StringID strKey = loader.GetFilePath().c_str();
 
-			IMotion* pIMotion = MotionManager::GetInstance()->GetMotion(strKey);
+			IMotion* pIMotion = ModelManager::GetInstance()->GetMotion(strKey);
 			if (pIMotion != nullptr)
 				return pIMotion;
 
-			Motion* pMotion = static_cast<Motion*>(MotionManager::GetInstance()->AllocateMotion(strKey));
+			Motion* pMotion = static_cast<Motion*>(ModelManager::GetInstance()->AllocateMotion(strKey));
 			pMotion->SetName(loader.GetName());
 			pMotion->SetFilePath(loader.GetFilePath());
 
@@ -60,7 +58,7 @@ namespace eastengine
 			{
 				String::StringID strMotionName = file::GetFileNameWithoutExtension(loader.GetFilePath().c_str()).c_str();
 
-				if (FBXImport::GetInstance()->LoadMotion(pMotion, loader.GetFilePath().c_str(), loader.GetScaleFactor()) == false)
+				if (ModelManager::GetInstance()->LoadMotionFBX(pMotion, loader.GetFilePath().c_str(), loader.GetScaleFactor()) == false)
 				{
 					pMotion->SetState(IResource::eInvalid);
 					return nullptr;

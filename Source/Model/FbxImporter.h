@@ -11,7 +11,7 @@
 #include <DirectXPackedVector.h>
 #include <DirectXCollision.h>
 
-#include "CommonLib/Singleton.h"
+#include "CommonLib/Lock.h"
 
 #undef USE_OPENEXR
 
@@ -58,12 +58,11 @@ namespace eastengine
 			bool m_isFlipZ;
 		};
 
-		class FBXImport : public Singleton<FBXImport>
+		class FBXImport
 		{
-			friend Singleton<FBXImport>;
-		private:
+		public:
 			FBXImport();
-			virtual ~FBXImport();
+			~FBXImport();
 
 		public:
 			bool Initialize();
@@ -132,7 +131,7 @@ namespace eastengine
 			void ParseSubDiv(fbxsdk::FbxNode* pNode, fbxsdk::FbxSubDiv* pFbxSubD, ATG::ExportFrame* pParentFrame);
 
 		private:
-			std::mutex m_mutex;
+			thread::Lock m_lock;
 
 			fbxsdk::FbxManager* m_pSDKManager;
 			fbxsdk::FbxImporter* m_pImporter;

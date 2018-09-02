@@ -37,19 +37,19 @@ namespace eastengine
 			void AddDistance(float fOffset);
 
 			void SetPosition(const math::Vector3& vEye);
-			const math::Vector3& GetPosition();
+			const math::Vector3& GetPosition() const;
 
 			void SetLookat(const math::Vector3& vLookat);
-			const math::Vector3& GetLookat();
+			const math::Vector3& GetLookat() const;
 
 			void SetUp(const math::Vector3& vUp);
-			const math::Vector3& GetUp();
+			const math::Vector3& GetUp() const;
 
-			math::Vector3 GetDir();
+			math::Vector3 GetDir() const;
 
-			const math::Matrix& GetViewMatrix();
-			const math::Matrix& GetProjMatrix();
-			const math::Matrix& GetOrthoMatrix();
+			const math::Matrix& GetViewMatrix() const;
+			const math::Matrix& GetProjMatrix() const;
+			const math::Matrix& GetOrthoMatrix() const;
 
 			float GetFarClip() const;
 			float GetNearClip() const;

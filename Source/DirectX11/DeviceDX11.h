@@ -15,12 +15,13 @@ struct ID3D11RasterizerState;
 struct ID3D11BlendState;
 struct ID3D11SamplerState;
 struct ID3D11DepthStencilState;
+struct ID3DUserDefinedAnnotation;
 
 namespace eastengine
 {
 	namespace graphics
 	{
-		class ImageBasedLight;
+		class IImageBasedLight;
 
 		namespace dx11
 		{
@@ -45,7 +46,7 @@ namespace eastengine
 
 			public:
 				RenderTarget* GetRenderTarget(const D3D11_TEXTURE2D_DESC* pDesc, bool isIncludeLastUseRenderTarget = true);
-				void ReleaseRenderTarget(RenderTarget** ppRenderTarget, uint32_t nSize = 1, bool isSetLastRenderTarget = true);
+				void ReleaseRenderTargets(RenderTarget** ppRenderTarget, uint32_t nSize = 1, bool isSetLastRenderTarget = true);
 
 			public:
 				HWND GetHwnd() const;
@@ -54,7 +55,8 @@ namespace eastengine
 				const math::UInt2& GetScreenSize() const;
 				const D3D11_VIEWPORT* GetViewport() const;
 				const GBuffer* GetGBuffer() const;
-				ImageBasedLight* GetImageBasedLight() const;
+				IImageBasedLight* GetImageBasedLight() const;
+				void SetImageBasedLight(IImageBasedLight* pImageBasedLight);
 				RenderManager* GetRenderManager() const;
 				VTFManager* GetVTFManager() const;
 
@@ -62,12 +64,14 @@ namespace eastengine
 				ID3D11DeviceContext* GetImmediateContext() const;
 
 				RenderTarget* GetSwapChainRenderTarget() const;
-				RenderTarget* GetLastUseRenderTarget() const;
+				RenderTarget* GetLastUsedRenderTarget() const;
 
 				ID3D11RasterizerState* GetRasterizerState(EmRasterizerState::Type emType) const;
 				ID3D11BlendState* GetBlendState(EmBlendState::Type emType) const;
 				ID3D11SamplerState* GetSamplerState(EmSamplerState::Type emType) const;
 				ID3D11DepthStencilState* GetDepthStencilState(EmDepthStencilState::Type emType) const;
+
+				ID3DUserDefinedAnnotation* GetUserDefinedAnnotation() const;
 
 			private:
 				class Impl;

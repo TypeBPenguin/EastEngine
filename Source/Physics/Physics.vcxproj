@@ -122,7 +122,7 @@
       <SubSystem>Windows</SubSystem>
     </Link>
     <Lib>
-      <AdditionalDependencies>BulletCollision_vs2017_debug.lib;BulletDynamics_vs2017_debug.lib;BulletSoftBody_vs2017_debug.lib;LinearMath_vs2017_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>BulletCollision_vs2017_x64_debug.lib;BulletDynamics_vs2017_x64_debug.lib;BulletSoftBody_vs2017_x64_debug.lib;LinearMath_vs2017_x64_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)\Source\ExternLib\BulletPhysics\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
@@ -171,7 +171,7 @@
     </Link>
     <Lib>
       <AdditionalLibraryDirectories>$(SolutionDir)\Source\ExternLib\BulletPhysics\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>BulletCollision_vs2017.lib;BulletDynamics_vs2017.lib;BulletSoftBody_vs2017.lib;LinearMath_vs2017.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>BulletCollision_vs2017_x64_release.lib;BulletDynamics_vs2017_x64_release.lib;BulletSoftBody_vs2017_x64_release.lib;LinearMath_vs2017_x64_release.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>

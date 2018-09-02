@@ -3,20 +3,19 @@
 
 #include "CommonLib/FileUtil.h"
 #include "CommonLib/Lock.h"
-#include "CommonLib/PhantomType.h"
 
 #include "GraphicsInterface/Instancing.h"
 #include "GraphicsInterface/Camera.h"
+#include "GraphicsInterface/LightManager.h"
 
 #include "UtilDX11.h"
 #include "DeviceDX11.h"
 #include "GBufferDX11.h"
+#include "VTFManagerDX11.h"
 
 #include "VertexBufferDX11.h"
 #include "IndexBufferDX11.h"
 #include "TextureDX11.h"
-
-#include <bitset>
 
 namespace eastengine
 {
@@ -29,13 +28,6 @@ namespace eastengine
 				struct SkinningInstancingDataBuffer
 				{
 					std::array<SkinningInstancingData, eMaxInstancingCount> data;
-
-					SkinningInstancingDataBuffer()
-					{
-						const size_t c = sizeof(SkinningInstancingData);
-						const size_t a = sizeof(TransformInstancingData);
-						const size_t b = sizeof(MotionInstancingData);
-					}
 				};
 
 				struct StaticInstancingDataBuffer
@@ -60,9 +52,24 @@ namespace eastengine
 					math::Vector2 f2Padding;
 				};
 
-				struct MatrixBuffer
+				struct VSConstants
 				{
 					math::Matrix matViewProj;
+				};
+				
+				struct CommonContents
+				{
+					math::Vector3 f3CameraPos;
+					int nEnableShadowCount{ 0 };
+
+					uint32_t nDirectionalLightCount{ 0 };
+					uint32_t nPointLightCount{ 0 };
+					uint32_t nSpotLightCount{ 0 };
+					uint32_t padding{ 0 };
+
+					std::array<DirectionalLightData, ILight::eMaxDirectionalLightCount> lightDirectional{};
+					std::array<PointLightData, ILight::eMaxPointLightCount> lightPoint{};
+					std::array<SpotLightData, ILight::eMaxSpotLightCount> lightSpot{};
 				};
 
 				enum CBSlot
@@ -70,7 +77,16 @@ namespace eastengine
 					eCB_SkinningInstancingData = 0,
 					eCB_StaticInstancingData,
 					eCB_ObjectData,
-					eCB_Matrix,
+					eCB_VSConstants,
+
+					eCB_CommonContents = 5,
+				};
+
+				enum SamplerSlot
+				{
+					eSampler_Material = 0,
+					eSampler_PointClamp = 1,
+					eSampler_Clamp = 2,
 				};
 
 				enum SRVSlot
@@ -91,11 +107,23 @@ namespace eastengine
 					eSRV_Clearcoat,
 					eSRV_ClearcoatGloss,
 
-					eSRV_VTF,
+					eSRV_VTF = 15,
+
+					eSRV_DiffuseHDR = 16,
+					eSRV_SpecularHDR = 17,
+					eSRV_SpecularBRDF = 18,
+					eSRV_ShadowMap = 19,
 
 					SRVSlotCount,
 				};
 				static_assert(SRVSlotCount <= D3D11_COMMONSHADER_INPUT_RESOURCE_REGISTER_COUNT, "input register count over");
+
+				enum Pass
+				{
+					ePass_Deferred = 0,
+					ePass_AlphaBlend_Pre,
+					ePass_AlphaBlend_Post,
+				};
 
 				enum Mask : uint64_t
 				{
@@ -117,13 +145,14 @@ namespace eastengine
 
 					eUseInstancing = 1 << 15,
 					eUseSkinning = 1 << 16,
+					eUseAlphaBlending = 1 << 17,
 
-					MaskCount = 17,
+					MaskCount = 18,
 				};
 
 				const char* GetMaskName(uint32_t nMaskBit)
 				{
-					static std::string s_strMaskName[] =
+					static const std::string s_strMaskName[] =
 					{
 						"USE_TEX_ALBEDO",
 						"USE_TEX_MASK",
@@ -142,11 +171,12 @@ namespace eastengine
 						"USE_TEX_CLEARCOATGLOSS",
 						"USE_INSTANCING",
 						"USE_SKINNING",
+						"USE_ALPHABLENDING",
+
 						"USE_WRITEDEPTH",
 						"USE_CUBEMAP",
 						"USE_TESSELLATION",
 						"USE_ALBEDO_ALPHA_IS_MASK_MAP",
-						"USE_ALPHABLENDING",
 					};
 
 					return s_strMaskName[nMaskBit].c_str();
@@ -222,7 +252,7 @@ namespace eastengine
 					return nMask;
 				}
 
-				void SetMaterial(ID3D11DeviceContext* pDeviceContext, const IMaterial* pMaterial)
+				void SetMaterial(Device* pDeviceInstance, ID3D11DeviceContext* pDeviceContext, const IMaterial* pMaterial, ModelRenderer::Group emGroup, Pass emPass)
 				{
 					SetPSSRV(pDeviceContext, pMaterial, EmMaterial::eAlbedo, shader::eSRV_Albedo);
 					SetPSSRV(pDeviceContext, pMaterial, EmMaterial::eMask, shader::eSRV_Mask);
@@ -239,11 +269,63 @@ namespace eastengine
 					SetPSSRV(pDeviceContext, pMaterial, EmMaterial::eSheenTint, shader::eSRV_SheenTint);
 					SetPSSRV(pDeviceContext, pMaterial, EmMaterial::eClearcoat, shader::eSRV_Clearcoat);
 					SetPSSRV(pDeviceContext, pMaterial, EmMaterial::eClearcoatGloss, shader::eSRV_ClearcoatGloss);
+
+					if (pMaterial != nullptr)
+					{
+						ID3D11BlendState* pBlendState = pDeviceInstance->GetBlendState(pMaterial->GetBlendState());
+						pDeviceContext->OMSetBlendState(pBlendState, &math::Vector4::Zero.x, 0xffffffff);
+
+						ID3D11SamplerState* pSamplerStates[] =
+						{
+							pDeviceInstance->GetSamplerState(EmSamplerState::eMinMagLinearMipPointWrap),
+						};
+						pDeviceContext->PSSetSamplers(eSampler_Material, _countof(pSamplerStates), pSamplerStates);
+
+						EmDepthStencilState::Type emDepthStencilState = pMaterial->GetDepthStencilState();
+						EmRasterizerState::Type emRasterizerState = pMaterial->GetRasterizerState();
+						if (emGroup == ModelRenderer::eAlphaBlend &&
+							emPass == ePass_AlphaBlend_Pre)
+						{
+							if (pMaterial->GetDepthStencilState() == EmDepthStencilState::eRead_Write_On)
+							{
+								emRasterizerState = EmRasterizerState::eSolidCullNone;
+								emDepthStencilState = EmDepthStencilState::eRead_On_Write_Off;
+							}
+							else if (pMaterial->GetDepthStencilState() == EmDepthStencilState::eRead_Off_Write_On)
+							{
+								emRasterizerState = EmRasterizerState::eSolidCullNone;
+								emDepthStencilState = EmDepthStencilState::eRead_Write_Off;
+							}
+						}
+
+						ID3D11RasterizerState* pRasterizerState = pDeviceInstance->GetRasterizerState(emRasterizerState);
+						pDeviceContext->RSSetState(pRasterizerState);
+
+						ID3D11DepthStencilState* pDepthStencilState = pDeviceInstance->GetDepthStencilState(emDepthStencilState);
+						pDeviceContext->OMSetDepthStencilState(pDepthStencilState, 0);
+					}
+					else
+					{
+						ID3D11RasterizerState* pRasterizerState = pDeviceInstance->GetRasterizerState(EmRasterizerState::eSolidCCW);
+						pDeviceContext->RSSetState(pRasterizerState);
+
+						ID3D11BlendState* pBlendState = pDeviceInstance->GetBlendState(EmBlendState::eOff);
+						pDeviceContext->OMSetBlendState(pBlendState, &math::Vector4::Zero.x, 0xffffffff);
+
+						ID3D11SamplerState* pSamplerStates[] =
+						{
+							pDeviceInstance->GetSamplerState(EmSamplerState::eMinMagLinearMipPointWrap),
+						};
+						pDeviceContext->PSSetSamplers(eSampler_Material, _countof(pSamplerStates), pSamplerStates);
+
+						ID3D11DepthStencilState* pDepthStencilState = pDeviceInstance->GetDepthStencilState(EmDepthStencilState::eRead_Write_On);
+						pDeviceContext->OMSetDepthStencilState(pDepthStencilState, 0);
+					}
 				}
 
 				void SetObjectData(ID3D11DeviceContext* pDeviceContext,
 					ConstantBuffer<ObjectDataBuffer>* pCB_ObjectDataBuffer,
-					const IMaterial* pMaterial, const math::Matrix& matWorld, uint32_t nVTFID = 0)
+					const IMaterial* pMaterial, const math::Matrix& matWorld, uint32_t nVTFID)
 				{
 					ObjectDataBuffer* pObjectDataBuffer = pCB_ObjectDataBuffer->Map(pDeviceContext);
 					pObjectDataBuffer->matWorld = matWorld.Transpose();
@@ -258,24 +340,9 @@ namespace eastengine
 						pObjectDataBuffer->f4SheenTintClearcoatGloss = pMaterial->GetSheenTintClearcoatGloss();
 
 						pObjectDataBuffer->fStippleTransparencyFactor = pMaterial->GetStippleTransparencyFactor();
-						pObjectDataBuffer->nVTFID = 0;
+						pObjectDataBuffer->nVTFID = nVTFID;
 
 						pObjectDataBuffer->f2Padding = {};
-
-						ID3D11RasterizerState* pRasterizerState = Device::GetInstance()->GetRasterizerState(pMaterial->GetRasterizerState());
-						pDeviceContext->RSSetState(pRasterizerState);
-
-						ID3D11BlendState* pBlendState = Device::GetInstance()->GetBlendState(pMaterial->GetBlendState());
-						pDeviceContext->OMSetBlendState(pBlendState, &math::Vector4::Zero.x, 0xffffffff);
-
-						ID3D11SamplerState* pSamplerStates[] =
-						{
-							Device::GetInstance()->GetSamplerState(EmSamplerState::eMinMagLinearMipPointWrap),
-						};
-						pDeviceContext->PSSetSamplers(0, _countof(pSamplerStates), pSamplerStates);
-
-						ID3D11DepthStencilState* pDepthStencilState = Device::GetInstance()->GetDepthStencilState(pMaterial->GetDepthStencilState());
-						pDeviceContext->OMSetDepthStencilState(pDepthStencilState, 0);
 					}
 					else
 					{
@@ -287,26 +354,56 @@ namespace eastengine
 						pObjectDataBuffer->f4SheenTintClearcoatGloss = math::Vector4::Zero;
 
 						pObjectDataBuffer->fStippleTransparencyFactor = 0.f;
-						pObjectDataBuffer->nVTFID = 0;
+						pObjectDataBuffer->nVTFID = nVTFID;
 
 						pObjectDataBuffer->f2Padding = {};
-
-						ID3D11RasterizerState* pRasterizerState = Device::GetInstance()->GetRasterizerState(EmRasterizerState::eSolidCCW);
-						pDeviceContext->RSSetState(pRasterizerState);
-
-						ID3D11BlendState* pBlendState = Device::GetInstance()->GetBlendState(EmBlendState::eOff);
-						pDeviceContext->OMSetBlendState(pBlendState, &math::Vector4::Zero.x, 0xffffffff);
-
-						ID3D11SamplerState* pSamplerStates[] =
-						{
-							Device::GetInstance()->GetSamplerState(EmSamplerState::eMinMagLinearMipPointWrap),
-						};
-						pDeviceContext->PSSetSamplers(0, _countof(pSamplerStates), pSamplerStates);
-
-						ID3D11DepthStencilState* pDepthStencilState = Device::GetInstance()->GetDepthStencilState(EmDepthStencilState::eRead_Write_On);
-						pDeviceContext->OMSetDepthStencilState(pDepthStencilState, 0);
 					}
 					pCB_ObjectDataBuffer->Unmap(pDeviceContext);
+				}
+
+				void SetImageBasedLight(Device* pDeviceInstance, ID3D11DeviceContext* pDeviceContext, const IImageBasedLight* pImageBasedLight)
+				{
+					Texture* pDiffuseHDR = static_cast<Texture*>(pImageBasedLight->GetDiffuseHDR());
+					ID3D11ShaderResourceView* pSRV = pDiffuseHDR->GetShaderResourceView();
+					pDeviceContext->PSSetShaderResources(eSRV_DiffuseHDR, 1, &pSRV);
+
+					Texture* pSpecularHDR = static_cast<Texture*>(pImageBasedLight->GetSpecularHDR());
+					pSRV = pSpecularHDR->GetShaderResourceView();
+					pDeviceContext->PSSetShaderResources(eSRV_SpecularHDR, 1, &pSRV);
+
+					Texture* pSpecularBRDF = static_cast<Texture*>(pImageBasedLight->GetSpecularBRDF());
+					pSRV = pSpecularBRDF->GetShaderResourceView();
+					pDeviceContext->PSSetShaderResources(eSRV_SpecularBRDF, 1, &pSRV);
+
+					ID3D11SamplerState* pSamplerPointClamp = pDeviceInstance->GetSamplerState(EmSamplerState::eMinMagMipPointClamp);
+					pDeviceContext->PSSetSamplers(eSampler_PointClamp, 1, &pSamplerPointClamp);
+
+					ID3D11SamplerState* pSamplerClamp = pDeviceInstance->GetSamplerState(EmSamplerState::eMinMagMipLinearClamp);
+					pDeviceContext->PSSetSamplers(eSampler_Clamp, 1, &pSamplerClamp);
+				}
+
+				void SetCommonContents_ForAlpha(ID3D11DeviceContext* pDeviceContext,
+					ConstantBuffer<CommonContents>* pCB_CommonContents,
+					const LightManager* pLightManager, const math::Vector3& f3CameraPos, int nEnableShadowCount)
+				{
+					CommonContents* pCommonContents = pCB_CommonContents->Map(pDeviceContext);
+
+					pCommonContents->f3CameraPos = f3CameraPos;
+					pCommonContents->nEnableShadowCount = nEnableShadowCount;
+
+					const DirectionalLightData* pDirectionalLightData = nullptr;
+					pLightManager->GetDirectionalLightData(&pDirectionalLightData, &pCommonContents->nDirectionalLightCount);
+					Memory::Copy(pCommonContents->lightDirectional, pDirectionalLightData, sizeof(DirectionalLightData) * pCommonContents->nDirectionalLightCount);
+
+					const PointLightData* pPointLightData = nullptr;
+					pLightManager->GetPointLightData(&pPointLightData, &pCommonContents->nPointLightCount);
+					Memory::Copy(pCommonContents->lightPoint, pPointLightData, sizeof(PointLightData) * pCommonContents->nPointLightCount);
+
+					const SpotLightData* pSpotLightData = nullptr;
+					pLightManager->GetSpotLightData(&pSpotLightData, &pCommonContents->nSpotLightCount);
+					Memory::Copy(pCommonContents->lightSpot, pSpotLightData, sizeof(SpotLightData) * pCommonContents->nSpotLightCount);
+
+					pCB_CommonContents->Unmap(pDeviceContext);
 				}
 
 				void Draw(ID3D11DeviceContext* pDeviceContext,
@@ -404,7 +501,7 @@ namespace eastengine
 							break;
 
 						SkinningInstancingDataBuffer* pSkinningInstancingData = pCB_SkinningInstancingDataBuffer->Map(pDeviceContext);
-						Memory::Copy(pSkinningInstancingData->data.data(), sizeof(pSkinningInstancingData->data), &pInstanceData[i * eMaxInstancingCount], sizeof(math::Matrix) * nDrawInstanceCount);
+						Memory::Copy(pSkinningInstancingData->data.data(), sizeof(pSkinningInstancingData->data), &pInstanceData[i * eMaxInstancingCount], sizeof(SkinningInstancingData) * nDrawInstanceCount);
 						pCB_SkinningInstancingDataBuffer->Unmap(pDeviceContext);
 
 						if (pIndexBuffer != nullptr)
@@ -434,6 +531,13 @@ namespace eastengine
 				void PushJob(const RenderJobSkinned& job);
 
 			private:
+				void DeferredGroupSetup(Device* pDeviceInstance, ID3D11DeviceContext* pDeviceContext);
+				RenderTarget* AlphaBlendGroupSetup(Device* pDeviceInstance, ID3D11DeviceContext* pDeviceContext);
+
+				void RenderStaticElement(Device* pDeviceInstance, ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext, Camera* pCamera, Group emGroup, std::unordered_map<const IMaterial*, uint32_t>& umapMaterialMask);
+				void RenderSkinnedElement(Device* pDeviceInstance, ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext, Camera* pCamera, Group emGroup, std::unordered_map<const IMaterial*, uint32_t>& umapMaterialMask);
+
+			private:
 				struct RenderState
 				{
 					ID3D11VertexShader* pVertexShader{ nullptr };
@@ -453,7 +557,10 @@ namespace eastengine
 				ConstantBuffer<shader::SkinningInstancingDataBuffer> m_skinningInstancingDataBuffer;
 				ConstantBuffer<shader::StaticInstancingDataBuffer> m_staticInstancingDataBuffer;
 				ConstantBuffer<shader::ObjectDataBuffer> m_objectDataBuffer;
-				ConstantBuffer<shader::MatrixBuffer> m_matrixBuffer;
+				ConstantBuffer<shader::VSConstants> m_vsConstants;
+
+				// for alphablend, common.hlsl
+				ConstantBuffer<shader::CommonContents> m_commonContentsBuffer;
 
 				std::unordered_map<shader::MaskKey, RenderState> m_umapRenderStates;
 
@@ -537,24 +644,29 @@ namespace eastengine
 
 				CreatePixelShader(pDevice, 0, "PS");
 				
-				if (util::CreateConstantBuffer(pDevice, m_skinningInstancingDataBuffer.Size(), &m_skinningInstancingDataBuffer.pBuffer) == false)
+				if (util::CreateConstantBuffer(pDevice, m_skinningInstancingDataBuffer.Size(), &m_skinningInstancingDataBuffer.pBuffer, "SkinningInstancingDataBuffer") == false)
 				{
 					throw_line("failed to create SkinningInstancingDataBuffer");
 				}
 
-				if (util::CreateConstantBuffer(pDevice, m_staticInstancingDataBuffer.Size(), &m_staticInstancingDataBuffer.pBuffer) == false)
+				if (util::CreateConstantBuffer(pDevice, m_staticInstancingDataBuffer.Size(), &m_staticInstancingDataBuffer.pBuffer, "StaticInstancingDataBuffer") == false)
 				{
 					throw_line("failed to create StaticInstancingDataBuffer");
 				}
 
-				if (util::CreateConstantBuffer(pDevice, m_objectDataBuffer.Size(), &m_objectDataBuffer.pBuffer) == false)
+				if (util::CreateConstantBuffer(pDevice, m_objectDataBuffer.Size(), &m_objectDataBuffer.pBuffer, "ObjectDataBuffer") == false)
 				{
 					throw_line("failed to create ObjectDataBuffer");
 				}
 
-				if (util::CreateConstantBuffer(pDevice, m_matrixBuffer.Size(), &m_matrixBuffer.pBuffer) == false)
+				if (util::CreateConstantBuffer(pDevice, m_vsConstants.Size(), &m_vsConstants.pBuffer, "VSConstants") == false)
 				{
-					throw_line("failed to create MatrixBuffer");
+					throw_line("failed to create VSConstants");
+				}
+
+				if (util::CreateConstantBuffer(pDevice, m_commonContentsBuffer.Size(), &m_commonContentsBuffer.pBuffer, "CommonContents") == false)
+				{
+					throw_line("failed to create CommonContents");
 				}
 
 				for (int i = 0; i < GroupCount; ++i)
@@ -572,7 +684,8 @@ namespace eastengine
 				SafeRelease(m_skinningInstancingDataBuffer.pBuffer);
 				SafeRelease(m_staticInstancingDataBuffer.pBuffer);
 				SafeRelease(m_objectDataBuffer.pBuffer);
-				SafeRelease(m_matrixBuffer.pBuffer);
+				SafeRelease(m_vsConstants.pBuffer);
+				SafeRelease(m_commonContentsBuffer.pBuffer);
 
 				std::for_each(m_umapRenderStates.begin(), m_umapRenderStates.end(), [](std::pair<const shader::MaskKey, RenderState>& iter)
 				{
@@ -588,286 +701,68 @@ namespace eastengine
 
 			void ModelRenderer::Impl::Render(ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext, Camera* pCamera, Group emGroup)
 			{
-				const Collision::Frustum& frustum = pCamera->GetFrustum();
+				DX_PROFILING(ModelRenderer);
+
+				const bool isAlphaBlend = emGroup == Group::eAlphaBlend;
+				
+				if (isAlphaBlend == true && m_nJobStaticCount[emGroup] == 0 && m_nJobSkinnedCount[emGroup] == 0)
+					return;
+
+				Device* pDeviceInstance = Device::GetInstance();
 
 				pDeviceContext->ClearState();
 
-				const D3D11_VIEWPORT* pViewport = Device::GetInstance()->GetViewport();
+				const D3D11_VIEWPORT* pViewport = pDeviceInstance->GetViewport();
 				pDeviceContext->RSSetViewports(1, pViewport);
 
-				const GBuffer* pGBuffer = Device::GetInstance()->GetGBuffer();
-				ID3D11RenderTargetView* pRTV[] =
+				RenderTarget* pRenderTarget = nullptr;
+				if (isAlphaBlend == true)
 				{
-					pGBuffer->GetRenderTarget(EmGBuffer::eNormals)->GetRenderTargetView(),
-					pGBuffer->GetRenderTarget(EmGBuffer::eColors)->GetRenderTargetView(),
-					pGBuffer->GetRenderTarget(EmGBuffer::eDisneyBRDF)->GetRenderTargetView(),
-				};
-				pDeviceContext->OMSetRenderTargets(_countof(pRTV), pRTV, pGBuffer->GetDepthStencil()->GetDepthStencilView());
-
+					pRenderTarget = AlphaBlendGroupSetup(pDeviceInstance, pDeviceContext);
+				}
+				else
 				{
-					shader::MatrixBuffer* pMatrixBuffer = m_matrixBuffer.Map(pDeviceContext);
-					pMatrixBuffer->matViewProj = pCamera->GetViewMatrix() * pCamera->GetProjMatrix();
-					pMatrixBuffer->matViewProj = pMatrixBuffer->matViewProj.Transpose();
-					m_matrixBuffer.Unmap(pDeviceContext);
+					DeferredGroupSetup(pDeviceInstance, pDeviceContext);
 				}
 
-				pDeviceContext->VSSetConstantBuffers(shader::eCB_Matrix, 1, &m_matrixBuffer.pBuffer);
+				{
+					shader::VSConstants* pVSConstants = m_vsConstants.Map(pDeviceContext);
+					pVSConstants->matViewProj = pCamera->GetViewMatrix() * pCamera->GetProjMatrix();
+					pVSConstants->matViewProj = pVSConstants->matViewProj.Transpose();
+					m_vsConstants.Unmap(pDeviceContext);
+				}
+
+				pDeviceContext->VSSetConstantBuffers(shader::eCB_VSConstants, 1, &m_vsConstants.pBuffer);
 
 				pDeviceContext->VSSetConstantBuffers(shader::eCB_ObjectData, 1, &m_objectDataBuffer.pBuffer);
 				pDeviceContext->PSSetConstantBuffers(shader::eCB_ObjectData, 1, &m_objectDataBuffer.pBuffer);
 
+				if (isAlphaBlend == true)
+				{
+					const IImageBasedLight* pImageBasedLight = pDeviceInstance->GetImageBasedLight();
+					shader::SetImageBasedLight(pDeviceInstance, pDeviceContext, pImageBasedLight);
+
+					LightManager* pLightManager = LightManager::GetInstance();
+					shader::SetCommonContents_ForAlpha(pDeviceContext, &m_commonContentsBuffer, pLightManager, pCamera->GetPosition(), 0);
+					pDeviceContext->PSSetConstantBuffers(shader::eCB_CommonContents, 1, &m_commonContentsBuffer.pBuffer);
+
+					ID3D11SamplerState* pSamplerPointClamp = pDeviceInstance->GetSamplerState(EmSamplerState::eMinMagMipPointClamp);
+					pDeviceContext->PSSetSamplers(shader::eSampler_PointClamp, 1, &pSamplerPointClamp);
+
+					ID3D11SamplerState* pSamplerClamp = pDeviceInstance->GetSamplerState(EmSamplerState::eMinMagMipLinearClamp);
+					pDeviceContext->PSSetSamplers(shader::eSampler_Clamp, 1, &pSamplerClamp);
+				}
+
 				std::unordered_map<const IMaterial*, uint32_t> umapMaterialMask;
 				umapMaterialMask.rehash(m_umapJobStaticMasterBatchs.size() + m_umapJobSkinnedMasterBatchs.size());
 
-				// Job Static
-				m_umapJobStaticMasterBatchs.clear();
+				RenderStaticElement(pDeviceInstance, pDevice, pDeviceContext, pCamera, emGroup, umapMaterialMask);
+				RenderSkinnedElement(pDeviceInstance, pDevice, pDeviceContext, pCamera, emGroup, umapMaterialMask);
+
+				if (isAlphaBlend == true)
 				{
-					for (size_t i = 0; i < m_nJobStaticCount[emGroup]; ++i)
-					{
-						const JobStatic& job = m_vecJobStatics[emGroup][i];
-
-						if (job.isCulling == true)
-							continue;
-
-						//if (frustum.Contains(job.data.boundingSphere) == Collision::EmContainment::eDisjoint)
-						//	continue;
-
-						UMapJobStaticBatch& umapJobStaticBatch = m_umapJobStaticMasterBatchs[job.data.pMaterial];
-
-						auto iter = umapJobStaticBatch.find(job.data.pKey);
-						if (iter != umapJobStaticBatch.end())
-						{
-							iter->second.vecInstanceData.emplace_back(job.data.matWorld.Transpose());
-						}
-						else
-						{
-							umapJobStaticBatch.emplace(job.data.pKey, JobStaticBatch(&job, job.data.matWorld.Transpose()));
-						}
-					}
-
-					std::unordered_map<shader::MaskKey, std::vector<const JobStaticBatch*>> umapJobStaticMaskBatch;
-					umapJobStaticMaskBatch.rehash(m_umapJobStaticMasterBatchs.size());
-
-					for (auto& iter_master : m_umapJobStaticMasterBatchs)
-					{
-						const UMapJobStaticBatch& umapJobStaticBatch = iter_master.second;
-
-						for (auto& iter : umapJobStaticBatch)
-						{
-							const JobStaticBatch& jobBatch = iter.second;
-
-							uint32_t nMask = 0;
-							auto iter_find = umapMaterialMask.find(jobBatch.pJob->data.pMaterial);
-							if (iter_find != umapMaterialMask.end())
-							{
-								nMask = iter_find->second;
-							}
-							else
-							{
-								nMask = shader::GetMaterialMask(jobBatch.pJob->data.pMaterial);
-								umapMaterialMask.emplace(jobBatch.pJob->data.pMaterial, nMask);
-							}
-
-							if (jobBatch.vecInstanceData.size() > 1)
-							{
-								nMask |= shader::eUseInstancing;
-							}
-
-							shader::MaskKey maskKey(nMask);
-							umapJobStaticMaskBatch[maskKey].emplace_back(&jobBatch);
-						}
-					}
-
-					for (auto& iter : umapJobStaticMaskBatch)
-					{
-						std::vector<const JobStaticBatch*>& vecJobBatch = iter.second;
-
-						const RenderState* pRenderState = GetRenderState(pDevice, iter.first);
-						if (pRenderState == nullptr)
-							continue;
-
-						const IMaterial* pMaterial = vecJobBatch[0]->pJob->data.pMaterial;
-
-						if ((iter.first.value & shader::eUseInstancing) == shader::eUseInstancing)
-						{
-							pDeviceContext->VSSetShader(pRenderState->pVertexShader, nullptr, 0);
-							pDeviceContext->PSSetShader(pRenderState->pPixelShader, nullptr, 0);
-
-							pDeviceContext->VSSetConstantBuffers(shader::eCB_StaticInstancingData, 1, &m_staticInstancingDataBuffer.pBuffer);
-
-							pDeviceContext->IASetInputLayout(pRenderState->pInputLayout);
-							pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-							shader::SetMaterial(pDeviceContext, pMaterial);
-							shader::SetObjectData(pDeviceContext, &m_objectDataBuffer, pMaterial, math::Matrix::Identity);
-
-							for (auto& pJobBatch : vecJobBatch)
-							{
-								const RenderJobStatic& job = pJobBatch->pJob->data;
-
-								shader::DrawInstance(pDeviceContext,
-									&m_staticInstancingDataBuffer,
-									static_cast<const VertexBuffer*>(job.pVertexBuffer),
-									static_cast<const IndexBuffer*>(job.pIndexBuffer),
-									job.nStartIndex, job.nIndexCount,
-									pJobBatch->vecInstanceData.data(), pJobBatch->vecInstanceData.size());
-							}
-						}
-						else
-						{
-							pDeviceContext->VSSetShader(pRenderState->pVertexShader, nullptr, 0);
-							pDeviceContext->PSSetShader(pRenderState->pPixelShader, nullptr, 0);
-
-							pDeviceContext->IASetInputLayout(pRenderState->pInputLayout);
-							pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-							shader::SetMaterial(pDeviceContext, pMaterial);
-
-							std::sort(vecJobBatch.begin(), vecJobBatch.end(), [](const JobStaticBatch* a, const JobStaticBatch* b)
-							{
-								return a->pJob->data.fDepth < b->pJob->data.fDepth;
-							});
-
-							for (auto& pJobBatch : vecJobBatch)
-							{
-								const RenderJobStatic& job = pJobBatch->pJob->data;
-
-								shader::SetObjectData(pDeviceContext, &m_objectDataBuffer, job.pMaterial, job.matWorld);
-
-								shader::Draw(pDeviceContext,
-									static_cast<const VertexBuffer*>(job.pVertexBuffer),
-									static_cast<const IndexBuffer*>(job.pIndexBuffer),
-									job.nStartIndex, job.nIndexCount);
-							}
-						}
-					}
+					pDeviceInstance->ReleaseRenderTargets(&pRenderTarget, 1);
 				}
-				m_umapJobStaticMasterBatchs.clear();
-
-				// Job Skinned
-				m_umapJobSkinnedMasterBatchs.clear();
-				{
-					for (size_t i = 0; i < m_nJobSkinnedCount[emGroup]; ++i)
-					{
-						const JobSkinned& job = m_vecJobSkinneds[emGroup][i];
-
-						if (job.isCulling == true)
-							continue;
-
-						UMapJobSkinnedBatch& umapJobSkinnedBatch = m_umapJobSkinnedMasterBatchs[job.data.pMaterial];
-
-						auto iter = umapJobSkinnedBatch.find(job.data.pKey);
-						if (iter != umapJobSkinnedBatch.end())
-						{
-							iter->second.vecInstanceData.emplace_back(job.data.matWorld.Transpose(), job.data.nVTFID);
-						}
-						else
-						{
-							umapJobSkinnedBatch.emplace(job.data.pKey, JobSkinnedBatch(&job, job.data.matWorld.Transpose(), job.data.nVTFID));
-						}
-					}
-
-					std::unordered_map<shader::MaskKey, std::vector<const JobSkinnedBatch*>> umapJobSkinnedMaskBatch;
-					umapJobSkinnedMaskBatch.rehash(m_umapJobSkinnedMasterBatchs.size());
-
-					for (auto& iter_master : m_umapJobSkinnedMasterBatchs)
-					{
-						const UMapJobSkinnedBatch& umapJobSkinnedBatch = iter_master.second;
-
-						for (auto& iter : umapJobSkinnedBatch)
-						{
-							const JobSkinnedBatch& jobBatch = iter.second;
-
-							uint32_t nMask = 0;
-							auto iter_find = umapMaterialMask.find(jobBatch.pJob->data.pMaterial);
-							if (iter_find != umapMaterialMask.end())
-							{
-								nMask = iter_find->second;
-							}
-							else
-							{
-								shader::MaskKey maskKey = shader::GetMaterialMask(jobBatch.pJob->data.pMaterial);
-								umapMaterialMask.emplace(jobBatch.pJob->data.pMaterial, maskKey.value);
-								nMask = maskKey.value;
-							}
-
-							if (jobBatch.vecInstanceData.size() > 1)
-							{
-								nMask |= shader::eUseInstancing;
-							}
-
-							nMask |= shader::eUseSkinning;
-
-							shader::MaskKey maskKey(nMask);
-							umapJobSkinnedMaskBatch[maskKey].emplace_back(&jobBatch);
-						}
-					}
-
-					for (auto& iter : umapJobSkinnedMaskBatch)
-					{
-						std::vector<const JobSkinnedBatch*>& vecJobBatch = iter.second;
-
-						const RenderState* pRenderState = GetRenderState(pDevice, iter.first);
-						if (pRenderState == nullptr)
-							continue;
-
-						const IMaterial* pMaterial = vecJobBatch[0]->pJob->data.pMaterial;
-
-						if ((iter.first.value & shader::eUseInstancing) == shader::eUseInstancing)
-						{
-							pDeviceContext->VSSetShader(pRenderState->pVertexShader, nullptr, 0);
-							pDeviceContext->PSSetShader(pRenderState->pPixelShader, nullptr, 0);
-
-							pDeviceContext->VSSetConstantBuffers(shader::eCB_SkinningInstancingData, 1, &m_staticInstancingDataBuffer.pBuffer);
-
-							pDeviceContext->IASetInputLayout(pRenderState->pInputLayout);
-							pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-							shader::SetMaterial(pDeviceContext, pMaterial);
-							shader::SetObjectData(pDeviceContext, &m_objectDataBuffer, pMaterial, math::Matrix::Identity);
-
-							for (auto& pJobBatch : vecJobBatch)
-							{
-								const RenderJobSkinned& job = pJobBatch->pJob->data;
-
-								shader::DrawInstance(pDeviceContext,
-									&m_skinningInstancingDataBuffer,
-									static_cast<const VertexBuffer*>(job.pVertexBuffer),
-									static_cast<const IndexBuffer*>(job.pIndexBuffer),
-									job.nStartIndex, job.nIndexCount,
-									pJobBatch->vecInstanceData.data(), pJobBatch->vecInstanceData.size());
-							}
-						}
-						else
-						{
-							pDeviceContext->VSSetShader(pRenderState->pVertexShader, nullptr, 0);
-							pDeviceContext->PSSetShader(pRenderState->pPixelShader, nullptr, 0);
-
-							pDeviceContext->IASetInputLayout(pRenderState->pInputLayout);
-							pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-							shader::SetMaterial(pDeviceContext, pMaterial);
-
-							std::sort(vecJobBatch.begin(), vecJobBatch.end(), [](const JobSkinnedBatch* a, const JobSkinnedBatch* b)
-							{
-								return a->pJob->data.fDepth < b->pJob->data.fDepth;
-							});
-
-							for (auto& pJobBatch : vecJobBatch)
-							{
-								const RenderJobSkinned& job = pJobBatch->pJob->data;
-
-								shader::SetObjectData(pDeviceContext, &m_objectDataBuffer, pMaterial, job.matWorld, job.nVTFID);
-
-								shader::Draw(pDeviceContext,
-									static_cast<const VertexBuffer*>(job.pVertexBuffer),
-									static_cast<const IndexBuffer*>(job.pIndexBuffer),
-									job.nStartIndex, job.nIndexCount);
-							}
-						}
-					}
-				}
-				m_umapJobSkinnedMasterBatchs.clear();
 			}
 
 			void ModelRenderer::Impl::Flush()
@@ -921,14 +816,419 @@ namespace eastengine
 
 				thread::AutoLock autoLock(&m_lock);
 
-				size_t nIndex = m_nJobStaticCount[emGroup];
+				size_t nIndex = m_nJobSkinnedCount[emGroup];
 				if (nIndex >= m_vecJobSkinneds[emGroup].size())
 				{
 					m_vecJobSkinneds[emGroup].resize(m_vecJobSkinneds[emGroup].size() * 2);
 				}
 
 				m_vecJobSkinneds[emGroup][nIndex].Set(job);
-				++m_nJobStaticCount[emGroup];
+				++m_nJobSkinnedCount[emGroup];
+			}
+
+			void ModelRenderer::Impl::DeferredGroupSetup(Device* pDeviceInstance, ID3D11DeviceContext* pDeviceContext)
+			{
+				const GBuffer* pGBuffer = pDeviceInstance->GetGBuffer();
+				ID3D11RenderTargetView* pRTV[] =
+				{
+					pGBuffer->GetRenderTarget(EmGBuffer::eNormals)->GetRenderTargetView(),
+					pGBuffer->GetRenderTarget(EmGBuffer::eColors)->GetRenderTargetView(),
+					pGBuffer->GetRenderTarget(EmGBuffer::eDisneyBRDF)->GetRenderTargetView(),
+				};
+				pDeviceContext->OMSetRenderTargets(_countof(pRTV), pRTV, pGBuffer->GetDepthStencil()->GetDepthStencilView());
+			}
+
+			RenderTarget* ModelRenderer::Impl::AlphaBlendGroupSetup(Device* pDeviceInstance, ID3D11DeviceContext* pDeviceContext)
+			{
+				const GBuffer* pGBuffer = pDeviceInstance->GetGBuffer();
+
+				D3D11_TEXTURE2D_DESC desc{};
+				pDeviceInstance->GetSwapChainRenderTarget()->GetDesc2D(&desc);
+				desc.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
+
+				if (GetOptions().OnHDR == true)
+				{
+					desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				}
+
+				RenderTarget* pRenderTarget = pDeviceInstance->GetLastUsedRenderTarget();
+				if (pRenderTarget != nullptr)
+				{
+					const RenderTarget::Key key = RenderTarget::BuildKey(&desc);
+					if (pRenderTarget->GetKey() != key)
+					{
+						pRenderTarget = nullptr;
+					}
+				}
+
+				if (pRenderTarget == nullptr)
+				{
+					pRenderTarget = pDeviceInstance->GetRenderTarget(&desc);
+				}
+
+				ID3D11RenderTargetView* pRTV[] =
+				{
+					pRenderTarget->GetRenderTargetView(),
+				};
+				pDeviceContext->OMSetRenderTargets(_countof(pRTV), pRTV, pGBuffer->GetDepthStencil()->GetDepthStencilView());
+
+				return pRenderTarget;
+			}
+
+			void ModelRenderer::Impl::RenderStaticElement(Device* pDeviceInstance, ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext, Camera* pCamera, Group emGroup, std::unordered_map<const IMaterial*, uint32_t>& umapMaterialMask)
+			{
+				DX_PROFILING(RenderStaticElement);
+
+				m_umapJobStaticMasterBatchs.clear();
+				{
+					for (size_t i = 0; i < m_nJobStaticCount[emGroup]; ++i)
+					{
+						const JobStatic& job = m_vecJobStatics[emGroup][i];
+
+						if (job.isCulling == true)
+							continue;
+
+						//if (frustum.Contains(job.data.boundingSphere) == Collision::EmContainment::eDisjoint)
+						//	continue;
+
+						UMapJobStaticBatch& umapJobStaticBatch = m_umapJobStaticMasterBatchs[job.data.pMaterial];
+
+						auto iter = umapJobStaticBatch.find(job.data.pKey);
+						if (iter != umapJobStaticBatch.end())
+						{
+							iter->second.vecInstanceData.emplace_back(job.data.matWorld.Transpose());
+						}
+						else
+						{
+							umapJobStaticBatch.emplace(job.data.pKey, JobStaticBatch(&job, job.data.matWorld.Transpose()));
+						}
+					}
+
+					std::unordered_map<shader::MaskKey, std::vector<const JobStaticBatch*>> umapJobStaticMaskBatch;
+					umapJobStaticMaskBatch.rehash(m_umapJobStaticMasterBatchs.size());
+
+					for (auto& iter_master : m_umapJobStaticMasterBatchs)
+					{
+						const UMapJobStaticBatch& umapJobStaticBatch = iter_master.second;
+
+						for (auto& iter : umapJobStaticBatch)
+						{
+							const JobStaticBatch& jobBatch = iter.second;
+
+							uint32_t nMask = 0;
+							auto iter_find = umapMaterialMask.find(jobBatch.pJob->data.pMaterial);
+							if (iter_find != umapMaterialMask.end())
+							{
+								nMask = iter_find->second;
+							}
+							else
+							{
+								nMask = shader::GetMaterialMask(jobBatch.pJob->data.pMaterial);
+								umapMaterialMask.emplace(jobBatch.pJob->data.pMaterial, nMask);
+							}
+
+							if (jobBatch.vecInstanceData.size() > 1)
+							{
+								nMask |= shader::eUseInstancing;
+							}
+
+							if (emGroup == Group::eAlphaBlend)
+							{
+								nMask |= shader::eUseAlphaBlending;
+							}
+
+							shader::MaskKey maskKey(nMask);
+							umapJobStaticMaskBatch[maskKey].emplace_back(&jobBatch);
+						}
+					}
+
+					for (auto& iter : umapJobStaticMaskBatch)
+					{
+						std::vector<const JobStaticBatch*>& vecJobBatch = iter.second;
+
+						const RenderState* pRenderState = GetRenderState(pDevice, iter.first);
+						if (pRenderState == nullptr)
+							continue;
+
+						pDeviceContext->VSSetShader(pRenderState->pVertexShader, nullptr, 0);
+						pDeviceContext->PSSetShader(pRenderState->pPixelShader, nullptr, 0);
+
+						pDeviceContext->IASetInputLayout(pRenderState->pInputLayout);
+						pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+						if ((iter.first.value & shader::eUseInstancing) == shader::eUseInstancing)
+						{
+							pDeviceContext->VSSetConstantBuffers(shader::eCB_StaticInstancingData, 1, &m_staticInstancingDataBuffer.pBuffer);
+
+							for (auto& pJobBatch : vecJobBatch)
+							{
+								const RenderJobStatic& job = pJobBatch->pJob->data;
+
+								shader::SetObjectData(pDeviceContext, &m_objectDataBuffer, job.pMaterial, math::Matrix::Identity, 0);
+
+								if (emGroup == eDeferred)
+								{
+									shader::SetMaterial(pDeviceInstance, pDeviceContext, job.pMaterial, emGroup, shader::ePass_Deferred);
+
+									shader::DrawInstance(pDeviceContext,
+										&m_staticInstancingDataBuffer,
+										static_cast<const VertexBuffer*>(job.pVertexBuffer),
+										static_cast<const IndexBuffer*>(job.pIndexBuffer),
+										job.nStartIndex, job.nIndexCount,
+										pJobBatch->vecInstanceData.data(), pJobBatch->vecInstanceData.size());
+								}
+								else if (emGroup == eAlphaBlend)
+								{
+									// Pre
+									shader::SetMaterial(pDeviceInstance, pDeviceContext, job.pMaterial, emGroup, shader::ePass_AlphaBlend_Pre);
+
+									shader::DrawInstance(pDeviceContext,
+										&m_staticInstancingDataBuffer,
+										static_cast<const VertexBuffer*>(job.pVertexBuffer),
+										static_cast<const IndexBuffer*>(job.pIndexBuffer),
+										job.nStartIndex, job.nIndexCount,
+										pJobBatch->vecInstanceData.data(), pJobBatch->vecInstanceData.size());
+
+									// Post
+									shader::SetMaterial(pDeviceInstance, pDeviceContext, job.pMaterial, emGroup, shader::ePass_AlphaBlend_Post);
+
+									shader::DrawInstance(pDeviceContext,
+										&m_staticInstancingDataBuffer,
+										static_cast<const VertexBuffer*>(job.pVertexBuffer),
+										static_cast<const IndexBuffer*>(job.pIndexBuffer),
+										job.nStartIndex, job.nIndexCount,
+										pJobBatch->vecInstanceData.data(), pJobBatch->vecInstanceData.size());
+								}
+							}
+						}
+						else
+						{
+							std::sort(vecJobBatch.begin(), vecJobBatch.end(), [](const JobStaticBatch* a, const JobStaticBatch* b)
+							{
+								return a->pJob->data.fDepth < b->pJob->data.fDepth;
+							});
+
+							for (auto& pJobBatch : vecJobBatch)
+							{
+								const RenderJobStatic& job = pJobBatch->pJob->data;
+
+								shader::SetObjectData(pDeviceContext, &m_objectDataBuffer, job.pMaterial, job.matWorld, 0);
+
+								if (emGroup == eDeferred)
+								{
+									shader::SetMaterial(pDeviceInstance, pDeviceContext, job.pMaterial, emGroup, shader::ePass_Deferred);
+
+									shader::Draw(pDeviceContext,
+										static_cast<const VertexBuffer*>(job.pVertexBuffer),
+										static_cast<const IndexBuffer*>(job.pIndexBuffer),
+										job.nStartIndex, job.nIndexCount);
+								}
+								else if (emGroup == eAlphaBlend)
+								{
+									// Pre
+									shader::SetMaterial(pDeviceInstance, pDeviceContext, job.pMaterial, emGroup, shader::ePass_AlphaBlend_Pre);
+
+									shader::Draw(pDeviceContext,
+										static_cast<const VertexBuffer*>(job.pVertexBuffer),
+										static_cast<const IndexBuffer*>(job.pIndexBuffer),
+										job.nStartIndex, job.nIndexCount);
+
+									// Post
+									shader::SetMaterial(pDeviceInstance, pDeviceContext, job.pMaterial, emGroup, shader::ePass_AlphaBlend_Post);
+
+									shader::Draw(pDeviceContext,
+										static_cast<const VertexBuffer*>(job.pVertexBuffer),
+										static_cast<const IndexBuffer*>(job.pIndexBuffer),
+										job.nStartIndex, job.nIndexCount);
+								}
+							}
+						}
+					}
+				}
+				m_umapJobStaticMasterBatchs.clear();
+			}
+
+			void ModelRenderer::Impl::RenderSkinnedElement(Device* pDeviceInstance, ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext, Camera* pCamera, Group emGroup, std::unordered_map<const IMaterial*, uint32_t>& umapMaterialMask)
+			{
+				DX_PROFILING(RenderSkinnedElement);
+
+				VTFManager* pVTFManager = pDeviceInstance->GetVTFManager();
+				Texture* pVTFTexture = pVTFManager->GetTexture();
+
+				m_umapJobSkinnedMasterBatchs.clear();
+				if (pVTFTexture != nullptr)
+				{
+					for (size_t i = 0; i < m_nJobSkinnedCount[emGroup]; ++i)
+					{
+						const JobSkinned& job = m_vecJobSkinneds[emGroup][i];
+
+						if (job.isCulling == true)
+							continue;
+
+						UMapJobSkinnedBatch& umapJobSkinnedBatch = m_umapJobSkinnedMasterBatchs[job.data.pMaterial];
+
+						auto iter = umapJobSkinnedBatch.find(job.data.pKey);
+						if (iter != umapJobSkinnedBatch.end())
+						{
+							iter->second.vecInstanceData.emplace_back(job.data.matWorld, job.data.nVTFID);
+						}
+						else
+						{
+							umapJobSkinnedBatch.emplace(job.data.pKey, JobSkinnedBatch(&job, job.data.matWorld, job.data.nVTFID));
+						}
+					}
+
+					std::unordered_map<shader::MaskKey, std::vector<const JobSkinnedBatch*>> umapJobSkinnedMaskBatch;
+					umapJobSkinnedMaskBatch.rehash(m_umapJobSkinnedMasterBatchs.size());
+
+					for (auto& iter_master : m_umapJobSkinnedMasterBatchs)
+					{
+						const UMapJobSkinnedBatch& umapJobSkinnedBatch = iter_master.second;
+
+						for (auto& iter : umapJobSkinnedBatch)
+						{
+							const JobSkinnedBatch& jobBatch = iter.second;
+
+							uint32_t nMask = 0;
+							auto iter_find = umapMaterialMask.find(jobBatch.pJob->data.pMaterial);
+							if (iter_find != umapMaterialMask.end())
+							{
+								nMask = iter_find->second;
+							}
+							else
+							{
+								shader::MaskKey maskKey = shader::GetMaterialMask(jobBatch.pJob->data.pMaterial);
+								umapMaterialMask.emplace(jobBatch.pJob->data.pMaterial, maskKey.value);
+								nMask = maskKey.value;
+							}
+
+							if (jobBatch.vecInstanceData.size() > 1)
+							{
+								nMask |= shader::eUseInstancing;
+							}
+
+							if (emGroup == Group::eAlphaBlend)
+							{
+								nMask |= shader::eUseAlphaBlending;
+							}
+
+							nMask |= shader::eUseSkinning;
+
+							shader::MaskKey maskKey(nMask);
+							umapJobSkinnedMaskBatch[maskKey].emplace_back(&jobBatch);
+						}
+					}
+
+					ID3D11ShaderResourceView* pSRVs[] =
+					{
+						pVTFTexture->GetShaderResourceView(),
+					};
+					pDeviceContext->VSSetShaderResources(shader::eSRV_VTF, _countof(pSRVs), pSRVs);
+
+					for (auto& iter : umapJobSkinnedMaskBatch)
+					{
+						std::vector<const JobSkinnedBatch*>& vecJobBatch = iter.second;
+
+						const RenderState* pRenderState = GetRenderState(pDevice, iter.first);
+						if (pRenderState == nullptr)
+							continue;
+
+						pDeviceContext->VSSetShader(pRenderState->pVertexShader, nullptr, 0);
+						pDeviceContext->PSSetShader(pRenderState->pPixelShader, nullptr, 0);
+
+						pDeviceContext->IASetInputLayout(pRenderState->pInputLayout);
+						pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+						if ((iter.first.value & shader::eUseInstancing) == shader::eUseInstancing)
+						{
+							pDeviceContext->VSSetConstantBuffers(shader::eCB_SkinningInstancingData, 1, &m_skinningInstancingDataBuffer.pBuffer);
+
+							for (auto& pJobBatch : vecJobBatch)
+							{
+								const RenderJobSkinned& job = pJobBatch->pJob->data;
+
+								shader::SetObjectData(pDeviceContext, &m_objectDataBuffer, job.pMaterial, math::Matrix::Identity, 0);
+
+								if (emGroup == eDeferred)
+								{
+									shader::SetMaterial(pDeviceInstance, pDeviceContext, job.pMaterial, emGroup, shader::ePass_Deferred);
+
+									shader::DrawInstance(pDeviceContext,
+										&m_skinningInstancingDataBuffer,
+										static_cast<const VertexBuffer*>(job.pVertexBuffer),
+										static_cast<const IndexBuffer*>(job.pIndexBuffer),
+										job.nStartIndex, job.nIndexCount,
+										pJobBatch->vecInstanceData.data(), pJobBatch->vecInstanceData.size());
+								}
+								else if (emGroup == eAlphaBlend)
+								{
+									// Pre
+									shader::SetMaterial(pDeviceInstance, pDeviceContext, job.pMaterial, emGroup, shader::ePass_AlphaBlend_Pre);
+
+									shader::DrawInstance(pDeviceContext,
+										&m_skinningInstancingDataBuffer,
+										static_cast<const VertexBuffer*>(job.pVertexBuffer),
+										static_cast<const IndexBuffer*>(job.pIndexBuffer),
+										job.nStartIndex, job.nIndexCount,
+										pJobBatch->vecInstanceData.data(), pJobBatch->vecInstanceData.size());
+
+									// Post
+									shader::SetMaterial(pDeviceInstance, pDeviceContext, job.pMaterial, emGroup, shader::ePass_AlphaBlend_Post);
+
+									shader::DrawInstance(pDeviceContext,
+										&m_skinningInstancingDataBuffer,
+										static_cast<const VertexBuffer*>(job.pVertexBuffer),
+										static_cast<const IndexBuffer*>(job.pIndexBuffer),
+										job.nStartIndex, job.nIndexCount,
+										pJobBatch->vecInstanceData.data(), pJobBatch->vecInstanceData.size());
+								}
+							}
+						}
+						else
+						{
+							std::sort(vecJobBatch.begin(), vecJobBatch.end(), [](const JobSkinnedBatch* a, const JobSkinnedBatch* b)
+							{
+								return a->pJob->data.fDepth < b->pJob->data.fDepth;
+							});
+
+							for (auto& pJobBatch : vecJobBatch)
+							{
+								const RenderJobSkinned& job = pJobBatch->pJob->data;
+
+								shader::SetObjectData(pDeviceContext, &m_objectDataBuffer, job.pMaterial, job.matWorld, job.nVTFID);
+
+								if (emGroup == eDeferred)
+								{
+									shader::SetMaterial(pDeviceInstance, pDeviceContext, job.pMaterial, emGroup, shader::ePass_Deferred);
+
+									shader::Draw(pDeviceContext,
+										static_cast<const VertexBuffer*>(job.pVertexBuffer),
+										static_cast<const IndexBuffer*>(job.pIndexBuffer),
+										job.nStartIndex, job.nIndexCount);
+								}
+								else if (emGroup == eAlphaBlend)
+								{
+									// Pre
+									shader::SetMaterial(pDeviceInstance, pDeviceContext, job.pMaterial, emGroup, shader::ePass_AlphaBlend_Pre);
+
+									shader::Draw(pDeviceContext,
+										static_cast<const VertexBuffer*>(job.pVertexBuffer),
+										static_cast<const IndexBuffer*>(job.pIndexBuffer),
+										job.nStartIndex, job.nIndexCount);
+
+									// Post
+									shader::SetMaterial(pDeviceInstance, pDeviceContext, job.pMaterial, emGroup, shader::ePass_AlphaBlend_Post);
+
+									shader::Draw(pDeviceContext,
+										static_cast<const VertexBuffer*>(job.pVertexBuffer),
+										static_cast<const IndexBuffer*>(job.pIndexBuffer),
+										job.nStartIndex, job.nIndexCount);
+								}
+							}
+						}
+					}
+				}
+				m_umapJobSkinnedMasterBatchs.clear();
 			}
 
 			const ModelRenderer::Impl::RenderState* ModelRenderer::Impl::GetRenderState(ID3D11Device* pDevice, const shader::MaskKey& maskKey)
@@ -960,74 +1260,54 @@ namespace eastengine
 
 			void ModelRenderer::Impl::CreateVertexShader(ID3D11Device* pDevice, const shader::MaskKey& maskKey, const char* pFunctionName)
 			{
-				std::vector<D3D_SHADER_MACRO> vecMacros = shader::GetMacros(maskKey);
-
-				ID3DBlob* pShaderBlob = nullptr;
-				bool isSuccess = util::CompileShader(m_pShaderBlob, vecMacros.data(), m_strShaderPath.c_str(), pFunctionName, "vs_5_0", &pShaderBlob);
-				if (isSuccess == false)
-					return;
-				
-				ID3D11VertexShader* pVertexShader = nullptr;
-				HRESULT hr = pDevice->CreateVertexShader(pShaderBlob->GetBufferPointer(), pShaderBlob->GetBufferSize(), nullptr, &pVertexShader);
-				if (FAILED(hr))
-				{
-					LOG_ERROR("failed to create vertex shader : %u", maskKey.value);
-				}
-				else
-				{
-					m_umapRenderStates[maskKey].pVertexShader = pVertexShader;
-				}
+				const std::vector<D3D_SHADER_MACRO> vecMacros = shader::GetMacros(maskKey);
 
 				const D3D11_INPUT_ELEMENT_DESC* pInputElements = nullptr;
 				size_t nElementCount = 0;
 
 				if ((maskKey.value & shader::eUseSkinning) == shader::eUseSkinning)
 				{
-					util::GetInputElementDesc(VertexPosTexNorWeiIdx::Format(), &pInputElements, nElementCount);
+					util::GetInputElementDesc(VertexPosTexNorWeiIdx::Format(), &pInputElements, &nElementCount);
 				}
 				else
 				{
-					util::GetInputElementDesc(VertexPosTexNor::Format(), &pInputElements, nElementCount);
+					util::GetInputElementDesc(VertexPosTexNor::Format(), &pInputElements, &nElementCount);
 				}
 
-				if (pInputElements != nullptr || nElementCount > 0)
+				if (pInputElements == nullptr || nElementCount == 0)
 				{
-					ID3D11InputLayout* pInputLayout = nullptr;
-					hr = pDevice->CreateInputLayout(pInputElements, static_cast<uint32_t>(nElementCount), pShaderBlob->GetBufferPointer(), pShaderBlob->GetBufferSize(), &pInputLayout);
-					if (FAILED(hr))
-					{
-						LOG_ERROR("failed to create input layout : %u", maskKey.value);
-					}
-					else
-					{
-						m_umapRenderStates[maskKey].pInputLayout = pInputLayout;
-					}
+					throw_line("invalid vertex shader input elements");
 				}
 
-				SafeRelease(pShaderBlob);
+				const std::string strDebugName = String::Format("ModelVertexShader : %u", maskKey.value);
+
+				ID3D11VertexShader* pVertexShader = nullptr;
+				ID3D11InputLayout* pInputLayout = nullptr;
+
+				if (util::CreateVertexShader(pDevice, m_pShaderBlob, vecMacros.data(), m_strShaderPath.c_str(), pFunctionName, "vs_5_0", &pVertexShader, pInputElements, nElementCount, &pInputLayout, strDebugName.c_str()) == false)
+				{
+					LOG_ERROR("failed to create vertex shader : %u", maskKey.value);
+					return;
+				}
+
+				m_umapRenderStates[maskKey].pVertexShader = pVertexShader;
+				m_umapRenderStates[maskKey].pInputLayout = pInputLayout;
 			}
 
 			void ModelRenderer::Impl::CreatePixelShader(ID3D11Device* pDevice, const shader::MaskKey& maskKey, const char* pFunctionName)
 			{
-				std::vector<D3D_SHADER_MACRO> vecMacros = shader::GetMacros(maskKey);
+				const std::vector<D3D_SHADER_MACRO> vecMacros = shader::GetMacros(maskKey);
 
-				ID3DBlob* pShaderBlob = nullptr;
-				bool isSuccess = util::CompileShader(m_pShaderBlob, vecMacros.data(), m_strShaderPath.c_str(), pFunctionName, "ps_5_0", &pShaderBlob);
-				if (isSuccess == false)
-					return;
+				const std::string strDebugName = String::Format("ModelPixelShader : %u", maskKey.value);
 
 				ID3D11PixelShader* pPixelShader = nullptr;
-				HRESULT hr = pDevice->CreatePixelShader(pShaderBlob->GetBufferPointer(), pShaderBlob->GetBufferSize(), nullptr, &pPixelShader);
-				if (FAILED(hr))
+				if (util::CreatePixelShader(pDevice, m_pShaderBlob, vecMacros.data(), m_strShaderPath.c_str(), pFunctionName, "ps_5_0", &pPixelShader, strDebugName.c_str()) == false)
 				{
 					LOG_ERROR("failed to create pixel shader : %u", maskKey.value);
-				}
-				else
-				{
-					m_umapRenderStates[maskKey].pPixelShader = pPixelShader;
+					return;
 				}
 
-				SafeRelease(pShaderBlob);
+				m_umapRenderStates[maskKey].pPixelShader = pPixelShader;
 			}
 
 			ModelRenderer::ModelRenderer()
@@ -1049,14 +1329,14 @@ namespace eastengine
 				m_pImpl->Flush();
 			}
 
-			void ModelRenderer::PushJob(const RenderJobStatic& subset)
+			void ModelRenderer::PushJob(const RenderJobStatic& job)
 			{
-				m_pImpl->PushJob(subset);
+				m_pImpl->PushJob(job);
 			}
 
-			void ModelRenderer::PushJob(const RenderJobSkinned& subset)
+			void ModelRenderer::PushJob(const RenderJobSkinned& job)
 			{
-				m_pImpl->PushJob(subset);
+				m_pImpl->PushJob(job);
 			}
 		}
 	}

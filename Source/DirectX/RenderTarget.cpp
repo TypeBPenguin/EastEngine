@@ -91,8 +91,8 @@ namespace eastengine
 					n2Size.x = (n2Size.x + 1) / 2;
 					n2Size.y = (n2Size.y + 1) / 2;
 				}
-				n2Size.x = math::Max(n2Size.x, 1u);
-				n2Size.y = math::Max(n2Size.y, 1u);
+				n2Size.x = std::max(n2Size.x, 1u);
+				n2Size.y = std::max(n2Size.y, 1u);
 
 				m_vecSize[nIdx] = n2Size;
 
@@ -169,8 +169,8 @@ namespace eastengine
 					n2Size.x = (n2Size.x + 1) / 2;
 					n2Size.y = (n2Size.y + 1) / 2;
 				}
-				n2Size.x = math::Max(n2Size.x, 1u);
-				n2Size.y = math::Max(n2Size.y, 1u);
+				n2Size.x = std::max(n2Size.x, 1u);
+				n2Size.y = std::max(n2Size.y, 1u);
 
 				m_vecSize[nIdx] = n2Size;
 
@@ -246,8 +246,8 @@ namespace eastengine
 					n2Size.x = (n2Size.x + 1) / 2;
 					n2Size.y = (n2Size.y + 1) / 2;
 				}
-				n2Size.x = math::Max(n2Size.x, 1u);
-				n2Size.y = math::Max(n2Size.y, 1u);
+				n2Size.x = std::max(n2Size.x, 1u);
+				n2Size.y = std::max(n2Size.y, 1u);
 
 				m_vecSize[nIdx] = n2Size;
 

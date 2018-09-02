@@ -78,7 +78,7 @@ namespace eastengine
 
 				if (nVTFID != IVTFManager::eInvalidVTFID)
 				{
-					uint32_t nLevel = math::Min(m_nLod, m_nLodMax);
+					uint32_t nLevel = std::min(m_nLod, m_nLodMax);
 					if (m_pVertexBuffer[nLevel] == nullptr || m_pIndexBuffer[nLevel] == nullptr)
 					{
 						LOG_WARNING("Model Data is nullptr, LOD : %d", nLevel);

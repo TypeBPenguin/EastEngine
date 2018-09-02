@@ -26,8 +26,8 @@ namespace eastengine
 
 			public:
 				constexpr size_t GetCount() const noexcept { return EmGBuffer::Count; }
-				const RenderTarget* GetRenderTarget(EmGBuffer::Type emType) const { return m_pRenderTargets[emType].get(); }
-				const DepthStencil* GetDepthStencil() const { return m_pDepthStencil.get(); }
+				RenderTarget* GetRenderTarget(EmGBuffer::Type emType) { return m_pRenderTargets[emType].get(); }
+				DepthStencil* GetDepthStencil() { return m_pDepthStencil.get(); }
 
 			private:
 				std::array<std::unique_ptr<RenderTarget>, EmGBuffer::Count> m_pRenderTargets;

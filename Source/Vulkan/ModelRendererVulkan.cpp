@@ -777,8 +777,15 @@ namespace eastengine
 
 			void ModelRenderer::Impl::GetPSOState(const PSOKey& key, uint64_t& nMask_out, EmRasterizerState::Type& emRasterizerState_out, EmBlendState::Type& emBlendState_out, EmDepthStencilState::Type& emDepthStencilState_out)
 			{
-				String::StringID strKey = String::GetString(key.value);
-				sscanf_s(strKey.c_str(), "%lld_%d_%d_%d", &nMask_out, &emRasterizerState_out, &emBlendState_out, &emDepthStencilState_out);
+				uint32_t r = 0;
+				uint32_t b = 0;
+				uint32_t d = 0;
+
+				sscanf_s(key.value.c_str(), "%llu_%u_%u_%u", &nMask_out, &r, &b, &d);
+
+				emRasterizerState_out = static_cast<EmRasterizerState::Type>(r);
+				emBlendState_out = static_cast<EmBlendState::Type>(b);
+				emDepthStencilState_out = static_cast<EmDepthStencilState::Type>(d);
 			}
 
 			PSOKey ModelRenderer::Impl::GetPSOKey(uint64_t nMask, EmRasterizerState::Type emRasterizerState, EmBlendState::Type emBlendState, EmDepthStencilState::Type emDepthStencilState)
@@ -786,7 +793,7 @@ namespace eastengine
 				String::StringID strKey;
 				strKey.Format("%lld_%d_%d_%d", nMask, emRasterizerState, emBlendState, emDepthStencilState);
 
-				return PSOKey{ strKey.Key() };
+				return PSOKey{ strKey };
 			}
 
 			void ModelRenderer::Impl::CreateRenderPass(VkDevice device)

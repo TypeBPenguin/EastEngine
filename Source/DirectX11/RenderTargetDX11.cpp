@@ -146,7 +146,7 @@ namespace eastengine
 					pDesc->CPUAccessFlags,
 					pDesc->MiscFlags);
 
-				return { strKey.Key() };
+				return RenderTarget::Key(strKey);
 			}
 
 			void RenderTarget::GetDesc2D(D3D11_TEXTURE2D_DESC* pDesc) const

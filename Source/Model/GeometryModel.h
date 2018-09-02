@@ -9,7 +9,7 @@ namespace eastengine
 		class IVertexBuffer;
 		class IIndexBuffer;
 
-		namespace GeometryModel
+		namespace geometry
 		{
 			enum EmDebugModel
 			{

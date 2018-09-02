@@ -8,6 +8,11 @@
 #include "RenderManagerVulkan.h"
 #include "TextureVulkan.h"
 
+namespace StrID
+{
+	RegisterStringID(Vulkan_Empty_Texture);
+}
+
 namespace eastengine
 {
 	namespace graphics
@@ -99,7 +104,8 @@ namespace eastengine
 
 			public:
 				GBuffer* GetGBuffer(int nFrameIndex) const { return m_pGBuffers[nFrameIndex].get(); }
-				ImageBasedLight* GetImageBasedLight() const { return m_pImageBasedLight.get(); }
+				IImageBasedLight* GetImageBasedLight() const { return m_pImageBasedLight; }
+				void SetImageBasedLight(IImageBasedLight* pImageBasedLight) { m_pImageBasedLight = pImageBasedLight; }
 
 				RenderManager* GetRenderManager() const { return m_pRenderManager.get(); }
 
@@ -198,7 +204,7 @@ namespace eastengine
 				VkSemaphore m_renderFinishedSemaphore{ nullptr };
 
 				std::vector<std::unique_ptr<GBuffer>> m_pGBuffers;
-				std::unique_ptr<ImageBasedLight> m_pImageBasedLight;
+				IImageBasedLight* m_pImageBasedLight{ nullptr };
 
 				std::unique_ptr<RenderManager> m_pRenderManager;
 
@@ -224,10 +230,9 @@ namespace eastengine
 				{
 					m_pGBuffers[i] = std::make_unique<GBuffer>(m_swapChainExtent.width, m_swapChainExtent.height);
 				}
-				m_pImageBasedLight = std::make_unique<ImageBasedLight>();
 				m_pRenderManager = std::make_unique<RenderManager>();
 
-				m_pTextureEmpty = std::make_unique<Texture>(Texture::Key(String::GetKey("Vulkan_Empty_Texture")));
+				m_pTextureEmpty = std::make_unique<Texture>(Texture::Key(StrID::Vulkan_Empty_Texture));
 				const math::RGBA rgba(0.f, 0.f, 0.f, 1.f);
 				m_pTextureEmpty->Bind(1, 1, &rgba.r);
 			}
@@ -237,7 +242,6 @@ namespace eastengine
 				m_pRenderManager.reset();
 
 				m_pGBuffers.clear();
-				m_pImageBasedLight.reset();
 				m_pTextureEmpty.reset();
 
 				for (auto& samperState : m_samplers)
@@ -1397,9 +1401,14 @@ namespace eastengine
 				return m_pImpl->GetGBuffer(nFrameIndex);
 			}
 
-			ImageBasedLight* Device::GetImageBasedLight() const
+			IImageBasedLight* Device::GetImageBasedLight() const
 			{
 				return m_pImpl->GetImageBasedLight();
+			}
+
+			void Device::SetImageBasedLight(IImageBasedLight* pImageBasedLight)
+			{
+				m_pImpl->SetImageBasedLight(pImageBasedLight);
 			}
 
 			RenderManager* Device::GetRenderManager() const

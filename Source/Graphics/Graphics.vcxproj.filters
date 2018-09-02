@@ -37,6 +37,9 @@
     <Filter Include="Texture">
       <UniqueIdentifier>{9b31e954-6f82-4fd1-847d-1c9c46a7c9fa}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ImageBasedLight">
+      <UniqueIdentifier>{33e47b86-5056-4b55-b1e2-c0adc4107693}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -78,6 +81,9 @@
     <ClInclude Include="TextureManager.h">
       <Filter>Texture</Filter>
     </ClInclude>
+    <ClInclude Include="ImageBasedLight.h">
+      <Filter>ImageBasedLight</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -118,6 +124,9 @@
     </ClCompile>
     <ClCompile Include="TextureManager.cpp">
       <Filter>Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageBasedLight.cpp">
+      <Filter>ImageBasedLight</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

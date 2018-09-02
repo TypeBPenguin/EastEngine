@@ -184,17 +184,15 @@
     <ClInclude Include="ComponentPhysics.h" />
     <ClInclude Include="ComponentTimer.h" />
     <ClInclude Include="ComponentInterface.h" />
-    <ClInclude Include="ActorManager.h" />
     <ClInclude Include="GameObject.h" />
+    <ClInclude Include="GameObjectManager.h" />
     <ClInclude Include="RagDoll.h" />
     <ClInclude Include="Sector.h" />
     <ClInclude Include="SectorMgr.h" />
     <ClInclude Include="Skybox.h" />
-    <ClInclude Include="SkyManager.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="Terrain.h" />
-    <ClInclude Include="TerrainManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Actor.cpp" />
@@ -206,13 +204,12 @@
     <ClCompile Include="ComponentPhysics.cpp" />
     <ClCompile Include="ComponentTimer.cpp" />
     <ClCompile Include="ComponentInterface.cpp" />
-    <ClCompile Include="ActorManager.cpp" />
     <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="GameObjectManager.cpp" />
     <ClCompile Include="RagDoll.cpp" />
     <ClCompile Include="Sector.cpp" />
     <ClCompile Include="SectorMgr.cpp" />
     <ClCompile Include="Skybox.cpp" />
-    <ClCompile Include="SkyManager.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -220,11 +217,13 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Terrain.cpp" />
-    <ClCompile Include="TerrainManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CommonLib\CommonLib.vcxproj">
       <Project>{4871ee05-3f6b-4558-b2b5-caa7e79ba5e0}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Graphics\Graphics.vcxproj">
+      <Project>{388c8bce-27cc-4468-b2c3-514eaa2ba568}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Physics\Physics.vcxproj">
       <Project>{7eac4ee4-03df-46cc-819d-ae7c9dc52239}</Project>

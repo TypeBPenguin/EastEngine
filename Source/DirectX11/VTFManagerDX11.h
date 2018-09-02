@@ -9,6 +9,8 @@ namespace eastengine
 	{
 		namespace dx11
 		{
+			class Texture;
+
 			class VTFManager : public IVTFManager
 			{
 			public:
@@ -22,7 +24,7 @@ namespace eastengine
 				bool Bake();
 
 			public:
-				ITexture* GetTexture() const { return m_vtfInstance.pVTF; }
+				Texture* GetTexture() const { return m_vtfInstance.pVTF; }
 
 			private:
 				thread::Lock m_lock;
@@ -31,7 +33,7 @@ namespace eastengine
 				{
 					uint32_t nAllocatedCount{ 0 };
 
-					ITexture* pVTF{ nullptr };
+					Texture* pVTF{ nullptr };
 					std::vector<math::Matrix> buffer;
 				};
 				VTFInstance m_vtfInstance;

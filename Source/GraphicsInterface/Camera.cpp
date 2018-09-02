@@ -153,7 +153,7 @@ namespace eastengine
 				m_fAddDistance *= fDeValue;
 
 				m_fDistance += fOffset;
-				m_fDistance = math::Clamp(m_fDistance + fOffset, m_fMinDistance, m_fMaxDistance);
+				m_fDistance = std::clamp(m_fDistance + fOffset, m_fMinDistance, m_fMaxDistance);
 
 				SetDistance(m_fDistance);
 			}
@@ -449,7 +449,7 @@ namespace eastengine
 			m_pImpl->SetPosition(vEye);
 		}
 
-		const math::Vector3& Camera::GetPosition()
+		const math::Vector3& Camera::GetPosition() const
 		{
 			return m_pImpl->GetPosition();
 		}
@@ -459,7 +459,7 @@ namespace eastengine
 			m_pImpl->SetLookat(vLookat);
 		}
 
-		const math::Vector3& Camera::GetLookat()
+		const math::Vector3& Camera::GetLookat() const
 		{
 			return m_pImpl->GetLookat();
 		}
@@ -469,27 +469,27 @@ namespace eastengine
 			m_pImpl->SetUp(vUp);
 		}
 
-		const math::Vector3& Camera::GetUp()
+		const math::Vector3& Camera::GetUp() const
 		{
 			return m_pImpl->GetUp();
 		}
 
-		math::Vector3 Camera::GetDir()
+		math::Vector3 Camera::GetDir() const
 		{
 			return m_pImpl->GetDir();
 		}
 
-		const math::Matrix& Camera::GetViewMatrix()
+		const math::Matrix& Camera::GetViewMatrix() const
 		{
 			return m_pImpl->GetViewMatrix();
 		}
 
-		const math::Matrix& Camera::GetProjMatrix()
+		const math::Matrix& Camera::GetProjMatrix() const
 		{
 			return m_pImpl->GetProjMatrix();
 		}
 
-		const math::Matrix& Camera::GetOrthoMatrix()
+		const math::Matrix& Camera::GetOrthoMatrix() const
 		{
 			return m_pImpl->GetOrthoMatrix();
 		}

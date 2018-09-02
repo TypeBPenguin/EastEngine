@@ -1,8 +1,6 @@
 #include "stdafx.h"
 #include "PointLight.h"
 
-#include "CommonLib\Config.h"
-
 #include "LightManager.h"
 
 namespace StrID

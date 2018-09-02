@@ -1,5 +1,7 @@
 #pragma once
 
+#include "CommonLib/Lock.h"
+
 #include "DefineDX12.h"
 
 namespace eastengine
@@ -28,7 +30,7 @@ namespace eastengine
 			class Uploader
 			{
 			public:
-				Uploader();
+				Uploader(uint32_t nBufferSize = 32 * 1024 * 1024, uint32_t nSubmissionCount = 32, uint32_t nTempBufferSize = 2 * 1024 * 1024);
 				~Uploader();
 
 			public:
@@ -41,14 +43,6 @@ namespace eastengine
 				MapResult AcquireTempBufferMem(uint64_t nSize, uint64_t nAlignment);
 
 			private:
-				enum : uint64_t
-				{
-					eUploadBufferSize = 32 * 1024 * 1024,
-					eMaxUploadSubmissions = 32,
-
-					eTempBufferSize = 2 * 1024 * 1024,
-				};
-
 				struct UploadSubmission
 				{
 					ID3D12CommandAllocator* pCommandAllocator{ nullptr };
@@ -67,15 +61,20 @@ namespace eastengine
 					}
 				};
 
-			private:
+			public:
 				void ClearFinishedUploads(uint64_t nFlushCount);
 				UploadSubmission* AllocUploadSubmission(uint64_t nSize);
 
 			private:
-				ID3D12Resource * m_pUploadBuffer{ nullptr };
+				uint32_t m_nBufferSize{ 0 };
+				uint32_t m_nSubmissionCount{ 0 };
+				uint32_t m_nTempBufferSize{ 0 };
+
+				ID3D12Resource* m_pUploadBuffer{ nullptr };
 				uint8_t* m_pUploadBufferCPUAddr{ nullptr };
-				SRWLOCK m_uploadSubmissionLock{ SRWLOCK_INIT };
-				SRWLOCK m_uploadQueueLock{ SRWLOCK_INIT };
+
+				thread::Lock m_uploadSubmissionLock;
+				thread::Lock m_uploadQueueLock;
 
 				ID3D12CommandQueue* m_pUploadCommandQueue{ nullptr };
 				ID3D12Fence* m_pUploadFence{ nullptr };
@@ -84,7 +83,7 @@ namespace eastengine
 
 				uint64_t m_nUploadBufferStart{ 0 };
 				uint64_t m_nUploadBufferUsed{ 0 };
-				std::array<UploadSubmission, eMaxUploadSubmissions> m_uploadSubmissions;
+				std::vector<UploadSubmission> m_uploadSubmissions;
 				uint64_t m_nUploadSubmissionStart = 0;
 				uint64_t m_nUploadSubmissionUsed{ 0 };
 

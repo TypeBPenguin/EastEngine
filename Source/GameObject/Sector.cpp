@@ -6,9 +6,7 @@
 #include "ComponentModel.h"
 #include "ComponentPhysics.h"
 
-#include "DirectX/Device.h"
-
-#include "Model/ModelManager.h"
+#include "Model/ModelLoader.h"
 
 namespace StrID
 {
@@ -77,12 +75,12 @@ namespace eastengine
 
 		void Sector::Enter(IActor* pActor)
 		{
-			m_umapActor.emplace(pActor->GetActorID(), pActor);
+			m_umapActor.emplace(pActor->GetHandle(), pActor);
 		}
 
 		void Sector::Leave(IActor* pActor)
 		{
-			auto iter = m_umapActor.find(pActor->GetActorID());
+			auto iter = m_umapActor.find(pActor->GetHandle());
 			if (iter == m_umapActor.end())
 				return;
 

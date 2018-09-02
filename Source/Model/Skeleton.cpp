@@ -3,8 +3,6 @@
 
 #include "GeometryModel.h"
 
-#include "CommonLib/Config.h"
-
 namespace eastengine
 {
 	namespace graphics

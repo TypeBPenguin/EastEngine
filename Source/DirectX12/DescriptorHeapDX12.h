@@ -56,10 +56,10 @@ namespace eastengine
 				uint32_t IndexFromHandle(D3D12_GPU_DESCRIPTOR_HANDLE handle);
 
 				ID3D12DescriptorHeap* GetHeap() const;
+				ID3D12DescriptorHeap* GetHeap(int nFrameIndex) const;
 				uint32_t TotalDescriptorsCount() const;
 
 			private:
-				// 3개까지 필요해? 확인필요
 				std::array<ID3D12DescriptorHeap*, eFrameBufferCount> m_pDescriptorHeaps{ nullptr };
 				uint32_t m_nPersistentCount{ 0 };
 				uint32_t m_nAllocatedPersistentCount{ 0 };

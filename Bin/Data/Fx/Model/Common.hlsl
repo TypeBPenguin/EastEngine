@@ -18,30 +18,22 @@ Texture2D<float2> g_texShadowMap : register(t19);
 SamplerState SamplerPointClamp : register(s1);
 SamplerState SamplerClamp : register(s2);
 
-cbuffer cbLightContents : register(b4)
+cbuffer cbCommonContents : register(b5)
 {
+	float3 g_f3CameraPos;
+	int g_nEnableShadowCount = 0;
+
 	uint g_nDirectionalLightCount;
 	uint g_nPointLightCount;
 	uint g_nSpotLightCount;
-	uint padding;
+	uint CommonContents_padding;
 
 	DirectionalLight g_lightDirectional[eMaxDirectionalLightCount];
 	PointLight g_lightPoint[eMaxPointLightCount];
 	SpotLight g_lightSpot[eMaxSpotLightCount];
 };
 
-cbuffer cbCommonContents : register(b5)
-{
-	float4x4 g_matInvView;
-	float4x4 g_matInvProj;
-
-	float3 g_f3CameraPos;
-	int g_nEnableShadowCount = 0;
-};
-
 #elif DX12
-
-#include "../DescriptorTablesDX12.hlsl"
 
 #define TexDiffuseHDR(normal)	TexCubeTable[g_nTexDiffuseHDRIndex].SampleLevel(SamplerLinearClamp, normal, 0)
 #define TexSpecularHDR(reflectVector, mipIndex)	TexCubeTable[g_nTexSpecularHDRIndex].SampleLevel(SamplerLinearClamp, reflectVector, mipIndex)
@@ -50,8 +42,16 @@ cbuffer cbCommonContents : register(b5)
 SamplerState SamplerPointClamp : register(s0, space100);
 SamplerState SamplerLinearClamp : register(s1, space100);
 
-cbuffer cbLightContents : register(b0, space100)
+cbuffer cbCommonContents : register(b5)
 {
+	float3 g_f3CameraPos;
+	int g_nEnableShadowCount = 0;
+
+	uint g_nTexDiffuseHDRIndex;
+	uint g_nTexSpecularHDRIndex;
+	uint g_nTexSpecularBRDFIndex;
+	uint g_nTexShadowMapIndex;
+
 	uint g_nDirectionalLightCount = 0;
 	uint g_nPointLightCount = 0;
 	uint g_nSpotLightCount = 0;
@@ -60,25 +60,6 @@ cbuffer cbLightContents : register(b0, space100)
 	DirectionalLight g_lightDirectional[eMaxDirectionalLightCount];
 	PointLight g_lightPoint[eMaxPointLightCount];
 	SpotLight g_lightSpot[eMaxSpotLightCount];
-};
-
-cbuffer cbCommonContents : register(b1, space100)
-{
-	float4x4 g_matInvView;
-	float4x4 g_matInvProj;
-
-	float3 g_f3CameraPos;
-	int g_nEnableShadowCount = 0;
-
-	uint g_nTexDepthIndex;
-	uint g_nTexNormalIndex;
-	uint g_nTexAlbedoSpecularIndex;
-	uint g_nTexDisneyBRDFIndex;
-
-	uint g_nTexDiffuseHDRIndex;
-	uint g_nTexSpecularHDRIndex;
-	uint g_nTexSpecularBRDFIndex;
-	uint g_nTexShadowMapIndex;
 };
 
 #endif

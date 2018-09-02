@@ -9,7 +9,7 @@ namespace eastengine
 		class Terrain : public ITerrain
 		{
 		public:
-			Terrain();
+			Terrain(const Handle& handle);
 			virtual ~Terrain();
 
 		public:
@@ -65,10 +65,10 @@ namespace eastengine
 
 			graphics::IVertexBuffer* m_pHeightField;
 
-			std::shared_ptr<graphics::ITexture> m_pTexHeightMap;
-			std::shared_ptr<graphics::ITexture> m_pTexColorMap;
-			std::shared_ptr<graphics::ITexture> m_pTexDetailMap;
-			std::shared_ptr<graphics::ITexture> m_pTexDetailNormalMap;
+			graphics::ITexture* m_pTexHeightMap{ nullptr };
+			graphics::ITexture* m_pTexColorMap{ nullptr };
+			graphics::ITexture* m_pTexDetailMap{ nullptr };
+			graphics::ITexture* m_pTexDetailNormalMap{ nullptr };
 
 			// 아래의 정점 정보는 RigidBody가 삭제되기 전까지 내용을 유지해야함
 			// 아니면 댕글링 빠바방

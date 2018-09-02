@@ -28,6 +28,7 @@
 
 #include "TextureManager.h"
 #include "Material.h"
+#include "ImageBasedLight.h"
 
 namespace eastengine
 {
@@ -52,7 +53,7 @@ namespace eastengine
 			virtual void AddMessageHandler(std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler) = 0;
 
 			virtual const math::UInt2& GetScreenSize() const = 0;
-			virtual ImageBasedLight* GetImageBasedLight() const = 0;
+			virtual IImageBasedLight* GetImageBasedLight() const = 0;
 			virtual IVTFManager* GetVTFManager() const = 0;
 
 			virtual IVertexBuffer* CreateVertexBuffer(const uint8_t* pData, size_t nBufferSize, uint32_t nVertexCount) = 0;
@@ -88,10 +89,15 @@ namespace eastengine
 			{
 				Device::GetInstance()->Initialize(nWidth, nHeight, isFullScreen, strApplicationTitle, strApplicationName);
 				m_pTextureManager = std::make_unique<TextureManager>();
+
+				m_pImageBasedLight = std::make_unique<ImageBasedLight>();
+				Device::GetInstance()->SetImageBasedLight(m_pImageBasedLight.get());
 			}
 
 			virtual void Release() override
 			{
+				m_pImageBasedLight.reset();
+
 				FlushGarbageCollection();
 
 				if (m_umapVertexBuffers.empty() == false ||
@@ -101,7 +107,11 @@ namespace eastengine
 					std::string error = String::Format("please release all resource : vertexbuffer[%lld], indexbuffer[%lld], material[%lld]", m_umapVertexBuffers.size(), m_umapIndexBuffers.size(), m_umapMaterials.size());
 					OutputDebugString(error.c_str());
 					LOG_ERROR("%s", error.c_str());
+					Sleep(5000);
 				}
+				m_umapVertexBuffers.clear();
+				m_umapIndexBuffers.clear();
+				m_umapMaterials.clear();
 
 				m_pTextureManager.reset();
 				Device::DestroyInstance();
@@ -162,7 +172,7 @@ namespace eastengine
 				return Device::GetInstance()->GetScreenSize();
 			}
 
-			virtual ImageBasedLight* GetImageBasedLight() const override
+			virtual IImageBasedLight* GetImageBasedLight() const override
 			{
 				return Device::GetInstance()->GetImageBasedLight();
 			}
@@ -213,7 +223,7 @@ namespace eastengine
 
 			virtual ITexture* CreateTexture(const char* strFilePath) override
 			{
-				ITexture::Key key{ String::GetKey(strFilePath) };
+				ITexture::Key key{ String::StringID(strFilePath) };
 				ITexture* pITexture = m_pTextureManager->GetTexture(key);
 				if (pITexture != nullptr)
 					return pITexture;
@@ -229,7 +239,7 @@ namespace eastengine
 
 			virtual ITexture* CreateTextureAsync(const char* strFilePath) override
 			{
-				ITexture::Key key{ String::GetKey(strFilePath) };
+				ITexture::Key key{ String::StringID(strFilePath) };
 				ITexture* pITexture = m_pTextureManager->GetTexture(key);
 				if (pITexture != nullptr)
 					return pITexture;
@@ -315,6 +325,9 @@ namespace eastengine
 				const size_t nSize = m_vecGarbages.size();
 				for (size_t i = 0; i < nSize; ++i)
 				{
+					if (m_vecGarbages[i]->GetReferenceCount() > 0)
+						continue;
+
 					const String::StringID& strResourceType = m_vecGarbages[i]->GetResourceType();
 					if (strResourceType == StrID::VertexBuffer)
 					{
@@ -337,6 +350,7 @@ namespace eastengine
 			std::vector<IResource*> m_vecGarbages;
 
 			std::unique_ptr<TextureManager> m_pTextureManager;
+			std::unique_ptr<ImageBasedLight> m_pImageBasedLight;
 
 			std::unordered_map<IResource*, std::unique_ptr<VertexBuffer>> m_umapVertexBuffers;
 			std::unordered_map<IResource*, std::unique_ptr<IndexBuffer>> m_umapIndexBuffers;
@@ -439,7 +453,7 @@ namespace eastengine
 			return s_pGraphicsAPI->GetScreenSize();
 		}
 
-		ImageBasedLight* GetImageBasedLight()
+		IImageBasedLight* GetImageBasedLight()
 		{
 			return s_pGraphicsAPI->GetImageBasedLight();
 		}

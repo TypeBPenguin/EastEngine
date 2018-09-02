@@ -163,17 +163,26 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="AssaoDX12.h" />
+    <ClInclude Include="BloomFilterDX12.h" />
+    <ClInclude Include="ColorGradingDX12.h" />
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="DeferredRendererDX12.h" />
     <ClInclude Include="DefineDX12.h" />
+    <ClInclude Include="DepthOfFieldDX12.h" />
     <ClInclude Include="DepthStencilDX12.h" />
     <ClInclude Include="DescriptorHeapDX12.h" />
     <ClInclude Include="DeviceDX12.h" />
+    <ClInclude Include="DownScaleDX12.h" />
+    <ClInclude Include="EnvironmentRendererDX12.h" />
+    <ClInclude Include="FxaaDX12.h" />
+    <ClInclude Include="GaussianBlurDX12.h" />
     <ClInclude Include="GBufferDX12.h" />
     <ClInclude Include="IndexBufferDX12.h" />
     <ClInclude Include="ModelRendererDX12.h" />
     <ClInclude Include="RenderManagerDX12.h" />
     <ClInclude Include="RenderTargetDX12.h" />
+    <ClInclude Include="SSSDX12.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TextureDX12.h" />
@@ -183,16 +192,25 @@
     <ClInclude Include="VTFManagerDX12.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AssaoDX12.cpp" />
+    <ClCompile Include="BloomFilterDX12.cpp" />
+    <ClCompile Include="ColorGradingDX12.cpp" />
     <ClCompile Include="DeferredRendererDX12.cpp" />
     <ClCompile Include="DefineDX12.cpp" />
+    <ClCompile Include="DepthOfFieldDX12.cpp" />
     <ClCompile Include="DepthStencilDX12.cpp" />
     <ClCompile Include="DescriptorHeapDX12.cpp" />
     <ClCompile Include="DeviceDX12.cpp" />
+    <ClCompile Include="DownScaleDX12.cpp" />
+    <ClCompile Include="EnvironmentRendererDX12.cpp" />
+    <ClCompile Include="FxaaDX12.cpp" />
+    <ClCompile Include="GaussianBlurDX12.cpp" />
     <ClCompile Include="GBufferDX12.cpp" />
     <ClCompile Include="IndexBufferDX12.cpp" />
     <ClCompile Include="ModelRendererDX12.cpp" />
     <ClCompile Include="RenderManagerDX12.cpp" />
     <ClCompile Include="RenderTargetDX12.cpp" />
+    <ClCompile Include="SSSDX12.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

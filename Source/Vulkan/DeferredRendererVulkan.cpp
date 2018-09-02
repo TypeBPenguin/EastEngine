@@ -197,7 +197,7 @@ namespace eastengine
 				const VkExtent2D extent = Device::GetInstance()->GetSwapChainExtent2D();
 
 				const GBuffer* pGBuffer = Device::GetInstance()->GetGBuffer(0);
-				const ImageBasedLight* pImageBasedLight = Device::GetInstance()->GetImageBasedLight();
+				const IImageBasedLight* pImageBasedLight = Device::GetInstance()->GetImageBasedLight();
 				const VkSampler samplerPointClamp = Device::GetInstance()->GetSampler(EmSamplerState::eMinMagMipPointClamp);
 				const VkSampler samplerLinearClamp = Device::GetInstance()->GetSampler(EmSamplerState::eMinMagMipLinearClamp);
 

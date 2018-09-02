@@ -23,6 +23,11 @@ namespace eastengine
 				ReleaseSRWLockExclusive(&m_lock);
 			}
 
+			bool TryEnter()
+			{
+				return TryAcquireSRWLockExclusive(&m_lock) == TRUE;
+			}
+
 		private:
 			SRWLOCK m_lock{ SRWLOCK_INIT };
 		};

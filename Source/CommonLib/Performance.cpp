@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "Performance.h"
 
+#include "Lock.h"
 #include "FileUtil.h"
 #include "json.hpp"
 
@@ -32,7 +33,7 @@ namespace eastengine
 					if (IsTracing() == false)
 						return;
 
-					std::lock_guard<std::mutex> lock(m_mutex);
+					thread::AutoLock autoLock(&m_lock);
 
 					Event* pEvent = GetLastEvent();
 					if (pEvent != nullptr)
@@ -47,7 +48,7 @@ namespace eastengine
 					if (IsTracing() == false)
 						return;
 
-					std::lock_guard<std::mutex> lock(m_mutex);
+					thread::AutoLock autoLock(&m_lock);
 
 					Event* pEvent = GetLastEvent();
 					if (pEvent != nullptr)
@@ -102,7 +103,7 @@ namespace eastengine
 				Event* GetLastEvent();
 
 			private:
-				std::mutex m_mutex;
+				thread::Lock m_lock;
 
 				std::optional<std::chrono::system_clock::time_point> m_startTime;
 				std::unordered_map<uint32_t, std::vector<Event>> m_umapEvents;
@@ -168,7 +169,7 @@ namespace eastengine
 				if (IsTracing() == false)
 					return;
 
-				std::lock_guard<std::mutex> lock(m_mutex);
+				thread::AutoLock autoLock(&m_lock);
 
 				const uint32_t nThreadID = GetCurrentThreadId();
 
@@ -191,7 +192,7 @@ namespace eastengine
 				if (IsTracing() == false)
 					return;
 
-				std::lock_guard<std::mutex> lock(m_mutex);
+				thread::AutoLock autoLock(&m_lock);
 
 				const uint32_t nThreadID = GetCurrentThreadId();
 				if (m_umapEventLinkers[nThreadID].empty() == true)

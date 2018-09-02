@@ -15,7 +15,7 @@ namespace eastengine
 			virtual ~ImageBasedLight();
 
 		public:
-			virtual const std::shared_ptr<ITexture>& GetEnvHDR() const override { return m_pEnvHDR; }
+			virtual const std::shared_ptr<ITexture>& GetEnvironmentHDR() const override { return m_pEnvHDR; }
 			virtual void SetEnvHDR(const std::shared_ptr<ITexture>& pEnvHDR) override { m_pEnvHDR = pEnvHDR; }
 
 			virtual const std::shared_ptr<ITexture>& GetDiffuseHDR() const override { return m_pDiffuseHDR; }

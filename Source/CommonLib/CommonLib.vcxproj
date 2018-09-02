@@ -194,7 +194,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommandLine.h" />
-    <ClInclude Include="Config.h" />
     <ClInclude Include="CrashHandler.h" />
     <ClInclude Include="ErrorDefine.h" />
     <ClInclude Include="json.hpp" />
@@ -212,7 +211,6 @@
     <ClInclude Include="plf_colony.h" />
     <ClInclude Include="Singleton.h" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="StringID.h" />
     <ClInclude Include="StringTable.h" />
     <ClInclude Include="StringUtil.h" />
     <ClInclude Include="targetver.h" />
@@ -226,7 +224,6 @@
   <ItemGroup>
     <ClCompile Include="CommandLine.cpp" />
     <ClCompile Include="CommonLib.cpp" />
-    <ClCompile Include="Config.cpp" />
     <ClCompile Include="CrashHandler.cpp" />
     <ClCompile Include="Lock.cpp" />
     <ClCompile Include="Memory.cpp" />
@@ -249,7 +246,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="StringID.cpp" />
     <ClCompile Include="StringTable.cpp" />
     <ClCompile Include="StringUtil.cpp" />
     <ClCompile Include="ThreadPool.cpp" />

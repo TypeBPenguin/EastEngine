@@ -1,8 +1,6 @@
 #include "stdafx.h"
 #include "SkeletonController.h"
 
-#include "CommonLib/Config.h"
-
 #include "Physics/RigidBody.h"
 
 #include "DirectX/Camera.h"
@@ -52,7 +50,7 @@ SkeletonController::SkeletonController()
 					break;
 				}
 
-				graphics::GeometryModel::CreateCone(&controller.pVertexBuffer, &controller.pIndexBuffer, 0.01f, 0.05f);
+				graphics::geometry::CreateCone(&controller.pVertexBuffer, &controller.pIndexBuffer, 0.01f, 0.05f);
 
 				rigidBodyProperty.shapeInfo.SetTriangleMesh(reinterpret_cast<const math::Vector3*>(controller.pVertexBuffer->GetVertexPosPtr()), controller.pVertexBuffer->GetVertexNum(), controller.pIndexBuffer->GetRawValuePtr(), controller.pIndexBuffer->GetIndexNum());
 				controller.pRigidBody = Physics::RigidBody::Create(rigidBodyProperty);
@@ -76,7 +74,7 @@ SkeletonController::SkeletonController()
 					break;
 				}
 
-				graphics::GeometryModel::CreateTorus(&controller.pVertexBuffer, &controller.pIndexBuffer, 0.2f, 0.003f);
+				graphics::geometry::CreateTorus(&controller.pVertexBuffer, &controller.pIndexBuffer, 0.2f, 0.003f);
 
 				rigidBodyProperty.shapeInfo.SetTriangleMesh(reinterpret_cast<const math::Vector3*>(controller.pVertexBuffer->GetVertexPosPtr()), controller.pVertexBuffer->GetVertexNum(), controller.pIndexBuffer->GetRawValuePtr(), controller.pIndexBuffer->GetIndexNum());
 				controller.pRigidBody = Physics::RigidBody::Create(rigidBodyProperty);
@@ -167,7 +165,7 @@ bool SkeletonController::Process(float fElapsedTime)
 							aabb.matWorld = math::Matrix::CreateScale(0.02f) * pBone->GetGlobalMatrix();
 							aabb.isWireframe = true;
 							aabb.isIgnoreDepth = true;
-							graphics::GeometryModel::GetDebugModel(graphics::GeometryModel::EmDebugModel::eBox, &aabb.pVertexBuffer, &aabb.pIndexBuffer);
+							graphics::geometry::GetDebugModel(graphics::geometry::EmDebugModel::eBox, &aabb.pVertexBuffer, &aabb.pIndexBuffer);
 							graphics::RendererManager::GetInstance()->AddRender(aabb);
 
 							if (pBone->GetParent() != nullptr)
@@ -236,7 +234,7 @@ bool SkeletonController::Process(float fElapsedTime)
 		aabb.isWireframe = true;
 		aabb.isIgnoreDepth = true;
 		aabb.color = math::Color::LightGreen;
-		graphics::GeometryModel::GetDebugModel(graphics::GeometryModel::EmDebugModel::eBox, &aabb.pVertexBuffer, &aabb.pIndexBuffer);
+		graphics::geometry::GetDebugModel(graphics::geometry::EmDebugModel::eBox, &aabb.pVertexBuffer, &aabb.pIndexBuffer);
 		graphics::RendererManager::GetInstance()->AddRender(aabb);
 
 		for (int i = 0; i < Type::TypeCount; ++i)

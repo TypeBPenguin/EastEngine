@@ -4,7 +4,6 @@
 #include "GeometryModel.h"
 
 #include "CommonLib/FileStream.h"
-#include "CommonLib/Config.h"
 
 namespace eastengine
 {
@@ -54,28 +53,28 @@ namespace eastengine
 
 		IVertexBuffer* ModelNode::GetVertexBuffer(uint32_t nLod) const
 		{
-			return m_pVertexBuffer[math::Min(nLod, m_nLodMax)];
+			return m_pVertexBuffer[std::min(nLod, m_nLodMax)];
 		}
 
 		void ModelNode::SetVertexBuffer(IVertexBuffer* pVertexBuffer, uint32_t nLod)
 		{
-			ReleaseResource(&m_pVertexBuffer[math::Min(nLod, m_nLodMax)]);
+			ReleaseResource(&m_pVertexBuffer[std::min(nLod, m_nLodMax)]);
 
 			pVertexBuffer->IncreaseReference();
-			m_pVertexBuffer[math::Min(nLod, m_nLodMax)] = pVertexBuffer;
+			m_pVertexBuffer[std::min(nLod, m_nLodMax)] = pVertexBuffer;
 		}
 
 		IIndexBuffer* ModelNode::GetIndexBuffer(uint32_t nLod) const
 		{
-			return m_pIndexBuffer[math::Min(nLod, m_nLodMax)];
+			return m_pIndexBuffer[std::min(nLod, m_nLodMax)];
 		}
 
 		void ModelNode::SetIndexBuffer(IIndexBuffer* pIndexBuffer, uint32_t nLod)
 		{
-			ReleaseResource(&m_pIndexBuffer[math::Min(nLod, m_nLodMax)]);
+			ReleaseResource(&m_pIndexBuffer[std::min(nLod, m_nLodMax)]);
 
 			pIndexBuffer->IncreaseReference();
-			m_pIndexBuffer[math::Min(nLod, m_nLodMax)] = pIndexBuffer;
+			m_pIndexBuffer[std::min(nLod, m_nLodMax)] = pIndexBuffer;
 		}
 
 		void ModelNode::AddMaterial(IMaterial* pMaterial)
@@ -97,12 +96,12 @@ namespace eastengine
 
 		void ModelNode::AddModelSubset(ModelSubset& modelPiece, uint32_t nLod)
 		{
-			m_vecModelSubsets[math::Min(nLod, m_nLodMax)].push_back(modelPiece);
+			m_vecModelSubsets[std::min(nLod, m_nLodMax)].push_back(modelPiece);
 		}
 
 		void ModelNode::AddModelSubsets(const std::vector<ModelSubset>& vecModelPiece, uint32_t nLod)
 		{
-			std::copy(vecModelPiece.begin(), vecModelPiece.end(), std::back_inserter(m_vecModelSubsets[math::Min(nLod, m_nLodMax)]));
+			std::copy(vecModelPiece.begin(), vecModelPiece.end(), std::back_inserter(m_vecModelSubsets[std::min(nLod, m_nLodMax)]));
 		}
 
 		IMaterial* ModelNode::GetMaterial(const String::StringID& strMaterialName, uint32_t& nMaterialID_out) const

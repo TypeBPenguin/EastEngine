@@ -225,103 +225,20 @@ namespace eastengine
 
 			ID3D12DescriptorHeap* DescriptorHeap::GetHeap() const
 			{
-				assert(m_pDescriptorHeaps[0] != nullptr);
+				assert(m_pDescriptorHeaps[m_nHeapIndex] != nullptr);
 				return m_pDescriptorHeaps[m_nHeapIndex];
+			}
+
+			ID3D12DescriptorHeap* DescriptorHeap::GetHeap(int nFrameIndex) const
+			{
+				assert(m_pDescriptorHeaps[nFrameIndex] != nullptr);
+				return m_pDescriptorHeaps[nFrameIndex];
 			}
 
 			uint32_t DescriptorHeap::TotalDescriptorsCount() const
 			{
 				return m_nPersistentCount + m_nTemporaryCount;
-			}/*
-
-			DescriptorHeap::DescriptorHeap(uint32_t nPersistentCount, uint32_t nTemporaryCount, D3D12_DESCRIPTOR_HEAP_TYPE heapType, bool isShaderVisible)
-				: m_pImpl{ std::make_unique<Impl>(nPersistentCount, nTemporaryCount, heapType, isShaderVisible) }
-			{
 			}
-
-			DescriptorHeap::~DescriptorHeap()
-			{
-			}
-
-			PersistentDescriptorAlloc DescriptorHeap::AllocatePersistent()
-			{
-				return m_pImpl->AllocatePersistent();
-			}
-
-			void DescriptorHeap::FreePersistent(uint32_t& nIndex)
-			{
-				m_pImpl->FreePersistent(nIndex);
-			}
-
-			void DescriptorHeap::FreePersistent(D3D12_CPU_DESCRIPTOR_HANDLE& handle)
-			{
-				m_pImpl->FreePersistent(handle);
-			}
-
-			void DescriptorHeap::FreePersistent(D3D12_GPU_DESCRIPTOR_HANDLE& handle)
-			{
-				m_pImpl->FreePersistent(handle);
-			}
-
-			TempDescriptorAlloc DescriptorHeap::AllocateTemporary(uint32_t nCount)
-			{
-				return m_pImpl->AllocateTemporary(nCount);
-			}
-
-			void DescriptorHeap::EndFrame()
-			{
-				m_pImpl->EndFrame();
-			}
-
-			uint32_t DescriptorHeap::GetHeapCount() const
-			{
-				return m_pImpl->GetHeapCount();
-			}
-
-			D3D12_DESCRIPTOR_HEAP_TYPE DescriptorHeap::GetHeapType() const
-			{
-				return m_pImpl->GetHeapType();
-			}
-
-			D3D12_CPU_DESCRIPTOR_HANDLE DescriptorHeap::CPUHandleFromIndex(uint32_t nDescriptorIndex) const
-			{
-				return m_pImpl->CPUHandleFromIndex(nDescriptorIndex);
-			}
-
-			D3D12_GPU_DESCRIPTOR_HANDLE DescriptorHeap::GPUHandleFromIndex(uint32_t nDescriptorIndex) const
-			{
-				return m_pImpl->GPUHandleFromIndex(nDescriptorIndex);
-			}
-
-			D3D12_CPU_DESCRIPTOR_HANDLE DescriptorHeap::CPUHandleFromIndex(uint32_t nDescriptorIndex, uint64_t nHeapIndex) const
-			{
-				return m_pImpl->CPUHandleFromIndex(nDescriptorIndex, nHeapIndex);
-			}
-
-			D3D12_GPU_DESCRIPTOR_HANDLE DescriptorHeap::GPUHandleFromIndex(uint32_t nDescriptorIndex, uint64_t nHeapIndex) const
-			{
-				return m_pImpl->GPUHandleFromIndex(nDescriptorIndex, nHeapIndex);
-			}
-
-			uint32_t DescriptorHeap::IndexFromHandle(D3D12_CPU_DESCRIPTOR_HANDLE handle)
-			{
-				return m_pImpl->IndexFromHandle(handle);
-			}
-
-			uint32_t DescriptorHeap::IndexFromHandle(D3D12_GPU_DESCRIPTOR_HANDLE handle)
-			{
-				return m_pImpl->IndexFromHandle(handle);
-			}
-
-			ID3D12DescriptorHeap* DescriptorHeap::CurrentHeap() const
-			{
-				return m_pImpl->CurrentHeap();
-			}
-
-			uint32_t DescriptorHeap::TotalDescriptorsCount() const
-			{
-				return m_pImpl->TotalDescriptorsCount();
-			}*/
 		}
 	}
 }

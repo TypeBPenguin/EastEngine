@@ -11,7 +11,8 @@ namespace eastengine
 			enum
 			{
 				eFrameBufferCount = 3,
-				eStandardDescriptorRangesCount = 7,
+
+				eStandardDescriptorRangesCount_SRV = 9,
 			};
 
 			enum : uint32_t

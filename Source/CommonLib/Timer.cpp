@@ -3,7 +3,7 @@
 
 namespace eastengine
 {
-	class Counter::Impl
+	class Stopwatch::Impl
 	{
 	public:
 		Impl() = default;
@@ -11,9 +11,9 @@ namespace eastengine
 
 	public:
 		void Start() { m_timeStart = std::chrono::system_clock::now(); }
-		void End() { m_timeEnd = std::chrono::system_clock::now(); }
+		void Stop() { m_timeEnd = std::chrono::system_clock::now(); }
 
-		double Count() const { return std::chrono::duration<double>(m_timeEnd - m_timeStart).count(); }
+		double Elapsed() const { return std::chrono::duration<double>(m_timeEnd - m_timeStart).count(); }
 		int64_t MilliSec() const { return std::chrono::duration_cast<std::chrono::milliseconds>(m_timeEnd - m_timeStart).count(); }
 		int64_t MicroSec() const { return std::chrono::duration_cast<std::chrono::microseconds>(m_timeEnd - m_timeStart).count(); }
 		int64_t NanoSec() const { return std::chrono::duration_cast<std::chrono::nanoseconds>(m_timeEnd - m_timeStart).count(); }
@@ -23,41 +23,41 @@ namespace eastengine
 		std::chrono::system_clock::time_point m_timeEnd;
 	};
 
-	Counter::Counter()
+	Stopwatch::Stopwatch()
 		: m_pImpl{ std::make_unique<Impl>() }
 	{
 	}
 
-	Counter::~Counter()
+	Stopwatch::~Stopwatch()
 	{
 	}
 
-	void Counter::Start()
+	void Stopwatch::Start()
 	{
 		m_pImpl->Start();
 	}
 
-	void Counter::End()
+	void Stopwatch::Stop()
 	{
-		m_pImpl->End();
+		m_pImpl->Stop();
 	}
 
-	double Counter::Count() const
+	double Stopwatch::Elapsed() const
 	{
-		return m_pImpl->Count();
+		return m_pImpl->Elapsed();
 	}
 
-	int64_t Counter::MilliSec() const
+	int64_t Stopwatch::MilliSec() const
 	{
 		return m_pImpl->MilliSec();
 	}
 
-	int64_t Counter::MicroSec() const
+	int64_t Stopwatch::MicroSec() const
 	{
 		return m_pImpl->MicroSec();
 	}
 
-	int64_t Counter::NanoSec() const
+	int64_t Stopwatch::NanoSec() const
 	{
 		return m_pImpl->NanoSec();
 	}

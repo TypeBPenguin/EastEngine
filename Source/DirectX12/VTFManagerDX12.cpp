@@ -7,11 +7,7 @@
 
 #include "DeviceDX12.h"
 #include "TextureDX12.h"
-
-namespace StrID
-{
-	RegisterStringID(EastEngine_VTF);
-}
+#include "UploadDX12.h"
 
 namespace eastengine
 {
@@ -19,11 +15,6 @@ namespace eastengine
 	{
 		namespace dx12
 		{
-			struct VTFBuffer
-			{
-				std::array<math::Matrix, IVTFManager::eBufferCapacity> buffer;
-			};
-
 			class VTFManager::Impl
 			{
 			public:
@@ -34,37 +25,54 @@ namespace eastengine
 				bool Allocate(uint32_t nMatrixCount, math::Matrix** ppDest_Out, uint32_t& nVTFID_Out);
 
 			public:
+				bool Bake();
 				void EndFrame();
+
+			public:
+				Texture* GetTexture() const { return m_vtfInstance.pVTFs[m_nFrameIndex].get(); }
 
 			private:
 				thread::Lock m_lock;
 
-				std::array<uint32_t, eFrameBufferCount> m_nAllocatedCount;
-				ConstantBuffer<VTFBuffer> m_vtfBuffer;
+				struct VTFInstance
+				{
+					uint32_t nAllocatedCount{ 0 };
+
+					std::array<std::unique_ptr<Texture>, eFrameBufferCount> pVTFs;
+					std::vector<math::Matrix> buffer;
+				};
+				VTFInstance m_vtfInstance;
+
+				std::unique_ptr<Uploader> m_pUploader;
 
 				uint32_t m_nFrameIndex{ 0 };
 			};
 
 			VTFManager::Impl::Impl()
 			{
-				ID3D12Device* pDevice = Device::GetInstance()->GetInterface();
+				const uint64_t nBufferSize = util::Align(sizeof(math::Matrix) * static_cast<uint64_t>(eBufferCapacity), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+				m_pUploader = std::make_unique<Uploader>(static_cast<uint32_t>(nBufferSize));
 
+				m_vtfInstance.buffer.resize(eBufferCapacity);
+
+				const CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R32G32B32A32_FLOAT, eTextureWidth, eTextureWidth, 1, 1, 1, 0, D3D12_RESOURCE_FLAG_NONE, D3D12_TEXTURE_LAYOUT_UNKNOWN);
+				
 				for (int i = 0; i < eFrameBufferCount; ++i)
 				{
-					if (util::CreateConstantBuffer(pDevice, m_vtfBuffer.AlignedSize(), &m_vtfBuffer.pUploadHeaps[i], L"VTFBuffer") == false)
-					{
-						throw_line("failed to create constant buffer, VTFBuffer");
-					}
-				}
+					String::StringID strName;
+					strName.Format("EastEngine_VTF_%d", i);
+					Texture::Key key(strName);
 
-				m_vtfBuffer.Initialize(m_vtfBuffer.AlignedSize());
+					m_vtfInstance.pVTFs[i] = std::unique_ptr<Texture>(new Texture(key));
+					m_vtfInstance.pVTFs[i]->Initialize(&desc);
+				}
 			}
 
 			VTFManager::Impl::~Impl()
 			{
 				for (int i = 0; i < eFrameBufferCount; ++i)
 				{
-					SafeRelease(m_vtfBuffer.pUploadHeaps[i]);
+					m_vtfInstance.pVTFs[i].reset();
 				}
 			}
 
@@ -72,20 +80,76 @@ namespace eastengine
 			{
 				thread::AutoLock autoLock(&m_lock);
 
-				//VTFInstance& vtfInstance = m_vtfInstances[m_nFrameIndex];
-				//if (vtfInstance.nAllocatedCount + nMatrixCount >= eBufferCapacity)
-				if (m_nAllocatedCount[m_nFrameIndex] + nMatrixCount >= eBufferCapacity)
+				if (m_vtfInstance.nAllocatedCount + nMatrixCount >= eBufferCapacity)
 				{
 					*ppDest_Out = nullptr;
 					nVTFID_Out = eInvalidVTFID;
 					return false;
 				}
 
-				VTFBuffer* pVTFBuffer = m_vtfBuffer.Cast(m_nFrameIndex);
-				*ppDest_Out = &pVTFBuffer->buffer[m_nAllocatedCount[m_nFrameIndex]];
-				nVTFID_Out = m_nAllocatedCount[m_nFrameIndex];
+				*ppDest_Out = &m_vtfInstance.buffer[m_vtfInstance.nAllocatedCount];
+				nVTFID_Out = m_vtfInstance.nAllocatedCount;
 
-				m_nAllocatedCount[m_nFrameIndex] += nMatrixCount;
+				m_vtfInstance.nAllocatedCount += nMatrixCount;
+
+				return true;
+			}
+
+			bool VTFManager::Impl::Bake()
+			{
+				if (m_vtfInstance.nAllocatedCount == 0)
+					return true;
+
+				ID3D12Device* pDevice = Device::GetInstance()->GetInterface();
+				ID3D12CommandQueue* pCommandQueue = Device::GetInstance()->GetCommandQueue();
+
+				D3D12_RESOURCE_DESC desc = m_vtfInstance.pVTFs[m_nFrameIndex]->GetResource()->GetDesc();
+
+				D3D12_PLACED_SUBRESOURCE_FOOTPRINT placedTexture2D{};
+				uint32_t numRows = 0;
+				uint64_t rowSizes = 0;
+				uint64_t nTextureMemSize = 0;
+				pDevice->GetCopyableFootprints(&desc, 0, 1, 0, &placedTexture2D, &numRows, &rowSizes, &nTextureMemSize);
+
+				UploadContext uploadContext = m_pUploader->BeginResourceUpload(nTextureMemSize);
+				uint8_t* uploadMem = reinterpret_cast<uint8_t*>(uploadContext.pCPUAddress);
+
+				{
+					CD3DX12_RESOURCE_BARRIER transition[] =
+					{
+						CD3DX12_RESOURCE_BARRIER::Transition(m_vtfInstance.pVTFs[m_nFrameIndex]->GetResource(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST),
+					};
+					uploadContext.pCommandList->ResourceBarrier(_countof(transition), transition);
+				}
+
+				uint8_t* dstSubResourceMem = reinterpret_cast<uint8_t*>(uploadMem) + placedTexture2D.Offset;
+				Memory::Copy(dstSubResourceMem, nTextureMemSize, m_vtfInstance.buffer.data(), sizeof(math::Matrix) * m_vtfInstance.nAllocatedCount);
+
+				D3D12_TEXTURE_COPY_LOCATION dst{};
+				dst.pResource = m_vtfInstance.pVTFs[m_nFrameIndex]->GetResource();
+				dst.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+				dst.SubresourceIndex = 0;
+
+				D3D12_TEXTURE_COPY_LOCATION src{};
+				src.pResource = uploadContext.pResource;
+				src.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+				src.PlacedFootprint = placedTexture2D;
+				src.PlacedFootprint.Offset += uploadContext.nResourceOffset;
+
+				uploadContext.pCommandList->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
+
+				{
+					CD3DX12_RESOURCE_BARRIER transition[] =
+					{
+						CD3DX12_RESOURCE_BARRIER::Transition(m_vtfInstance.pVTFs[m_nFrameIndex]->GetResource(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON),
+					};
+					uploadContext.pCommandList->ResourceBarrier(_countof(transition), transition);
+				}
+
+				m_pUploader->EndResourceUpload(uploadContext);
+				m_pUploader->EndFrame(pCommandQueue);
+
+				m_vtfInstance.nAllocatedCount = 0;
 
 				return true;
 			}
@@ -110,9 +174,19 @@ namespace eastengine
 				return m_pImpl->Allocate(nMatrixCount, ppDest_Out, nVTFID_Out);
 			}
 
+			bool VTFManager::Bake()
+			{
+				return m_pImpl->Bake();
+			}
+
 			void VTFManager::EndFrame()
 			{
 				m_pImpl->EndFrame();
+			}
+
+			Texture* VTFManager::GetTexture() const
+			{
+				return m_pImpl->GetTexture();
 			}
 		}
 	}

@@ -20,7 +20,7 @@ namespace eastengine
 
 		const math::UInt2& GetScreenSize();
 
-		ImageBasedLight* GetImageBasedLight();
+		IImageBasedLight* GetImageBasedLight();
 		IVTFManager* GetVTFManager();
 
 		IVertexBuffer* CreateVertexBuffer(const uint8_t* pData, size_t nBufferSize, uint32_t nVertexCount);

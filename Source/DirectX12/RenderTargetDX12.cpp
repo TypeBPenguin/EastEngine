@@ -10,8 +10,6 @@ namespace eastengine
 	{
 		namespace dx12
 		{
-			static std::atomic<uint32_t> s_nRenderTargetIndex = 0;
-
 			RenderTarget::RenderTarget(const Key& key)
 				: m_key(key)
 			{
@@ -30,34 +28,40 @@ namespace eastengine
 
 				D3D12_RESOURCE_DESC desc = pResource->GetDesc();
 
-				Key key = RenderTarget::BuildKey(&desc, clearColor);
+				const Key key = RenderTarget::BuildKey(&desc, clearColor);
+				const String::StringID strName(key.value);
+
 				std::unique_ptr<RenderTarget> pRenderTarget = std::make_unique<RenderTarget>(key);
+				pRenderTarget->m_colorClearValue = clearColor;
 
 				PersistentDescriptorAlloc rtvAlloc = pDescriptorHeap->AllocatePersistent();
 				pRenderTarget->m_nDescriptorIndex = rtvAlloc.nIndex;
 
 				pDevice->CreateRenderTargetView(pResource, nullptr, rtvAlloc.cpuHandles[0]);
 
-				String::StringID strKey;
-				strKey.Format("SwapChainRenderTarget_%d", s_nRenderTargetIndex++);
-
-				pRenderTarget->m_pTexture = std::make_unique<Texture>(Texture::Key{ strKey.Key() });
+				pRenderTarget->m_pTexture = std::make_unique<Texture>(Texture::Key(strName));
 				if (pRenderTarget->m_pTexture->Bind(pResource, nullptr) == false)
 				{
 					throw_line("failed to create render target texture");
 				}
-				pResource->SetName(String::MultiToWide(strKey.c_str()).c_str());
+				const std::wstring wstrDebugName = String::MultiToWide(strName.c_str());
+				pResource->SetName(wstrDebugName.c_str());
+
+				pRenderTarget->m_state = D3D12_RESOURCE_STATE_PRESENT;
 
 				return pRenderTarget;
 			}
 
-			std::unique_ptr<RenderTarget> RenderTarget::Create(const wchar_t* wstrDebugName, const D3D12_RESOURCE_DESC* pResourceDesc, const math::Color& clearColor, D3D12_RESOURCE_STATES resourceState, uint32_t nMipSlice, uint32_t nFirstArraySlice, uint32_t nArraySize)
+			std::unique_ptr<RenderTarget> RenderTarget::Create(const D3D12_RESOURCE_DESC* pResourceDesc, const math::Color& clearColor, D3D12_RESOURCE_STATES resourceState, uint32_t nMipSlice, uint32_t nFirstArraySlice, uint32_t nArraySize)
 			{
 				ID3D12Device* pDevice = Device::GetInstance()->GetInterface();
 				DescriptorHeap* pRTVDescriptorHeap = Device::GetInstance()->GetRTVDescriptorHeap();
 
-				Key key = RenderTarget::BuildKey(pResourceDesc, clearColor);
+				const Key key = RenderTarget::BuildKey(pResourceDesc, clearColor);
+				const String::StringID strName(key.value);
+
 				std::unique_ptr<RenderTarget> pRenderTarget = std::make_unique<RenderTarget>(key);
+				pRenderTarget->m_colorClearValue = clearColor;
 
 				D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{};
 				rtvDesc.Format = pResourceDesc->Format;
@@ -104,18 +108,18 @@ namespace eastengine
 				{
 					throw_line("failed to create RenderTarget");
 				}
-				pResource->SetName(wstrDebugName);
+				const std::wstring wstrDebugName = String::MultiToWide(strName.c_str());
+				pResource->SetName(wstrDebugName.c_str());
 
 				pDevice->CreateRenderTargetView(pResource, &rtvDesc, rtvAlloc.cpuHandles[0]);
 
-				String::StringID strKey;
-				strKey.Format("RenderTarget_%d", s_nRenderTargetIndex++);
-
-				pRenderTarget->m_pTexture = std::make_unique<Texture>(Texture::Key{ strKey.Key() });
+				pRenderTarget->m_pTexture = std::make_unique<Texture>(Texture::Key(strName));
 				if (pRenderTarget->m_pTexture->Bind(pResource, nullptr) == false)
 				{
 					throw_line("failed to create render target texture");
 				}
+
+				pRenderTarget->m_state = resourceState;
 
 				return pRenderTarget;
 			}
@@ -123,7 +127,7 @@ namespace eastengine
 			RenderTarget::Key RenderTarget::BuildKey(const D3D12_RESOURCE_DESC* pDesc, const math::Color& clearColor)
 			{
 				String::StringID strKey;
-				strKey.Format("RenderTarget_%d_%llu_%llu_%u_%u_%u_%u_%u_%u_%u_%u_%d_%d_%d_%d",
+				strKey.Format("RenderTarget_%d_%llu_%llu_%u_%u_%u_%u_%u_%u_%u_%u_%u_%d_%d",
 					pDesc->Dimension,
 					pDesc->Alignment,
 					pDesc->Width,
@@ -139,7 +143,20 @@ namespace eastengine
 					static_cast<int>(clearColor.b * 255),
 					static_cast<int>(clearColor.a * 255));
 
-				return { strKey.Key() };
+				return RenderTarget::Key(strKey);
+			}
+
+			void RenderTarget::Clear(ID3D12GraphicsCommandList* pCommandList)
+			{
+				pCommandList->ClearRenderTargetView(GetCPUHandle(), &m_colorClearValue.r, 0, nullptr);
+			}
+
+			D3D12_RESOURCE_BARRIER RenderTarget::Transition(D3D12_RESOURCE_STATES changeState)
+			{
+				assert(m_state != changeState);
+				D3D12_RESOURCE_STATES beforeState = m_state;
+				m_state = changeState;
+				return CD3DX12_RESOURCE_BARRIER::Transition(m_pTexture->GetResource(), beforeState, changeState);
 			}
 
 			D3D12_RESOURCE_DESC RenderTarget::GetDesc() const

@@ -181,6 +181,7 @@
     </ClInclude>
     <ClInclude Include="CullingThreadpool.h" />
     <ClInclude Include="Graphics.h" />
+    <ClInclude Include="ImageBasedLight.h" />
     <ClInclude Include="MaskedOcclusionCulling.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="MaterialNode.h" />
@@ -204,6 +205,7 @@
     </ClCompile>
     <ClCompile Include="CullingThreadpool.cpp" />
     <ClCompile Include="Graphics.cpp" />
+    <ClCompile Include="ImageBasedLight.cpp" />
     <ClCompile Include="MaskedOcclusionCulling.cpp" />
     <ClCompile Include="MaskedOcclusionCullingAVX2.cpp">
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AdvancedVectorExtensions2</EnableEnhancedInstructionSet>

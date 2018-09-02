@@ -14,7 +14,7 @@ namespace eastengine
 		{
 			friend ThreadPool;
 		public:
-			Task(std::thread& thread);
+			Task(std::function<void(Task*)> func);
 
 		private:
 			~Task();

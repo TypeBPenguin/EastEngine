@@ -1,8 +1,6 @@
 #include "stdafx.h"
 #include "DirectionalLight.h"
 
-#include "CommonLib/Config.h"
-
 #include "LightManager.h"
 
 namespace eastengine

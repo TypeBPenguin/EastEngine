@@ -27,7 +27,7 @@ namespace eastengine
 			const String::StringID& GetParentName()
 			{
 				if (m_pParentNode == nullptr)
-					return StrID::Unregistered;
+					return StrID::EmptyString;
 
 				return m_pParentNode->GetName();
 			}

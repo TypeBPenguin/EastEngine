@@ -29,8 +29,8 @@ namespace eastengine
 				void Flush();
 
 			public:
-				void PushJob(const RenderJobStatic& subset);
-				void PushJob(const RenderJobSkinned& subset);
+				void PushJob(const RenderJobStatic& job);
+				void PushJob(const RenderJobSkinned& job);
 
 			private:
 				class Impl;

@@ -43,7 +43,7 @@ namespace eastengine
 {
 	namespace graphics
 	{
-		class ImageBasedLight;
+		class IImageBasedLight;
 
 		namespace vulkan
 		{
@@ -87,7 +87,8 @@ namespace eastengine
 
 			public:
 				GBuffer* GetGBuffer(int nFrameIndex) const;
-				ImageBasedLight* GetImageBasedLight() const;
+				IImageBasedLight* GetImageBasedLight() const;
+				void SetImageBasedLight(IImageBasedLight* pImageBasedLight);
 				RenderManager* GetRenderManager() const;
 
 				const Texture* GetEmptyTexture() const;

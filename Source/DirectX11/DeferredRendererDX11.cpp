@@ -18,7 +18,7 @@ namespace eastengine
 	{
 		namespace dx11
 		{
-			namespace deferredshader
+			namespace shader
 			{
 				enum SRVSlot
 				{
@@ -39,7 +39,7 @@ namespace eastengine
 
 				enum CBSlot
 				{
-					eCB_LightContents = 4,
+					eCB_DeferredContents = 0,
 					eCB_CommonContents = 5,
 				};
 
@@ -49,8 +49,17 @@ namespace eastengine
 					eSampler_Clamp = 2,
 				};
 
-				struct LightContents
+				struct DeferredCcontents
 				{
+					math::Matrix matInvView;
+					math::Matrix matInvProj;
+				};
+
+				struct CommonContents
+				{
+					math::Vector3 f3CameraPos;
+					int nEnableShadowCount{ 0 };
+
 					uint32_t nDirectionalLightCount{ 0 };
 					uint32_t nPointLightCount{ 0 };
 					uint32_t nSpotLightCount{ 0 };
@@ -61,14 +70,39 @@ namespace eastengine
 					std::array<SpotLightData, ILight::eMaxSpotLightCount> lightSpot{};
 				};
 
-				struct CommonContents
+				void SetDeferredCcontents(ID3D11DeviceContext* pDeviceContext,
+					ConstantBuffer<DeferredCcontents>* pCB_DeferredCcontents, 
+					const Camera* pCamera)
 				{
-					math::Matrix matInvView;
-					math::Matrix matInvProj;
+					shader::DeferredCcontents* pDeferredContents = pCB_DeferredCcontents->Map(pDeviceContext);
+					pDeferredContents->matInvView = pCamera->GetViewMatrix().Invert().Transpose();
+					pDeferredContents->matInvProj = pCamera->GetProjMatrix().Invert().Transpose();
+					pCB_DeferredCcontents->Unmap(pDeviceContext);
+				}
 
-					math::Vector3 f3CameraPos;
-					int nEnableShadowCount{ 0 };
-				};
+				void SetCommonContents(ID3D11DeviceContext* pDeviceContext,
+					ConstantBuffer<CommonContents>* pCB_CommonContents,
+					const LightManager* pLightManager, const math::Vector3& f3CameraPos, int nEnableShadowCount)
+				{
+					CommonContents* pCommonContents = pCB_CommonContents->Map(pDeviceContext);
+
+					pCommonContents->f3CameraPos = f3CameraPos;
+					pCommonContents->nEnableShadowCount = nEnableShadowCount;
+
+					const DirectionalLightData* pDirectionalLightData = nullptr;
+					pLightManager->GetDirectionalLightData(&pDirectionalLightData, &pCommonContents->nDirectionalLightCount);
+					Memory::Copy(pCommonContents->lightDirectional.data(), sizeof(pCommonContents->lightDirectional), pDirectionalLightData, sizeof(DirectionalLightData) * pCommonContents->nDirectionalLightCount);
+
+					const PointLightData* pPointLightData = nullptr;
+					pLightManager->GetPointLightData(&pPointLightData, &pCommonContents->nPointLightCount);
+					Memory::Copy(pCommonContents->lightPoint.data(), sizeof(pCommonContents->lightPoint), pPointLightData, sizeof(PointLightData) * pCommonContents->nPointLightCount);
+
+					const SpotLightData* pSpotLightData = nullptr;
+					pLightManager->GetSpotLightData(&pSpotLightData, &pCommonContents->nSpotLightCount);
+					Memory::Copy(pCommonContents->lightSpot.data(), sizeof(pCommonContents->lightSpot), pSpotLightData, sizeof(SpotLightData) * pCommonContents->nSpotLightCount);
+
+					pCB_CommonContents->Unmap(pDeviceContext);
+				}
 			}
 
 			class DeferredRenderer::Impl
@@ -85,8 +119,8 @@ namespace eastengine
 				ID3D11VertexShader* m_pVertexShader{ nullptr };
 				ID3D11PixelShader* m_pPixelShader{ nullptr };
 
-				ID3D11Buffer* m_pCommonContentsBuffer{ nullptr };
-				ID3D11Buffer* m_pLightContentsBuffer{ nullptr };
+				ConstantBuffer<shader::DeferredCcontents> m_deferredCcontents;
+				ConstantBuffer<shader::CommonContents> m_commonContents;
 			};
 			
 			DeferredRenderer::Impl::Impl()
@@ -108,51 +142,33 @@ namespace eastengine
 					{ nullptr, nullptr },
 				};
 
+				if (util::CreateVertexShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), "VS", "vs_5_0", &m_pVertexShader, "DeferredRenderer_VS") == false)
 				{
-					ID3DBlob* pVertexShaderBlob = nullptr;
-					if (util::CompileShader(pShaderBlob, macros, strShaderPath.c_str(), "VS", "vs_5_0", &pVertexShaderBlob) == false)
-					{
-						throw_line("failed to compile shader");
-					}
-
-					HRESULT hr = pDevice->CreateVertexShader(pVertexShaderBlob->GetBufferPointer(), pVertexShaderBlob->GetBufferSize(), nullptr, &m_pVertexShader);
-					if (FAILED(hr))
-					{
-						throw_line("failed to create vertex shader");
-					}
+					throw_line("failed to create DeferredRenderer VertexShader");
 				}
 
+				if (util::CreatePixelShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), "PS", "ps_5_0", &m_pPixelShader, "DeferredRenderer_PS") == false)
 				{
-					ID3DBlob* pPixelShaderBlob = nullptr;
-					if (util::CompileShader(pShaderBlob, macros, strShaderPath.c_str(), "PS", "ps_5_0", &pPixelShaderBlob) == false)
-					{
-						throw_line("failed to compile shader");
-					}
-
-					HRESULT hr = pDevice->CreatePixelShader(pPixelShaderBlob->GetBufferPointer(), pPixelShaderBlob->GetBufferSize(), nullptr, &m_pPixelShader);
-					if (FAILED(hr))
-					{
-						throw_line("failed to create pixel shader");
-					}
+					throw_line("failed to create DeferredRenderer PixelShader");
 				}
 
 				SafeRelease(pShaderBlob);
 
-				if (util::CreateConstantBuffer(pDevice, sizeof(deferredshader::CommonContents), &m_pCommonContentsBuffer) == false)
+				if (util::CreateConstantBuffer(pDevice, sizeof(shader::DeferredCcontents), &m_deferredCcontents.pBuffer, "DeferredContents") == false)
 				{
-					throw_line("failed to create CommonContents buffer");
+					throw_line("failed to create DeferredContents buffer");
 				}
 
-				if (util::CreateConstantBuffer(pDevice, sizeof(deferredshader::LightContents), &m_pLightContentsBuffer) == false)
+				if (util::CreateConstantBuffer(pDevice, sizeof(shader::CommonContents), &m_commonContents.pBuffer, "CommonContents") == false)
 				{
-					throw_line("failed to create LightContents buffer");
+					throw_line("failed to create CommonContents buffer");
 				}
 			}
 
 			DeferredRenderer::Impl::~Impl()
 			{
-				SafeRelease(m_pCommonContentsBuffer);
-				SafeRelease(m_pLightContentsBuffer);
+				SafeRelease(m_deferredCcontents.pBuffer);
+				SafeRelease(m_commonContents.pBuffer);
 
 				SafeRelease(m_pVertexShader);
 				SafeRelease(m_pPixelShader);
@@ -160,12 +176,19 @@ namespace eastengine
 
 			void DeferredRenderer::Impl::Render(ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext, Camera* pCamera)
 			{
+				DX_PROFILING(DeferredRenderer);
+
 				Device* pDeviceInstance = Device::GetInstance();
 				LightManager* pLightManager = LightManager::GetInstance();
 
-				RenderTarget* pSwapChainRenderTarget = pDeviceInstance->GetSwapChainRenderTarget();
 				D3D11_TEXTURE2D_DESC desc{};
-				pSwapChainRenderTarget->GetDesc2D(&desc);
+				pDeviceInstance->GetSwapChainRenderTarget()->GetDesc2D(&desc);
+				desc.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
+
+				if (GetOptions().OnHDR == true)
+				{
+					desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				}
 
 				RenderTarget* pRenderTarget = pDeviceInstance->GetRenderTarget(&desc, true);
 				if (pRenderTarget == nullptr)
@@ -173,11 +196,17 @@ namespace eastengine
 					throw_line("failed to get render target");
 				}
 
-				pDeviceContext->ClearRenderTargetView(pRenderTarget->GetRenderTargetView(), &math::Color::Transparent.r);
+				const IImageBasedLight* pImageBasedLight = pDeviceInstance->GetImageBasedLight();
+				{
+					if (pImageBasedLight->GetEnvironmentHDR() == nullptr ||
+						pImageBasedLight->GetEnvironmentSphereVB() == nullptr ||
+						pImageBasedLight->GetEnvironmentSphereIB() == nullptr)
+					{
+						pDeviceContext->ClearRenderTargetView(pRenderTarget->GetRenderTargetView(), &math::Color::Transparent.r);
+					}
+				}
 
 				pDeviceContext->ClearState();
-
-				pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 				const D3D11_VIEWPORT* pViewport = pDeviceInstance->GetViewport();
 				pDeviceContext->RSSetViewports(1, pViewport);
@@ -187,6 +216,8 @@ namespace eastengine
 
 				pDeviceContext->VSSetShader(m_pVertexShader, nullptr, 0);
 				pDeviceContext->PSSetShader(m_pPixelShader, nullptr, 0);
+
+				pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 				ID3D11RasterizerState* pRasterizerState = pDeviceInstance->GetRasterizerState(EmRasterizerState::eSolidCCW);
 				pDeviceContext->RSSetState(pRasterizerState);
@@ -199,78 +230,44 @@ namespace eastengine
 
 				const GBuffer* pGBuffer = pDeviceInstance->GetGBuffer();
 				ID3D11ShaderResourceView* pSRV = pGBuffer->GetDepthStencil()->GetShaderResourceView();
-				pDeviceContext->PSSetShaderResources(deferredshader::eSRV_Depth, 1, &pSRV);
+				pDeviceContext->PSSetShaderResources(shader::eSRV_Depth, 1, &pSRV);
 
 				pSRV = pGBuffer->GetRenderTarget(EmGBuffer::eNormals)->GetShaderResourceView();
-				pDeviceContext->PSSetShaderResources(deferredshader::eSRV_Normal, 1, &pSRV);
+				pDeviceContext->PSSetShaderResources(shader::eSRV_Normal, 1, &pSRV);
 
 				pSRV = pGBuffer->GetRenderTarget(EmGBuffer::eColors)->GetShaderResourceView();
-				pDeviceContext->PSSetShaderResources(deferredshader::eSRV_AlbedoSpecular, 1, &pSRV);
+				pDeviceContext->PSSetShaderResources(shader::eSRV_AlbedoSpecular, 1, &pSRV);
 
 				pSRV = pGBuffer->GetRenderTarget(EmGBuffer::eDisneyBRDF)->GetShaderResourceView();
-				pDeviceContext->PSSetShaderResources(deferredshader::eSRV_DisneyBRDF, 1, &pSRV);
+				pDeviceContext->PSSetShaderResources(shader::eSRV_DisneyBRDF, 1, &pSRV);
 
-				const ImageBasedLight* pImageBasedLight = pDeviceInstance->GetImageBasedLight();
 				Texture* pDiffuseHDR = static_cast<Texture*>(pImageBasedLight->GetDiffuseHDR());
 				pSRV = pDiffuseHDR->GetShaderResourceView();
-				pDeviceContext->PSSetShaderResources(deferredshader::eSRV_DiffuseHDR, 1, &pSRV);
+				pDeviceContext->PSSetShaderResources(shader::eSRV_DiffuseHDR, 1, &pSRV);
 
 				Texture* pSpecularHDR = static_cast<Texture*>(pImageBasedLight->GetSpecularHDR());
 				pSRV = pSpecularHDR->GetShaderResourceView();
-				pDeviceContext->PSSetShaderResources(deferredshader::eSRV_SpecularHDR, 1, &pSRV);
+				pDeviceContext->PSSetShaderResources(shader::eSRV_SpecularHDR, 1, &pSRV);
 
 				Texture* pSpecularBRDF = static_cast<Texture*>(pImageBasedLight->GetSpecularBRDF());
 				pSRV = pSpecularBRDF->GetShaderResourceView();
-				pDeviceContext->PSSetShaderResources(deferredshader::eSRV_SpecularBRDF, 1, &pSRV);
+				pDeviceContext->PSSetShaderResources(shader::eSRV_SpecularBRDF, 1, &pSRV);
 
 				ID3D11SamplerState* pSamplerPointClamp = pDeviceInstance->GetSamplerState(EmSamplerState::eMinMagMipPointClamp);
-				pDeviceContext->PSSetSamplers(deferredshader::eSampler_PointClamp, 1, &pSamplerPointClamp);
+				pDeviceContext->PSSetSamplers(shader::eSampler_PointClamp, 1, &pSamplerPointClamp);
 
 				ID3D11SamplerState* pSamplerClamp = pDeviceInstance->GetSamplerState(EmSamplerState::eMinMagMipLinearClamp);
-				pDeviceContext->PSSetSamplers(deferredshader::eSampler_Clamp, 1, &pSamplerClamp);
+				pDeviceContext->PSSetSamplers(shader::eSampler_Clamp, 1, &pSamplerClamp);
 
-				D3D11_MAPPED_SUBRESOURCE mapped{};
-				HRESULT hr = pDeviceContext->Map(m_pCommonContentsBuffer, 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &mapped);
-				if (FAILED(hr))
-				{
-					throw_line("failed to map CommonContents buffer");
-				}
+				shader::SetDeferredCcontents(pDeviceContext, &m_deferredCcontents, pCamera);
+				pDeviceContext->PSSetConstantBuffers(shader::eCB_DeferredContents, 1, &m_deferredCcontents.pBuffer);
 
-				deferredshader::CommonContents* pCommonContents = reinterpret_cast<deferredshader::CommonContents*>(mapped.pData);
-				pCommonContents->matInvView = pCamera->GetViewMatrix().Invert().Transpose();
-				pCommonContents->matInvProj = pCamera->GetProjMatrix().Invert().Transpose();
-
-				pCommonContents->f3CameraPos = pCamera->GetPosition();
-				pDeviceContext->Unmap(m_pCommonContentsBuffer, 0);
-
-				pDeviceContext->PSSetConstantBuffers(deferredshader::eCB_CommonContents, 1, &m_pCommonContentsBuffer);
-
-				hr = pDeviceContext->Map(m_pLightContentsBuffer, 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &mapped);
-				if (FAILED(hr))
-				{
-					throw_line("failed to map LightContents buffer");
-				}
-
-				deferredshader::LightContents* pLightContents = reinterpret_cast<deferredshader::LightContents*>(mapped.pData);
-				const DirectionalLightData* pDirectionalLightData = nullptr;
-				pLightManager->GetDirectionalLightData(&pDirectionalLightData, &pLightContents->nDirectionalLightCount);
-				Memory::Copy(pLightContents->lightDirectional.data(), sizeof(pLightContents->lightDirectional), pDirectionalLightData, sizeof(DirectionalLightData) * pLightContents->nDirectionalLightCount);
-
-				const PointLightData* pPointLightData = nullptr;
-				pLightManager->GetPointLightData(&pPointLightData, &pLightContents->nPointLightCount);
-				Memory::Copy(pLightContents->lightPoint.data(), sizeof(pLightContents->lightPoint), pPointLightData, sizeof(PointLightData) * pLightContents->nPointLightCount);
-
-				const SpotLightData* pSpotLightData = nullptr;
-				pLightManager->GetSpotLightData(&pSpotLightData, &pLightContents->nSpotLightCount);
-				Memory::Copy(pLightContents->lightSpot.data(), sizeof(pLightContents->lightSpot), pSpotLightData, sizeof(SpotLightData) * pLightContents->nSpotLightCount);
-
-				pDeviceContext->Unmap(m_pLightContentsBuffer, 0);
-
-				pDeviceContext->PSSetConstantBuffers(deferredshader::eCB_LightContents, 1, &m_pLightContentsBuffer);
+				shader::SetCommonContents(pDeviceContext, &m_commonContents, pLightManager, pCamera->GetPosition(), 0);
+				pDeviceContext->PSSetConstantBuffers(shader::eCB_CommonContents, 1, &m_commonContents.pBuffer);
 
 				pDeviceContext->Draw(4, 0);
 
-				pDeviceInstance->ReleaseRenderTarget(&pRenderTarget);
+				pDeviceInstance->ReleaseRenderTargets(&pRenderTarget);
 			}
 
 			void DeferredRenderer::Impl::Flush()

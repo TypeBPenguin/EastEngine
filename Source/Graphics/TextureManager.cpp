@@ -108,6 +108,13 @@ namespace eastengine
 			std::for_each(m_umapTexture.begin(), m_umapTexture.end(), [](std::pair<const ITexture::Key, ITexture*>& iter)
 			{
 				IResource* pResource = iter.second;
+				if (pResource->GetReferenceCount() > 1)
+				{
+					String::StringID name(iter.second->GetKey().value);
+					LOG_WARNING("failed to reference count managed : refCount[%d], name[%s]", pResource->GetReferenceCount(), name.c_str());
+					Sleep(100);
+				}
+
 				SafeDelete(pResource);
 			});
 			m_umapTexture.clear();

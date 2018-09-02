@@ -46,9 +46,6 @@
     <Filter Include="Collision">
       <UniqueIdentifier>{4ed9ef4d-7b1e-442c-a631-8d74bd8398fd}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Config">
-      <UniqueIdentifier>{1418b84c-664b-4e2b-b964-bd721f3bce9c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Performance">
       <UniqueIdentifier>{9b62e0f4-518a-44a5-a4e5-fdf80cdd41c2}</UniqueIdentifier>
     </Filter>
@@ -120,14 +117,8 @@
     <ClInclude Include="Performance.h">
       <Filter>Performance</Filter>
     </ClInclude>
-    <ClInclude Include="Config.h">
-      <Filter>Config</Filter>
-    </ClInclude>
     <ClInclude Include="CommonLib.h">
       <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="StringID.h">
-      <Filter>String</Filter>
     </ClInclude>
     <ClInclude Include="StringTable.h">
       <Filter>String</Filter>
@@ -194,14 +185,8 @@
     <ClCompile Include="Performance.cpp">
       <Filter>Performance</Filter>
     </ClCompile>
-    <ClCompile Include="Config.cpp">
-      <Filter>Config</Filter>
-    </ClCompile>
     <ClCompile Include="CommonLib.cpp">
       <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="StringID.cpp">
-      <Filter>String</Filter>
     </ClCompile>
     <ClCompile Include="StringTable.cpp">
       <Filter>String</Filter>

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "CommonLib/PhantomType.h"
+
 #include "Physics/RigidBody.h"
 #include "ComponentInterface.h"
 
@@ -8,7 +10,6 @@ namespace eastengine
 	namespace graphics
 	{
 		class ITexture;
-		class IVertexBuffer;
 	}
 
 	namespace gameobject
@@ -23,18 +24,30 @@ namespace eastengine
 
 		class IGameObject
 		{
+		private:
+			struct tHandle {};
+
+		public:
+			using Handle = PhantomType<tHandle, const size_t>;
+
 		protected:
-			IGameObject() = default;
+			IGameObject(const Handle& handle);
 			virtual ~IGameObject() = default;
 
 		public:
+			const Handle& GetHandle() const { return m_handle; }
+
+		public:
 			virtual EmObjectType GetType() const = 0;
+
+		private:
+			const Handle m_handle;
 		};
 
 		class IActor : public IGameObject
 		{
 		protected:
-			IActor() = default;
+			IActor(const Handle& handle);
 			virtual ~IActor() = default;
 
 		public:
@@ -56,8 +69,6 @@ namespace eastengine
 			virtual IComponent* GetComponent(EmComponent::Type emComponentType) = 0;
 
 		public:
-			virtual uint32_t GetActorID() const = 0;
-
 			virtual const String::StringID& GetName() const = 0;
 			virtual void SetName(const String::StringID& strActorName) = 0;
 
@@ -112,7 +123,7 @@ namespace eastengine
 		class ITerrain : public IGameObject
 		{
 		protected:
-			ITerrain() = default;
+			ITerrain(const Handle& handle);
 			virtual ~ITerrain() = default;
 
 		public:
@@ -151,7 +162,7 @@ namespace eastengine
 		class ISkybox : public IGameObject
 		{
 		protected:
-			ISkybox() = default;
+			ISkybox(const Handle& handle);
 			virtual ~ISkybox() = default;
 
 		public:
@@ -171,8 +182,20 @@ namespace eastengine
 			virtual void SetVisible(bool bVisible) = 0;
 			virtual bool IsVisible() const = 0;
 
-			virtual std::shared_ptr<graphics::ITexture> GetTexture() const = 0;
-			virtual void SetTexture(const std::shared_ptr<graphics::ITexture>& pTexture) = 0;
+			virtual graphics::ITexture* GetTexture() const = 0;
+			virtual void SetTexture(graphics::ITexture* pTexture) = 0;
 		};
 	}
+}
+
+namespace std
+{
+	template <>
+	struct hash<eastengine::gameobject::IGameObject::Handle>
+	{
+		size_t operator()(const eastengine::gameobject::IGameObject::Handle& key) const
+		{
+			return key.value;
+		}
+	};
 }

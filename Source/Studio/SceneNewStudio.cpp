@@ -6,6 +6,11 @@
 #include "Input/InputInterface.h"
 #include "Model/ModelInterface.h"
 #include "Model/ModelLoader.h"
+#include "Model/MotionLoader.h"
+#include "Model/GeometryModel.h"
+
+#include "GameObject/GameObject.h"
+#include "GameObject/ComponentModel.h"
 
 using namespace eastengine;
 
@@ -142,61 +147,247 @@ void SceneNewStudio::Enter()
 	{
 		strPath = String::Format("%sIBL\\%s\\%s", file::GetPath(file::eTexture), IBL_Type[1].c_str(), IBL_Type[1].c_str());
 
-		graphics::ImageBasedLight* pImageBasedLight = graphics::GetImageBasedLight();
+		graphics::IImageBasedLight* pImageBasedLight = graphics::GetImageBasedLight();
 
 		std::string strDiffuseHDR = strPath;
 		strDiffuseHDR.append("DiffuseHDR.dds");
 		graphics::ITexture* pDiffuseHDR = graphics::CreateTextureAsync(strDiffuseHDR.c_str());
 		pImageBasedLight->SetDiffuseHDR(pDiffuseHDR);
+		graphics::ReleaseResource(&pDiffuseHDR);
 
 		std::string strSpecularHDR = strPath;
 		strSpecularHDR.append("SpecularHDR.dds");
 		graphics::ITexture* pSpecularHDR = graphics::CreateTextureAsync(strSpecularHDR.c_str());
 		pImageBasedLight->SetSpecularHDR(pSpecularHDR);
+		graphics::ReleaseResource(&pSpecularHDR);
 
 		std::string strSpecularBRDF = strPath;
 		strSpecularBRDF.append("Brdf.dds");
 		graphics::ITexture* pSpecularBRDF = graphics::CreateTextureAsync(strSpecularBRDF.c_str());
 		pImageBasedLight->SetSpecularBRDF(pSpecularBRDF);
+		graphics::ReleaseResource(&pSpecularBRDF);
+
+		std::string strEnvIBLPath = strPath;
+		strEnvIBLPath.append("EnvHDR.dds");
+		graphics::ITexture* pEnvironmentHDR = graphics::CreateTextureAsync(strEnvIBLPath.c_str());
+		pImageBasedLight->SetEnvironmentHDR(pEnvironmentHDR);
+		graphics::ReleaseResource(&pEnvironmentHDR);
+
+		graphics::IVertexBuffer* pVertexBuffer = nullptr;
+		graphics::IIndexBuffer* pIndexBuffer = nullptr;
+		graphics::geometry::CreateSphere(&pVertexBuffer, &pIndexBuffer, 1.f, 32u);
+		pImageBasedLight->SetEnvironmentSphere(pVertexBuffer, pIndexBuffer);
+		graphics::ReleaseResource(&pVertexBuffer);
+		graphics::ReleaseResource(&pIndexBuffer);
 	}
 
-	graphics::MaterialInfo materialInfo;
-	materialInfo.strPath = file::GetDataPath();
-	materialInfo.strPath.append("Model\\MetalPlates\\Texture\\");
+	//graphics::MaterialInfo materialInfo;
+	//materialInfo.strPath = file::GetDataPath();
+	//materialInfo.strPath.append("Model\\MetalPlates\\Texture\\");
 
-	materialInfo.strTextureNameArray[graphics::EmMaterial::eAlbedo] = "MetalPlates_Diffuse.tga";
-	materialInfo.strTextureNameArray[graphics::EmMaterial::eNormal].Format("MetalPlates_Normal_%02d.tga", 1);
-	materialInfo.strTextureNameArray[graphics::EmMaterial::eMetallic] = "MetalPlates_Metalness.tga";
-	materialInfo.f4PaddingRoughMetEmi.y = 0.5f;
-	materialInfo.f4PaddingRoughMetEmi.z = 0.5f;
-	materialInfo.f4SurSpecTintAniso.y = 1.f;
-	materialInfo.f4SurSpecTintAniso.z = 1.f;
-	materialInfo.f4SheenTintClearcoatGloss.z = 1.f;
-	materialInfo.f4SheenTintClearcoatGloss.w = 1.f;
+	//materialInfo.strTextureNameArray[graphics::EmMaterial::eAlbedo] = "MetalPlates_Diffuse.tga";
+	//materialInfo.strTextureNameArray[graphics::EmMaterial::eNormal].Format("MetalPlates_Normal_%02d.tga", 1);
+	//materialInfo.strTextureNameArray[graphics::EmMaterial::eMetallic] = "MetalPlates_Metalness.tga";
+	//materialInfo.f4PaddingRoughMetEmi.y = 0.5f;
+	//materialInfo.f4PaddingRoughMetEmi.z = 0.5f;
+	//materialInfo.f4SurSpecTintAniso.y = 1.f;
+	//materialInfo.f4SurSpecTintAniso.z = 1.f;
+	//materialInfo.f4SheenTintClearcoatGloss.z = 1.f;
+	//materialInfo.f4SheenTintClearcoatGloss.w = 1.f;
 
-	graphics::ModelLoader modelLoader;
-	modelLoader.InitCube("TestCube", &materialInfo);
+	//graphics::ModelLoader modelLoader;
+	//modelLoader.InitCube("TestCube", &materialInfo);
 
-	pCube1 = std::make_unique<Cube>();
-	pCube1->pModelInstance = graphics::IModel::CreateInstance(modelLoader, false);
+	//pCube1 = std::make_unique<Cube>();
+	//pCube1->pModelInstance = graphics::IModel::CreateInstance(modelLoader, false);
 
-	pCube2 = std::make_unique<Cube>();
-	pCube2->pModelInstance = graphics::IModel::CreateInstance(modelLoader, false);
+	//pCube2 = std::make_unique<Cube>();
+	//pCube2->pModelInstance = graphics::IModel::CreateInstance(modelLoader, false);
 
-	/*CreateBox(&pCube1->pVertexBuffer, &pCube1->pIndexBuffer);
-	pCube2->pVertexBuffer = pCube1->pVertexBuffer;
-	pCube2->pIndexBuffer = pCube1->pIndexBuffer;
+	///*CreateBox(&pCube1->pVertexBuffer, &pCube1->pIndexBuffer);
+	//pCube2->pVertexBuffer = pCube1->pVertexBuffer;
+	//pCube2->pIndexBuffer = pCube1->pIndexBuffer;
 
-	pCube1->pMaterial = graphics::CreateMaterial(&materialInfo);
-	pCube2->pMaterial = pCube1->pMaterial;
-	pCube2->pMaterial->IncreaseReference();*/
-	//pCube2->pMaterial = graphics::CreateMaterial(&materialInfo);
+	//pCube1->pMaterial = graphics::CreateMaterial(&materialInfo);
+	//pCube2->pMaterial = pCube1->pMaterial;
+	//pCube2->pMaterial->IncreaseReference();*/
+	////pCube2->pMaterial = graphics::CreateMaterial(&materialInfo);
 
-	//pCube1->pTexture = graphics::CreateTextureAsync("D:\\Projects\\Repos\\EastEngine\\Bin\\Data\\Texture\\gi_flag.tga");
-	//pCube2->pTexture = graphics::CreateTextureAsync("D:\\Projects\\Repos\\EastEngine\\Bin\\Data\\Texture\\uv_checker.png");
+	////pCube1->pTexture = graphics::CreateTextureAsync("D:\\Projects\\Repos\\EastEngine\\Bin\\Data\\Texture\\gi_flag.tga");
+	////pCube2->pTexture = graphics::CreateTextureAsync("D:\\Projects\\Repos\\EastEngine\\Bin\\Data\\Texture\\uv_checker.png");
 
-	pCube2->f3Position = { 1.5f, 0.f, 0.f };
-	pCube2->matWorld = math::Matrix::CreateTranslation(pCube2->f3Position + pCube1->f3Position);
+	//pCube2->f3Position = { 1.5f, 0.f, 0.f };
+	//pCube2->matWorld = math::Matrix::CreateTranslation(pCube2->f3Position + pCube1->f3Position);
+
+	auto CreateActor = [](const String::StringID& strActorName, const char* strModelFilePath,
+		const math::Vector3& f3Position,
+		graphics::ModelLoader::LoadType emModelType = graphics::ModelLoader::eEast)
+	{
+		gameobject::IActor* pActor = gameobject::IActor::Create(strActorName);
+
+		pActor->SetPosition(f3Position);
+
+		graphics::ModelLoader loader;
+
+		String::StringID strFileName = file::GetFileName(strModelFilePath).c_str();
+		switch (emModelType)
+		{
+		case graphics::ModelLoader::LoadType::eFbx:
+		case graphics::ModelLoader::LoadType::eObj:
+			loader.InitFBX(strFileName, strModelFilePath, 0.01f);
+			break;
+		case graphics::ModelLoader::LoadType::eXps:
+			loader.InitXPS(strFileName, strModelFilePath);
+			break;
+		case graphics::ModelLoader::LoadType::eEast:
+			loader.InitEast(strFileName, strModelFilePath);
+			break;
+		}
+		loader.SetEnableThreadLoad(false);
+
+		gameobject::ComponentModel* pModel = static_cast<gameobject::ComponentModel*>(pActor->CreateComponent(gameobject::EmComponent::eModel));
+		pModel->Init(&loader);
+
+		return pActor;
+	};
+
+	for (int i = 0; i < 10; ++i)
+	{
+		String::StringID name;
+		name.Format("UnityChan%d", i);
+
+		strPath = file::GetDataPath();
+		strPath.append("Actor\\UnityChan\\unitychan.emod");
+
+		math::Vector3 pos;
+		pos.x = -10.f + (2.f * (i % 10));
+		pos.z = 0.f + (2.f * (i / 10));
+
+		gameobject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
+		gameobject::ComponentModel* pModel = static_cast<gameobject::ComponentModel*>(pActor->CreateComponent(gameobject::EmComponent::eModel));
+		graphics::IModelInstance* pModelInstance = pModel->GetModelInstance();
+
+		//if (false)
+		{
+			const std::vector<const char*> vecAnim =
+			{
+				"Actor\\UnityChan\\Animations\\unitychan_WAIT00.fbx",
+				"Actor\\UnityChan\\Animations\\unitychan_WAIT01.fbx",
+				"Actor\\UnityChan\\Animations\\unitychan_WAIT02.fbx",
+				"Actor\\UnityChan\\Animations\\unitychan_WAIT03.fbx",
+				"Actor\\UnityChan\\Animations\\unitychan_WAIT04.fbx",
+			};
+
+			std::string strPathMotion(file::GetDataPath());
+			//strPathMotion.append("Actor\\UnityChan\\Animations\\unitychan_WAIT00.fbx");
+			//strPathMotion.append(vecAnim[math::Random(0llu, vecAnim.size() - 1)]);
+			strPathMotion.append(vecAnim[4]);
+
+			String::StringID strMotionName;
+			strMotionName.Format("%s", file::GetFileName(strPathMotion).c_str());
+			graphics::MotionLoader motionLoader;
+			motionLoader.InitFBX(strMotionName, strPathMotion.c_str(), 0.01f);
+			graphics::IMotion* pMotion = graphics::IMotion::Create(motionLoader);
+
+			graphics::MotionPlaybackInfo playback;
+			//playback.fSpeed = math::Random(0.5f, 1.5f);
+			playback.fSpeed = 1.f;
+			playback.nLoopCount = graphics::MotionPlaybackInfo::eMaxLoopCount;
+			//playback.fWeight = math::Random(0.1f, 0.5f);
+			playback.fWeight = 1.f;
+			pModel->PlayMotion(graphics::EmMotion::eLayer1, pMotion, &playback);
+		}
+
+		//{
+		//	std::vector<const char*> vecAnim =
+		//	{
+		//		"Actor\\UnityChan\\Animations\\unitychan_RUN00_F.fbx",
+		//		"Actor\\UnityChan\\Animations\\unitychan_JUMP00.fbx",
+		//		"Actor\\UnityChan\\Animations\\unitychan_LOSE00.fbx",
+		//		"Actor\\UnityChan\\Animations\\unitychan_REFLESH00.fbx",
+		//		"Actor\\UnityChan\\Animations\\unitychan_SLIDE00.fbx",
+		//		"Actor\\UnityChan\\Animations\\unitychan_UMATOBI00.fbx",
+		//		"Actor\\UnityChan\\Animations\\unitychan_WIN00.fbx",
+		//	};
+
+		//	std::string strPathMotion(file::GetDataPath());
+		//	//strPathMotion.append("Actor\\UnityChan\\Animations\\unitychan_ARpose1.fbx");
+		//	//strPathMotion.append("Actor\\UnityChan\\Animations\\unitychan_RUN00_F.fbx");
+		//	strPathMotion.append(vecAnim[math::Random(0u, vecAnim.size() - 1)]);
+
+		//	String::StringID strMotionName;
+		//	strMotionName.Format("%s", file::GetFileName(strPathMotion).c_str());
+		//	graphics::MotionLoader motionLoader;
+		//	motionLoader.InitFBX(strMotionName, strPathMotion.c_str(), 0.01f);
+		//	graphics::IMotion* pMotion = graphics::IMotion::Create(motionLoader);
+
+		//	graphics::MotionPlaybackInfo playback;
+		//	playback.fSpeed = math::Random(0.5f, 1.5f);
+		//	playback.nLoopCount = graphics::MotionPlaybackInfo::eMaxLoopCount;
+		//	playback.fWeight = math::Random(0.7f, 1.f);
+		//	pMotionSystem->Play(graphics::EmMotion::eLayer2, pMotion, &playback);
+		//}
+
+		//gameobject::ComponentPhysics* pCompPhysics = static_cast<gameobject::ComponentPhysics*>(pActor->CreateComponent(gameobject::EmComponent::ePhysics));
+
+		//math::Vector3 ragdollPos = pActor->GetPosition();
+		//pCompPhysics->m_pRagDoll->BuildBipadRagDoll(pModelInstance->GetSkeleton(), ragdollPos, math::Quaternion::Identity, 0.8f);
+		//pCompPhysics->m_pRagDoll->Start();
+
+		if (false)
+		{
+			strPath = file::GetDataPath();
+			strPath.append("Model\\ElementalSwordIce\\LP.emod");
+
+			graphics::IModelInstance* pModelInstance_Attach = nullptr;
+			graphics::ModelLoader loader;
+			loader.InitEast(file::GetFileName(strPath).c_str(), strPath.c_str());
+
+			pModelInstance_Attach = graphics::IModel::CreateInstance(loader, false);
+
+			math::Vector3 f3Pos = { 0.08f, 0.225f, -0.02f };
+			math::Quaternion quat = math::Quaternion::CreateFromYawPitchRoll(math::ToRadians(90.f), math::ToRadians(180.f), 0.f);
+
+			pModelInstance->Attachment(pModelInstance_Attach, "Character1_LeftHand", math::Matrix::Compose(math::Vector3::One, quat, f3Pos));
+		}
+	}
+
+	for (int i = 0; i < 1; ++i)
+	{
+		String::StringID name;
+		name.Format("2B_NierAutomata_%d", i);
+
+		math::Vector3 pos;
+		pos.x = -2.f + (i * -2.f);
+		pos.z = -2.f;
+
+		strPath = file::GetDataPath();
+		strPath.append("Model\\2B_NierAutomata\\2B_NierAutomata.emod");
+
+		gameobject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
+		gameobject::ComponentModel* pModel = static_cast<gameobject::ComponentModel*>(pActor->CreateComponent(gameobject::EmComponent::eModel));
+
+		graphics::IModelInstance* pModelInstance = pModel->GetModelInstance();
+
+		//if (i == 1)
+		//{
+		//	graphics::IModelNode* pNode = pModelInstance->GetModel()->GetNode("Generic_Item.mesh");
+		//
+		//	auto SetMaterialVisible = [&](const String::StringID& strMaterialName)
+		//	{
+		//		uint32_t nMaterialID = 0;
+		//		graphics::IMaterial* pMaterial = pNode->GetMaterial(strMaterialName, nMaterialID);
+		//
+		//		graphics::IMaterial* pMaterialClone = graphics::IMaterial::Clone(pMaterial);
+		//		pMaterialClone->SetVisible(false);
+		//
+		//		pModelInstance->ChangeMaterial("Generic_Item.mesh", nMaterialID, pMaterialClone);
+		//	};
+		//
+		//	//SetMaterialVisible("Skirt");
+		//	SetMaterialVisible("Eyepatch");
+		//}
+	}
 }
 
 void SceneNewStudio::Exit()
@@ -225,41 +416,41 @@ void SceneNewStudio::Update(float fElapsedTime)
 		nFrame = 0;
 	}
 
-	math::Matrix rotXMat = math::Matrix::CreateRotationX(1.f * fElapsedTime);
-	math::Matrix rotYMat = math::Matrix::CreateRotationY(2.f * fElapsedTime);
-	math::Matrix rotZMat = math::Matrix::CreateRotationZ(3.f * fElapsedTime);
+	//math::Matrix rotXMat = math::Matrix::CreateRotationX(1.f * fElapsedTime);
+	//math::Matrix rotYMat = math::Matrix::CreateRotationY(2.f * fElapsedTime);
+	//math::Matrix rotZMat = math::Matrix::CreateRotationZ(3.f * fElapsedTime);
 
-	pCube1->matRot = rotZMat * (pCube1->matRot * (rotXMat * rotYMat));
+	//pCube1->matRot = rotZMat * (pCube1->matRot * (rotXMat * rotYMat));
 
-	math::Matrix translationMat;
-	translationMat.Translation(pCube1->f3Position);
+	//math::Matrix translationMat;
+	//translationMat.Translation(pCube1->f3Position);
 
-	//pCube1->matWorld = pCube1->matRot * translationMat;
+	////pCube1->matWorld = pCube1->matRot * translationMat;
 
-	pCube1->pModelInstance->Update(fElapsedTime, pCube1->matWorld);
+	//pCube1->pModelInstance->Update(fElapsedTime, pCube1->matWorld);
 
-	//graphics::RenderJobStatic renderJob1(pCube1.get(), pCube1->pVertexBuffer, pCube1->pIndexBuffer, pCube1->pMaterial, pCube1->matWorld, 0, pCube1->pIndexBuffer->GetIndexCount(), 0.f, {});
-	//graphics::PushRenderJob(renderJob1);
-	//graphics::PushRenderJob(pCube1->pVertexBuffer, pCube1->pIndexBuffer, pCube1->pTexture, pCube1->matWorld);
+	////graphics::RenderJobStatic renderJob1(pCube1.get(), pCube1->pVertexBuffer, pCube1->pIndexBuffer, pCube1->pMaterial, pCube1->matWorld, 0, pCube1->pIndexBuffer->GetIndexCount(), 0.f, {});
+	////graphics::PushRenderJob(renderJob1);
+	////graphics::PushRenderJob(pCube1->pVertexBuffer, pCube1->pIndexBuffer, pCube1->pTexture, pCube1->matWorld);
 
-	rotXMat = math::Matrix::CreateRotationX(3.f * fElapsedTime);
-	rotYMat = math::Matrix::CreateRotationY(2.f * fElapsedTime);
-	rotZMat = math::Matrix::CreateRotationZ(1.f * fElapsedTime);
+	//rotXMat = math::Matrix::CreateRotationX(3.f * fElapsedTime);
+	//rotYMat = math::Matrix::CreateRotationY(2.f * fElapsedTime);
+	//rotZMat = math::Matrix::CreateRotationZ(1.f * fElapsedTime);
 
-	pCube2->matRot = rotZMat * (pCube2->matRot * (rotXMat * rotYMat));
+	//pCube2->matRot = rotZMat * (pCube2->matRot * (rotXMat * rotYMat));
 
-	math::Matrix translationOffsetMat;
-	translationOffsetMat.Translation(pCube2->f3Position);
+	//math::Matrix translationOffsetMat;
+	//translationOffsetMat.Translation(pCube2->f3Position);
 
-	math::Matrix scaleMat = math::Matrix::CreateScale(0.5f, 0.5f, 0.5f);
+	//math::Matrix scaleMat = math::Matrix::CreateScale(0.5f, 0.5f, 0.5f);
 
-	pCube2->matWorld = scaleMat * translationOffsetMat * pCube2->matRot * translationMat;
+	//pCube2->matWorld = scaleMat * translationOffsetMat * pCube2->matRot * translationMat;
 
-	pCube2->pModelInstance->Update(fElapsedTime, pCube2->matWorld);
+	//pCube2->pModelInstance->Update(fElapsedTime, pCube2->matWorld);
 
-	//graphics::RenderJobStatic renderJob2(pCube1.get(), pCube2->pVertexBuffer, pCube2->pIndexBuffer, pCube2->pMaterial, pCube2->matWorld, 0, pCube2->pIndexBuffer->GetIndexCount(), 0.f, {});
-	//graphics::PushRenderJob(renderJob2);
-	//graphics::PushRenderJob(pCube2->pVertexBuffer, pCube2->pIndexBuffer, pCube2->pTexture, pCube2->matWorld);
+	////graphics::RenderJobStatic renderJob2(pCube1.get(), pCube2->pVertexBuffer, pCube2->pIndexBuffer, pCube2->pMaterial, pCube2->matWorld, 0, pCube2->pIndexBuffer->GetIndexCount(), 0.f, {});
+	////graphics::PushRenderJob(renderJob2);
+	////graphics::PushRenderJob(pCube2->pVertexBuffer, pCube2->pIndexBuffer, pCube2->pTexture, pCube2->matWorld);
 }
 
 void SceneNewStudio::ProcessInput(float fElapsedTime)

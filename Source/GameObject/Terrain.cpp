@@ -16,8 +16,9 @@ namespace eastengine
 	{
 		static uint32_t s_nTerrainIndex = 0;
 
-		Terrain::Terrain()
-			: m_isDestroy(false)
+		Terrain::Terrain(const Handle& handle)
+			: ITerrain(handle)
+			, m_isDestroy(false)
 			, m_isVisible(true)
 			, m_isBuildComplete(false)
 			, m_pHeightField(nullptr)
@@ -29,7 +30,12 @@ namespace eastengine
 
 		Terrain::~Terrain()
 		{
-			SafeDelete(m_pHeightField);
+			graphics::ReleaseResource(&m_pTexHeightMap);
+			graphics::ReleaseResource(&m_pTexColorMap);
+			graphics::ReleaseResource(&m_pTexDetailMap);
+			graphics::ReleaseResource(&m_pTexDetailNormalMap);
+
+			graphics::ReleaseResource(&m_pHeightField);
 			SafeDelete(m_pPhysics);
 		}
 
@@ -63,8 +69,8 @@ namespace eastengine
 			if (initTerrain() == false)
 				return false;
 
-			m_pTexDetailMap = graphics::ITexture::Create(m_property.strTexDetailMap, true);
-			m_pTexDetailNormalMap = graphics::ITexture::Create(m_property.strTexDetailNormalMap, true);
+			m_pTexDetailMap = graphics::CreateTextureAsync(m_property.strTexDetailMap.c_str());
+			m_pTexDetailNormalMap = graphics::CreateTextureAsync(m_property.strTexDetailNormalMap.c_str());
 
 			m_property.rigidBodyProperty.fMass = 0.f;
 			m_property.rigidBodyProperty.strName = StrID::Terrain_Physics;
@@ -76,13 +82,13 @@ namespace eastengine
 
 			if (m_rigidBodyData.vecVertices.empty() == false && m_rigidBodyData.vecIndices.empty() == false)
 			{
-				m_property.rigidBodyProperty.shapeInfo.SetTriangleMesh(m_rigidBodyData.vecVertices.data(), m_rigidBodyData.vecVertices.size(), m_rigidBodyData.vecIndices.data(), m_rigidBodyData.vecIndices.size());
+				m_property.rigidBodyProperty.shapeInfo.SetTriangleMesh(m_rigidBodyData.vecVertices.data(), static_cast<uint32_t>(m_rigidBodyData.vecVertices.size()), m_rigidBodyData.vecIndices.data(), static_cast<uint32_t>(m_rigidBodyData.vecIndices.size()));
 
 				m_pPhysics = Physics::RigidBody::Create(m_property.rigidBodyProperty);
 			}
 			else if (m_rigidBodyData.vecVertices.empty() == false)
 			{
-				m_property.rigidBodyProperty.shapeInfo.SetTriangleMesh(m_rigidBodyData.vecVertices.data(), m_rigidBodyData.vecVertices.size());
+				m_property.rigidBodyProperty.shapeInfo.SetTriangleMesh(m_rigidBodyData.vecVertices.data(), static_cast<uint32_t>(m_rigidBodyData.vecVertices.size()));
 
 				m_pPhysics = Physics::RigidBody::Create(m_property.rigidBodyProperty);
 			}
@@ -99,37 +105,40 @@ namespace eastengine
 
 			if (IsVisible() == true)
 			{
-				if (m_pTexHeightMap->GetState() == graphics::EmLoadState::eComplete &&
-					m_pTexColorMap->GetState() == graphics::EmLoadState::eComplete &&
-					m_pTexDetailMap->GetState() == graphics::EmLoadState::eComplete &&
-					m_pTexDetailNormalMap->GetState() == graphics::EmLoadState::eComplete)
+				if (m_pTexHeightMap->GetState() == graphics::IResource::eComplete &&
+					m_pTexColorMap->GetState() == graphics::IResource::eComplete &&
+					m_pTexDetailMap->GetState() == graphics::IResource::eComplete &&
+					m_pTexDetailNormalMap->GetState() == graphics::IResource::eComplete)
 				{
-					graphics::RenderSubsetTerrain subset;
-					subset.pVertexBuffer = m_pHeightField;
+					// 터레인 렌더러를 고치고 사용하시오.
+					assert(false);
 
-					subset.f2PatchSize.x = static_cast<float>(m_property.n2Size.x) / static_cast<float>(m_property.n2Patches.x);
-					subset.f2PatchSize.y = static_cast<float>(m_property.n2Size.y) / static_cast<float>(m_property.n2Patches.y);
+					//graphics::RenderSubsetTerrain subset;
+					//subset.pVertexBuffer = m_pHeightField;
 
-					subset.f2HeightFieldSize.x = static_cast<float>(m_property.n2Size.x);
-					subset.f2HeightFieldSize.y = static_cast<float>(m_property.n2Size.y);
+					//subset.f2PatchSize.x = static_cast<float>(m_property.n2Size.x) / static_cast<float>(m_property.n2Patches.x);
+					//subset.f2PatchSize.y = static_cast<float>(m_property.n2Size.y) / static_cast<float>(m_property.n2Patches.y);
 
-					subset.pTexHeightField = m_pTexHeightMap;
-					subset.pTexColorMap = m_pTexColorMap;
+					//subset.f2HeightFieldSize.x = static_cast<float>(m_property.n2Size.x);
+					//subset.f2HeightFieldSize.y = static_cast<float>(m_property.n2Size.y);
 
-					subset.pTexDetailMap = m_pTexDetailMap;
-					subset.pTexDetailNormalMap = m_pTexDetailNormalMap;
+					//subset.pTexHeightField = m_pTexHeightMap;
+					//subset.pTexColorMap = m_pTexColorMap;
 
-					subset.matWorld = m_matWorld;
+					//subset.pTexDetailMap = m_pTexDetailMap;
+					//subset.pTexDetailNormalMap = m_pTexDetailNormalMap;
 
-					// 컬링 방식, 그리려고하는 패치의 중점을 계산한뒤, World * View * Proj 를 곱해서 프로젝션 영역안에 있는지 판별하는 방식
-					// 근데, 패치의 중점만 있는지 없는지 판단하기 때문에 패치의 꼭지점이 프로젝션 영역 안에 있어도 컬링되고맘
-					// 모든 꼭지점을 컬링할까 했지만 성능 문제로 패스
-					// 얼마나 느려지는지 확인해보려했으나 전부 안나옴 흐흐
-					// 나중에 심심할때 다시 테스트 해보자
-					// 컬링 하냐마냐의 차이는 1025 x 1025 사이즈 터레인에서 0.03 ms 정도
-					subset.isEnableFrustumCullInHS = false;
+					//subset.matWorld = m_matWorld;
 
-					graphics::RendererManager::GetInstance()->AddRender(subset);
+					//// 컬링 방식, 그리려고하는 패치의 중점을 계산한뒤, World * View * Proj 를 곱해서 프로젝션 영역안에 있는지 판별하는 방식
+					//// 근데, 패치의 중점만 있는지 없는지 판단하기 때문에 패치의 꼭지점이 프로젝션 영역 안에 있어도 컬링되고맘
+					//// 모든 꼭지점을 컬링할까 했지만 성능 문제로 패스
+					//// 얼마나 느려지는지 확인해보려했으나 전부 안나옴 흐흐
+					//// 나중에 심심할때 다시 테스트 해보자
+					//// 컬링 하냐마냐의 차이는 1025 x 1025 사이즈 터레인에서 0.03 ms 정도
+					//subset.isEnableFrustumCullInHS = false;
+
+					//graphics::RendererManager::GetInstance()->AddRender(subset);
 				}
 			}
 
@@ -256,7 +265,7 @@ namespace eastengine
 
 		bool Terrain::loadColorMap(const char* strFilePath)
 		{
-			m_pTexColorMap = graphics::ITexture::Create(strFilePath, false);
+			m_pTexColorMap = graphics::CreateTexture(strFilePath);
 
 			return true;
 		}
@@ -460,12 +469,15 @@ namespace eastengine
 					const HeightMapVertex& vertex = m_vecHeightMap[i + j * m_property.n2Size.y];
 					vecHeightLinear[i + j * m_property.n2Size.y] = math::Vector4(vertex.normal.x, vertex.normal.y, vertex.normal.z, vertex.pos.y);
 
-					m_fHeightMax = math::Max(m_fHeightMax, vertex.pos.y);
-					m_fHeightMin = math::Min(m_fHeightMin, vertex.pos.y);
+					m_fHeightMax = std::max(m_fHeightMax, vertex.pos.y);
+					m_fHeightMin = std::min(m_fHeightMin, vertex.pos.y);
 				}
 			}
 
-			D3D11_SUBRESOURCE_DATA subresource_data;
+			// 외부에서 텍스쳐 생성하는 로직 고치고 사용하시오.
+			assert(false);
+
+			/*D3D11_SUBRESOURCE_DATA subresource_data;
 			subresource_data.pSysMem = vecHeightLinear.data();
 			subresource_data.SysMemPitch = m_property.n2Size.x * sizeof(math::Vector4);
 			subresource_data.SysMemSlicePitch = 0;
@@ -487,7 +499,7 @@ namespace eastengine
 			String::StringID strName;
 			strName.Format("TerrainHeightMap_%d", s_nTerrainIndex);
 
-			m_pTexHeightMap = graphics::ITexture::Create(strName, tex_desc, &subresource_data);
+			m_pTexHeightMap = graphics::ITexture::Create(strName, tex_desc, &subresource_data);*/
 
 			std::vector<graphics::VertexPos4> vecPatches_rawdata;
 			vecPatches_rawdata.resize(m_property.n2Patches.x * m_property.n2Patches.y);
@@ -503,7 +515,7 @@ namespace eastengine
 				}
 			}
 
-			m_pHeightField = graphics::IVertexBuffer::Create(graphics::VertexPos4::Format(), vecPatches_rawdata.size(), &vecPatches_rawdata.front(), D3D11_USAGE_IMMUTABLE);
+			m_pHeightField = graphics::CreateVertexBuffer(reinterpret_cast<const uint8_t*>(vecPatches_rawdata.data()), sizeof(vecPatches_rawdata[0]) * vecPatches_rawdata.size(), static_cast<uint32_t>(vecPatches_rawdata.size()));
 
 			return true;
 		}

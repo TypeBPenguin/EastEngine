@@ -30,7 +30,7 @@ namespace eastengine
 				virtual const std::string& GetPath() const override { return m_strPath; }
 
 			public:
-				bool Initialize(const D3D12_RESOURCE_DESC* pDesc, bool isDynamic = false);
+				bool Initialize(const D3D12_RESOURCE_DESC* pDesc);
 				bool Load(const char* strFilePath);
 				bool Bind(ID3D12Resource* pResource, const D3D12_SHADER_RESOURCE_VIEW_DESC* pDesc);
 

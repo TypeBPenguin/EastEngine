@@ -1,17 +1,13 @@
 #pragma once
 
+#include "Model/ModelInterface.h"
+
 namespace eastengine
 {
 	namespace Physics
 	{
 		class RigidBody;
 		class ConstraintInterface;
-	}
-
-	namespace graphics
-	{
-		class IModelInstance;
-		class ISkeletonInstance;
 	}
 
 	namespace gameobject

@@ -39,7 +39,7 @@ namespace eastengine
 				TRACER_EVENT("IndexBuffer_Init");
 				ID3D12Device* pDevice = Device::GetInstance()->GetInterface();
 
-				size_t nSize = util::AlignTo(nBufferSize, nBufferSize / nIndexCount);
+				size_t nSize = util::Align(nBufferSize, nBufferSize / nIndexCount);
 
 				CD3DX12_HEAP_PROPERTIES heapProperties(D3D12_HEAP_TYPE_DEFAULT);
 				CD3DX12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(nSize);

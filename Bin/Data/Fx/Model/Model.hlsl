@@ -1,4 +1,16 @@
+#ifdef DX12
+#include "../DescriptorTablesDX12.hlsl"
+#endif
+
+#ifdef USE_ALPHABLENDING
+
+#include "Common.hlsl"
+
+#else
+
 #include "../Converter.hlsl"
+
+#endif
 
 float4x4 DecodeMatrix(in float4 encodedMatrix0, in float4 encodedMatrix1, in float4 encodedMatrix2)
 {
@@ -78,6 +90,11 @@ cbuffer cbObjectData : register(b2)
 cbuffer cbVSConstants : register(b3)
 {
 	float4x4 g_matViewProj;
+
+#ifdef DX12
+	uint g_nTexVTFIndex;
+	float3 VSConstants_padding;
+#endif
 
 	//#ifdef USE_TESSELLATION
 	//	float4 g_FrustumNormals[4];
@@ -169,8 +186,6 @@ Texture2D g_texClearcoatGloss : register(t14);
 
 #elif DX12
 
-#include "../DescriptorTablesDX12.hlsl"
-
 #define TexAlbedo(uv)			Tex2DTable[g_nTexAlbedoIndex].Sample(SamplerTable[g_nSamplerStateIndex], uv)
 #define TexMask(uv)				Tex2DTable[g_nTexMaskIndex].Sample(SamplerTable[g_nSamplerStateIndex], uv)
 #define TexNormal(uv)			Tex2DTable[g_nTexNormalMapIndex].Sample(SamplerTable[g_nSamplerStateIndex], uv)
@@ -212,7 +227,17 @@ cbuffer cbSRVIndicesConstants : register(b4)
 
 #ifdef USE_SKINNING
 #define VTF_WIDTH 1024
+
+#ifdef DX11
+
 Texture2D g_texVTF : register(t15);
+#define TexVTF(u, v)	g_texVTF.Load(uint3(u, v, 0));
+
+#elif DX12
+
+#define TexVTF(u, v)	Tex2DTable[g_nTexVTFIndex].Load(uint3(u, v, 0));
+
+#endif
 
 float4x4 LoadBoneMatrix(in uint nVTFID, in uint bone)
 {
@@ -223,9 +248,9 @@ float4x4 LoadBoneMatrix(in uint nVTFID, in uint bone)
 	uint baseU = baseIndex % VTF_WIDTH;
 	uint baseV = baseIndex / VTF_WIDTH;
 
-	float4 mat1 = g_texVTF.Load(uint3(baseU, baseV, 0));
-	float4 mat2 = g_texVTF.Load(uint3(baseU + 1, baseV, 0));
-	float4 mat3 = g_texVTF.Load(uint3(baseU + 2, baseV, 0));
+	float4 mat1 = TexVTF(baseU, baseV);
+	float4 mat2 = TexVTF(baseU + 1, baseV);
+	float4 mat3 = TexVTF(baseU + 2, baseV);
 
 	return DecodeMatrix(mat1, mat2, mat3);
 }
@@ -262,7 +287,20 @@ struct PS_INPUT
 
 	float3 tangent	: TANGENT;		// 탄젠트
 	float3 binormal	: BINORMAL;
+	
+#ifdef USE_ALPHABLENDING
+	float4 posW		: TEXCOORD1;
+#endif
 };
+
+#ifdef USE_ALPHABLENDING
+
+struct PS_OUTPUT
+{
+	float4 color : SV_Target0;
+};
+
+#else
 
 struct PS_OUTPUT
 {
@@ -270,6 +308,8 @@ struct PS_OUTPUT
 	float4 colors : SV_Target1;
 	float4 disneyBRDF : SV_Target2;
 };
+
+#endif
 
 PS_INPUT VS(in float4 inPos : POSITION
 	, in float2 inTex : TEXCOORD
@@ -318,6 +358,10 @@ PS_INPUT VS(in float4 inPos : POSITION
 #endif	// USE_SKINNING
 
 	output.pos = mul(output.pos, matWorld);
+
+#ifdef USE_ALPHABLENDING
+	output.posW = output.pos;
+#endif
 	output.pos = mul(output.pos, g_matViewProj);
 
 	output.normal = normalize(mul(output.normal, (float3x3)matWorld));
@@ -370,15 +414,15 @@ PS_OUTPUT PS(PS_INPUT input)
 	float3 normal = input.normal;
 #endif
 
-	//#ifdef USE_ALPHABLENDING
-	//	// 검증 필요
-	//	float3 dir = normalize(input.posW - g_f3CameraPos);
-	//	float fdot = dot(normal, dir);
-	//	if (fdot > 0.f)
-	//	{
-	//		normal = -normal;
-	//	}
-	//#endif
+#ifdef USE_ALPHABLENDING
+	// 검증 필요
+	float3 dir = normalize(input.posW.xyz - g_f3CameraPos);
+	float fdot = dot(normal, dir);
+	if (fdot > 0.f)
+	{
+		normal = -normal;
+	}
+#endif
 
 	float3 RM = float3(g_f4PaddingRoughMetEmi.yz, 0.f);
 #ifdef USE_TEX_ROUGHNESS
@@ -432,16 +476,16 @@ PS_OUTPUT PS(PS_INPUT input)
 #endif
 
 #ifdef USE_ALPHABLENDING
-	output = CalcColor(input.posW,
+	output.color = CalcColor(input.posW.xyz,
 		normal, input.tangent, input.binormal,
-		saturate(albedo), emissiveColor, emissiveIntensity,
+		saturate(albedo.xyz), emissiveColor, emissiveIntensity,
 		RM.x, RM.y,
 		SST.x, SST.y, SST.z,
 		AST.x, AST.y, AST.z,
 		CG.x, CG.y,
 		float2(0.f, 0.f));
 
-	output.w = alpha;
+	output.color.w = alpha;
 #else
 	output.normals.xy = CompressNormal(normal);
 	output.normals.zw = CompressNormal(input.tangent);
