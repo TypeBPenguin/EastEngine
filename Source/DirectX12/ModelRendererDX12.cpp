@@ -33,7 +33,7 @@ namespace eastengine
 				enum
 				{
 					eMaxJobCount = 4096,
-					eMaxInstancingJobCount = 64,
+					eMaxInstancingJobCount = 128,
 				};
 
 				struct SkinningInstancingDataBuffer
@@ -533,45 +533,12 @@ namespace eastengine
 				CreatePipelineState(pDevice, shader::eUseSkinning | shader::eUseAlphaBlending, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On);
 				CreatePipelineState(pDevice, shader::eUseSkinning | shader::eUseInstancing | shader::eUseAlphaBlending, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On);
 
-				for (int i = 0; i < eFrameBufferCount; ++i)
-				{
-					if (util::CreateConstantBuffer(pDevice, m_skinningInstancingDataBuffer.AlignedSize() * shader::eMaxInstancingJobCount, &m_skinningInstancingDataBuffer.pUploadHeaps[i], L"SkinningInstancingDataBuffer") == false)
-					{
-						throw_line("failed to create constant buffer, SkinningInstancingDataBuffer");
-					}
-
-					if (util::CreateConstantBuffer(pDevice, m_staticInstancingDataBuffer.AlignedSize() * shader::eMaxInstancingJobCount, &m_staticInstancingDataBuffer.pUploadHeaps[i], L"StaticInstancingDataBuffer") == false)
-					{
-						throw_line("failed to create constant buffer, StaticInstancingDataBuffer");
-					}
-
-					if (util::CreateConstantBuffer(pDevice, m_objectDataBuffer.AlignedSize() * shader::eMaxJobCount, &m_objectDataBuffer.pUploadHeaps[i], L"ObjectDataBuffer") == false)
-					{
-						throw_line("failed to create constant buffer, ObjectDataBuffer");
-					}
-
-					if (util::CreateConstantBuffer(pDevice, m_vsConstantsBuffer.AlignedSize(), &m_vsConstantsBuffer.pUploadHeaps[i], L"VSConstantsBuffer") == false)
-					{
-						throw_line("failed to create constant buffer, VSConstantsBuffer");
-					}
-
-					if (util::CreateConstantBuffer(pDevice, m_srvIndexConstantsBuffer.AlignedSize() * shader::eMaxJobCount, &m_srvIndexConstantsBuffer.pUploadHeaps[i], L"SRVIndexConstantsBuffer") == false)
-					{
-						throw_line("failed to create constant buffer, SRVIndexConstantsBuffer");
-					}
-
-					if (util::CreateConstantBuffer(pDevice, m_commonContentsBuffer.AlignedSize(), &m_commonContentsBuffer.pUploadHeaps[i], L"CommonContentsBuffer") == false)
-					{
-						throw_line("failed to create constant buffer, CommonContentsBuffer");
-					}
-				}
-
-				m_skinningInstancingDataBuffer.Initialize(m_skinningInstancingDataBuffer.AlignedSize() * shader::eMaxInstancingJobCount);
-				m_staticInstancingDataBuffer.Initialize(m_staticInstancingDataBuffer.AlignedSize() * shader::eMaxInstancingJobCount);
-				m_objectDataBuffer.Initialize(m_objectDataBuffer.AlignedSize() * shader::eMaxJobCount);
-				m_vsConstantsBuffer.Initialize(m_vsConstantsBuffer.AlignedSize());
-				m_srvIndexConstantsBuffer.Initialize(m_srvIndexConstantsBuffer.AlignedSize() * shader::eMaxJobCount);
-				m_commonContentsBuffer.Initialize(m_commonContentsBuffer.AlignedSize());
+				m_skinningInstancingDataBuffer.Create(pDevice, shader::eMaxInstancingJobCount, "SkinningInstancingDataBuffer");
+				m_staticInstancingDataBuffer.Create(pDevice, shader::eMaxInstancingJobCount, "StaticInstancingDataBuffer");
+				m_objectDataBuffer.Create(pDevice, shader::eMaxJobCount, "ObjectDataBuffer");
+				m_vsConstantsBuffer.Create(pDevice, 1, "VSConstantsBuffer");
+				m_srvIndexConstantsBuffer.Create(pDevice, shader::eMaxJobCount, "SRVIndexConstantsBuffer");
+				m_commonContentsBuffer.Create(pDevice, 1, "CommonContentsBuffer");
 
 				m_umapJobStaticMasterBatchs.rehash(512);
 				m_umapJobSkinnedMasterBatchs.rehash(128);
@@ -579,15 +546,12 @@ namespace eastengine
 
 			ModelRenderer::Impl::~Impl()
 			{
-				for (int i = 0; i < eFrameBufferCount; ++i)
-				{
-					SafeRelease(m_skinningInstancingDataBuffer.pUploadHeaps[i]);
-					SafeRelease(m_staticInstancingDataBuffer.pUploadHeaps[i]);
-					SafeRelease(m_objectDataBuffer.pUploadHeaps[i]);
-					SafeRelease(m_vsConstantsBuffer.pUploadHeaps[i]);
-					SafeRelease(m_srvIndexConstantsBuffer.pUploadHeaps[i]);
-					SafeRelease(m_commonContentsBuffer.pUploadHeaps[i]);
-				}
+				m_skinningInstancingDataBuffer.Destroy();
+				m_staticInstancingDataBuffer.Destroy();
+				m_objectDataBuffer.Destroy();
+				m_vsConstantsBuffer.Destroy();
+				m_srvIndexConstantsBuffer.Destroy();
+				m_commonContentsBuffer.Destroy();
 
 				std::for_each(m_umapRenderPipelines.begin(), m_umapRenderPipelines.end(), [](std::pair<const shader::PSOKey, RenderPipeline>& iter)
 				{
@@ -1469,17 +1433,10 @@ namespace eastengine
 
 			ID3D12RootSignature* ModelRenderer::Impl::CreateRootSignature(ID3D12Device* pDevice, uint32_t nMask, std::array<uint32_t, eRP_Count>& nRootParameterIndex_out)
 			{
-				std::vector<D3D12_ROOT_PARAMETER> vecRootParameters;
-				D3D12_ROOT_PARAMETER& standardDescriptorTable = vecRootParameters.emplace_back();
-				standardDescriptorTable.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-				standardDescriptorTable.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-				standardDescriptorTable.DescriptorTable.NumDescriptorRanges = eStandardDescriptorRangesCount_SRV;
-				standardDescriptorTable.DescriptorTable.pDescriptorRanges = Device::GetInstance()->GetStandardDescriptorRanges();
+				std::vector<CD3DX12_ROOT_PARAMETER> vecRootParameters;
+				CD3DX12_ROOT_PARAMETER& standardDescriptorTable = vecRootParameters.emplace_back();
+				standardDescriptorTable.InitAsDescriptorTable(eStandardDescriptorRangesCount_SRV, Device::GetInstance()->GetStandardDescriptorRanges(), D3D12_SHADER_VISIBILITY_ALL);
 				nRootParameterIndex_out[eRP_StandardDescriptor] = static_cast<uint32_t>(vecRootParameters.size() - 1);
-
-				D3D12_ROOT_PARAMETER& samplerDescriptorTable = vecRootParameters.emplace_back();
-				samplerDescriptorTable.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-				samplerDescriptorTable.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
 				D3D12_DESCRIPTOR_RANGE samplerRange{};
 				samplerRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER;
@@ -1488,46 +1445,33 @@ namespace eastengine
 				samplerRange.RegisterSpace = 0;
 				samplerRange.OffsetInDescriptorsFromTableStart = 0;
 
-				samplerDescriptorTable.DescriptorTable.NumDescriptorRanges = 1;
-				samplerDescriptorTable.DescriptorTable.pDescriptorRanges = &samplerRange;
+				CD3DX12_ROOT_PARAMETER& samplerDescriptorTable = vecRootParameters.emplace_back();
+				samplerDescriptorTable.InitAsDescriptorTable(1, &samplerRange, D3D12_SHADER_VISIBILITY_PIXEL);
 				nRootParameterIndex_out[eRP_SamplerStates] = static_cast<uint32_t>(vecRootParameters.size() - 1);
 
-				D3D12_ROOT_PARAMETER& srvIndexParameter= vecRootParameters.emplace_back();
-				srvIndexParameter.ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
-				srvIndexParameter.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-				srvIndexParameter.Descriptor.ShaderRegister = shader::eCB_SRVIndex;
-				srvIndexParameter.Descriptor.RegisterSpace = 0;
+				CD3DX12_ROOT_PARAMETER& srvIndexParameter = vecRootParameters.emplace_back();
+				srvIndexParameter.InitAsConstantBufferView(shader::eCB_SRVIndex, 0, D3D12_SHADER_VISIBILITY_PIXEL);
 				nRootParameterIndex_out[eRP_SRVIndicesCB] = static_cast<uint32_t>(vecRootParameters.size() - 1);
 
-				D3D12_ROOT_PARAMETER& matrixParameter = vecRootParameters.emplace_back();
-				matrixParameter.ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
-				matrixParameter.ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
-				matrixParameter.Descriptor.ShaderRegister = shader::eCB_VSConstants;
-				matrixParameter.Descriptor.RegisterSpace = 0;
+				CD3DX12_ROOT_PARAMETER& matrixParameter = vecRootParameters.emplace_back();
+				matrixParameter.InitAsConstantBufferView(shader::eCB_VSConstants, 0, D3D12_SHADER_VISIBILITY_VERTEX);
 				nRootParameterIndex_out[eRP_VSConstantsCB] = static_cast<uint32_t>(vecRootParameters.size() - 1);
 
-				D3D12_ROOT_PARAMETER& objectParameter = vecRootParameters.emplace_back();
-				objectParameter.ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
-				objectParameter.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-				objectParameter.Descriptor.ShaderRegister = shader::eCB_ObjectData;
-				objectParameter.Descriptor.RegisterSpace = 0;
+				CD3DX12_ROOT_PARAMETER& objectParameter = vecRootParameters.emplace_back();
+				objectParameter.InitAsConstantBufferView(shader::eCB_ObjectData, 0, D3D12_SHADER_VISIBILITY_ALL);
 				nRootParameterIndex_out[eRP_ObjectDataCB] = static_cast<uint32_t>(vecRootParameters.size() - 1);
 
 				if ((nMask & shader::eUseInstancing) == shader::eUseInstancing)
 				{
-					D3D12_ROOT_PARAMETER& instancingParameter = vecRootParameters.emplace_back();
-					instancingParameter.ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
-					instancingParameter.ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
-					instancingParameter.Descriptor.RegisterSpace = 0;
-
+					CD3DX12_ROOT_PARAMETER& instancingParameter = vecRootParameters.emplace_back();
 					if ((nMask & shader::eUseSkinning) == shader::eUseSkinning)
 					{
-						instancingParameter.Descriptor.ShaderRegister = shader::eCB_SkinningInstancingData;
+						instancingParameter.InitAsConstantBufferView(shader::eCB_SkinningInstancingData, 0, D3D12_SHADER_VISIBILITY_VERTEX);
 						nRootParameterIndex_out[eRP_SkinningInstancingDataCB] = static_cast<uint32_t>(vecRootParameters.size() - 1);
 					}
 					else
 					{
-						instancingParameter.Descriptor.ShaderRegister = shader::eCB_StaticInstancingData;
+						instancingParameter.InitAsConstantBufferView(shader::eCB_StaticInstancingData, 0, D3D12_SHADER_VISIBILITY_VERTEX);
 						nRootParameterIndex_out[eRP_StaticInstancingDataCB] = static_cast<uint32_t>(vecRootParameters.size() - 1);
 					}
 				}
@@ -1535,11 +1479,8 @@ namespace eastengine
 				std::vector<D3D12_STATIC_SAMPLER_DESC> vecStaticSamplers;
 				if ((nMask & shader::eUseAlphaBlending) == shader::eUseAlphaBlending)
 				{
-					D3D12_ROOT_PARAMETER& commonContentsParameter = vecRootParameters.emplace_back();
-					commonContentsParameter.ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
-					commonContentsParameter.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-					commonContentsParameter.Descriptor.ShaderRegister = shader::eCB_CommonContents;
-					commonContentsParameter.Descriptor.RegisterSpace = 0;
+					CD3DX12_ROOT_PARAMETER& commonContentsParameter = vecRootParameters.emplace_back();
+					commonContentsParameter.InitAsConstantBufferView(shader::eCB_CommonContents, 0, D3D12_SHADER_VISIBILITY_PIXEL);
 					nRootParameterIndex_out[eRP_CommonContentsCB] = static_cast<uint32_t>(vecRootParameters.size() - 1);
 
 					vecStaticSamplers = 
@@ -1549,33 +1490,12 @@ namespace eastengine
 					};
 				}
 
-				CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc{};
-				rootSignatureDesc.Init(static_cast<uint32_t>(vecRootParameters.size()), vecRootParameters.data(),
+				return util::CreateRootSignature(pDevice, static_cast<uint32_t>(vecRootParameters.size()), vecRootParameters.data(),
 					static_cast<uint32_t>(vecStaticSamplers.size()), vecStaticSamplers.data(),
 					D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
 					D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
 					D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
 					D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS);
-
-				ID3DBlob* pError = nullptr;
-				ID3DBlob* pSignature = nullptr;
-				HRESULT hr = D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &pSignature, &pError);
-				if (FAILED(hr))
-				{
-					std::string strError = String::Format("%s : %s", "failed to serialize root signature", pError->GetBufferPointer());
-					SafeRelease(pError);
-					throw_line(strError.c_str());
-				}
-
-				ID3D12RootSignature* pRootSignature{ nullptr };
-				hr = pDevice->CreateRootSignature(0, pSignature->GetBufferPointer(), pSignature->GetBufferSize(), IID_PPV_ARGS(&pRootSignature));
-				if (FAILED(hr))
-				{
-					throw_line("failed to create root signature");
-				}
-				SafeRelease(pSignature);
-
-				return pRootSignature;
 			}
 
 			void ModelRenderer::Impl::CreatePipelineState(ID3D12Device* pDevice, uint32_t nMask, EmRasterizerState::Type emRasterizerState, EmBlendState::Type emBlendState, EmDepthStencilState::Type emDepthStencilState)

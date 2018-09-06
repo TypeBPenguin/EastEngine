@@ -241,7 +241,7 @@ namespace eastengine
 
 				bool CreateConstantBuffer(ID3D12Device* pDevice, size_t nSize, ID3D12Resource** ppBuffer_out, const wchar_t* wstrDebugName)
 				{
-					size_t nAlignedSize = Align(nSize, D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+					const size_t nAlignedSize = Align(nSize, D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 
 					CD3DX12_HEAP_PROPERTIES heapProperties(D3D12_HEAP_TYPE_UPLOAD);
 					CD3DX12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(nAlignedSize);
@@ -1010,6 +1010,34 @@ namespace eastengine
 						assert(false);
 						return CD3DX12_DEPTH_STENCIL_DESC{ D3D12_DEFAULT };
 					}
+				}
+
+				ID3D12RootSignature* CreateRootSignature(ID3D12Device* pDevice, uint32_t numParameters, const D3D12_ROOT_PARAMETER* _pParameters,
+					uint32_t numStaticSamplers, const D3D12_STATIC_SAMPLER_DESC* _pStaticSamplers,
+					D3D12_ROOT_SIGNATURE_FLAGS flags)
+				{
+					CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc{};
+					rootSignatureDesc.Init(numParameters, _pParameters, numStaticSamplers, _pStaticSamplers, flags);
+
+					ID3DBlob* pError = nullptr;
+					ID3DBlob* pSignature = nullptr;
+					HRESULT hr = D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &pSignature, &pError);
+					if (FAILED(hr))
+					{
+						const std::string strError = String::Format("%s : %s", "failed to serialize root signature", pError->GetBufferPointer());
+						SafeRelease(pError);
+						throw_line(strError.c_str());
+					}
+
+					ID3D12RootSignature* pRootSignature{ nullptr };
+					hr = pDevice->CreateRootSignature(0, pSignature->GetBufferPointer(), pSignature->GetBufferSize(), IID_PPV_ARGS(&pRootSignature));
+					if (FAILED(hr))
+					{
+						throw_line("failed to create root signature");
+					}
+					SafeRelease(pSignature);
+
+					return pRootSignature;
 				}
 			}
 		}

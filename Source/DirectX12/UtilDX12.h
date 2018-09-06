@@ -55,20 +55,47 @@ namespace eastengine
 				D3D12_GPU_VIRTUAL_ADDRESS GPUAddress(int nFrameIndex) const { return gpuAddress[nFrameIndex]; }
 				D3D12_GPU_VIRTUAL_ADDRESS GPUAddress(int nFrameIndex, size_t nIndex) const { return gpuAddress[nFrameIndex] + (nIndex * AlignedSize()); }
 
-				void Initialize(size_t nSize)
+				~ConstantBuffer()
 				{
-					CD3DX12_RANGE readRange(0, 0);
+					Destroy();
+				}
+
+				void Create(ID3D12Device* pDevice, size_t nHeapCount, const char* strDebugName)
+				{
+					if (nHeapCount == 0)
+					{
+						throw_line("heap count is zero");
+					}
+
+					const std::wstring wstrDebugName = String::MultiToWide(strDebugName);
+
+					const CD3DX12_RANGE readRange{ 0, 0 };
 					for (size_t i = 0; i < eFrameBufferCount; ++i)
 					{
+						assert(pUploadHeaps[i] == nullptr);
+
+						if (util::CreateConstantBuffer(pDevice, AlignedSize() * nHeapCount, &pUploadHeaps[i], wstrDebugName.c_str()) == false)
+						{
+							throw_line("failed to create constant buffer");
+						}
+
 						HRESULT hr = pUploadHeaps[i]->Map(0, &readRange, reinterpret_cast<void**>(&pViewGPUAddress[i]));
 						if (FAILED(hr))
 						{
 							throw_line("failed to map, constant buffer upload heap");
 						}
 
-						Memory::Clear(pViewGPUAddress[i], nSize);
+						Memory::Clear(pViewGPUAddress[i], AlignedSize() * nHeapCount);
 
 						gpuAddress[i] = pUploadHeaps[i]->GetGPUVirtualAddress();
+					}
+				}
+
+				void Destroy()
+				{
+					for (size_t i = 0; i < eFrameBufferCount; ++i)
+					{
+						SafeRelease(pUploadHeaps[i]);
 					}
 				}
 			};
@@ -91,6 +118,12 @@ namespace eastengine
 				D3D12_RASTERIZER_DESC GetRasterizerDesc(EmRasterizerState::Type emRasterizerState);
 				D3D12_BLEND_DESC GetBlendDesc(EmBlendState::Type emBlendState);
 				D3D12_DEPTH_STENCIL_DESC GetDepthStencilDesc(EmDepthStencilState::Type emDepthStencilState);
+
+				ID3D12RootSignature* CreateRootSignature(ID3D12Device* pDevice, uint32_t numParameters,
+					_In_reads_opt_(numParameters) const D3D12_ROOT_PARAMETER* _pParameters,
+					uint32_t numStaticSamplers = 0,
+					_In_reads_opt_(numStaticSamplers) const D3D12_STATIC_SAMPLER_DESC* _pStaticSamplers = nullptr,
+					D3D12_ROOT_SIGNATURE_FLAGS flags = D3D12_ROOT_SIGNATURE_FLAG_NONE);
 			}
 		}
 	}

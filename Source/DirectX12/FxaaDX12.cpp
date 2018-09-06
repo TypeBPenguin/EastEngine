@@ -86,15 +86,7 @@ namespace eastengine
 
 				CreatePipelineState(pDevice, pShaderBlob, strShaderPath.c_str());
 
-				for (int i = 0; i < eFrameBufferCount; ++i)
-				{
-					if (util::CreateConstantBuffer(pDevice, m_fxaaContents.AlignedSize(), &m_fxaaContents.pUploadHeaps[i], L"FxaaContents") == false)
-					{
-						throw_line("failed to create constant buffer, FxaaContents");
-					}
-				}
-
-				m_fxaaContents.Initialize(m_fxaaContents.AlignedSize());
+				m_fxaaContents.Create(pDevice, 1, "FxaaContents");
 
 				SafeRelease(pShaderBlob);
 
@@ -131,14 +123,11 @@ namespace eastengine
 
 			Fxaa::Impl::~Impl()
 			{
+				m_fxaaContents.Destroy();
+
 				for (auto& pBundle : m_pBundles)
 				{
 					SafeRelease(pBundle);
-				}
-
-				for (int i = 0; i < eFrameBufferCount; ++i)
-				{
-					SafeRelease(m_fxaaContents.pUploadHeaps[i]);
 				}
 
 				SafeRelease(m_pPipelineState);
@@ -197,50 +186,23 @@ namespace eastengine
 
 			ID3D12RootSignature* Fxaa::Impl::CreateRootSignature(ID3D12Device* pDevice)
 			{
-				std::vector<D3D12_ROOT_PARAMETER> vecRootParameters;
-				D3D12_ROOT_PARAMETER& standardDescriptorTable = vecRootParameters.emplace_back();
-				standardDescriptorTable.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-				standardDescriptorTable.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-				standardDescriptorTable.DescriptorTable.NumDescriptorRanges = eStandardDescriptorRangesCount_SRV;
-				standardDescriptorTable.DescriptorTable.pDescriptorRanges = Device::GetInstance()->GetStandardDescriptorRanges();
+				std::vector<CD3DX12_ROOT_PARAMETER> vecRootParameters;
+				CD3DX12_ROOT_PARAMETER& standardDescriptorTable = vecRootParameters.emplace_back();
+				standardDescriptorTable.InitAsDescriptorTable(eStandardDescriptorRangesCount_SRV, Device::GetInstance()->GetStandardDescriptorRanges(), D3D12_SHADER_VISIBILITY_PIXEL);
 
-				D3D12_ROOT_PARAMETER& lightContentsParameter = vecRootParameters.emplace_back();
-				lightContentsParameter.ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
-				lightContentsParameter.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-				lightContentsParameter.Descriptor.ShaderRegister = shader::eCB_FxaaContents;
-				lightContentsParameter.Descriptor.RegisterSpace = 0;
+				CD3DX12_ROOT_PARAMETER& fxaaContentsParameter = vecRootParameters.emplace_back();
+				fxaaContentsParameter.InitAsConstantBufferView(shader::eCB_FxaaContents, 0, D3D12_SHADER_VISIBILITY_PIXEL);
 
 				const D3D12_STATIC_SAMPLER_DESC staticSamplerDesc[]
 				{
 					util::GetStaticSamplerDesc(EmSamplerState::eAnisotropicWrap, 0, 100, D3D12_SHADER_VISIBILITY_PIXEL),
 				};
 
-				CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc{};
-				rootSignatureDesc.Init(static_cast<uint32_t>(vecRootParameters.size()), vecRootParameters.data(),
+				return util::CreateRootSignature(pDevice, static_cast<uint32_t>(vecRootParameters.size()), vecRootParameters.data(),
 					_countof(staticSamplerDesc), staticSamplerDesc,
 					D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
 					D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
 					D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS);
-
-				ID3DBlob* pError = nullptr;
-				ID3DBlob* pSignature = nullptr;
-				HRESULT hr = D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &pSignature, &pError);
-				if (FAILED(hr))
-				{
-					std::string strError = String::Format("%s : %s", "failed to serialize root signature", pError->GetBufferPointer());
-					SafeRelease(pError);
-					throw_line(strError.c_str());
-				}
-
-				ID3D12RootSignature* pRootSignature{ nullptr };
-				hr = pDevice->CreateRootSignature(0, pSignature->GetBufferPointer(), pSignature->GetBufferSize(), IID_PPV_ARGS(&pRootSignature));
-				if (FAILED(hr))
-				{
-					throw_line("failed to create root signature");
-				}
-				SafeRelease(pSignature);
-
-				return pRootSignature;
 			}
 
 			void Fxaa::Impl::CreatePipelineState(ID3D12Device* pDevice, ID3DBlob* pShaderBlob, const char* strShaderPath)

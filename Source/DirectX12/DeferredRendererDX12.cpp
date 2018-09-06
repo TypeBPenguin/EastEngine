@@ -84,11 +84,10 @@ namespace eastengine
 				};
 
 				ID3D12RootSignature* CreateRootSignature(ID3D12Device* pDevice);
-				void CreatePipelineState(ID3D12Device* pDevice);
+				void CreatePipelineState(ID3D12Device* pDevice, ID3DBlob* pShaderBlob);
 
 			private:
 				std::string m_strShaderPath;
-				ID3DBlob* m_pShaderBlob{ nullptr };
 
 				ID3D12PipelineState* m_pPipelineState{ nullptr };
 				ID3D12RootSignature* m_pRootSignature{ nullptr };
@@ -104,32 +103,20 @@ namespace eastengine
 				m_strShaderPath = file::GetPath(file::eFx);
 				m_strShaderPath.append("Model\\Deferred.hlsl");
 
-				if (FAILED(D3DReadFileToBlob(String::MultiToWide(m_strShaderPath).c_str(), &m_pShaderBlob)))
+				ID3DBlob* pShaderBlob = nullptr;
+				if (FAILED(D3DReadFileToBlob(String::MultiToWide(m_strShaderPath).c_str(), &pShaderBlob)))
 				{
-					throw_line("failed to read shader file : Model.hlsl");
+					throw_line("failed to read shader file : Deferred.hlsl");
 				}
 
 				ID3D12Device* pDevice = Device::GetInstance()->GetInterface();
 
-				CreatePipelineState(pDevice);
+				CreatePipelineState(pDevice, pShaderBlob);
 
-				for (int i = 0; i < eFrameBufferCount; ++i)
-				{
-					if (util::CreateConstantBuffer(pDevice, m_deferredContentsBuffer.AlignedSize(), &m_deferredContentsBuffer.pUploadHeaps[i], L"LightContents") == false)
-					{
-						throw_line("failed to create constant buffer, LightContents");
-					}
+				m_deferredContentsBuffer.Create(pDevice, 1, "DeferredContent");
+				m_commonContentsBuffer.Create(pDevice, 1, "CommonContents");
 
-					if (util::CreateConstantBuffer(pDevice, m_commonContentsBuffer.AlignedSize(), &m_commonContentsBuffer.pUploadHeaps[i], L"CommonContents") == false)
-					{
-						throw_line("failed to create constant buffer, CommonContents");
-					}
-				}
-
-				m_deferredContentsBuffer.Initialize(m_deferredContentsBuffer.AlignedSize());
-				m_commonContentsBuffer.Initialize(m_commonContentsBuffer.AlignedSize());
-
-				SafeRelease(m_pShaderBlob);
+				SafeRelease(pShaderBlob);
 
 				DescriptorHeap* pSRVDescriptorHeap = Device::GetInstance()->GetSRVDescriptorHeap();
 
@@ -165,11 +152,8 @@ namespace eastengine
 
 			DeferredRenderer::Impl::~Impl()
 			{
-				for (int i = 0; i < eFrameBufferCount; ++i)
-				{
-					SafeRelease(m_deferredContentsBuffer.pUploadHeaps[i]);
-					SafeRelease(m_commonContentsBuffer.pUploadHeaps[i]);
-				}
+				m_deferredContentsBuffer.Destroy();
+				m_commonContentsBuffer.Destroy();
 
 				SafeRelease(m_pPipelineState);
 				SafeRelease(m_pRootSignature);
@@ -299,24 +283,15 @@ namespace eastengine
 
 			ID3D12RootSignature* DeferredRenderer::Impl::CreateRootSignature(ID3D12Device* pDevice)
 			{
-				std::vector<D3D12_ROOT_PARAMETER> vecRootParameters;
-				D3D12_ROOT_PARAMETER& standardDescriptorTable = vecRootParameters.emplace_back();
-				standardDescriptorTable.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-				standardDescriptorTable.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-				standardDescriptorTable.DescriptorTable.NumDescriptorRanges = eStandardDescriptorRangesCount_SRV;
-				standardDescriptorTable.DescriptorTable.pDescriptorRanges = Device::GetInstance()->GetStandardDescriptorRanges();
+				std::vector<CD3DX12_ROOT_PARAMETER> vecRootParameters;
+				CD3DX12_ROOT_PARAMETER& standardDescriptorTable = vecRootParameters.emplace_back();
+				standardDescriptorTable.InitAsDescriptorTable(eStandardDescriptorRangesCount_SRV, Device::GetInstance()->GetStandardDescriptorRanges(), D3D12_SHADER_VISIBILITY_PIXEL);
 
-				D3D12_ROOT_PARAMETER& lightContentsParameter = vecRootParameters.emplace_back();
-				lightContentsParameter.ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
-				lightContentsParameter.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-				lightContentsParameter.Descriptor.ShaderRegister = shader::eCB_DeferredContents;
-				lightContentsParameter.Descriptor.RegisterSpace = 0;
+				CD3DX12_ROOT_PARAMETER& deferredContentsParameter = vecRootParameters.emplace_back();
+				deferredContentsParameter.InitAsConstantBufferView(shader::eCB_DeferredContents, 0, D3D12_SHADER_VISIBILITY_PIXEL);
 
-				D3D12_ROOT_PARAMETER& commonContentsParameter = vecRootParameters.emplace_back();
-				commonContentsParameter.ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
-				commonContentsParameter.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-				commonContentsParameter.Descriptor.ShaderRegister = shader::eCB_CommonContents;
-				commonContentsParameter.Descriptor.RegisterSpace = 0;
+				CD3DX12_ROOT_PARAMETER& commonContentsParameter = vecRootParameters.emplace_back();
+				commonContentsParameter.InitAsConstantBufferView(shader::eCB_CommonContents, 0, D3D12_SHADER_VISIBILITY_PIXEL);
 
 				const D3D12_STATIC_SAMPLER_DESC staticSamplerDesc[]
 				{
@@ -324,35 +299,14 @@ namespace eastengine
 					util::GetStaticSamplerDesc(EmSamplerState::eMinMagMipLinearClamp, 1, 100, D3D12_SHADER_VISIBILITY_PIXEL),
 				};
 
-				CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc{};
-				rootSignatureDesc.Init(static_cast<uint32_t>(vecRootParameters.size()), vecRootParameters.data(),
+				return util::CreateRootSignature(pDevice, static_cast<uint32_t>(vecRootParameters.size()), vecRootParameters.data(),
 					_countof(staticSamplerDesc), staticSamplerDesc,
 					D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
 					D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
 					D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS);
-
-				ID3DBlob* pError = nullptr;
-				ID3DBlob* pSignature = nullptr;
-				HRESULT hr = D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &pSignature, &pError);
-				if (FAILED(hr))
-				{
-					std::string strError = String::Format("%s : %s", "failed to serialize root signature", pError->GetBufferPointer());
-					SafeRelease(pError);
-					throw_line(strError.c_str());
-				}
-
-				ID3D12RootSignature* pRootSignature{ nullptr };
-				hr = pDevice->CreateRootSignature(0, pSignature->GetBufferPointer(), pSignature->GetBufferSize(), IID_PPV_ARGS(&pRootSignature));
-				if (FAILED(hr))
-				{
-					throw_line("failed to create root signature");
-				}
-				SafeRelease(pSignature);
-
-				return pRootSignature;
 			}
 
-			void DeferredRenderer::Impl::CreatePipelineState(ID3D12Device* pDevice)
+			void DeferredRenderer::Impl::CreatePipelineState(ID3D12Device* pDevice, ID3DBlob* pShaderBlob)
 			{
 				const D3D_SHADER_MACRO macros[] = 
 				{
@@ -361,14 +315,14 @@ namespace eastengine
 				};
 
 				ID3DBlob* pVertexShaderBlob = nullptr;
-				bool isSuccess = util::CompileShader(m_pShaderBlob, macros, m_strShaderPath.c_str(), "VS", "vs_5_1", &pVertexShaderBlob);
+				bool isSuccess = util::CompileShader(pShaderBlob, macros, m_strShaderPath.c_str(), "VS", "vs_5_1", &pVertexShaderBlob);
 				if (isSuccess == false)
 				{
 					throw_line("failed to compile vertex shader");
 				}
 
 				ID3DBlob* pPixelShaderBlob = nullptr;
-				isSuccess = util::CompileShader(m_pShaderBlob, macros, m_strShaderPath.c_str(), "PS", "ps_5_1", &pPixelShaderBlob);
+				isSuccess = util::CompileShader(pShaderBlob, macros, m_strShaderPath.c_str(), "PS", "ps_5_1", &pPixelShaderBlob);
 				if (isSuccess == false)
 				{
 					throw_line("failed to compile pixel shader");
