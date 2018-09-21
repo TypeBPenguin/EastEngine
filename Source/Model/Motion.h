@@ -48,15 +48,15 @@ namespace eastengine
 
 		public:
 			Motion(Key key);
-			Motion(const Motion& source);
+			//Motion(const Motion& source);
 			Motion(Motion&& source) noexcept;
-			virtual ~Motion() = default;
+			virtual ~Motion();
 
 		public:
 			virtual Key GetKey() const override { return m_key; }
 
 		public:
-			virtual void Update(IMotionRecorder* pRecorder, float fPlayTime, bool isInverse) const override;
+			virtual void Update(IMotionRecorder* pRecorder, float fPlayTime, bool isInverse, bool isEnableTransformUpdate) const override;
 
 			virtual float GetStartTime() const override { return m_fStartTime; }
 			virtual float GetEndTime() const override { return m_fEndTime; }
@@ -68,12 +68,14 @@ namespace eastengine
 			virtual uint32_t GetBoneCount() const override { return static_cast<uint32_t>(m_vecBones.size()); }
 			virtual const IBone* GetBone(uint32_t nIndex) const override { return &m_vecBones[nIndex]; }
 			virtual const IBone* GetBone(const String::StringID& strBoneName) const override;
-
+			
 		public:
 			void SetName(const String::StringID& strName) { m_strName; }
 			void SetFilePath(const std::string& strFilePath) { m_strFilePath = strFilePath; }
 			void AddBoneKeyframes(const String::StringID& strBoneName, const std::vector<Keyframe>& vecKeyframes);
 			void SetInfo(float fStartTime, float fEndTime, float fFrameInterval);
+
+			void AddEvent(const IMotionEvent* pMotionEvent) { m_vecEvents.emplace_back(pMotionEvent); }
 
 		private:
 			const Key m_key;
@@ -81,12 +83,14 @@ namespace eastengine
 			String::StringID m_strName;
 			std::string m_strFilePath;
 
-			std::vector<Bone> m_vecBones;
-			std::unordered_map<String::StringID, Bone*> m_umapBones;
-
 			float m_fStartTime{ 0.f };
 			float m_fEndTime{ 0.f };
 			float m_fFrameInterval{ 0.f };
+
+			std::vector<Bone> m_vecBones;
+			std::unordered_map<String::StringID, Bone*> m_umapBones;
+
+			std::vector<const IMotionEvent*> m_vecEvents;
 		};
 	}
 }

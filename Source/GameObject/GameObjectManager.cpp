@@ -27,12 +27,28 @@ namespace eastengine
 			IActor* GetActor(size_t nIndex);
 			size_t GetActorCount() const { return m_colonyActor.size(); }
 
+			void ExecuteFunction(std::function<void(IActor*)> func)
+			{
+				std::for_each(m_colonyActor.begin(), m_colonyActor.end(), [&](Actor& actor)
+				{
+					func(&actor);
+				});
+			}
+
 		public:
 			ISkybox* CreateSkybox(const String::StringID& strName, const SkyboxProperty& property);
 
 			ISkybox* GetSkybox(const IGameObject::Handle& handle);
 			ISkybox* GetSkybox(size_t nIndex);
 			size_t GetSkyboxCount() const { return m_colonySkybox.size(); }
+
+			void ExecuteFunction(std::function<void(ISkybox*)> func)
+			{
+				std::for_each(m_colonySkybox.begin(), m_colonySkybox.end(), [&](Skybox& skybox)
+				{
+					func(&skybox);
+				});
+			}
 
 		public:
 			ITerrain* CreateTerrain(const String::StringID& strTerrainName, const TerrainProperty& terrainProperty);
@@ -41,6 +57,14 @@ namespace eastengine
 			ITerrain* GetTerrain(const IGameObject::Handle& handle);
 			ITerrain* GetTerrain(size_t nIndex);
 			size_t GetTerrainCount() const { return m_colonyTerrain.size(); }
+
+			void ExecuteFunction(std::function<void(ITerrain*)> func)
+			{
+				std::for_each(m_colonyTerrain.begin(), m_colonyTerrain.end(), [&](Terrain& terrain)
+				{
+					func(&terrain);
+				});
+			}
 
 		private:
 			size_t m_nAllocateIndex{ 0 };
@@ -68,28 +92,6 @@ namespace eastengine
 
 		void GameObjectManager::Impl::Update(float fElapsedTime)
 		{
-			// Actor
-			{
-				TRACER_EVENT("ActorUpdate");
-				auto iter = m_colonyActor.begin();
-				auto iter_end = m_colonyActor.end();
-				while (iter != iter_end)
-				{
-					Actor& actor = *iter;
-
-					if (actor.IsDestroy() == true)
-					{
-						iter = m_colonyActor.erase(iter);
-						continue;
-					}
-					else
-					{
-						actor.Update(fElapsedTime);
-						++iter;
-					}
-				}
-			}
-
 			// Sky
 			{
 				TRACER_EVENT("SkyboxUpdate");
@@ -129,6 +131,28 @@ namespace eastengine
 					else
 					{
 						terrain.Update(fElapsedTime);
+						++iter;
+					}
+				}
+			}
+
+			// Actor
+			{
+				TRACER_EVENT("ActorUpdate");
+				auto iter = m_colonyActor.begin();
+				auto iter_end = m_colonyActor.end();
+				while (iter != iter_end)
+				{
+					Actor& actor = *iter;
+
+					if (actor.IsDestroy() == true)
+					{
+						iter = m_colonyActor.erase(iter);
+						continue;
+					}
+					else
+					{
+						actor.Update(fElapsedTime);
 						++iter;
 					}
 				}
@@ -271,6 +295,11 @@ namespace eastengine
 			return m_pImpl->GetActorCount();
 		}
 
+		void GameObjectManager::ExecuteFunction(std::function<void(IActor*)> func)
+		{
+			m_pImpl->ExecuteFunction(func);
+		}
+
 		ISkybox* GameObjectManager::CreateSkybox(const String::StringID& strName, const SkyboxProperty& property)
 		{
 			return m_pImpl->CreateSkybox(strName, property);
@@ -289,6 +318,11 @@ namespace eastengine
 		size_t GameObjectManager::GetSkyboxCount() const
 		{
 			return m_pImpl->GetSkyboxCount();
+		}
+
+		void GameObjectManager::ExecuteFunction(std::function<void(ISkybox*)> func)
+		{
+			m_pImpl->ExecuteFunction(func);
 		}
 
 		ITerrain* GameObjectManager::CreateTerrain(const String::StringID& strTerrainName, const TerrainProperty& terrainProperty)
@@ -314,6 +348,11 @@ namespace eastengine
 		size_t GameObjectManager::GetTerrainCount() const
 		{
 			return m_pImpl->GetTerrainCount();
+		}
+
+		void GameObjectManager::ExecuteFunction(std::function<void(ITerrain*)> func)
+		{
+			m_pImpl->ExecuteFunction(func);
 		}
 	}
 }

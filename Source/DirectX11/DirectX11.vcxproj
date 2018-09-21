@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -172,6 +172,7 @@
     <ClInclude Include="FxaaDX11.h" />
     <ClInclude Include="GaussianBlurDX11.h" />
     <ClInclude Include="GBufferDX11.h" />
+    <ClInclude Include="imgui_impl_dx11.h" />
     <ClInclude Include="IndexBufferDX11.h" />
     <ClInclude Include="ModelRendererDX11.h" />
     <ClInclude Include="RenderManagerDX11.h" />
@@ -197,6 +198,7 @@
     <ClCompile Include="FxaaDX11.cpp" />
     <ClCompile Include="GaussianBlurDX11.cpp" />
     <ClCompile Include="GBufferDX11.cpp" />
+    <ClCompile Include="imgui_impl_dx11.cpp" />
     <ClCompile Include="IndexBufferDX11.cpp" />
     <ClCompile Include="ModelRendererDX11.cpp" />
     <ClCompile Include="RenderManagerDX11.cpp" />

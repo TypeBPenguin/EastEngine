@@ -33,7 +33,7 @@ namespace eastengine
 				enum
 				{
 					eMaxJobCount = 4096,
-					eMaxInstancingJobCount = 128,
+					eMaxInstancingJobCount = 256,
 				};
 
 				struct SkinningInstancingDataBuffer
@@ -432,16 +432,20 @@ namespace eastengine
 
 				std::string m_strShaderPath;
 				ID3DBlob* m_pShaderBlob{ nullptr };
-
-				std::atomic<size_t> m_nShaderBufferIndex{ 0 };
-
+				
 				std::unordered_map<shader::PSOKey, RenderPipeline> m_umapRenderPipelines;
+
+				std::atomic<size_t> m_nSkinningBufferIndex{ 0 };
+				std::atomic<size_t> m_nStaticBufferIndex{ 0 };
+				std::atomic<size_t> m_nObjectBufferIndex{ 0 };
+				std::atomic<size_t> m_nSrvBufferIndex{ 0 };
 
 				ConstantBuffer<shader::SkinningInstancingDataBuffer> m_skinningInstancingDataBuffer;
 				ConstantBuffer<shader::StaticInstancingDataBuffer> m_staticInstancingDataBuffer;
 				ConstantBuffer<shader::ObjectDataBuffer> m_objectDataBuffer;
-				ConstantBuffer<shader::VSConstantsBuffer> m_vsConstantsBuffer;
 				ConstantBuffer<shader::SRVIndexConstants> m_srvIndexConstantsBuffer;
+
+				ConstantBuffer<shader::VSConstantsBuffer> m_vsConstantsBuffer;
 				ConstantBuffer<shader::CommonContents> m_commonContentsBuffer;
 				
 				struct JobStatic
@@ -536,8 +540,8 @@ namespace eastengine
 				m_skinningInstancingDataBuffer.Create(pDevice, shader::eMaxInstancingJobCount, "SkinningInstancingDataBuffer");
 				m_staticInstancingDataBuffer.Create(pDevice, shader::eMaxInstancingJobCount, "StaticInstancingDataBuffer");
 				m_objectDataBuffer.Create(pDevice, shader::eMaxJobCount, "ObjectDataBuffer");
-				m_vsConstantsBuffer.Create(pDevice, 1, "VSConstantsBuffer");
 				m_srvIndexConstantsBuffer.Create(pDevice, shader::eMaxJobCount, "SRVIndexConstantsBuffer");
+				m_vsConstantsBuffer.Create(pDevice, 1, "VSConstantsBuffer");
 				m_commonContentsBuffer.Create(pDevice, 1, "CommonContentsBuffer");
 
 				m_umapJobStaticMasterBatchs.rehash(512);
@@ -695,7 +699,11 @@ namespace eastengine
 			{
 				m_nJobStaticCount.fill(0);
 				m_nJobSkinnedCount.fill(0);
-				m_nShaderBufferIndex = 0;
+
+				m_nSkinningBufferIndex = 0;
+				m_nStaticBufferIndex = 0;
+				m_nObjectBufferIndex = 0;
+				m_nSrvBufferIndex = 0;
 			}
 
 			void ModelRenderer::Impl::PushJob(const RenderJobStatic& job)
@@ -958,12 +966,12 @@ namespace eastengine
 								{
 									const RenderJobStatic& job = pJobBatch->pJob->data;
 
-									const size_t nShaderBufferIndex = m_nShaderBufferIndex++;
-
 									if (pRenderPipeline->nRootParameterIndex[eRP_ObjectDataCB] != eRP_InvalidIndex)
 									{
-										shader::ObjectDataBuffer* pBuffer = m_objectDataBuffer.Cast(nFrameIndex, nShaderBufferIndex);
-										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_objectDataBuffer.GPUAddress(nFrameIndex, nShaderBufferIndex);
+										const size_t nObjectBufferIndex = m_nObjectBufferIndex++;
+
+										shader::ObjectDataBuffer* pBuffer = m_objectDataBuffer.Cast(nFrameIndex, nObjectBufferIndex);
+										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_objectDataBuffer.GPUAddress(nFrameIndex, nObjectBufferIndex);
 
 										shader::SetObjectData(pBuffer, job.pMaterial, math::Matrix::Identity);
 
@@ -972,13 +980,17 @@ namespace eastengine
 
 									if (pRenderPipeline->nRootParameterIndex[eRP_SRVIndicesCB] != eRP_InvalidIndex)
 									{
-										shader::SRVIndexConstants* pBuffer = m_srvIndexConstantsBuffer.Cast(nFrameIndex, nShaderBufferIndex);
-										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_srvIndexConstantsBuffer.GPUAddress(nFrameIndex, nShaderBufferIndex);
+										const size_t nSrvBufferIndex = m_nSrvBufferIndex++;
+
+										shader::SRVIndexConstants* pBuffer = m_srvIndexConstantsBuffer.Cast(nFrameIndex, nSrvBufferIndex);
+										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_srvIndexConstantsBuffer.GPUAddress(nFrameIndex, nSrvBufferIndex);
 
 										shader::SetMaterial(pBuffer, job.pMaterial);
 
 										pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->nRootParameterIndex[eRP_SRVIndicesCB], gpuAddress);
 									}
+									
+									const size_t nStaticBufferIndex = m_nStaticBufferIndex++;
 
 									const size_t nInstanceCount = pJobBatch->vecInstanceData.size();
 
@@ -991,8 +1003,8 @@ namespace eastengine
 										if (nDrawInstanceCount <= 0)
 											break;
 
-										shader::StaticInstancingDataBuffer* pStaticInstancingData = m_staticInstancingDataBuffer.Cast(nFrameIndex, nShaderBufferIndex);
-										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_staticInstancingDataBuffer.GPUAddress(nFrameIndex, nShaderBufferIndex);
+										shader::StaticInstancingDataBuffer* pStaticInstancingData = m_staticInstancingDataBuffer.Cast(nFrameIndex, nStaticBufferIndex);
+										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_staticInstancingDataBuffer.GPUAddress(nFrameIndex, nStaticBufferIndex);
 
 										Memory::Copy(pStaticInstancingData->data.data(), sizeof(shader::StaticInstancingDataBuffer),
 											pJobBatch->vecInstanceData.data(), sizeof(math::Matrix) * nInstanceCount);
@@ -1040,12 +1052,12 @@ namespace eastengine
 								{
 									const RenderJobStatic& job = pJobBatch->pJob->data;
 
-									const size_t nShaderBufferIndex = m_nShaderBufferIndex++;
-
 									if (pRenderPipeline->nRootParameterIndex[eRP_SRVIndicesCB] != eRP_InvalidIndex)
 									{
-										shader::SRVIndexConstants* pBuffer = m_srvIndexConstantsBuffer.Cast(nFrameIndex, nShaderBufferIndex);
-										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_srvIndexConstantsBuffer.GPUAddress(nFrameIndex, nShaderBufferIndex);
+										const size_t nSrvBufferIndex = m_nSrvBufferIndex++;
+
+										shader::SRVIndexConstants* pBuffer = m_srvIndexConstantsBuffer.Cast(nFrameIndex, nSrvBufferIndex);
+										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_srvIndexConstantsBuffer.GPUAddress(nFrameIndex, nSrvBufferIndex);
 
 										shader::SetMaterial(pBuffer, job.pMaterial);
 
@@ -1054,8 +1066,10 @@ namespace eastengine
 
 									if (pRenderPipeline->nRootParameterIndex[eRP_ObjectDataCB] != eRP_InvalidIndex)
 									{
-										shader::ObjectDataBuffer* pBuffer = m_objectDataBuffer.Cast(nFrameIndex, nShaderBufferIndex);
-										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_objectDataBuffer.GPUAddress(nFrameIndex, nShaderBufferIndex);
+										const size_t nObjectBufferIndex = m_nObjectBufferIndex++;
+
+										shader::ObjectDataBuffer* pBuffer = m_objectDataBuffer.Cast(nFrameIndex, nObjectBufferIndex);
+										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_objectDataBuffer.GPUAddress(nFrameIndex, nObjectBufferIndex);
 
 										shader::SetObjectData(pBuffer, job.pMaterial, job.matWorld);
 
@@ -1283,12 +1297,12 @@ namespace eastengine
 								{
 									const RenderJobSkinned& job = pJobBatch->pJob->data;
 
-									const size_t nShaderBufferIndex = m_nShaderBufferIndex++;
-
 									if (pRenderPipeline->nRootParameterIndex[eRP_ObjectDataCB] != eRP_InvalidIndex)
 									{
-										shader::ObjectDataBuffer* pBuffer = m_objectDataBuffer.Cast(nFrameIndex, nShaderBufferIndex);
-										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_objectDataBuffer.GPUAddress(nFrameIndex, nShaderBufferIndex);
+										const size_t nObjectBufferIndex = m_nObjectBufferIndex++;
+
+										shader::ObjectDataBuffer* pBuffer = m_objectDataBuffer.Cast(nFrameIndex, nObjectBufferIndex);
+										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_objectDataBuffer.GPUAddress(nFrameIndex, nObjectBufferIndex);
 
 										shader::SetObjectData(pBuffer, job.pMaterial, math::Matrix::Identity);
 
@@ -1297,13 +1311,17 @@ namespace eastengine
 
 									if (pRenderPipeline->nRootParameterIndex[eRP_SRVIndicesCB] != eRP_InvalidIndex)
 									{
-										shader::SRVIndexConstants* pBuffer = m_srvIndexConstantsBuffer.Cast(nFrameIndex, nShaderBufferIndex);
-										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_srvIndexConstantsBuffer.GPUAddress(nFrameIndex, nShaderBufferIndex);
+										const size_t nSrvBufferIndex = m_nSrvBufferIndex++;
+
+										shader::SRVIndexConstants* pBuffer = m_srvIndexConstantsBuffer.Cast(nFrameIndex, nSrvBufferIndex);
+										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_srvIndexConstantsBuffer.GPUAddress(nFrameIndex, nSrvBufferIndex);
 
 										shader::SetMaterial(pBuffer, job.pMaterial);
 
 										pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->nRootParameterIndex[eRP_SRVIndicesCB], gpuAddress);
 									}
+
+									const size_t nSkinningBufferIndex = m_nSkinningBufferIndex++;
 
 									const size_t nInstanceCount = pJobBatch->vecInstanceData.size();
 
@@ -1316,8 +1334,8 @@ namespace eastengine
 										if (nDrawInstanceCount <= 0)
 											break;
 
-										shader::SkinningInstancingDataBuffer* pSkinnedInstancingData = m_skinningInstancingDataBuffer.Cast(nFrameIndex, nShaderBufferIndex);
-										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_skinningInstancingDataBuffer.GPUAddress(nFrameIndex, nShaderBufferIndex);
+										shader::SkinningInstancingDataBuffer* pSkinnedInstancingData = m_skinningInstancingDataBuffer.Cast(nFrameIndex, nSkinningBufferIndex);
+										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_skinningInstancingDataBuffer.GPUAddress(nFrameIndex, nSkinningBufferIndex);
 
 										Memory::Copy(pSkinnedInstancingData->data.data(), sizeof(shader::SkinningInstancingDataBuffer),
 											pJobBatch->vecInstanceData.data(), sizeof(math::Matrix) * nInstanceCount);
@@ -1365,12 +1383,12 @@ namespace eastengine
 								{
 									const RenderJobSkinned& job = pJobBatch->pJob->data;
 
-									const size_t nShaderBufferIndex = m_nShaderBufferIndex++;
-
 									if (pRenderPipeline->nRootParameterIndex[eRP_SRVIndicesCB] != eRP_InvalidIndex)
 									{
-										shader::SRVIndexConstants* pBuffer = m_srvIndexConstantsBuffer.Cast(nFrameIndex, nShaderBufferIndex);
-										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_srvIndexConstantsBuffer.GPUAddress(nFrameIndex, nShaderBufferIndex);
+										const size_t nSrvBufferIndex = m_nSrvBufferIndex++;
+
+										shader::SRVIndexConstants* pBuffer = m_srvIndexConstantsBuffer.Cast(nFrameIndex, nSrvBufferIndex);
+										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_srvIndexConstantsBuffer.GPUAddress(nFrameIndex, nSrvBufferIndex);
 
 										shader::SetMaterial(pBuffer, job.pMaterial);
 
@@ -1379,8 +1397,10 @@ namespace eastengine
 
 									if (pRenderPipeline->nRootParameterIndex[eRP_ObjectDataCB] != eRP_InvalidIndex)
 									{
-										shader::ObjectDataBuffer* pBuffer = m_objectDataBuffer.Cast(nFrameIndex, nShaderBufferIndex);
-										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_objectDataBuffer.GPUAddress(nFrameIndex, nShaderBufferIndex);
+										const size_t nObjectBufferIndex = m_nObjectBufferIndex++;
+
+										shader::ObjectDataBuffer* pBuffer = m_objectDataBuffer.Cast(nFrameIndex, nObjectBufferIndex);
+										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_objectDataBuffer.GPUAddress(nFrameIndex, nObjectBufferIndex);
 
 										shader::SetObjectData(pBuffer, job.pMaterial, job.matWorld, job.nVTFID);
 

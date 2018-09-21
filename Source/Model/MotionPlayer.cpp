@@ -61,24 +61,24 @@ namespace eastengine
 
 			if (isPlay == true)
 			{
-				float fEndTime = m_pMotion->GetEndTime();
+				const float fEndTime = m_pMotion->GetEndTime();
 				if (m_fPlayTime >= fEndTime)
 				{
 					if (IsLoop() == true)
 					{
 						m_fPlayTime -= fEndTime;
 
-						m_motionRecorder.Clear();
+						m_motionRecorder.Clear(m_fPlayTime);
 					}
 					else
 					{
-						Reset();
+						Reset(0.f);
 
 						return false;
 					}
 				}
 
-				if (math::IsZero(GetBlendWeight()) == false && isEnableTransformUpdate == true)
+				if (math::IsZero(GetBlendWeight()) == false)
 				{
 					float fPlayTime = m_fPlayTime;
 					if (m_playBackInfo.isInverse == true)
@@ -86,7 +86,7 @@ namespace eastengine
 						fPlayTime = m_pMotion->GetEndTime() - m_fPlayTime;
 					}
 
-					m_pMotion->Update(&m_motionRecorder, fPlayTime, m_playBackInfo.isInverse);
+					m_pMotion->Update(&m_motionRecorder, fPlayTime, m_playBackInfo.isInverse, isEnableTransformUpdate);
 				}
 
 				if (math::IsZero(m_playBackInfo.fBlendTime) == false && m_fBlendTime <= m_playBackInfo.fBlendTime)
@@ -102,7 +102,7 @@ namespace eastengine
 			}
 			else
 			{
-				Reset();
+				Reset(0.f);
 
 				return false;
 			}
@@ -113,12 +113,12 @@ namespace eastengine
 			if (pMotion == nullptr)
 				return;
 
-			Reset();
+			const float fStartTime = pMotion->GetStartTime();
+
+			Reset(fStartTime);
 
 			m_pMotion = pMotion;
 			m_pMotion->IncreaseReference();
-
-			m_fPlayTime = m_pMotion->GetStartTime();
 
 			if (pPlayback != nullptr)
 			{
@@ -138,11 +138,11 @@ namespace eastengine
 			m_isStop = true;
 		}
 
-		void MotionPlayer::Reset()
+		void MotionPlayer::Reset(float fStartTime)
 		{
 			m_isStop = false;
 
-			m_fPlayTime = 0.f;
+			m_fPlayTime = fStartTime;
 
 			m_fStopTime = 0.f;
 			m_fStopTimeCheck = 0.f;
@@ -159,7 +159,7 @@ namespace eastengine
 			}
 
 			m_playBackInfo.Reset();
-			m_motionRecorder.Clear();
+			m_motionRecorder.Clear(fStartTime);
 		}
 
 		const math::Transform* MotionPlayer::GetTransform(const String::StringID& strBoneName) const

@@ -49,7 +49,7 @@ namespace eastengine
 			return eInvalid;
 		}
 
-		const char* ModelLoader::GetGeometryTypeToSTring(GeometryType emType)
+		const char* ModelLoader::GetGeometryTypeToString(GeometryType emType)
 		{
 			switch (emType)
 			{

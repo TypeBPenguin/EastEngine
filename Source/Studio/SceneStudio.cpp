@@ -2825,7 +2825,7 @@ void SceneStudio::RenderUI()
 								{
 									for (int j = graphics::EmModelLoader::eCube; j < graphics::EmModelLoader::eCapsule; ++j)
 									{
-										const char* strName = graphics::EmModelLoader::GetGeometryTypeToSTring(static_cast<graphics::EmModelLoader::GeometryType>(j));
+										const char* strName = graphics::EmModelLoader::GetGeometryTypeToString(static_cast<graphics::EmModelLoader::GeometryType>(j));
 										vecGeometryModel.emplace_back(strName);
 									}
 								}

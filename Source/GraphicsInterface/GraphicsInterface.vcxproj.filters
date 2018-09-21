@@ -64,6 +64,15 @@
     <Filter Include="Interface\PostProcessing">
       <UniqueIdentifier>{225d6a02-1594-496e-aac1-baf7e6d7bb8a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="imgui">
+      <UniqueIdentifier>{6c047727-3379-46b8-84f6-44cdb0047c48}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="imgui\Helper">
+      <UniqueIdentifier>{e8db76b5-917f-4d1a-a704-bec43faf67ef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="imgui\Win32">
+      <UniqueIdentifier>{31d75df5-49df-4868-b266-7057c5ca583a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -114,6 +123,30 @@
     <ClInclude Include="AssaoInterface.h">
       <Filter>Interface\PostProcessing</Filter>
     </ClInclude>
+    <ClInclude Include="imguiHelper.h">
+      <Filter>imgui\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui_impl_win32.h">
+      <Filter>imgui\Win32</Filter>
+    </ClInclude>
+    <ClInclude Include="imconfig.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui_internal.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imstb_rectpack.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imstb_textedit.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imstb_truetype.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -160,6 +193,24 @@
     </ClCompile>
     <ClCompile Include="AssaoInterface.cpp">
       <Filter>Interface\PostProcessing</Filter>
+    </ClCompile>
+    <ClCompile Include="imguiHelper.cpp">
+      <Filter>imgui\Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui_impl_win32.cpp">
+      <Filter>imgui\Win32</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui_demo.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui_draw.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui_widgets.cpp">
+      <Filter>imgui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -18,6 +18,14 @@ namespace eastengine
 	{
 		struct Options
 		{
+			bool OnVSync{ false };
+			bool OnOcclusionCulling{ false };
+
+			bool OnShadow{ false };
+			bool OnTessellation{ false };
+			bool OnWireframe{ false };
+
+			// PostProcessing
 			bool OnHDR{ false };
 			bool OnFXAA{ false };
 			bool OnDOF{ false };
@@ -25,6 +33,57 @@ namespace eastengine
 			bool OnColorGrading{ false };
 			bool OnBloomFilter{ false };
 			bool OnSSS{ false };
+
+			struct HDRConfig
+			{
+				enum ToneMappingType
+				{
+					eNone = 0,
+					eLogarithmic,
+					eExponential,
+					eDragoLogarithmic,
+					eReinhard,
+					eReinhardModified,
+					eFilmicALU,
+					eFilmicUncharted,
+					eACES,
+
+					NumToneMappingTypes,
+				};
+
+				enum AutoExposureType
+				{
+					eManual = 0,
+					eGeometricMean = 1,
+					eGeometricMeanAutoKey = 2,
+
+					NumAutoExposureTypes,
+				};
+
+				float BloomThreshold{ 2.f };		// 0.f ~ 10.f
+				float BloomMagnitude{ 0.f };		// 0.f ~ 2.f
+				float BloomBlurSigma{ 0.8f };		// 0.5f ~ 1.5f
+				float Tau{ 1.25f };					// 0.f ~ 4.f
+				float Exposure{ 0.f };				// -10.f ~ 10.f
+				float KeyValue{ 0.18f };			// 0.f ~ 1.f
+				float WhiteLevel{ 5.f };			// 0.f ~ 25.f
+				float ShoulderStrength{ 0.22f };	// 0.f ~ 2.f
+				float LinearStrength{ 0.3f };		// 0.f ~ 5.f
+				float LinearAngle{ 0.1f };			// 0.f ~ 1.f
+				float ToeStrength{ 0.2f };			// 0.f ~ 2.f
+				float ToeNumerator{ 0.01f };		// 0.f ~ 0.5f
+				float ToeDenominator{ 0.3f };		// 0.f ~ 2.f
+				float LinearWhite{ 11.2f };			// 0.f ~ 20.f
+				float LuminanceSaturation{ 1.f };	// 0.f ~ 4.f
+				float Bias{ 0.5f };					// 0.f ~ 1.f
+
+				int LumMapMipLevel{ 10 };		// 0 ~ 10
+				float TimeDelta{ 0.f };
+
+				ToneMappingType emToneMappingType{ ToneMappingType::eNone };
+				AutoExposureType emAutoExposureType{ AutoExposureType::eManual };
+			};
+			HDRConfig hdrConfig;
 
 			struct DepthOfFieldConfig
 			{
@@ -68,6 +127,8 @@ namespace eastengine
 					eSuperWide,
 					eCheap,
 					eOne,
+
+					PresetCount,
 				};
 
 				Presets emPreset{ Presets::eWide };
@@ -137,6 +198,7 @@ namespace eastengine
 
 		public:
 			virtual const Key& GetKey() const = 0;
+			virtual const String::StringID& GetName() const = 0;
 
 		public:
 			virtual const math::UInt2& GetSize() const = 0;

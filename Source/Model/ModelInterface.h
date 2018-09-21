@@ -79,6 +79,21 @@ namespace eastengine
 			LODReductionRate(float fLv0, float fLv1, float fLv2, float fLv3, float fLv4);
 		};
 
+		struct IMotionEvent
+		{
+			const int nID{ 0 };
+			const float fTime{ 0.f };
+
+			IMotionEvent(int nID)
+				: nID(nID)
+			{
+			}
+
+			virtual ~IMotionEvent() = 0
+			{
+			}
+		};
+
 		class IMotion : public IResource
 		{
 		private:
@@ -127,7 +142,7 @@ namespace eastengine
 			static bool SaveToFile(IMotion* pMotion, const char* strFilePath);
 
 		public:
-			virtual void Update(IMotionRecorder* pRecorder, float fPlayTime, bool isInverse) const = 0;
+			virtual void Update(IMotionRecorder* pRecorder, float fPlayTime, bool isInverse, bool isEnableTransformUpdate) const = 0;
 
 			virtual float GetStartTime() const = 0;
 			virtual float GetEndTime() const = 0;
@@ -206,6 +221,8 @@ namespace eastengine
 
 			virtual IMotion* GetMotion() const = 0;
 			virtual bool IsPlaying() const = 0;
+
+			virtual const IMotionEvent* PopEvent() = 0;
 		};
 
 		class IMotionRecorder
@@ -217,6 +234,12 @@ namespace eastengine
 		public:
 			virtual void SetTransform(const String::StringID& strBoneName, const math::Transform& keyframe) = 0;
 			virtual const math::Transform* GetTransform(const String::StringID& strBoneName) const = 0;
+
+			virtual void PushEvent(const IMotionEvent* pMotionEvent) = 0;
+			virtual const IMotionEvent* PopEvent() = 0;
+
+			virtual void SetLastPlayTime(float fLastPlayTime) = 0;
+			virtual float GetLastPlayTime() const = 0;
 		};
 
 		class IMotionSystem

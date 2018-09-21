@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <memory>
 #include <array>
+#include <queue>
 
 #include <map>
 #include <future>

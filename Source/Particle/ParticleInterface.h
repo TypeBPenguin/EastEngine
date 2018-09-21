@@ -99,9 +99,9 @@ namespace eastengine
 		private:
 			EmParticle::Type m_emEffectType;
 
-			bool m_isStart;
-			bool m_isPause;
-			bool m_isAlive;
+			bool m_isStart{ false };
+			bool m_isPause{ false };
+			bool m_isAlive{ false };
 		};
 
 		class IParticleEmitter : public IParticle

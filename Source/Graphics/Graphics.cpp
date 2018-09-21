@@ -2,9 +2,11 @@
 #include "Graphics.h"
 
 #include "CommonLib/Lock.h"
+#include "CommonLib/FileUtil.h"
 
 #include "GraphicsInterface/Camera.h"
 #include "GraphicsInterface/LightManager.h"
+#include "GraphicsInterface/imguiHelper.h"
 
 #include "DirectX12/DeviceDX12.h"
 #include "DirectX12/VertexBufferDX12.h"
@@ -50,7 +52,8 @@ namespace eastengine
 			virtual APIs GetType() const = 0;
 			virtual HWND GetHwnd() const = 0;
 			virtual HINSTANCE GetHInstance() const = 0;
-			virtual void AddMessageHandler(std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler) = 0;
+			virtual void AddMessageHandler(const String::StringID& strName, std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler) = 0;
+			virtual void RemoveMessageHandler(const String::StringID& strName) = 0;
 
 			virtual const math::UInt2& GetScreenSize() const = 0;
 			virtual IImageBasedLight* GetImageBasedLight() const = 0;
@@ -62,6 +65,7 @@ namespace eastengine
 			virtual ITexture* CreateTextureAsync(const char* strFilePath) = 0;
 			virtual IMaterial* CreateMaterial(const MaterialInfo* pInfo) = 0;
 			virtual IMaterial* CreateMaterial(const char* strFileName, const char* strFilePath) = 0;
+			virtual IMaterial* CloneMaterial(const IMaterial* pMaterialSource) = 0;
 
 			virtual void PushRenderJob(const RenderJobStatic& renderJob) = 0;
 			virtual void PushRenderJob(const RenderJobSkinned& renderJob) = 0;
@@ -159,11 +163,19 @@ namespace eastengine
 				}
 			}
 
-			virtual void AddMessageHandler(std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler) override
+			virtual void AddMessageHandler(const String::StringID& strName, std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler) override
 			{
 				if constexpr (APIType == APIs::eDX11 || APIType == APIs::eDX12)
 				{
-					Device::GetInstance()->AddMessageHandler(funcHandler);
+					Device::GetInstance()->AddMessageHandler(strName, funcHandler);
+				}
+			}
+
+			virtual void RemoveMessageHandler(const String::StringID& strName) override
+			{
+				if constexpr (APIType == APIs::eDX11 || APIType == APIs::eDX12)
+				{
+					Device::GetInstance()->RemoveMessageHandler(strName);
 				}
 			}
 
@@ -274,6 +286,25 @@ namespace eastengine
 			virtual IMaterial* CreateMaterial(const char* strFileName, const char* strFilePath) override
 			{
 				std::unique_ptr<Material> pMaterial = Material::Create(strFileName, strFilePath);
+				pMaterial->IncreaseReference();
+
+				thread::AutoLock autoLock(&m_lock);
+
+				auto iter = m_umapMaterials.emplace(pMaterial.get(), std::move(pMaterial));
+				if (iter.second == false)
+				{
+					throw_line("failed to material emplace to unordered map");
+				}
+
+				return iter.first->second.get();
+			}
+
+			virtual IMaterial* CloneMaterial(const IMaterial* pMaterialSource) override
+			{
+				if (pMaterialSource == nullptr)
+					return nullptr;
+
+				std::unique_ptr<Material> pMaterial = Material::Clone(static_cast<const Material*>(pMaterialSource));
 				pMaterial->IncreaseReference();
 
 				thread::AutoLock autoLock(&m_lock);
@@ -403,6 +434,12 @@ namespace eastengine
 			}
 
 			s_pGraphicsAPI->Initialize(nWidth, nHeight, isFullScreen, strApplicationTitle, strApplicationName);
+
+			std::string strFontPath = file::GetPath(file::eFont);
+			strFontPath.append("ArialUni.ttf");
+
+			ImGuiIO& io = ImGui::GetIO();
+			io.Fonts->AddFontFromFileTTF(strFontPath.c_str(), 16.f, nullptr, io.Fonts->GetGlyphRangesKorean());
 		}
 
 		void Release()
@@ -443,9 +480,14 @@ namespace eastengine
 			return s_pGraphicsAPI->GetHInstance();
 		}
 
-		void AddMessageHandler(std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler)
+		void AddMessageHandler(const String::StringID& strName, std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler)
 		{
-			s_pGraphicsAPI->AddMessageHandler(funcHandler);
+			s_pGraphicsAPI->AddMessageHandler(strName, funcHandler);
+		}
+
+		void RemoveMessageHandler(const String::StringID& strName)
+		{
+			s_pGraphicsAPI->RemoveMessageHandler(strName);
 		}
 
 		const math::UInt2& GetScreenSize()
@@ -491,6 +533,11 @@ namespace eastengine
 		IMaterial* CreateMaterial(const char* strFileName, const char* strFilePath)
 		{
 			return s_pGraphicsAPI->CreateMaterial(strFileName, strFilePath);
+		}
+
+		IMaterial* CloneMaterial(const IMaterial* pMaterial)
+		{
+			return s_pGraphicsAPI->CloneMaterial(pMaterial);
 		}
 
 		template <>
@@ -551,6 +598,39 @@ namespace eastengine
 				return;
 
 			s_pGraphicsAPI->PushRenderJob(renderJob);
+		}
+	}
+
+	namespace imguiHelper
+	{
+		ImTextureID GetTextureID(const graphics::ITexture* pTexture)
+		{
+			if (pTexture == nullptr)
+				return {};
+
+			using namespace graphics;
+
+			switch (GetAPI())
+			{
+			case APIs::eDX11:
+			{
+				const dx11::Texture* pTextureDX11 = static_cast<const dx11::Texture*>(pTexture);
+				return *(ImTextureID*)pTextureDX11->GetShaderResourceView();
+			}
+			break;
+			case APIs::eDX12:
+			{
+				const dx12::Texture* pTextureDX12 = static_cast<const dx12::Texture*>(pTexture);
+				return *(ImTextureID*)&pTextureDX12->GetGPUHandle(0);
+			}
+			break;
+			case APIs::eVulkan:
+				assert(false);
+				return {};
+			default:
+				assert(false);
+				return {};
+			}
 		}
 	}
 }

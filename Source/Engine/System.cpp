@@ -13,6 +13,11 @@
 #include "FpsChecker.h"
 #include "SceneManager.h"
 
+namespace StrID
+{
+	RegisterStringID(Input);
+}
+
 namespace eastengine
 {
 	class MainSystem::Impl
@@ -71,7 +76,7 @@ namespace eastengine
 		s_pInputDevice = input::Device::GetInstance();
 		s_pInputDevice->Initialize(graphics::GetHInstance(), graphics::GetHwnd());
 
-		graphics::AddMessageHandler([](HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
+		graphics::AddMessageHandler(StrID::Input, [](HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
 		{
 			input::Device::GetInstance()->HandleMessage(hWnd, nMsg, wParam, lParam);
 		});
@@ -123,7 +128,7 @@ namespace eastengine
 		{
 			s_pTimer->Tick();
 
-			float fElapsedTime = s_pTimer->GetElapsedTime();
+			const float fElapsedTime = s_pTimer->GetElapsedTime();
 			Flush(fElapsedTime);
 			Update(fElapsedTime);
 		});
@@ -138,6 +143,8 @@ namespace eastengine
 
 	void MainSystem::Impl::Update(float fElapsedTime)
 	{
+		m_pFpsChecker->Update(fElapsedTime);
+
 		s_pInputDevice->Update(fElapsedTime);
 		s_pSceneManager->Update(fElapsedTime);
 		s_pGameObjectManager->Update(fElapsedTime);

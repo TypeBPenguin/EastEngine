@@ -155,8 +155,8 @@ namespace eastengine
 				GeometryCount = eInvalid,
 			};
 
-			GeometryType GetGeometryType(const char* strType);
-			const char* GetGeometryTypeToSTring(GeometryType emType);
+			static GeometryType GetGeometryType(const char* strType);
+			static const char* GetGeometryTypeToString(GeometryType emType);
 
 		public:
 			ModelLoader(std::function<void(bool)> funcCallback = nullptr);

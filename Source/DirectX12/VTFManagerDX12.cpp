@@ -63,7 +63,7 @@ namespace eastengine
 					strName.Format("EastEngine_VTF_%d", i);
 					Texture::Key key(strName);
 
-					m_vtfInstance.pVTFs[i] = std::unique_ptr<Texture>(new Texture(key));
+					m_vtfInstance.pVTFs[i] = std::make_unique<Texture>(key);
 					m_vtfInstance.pVTFs[i]->Initialize(&desc);
 				}
 			}

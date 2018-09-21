@@ -37,13 +37,15 @@ namespace eastengine
 			virtual IMotion* GetMotion() const override { return m_pMotion; }
 			virtual bool IsPlaying() const override { return m_pMotion != nullptr && m_isPause == false; }
 
+			virtual const IMotionEvent* PopEvent() override { return m_motionRecorder.PopEvent(); }
+
 		public:
 			bool Update(float fElapsedTime, bool isEnableTransformUpdate);
 
 			void Play(IMotion* pMotion, const MotionPlaybackInfo* pPlayback);
 			void Stop(float fStopTime);
 
-			void Reset();
+			void Reset(float fStartTime);
 
 			const math::Transform* GetTransform(const String::StringID& strBoneName) const;
 

@@ -27,11 +27,18 @@ namespace eastengine
 			return nullptr;
 		}
 
-		void MotionRecorder::Clear()
+		void MotionRecorder::Clear(float fStartTime)
 		{
 			for (auto& iter : m_umapMotionData)
 			{
 				iter.second = math::Transform{};
+			}
+
+			m_fLastPlayTime = fStartTime;
+
+			while (m_queueEvents.empty() == false)
+			{
+				m_queueEvents.pop();
 			}
 		}
 	}

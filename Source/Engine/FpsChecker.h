@@ -12,8 +12,8 @@ namespace eastengine
 		float GetFps() { return m_fFps; }
 
 	private:
-		float m_fFps;
-		uint32_t m_nCount;
-		float m_fTime;
+		uint32_t m_nCount{ 0 };
+		float m_fFps{ 0.f };
+		float m_fTime{ 0.f };
 	};
 }

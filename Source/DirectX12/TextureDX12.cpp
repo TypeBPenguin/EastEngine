@@ -27,12 +27,52 @@ namespace eastengine
 				}
 			};
 
-			Texture::Texture(const ITexture::Key& key)
+			class Texture::Impl
+			{
+			public:
+				Impl(const ITexture::Key& key);
+				~Impl();
+
+			public:
+				const ITexture::Key& GetKey() const { return m_key; }
+				const String::StringID& GetName() const { return m_key.value; }
+
+			public:
+				const math::UInt2& GetSize() const { return m_n2Size; }
+				const std::string& GetPath() const { return m_strPath; }
+
+			public:
+				bool Initialize(const D3D12_RESOURCE_DESC* pDesc);
+				bool Load(const char* strFilePath);
+				bool Bind(ID3D12Resource* pResource, const D3D12_SHADER_RESOURCE_VIEW_DESC* pDesc);
+
+			public:
+				ID3D12Resource* GetResource() const { return m_pResource; }
+				uint32_t GetDescriptorIndex() const { return m_nDescriptorIndex; }
+
+				const D3D12_CPU_DESCRIPTOR_HANDLE& GetCPUHandle(int nFrameIndex) const { return m_cpuHandles[nFrameIndex]; }
+				const D3D12_GPU_DESCRIPTOR_HANDLE& GetGPUHandle(int nFrameIndex) const { return m_gpuHandles[nFrameIndex]; }
+
+			private:
+				const ITexture::Key m_key;
+
+				math::UInt2 m_n2Size;
+				std::string m_strPath;
+
+				uint32_t m_nDescriptorIndex;
+				std::array<D3D12_CPU_DESCRIPTOR_HANDLE, eFrameBufferCount> m_cpuHandles;
+				std::array<D3D12_GPU_DESCRIPTOR_HANDLE, eFrameBufferCount> m_gpuHandles;
+
+				ID3D12Resource* m_pResource{ nullptr };
+			};
+
+			Texture::Impl::Impl(const ITexture::Key& key)
 				: m_key(key)
+				, m_nDescriptorIndex(eInvalidDescriptorIndex)
 			{
 			}
 
-			Texture::~Texture()
+			Texture::Impl::~Impl()
 			{
 				SafeRelease(m_pResource);
 
@@ -40,7 +80,7 @@ namespace eastengine
 				pDescriptorHeap->FreePersistent(m_nDescriptorIndex);
 			}
 
-			bool Texture::Initialize(const D3D12_RESOURCE_DESC* pDesc)
+			bool Texture::Impl::Initialize(const D3D12_RESOURCE_DESC* pDesc)
 			{
 				String::StringID strName(m_key.value);
 
@@ -56,7 +96,10 @@ namespace eastengine
 					return false;
 				}
 
-				std::wstring wstrName = String::MultiToWide(strName.c_str());
+				m_n2Size.x = static_cast<uint32_t>(pDesc->Width);
+				m_n2Size.y = static_cast<uint32_t>(pDesc->Height);
+
+				const std::wstring wstrName = String::MultiToWide(strName.c_str());
 				pResource->SetName(wstrName.c_str());
 
 				const uint64_t numSubResources = pDesc->MipLevels * pDesc->DepthOrArraySize;
@@ -120,20 +163,15 @@ namespace eastengine
 					}
 				}
 
-				SetAlive(true);
-				SetState(State::eComplete);
-
 				return true;
 			}
 
-			bool Texture::Load(const char* strFilePath)
+			bool Texture::Impl::Load(const char* strFilePath)
 			{
 				TRACER_EVENT("TextureLoad");
 				TRACER_PUSHARGS("FilePath", strFilePath);
 
 				CoInitializer coInitializer;
-
-				SetState(State::eLoading);
 
 				m_strPath = strFilePath;
 
@@ -218,13 +256,22 @@ namespace eastengine
 					return false;
 				}
 
-				std::wstring wstrName = String::MultiToWide(file::GetFileName(strFilePath));
+				m_n2Size.x = static_cast<uint32_t>(textureDesc.Width);
+				m_n2Size.y = static_cast<uint32_t>(textureDesc.Height);
+
+				const std::wstring wstrName = String::MultiToWide(file::GetFileName(strFilePath));
 				m_pResource->SetName(wstrName.c_str());
 
 				DescriptorHeap* pDescriptorHeap = Device::GetInstance()->GetSRVDescriptorHeap();
 				PersistentDescriptorAlloc srvAlloc = pDescriptorHeap->AllocatePersistent();
 				m_nDescriptorIndex = srvAlloc.nIndex;
 
+				for (int i = 0; i < eFrameBufferCount; ++i)
+				{
+					m_cpuHandles[i] = pDescriptorHeap->GetCPUHandleFromIndex(m_nDescriptorIndex, i);
+					m_gpuHandles[i] = pDescriptorHeap->GetGPUHandleFromIndex(m_nDescriptorIndex, i);
+				}
+				
 				D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
 				srvDesc.Format = format;
 				srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -339,13 +386,10 @@ namespace eastengine
 
 				pUploader->EndResourceUpload(uploadContext);
 
-				SetAlive(true);
-				SetState(State::eComplete);
-
 				return true;
 			}
 
-			bool Texture::Bind(ID3D12Resource* pResource, const D3D12_SHADER_RESOURCE_VIEW_DESC* pDesc)
+			bool Texture::Impl::Bind(ID3D12Resource* pResource, const D3D12_SHADER_RESOURCE_VIEW_DESC* pDesc)
 			{
 				m_pResource = pResource;
 				m_pResource->AddRef();
@@ -356,12 +400,21 @@ namespace eastengine
 				PersistentDescriptorAlloc srvAlloc = pDescriptorHeap->AllocatePersistent();
 				m_nDescriptorIndex = srvAlloc.nIndex;
 
+				for (int i = 0; i < eFrameBufferCount; ++i)
+				{
+					m_cpuHandles[i] = pDescriptorHeap->GetCPUHandleFromIndex(m_nDescriptorIndex, i);
+					m_gpuHandles[i] = pDescriptorHeap->GetGPUHandleFromIndex(m_nDescriptorIndex, i);
+				}
+
+				const D3D12_RESOURCE_DESC desc = pResource->GetDesc();
+				m_n2Size.x = static_cast<uint32_t>(desc.Width);
+				m_n2Size.y = static_cast<uint32_t>(desc.Height);
+
 				D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
 				if (pDesc == nullptr)
 				{
 					pDesc = &srvDesc;
 
-					D3D12_RESOURCE_DESC desc = pResource->GetDesc();
 					srvDesc.Format = desc.Format;
 					srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 
@@ -411,16 +464,95 @@ namespace eastengine
 				return true;
 			}
 
-			D3D12_CPU_DESCRIPTOR_HANDLE Texture::GetCPUHandle(int nFrameIndex) const
+			Texture::Texture(const ITexture::Key& key)
+				: m_pImpl{ std::make_unique<Impl>(key) }
 			{
-				DescriptorHeap* pDescriptorHeap = Device::GetInstance()->GetSRVDescriptorHeap();
-				return pDescriptorHeap->GetCPUHandleFromIndex(m_nDescriptorIndex, nFrameIndex);
 			}
 
-			D3D12_GPU_DESCRIPTOR_HANDLE Texture::GetGPUHandle(int nFrameIndex) const
+			Texture::~Texture()
 			{
-				DescriptorHeap* pDescriptorHeap = Device::GetInstance()->GetSRVDescriptorHeap();
-				return pDescriptorHeap->GetGPUHandleFromIndex(m_nDescriptorIndex, nFrameIndex);
+			}
+
+			const ITexture::Key& Texture::GetKey() const
+			{
+				return m_pImpl->GetKey();
+			}
+
+			const String::StringID& Texture::GetName() const
+			{
+				return m_pImpl->GetName();
+			}
+
+			const math::UInt2& Texture::GetSize() const
+			{
+				return m_pImpl->GetSize();
+			}
+
+			const std::string& Texture::GetPath() const
+			{
+				return m_pImpl->GetPath();
+			}
+
+			bool Texture::Initialize(const D3D12_RESOURCE_DESC* pDesc)
+			{
+				SetState(State::eLoading);
+
+				const bool isSuccess = m_pImpl->Initialize(pDesc);
+				if (isSuccess == true)
+				{
+					SetAlive(true);
+					SetState(State::eComplete);
+				}
+
+				return isSuccess;
+			}
+
+			bool Texture::Load(const char* strFilePath)
+			{
+				SetState(State::eLoading);
+
+				const bool isSuccess = m_pImpl->Load(strFilePath);
+				if (isSuccess == true)
+				{
+					SetAlive(true);
+					SetState(State::eComplete);
+				}
+
+				return isSuccess;
+			}
+
+			bool Texture::Bind(ID3D12Resource* pResource, const D3D12_SHADER_RESOURCE_VIEW_DESC* pDesc)
+			{
+				SetState(State::eLoading);
+
+				const bool isSuccess = m_pImpl->Bind(pResource, pDesc);
+				if (isSuccess == true)
+				{
+					SetAlive(true);
+					SetState(State::eComplete);
+				}
+
+				return isSuccess;
+			}
+
+			ID3D12Resource* Texture::GetResource() const
+			{
+				return m_pImpl->GetResource();
+			}
+
+			uint32_t Texture::GetDescriptorIndex() const
+			{
+				return m_pImpl->GetDescriptorIndex();
+			}
+
+			const D3D12_CPU_DESCRIPTOR_HANDLE& Texture::GetCPUHandle(int nFrameIndex) const
+			{
+				return m_pImpl->GetCPUHandle(nFrameIndex);
+			}
+
+			const D3D12_GPU_DESCRIPTOR_HANDLE& Texture::GetGPUHandle(int nFrameIndex) const
+			{
+				return m_pImpl->GetGPUHandle(nFrameIndex);
 			}
 		}
 	}

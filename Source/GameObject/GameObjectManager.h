@@ -25,12 +25,16 @@ namespace eastengine
 			IActor* GetActor(size_t nIndex);
 			size_t GetActorCount() const;
 
+			void ExecuteFunction(std::function<void(IActor*)> func);
+
 		public:
 			ISkybox* CreateSkybox(const String::StringID& strName, const SkyboxProperty& property);
 
 			ISkybox* GetSkybox(const IGameObject::Handle& handle);
 			ISkybox* GetSkybox(size_t nIndex);
 			size_t GetSkyboxCount() const;
+
+			void ExecuteFunction(std::function<void(ISkybox*)> func);
 
 		public:
 			ITerrain * CreateTerrain(const String::StringID& strTerrainName, const TerrainProperty& terrainProperty);
@@ -39,6 +43,8 @@ namespace eastengine
 			ITerrain* GetTerrain(const IGameObject::Handle& handle);
 			ITerrain* GetTerrain(size_t nIndex);
 			size_t GetTerrainCount() const;
+
+			void ExecuteFunction(std::function<void(ITerrain*)> func);
 
 		private:
 			class Impl;

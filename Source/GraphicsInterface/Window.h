@@ -13,9 +13,11 @@ namespace eastengine
 		protected:
 			virtual void Update() = 0;
 			virtual void Render() = 0;
+			virtual void Present() = 0;
 
 		public:
-			void AddMessageHandler(std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler);
+			void AddMessageHandler(const String::StringID& strName, std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler);
+			void RemoveMessageHandler(const String::StringID& strName);
 			void Run(std::function<void()> funcUpdate);
 
 		protected:
@@ -31,7 +33,7 @@ namespace eastengine
 			String::StringID m_strApplicationTitle;
 			String::StringID m_strApplicationName;
 
-			std::vector<std::function<void(HWND, uint32_t, WPARAM, LPARAM)>> m_vecHandlers;
+			std::unordered_map<String::StringID, std::function<void(HWND, uint32_t, WPARAM, LPARAM)>> m_umapHandlers;
 		};
 	}
 }

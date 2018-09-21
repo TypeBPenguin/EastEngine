@@ -173,17 +173,17 @@ namespace eastengine
 		{
 		}
 
-		Motion::Motion(const Motion& source)
-			: m_key(source.m_key)
-			, m_strName(source.m_strName)
-			, m_strFilePath(source.m_strFilePath)
-			, m_vecBones(source.m_vecBones)
-			, m_umapBones(source.m_umapBones)
-			, m_fStartTime(source.m_fStartTime)
-			, m_fEndTime(source.m_fEndTime)
-			, m_fFrameInterval(source.m_fFrameInterval)
-		{
-		}
+		//Motion::Motion(const Motion& source)
+		//	: m_key(source.m_key)
+		//	, m_strName(source.m_strName)
+		//	, m_strFilePath(source.m_strFilePath)
+		//	, m_vecBones(source.m_vecBones)
+		//	, m_umapBones(source.m_umapBones)
+		//	, m_fStartTime(source.m_fStartTime)
+		//	, m_fEndTime(source.m_fEndTime)
+		//	, m_fFrameInterval(source.m_fFrameInterval)
+		//{
+		//}
 
 		Motion::Motion(Motion&& source) noexcept
 			: m_key(std::move(source.m_key))
@@ -194,15 +194,34 @@ namespace eastengine
 			, m_fStartTime(std::move(source.m_fStartTime))
 			, m_fEndTime(std::move(source.m_fEndTime))
 			, m_fFrameInterval(std::move(source.m_fFrameInterval))
+			, m_vecEvents(std::move(source.m_vecEvents))
 		{
 		}
 
-		void Motion::Update(IMotionRecorder* pRecorder, float fPlayTime, bool isInverse) const
+		Motion::~Motion()
 		{
-			std::for_each(m_vecBones.begin(), m_vecBones.end(), [&](const Bone& bone)
+			std::for_each(m_vecEvents.begin(), m_vecEvents.end(), DeleteSTLObject());
+			m_vecEvents.clear();
+		}
+
+		void Motion::Update(IMotionRecorder* pRecorder, float fPlayTime, bool isInverse, bool isEnableTransformUpdate) const
+		{
+			if (isEnableTransformUpdate == true)
 			{
-				bone.Update(m_fFrameInterval, pRecorder, fPlayTime, isInverse);
+				std::for_each(m_vecBones.begin(), m_vecBones.end(), [&](const Bone& bone)
+				{
+					bone.Update(m_fFrameInterval, pRecorder, fPlayTime, isInverse);
+				});
+			}
+
+			std::for_each(m_vecEvents.begin(), m_vecEvents.end(), [&](const IMotionEvent* pEvent)
+			{
+				if (pRecorder->GetLastPlayTime() <= pEvent->fTime && pEvent->fTime < fPlayTime)
+				{
+					pRecorder->PushEvent(pEvent);
+				}
 			});
+			pRecorder->SetLastPlayTime(fPlayTime);
 		}
 
 		const IMotion::IBone* Motion::GetBone(const String::StringID& strBoneName) const

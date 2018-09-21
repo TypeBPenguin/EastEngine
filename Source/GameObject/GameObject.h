@@ -28,7 +28,7 @@ namespace eastengine
 			struct tHandle {};
 
 		public:
-			using Handle = PhantomType<tHandle, const size_t>;
+			using Handle = PhantomType<tHandle, const uint64_t>;
 
 		protected:
 			IGameObject(const Handle& handle);
@@ -193,7 +193,7 @@ namespace std
 	template <>
 	struct hash<eastengine::gameobject::IGameObject::Handle>
 	{
-		size_t operator()(const eastengine::gameobject::IGameObject::Handle& key) const
+		uint64_t operator()(const eastengine::gameobject::IGameObject::Handle& key) const
 		{
 			return key.value;
 		}

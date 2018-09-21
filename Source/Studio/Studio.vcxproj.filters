@@ -19,14 +19,8 @@
     <Filter Include="UI">
       <UniqueIdentifier>{8cbd8c9b-f1cc-4feb-b948-32028beb2102}</UniqueIdentifier>
     </Filter>
-    <Filter Include="UI\imgui">
-      <UniqueIdentifier>{83305415-be4a-41f6-8145-42b4aaf517e1}</UniqueIdentifier>
-    </Filter>
     <Filter Include="UI\MaterialNode">
       <UniqueIdentifier>{24959c02-54a5-4a74-b619-1d4ff5256d5a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="UI\Convertor">
-      <UniqueIdentifier>{b4a64977-519a-45ba-b9f8-b3555df5ed80}</UniqueIdentifier>
     </Filter>
     <Filter Include="Util">
       <UniqueIdentifier>{e0521d7f-82f6-4a6b-be40-744632ac4ded}</UniqueIdentifier>
@@ -45,32 +39,8 @@
     <ClInclude Include="targetver.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="imgui_impl_dx11.h">
-      <Filter>UI\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="imconfig.h">
-      <Filter>UI\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="imgui.h">
-      <Filter>UI\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="imgui_internal.h">
-      <Filter>UI\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="stb_rect_pack.h">
-      <Filter>UI\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="stb_textedit.h">
-      <Filter>UI\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="stb_truetype.h">
-      <Filter>UI\imgui</Filter>
-    </ClInclude>
     <ClInclude Include="MaterialNodeManager.h">
       <Filter>UI\MaterialNode</Filter>
-    </ClInclude>
-    <ClInclude Include="imguiConvertor.h">
-      <Filter>UI\Convertor</Filter>
     </ClInclude>
     <ClInclude Include="SceneStudio.h">
       <Filter>Scene</Filter>
@@ -89,26 +59,11 @@
     <ClCompile Include="Studio.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="imgui_impl_dx11.cpp">
-      <Filter>UI\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="imgui.cpp">
-      <Filter>UI\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="imgui_demo.cpp">
-      <Filter>UI\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="imgui_draw.cpp">
-      <Filter>UI\imgui</Filter>
-    </ClCompile>
     <ClCompile Include="SceneStudio.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
     <ClCompile Include="MaterialNodeManager.cpp">
       <Filter>UI\MaterialNode</Filter>
-    </ClCompile>
-    <ClCompile Include="imguiConvertor.cpp">
-      <Filter>UI\Convertor</Filter>
     </ClCompile>
     <ClCompile Include="SkeletonController.cpp">
       <Filter>Util</Filter>

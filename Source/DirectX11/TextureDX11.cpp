@@ -66,8 +66,8 @@ namespace eastengine
 					util::SetDebugName(m_pShaderResourceView, strTextureName.c_str());
 				}
 
-				m_n2Size.x = pDesc->Width;
-				m_n2Size.y = pDesc->Height;
+				m_n2Size.x = static_cast<uint32_t>(pDesc->Width);
+				m_n2Size.y = static_cast<uint32_t>(pDesc->Height);
 
 				SetAlive(true);
 				SetState(State::eComplete);
@@ -209,6 +209,9 @@ namespace eastengine
 				}
 
 				util::SetDebugName(m_pShaderResourceView, strName);
+
+				m_n2Size.x = static_cast<uint32_t>(metadata.width);
+				m_n2Size.y = static_cast<uint32_t>(metadata.height);
 
 				SetState(State::eComplete);
 				SetAlive(true);

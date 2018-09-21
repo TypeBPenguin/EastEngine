@@ -23,11 +23,12 @@ namespace eastengine
 				virtual ~Texture();
 
 			public:
-				virtual const ITexture::Key& GetKey() const override { return m_key; }
+				virtual const ITexture::Key& GetKey() const override;
+				virtual const String::StringID& GetName() const override;
 
 			public:
-				virtual const math::UInt2& GetSize() const override { return m_n2Size; }
-				virtual const std::string& GetPath() const override { return m_strPath; }
+				virtual const math::UInt2& GetSize() const override;
+				virtual const std::string& GetPath() const override;
 
 			public:
 				bool Initialize(const D3D12_RESOURCE_DESC* pDesc);
@@ -35,20 +36,15 @@ namespace eastengine
 				bool Bind(ID3D12Resource* pResource, const D3D12_SHADER_RESOURCE_VIEW_DESC* pDesc);
 
 			public:
-				ID3D12Resource* GetResource() const { return m_pResource; }
-				uint32_t GetDescriptorIndex() const { return m_nDescriptorIndex; }
+				ID3D12Resource* GetResource() const;
+				uint32_t GetDescriptorIndex() const;
 
-				D3D12_CPU_DESCRIPTOR_HANDLE GetCPUHandle(int nFrameIndex) const;
-				D3D12_GPU_DESCRIPTOR_HANDLE GetGPUHandle(int nFrameIndex) const;
+				const D3D12_CPU_DESCRIPTOR_HANDLE& GetCPUHandle(int nFrameIndex) const;
+				const D3D12_GPU_DESCRIPTOR_HANDLE& GetGPUHandle(int nFrameIndex) const;
 
 			private:
-				const ITexture::Key m_key;
-
-				math::UInt2 m_n2Size;
-				std::string m_strPath;
-
-				uint32_t m_nDescriptorIndex{ std::numeric_limits<uint32_t>::max() };
-				ID3D12Resource* m_pResource{ nullptr };
+				class Impl;
+				std::unique_ptr<Impl> m_pImpl;
 			};
 		}
 	}

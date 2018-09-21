@@ -13,6 +13,16 @@
 #include "DescriptorHeapDX12.h"
 #include "VTFManagerDX12.h"
 
+#include "GraphicsInterface/imguiHelper.h"
+#include "GraphicsInterface/imgui_impl_win32.h"
+#include "imgui_impl_dx12.h"
+
+namespace StrID
+{
+	RegisterStringID(DeviceDX12);
+	RegisterStringID(ImGui);
+}
+
 namespace eastengine
 {
 	namespace graphics
@@ -28,6 +38,9 @@ namespace eastengine
 			private:
 				virtual void Update() override;
 				virtual void Render() override;
+				virtual void Present() override;
+
+				void RenderImgui();
 
 			public:
 				void Initialize(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const String::StringID& strApplicationTitle, const String::StringID& strApplicationName);
@@ -40,7 +53,7 @@ namespace eastengine
 				void ReleaseRenderTargets(RenderTarget** ppRenderTarget, uint32_t nSize = 1, bool isSetLastRenderTarget = true);
 
 			public:
-				void HandleMessage(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam);
+				void MessageHandler(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam);
 				void EnableShaderBasedValidation();
 
 			public:
@@ -98,7 +111,6 @@ namespace eastengine
 
 			private:
 				bool m_isInitislized{ false };
-				bool m_isVSync{ false };
 
 				D3D12_VIEWPORT m_viewport{};
 				math::Rect m_scissorRect{};
@@ -155,15 +167,21 @@ namespace eastengine
 				std::unordered_multimap<RenderTarget::Key, RenderTargetPool> m_ummapRenderTargetPool;
 				RenderTarget* m_pLastUseRenderTarget{ nullptr };
 
-				uint32_t m_nNullTextureIndex{ 0 };
+				uint32_t m_nNullTextureIndex{ eInvalidDescriptorIndex };
+				uint32_t m_nImGuiFontSRVIndex{ eInvalidDescriptorIndex };
 				std::array<uint32_t, EmSamplerState::TypeCount> m_nSamplerStates{ 0 };
 			};
 
 			Device::Impl::Impl()
 			{
-				AddMessageHandler([&](HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
+				AddMessageHandler(StrID::DeviceDX12, [&](HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
 				{
-					HandleMessage(hWnd, nMsg, wParam, lParam);
+					MessageHandler(hWnd, nMsg, wParam, lParam);
+				});
+
+				AddMessageHandler(StrID::ImGui, [&](HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
+				{
+					imguiHelper::MessageHandler(hWnd, nMsg, wParam, lParam);
 				});
 			}
 
@@ -174,17 +192,18 @@ namespace eastengine
 
 			void Device::Impl::Update()
 			{
+				ImGui_ImplDX12_NewFrame();
+				ImGui_ImplWin32_NewFrame();
+				ImGui::NewFrame();
 			}
 
 			void Device::Impl::Render()
 			{
 				WaitForPreviousFrame();
 
-				HRESULT hr;
-
 				for (auto pCommandAllocator : m_pCommandAllocators[m_nFrameIndex])
 				{
-					hr = pCommandAllocator->Reset();
+					HRESULT hr = pCommandAllocator->Reset();
 					if (FAILED(hr))
 					{
 						throw_line("failed to command allocator reset");
@@ -194,16 +213,21 @@ namespace eastengine
 				m_pVTFManager->Bake();
 
 				m_pRenderManager->Render();
+			}
+
+			void Device::Impl::Present()
+			{
+				RenderImgui();
 
 				m_pUploader->EndFrame(m_pCommandQueue);
 
-				hr = m_pCommandQueue->Signal(m_pFences[m_nFrameIndex], m_nFenceValues[m_nFrameIndex]);
+				HRESULT hr = m_pCommandQueue->Signal(m_pFences[m_nFrameIndex], m_nFenceValues[m_nFrameIndex]);
 				if (FAILED(hr))
 				{
 					throw_line("failed to command queue signal");
 				}
 
-				hr = m_pSwapChain->Present(m_isVSync ? 1 : 0, 0);
+				hr = m_pSwapChain->Present(GetOptions().OnVSync ? 1 : 0, 0);
 				if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
 				{
 					LOG_ERROR("Device Lost : Reason code 0x%08X", (hr == DXGI_ERROR_DEVICE_REMOVED) ? m_pDevice->GetDeviceRemovedReason() : hr);
@@ -223,10 +247,68 @@ namespace eastengine
 				m_pVTFManager->EndFrame();
 			}
 
+			void Device::Impl::RenderImgui()
+			{
+				RenderTarget* pSwapChainRenderTarget = GetSwapChainRenderTarget(m_nFrameIndex);
+
+				ID3D12GraphicsCommandList2* pCommandList = GetCommandList(0);
+				ResetCommandList(0, nullptr);
+
+				if (pSwapChainRenderTarget->GetState() != D3D12_RESOURCE_STATE_RENDER_TARGET)
+				{
+					const D3D12_RESOURCE_BARRIER transition[] =
+					{
+						pSwapChainRenderTarget->Transition(D3D12_RESOURCE_STATE_RENDER_TARGET),
+					};
+					pCommandList->ResourceBarrier(_countof(transition), transition);
+				}
+
+				const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[] =
+				{
+					pSwapChainRenderTarget->GetCPUHandle(),
+				};
+				pCommandList->OMSetRenderTargets(_countof(rtvHandles), rtvHandles, FALSE, nullptr);
+
+				ID3D12DescriptorHeap* pDescriptorHeaps[] =
+				{
+					m_pSRVDescriptorHeap->GetHeap(0),
+				};
+				pCommandList->SetDescriptorHeaps(_countof(pDescriptorHeaps), pDescriptorHeaps);
+
+				ImGui::Render();
+				ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), pCommandList);
+
+				{
+					const D3D12_RESOURCE_BARRIER transition[] =
+					{
+						pSwapChainRenderTarget->Transition(D3D12_RESOURCE_STATE_PRESENT),
+					};
+					pCommandList->ResourceBarrier(_countof(transition), transition);
+				}
+
+				HRESULT hr = pCommandList->Close();
+				if (FAILED(hr))
+				{
+					throw_line("failed to close command list");
+				}
+
+				ExecuteCommandList(pCommandList);
+			}
+
 			void Device::Impl::Initialize(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const String::StringID& strApplicationTitle, const String::StringID& strApplicationName)
 			{
 				if (m_isInitislized == true)
 					return;
+
+				AddMessageHandler(StrID::DeviceDX12, [&](HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
+				{
+					MessageHandler(hWnd, nMsg, wParam, lParam);
+				});
+
+				AddMessageHandler(StrID::ImGui, [&](HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
+				{
+					imguiHelper::MessageHandler(hWnd, nMsg, wParam, lParam);
+				});
 
 #if defined(DEBUG) || defined(_DEBUG)
 				EnableShaderBasedValidation();
@@ -238,11 +320,31 @@ namespace eastengine
 				m_pVTFManager = std::make_unique<VTFManager>();
 				m_pRenderManager = std::make_unique<RenderManager>();
 
+				PersistentDescriptorAlloc srvAlloc = m_pSRVDescriptorHeap->AllocatePersistent();
+				m_nImGuiFontSRVIndex = srvAlloc.nIndex;
+				assert(m_nImGuiFontSRVIndex != eInvalidDescriptorIndex);
+
+				IMGUI_CHECKVERSION();
+				ImGui::CreateContext();
+				ImGui_ImplWin32_Init(m_hWnd);
+				ImGui_ImplDX12_Init(m_pDevice, eFrameBufferCount, DXGI_FORMAT_R8G8B8A8_UNORM,
+					m_pSRVDescriptorHeap->GetCPUHandleFromIndex(m_nImGuiFontSRVIndex, 0),
+					m_pSRVDescriptorHeap->GetGPUHandleFromIndex(m_nImGuiFontSRVIndex, 0));
+
 				m_isInitislized = true;
 			}
 
 			void Device::Impl::Release()
 			{
+				RemoveMessageHandler(StrID::DeviceDX12);
+				RemoveMessageHandler(StrID::ImGui);
+
+				m_pSRVDescriptorHeap->FreePersistent(m_nImGuiFontSRVIndex);
+
+				ImGui_ImplDX12_Shutdown();
+				ImGui_ImplWin32_Shutdown();
+				ImGui::DestroyContext();
+
 				m_pRenderManager.reset();
 				m_pVTFManager.reset();
 
@@ -390,7 +492,7 @@ namespace eastengine
 				}
 			}
 
-			void Device::Impl::HandleMessage(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
+			void Device::Impl::MessageHandler(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
 			{
 				switch (nMsg)
 				{
@@ -552,7 +654,7 @@ namespace eastengine
 						m_pDevice->CreateShaderResourceView(nullptr, &srvDesc, srvAlloc.cpuHandles[i]);
 					}
 					m_nNullTextureIndex = srvAlloc.nIndex;
-					assert(m_nNullTextureIndex == 0);
+					assert(m_nNullTextureIndex != eInvalidDescriptorIndex);
 				}
 
 				DXGI_MODE_DESC backBufferDesc{};
@@ -697,6 +799,8 @@ namespace eastengine
 				if (nWidth == m_n2ScreenSize.x && nHeight == m_n2ScreenSize.y)
 					return;
 
+				ImGui_ImplDX12_InvalidateDeviceObjects();
+
 				for (int i = 0; i < eFrameBufferCount; ++i)
 				{
 					m_pSwapChainRenderTargets[i].reset();
@@ -755,6 +859,8 @@ namespace eastengine
 				{
 					m_pGBuffers[i]->Resize(m_n2ScreenSize.x, m_n2ScreenSize.y);
 				}
+
+				ImGui_ImplDX12_CreateDeviceObjects();
 			}
 
 			void Device::Impl::WaitForPreviousFrame(bool isDestroy)
@@ -813,9 +919,14 @@ namespace eastengine
 				return m_pImpl->GetHInstance();
 			}
 
-			void Device::AddMessageHandler(std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler)
+			void Device::AddMessageHandler(const String::StringID& strName, std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler)
 			{
-				m_pImpl->AddMessageHandler(funcHandler);
+				m_pImpl->AddMessageHandler(strName, funcHandler);
+			}
+
+			void Device::RemoveMessageHandler(const String::StringID& strName)
+			{
+				m_pImpl->RemoveMessageHandler(strName);
 			}
 
 			const math::UInt2& Device::GetScreenSize() const

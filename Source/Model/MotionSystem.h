@@ -28,7 +28,8 @@ namespace eastengine
 			void Binding();
 
 		private:
-			float m_fBlemdTime;
+			float m_fBlemdTime{ 0.f };
+			ISkeletonInstance* m_pSkeletonInstance{ nullptr };
 
 			std::array<MotionPlayer, EmMotion::eLayerCount> m_motionPlayers;
 
@@ -38,8 +39,6 @@ namespace eastengine
 				math::Transform defaultTransform;
 			};
 			std::vector<MotionTransform> m_vecMotionTransforms;
-
-			ISkeletonInstance* m_pSkeletonInstance;
 		};
 	}
 }

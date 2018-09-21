@@ -53,7 +53,8 @@ namespace eastengine
 			public:
 				HWND GetHwnd() const;
 				HINSTANCE GetHInstance() const;
-				void AddMessageHandler(std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler);
+				void AddMessageHandler(const String::StringID& strName, std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler);
+				void RemoveMessageHandler(const String::StringID& strName);
 
 				const math::UInt2& GetScreenSize() const;
 				const D3D12_VIEWPORT* GetViewport() const;

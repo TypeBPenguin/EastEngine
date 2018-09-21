@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -157,6 +157,14 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Define.h" />
     <ClInclude Include="DirectionalLight.h" />
+    <ClInclude Include="imconfig.h" />
+    <ClInclude Include="imgui.h" />
+    <ClInclude Include="imguiHelper.h" />
+    <ClInclude Include="imgui_impl_win32.h" />
+    <ClInclude Include="imgui_internal.h" />
+    <ClInclude Include="imstb_rectpack.h" />
+    <ClInclude Include="imstb_textedit.h" />
+    <ClInclude Include="imstb_truetype.h" />
     <ClInclude Include="Instancing.h" />
     <ClInclude Include="GraphicsInterface.h" />
     <ClInclude Include="Light.h" />
@@ -175,6 +183,12 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Define.cpp" />
     <ClCompile Include="DirectionalLight.cpp" />
+    <ClCompile Include="imgui.cpp" />
+    <ClCompile Include="imguiHelper.cpp" />
+    <ClCompile Include="imgui_demo.cpp" />
+    <ClCompile Include="imgui_draw.cpp" />
+    <ClCompile Include="imgui_impl_win32.cpp" />
+    <ClCompile Include="imgui_widgets.cpp" />
     <ClCompile Include="Instancing.cpp" />
     <ClCompile Include="GraphicsInterface.cpp" />
     <ClCompile Include="Light.cpp" />

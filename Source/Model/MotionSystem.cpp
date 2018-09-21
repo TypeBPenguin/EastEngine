@@ -6,8 +6,6 @@ namespace eastengine
 	namespace graphics
 	{
 		MotionSystem::MotionSystem()
-			: m_fBlemdTime(0.f)
-			, m_pSkeletonInstance(nullptr)
 		{
 		}
 

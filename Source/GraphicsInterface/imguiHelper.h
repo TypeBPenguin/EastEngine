@@ -1,6 +1,8 @@
 #pragma once
 
-struct ImVec2;
+#include "GraphicsInterface/GraphicsInterface.h"
+
+#include "imgui.h"
 
 namespace eastengine
 {
@@ -15,5 +17,12 @@ namespace eastengine
 		{
 			return *reinterpret_cast<const Vector2*>(&vec2);
 		}
+	}
+
+	namespace imguiHelper
+	{
+		void MessageHandler(HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam);
+
+		ImTextureID GetTextureID(const graphics::ITexture* pTexture);
 	}
 }

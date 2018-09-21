@@ -4,9 +4,6 @@
 namespace eastengine
 {
 	FpsChecker::FpsChecker()
-		: m_fFps(0.f)
-		, m_nCount(0)
-		, m_fTime(0)
 	{
 	}
 
@@ -21,7 +18,7 @@ namespace eastengine
 
 		if (m_fTime >= 1.f)
 		{
-			m_fFps = m_nCount / m_fTime;
+			m_fFps = static_cast<float>(m_nCount) / m_fTime;
 			m_nCount = 0;
 
 			m_fTime -= 1.f;

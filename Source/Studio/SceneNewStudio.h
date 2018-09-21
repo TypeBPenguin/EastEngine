@@ -16,5 +16,9 @@ public:
 
 private:
 	void ProcessInput(float fElapsedTime);
+	void RenderImGui(float fElapsedTime);
+
+private:
+
 };
 

@@ -18,6 +18,12 @@ namespace eastengine
 		{
 			switch (msg)
 			{
+			case WM_SYSCOMMAND:
+				// Disable ALT application menu
+				if ((wParam & 0xfff0) == SC_KEYMENU)
+					return 0;
+
+				break;
 			case WM_DESTROY:
 				PostQuitMessage(0);
 				return 0;
@@ -36,9 +42,16 @@ namespace eastengine
 		{
 		}
 
-		void Window::AddMessageHandler(std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler)
+		void Window::AddMessageHandler(const String::StringID& strName, std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler)
 		{
-			m_vecHandlers.emplace_back(funcHandler);
+			RemoveMessageHandler(strName);
+
+			m_umapHandlers.emplace(strName, funcHandler);
+		}
+
+		void Window::RemoveMessageHandler(const String::StringID& strName)
+		{
+			m_umapHandlers.erase(strName);
 		}
 
 		void Window::Run(std::function<void()> funcUpdate)
@@ -62,17 +75,20 @@ namespace eastengine
 						WndMsg wndMsg{};
 						if (s_queueMsg.try_pop(wndMsg) == true)
 						{
-							std::for_each(m_vecHandlers.begin(), m_vecHandlers.end(), [&wndMsg](const std::function<void(HWND, uint32_t, WPARAM, LPARAM)>& funcHandler)
+							for (auto& iter : m_umapHandlers)
 							{
-								funcHandler(wndMsg.hWnd, wndMsg.msg, wndMsg.wParam, wndMsg.lParam);
-							});
+								iter.second(wndMsg.hWnd, wndMsg.msg, wndMsg.wParam, wndMsg.lParam);
+							}
 						}
 					}
 
+					Update();
+
 					funcUpdate();
 
-					Update();
 					Render();
+
+					Present();
 				}
 			}
 		}

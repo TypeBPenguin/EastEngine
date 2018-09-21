@@ -11,6 +11,16 @@
 #include "RenderManagerDX11.h"
 #include "VTFManagerDX11.h"
 
+#include "GraphicsInterface/imguiHelper.h"
+#include "GraphicsInterface/imgui_impl_win32.h"
+#include "imgui_impl_dx11.h"
+
+namespace StrID
+{
+	RegisterStringID(DeviceDX11);
+	RegisterStringID(ImGui);
+}
+
 namespace eastengine
 {
 	namespace graphics
@@ -26,6 +36,7 @@ namespace eastengine
 			private:
 				virtual void Update() override;
 				virtual void Render() override;
+				virtual void Present() override;
 
 			public:
 				void Initialize(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const String::StringID& strApplicationTitle, const String::StringID& strApplicationName);
@@ -38,7 +49,7 @@ namespace eastengine
 				void ReleaseRenderTargets(RenderTarget** ppRenderTarget, uint32_t nSize, bool isSetLastRenderTarget);
 
 			public:
-				void HandleMessage(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam);
+				void MessageHandler(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam);
 
 			public:
 				HWND GetHwnd() const { return m_hWnd; }
@@ -74,7 +85,6 @@ namespace eastengine
 
 			private:
 				bool m_isInitislized{ false };
-				bool m_isVSync{ false };
 
 				size_t m_nVideoCardMemory{ 0 };
 				std::string m_strVideoCardDescription;
@@ -123,10 +133,6 @@ namespace eastengine
 
 			Device::Impl::Impl()
 			{
-				AddMessageHandler([&](HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
-				{
-					HandleMessage(hWnd, nMsg, wParam, lParam);
-				});
 			}
 
 			Device::Impl::~Impl()
@@ -136,6 +142,9 @@ namespace eastengine
 
 			void Device::Impl::Update()
 			{
+				ImGui_ImplDX11_NewFrame();
+				ImGui_ImplWin32_NewFrame();
+				ImGui::NewFrame();
 			}
 
 			void Device::Impl::Render()
@@ -148,9 +157,19 @@ namespace eastengine
 				m_pVTFManager->Bake();
 
 				m_pRenderManager->Render();
+			}
+
+			void Device::Impl::Present()
+			{
+				ImGui::Render();
+
+				RenderTarget* pSwapChainRenderTarget = GetSwapChainRenderTarget();
+				ID3D11RenderTargetView* pRTV[] = { pSwapChainRenderTarget->GetRenderTargetView() };
+				m_pImmediateContext->OMSetRenderTargets(_countof(pRTV), pRTV, nullptr);
+				ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
 				DXGI_PRESENT_PARAMETERS presentParam{};
-				HRESULT hr = m_pSwapChain->Present1(m_isVSync ? 1 : 0, 0, &presentParam);
+				HRESULT hr = m_pSwapChain->Present1(GetOptions().OnVSync ? 1 : 0, 0, &presentParam);
 				if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
 				{
 					LOG_ERROR("Device Lost : Reason code 0x%08X", (hr == DXGI_ERROR_DEVICE_REMOVED) ? m_pDevice->GetDeviceRemovedReason() : hr);
@@ -168,6 +187,16 @@ namespace eastengine
 				if (m_isInitislized == true)
 					return;
 
+				AddMessageHandler(StrID::DeviceDX11, [&](HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
+				{
+					MessageHandler(hWnd, nMsg, wParam, lParam);
+				});
+
+				AddMessageHandler(StrID::ImGui, [&](HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
+				{
+					imguiHelper::MessageHandler(hWnd, nMsg, wParam, lParam);
+				});
+
 				InitializeWindow(nWidth, nHeight, isFullScreen, strApplicationTitle, strApplicationName);
 				InitializeD3D();
 				InitializeRasterizerState();
@@ -178,11 +207,23 @@ namespace eastengine
 				m_pVTFManager = std::make_unique<VTFManager>();
 				m_pRenderManager = std::make_unique<RenderManager>();
 
+				IMGUI_CHECKVERSION();
+				ImGui::CreateContext();
+				ImGui_ImplWin32_Init(m_hWnd);
+				ImGui_ImplDX11_Init(m_pDevice, m_pImmediateContext);
+
 				m_isInitislized = true;
 			}
 
 			void Device::Impl::Release()
 			{
+				RemoveMessageHandler(StrID::DeviceDX11);
+				RemoveMessageHandler(StrID::ImGui);
+
+				ImGui_ImplDX11_Shutdown();
+				ImGui_ImplWin32_Shutdown();
+				ImGui::DestroyContext();
+
 				m_pRenderManager.reset();
 				m_pVTFManager.reset();
 
@@ -306,7 +347,7 @@ namespace eastengine
 				}
 			}
 
-			void Device::Impl::HandleMessage(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
+			void Device::Impl::MessageHandler(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
 			{
 				switch (nMsg)
 				{
@@ -420,7 +461,7 @@ namespace eastengine
 				swapChainFullScreenDesc.Windowed = m_isFullScreen == false;
 				swapChainFullScreenDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 
-				if (m_isVSync == true)
+				if (GetOptions().OnVSync == true)
 				{
 					swapChainFullScreenDesc.RefreshRate.Numerator = numerator;
 					swapChainFullScreenDesc.RefreshRate.Denominator = denominator;
@@ -1052,6 +1093,8 @@ namespace eastengine
 				if (nWidth == m_n2ScreenSize.x && nHeight == m_n2ScreenSize.y)
 					return;
 
+				ImGui_ImplDX11_InvalidateDeviceObjects();
+
 				for (auto iter = m_ummapRenderTargetPool.begin(); iter != m_ummapRenderTargetPool.end();)
 				{
 					if (iter->second.isUsing == true)
@@ -1101,6 +1144,8 @@ namespace eastengine
 				m_n2ScreenSize.y = desc.Height;
 
 				m_pGBuffer->Resize(m_n2ScreenSize.x, m_n2ScreenSize.y);
+
+				ImGui_ImplDX11_CreateDeviceObjects();
 			}
 
 			Device::Device()
@@ -1147,9 +1192,14 @@ namespace eastengine
 				return m_pImpl->GetHInstance();
 			}
 
-			void Device::AddMessageHandler(std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler)
+			void Device::AddMessageHandler(const String::StringID& strName, std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler)
 			{
-				m_pImpl->AddMessageHandler(funcHandler);
+				m_pImpl->AddMessageHandler(strName, funcHandler);
+			}
+
+			void Device::RemoveMessageHandler(const String::StringID& strName)
+			{
+				m_pImpl->RemoveMessageHandler(strName);
 			}
 
 			const math::UInt2& Device::GetScreenSize() const

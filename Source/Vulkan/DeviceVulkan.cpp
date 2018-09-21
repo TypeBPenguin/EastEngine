@@ -272,7 +272,6 @@ namespace eastengine
 				{
 					glfwPollEvents();
 
-					funcUpdate();
 					Render();
 				}
 

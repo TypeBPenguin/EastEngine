@@ -188,6 +188,7 @@ namespace eastengine
 			{
 				assert(m_pDescriptorHeaps[0] != nullptr);
 				assert(nFrameIndex < m_nHeapCount);
+				assert(nDescriptorIndex != eInvalidDescriptorIndex);
 				assert(nDescriptorIndex < TotalDescriptorsCount());
 				D3D12_CPU_DESCRIPTOR_HANDLE handle = m_startCPUHandle[nFrameIndex];
 				handle.ptr += nDescriptorIndex * m_nDescriptorSize;
@@ -198,6 +199,7 @@ namespace eastengine
 			{
 				assert(m_pDescriptorHeaps[0] != nullptr);
 				assert(nFrameIndex < m_nHeapCount);
+				assert(nDescriptorIndex != eInvalidDescriptorIndex);
 				assert(nDescriptorIndex < TotalDescriptorsCount());
 				assert(m_isShaderVisible);
 				D3D12_GPU_DESCRIPTOR_HANDLE handle = m_startGPUHandle[nFrameIndex];
