@@ -7,16 +7,16 @@ namespace eastengine
 {
 	namespace imguiHelper
 	{
-		void MessageHandler(HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
+		bool MessageHandler(HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
 		{
 			static std::string strPrevUniCode;
 
 			switch (nMsg)
 			{
 			case WM_IME_STARTCOMPOSITION:
-				break;
+				return true;
 			case WM_IME_ENDCOMPOSITION:
-				break;
+				return false;
 			case WM_IME_COMPOSITION:
 			{
 				HIMC himc = ImmGetContext(hWnd);
@@ -43,6 +43,7 @@ namespace eastengine
 					}
 				}
 				ImmReleaseContext(hWnd, himc);
+				return true;
 			}
 			break;
 			default:
@@ -76,16 +77,18 @@ namespace eastengine
 							nIdx = 0;
 						}
 
-						ImGui_ImplWin32_WndProcHandler(hWnd, nMsg, wParam, lParam);
+						return ImGui_ImplWin32_WndProcHandler(hWnd, nMsg, wParam, lParam) > 0;
 					}
 				}
 				else
 				{
-					ImGui_ImplWin32_WndProcHandler(hWnd, nMsg, wParam, lParam);
+					return ImGui_ImplWin32_WndProcHandler(hWnd, nMsg, wParam, lParam) > 0;
 				}
 			}
 			break;
 			}
+
+			return false;
 		}
 	}
 }

@@ -10,13 +10,17 @@ namespace eastengine
 		class SLog
 		{
 		public:
-			SLog()
-				: m_hConsole(nullptr)
-			{
-			}
-
+			SLog() = default;
 			~SLog()
 			{
+				{
+					std::lock_guard<std::mutex> lock(m_mutex);
+					m_isStop = true;
+				}
+				m_condition.notify_one();
+
+				m_thread.join();
+
 				if (m_hConsole != nullptr)
 				{
 					m_hConsole = nullptr;
@@ -24,22 +28,56 @@ namespace eastengine
 				}
 			}
 
-			void Output(const char* msg, int length, WORD textColor = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY)
+			void Push(const std::string& message, WORD textColor = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY)
 			{
-				thread::AutoLock autoLock(&m_lock);
+				{
+					std::lock_guard<std::mutex> lock(m_mutex);
 
-				createConsole();
+					CreateConsole();
 
-				SetConsoleTextAttribute(m_hConsole, textColor | m_wBackgroundAttributes);
+					m_queueMessages.emplace(message, textColor);
+				}
+				m_condition.notify_one();
+			}
+
+		private:
+			struct LogMessage
+			{
+				std::string message;
+				WORD color{ FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY };
+
+				LogMessage() = default;
+				LogMessage(const std::string& message, WORD color)
+					: message(message)
+					, color(color)
+				{
+				}
+
+				LogMessage(LogMessage&& source) noexcept
+					: message(std::move(source.message))
+					, color(std::move(source.color))
+				{
+				}
+
+				void operator = (const LogMessage& source)
+				{
+					message = source.message;
+					color = source.color;
+				}
+			};
+
+		private:
+			void Output(const LogMessage& message)
+			{
+				SetConsoleTextAttribute(m_hConsole, message.color | m_wBackgroundAttributes);
 
 				DWORD len = 0;
-				WriteConsoleA(m_hConsole, msg, length, &len, nullptr);
+				WriteConsoleA(m_hConsole, message.message.c_str(), message.message.length(), &len, nullptr);
 
 				SetConsoleTextAttribute(m_hConsole, m_wDefaultConsoleTextAttributes);
 			}
 
-		private:
-			void createConsole()
+			void CreateConsole()
 			{
 				if (m_hConsole != nullptr && m_hConsole != INVALID_HANDLE_VALUE)
 					return;
@@ -52,14 +90,44 @@ namespace eastengine
 				GetConsoleScreenBufferInfo(m_hConsole, &csbi);
 				m_wDefaultConsoleTextAttributes = csbi.wAttributes;
 				m_wBackgroundAttributes = m_wDefaultConsoleTextAttributes & 0x00F0;
+
+				m_thread = std::thread([&]()
+				{
+					LogMessage message;
+
+					while (true)
+					{
+						{
+							std::unique_lock<std::mutex> lock(m_mutex);
+							m_condition.wait(lock, [&]()
+							{
+								return m_isStop == true || m_queueMessages.empty() == false;
+							});
+
+							if (m_isStop == true)
+								break;
+
+							message = m_queueMessages.front();
+							m_queueMessages.pop();
+						}
+
+						Output(message);
+					}
+				});
 			}
 
 		private:
-			thread::Lock m_lock;
-
-			HANDLE m_hConsole;
+			HANDLE m_hConsole{ nullptr };
 			WORD m_wDefaultConsoleTextAttributes;
 			WORD m_wBackgroundAttributes;
+
+			std::thread m_thread;
+
+			std::mutex m_mutex;
+			std::condition_variable m_condition;
+
+			bool m_isStop{ false };
+			std::queue<LogMessage> m_queueMessages;
 		};
 
 		SLog s_consoleLog;
@@ -97,7 +165,7 @@ namespace eastengine
 			strBuffer.append(strLine);
 			strBuffer.append(s_strInfo3);
 
-			s_consoleLog.Output(strBuffer.c_str(), static_cast<int>(strBuffer.size()));
+			s_consoleLog.Push(strBuffer);
 		}
 
 		void Warning(const char* file, int line, const char* msg, ...)
@@ -126,7 +194,7 @@ namespace eastengine
 			strBuffer.append(strLine);
 			strBuffer.append(s_strInfo3);
 
-			s_consoleLog.Output(strBuffer.c_str(), static_cast<int>(strBuffer.size()), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+			s_consoleLog.Push(strBuffer, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
 		}
 
 		void Error(const char* file, int line, const char* msg, ...)
@@ -155,7 +223,7 @@ namespace eastengine
 			strBuffer.append(strLine);
 			strBuffer.append(s_strInfo3);
 
-			s_consoleLog.Output(strBuffer.c_str(), static_cast<int>(strBuffer.size()), FOREGROUND_RED | FOREGROUND_INTENSITY);
+			s_consoleLog.Push(strBuffer, FOREGROUND_RED | FOREGROUND_INTENSITY);
 		}
 	}
 }

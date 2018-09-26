@@ -20,7 +20,6 @@
 namespace StrID
 {
 	RegisterStringID(DeviceDX12);
-	RegisterStringID(ImGui);
 }
 
 namespace eastengine
@@ -174,15 +173,6 @@ namespace eastengine
 
 			Device::Impl::Impl()
 			{
-				AddMessageHandler(StrID::DeviceDX12, [&](HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
-				{
-					MessageHandler(hWnd, nMsg, wParam, lParam);
-				});
-
-				AddMessageHandler(StrID::ImGui, [&](HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
-				{
-					imguiHelper::MessageHandler(hWnd, nMsg, wParam, lParam);
-				});
 			}
 
 			Device::Impl::~Impl()
@@ -305,13 +295,8 @@ namespace eastengine
 					MessageHandler(hWnd, nMsg, wParam, lParam);
 				});
 
-				AddMessageHandler(StrID::ImGui, [&](HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
-				{
-					imguiHelper::MessageHandler(hWnd, nMsg, wParam, lParam);
-				});
-
 #if defined(DEBUG) || defined(_DEBUG)
-				EnableShaderBasedValidation();
+				//EnableShaderBasedValidation();
 #endif
 
 				InitializeWindow(nWidth, nHeight, isFullScreen, strApplicationTitle, strApplicationName);
@@ -337,7 +322,6 @@ namespace eastengine
 			void Device::Impl::Release()
 			{
 				RemoveMessageHandler(StrID::DeviceDX12);
-				RemoveMessageHandler(StrID::ImGui);
 
 				m_pSRVDescriptorHeap->FreePersistent(m_nImGuiFontSRVIndex);
 
@@ -410,6 +394,8 @@ namespace eastengine
 				SafeRelease(m_pCommandQueue);
 				SafeRelease(m_pDebug);
 				SafeRelease(m_pDevice);
+
+				m_isInitislized = false;
 			}
 
 			void Device::Impl::Flush(float fElapsedTime)
@@ -494,13 +480,16 @@ namespace eastengine
 
 			void Device::Impl::MessageHandler(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
 			{
+				if (imguiHelper::MessageHandler(hWnd, nMsg, wParam, lParam) == true)
+					return;
+
 				switch (nMsg)
 				{
 				case WM_SIZE:
 					if (m_pDevice != nullptr && wParam != SIZE_MINIMIZED)
 					{
-						uint32_t nWidth = LOWORD(lParam);
-						uint32_t nHeight = HIWORD(lParam);
+						const uint32_t nWidth = LOWORD(lParam);
+						const uint32_t nHeight = HIWORD(lParam);
 
 						Resize(nWidth, nHeight);
 					}
@@ -711,7 +700,6 @@ namespace eastengine
 					}
 				}
 
-
 				hr = m_pDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_BUNDLE, IID_PPV_ARGS(&m_pBundleAllocators));
 				if (FAILED(hr))
 				{
@@ -798,6 +786,8 @@ namespace eastengine
 			{
 				if (nWidth == m_n2ScreenSize.x && nHeight == m_n2ScreenSize.y)
 					return;
+
+				WaitForPreviousFrame(false);
 
 				ImGui_ImplDX12_InvalidateDeviceObjects();
 

@@ -9,6 +9,8 @@ namespace eastengine
 		{
 			namespace util
 			{
+				const float MipLODBias = -3.f;
+
 				void WaitForFence(ID3D12Fence* pFence, uint64_t nCompletionValue, HANDLE hWaitEvent)
 				{
 					if (pFence->GetCompletedValue() < nCompletionValue)
@@ -431,7 +433,7 @@ namespace eastengine
 					case EmSamplerState::eMinMagMipLinearMirror:
 					case EmSamplerState::eMinMagMipLinearMirrorOnce:
 						samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
-						samplerDesc.MipLODBias = 0.f;
+						samplerDesc.MipLODBias = MipLODBias;
 						samplerDesc.MaxAnisotropy = 1;
 						samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;
 						samplerDesc.BorderColor[0] = 0;
@@ -475,7 +477,7 @@ namespace eastengine
 					case EmSamplerState::eMinMagLinearMipPointMirror:
 					case EmSamplerState::eMinMagLinearMipPointMirrorOnce:
 						samplerDesc.Filter = D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT;
-						samplerDesc.MipLODBias = 0.f;
+						samplerDesc.MipLODBias = MipLODBias;
 						samplerDesc.MaxAnisotropy = 1;
 						samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;
 						samplerDesc.BorderColor[0] = 0.f;
@@ -519,7 +521,7 @@ namespace eastengine
 					case EmSamplerState::eAnisotropicMirror:
 					case EmSamplerState::eAnisotropicMirrorOnce:
 						samplerDesc.Filter = D3D12_FILTER_ANISOTROPIC;
-						samplerDesc.MipLODBias = 0.f;
+						samplerDesc.MipLODBias = MipLODBias;
 						samplerDesc.MaxAnisotropy = 16;
 						samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;
 						samplerDesc.BorderColor[0] = 0.f;
@@ -563,7 +565,7 @@ namespace eastengine
 					case EmSamplerState::eMinMagMipPointMirror:
 					case EmSamplerState::eMinMagMipPointMirrorOnce:
 						samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
-						samplerDesc.MipLODBias = 0.f;
+						samplerDesc.MipLODBias = MipLODBias;
 						samplerDesc.MaxAnisotropy = 1;
 						samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;
 						samplerDesc.BorderColor[0] = 0;

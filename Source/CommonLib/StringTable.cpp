@@ -64,7 +64,7 @@ namespace eastengine
 				if (str == nullptr)
 					return StrID::EmptyString.Key();
 
-				const uint32_t key = Hash(str);
+				const uint64_t key = Hash(str);
 
 				thread::AutoLock autoLock(&lock);
 
@@ -104,9 +104,9 @@ namespace eastengine
 				return Register(str, nLength);
 			}
 
-			uint32_t Hash(const char* pString) const
+			uint64_t Hash(const char* pString) const
 			{
-				uint32_t v = 1;
+				uint64_t v = 1;
 				while (char c = *pString++)
 				{
 					v = (v << 6) + (v << 16) - v + c;

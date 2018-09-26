@@ -32,8 +32,8 @@ namespace eastengine
 			{
 				enum
 				{
-					eMaxJobCount = 4096,
-					eMaxInstancingJobCount = 256,
+					eMaxJobCount = 2 << 15,
+					eMaxInstancingJobCount = 1024,
 				};
 
 				struct SkinningInstancingDataBuffer
@@ -722,9 +722,16 @@ namespace eastengine
 
 				thread::AutoLock autoLock(&m_lock_job);
 
-				const size_t nIndex = m_nJobStaticCount[emGroup];
-				m_vecJobStatics[emGroup][nIndex].Set(job);
-				++m_nJobStaticCount[emGroup];
+				if (m_nJobStaticCount[emGroup] >= shader::eMaxJobCount)
+				{
+					assert(false);
+				}
+				else
+				{
+					const size_t nIndex = m_nJobStaticCount[emGroup];
+					m_vecJobStatics[emGroup][nIndex].Set(job);
+					++m_nJobStaticCount[emGroup];
+				}
 			}
 
 			void ModelRenderer::Impl::PushJob(const RenderJobSkinned& job)
@@ -743,9 +750,16 @@ namespace eastengine
 
 				thread::AutoLock autoLock(&m_lock_job);
 
-				const size_t nIndex = m_nJobSkinnedCount[emGroup];
-				m_vecJobSkinneds[emGroup][nIndex].Set(job);
-				++m_nJobSkinnedCount[emGroup];
+				if (m_nJobSkinnedCount[emGroup] >= shader::eMaxJobCount)
+				{
+					assert(false);
+				}
+				else
+				{
+					const size_t nIndex = m_nJobSkinnedCount[emGroup];
+					m_vecJobSkinneds[emGroup][nIndex].Set(job);
+					++m_nJobSkinnedCount[emGroup];
+				}
 			}
 
 			const ModelRenderer::Impl::RenderPipeline* ModelRenderer::Impl::GetRenderPipeline(ID3D12Device* pDevice, const shader::PSOKey& psoKey)
@@ -990,8 +1004,7 @@ namespace eastengine
 										pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->nRootParameterIndex[eRP_SRVIndicesCB], gpuAddress);
 									}
 									
-									const size_t nStaticBufferIndex = m_nStaticBufferIndex++;
-
+									const math::Matrix* pInstanceData = pJobBatch->vecInstanceData.data();
 									const size_t nInstanceCount = pJobBatch->vecInstanceData.size();
 
 									const size_t nLoopCount = nInstanceCount / eMaxInstancingCount + 1;
@@ -1003,11 +1016,13 @@ namespace eastengine
 										if (nDrawInstanceCount <= 0)
 											break;
 
+										const size_t nStaticBufferIndex = m_nStaticBufferIndex++;
+
 										shader::StaticInstancingDataBuffer* pStaticInstancingData = m_staticInstancingDataBuffer.Cast(nFrameIndex, nStaticBufferIndex);
 										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_staticInstancingDataBuffer.GPUAddress(nFrameIndex, nStaticBufferIndex);
 
-										Memory::Copy(pStaticInstancingData->data.data(), sizeof(shader::StaticInstancingDataBuffer),
-											pJobBatch->vecInstanceData.data(), sizeof(math::Matrix) * nInstanceCount);
+										Memory::Copy(pStaticInstancingData->data.data(), sizeof(pStaticInstancingData->data),
+											&pInstanceData[i * eMaxInstancingCount], sizeof(math::Matrix) * nDrawInstanceCount);
 
 										pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->nRootParameterIndex[eRP_StaticInstancingDataCB], gpuAddress);
 
@@ -1029,14 +1044,14 @@ namespace eastengine
 												pPrevIndexBuffer = job.pIndexBuffer;
 											}
 
-											pCommandList->DrawIndexedInstanced(job.nIndexCount, static_cast<uint32_t>(nInstanceCount), job.nStartIndex, 0, 0);
+											pCommandList->DrawIndexedInstanced(job.nIndexCount, static_cast<uint32_t>(nDrawInstanceCount), job.nStartIndex, 0, 0);
 										}
 										else
 										{
 											pCommandList->IASetIndexBuffer(nullptr);
 											pPrevIndexBuffer = nullptr;
 
-											pCommandList->DrawInstanced(job.nIndexCount, static_cast<uint32_t>(nInstanceCount), 0, 0);
+											pCommandList->DrawInstanced(job.nIndexCount, static_cast<uint32_t>(nDrawInstanceCount), 0, 0);
 										}
 									}
 								}
@@ -1321,8 +1336,7 @@ namespace eastengine
 										pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->nRootParameterIndex[eRP_SRVIndicesCB], gpuAddress);
 									}
 
-									const size_t nSkinningBufferIndex = m_nSkinningBufferIndex++;
-
+									const SkinningInstancingData* pInstanceData = pJobBatch->vecInstanceData.data();
 									const size_t nInstanceCount = pJobBatch->vecInstanceData.size();
 
 									const size_t nLoopCount = nInstanceCount / eMaxInstancingCount + 1;
@@ -1334,11 +1348,13 @@ namespace eastengine
 										if (nDrawInstanceCount <= 0)
 											break;
 
+										const size_t nSkinningBufferIndex = m_nSkinningBufferIndex++;
+
 										shader::SkinningInstancingDataBuffer* pSkinnedInstancingData = m_skinningInstancingDataBuffer.Cast(nFrameIndex, nSkinningBufferIndex);
 										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_skinningInstancingDataBuffer.GPUAddress(nFrameIndex, nSkinningBufferIndex);
 
-										Memory::Copy(pSkinnedInstancingData->data.data(), sizeof(shader::SkinningInstancingDataBuffer),
-											pJobBatch->vecInstanceData.data(), sizeof(math::Matrix) * nInstanceCount);
+										Memory::Copy(pSkinnedInstancingData->data.data(), sizeof(pSkinnedInstancingData->data),
+											&pInstanceData[i * eMaxInstancingCount], sizeof(SkinningInstancingData) * nDrawInstanceCount);
 
 										pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->nRootParameterIndex[eRP_SkinningInstancingDataCB], gpuAddress);
 
@@ -1360,14 +1376,14 @@ namespace eastengine
 												pPrevIndexBuffer = job.pIndexBuffer;
 											}
 
-											pCommandList->DrawIndexedInstanced(job.nIndexCount, static_cast<uint32_t>(nInstanceCount), job.nStartIndex, 0, 0);
+											pCommandList->DrawIndexedInstanced(job.nIndexCount, static_cast<uint32_t>(nDrawInstanceCount), job.nStartIndex, 0, 0);
 										}
 										else
 										{
 											pCommandList->IASetIndexBuffer(nullptr);
 											pPrevIndexBuffer = nullptr;
 
-											pCommandList->DrawInstanced(job.nIndexCount, static_cast<uint32_t>(nInstanceCount), 0, 0);
+											pCommandList->DrawInstanced(job.nIndexCount, static_cast<uint32_t>(nDrawInstanceCount), 0, 0);
 										}
 									}
 								}

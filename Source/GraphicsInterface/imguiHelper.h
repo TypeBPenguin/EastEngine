@@ -21,7 +21,7 @@ namespace eastengine
 
 	namespace imguiHelper
 	{
-		void MessageHandler(HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam);
+		bool MessageHandler(HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam);
 
 		ImTextureID GetTextureID(const graphics::ITexture* pTexture);
 	}

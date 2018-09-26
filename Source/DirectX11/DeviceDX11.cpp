@@ -18,7 +18,6 @@
 namespace StrID
 {
 	RegisterStringID(DeviceDX11);
-	RegisterStringID(ImGui);
 }
 
 namespace eastengine
@@ -27,6 +26,8 @@ namespace eastengine
 	{
 		namespace dx11
 		{
+			const float MipLODBias = -3.f;
+
 			class Device::Impl : public Window
 			{
 			public:
@@ -192,11 +193,6 @@ namespace eastengine
 					MessageHandler(hWnd, nMsg, wParam, lParam);
 				});
 
-				AddMessageHandler(StrID::ImGui, [&](HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
-				{
-					imguiHelper::MessageHandler(hWnd, nMsg, wParam, lParam);
-				});
-
 				InitializeWindow(nWidth, nHeight, isFullScreen, strApplicationTitle, strApplicationName);
 				InitializeD3D();
 				InitializeRasterizerState();
@@ -218,7 +214,6 @@ namespace eastengine
 			void Device::Impl::Release()
 			{
 				RemoveMessageHandler(StrID::DeviceDX11);
-				RemoveMessageHandler(StrID::ImGui);
 
 				ImGui_ImplDX11_Shutdown();
 				ImGui_ImplWin32_Shutdown();
@@ -349,6 +344,9 @@ namespace eastengine
 
 			void Device::Impl::MessageHandler(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
 			{
+				if (imguiHelper::MessageHandler(hWnd, nMsg, wParam, lParam) == true)
+					return;
+
 				switch (nMsg)
 				{
 				case WM_SIZE:
@@ -782,7 +780,7 @@ namespace eastengine
 					case EmSamplerState::eMinMagMipLinearMirror:
 					case EmSamplerState::eMinMagMipLinearMirrorOnce:
 						desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-						desc.MipLODBias = 0.f;
+						desc.MipLODBias = MipLODBias;
 						desc.MaxAnisotropy = 1;
 						desc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
 						desc.BorderColor[0] = 0;
@@ -826,7 +824,7 @@ namespace eastengine
 					case EmSamplerState::eMinMagLinearMipPointMirror:
 					case EmSamplerState::eMinMagLinearMipPointMirrorOnce:
 						desc.Filter = D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT;
-						desc.MipLODBias = 0.f;
+						desc.MipLODBias = MipLODBias;
 						desc.MaxAnisotropy = 1;
 						desc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
 						desc.BorderColor[0] = 0.f;
@@ -871,7 +869,7 @@ namespace eastengine
 					case EmSamplerState::eAnisotropicMirror:
 					case EmSamplerState::eAnisotropicMirrorOnce:
 						desc.Filter = D3D11_FILTER_ANISOTROPIC;
-						desc.MipLODBias = 0.f;
+						desc.MipLODBias = MipLODBias;
 						desc.MaxAnisotropy = 16;
 						desc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
 						desc.BorderColor[0] = 0.f;
@@ -915,7 +913,7 @@ namespace eastengine
 					case EmSamplerState::eMinMagMipPointMirror:
 					case EmSamplerState::eMinMagMipPointMirrorOnce:
 						desc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
-						desc.MipLODBias = 0.f;
+						desc.MipLODBias = MipLODBias;
 						desc.MaxAnisotropy = 1;
 						desc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
 						desc.BorderColor[0] = 0;

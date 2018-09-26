@@ -280,7 +280,7 @@ void SceneNewStudio::Enter()
 		return pActor;
 	};
 
-	for (int i = 0; i < 10; ++i)
+	for (int i = 0; i < 100; ++i)
 	{
 		String::StringID name;
 		name.Format("UnityChan%d", i);
@@ -440,9 +440,10 @@ void SceneNewStudio::Enter()
 				pMaterialClone->SetVisible(false);
 
 				pModelInstance->ChangeMaterial("Generic_Item.mesh", nMaterialID, pMaterialClone);
+				pMaterialClone->DecreaseReference();
 			};
 
-			//SetMaterialVisible("Skirt");
+			SetMaterialVisible("Skirt");
 			SetMaterialVisible("Eyepatch");
 		}
 	}
