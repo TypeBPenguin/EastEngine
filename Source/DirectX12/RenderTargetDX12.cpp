@@ -39,15 +39,14 @@ namespace eastengine
 
 				pDevice->CreateRenderTargetView(pResource, nullptr, rtvAlloc.cpuHandles[0]);
 
-				pRenderTarget->m_pTexture = std::make_unique<Texture>(Texture::Key(strName));
+				const D3D12_RESOURCE_STATES states{ D3D12_RESOURCE_STATE_PRESENT };
+				pRenderTarget->m_pTexture = std::make_unique<Texture>(Texture::Key(strName), &states);
 				if (pRenderTarget->m_pTexture->Bind(pResource, nullptr) == false)
 				{
 					throw_line("failed to create render target texture");
 				}
 				const std::wstring wstrDebugName = String::MultiToWide(strName.c_str());
 				pResource->SetName(wstrDebugName.c_str());
-
-				pRenderTarget->m_state = D3D12_RESOURCE_STATE_PRESENT;
 
 				return pRenderTarget;
 			}
@@ -113,13 +112,11 @@ namespace eastengine
 
 				pDevice->CreateRenderTargetView(pResource, &rtvDesc, rtvAlloc.cpuHandles[0]);
 
-				pRenderTarget->m_pTexture = std::make_unique<Texture>(Texture::Key(strName));
+				pRenderTarget->m_pTexture = std::make_unique<Texture>(Texture::Key(strName), &resourceState);
 				if (pRenderTarget->m_pTexture->Bind(pResource, nullptr) == false)
 				{
 					throw_line("failed to create render target texture");
 				}
-
-				pRenderTarget->m_state = resourceState;
 
 				return pRenderTarget;
 			}
@@ -153,10 +150,10 @@ namespace eastengine
 
 			D3D12_RESOURCE_BARRIER RenderTarget::Transition(D3D12_RESOURCE_STATES changeState)
 			{
-				assert(m_state != changeState);
-				D3D12_RESOURCE_STATES beforeState = m_state;
-				m_state = changeState;
-				return CD3DX12_RESOURCE_BARRIER::Transition(m_pTexture->GetResource(), beforeState, changeState);
+				D3D12_RESOURCE_BARRIER barrier{};
+				m_pTexture->Transition(changeState, &barrier);
+
+				return barrier;
 			}
 
 			D3D12_RESOURCE_DESC RenderTarget::GetDesc() const

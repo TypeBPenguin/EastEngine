@@ -663,14 +663,7 @@ namespace eastengine
 				}
 
 				// constant buffer
-				{
-					if (util::CreateConstantBuffer(m_device, sizeof(shader::ASSAOConstants), &m_constantsBuffer.pBuffer, "ASSAOConstants") == false)
-					{
-						CleanupDX();
-						throw_line("failed to create constant buffer, ASSAOConstants");
-						return false;
-					}
-				}
+				m_constantsBuffer.Create(m_device, "ASSAOConstants");
 
 				{
 					CD3D11_BLEND_DESC desc(D3D11_DEFAULT);
@@ -971,7 +964,7 @@ namespace eastengine
 
 			void Assao::Impl::CleanupDX()
 			{
-				SafeRelease(m_constantsBuffer.pBuffer);
+				m_constantsBuffer.Destroy();
 
 				SafeRelease(m_pRasterizerState);
 

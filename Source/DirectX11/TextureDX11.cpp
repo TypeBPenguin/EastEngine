@@ -37,7 +37,39 @@ namespace eastengine
 				SafeRelease(m_pTexture2D);
 			}
 
-			void Texture::Initialize(const D3D11_TEXTURE2D_DESC* pDesc, const D3D11_SUBRESOURCE_DATA* pInitialData)
+			bool Texture::Initialize(const TextureDesc& desc)
+			{
+				D3D11_SUBRESOURCE_DATA subresource_data;
+				subresource_data.pSysMem = desc.subResourceData.pSysMem;
+				subresource_data.SysMemPitch = desc.subResourceData.SysMemPitch;
+				subresource_data.SysMemSlicePitch = desc.subResourceData.SysMemSlicePitch;
+
+				D3D11_TEXTURE2D_DESC tex_desc;
+				tex_desc.Width = desc.Width;
+				tex_desc.Height = desc.Height;
+				tex_desc.MipLevels = 1;
+				tex_desc.ArraySize = 1;
+				tex_desc.Format = static_cast<DXGI_FORMAT>(desc.resourceFormat);
+				tex_desc.SampleDesc.Count = 1;
+				tex_desc.SampleDesc.Quality = 0;
+				tex_desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+				tex_desc.MiscFlags = 0;
+				
+				if (desc.isDynamic == true)
+				{
+					tex_desc.Usage = D3D11_USAGE_DYNAMIC;
+					tex_desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+				}
+				else
+				{
+					tex_desc.Usage = D3D11_USAGE_DEFAULT;
+					tex_desc.CPUAccessFlags = 0;
+				}
+
+				return Initialize(&tex_desc, &subresource_data);
+			}
+
+			bool Texture::Initialize(const D3D11_TEXTURE2D_DESC* pDesc, const D3D11_SUBRESOURCE_DATA* pInitialData)
 			{
 				const String::StringID strTextureName(m_key.value);
 
@@ -71,6 +103,8 @@ namespace eastengine
 
 				SetAlive(true);
 				SetState(State::eComplete);
+
+				return true;
 			}
 
 			bool Texture::Load(const char* strFilePath)

@@ -114,12 +114,12 @@ namespace eastengine
 				UploadContext uploadContext = m_pUploader->BeginResourceUpload(nTextureMemSize);
 				uint8_t* uploadMem = reinterpret_cast<uint8_t*>(uploadContext.pCPUAddress);
 
+				if (m_vtfInstance.pVTFs[m_nFrameIndex]->GetResourceState() != D3D12_RESOURCE_STATE_COPY_DEST)
 				{
-					CD3DX12_RESOURCE_BARRIER transition[] =
-					{
-						CD3DX12_RESOURCE_BARRIER::Transition(m_vtfInstance.pVTFs[m_nFrameIndex]->GetResource(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST),
-					};
-					uploadContext.pCommandList->ResourceBarrier(_countof(transition), transition);
+					D3D12_RESOURCE_BARRIER transition{};
+					m_vtfInstance.pVTFs[m_nFrameIndex]->Transition(D3D12_RESOURCE_STATE_COPY_DEST, &transition);
+
+					uploadContext.pCommandList->ResourceBarrier(1, &transition);
 				}
 
 				uint8_t* dstSubResourceMem = reinterpret_cast<uint8_t*>(uploadMem) + placedTexture2D.Offset;
@@ -138,12 +138,12 @@ namespace eastengine
 
 				uploadContext.pCommandList->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
 
+				if (m_vtfInstance.pVTFs[m_nFrameIndex]->GetResourceState() != D3D12_RESOURCE_STATE_COMMON)
 				{
-					CD3DX12_RESOURCE_BARRIER transition[] =
-					{
-						CD3DX12_RESOURCE_BARRIER::Transition(m_vtfInstance.pVTFs[m_nFrameIndex]->GetResource(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON),
-					};
-					uploadContext.pCommandList->ResourceBarrier(_countof(transition), transition);
+					D3D12_RESOURCE_BARRIER transition{};
+					m_vtfInstance.pVTFs[m_nFrameIndex]->Transition(D3D12_RESOURCE_STATE_COMMON, &transition);
+
+					uploadContext.pCommandList->ResourceBarrier(1, &transition);
 				}
 
 				m_pUploader->EndResourceUpload(uploadContext);

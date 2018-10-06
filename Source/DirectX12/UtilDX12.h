@@ -124,6 +124,8 @@ namespace eastengine
 					uint32_t numStaticSamplers = 0,
 					_In_reads_opt_(numStaticSamplers) const D3D12_STATIC_SAMPLER_DESC* _pStaticSamplers = nullptr,
 					D3D12_ROOT_SIGNATURE_FLAGS flags = D3D12_ROOT_SIGNATURE_FLAG_NONE);
+
+				void ReportLiveObjects(ID3D12Device* pDevice);
 			}
 		}
 	}

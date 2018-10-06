@@ -10,6 +10,7 @@
 #include <memory>
 #include <array>
 #include <queue>
+#include <variant>
 
 #include <map>
 #include <future>

@@ -93,15 +93,12 @@ namespace eastengine
 
 				SafeRelease(pShaderBlob);
 
-				if (util::CreateConstantBuffer(pDevice, sizeof(shader::FxaaContents), &m_fxaaContents.pBuffer, "FxaaContents") == false)
-				{
-					throw_line("failed to create FxaaContents buffer");
-				}
+				m_fxaaContents.Create(pDevice, "FxaaContents");
 			}
 
 			Fxaa::Impl::~Impl()
 			{
-				SafeRelease(m_fxaaContents.pBuffer);
+				m_fxaaContents.Destroy();
 
 				SafeRelease(m_pVertexShader);
 				SafeRelease(m_pPixelShader);

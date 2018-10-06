@@ -15,6 +15,24 @@ namespace eastengine
 			{
 				ID3D11Buffer* pBuffer{ nullptr };
 
+				~ConstantBuffer()
+				{
+					Destroy();
+				}
+
+				void Create(ID3D11Device* pDevice, const char* strDebugName)
+				{
+					if (util::CreateConstantBuffer(pDevice, Size(), &pBuffer, strDebugName) == false)
+					{
+						throw_line("failed to create constant buffer");
+					}
+				}
+
+				void Destroy()
+				{
+					SafeRelease(pBuffer);
+				}
+
 				T* Map(ID3D11DeviceContext* pDeviceContext)
 				{
 					D3D11_MAPPED_SUBRESOURCE mapped{};
@@ -57,6 +75,9 @@ namespace eastengine
 				bool CreateVertexShader(ID3D11Device* pDevice, ID3DBlob* pShaderBlob, const D3D_SHADER_MACRO* pMacros, const char* strShaderPath, const char* strFunctionName, const char* strProfile, ID3D11VertexShader** ppVertexShader, const char* strDebugName);
 				bool CreateVertexShader(ID3D11Device* pDevice, ID3DBlob* pShaderBlob, const D3D_SHADER_MACRO* pMacros, const char* strShaderPath, const char* strFunctionName, const char* strProfile, ID3D11VertexShader** ppVertexShader, const D3D11_INPUT_ELEMENT_DESC *pInputElementDescs, size_t NumElements, ID3D11InputLayout** ppInputLayout, const char* strDebugName);
 				bool CreatePixelShader(ID3D11Device* pDevice, ID3DBlob* pShaderBlob, const D3D_SHADER_MACRO* pMacros, const char* strShaderPath, const char* strFunctionName, const char* strProfile, ID3D11PixelShader** ppPixelShader, const char* strDebugName);
+				bool CreateHullShader(ID3D11Device* pDevice, ID3DBlob* pShaderBlob, const D3D_SHADER_MACRO* pMacros, const char* strShaderPath, const char* strFunctionName, const char* strProfile, ID3D11HullShader** ppHullShader, const char* strDebugName);
+				bool CreateDomainShader(ID3D11Device* pDevice, ID3DBlob* pShaderBlob, const D3D_SHADER_MACRO* pMacros, const char* strShaderPath, const char* strFunctionName, const char* strProfile, ID3D11DomainShader** ppDomainShader, const char* strDebugName);
+				bool CreateGeometryShader(ID3D11Device* pDevice, ID3DBlob* pShaderBlob, const D3D_SHADER_MACRO* pMacros, const char* strShaderPath, const char* strFunctionName, const char* strProfile, ID3D11GeometryShader** ppGeometryShader, const char* strDebugName);
 
 				bool CreateConstantBuffer(ID3D11Device* pDevice, size_t nSize, ID3D11Buffer** pBuffer_out, const char* strDebugName);
 
@@ -96,19 +117,7 @@ namespace eastengine
 #endif
 				}
 
-				inline void ReportLiveObjects(ID3D11Device* pDevice)
-				{
-					if (pDevice)
-					{
-						ID3D11Debug* pDebug = nullptr;
-						pDevice->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void**>(&pDebug));
-						if (pDebug != nullptr)
-						{
-							pDebug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
-							SafeRelease(pDebug);
-						}
-					}
-				}
+				void ReportLiveObjects(ID3D11Device* pDevice);
 			}
 		}
 	}

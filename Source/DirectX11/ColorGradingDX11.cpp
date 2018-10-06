@@ -96,15 +96,12 @@ namespace eastengine
 
 				SafeRelease(pShaderBlob);
 
-				if (util::CreateConstantBuffer(pDevice, sizeof(shader::ColorGradingContents), &m_colorGradingContents.pBuffer, "ColorGradingContents") == false)
-				{
-					throw_line("failed to create ColorGradingContents buffer");
-				}
+				m_colorGradingContents.Create(pDevice, "ColorGradingContents");
 			}
 
 			ColorGrading::Impl::~Impl()
 			{
-				SafeRelease(m_colorGradingContents.pBuffer);
+				m_colorGradingContents.Destroy();
 
 				SafeRelease(m_pVertexShader);
 				SafeRelease(m_pPixelShader);

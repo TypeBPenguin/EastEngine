@@ -32,7 +32,7 @@ namespace eastengine
 			{
 				enum
 				{
-					eMaxJobCount = 2 << 15,
+					eMaxJobCount = 1 << 16,
 					eMaxInstancingJobCount = 1024,
 				};
 
@@ -635,13 +635,13 @@ namespace eastengine
 					shader::CommonContents* pCommonContents = m_commonContentsBuffer.Cast(nFrameIndex);
 					shader::SetCommonContents_ForAlpha(pCommonContents, pImageBasedLight, pLightManager, pCamera->GetPosition(), 0);
 
-					if (pRenderTarget->GetState() != D3D12_RESOURCE_STATE_RENDER_TARGET ||
-						pDepthStencil->GetState() != D3D12_RESOURCE_STATE_DEPTH_WRITE)
+					if (pRenderTarget->GetResourceState() != D3D12_RESOURCE_STATE_RENDER_TARGET ||
+						pDepthStencil->GetResourceState() != D3D12_RESOURCE_STATE_DEPTH_WRITE)
 					{
 						ID3D12GraphicsCommandList2* pCommandList = pDeviceInstance->GetCommandList(0);
 						pDeviceInstance->ResetCommandList(0, nullptr);
 
-						if (pRenderTarget->GetState() != D3D12_RESOURCE_STATE_RENDER_TARGET)
+						if (pRenderTarget->GetResourceState() != D3D12_RESOURCE_STATE_RENDER_TARGET)
 						{
 							const D3D12_RESOURCE_BARRIER transition[] =
 							{
@@ -650,7 +650,7 @@ namespace eastengine
 							pCommandList->ResourceBarrier(_countof(transition), transition);
 						}
 
-						if (pDepthStencil->GetState() != D3D12_RESOURCE_STATE_DEPTH_WRITE)
+						if (pDepthStencil->GetResourceState() != D3D12_RESOURCE_STATE_DEPTH_WRITE)
 						{
 							const D3D12_RESOURCE_BARRIER transition[] =
 							{
@@ -790,8 +790,8 @@ namespace eastengine
 
 				if (isRequestCreatePipeline == true)
 				{
-					thread::CreateTask([&, psoKey = psoKey]()
-					{
+					//thread::CreateTask([&, psoKey = psoKey]()
+					//{
 						Stopwatch stopwatch;
 						stopwatch.Start();
 					
@@ -799,7 +799,7 @@ namespace eastengine
 					
 						stopwatch.Stop();
 						LOG_MESSAGE("CreatePipelineState[%u_%d_%d_%d] : ElapsedTime[%lf]", psoKey.nMask, psoKey.emRasterizerState, psoKey.emBlendState, psoKey.emDepthStencilState, stopwatch.Elapsed());
-					});
+					//});
 				}
 
 				return pRenderPipeline;
@@ -1552,13 +1552,12 @@ namespace eastengine
 					throw_line("failed to compile pixel shader");
 				}
 
-				D3D12_SHADER_BYTECODE vertexShaderBytecode{};
-				vertexShaderBytecode.BytecodeLength = pVertexShaderBlob->GetBufferSize();
-				vertexShaderBytecode.pShaderBytecode = pVertexShaderBlob->GetBufferPointer();
+				D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc{};
+				psoDesc.VS.BytecodeLength = pVertexShaderBlob->GetBufferSize();
+				psoDesc.VS.pShaderBytecode = pVertexShaderBlob->GetBufferPointer();
 
-				D3D12_SHADER_BYTECODE pixelShaderBytecode{};
-				pixelShaderBytecode.BytecodeLength = pPixelShaderBlob->GetBufferSize();
-				pixelShaderBytecode.pShaderBytecode = pPixelShaderBlob->GetBufferPointer();
+				psoDesc.PS.BytecodeLength = pPixelShaderBlob->GetBufferSize();
+				psoDesc.PS.pShaderBytecode = pPixelShaderBlob->GetBufferPointer();
 
 				const D3D12_INPUT_ELEMENT_DESC* pInputElements = nullptr;
 				size_t nElementCount = 0;
@@ -1571,12 +1570,10 @@ namespace eastengine
 					util::GetInputElementDesc(VertexPosTexNor::Format(), &pInputElements, &nElementCount);
 				}
 
-				D3D12_INPUT_LAYOUT_DESC inputLayoutDesc{};
-				inputLayoutDesc.NumElements = static_cast<uint32_t>(nElementCount);
-				inputLayoutDesc.pInputElementDescs = pInputElements;
+				psoDesc.InputLayout.NumElements = static_cast<uint32_t>(nElementCount);
+				psoDesc.InputLayout.pInputElementDescs = pInputElements;
 
-				DXGI_SAMPLE_DESC sampleDesc{};
-				sampleDesc.Count = 1;
+				psoDesc.SampleDesc.Count = 1;
 
 				std::array<uint32_t, eRP_Count> nRootParameterIndex;
 				nRootParameterIndex.fill(eRP_InvalidIndex);
@@ -1588,16 +1585,13 @@ namespace eastengine
 				std::wstring wstrName = String::MultiToWide(strName);
 				pRootSignature->SetName(wstrName.c_str());
 
-				D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc{};
-				psoDesc.InputLayout = inputLayoutDesc;
 				psoDesc.pRootSignature = pRootSignature;
-				psoDesc.VS = vertexShaderBytecode;
-				psoDesc.PS = pixelShaderBytecode;
 				psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-				psoDesc.SampleDesc = sampleDesc;
 				psoDesc.SampleMask = 0xffffffff;
 				psoDesc.RasterizerState = util::GetRasterizerDesc(emRasterizerState);
 				psoDesc.BlendState = util::GetBlendDesc(emBlendState);
+
+				GBuffer* pGBuffer = Device::GetInstance()->GetGBuffer(0);
 
 				if ((nMask & shader::eUseAlphaBlending) == shader::eUseAlphaBlending)
 				{
@@ -1615,8 +1609,6 @@ namespace eastengine
 				}
 				else
 				{
-					GBuffer* pGBuffer = Device::GetInstance()->GetGBuffer(0);
-					
 					psoDesc.NumRenderTargets = EmGBuffer::Count;
 					psoDesc.RTVFormats[EmGBuffer::eNormals] = pGBuffer->GetRenderTarget(EmGBuffer::eNormals)->GetDesc().Format;
 					psoDesc.RTVFormats[EmGBuffer::eColors] = pGBuffer->GetRenderTarget(EmGBuffer::eColors)->GetDesc().Format;

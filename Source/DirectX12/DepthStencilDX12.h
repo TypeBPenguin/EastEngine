@@ -21,9 +21,11 @@ namespace eastengine
 			public:
 				void Clear(ID3D12GraphicsCommandList* pCommandList);
 				D3D12_RESOURCE_BARRIER Transition(D3D12_RESOURCE_STATES changeState);
-				D3D12_RESOURCE_STATES GetState() const { return m_state; }
+				D3D12_RESOURCE_STATES GetResourceState() const { return m_pTexture->GetResourceState(); }
 
 			public:
+				D3D12_RESOURCE_DESC GetDesc() const;
+
 				uint32_t GetDescriptorIndex() const { return m_nDescriptorIndex; }
 				D3D12_CPU_DESCRIPTOR_HANDLE GetCPUHandle() const;
 				D3D12_GPU_DESCRIPTOR_HANDLE GetGPUHandle() const;
@@ -34,8 +36,6 @@ namespace eastengine
 			private:
 				uint32_t m_nDescriptorIndex{ eInvalidDescriptorIndex };
 				std::unique_ptr<Texture> m_pTexture;
-
-				D3D12_RESOURCE_STATES m_state{ D3D12_RESOURCE_STATE_RENDER_TARGET };
 			};
 		}
 	}

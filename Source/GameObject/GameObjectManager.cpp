@@ -2,6 +2,7 @@
 #include "GameObjectManager.h"
 
 #include "CommonLib/plf_colony.h"
+#include "CommonLib/Lock.h"
 
 #include "Actor.h"
 #include "Skybox.h"
@@ -29,6 +30,7 @@ namespace eastengine
 
 			void ExecuteFunction(std::function<void(IActor*)> func)
 			{
+				thread::AutoLock lock(&m_lockObjects[eActor]);
 				std::for_each(m_colonyActor.begin(), m_colonyActor.end(), [&](Actor& actor)
 				{
 					func(&actor);
@@ -44,6 +46,7 @@ namespace eastengine
 
 			void ExecuteFunction(std::function<void(ISkybox*)> func)
 			{
+				thread::AutoLock lock(&m_lockObjects[eSky]);
 				std::for_each(m_colonySkybox.begin(), m_colonySkybox.end(), [&](Skybox& skybox)
 				{
 					func(&skybox);
@@ -60,6 +63,7 @@ namespace eastengine
 
 			void ExecuteFunction(std::function<void(ITerrain*)> func)
 			{
+				thread::AutoLock lock(&m_lockObjects[eTerrain]);
 				std::for_each(m_colonyTerrain.begin(), m_colonyTerrain.end(), [&](Terrain& terrain)
 				{
 					func(&terrain);
@@ -77,6 +81,8 @@ namespace eastengine
 
 			plf::colony<Terrain> m_colonyTerrain;
 			std::unordered_map<IGameObject::Handle, Terrain*> m_umapTerrain;
+
+			std::array<thread::Lock, ObjectType::eTypeCount> m_lockObjects;
 		};
 
 		GameObjectManager::Impl::Impl()
@@ -95,6 +101,9 @@ namespace eastengine
 			// Sky
 			{
 				TRACER_EVENT("SkyboxUpdate");
+
+				thread::AutoLock lock(&m_lockObjects[eSky]);
+
 				auto iter = m_colonySkybox.begin();
 				auto iter_end = m_colonySkybox.end();
 				while (iter != iter_end)
@@ -117,6 +126,9 @@ namespace eastengine
 			// Terrain
 			{
 				TRACER_EVENT("TerrainManager::Update");
+
+				thread::AutoLock lock(&m_lockObjects[eTerrain]);
+
 				auto iter = m_colonyTerrain.begin();
 				auto iter_end = m_colonyTerrain.end();
 				while (iter != iter_end)
@@ -139,6 +151,9 @@ namespace eastengine
 			// Actor
 			{
 				TRACER_EVENT("ActorUpdate");
+
+				thread::AutoLock lock(&m_lockObjects[eActor]);
+
 				auto iter = m_colonyActor.begin();
 				auto iter_end = m_colonyActor.end();
 				while (iter != iter_end)
@@ -161,6 +176,8 @@ namespace eastengine
 
 		IActor* GameObjectManager::Impl::CreateActor(const String::StringID& strActorName)
 		{
+			thread::AutoLock lock(&m_lockObjects[eActor]);
+
 			IGameObject::Handle handle(m_nAllocateIndex++);
 
 			auto iter = m_colonyActor.emplace(handle);
@@ -173,6 +190,8 @@ namespace eastengine
 
 		IActor* GameObjectManager::Impl::GetActor(const IGameObject::Handle& handle)
 		{
+			thread::AutoLock lock(&m_lockObjects[eActor]);
+
 			auto iter = m_umapActors.find(handle);
 			if (iter != m_umapActors.end())
 				return iter->second;
@@ -182,6 +201,8 @@ namespace eastengine
 
 		IActor* GameObjectManager::Impl::GetActor(size_t nIndex)
 		{
+			thread::AutoLock lock(&m_lockObjects[eActor]);
+
 			auto iter = m_colonyActor.begin();
 			m_colonyActor.advance(iter, nIndex);
 
@@ -190,6 +211,8 @@ namespace eastengine
 
 		ISkybox* GameObjectManager::Impl::CreateSkybox(const String::StringID& strName, const SkyboxProperty& property)
 		{
+			thread::AutoLock lock(&m_lockObjects[eSky]);
+
 			IGameObject::Handle handle(m_nAllocateIndex++);
 
 			auto iter = m_colonySkybox.emplace(handle);
@@ -203,6 +226,8 @@ namespace eastengine
 
 		ISkybox* GameObjectManager::Impl::GetSkybox(const IGameObject::Handle& handle)
 		{
+			thread::AutoLock lock(&m_lockObjects[eSky]);
+
 			auto iter = m_umapSkybox.find(handle);
 			if (iter != m_umapSkybox.end())
 				return iter->second;
@@ -212,6 +237,8 @@ namespace eastengine
 
 		ISkybox* GameObjectManager::Impl::GetSkybox(size_t nIndex)
 		{
+			thread::AutoLock lock(&m_lockObjects[eSky]);
+
 			auto iter = m_colonySkybox.begin();
 			m_colonySkybox.advance(iter, nIndex);
 
@@ -220,6 +247,8 @@ namespace eastengine
 
 		ITerrain* GameObjectManager::Impl::CreateTerrain(const String::StringID& strTerrainName, const TerrainProperty& terrainProperty)
 		{
+			thread::AutoLock lock(&m_lockObjects[eTerrain]);
+
 			IGameObject::Handle handle(m_nAllocateIndex++);
 
 			auto iter = m_colonyTerrain.emplace(handle);
@@ -233,6 +262,8 @@ namespace eastengine
 
 		ITerrain* GameObjectManager::Impl::CreateTerrainAsync(const String::StringID& strTerrainName, const TerrainProperty& terrainProperty)
 		{
+			thread::AutoLock lock(&m_lockObjects[eTerrain]);
+
 			IGameObject::Handle handle(m_nAllocateIndex++);
 
 			auto iter = m_colonyTerrain.emplace(handle);
@@ -246,6 +277,8 @@ namespace eastengine
 
 		ITerrain* GameObjectManager::Impl::GetTerrain(const IGameObject::Handle& handle)
 		{
+			thread::AutoLock lock(&m_lockObjects[eTerrain]);
+
 			auto iter = m_umapTerrain.find(handle);
 			if (iter != m_umapTerrain.end())
 				return iter->second;
@@ -255,6 +288,8 @@ namespace eastengine
 
 		ITerrain* GameObjectManager::Impl::GetTerrain(size_t nIndex)
 		{
+			thread::AutoLock lock(&m_lockObjects[eTerrain]);
+
 			auto iter = m_colonyTerrain.begin();
 			m_colonyTerrain.advance(iter, nIndex);
 

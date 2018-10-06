@@ -93,42 +93,19 @@ namespace eastengine
 				};
 
 				{
-					ID3DBlob* pVertexShaderBlob = nullptr;
-					if (util::CompileShader(pShaderBlob, macros, strShaderPath.c_str(), "VS", "vs_5_0", &pVertexShaderBlob) == false)
-					{
-						throw_line("failed to compile shader");
-					}
-
-					HRESULT hr = pDevice->CreateVertexShader(pVertexShaderBlob->GetBufferPointer(), pVertexShaderBlob->GetBufferSize(), nullptr, &m_pVertexShader);
-					if (FAILED(hr))
-					{
-						throw_line("failed to create vertex shader");
-					}
-
 					const D3D11_INPUT_ELEMENT_DESC* pInputElements = nullptr;
 					size_t nElementCount = 0;
 
 					util::GetInputElementDesc(VertexPosTexNor::Format(), &pInputElements, &nElementCount);
 
-					if (pInputElements != nullptr || nElementCount > 0)
+					if (util::CreateVertexShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), "VS", "vs_5_0", &m_pVertexShader, pInputElements, nElementCount, &m_pInputLayout, "Environment_VS") == false)
 					{
-						hr = pDevice->CreateInputLayout(pInputElements, static_cast<uint32_t>(nElementCount), pVertexShaderBlob->GetBufferPointer(), pVertexShaderBlob->GetBufferSize(), &m_pInputLayout);
-						if (FAILED(hr))
-						{
-							LOG_ERROR("failed to create input layout");
-						}
+						throw_line("failed to create vertex shader");
 					}
 				}
 
 				{
-					ID3DBlob* pPixelShaderBlob = nullptr;
-					if (util::CompileShader(pShaderBlob, macros, strShaderPath.c_str(), "PS", "ps_5_0", &pPixelShaderBlob) == false)
-					{
-						throw_line("failed to compile shader");
-					}
-
-					HRESULT hr = pDevice->CreatePixelShader(pPixelShaderBlob->GetBufferPointer(), pPixelShaderBlob->GetBufferSize(), nullptr, &m_pPixelShader);
-					if (FAILED(hr))
+					if (util::CreatePixelShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), "PS", "ps_5_0", &m_pPixelShader, "Environment_PS") == false)
 					{
 						throw_line("failed to create pixel shader");
 					}
@@ -136,10 +113,7 @@ namespace eastengine
 
 				SafeRelease(pShaderBlob);
 
-				if (util::CreateConstantBuffer(pDevice, sizeof(shader::EnvironmentContents), &m_environmentContents.pBuffer, "EnvironmentContents") == false)
-				{
-					throw_line("failed to create DeferredContents buffer");
-				}
+				m_environmentContents.Create(pDevice, "EnvironmentContents");
 			}
 
 			EnvironmentRenderer::Impl::~Impl()
@@ -147,7 +121,8 @@ namespace eastengine
 				SafeRelease(m_pVertexShader);
 				SafeRelease(m_pPixelShader);
 				SafeRelease(m_pInputLayout);
-				SafeRelease(m_environmentContents.pBuffer);
+
+				m_environmentContents.Destroy();
 			}
 
 			void EnvironmentRenderer::Impl::Render(ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext, Camera* pCamera)

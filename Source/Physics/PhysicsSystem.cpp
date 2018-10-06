@@ -22,7 +22,7 @@ namespace eastengine
 			void AddRigidBody(RigidBody* pRigidBody, short group, short mask);
 			void AddConstraint(ConstraintInterface* pConstraint, bool isEanbleCollisionBetweenLinkedBodies = true);
 			btDiscreteDynamicsWorld* GetDynamicsWorld() { return m_pDynamicsWorld.get(); }
-			btBroadphaseInterface* GetBoradphaseInterface() { return m_pOverlappingPairCache.get(); }
+			btBroadphaseInterface* GetBoradphaseInterface() { return m_pOverlappingPairCache; }
 
 		private:
 			void ProcessAddWaitObject();
@@ -40,10 +40,11 @@ namespace eastengine
 			static bool contactDestroyedCallback(void* userPersistentData);
 
 		private:
-			std::unique_ptr<btDefaultCollisionConfiguration> m_pCollisionConfig;
-			std::unique_ptr<btCollisionDispatcher> m_pDispatcher;
-			std::unique_ptr<btBroadphaseInterface> m_pOverlappingPairCache;
-			std::unique_ptr<btSequentialImpulseConstraintSolver> m_pSolver;
+			// ¾Æ·¡ 4°³´Â unique_ptr·Î ÇÏ¸é m_pDynamicsWorld ¼Ò¸êÀÚ¿¡¼­ crt Èü ÆÄ±« ¿¡·¯°¡¶ä
+			btDefaultCollisionConfiguration* m_pCollisionConfig{ nullptr };
+			btCollisionDispatcher* m_pDispatcher{ nullptr };
+			btBroadphaseInterface* m_pOverlappingPairCache{ nullptr };
+			btSequentialImpulseConstraintSolver* m_pSolver{ nullptr };
 
 			std::unique_ptr<btDiscreteDynamicsWorld> m_pDynamicsWorld;
 
@@ -75,12 +76,12 @@ namespace eastengine
 
 		System::Impl::Impl()
 		{
-			m_pCollisionConfig = std::make_unique<btDefaultCollisionConfiguration>();
-			m_pDispatcher = std::make_unique<btCollisionDispatcher>(m_pCollisionConfig.get());
-			m_pOverlappingPairCache = std::make_unique<btDbvtBroadphase>();
-			m_pSolver = std::make_unique<btSequentialImpulseConstraintSolver>();
+			m_pCollisionConfig = new btDefaultCollisionConfiguration;
+			m_pDispatcher = new btCollisionDispatcher(m_pCollisionConfig);
+			m_pOverlappingPairCache = new btDbvtBroadphase;
+			m_pSolver = new btSequentialImpulseConstraintSolver;
 
-			m_pDynamicsWorld = std::make_unique<btDiscreteDynamicsWorld>(m_pDispatcher.get(), m_pOverlappingPairCache.get(), m_pSolver.get(), m_pCollisionConfig.get());
+			m_pDynamicsWorld = std::make_unique<btDiscreteDynamicsWorld>(m_pDispatcher, m_pOverlappingPairCache, m_pSolver, m_pCollisionConfig);
 			m_pDynamicsWorld->getDispatchInfo().m_enableSPU = true;
 			m_pDynamicsWorld->setGravity(btVector3(0, Gravity, 0));
 			m_pDynamicsWorld->setInternalTickCallback(System::Impl::tickCallback, this);
@@ -112,10 +113,10 @@ namespace eastengine
 			}
 
 			m_pDynamicsWorld.reset();
-			m_pOverlappingPairCache.reset();
-			m_pSolver.reset();
-			m_pDispatcher.reset();
-			m_pCollisionConfig.reset();
+			SafeDelete(m_pOverlappingPairCache);
+			SafeDelete(m_pSolver);
+			SafeDelete(m_pDispatcher);
+			SafeDelete(m_pCollisionConfig);
 		}
 		
 		void System::Impl::Update(float fElapsedtime)

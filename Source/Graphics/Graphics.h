@@ -28,6 +28,7 @@ namespace eastengine
 		IIndexBuffer* CreateIndexBuffer(const uint8_t* pData, size_t nBufferSize, uint32_t nIndexCount);
 		ITexture* CreateTexture(const char* strFilePath);
 		ITexture* CreateTextureAsync(const char* strFilePath);
+		ITexture* CreateTexture(const TextureDesc& desc);
 
 		IMaterial* CreateMaterial(const MaterialInfo* pInfo);
 		IMaterial* CreateMaterial(const char* strFileName, const char* strFilePath);
@@ -38,5 +39,6 @@ namespace eastengine
 
 		void PushRenderJob(const RenderJobStatic& renderJob);
 		void PushRenderJob(const RenderJobSkinned& renderJob);
+		void PushRenderJob(const RenderJobTerrain& renderJob);
 	}
 }

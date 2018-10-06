@@ -240,9 +240,9 @@ void SceneNewStudio::Enter()
 		terrain.strTexDetailNormalMap = file::GetPath(file::eTexture);
 		terrain.strTexDetailNormalMap.append("dirt01n.tga");
 
-		terrain.f3Position = { -500.f, 0.f, -500.f };
+		terrain.transform.position = { -500.f, 0.f, -500.f };
 
-		//gameobject::ITerrain::Create("BaseTerrain", terrain);
+		gameobject::ITerrain::Create("BaseTerrain", terrain);
 
 		// 백그라운드 로딩은 이렇게 쓰면됨
 		//gameobject::ITerrain::CreateAsync("BaseTerrain", terrain);

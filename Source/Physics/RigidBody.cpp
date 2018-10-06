@@ -93,8 +93,6 @@ namespace eastengine
 				m_pDynamicsWorld = nullptr;
 			}
 
-			//SafeDelete(m_pTriangleMesh);
-
 			btTriangleMesh** pp1 = std::get_if<btTriangleMesh*>(&m_varTriangleMesh);
 			if (pp1 != nullptr)
 			{

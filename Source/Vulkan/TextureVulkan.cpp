@@ -27,6 +27,11 @@ namespace eastengine
 				vkFreeMemory(device, m_textureImageMemory, nullptr);
 			}
 
+			bool Texture::Initialize(const TextureDesc& desc)
+			{
+				return true;
+			}
+
 			bool Texture::Load(const char* strFilePath)
 			{
 				VkDevice device = Device::GetInstance()->GetInterface();

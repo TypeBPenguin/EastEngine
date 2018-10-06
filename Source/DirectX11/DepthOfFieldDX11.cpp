@@ -133,15 +133,12 @@ namespace eastengine
 
 				SafeRelease(pShaderBlob);
 
-				if (util::CreateConstantBuffer(pDevice, sizeof(shader::DepthOfFieldContents), &m_depthOfFieldContents.pBuffer, "DepthOfFieldContents") == false)
-				{
-					throw_line("failed to create DepthOfFieldContents buffer");
-				}
+				m_depthOfFieldContents.Create(pDevice, "DepthOfFieldContents");
 			}
 
 			DepthOfField::Impl::~Impl()
 			{
-				SafeRelease(m_depthOfFieldContents.pBuffer);
+				m_depthOfFieldContents.Destroy();
 
 				SafeRelease(m_pVertexShader);
 				SafeRelease(m_pPixelShader);

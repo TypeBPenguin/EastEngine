@@ -25,6 +25,7 @@ namespace eastengine
 				virtual const std::string& GetPath() const override { return m_strPath; }
 
 			public:
+				bool Initialize(const TextureDesc& desc);
 				bool Load(const char* strFilePath);
 				void Bind(uint32_t nWidth, uint32_t nHeight, const uint8_t* pPixels);
 

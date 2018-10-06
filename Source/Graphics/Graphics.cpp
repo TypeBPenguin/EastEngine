@@ -63,12 +63,14 @@ namespace eastengine
 			virtual IIndexBuffer* CreateIndexBuffer(const uint8_t* pData, size_t nBufferSize, uint32_t nVertexCount) = 0;
 			virtual ITexture* CreateTexture(const char* strFilePath) = 0;
 			virtual ITexture* CreateTextureAsync(const char* strFilePath) = 0;
+			virtual ITexture* CreateTexture(const TextureDesc& desc) = 0;
 			virtual IMaterial* CreateMaterial(const MaterialInfo* pInfo) = 0;
 			virtual IMaterial* CreateMaterial(const char* strFileName, const char* strFilePath) = 0;
 			virtual IMaterial* CloneMaterial(const IMaterial* pMaterialSource) = 0;
 
 			virtual void PushRenderJob(const RenderJobStatic& renderJob) = 0;
 			virtual void PushRenderJob(const RenderJobSkinned& renderJob) = 0;
+			virtual void PushRenderJob(const RenderJobTerrain& renderJob) = 0;
 
 			virtual void ReleaseResource(IResource* pResource) = 0;
 			virtual void FlushGarbageCollection() = 0;
@@ -82,7 +84,7 @@ namespace eastengine
 			typename IndexBuffer,
 			typename Texture
 		>
-		class TGraphicsAPI : public IGraphicsAPI
+			class TGraphicsAPI : public IGraphicsAPI
 		{
 		public:
 			TGraphicsAPI() = default;
@@ -235,7 +237,7 @@ namespace eastengine
 
 			virtual ITexture* CreateTexture(const char* strFilePath) override
 			{
-				ITexture::Key key{ String::StringID(strFilePath) };
+				const ITexture::Key key{ String::StringID(strFilePath) };
 				ITexture* pITexture = m_pTextureManager->GetTexture(key);
 				if (pITexture != nullptr)
 					return pITexture;
@@ -251,7 +253,7 @@ namespace eastengine
 
 			virtual ITexture* CreateTextureAsync(const char* strFilePath) override
 			{
-				ITexture::Key key{ String::StringID(strFilePath) };
+				const ITexture::Key key{ String::StringID(strFilePath) };
 				ITexture* pITexture = m_pTextureManager->GetTexture(key);
 				if (pITexture != nullptr)
 					return pITexture;
@@ -263,6 +265,22 @@ namespace eastengine
 				{
 					return pTexture->Load(strPath.c_str());
 				});
+
+				return pTexture;
+			}
+
+			virtual ITexture* CreateTexture(const TextureDesc& desc) override
+			{
+				const ITexture::Key key{ desc.name };
+				ITexture* pITexture = m_pTextureManager->GetTexture(key);
+				if (pITexture != nullptr)
+					return pITexture;
+
+				Texture* pTexture = new Texture(key);
+				pTexture->Initialize(desc);
+				pTexture->IncreaseReference();
+
+				m_pTextureManager->PushTexture(pTexture);
 
 				return pTexture;
 			}
@@ -325,6 +343,12 @@ namespace eastengine
 			}
 
 			virtual void PushRenderJob(const RenderJobSkinned& renderJob) override
+			{
+				RenderManager* pRenderManager = Device::GetInstance()->GetRenderManager();
+				pRenderManager->PushJob(renderJob);
+			}
+
+			virtual void PushRenderJob(const RenderJobTerrain& renderJob) override
 			{
 				RenderManager* pRenderManager = Device::GetInstance()->GetRenderManager();
 				pRenderManager->PushJob(renderJob);
@@ -525,6 +549,11 @@ namespace eastengine
 			return s_pGraphicsAPI->CreateTextureAsync(strFilePath);
 		}
 
+		ITexture* CreateTexture(const TextureDesc& desc)
+		{
+			return s_pGraphicsAPI->CreateTexture(desc);
+		}
+
 		IMaterial* CreateMaterial(const MaterialInfo* pInfo)
 		{
 			return s_pGraphicsAPI->CreateMaterial(pInfo);
@@ -593,6 +622,14 @@ namespace eastengine
 		}
 
 		void PushRenderJob(const RenderJobSkinned& renderJob)
+		{
+			if (renderJob.pVertexBuffer == nullptr)
+				return;
+
+			s_pGraphicsAPI->PushRenderJob(renderJob);
+		}
+
+		void PushRenderJob(const RenderJobTerrain& renderJob)
 		{
 			if (renderJob.pVertexBuffer == nullptr)
 				return;

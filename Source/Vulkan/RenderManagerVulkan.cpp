@@ -121,6 +121,7 @@ namespace eastengine
 
 				void PushJob(const RenderJobStatic& renderJob) { m_pModelRenderer->PushJob(renderJob); }
 				void PushJob(const RenderJobSkinned& renderJob) { m_pModelRenderer->PushJob(renderJob); }
+				void PushJob(const RenderJobTerrain& renderJob) {}
 
 			private:
 				std::unique_ptr<ModelRenderer> m_pModelRenderer;
@@ -823,6 +824,11 @@ namespace eastengine
 			}
 
 			void RenderManager::PushJob(const RenderJobSkinned& renderJob)
+			{
+				m_pImpl->PushJob(renderJob);
+			}
+
+			void RenderManager::PushJob(const RenderJobTerrain& renderJob)
 			{
 				m_pImpl->PushJob(renderJob);
 			}

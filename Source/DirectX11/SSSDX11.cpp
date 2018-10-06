@@ -127,15 +127,12 @@ namespace eastengine
 
 				SafeRelease(pShaderBlob);
 
-				if (util::CreateConstantBuffer(pDevice, sizeof(shader::SSSContents), &m_sssContents.pBuffer, "SSSContents") == false)
-				{
-					throw_line("failed to create SSSContents buffer");
-				}
+				m_sssContents.Create(pDevice, "SSSContents");
 			}
 
 			SSS::Impl::~Impl()
 			{
-				SafeRelease(m_sssContents.pBuffer);
+				m_sssContents.Destroy();
 
 				SafeRelease(m_pVertexShader);
 

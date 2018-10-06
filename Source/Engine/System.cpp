@@ -9,6 +9,7 @@
 #include "Input/InputDevice.h"
 #include "Model/ModelManager.h"
 #include "GameObject/GameObjectManager.h"
+#include "Physics/PhysicsSystem.h"
 
 #include "FpsChecker.h"
 #include "SceneManager.h"
@@ -48,6 +49,7 @@ namespace eastengine
 		input::Device* s_pInputDevice{ nullptr };
 		graphics::ModelManager* s_pModelManager{ nullptr };
 		gameobject::GameObjectManager* s_pGameObjectManager{ nullptr };
+		Physics::System* s_pPhysicsSystem{ nullptr };
 	};
 
 	MainSystem::Impl::Impl()
@@ -73,6 +75,8 @@ namespace eastengine
 
 		graphics::Initialize(emAPI, nWidth, nHeight, isFullScreen, strApplicationTitle, strApplicationName);
 
+		s_pPhysicsSystem = Physics::System::GetInstance();
+
 		s_pInputDevice = input::Device::GetInstance();
 		s_pInputDevice->Initialize(graphics::GetHInstance(), graphics::GetHwnd());
 
@@ -85,7 +89,7 @@ namespace eastengine
 		s_pGameObjectManager = gameobject::GameObjectManager::GetInstance();
 
 		s_pSceneManager = SceneManager::GetInstance();
-
+		
 		return true;
 	}
 
@@ -104,6 +108,9 @@ namespace eastengine
 
 		input::Device::DestroyInstance();
 		s_pInputDevice = nullptr;
+
+		Physics::System::DestroyInstance();
+		s_pPhysicsSystem = nullptr;
 
 		graphics::Release();
 		Timer::DestroyInstance();
@@ -147,6 +154,7 @@ namespace eastengine
 
 		s_pInputDevice->Update(fElapsedTime);
 		s_pSceneManager->Update(fElapsedTime);
+		s_pPhysicsSystem->Update(fElapsedTime);
 		s_pGameObjectManager->Update(fElapsedTime);
 		s_pModelManager->Update();
 		graphics::Update(fElapsedTime);

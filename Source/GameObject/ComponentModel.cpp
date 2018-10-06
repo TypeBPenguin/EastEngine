@@ -28,7 +28,7 @@ namespace eastengine
 			m_pModelInst = pModelInst;
 		}
 
-		void ComponentModel::Init(graphics::ModelLoader* pLoader)
+		void ComponentModel::Init(const graphics::ModelLoader* pLoader)
 		{
 			if (pLoader != nullptr)
 			{

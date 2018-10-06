@@ -9,6 +9,7 @@
 #include "ModelRendererDX11.h"
 #include "DeferredRendererDX11.h"
 #include "EnvironmentRendererDX11.h"
+#include "TerrainRendererDX11.h"
 
 #include "FxaaDX11.h"
 #include "DownScaleDX11.h"
@@ -38,6 +39,7 @@ namespace eastengine
 			public:
 				void PushJob(const RenderJobStatic& renderJob) { m_pModelRenderer->PushJob(renderJob); }
 				void PushJob(const RenderJobSkinned& renderJob) { m_pModelRenderer->PushJob(renderJob); }
+				void PushJob(const RenderJobTerrain& renderJob) { m_pTerrainRenderer->PushJob(renderJob); }
 
 			private:
 				void UpdateOptions(const Options& curOptions);
@@ -46,6 +48,7 @@ namespace eastengine
 				std::unique_ptr<ModelRenderer> m_pModelRenderer;
 				std::unique_ptr<DeferredRenderer> m_pDeferredRenderer;
 				std::unique_ptr<EnvironmentRenderer> m_pEnvironmentRenderer;
+				std::unique_ptr<TerrainRenderer> m_pTerrainRenderer;
 
 				// PostProcessing
 				std::unique_ptr<Fxaa> m_pFxaa;
@@ -64,6 +67,7 @@ namespace eastengine
 				: m_pModelRenderer{ std::make_unique<ModelRenderer>() }
 				, m_pDeferredRenderer{ std::make_unique<DeferredRenderer>() }
 				, m_pEnvironmentRenderer{ std::make_unique<EnvironmentRenderer>() }
+				, m_pTerrainRenderer{ std::make_unique<TerrainRenderer>() }
 			{
 			}
 
@@ -76,6 +80,7 @@ namespace eastengine
 				m_pModelRenderer->Flush();
 				m_pDeferredRenderer->Flush();
 				m_pEnvironmentRenderer->Flush();
+				m_pTerrainRenderer->Flush();
 			}
 
 			void RenderManager::Impl::Render()
@@ -92,6 +97,7 @@ namespace eastengine
 				UpdateOptions(options);
 
 				m_pEnvironmentRenderer->Render(pDevice, pImmediateContext, pCamera);
+				m_pTerrainRenderer->Render(pDevice, pImmediateContext, pCamera);
 
 				m_pModelRenderer->Render(pDevice, pImmediateContext, pCamera, ModelRenderer::eDeferred);
 				m_pDeferredRenderer->Render(pDevice, pImmediateContext, pCamera);
@@ -283,6 +289,11 @@ namespace eastengine
 			}
 
 			void RenderManager::PushJob(const RenderJobSkinned& renderJob)
+			{
+				m_pImpl->PushJob(renderJob);
+			}
+
+			void RenderManager::PushJob(const RenderJobTerrain& renderJob)
 			{
 				m_pImpl->PushJob(renderJob);
 			}

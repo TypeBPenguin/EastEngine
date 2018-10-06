@@ -26,7 +26,7 @@ namespace eastengine
 	{
 		namespace dx11
 		{
-			const float MipLODBias = -3.f;
+			const float MipLODBias = -2.f;
 
 			class Device::Impl : public Window
 			{
@@ -495,7 +495,7 @@ namespace eastengine
 				SafeRelease(pAdapter);
 				SafeRelease(pDxgiFactory);
 
-				hr = m_pImmediateContext->QueryInterface(__uuidof(ID3DUserDefinedAnnotation), reinterpret_cast<void**>(&m_pUserDefinedAnnotation));
+				hr = m_pImmediateContext->QueryInterface(IID_PPV_ARGS(&m_pUserDefinedAnnotation));
 				if (FAILED(hr))
 				{
 					assert(false);

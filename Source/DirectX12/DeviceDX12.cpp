@@ -106,7 +106,7 @@ namespace eastengine
 
 				void Resize(uint32_t nWidth, uint32_t nHeight);
 
-				void WaitForPreviousFrame(bool isDestroy = false);
+				void WaitForPreviousFrame();
 
 			private:
 				bool m_isInitislized{ false };
@@ -244,7 +244,7 @@ namespace eastengine
 				ID3D12GraphicsCommandList2* pCommandList = GetCommandList(0);
 				ResetCommandList(0, nullptr);
 
-				if (pSwapChainRenderTarget->GetState() != D3D12_RESOURCE_STATE_RENDER_TARGET)
+				if (pSwapChainRenderTarget->GetResourceState() != D3D12_RESOURCE_STATE_RENDER_TARGET)
 				{
 					const D3D12_RESOURCE_BARRIER transition[] =
 					{
@@ -296,7 +296,7 @@ namespace eastengine
 				});
 
 #if defined(DEBUG) || defined(_DEBUG)
-				//EnableShaderBasedValidation();
+				EnableShaderBasedValidation();
 #endif
 
 				InitializeWindow(nWidth, nHeight, isFullScreen, strApplicationTitle, strApplicationName);
@@ -321,13 +321,27 @@ namespace eastengine
 
 			void Device::Impl::Release()
 			{
-				RemoveMessageHandler(StrID::DeviceDX12);
+				if (m_isInitislized == false)
+					return;
 
-				m_pSRVDescriptorHeap->FreePersistent(m_nImGuiFontSRVIndex);
+				WaitForPreviousFrame();
+
+				HRESULT hr = m_pCommandQueue->Signal(m_pFences[m_nFrameIndex], m_nFenceValues[m_nFrameIndex]);
+				if (FAILED(hr))
+				{
+					throw_line("failed to command queue signal");
+				}
+
+				CloseHandle(m_hFenceEvent);
+				m_hFenceEvent = INVALID_HANDLE_VALUE;
 
 				ImGui_ImplDX12_Shutdown();
 				ImGui_ImplWin32_Shutdown();
 				ImGui::DestroyContext();
+
+				RemoveMessageHandler(StrID::DeviceDX12);
+
+				m_pSRVDescriptorHeap->FreePersistent(m_nImGuiFontSRVIndex);
 
 				m_pRenderManager.reset();
 				m_pVTFManager.reset();
@@ -345,14 +359,6 @@ namespace eastengine
 				}
 
 				m_pUploader.reset();
-
-				for (uint32_t i = 0; i < eFrameBufferCount; ++i)
-				{
-					m_nFrameIndex = i;
-					WaitForPreviousFrame(true);
-				}
-				CloseHandle(m_hFenceEvent);
-				m_hFenceEvent = INVALID_HANDLE_VALUE;
 
 				BOOL fs = FALSE;
 				m_pSwapChain->GetFullscreenState(&fs, nullptr);
@@ -393,6 +399,9 @@ namespace eastengine
 
 				SafeRelease(m_pCommandQueue);
 				SafeRelease(m_pDebug);
+
+				util::ReportLiveObjects(m_pDevice);
+
 				SafeRelease(m_pDevice);
 
 				m_isInitislized = false;
@@ -620,6 +629,7 @@ namespace eastengine
 				{
 					throw_line("failed to create command queue");
 				}
+				m_pCommandQueue->SetName(L"DX12_CommandQueue");
 
 				m_pRTVDescriptorHeap = std::make_unique<DescriptorHeap>(256, 0, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, false, L"RTVDescriptorHeap");
 				m_pSRVDescriptorHeap = std::make_unique<DescriptorHeap>(1024, 1024, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, true, L"SRVDescriptorHeap");
@@ -787,7 +797,7 @@ namespace eastengine
 				if (nWidth == m_n2ScreenSize.x && nHeight == m_n2ScreenSize.y)
 					return;
 
-				WaitForPreviousFrame(false);
+				WaitForPreviousFrame();
 
 				ImGui_ImplDX12_InvalidateDeviceObjects();
 
@@ -853,12 +863,9 @@ namespace eastengine
 				ImGui_ImplDX12_CreateDeviceObjects();
 			}
 
-			void Device::Impl::WaitForPreviousFrame(bool isDestroy)
+			void Device::Impl::WaitForPreviousFrame()
 			{
-				if (isDestroy == false)
-				{
-					m_nFrameIndex = m_pSwapChain->GetCurrentBackBufferIndex();
-				}
+				m_nFrameIndex = m_pSwapChain->GetCurrentBackBufferIndex();
 
 				util::WaitForFence(m_pFences[m_nFrameIndex], m_nFenceValues[m_nFrameIndex], m_hFenceEvent);
 

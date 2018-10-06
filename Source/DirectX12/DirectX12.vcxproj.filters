@@ -85,6 +85,12 @@
     <Filter Include="Renderer\PostProcessing\SSS">
       <UniqueIdentifier>{c8398a3a-05d2-4321-ad16-96d5efbd39c4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Util\imgui">
+      <UniqueIdentifier>{8f1bfa01-a3de-4ece-beb5-705e5ab8f0ac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\Terrain">
+      <UniqueIdentifier>{07c11590-0ddb-4050-84f5-3c9c5fffdb87}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -168,6 +174,12 @@
     <ClInclude Include="SSSDX12.h">
       <Filter>Renderer\PostProcessing\SSS</Filter>
     </ClInclude>
+    <ClInclude Include="imgui_impl_dx12.h">
+      <Filter>Util\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainRendererDX12.h">
+      <Filter>Renderer\Terrain</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -244,6 +256,12 @@
     </ClCompile>
     <ClCompile Include="SSSDX12.cpp">
       <Filter>Renderer\PostProcessing\SSS</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui_impl_dx12.cpp">
+      <Filter>Util\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="TerrainRendererDX12.cpp">
+      <Filter>Renderer\Terrain</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -73,5 +73,27 @@ namespace eastengine
 				fDepth = source.fDepth;
 			}
 		};
+
+		struct RenderJobTerrain
+		{
+			IVertexBuffer* pVertexBuffer{ nullptr };
+
+			math::Vector2 f2PatchSize;
+			math::Vector2 f2HeightFieldSize;
+
+			bool isEnableDynamicLOD{ true };
+			bool isEnableFrustumCullInHS{ true };
+
+			float fDynamicTessFactor{ 50.f };
+			float fStaticTessFactor{ 12.f };
+
+			math::Matrix matWorld;
+
+			ITexture* pTexHeightField{ nullptr };
+			ITexture* pTexColorMap{ nullptr };
+
+			ITexture* pTexDetailMap{ nullptr };
+			ITexture* pTexDetailNormalMap{ nullptr };
+		};
 	}
 }

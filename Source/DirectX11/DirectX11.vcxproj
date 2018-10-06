@@ -181,6 +181,7 @@
     <ClInclude Include="SSSDX11.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="TerrainRendererDX11.h" />
     <ClInclude Include="TextureDX11.h" />
     <ClInclude Include="UtilDX11.h" />
     <ClInclude Include="VertexBufferDX11.h" />
@@ -211,6 +212,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="TerrainRendererDX11.cpp" />
     <ClCompile Include="TextureDX11.cpp" />
     <ClCompile Include="UtilDX11.cpp" />
     <ClCompile Include="VertexBufferDX11.cpp" />

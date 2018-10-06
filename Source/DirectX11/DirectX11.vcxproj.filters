@@ -28,9 +28,6 @@
     <Filter Include="VertexBuffer">
       <UniqueIdentifier>{7d9e25cb-88d5-4e39-984c-d65a99d3f33b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Renderer\Model">
-      <UniqueIdentifier>{3fb95925-2914-48bc-a6f1-e7cb2ffa2184}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Renderer\Deferred">
       <UniqueIdentifier>{e1849515-d221-475c-8750-4992adaa20d4}</UniqueIdentifier>
     </Filter>
@@ -78,6 +75,15 @@
     </Filter>
     <Filter Include="Renderer\PostProcessing\SSS">
       <UniqueIdentifier>{23d580bf-7c25-4eaa-aaaa-86db31c3416e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\Terrain">
+      <UniqueIdentifier>{957f1702-6db6-4639-b7a3-ec219a2c8d99}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Util\imgui">
+      <UniqueIdentifier>{e4bb69e5-053b-4913-b676-92c50a539ab1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\Model">
+      <UniqueIdentifier>{3fb95925-2914-48bc-a6f1-e7cb2ffa2184}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -144,11 +150,17 @@
     <ClInclude Include="ColorGradingDX11.h">
       <Filter>Renderer\PostProcessing\ColorGrading</Filter>
     </ClInclude>
-    <ClInclude Include="BloomFilterDX11.h">
-      <Filter>Renderer\PostProcessing\BloomFilter</Filter>
-    </ClInclude>
     <ClInclude Include="SSSDX11.h">
       <Filter>Renderer\PostProcessing\SSS</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui_impl_dx11.h">
+      <Filter>Util\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainRendererDX11.h">
+      <Filter>Renderer\Terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="BloomFilterDX11.h">
+      <Filter>Renderer\PostProcessing\BloomFilter</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -217,6 +229,12 @@
     </ClCompile>
     <ClCompile Include="SSSDX11.cpp">
       <Filter>Renderer\PostProcessing\SSS</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui_impl_dx11.cpp">
+      <Filter>Util\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="TerrainRendererDX11.cpp">
+      <Filter>Renderer\Terrain</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

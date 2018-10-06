@@ -3,6 +3,8 @@
 
 #include "DeviceDX11.h"
 
+#include <dxgidebug.h>
+
 namespace eastengine
 {
 	namespace graphics
@@ -13,12 +15,12 @@ namespace eastengine
 			{
 				DXProfiler::DXProfiler(const wchar_t* str)
 				{
-					Device::GetInstance()->GetUserDefinedAnnotation()->BeginEvent(str);
+					//Device::GetInstance()->GetUserDefinedAnnotation()->BeginEvent(str);
 				}
 
 				DXProfiler::~DXProfiler()
 				{
-					Device::GetInstance()->GetUserDefinedAnnotation()->EndEvent();
+					//Device::GetInstance()->GetUserDefinedAnnotation()->EndEvent();
 				}
 
 				void GetInputElementDesc(EmVertexFormat::Type emType, const D3D11_INPUT_ELEMENT_DESC** ppInputElements_out, size_t* pElementCount_out)
@@ -303,6 +305,60 @@ namespace eastengine
 					return true;
 				}
 
+				bool CreateHullShader(ID3D11Device* pDevice, ID3DBlob* pShaderBlob, const D3D_SHADER_MACRO* pMacros, const char* strShaderPath, const char* strFunctionName, const char* strProfile, ID3D11HullShader** ppHullShader, const char* strDebugName)
+				{
+					ID3DBlob* pHullShaderBlob = nullptr;
+					if (util::CompileShader(pShaderBlob, pMacros, strShaderPath, strFunctionName, strProfile, &pHullShaderBlob) == false)
+						return false;
+
+					HRESULT hr = pDevice->CreateHullShader(pHullShaderBlob->GetBufferPointer(), pHullShaderBlob->GetBufferSize(), nullptr, ppHullShader);
+
+					SafeRelease(pHullShaderBlob);
+
+					if (FAILED(hr))
+						return false;
+
+					util::SetDebugName(*ppHullShader, strDebugName);
+
+					return true;
+				}
+
+				bool CreateDomainShader(ID3D11Device* pDevice, ID3DBlob* pShaderBlob, const D3D_SHADER_MACRO* pMacros, const char* strShaderPath, const char* strFunctionName, const char* strProfile, ID3D11DomainShader** ppDomainShader, const char* strDebugName)
+				{
+					ID3DBlob* pDomainShaderBlob = nullptr;
+					if (util::CompileShader(pShaderBlob, pMacros, strShaderPath, strFunctionName, strProfile, &pDomainShaderBlob) == false)
+						return false;
+
+					HRESULT hr = pDevice->CreateDomainShader(pDomainShaderBlob->GetBufferPointer(), pDomainShaderBlob->GetBufferSize(), nullptr, ppDomainShader);
+
+					SafeRelease(pDomainShaderBlob);
+
+					if (FAILED(hr))
+						return false;
+
+					util::SetDebugName(*ppDomainShader, strDebugName);
+
+					return true;
+				}
+
+				bool CreateGeometryShader(ID3D11Device* pDevice, ID3DBlob* pShaderBlob, const D3D_SHADER_MACRO* pMacros, const char* strShaderPath, const char* strFunctionName, const char* strProfile, ID3D11GeometryShader** ppGeometryShader, const char* strDebugName)
+				{
+					ID3DBlob* pGeometryShaderBlob = nullptr;
+					if (util::CompileShader(pShaderBlob, pMacros, strShaderPath, strFunctionName, strProfile, &pGeometryShaderBlob) == false)
+						return false;
+
+					HRESULT hr = pDevice->CreateGeometryShader(pGeometryShaderBlob->GetBufferPointer(), pGeometryShaderBlob->GetBufferSize(), nullptr, ppGeometryShader);
+
+					SafeRelease(pGeometryShaderBlob);
+
+					if (FAILED(hr))
+						return false;
+
+					util::SetDebugName(*ppGeometryShader, strDebugName);
+
+					return true;
+				}
+
 				bool CreateConstantBuffer(ID3D11Device* pDevice, size_t nSize, ID3D11Buffer** pBuffer_out, const char* strDebugName)
 				{
 					D3D11_BUFFER_DESC desc{};
@@ -445,6 +501,26 @@ namespace eastengine
 					}
 					assert(false);
 					return 0;
+				}
+
+				void ReportLiveObjects(ID3D11Device* pDevice)
+				{
+					if (pDevice != nullptr)
+					{
+						ID3D11Debug* pDebug = nullptr;
+						if (SUCCEEDED(pDevice->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void**>(&pDebug))))
+						{
+							pDebug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+						}
+						SafeRelease(pDebug);
+
+						IDXGIDebug1* pDxgiDebug = nullptr;
+						if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&pDxgiDebug))))
+						{
+							pDxgiDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_FLAGS(DXGI_DEBUG_RLO_SUMMARY | DXGI_DEBUG_RLO_IGNORE_INTERNAL));
+						}
+						SafeRelease(pDxgiDebug);
+					}
 				}
 			}
 		}

@@ -14,12 +14,13 @@ namespace eastengine
 
 	namespace gameobject
 	{
-		enum EmObjectType
+		enum ObjectType
 		{
 			eActor = 0,
 			eTerrain,
 			eSky,
-			eCloud,
+
+			eTypeCount,
 		};
 
 		class IGameObject
@@ -38,7 +39,7 @@ namespace eastengine
 			const Handle& GetHandle() const { return m_handle; }
 
 		public:
-			virtual EmObjectType GetType() const = 0;
+			virtual ObjectType GetType() const = 0;
 
 		private:
 			const Handle m_handle;
@@ -51,7 +52,7 @@ namespace eastengine
 			virtual ~IActor() = default;
 
 		public:
-			virtual EmObjectType GetType() const override { return EmObjectType::eActor; }
+			virtual ObjectType GetType() const override { return ObjectType::eActor; }
 
 		public:
 			static IActor* CreateByFile(const char* strFilePath);
@@ -97,15 +98,13 @@ namespace eastengine
 
 		struct TerrainProperty
 		{
-			math::Int2 n2Size = math::Int2(1024, 1024);
+			math::Int2 n2Size{ 1024, 1024 };
 
-			math::Int2 n2Patches = math::Int2(64, 64);
+			math::Int2 n2Patches{ 64, 64 };
 
-			float fHeightScale = 300.f;
+			float fHeightScale{ 300.f };
 
-			math::Vector3 f3Position;
-			math::Quaternion quatRotation;
-			math::Vector3 f3Scale = math::Vector3::One;
+			math::Transform transform;
 
 			std::string strTexHeightMap;
 			std::string strTexColorMap;
@@ -114,8 +113,8 @@ namespace eastengine
 			std::string strTexDetailMap;
 			std::string strTexDetailNormalMap;
 
-			float fRoughness = 1.f;
-			float fMetallic = 0.f;
+			float fRoughness{ 1.f };
+			float fMetallic{ 0.f };
 
 			Physics::RigidBodyProperty rigidBodyProperty;
 		};
@@ -132,7 +131,7 @@ namespace eastengine
 			static void Destroy(ITerrain** ppTerrain);
 
 		public:
-			virtual EmObjectType GetType() const override { return EmObjectType::eTerrain; }
+			virtual ObjectType GetType() const override { return ObjectType::eTerrain; }
 
 		public:
 			virtual void Update(float fElapsedTime) = 0;
@@ -170,7 +169,7 @@ namespace eastengine
 			static void Destroy(ISkybox** ppSkybox);
 
 		public:
-			virtual EmObjectType GetType() const override { return EmObjectType::eSky; }
+			virtual ObjectType GetType() const override { return ObjectType::eSky; }
 
 		public:
 			virtual void Update(float fElapsedTime) = 0;

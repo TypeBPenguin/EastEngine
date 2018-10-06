@@ -41,16 +41,6 @@ namespace eastengine
 					eCB_BloomFilterContents = 0,
 				};
 
-				enum SamplerSlot
-				{
-					eSampler_LinearPoint = 0,
-				};
-
-				enum SRVSlot
-				{
-					eSRV_Source = 0,
-				};
-
 				enum PSType
 				{
 					eExtract = 0,
@@ -117,7 +107,7 @@ namespace eastengine
 					assert(m_nBloomFilterBufferIndex < MaxBloomFilterContentsBufferCount);
 					shader::BloomFilterContents* pBuffer = m_bloomFilterContents.Cast(nFrameIndex, m_nBloomFilterBufferIndex);
 					m_bloomFilterContentsBufferGPUAddress = m_bloomFilterContents.GPUAddress(nFrameIndex, m_nBloomFilterBufferIndex);
-					m_nBloomFilterBufferIndex++;
+					++m_nBloomFilterBufferIndex;
 
 					return pBuffer;
 				}
@@ -238,10 +228,7 @@ namespace eastengine
 					SafeRelease(m_pipelineStates[i].pRootSignature);
 				}
 
-				for (int i = 0; i < eFrameBufferCount; ++i)
-				{
-					SafeRelease(m_bloomFilterContents.pUploadHeaps[i]);
-				}
+				m_bloomFilterContents.Destroy();
 			}
 
 			void BloomFilter::Impl::Apply(RenderTarget* pSource)
@@ -316,7 +303,7 @@ namespace eastengine
 						pResult = pDevice->GetRenderTarget(&desc, math::Color::Transparent, false);
 					}
 
-					if (pResult->GetState() != D3D12_RESOURCE_STATE_RENDER_TARGET)
+					if (pResult->GetResourceState() != D3D12_RESOURCE_STATE_RENDER_TARGET)
 					{
 						const D3D12_RESOURCE_BARRIER transition[] =
 						{
@@ -325,7 +312,7 @@ namespace eastengine
 						pCommandList->ResourceBarrier(_countof(transition), transition);
 					}
 
-					if (pSource->GetState() != D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
+					if (pSource->GetResourceState() != D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
 					{
 						const D3D12_RESOURCE_BARRIER transition[] =
 						{

@@ -116,7 +116,6 @@ namespace eastengine
 
 					SRVSlotCount,
 				};
-				static_assert(SRVSlotCount <= D3D11_COMMONSHADER_INPUT_RESOURCE_REGISTER_COUNT, "input register count over");
 
 				enum Pass
 				{
@@ -643,31 +642,12 @@ namespace eastengine
 				CreateVertexShader(pDevice, shader::eUseSkinning, "VS");
 
 				CreatePixelShader(pDevice, 0, "PS");
-				
-				if (util::CreateConstantBuffer(pDevice, m_skinningInstancingDataBuffer.Size(), &m_skinningInstancingDataBuffer.pBuffer, "SkinningInstancingDataBuffer") == false)
-				{
-					throw_line("failed to create SkinningInstancingDataBuffer");
-				}
 
-				if (util::CreateConstantBuffer(pDevice, m_staticInstancingDataBuffer.Size(), &m_staticInstancingDataBuffer.pBuffer, "StaticInstancingDataBuffer") == false)
-				{
-					throw_line("failed to create StaticInstancingDataBuffer");
-				}
-
-				if (util::CreateConstantBuffer(pDevice, m_objectDataBuffer.Size(), &m_objectDataBuffer.pBuffer, "ObjectDataBuffer") == false)
-				{
-					throw_line("failed to create ObjectDataBuffer");
-				}
-
-				if (util::CreateConstantBuffer(pDevice, m_vsConstants.Size(), &m_vsConstants.pBuffer, "VSConstants") == false)
-				{
-					throw_line("failed to create VSConstants");
-				}
-
-				if (util::CreateConstantBuffer(pDevice, m_commonContentsBuffer.Size(), &m_commonContentsBuffer.pBuffer, "CommonContents") == false)
-				{
-					throw_line("failed to create CommonContents");
-				}
+				m_skinningInstancingDataBuffer.Create(pDevice, "SkinningInstancingDataBuffer");
+				m_staticInstancingDataBuffer.Create(pDevice, "StaticInstancingDataBuffer");
+				m_objectDataBuffer.Create(pDevice, "ObjectDataBuffer");
+				m_vsConstants.Create(pDevice, "VSConstants");
+				m_commonContentsBuffer.Create(pDevice, "CommonContents");
 
 				for (int i = 0; i < GroupCount; ++i)
 				{
@@ -681,11 +661,11 @@ namespace eastengine
 
 			ModelRenderer::Impl::~Impl()
 			{
-				SafeRelease(m_skinningInstancingDataBuffer.pBuffer);
-				SafeRelease(m_staticInstancingDataBuffer.pBuffer);
-				SafeRelease(m_objectDataBuffer.pBuffer);
-				SafeRelease(m_vsConstants.pBuffer);
-				SafeRelease(m_commonContentsBuffer.pBuffer);
+				m_skinningInstancingDataBuffer.Destroy();
+				m_staticInstancingDataBuffer.Destroy();
+				m_objectDataBuffer.Destroy();
+				m_vsConstants.Destroy();
+				m_commonContentsBuffer.Destroy();
 
 				std::for_each(m_umapRenderStates.begin(), m_umapRenderStates.end(), [](std::pair<const shader::MaskKey, RenderState>& iter)
 				{

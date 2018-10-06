@@ -186,6 +186,7 @@
     <ClInclude Include="SSSDX12.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="TerrainRendererDX12.h" />
     <ClInclude Include="TextureDX12.h" />
     <ClInclude Include="UploadDX12.h" />
     <ClInclude Include="UtilDX12.h" />
@@ -219,6 +220,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="TerrainRendererDX12.cpp" />
     <ClCompile Include="TextureDX12.cpp" />
     <ClCompile Include="UploadDX12.cpp" />
     <ClCompile Include="UtilDX12.cpp" />

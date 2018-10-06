@@ -31,6 +31,7 @@ namespace eastengine
 			{
 			public:
 				Impl(const ITexture::Key& key);
+				Impl(const ITexture::Key& key, const D3D12_RESOURCE_STATES* pDefaultState);
 				~Impl();
 
 			public:
@@ -53,6 +54,9 @@ namespace eastengine
 				const D3D12_CPU_DESCRIPTOR_HANDLE& GetCPUHandle(int nFrameIndex) const { return m_cpuHandles[nFrameIndex]; }
 				const D3D12_GPU_DESCRIPTOR_HANDLE& GetGPUHandle(int nFrameIndex) const { return m_gpuHandles[nFrameIndex]; }
 
+				D3D12_RESOURCE_BARRIER Transition(D3D12_RESOURCE_STATES changeState);
+				D3D12_RESOURCE_STATES GetResourceState() const { return m_state; }
+
 			private:
 				const ITexture::Key m_key;
 
@@ -64,6 +68,8 @@ namespace eastengine
 				std::array<D3D12_GPU_DESCRIPTOR_HANDLE, eFrameBufferCount> m_gpuHandles;
 
 				ID3D12Resource* m_pResource{ nullptr };
+
+				D3D12_RESOURCE_STATES m_state{ D3D12_RESOURCE_STATE_COMMON };
 			};
 
 			Texture::Impl::Impl(const ITexture::Key& key)
@@ -72,9 +78,24 @@ namespace eastengine
 			{
 			}
 
+			Texture::Impl::Impl(const ITexture::Key& key, const D3D12_RESOURCE_STATES* pDefaultState)
+				: m_key(key)
+				, m_nDescriptorIndex(eInvalidDescriptorIndex)
+				, m_state(*pDefaultState)
+			{
+			}
+
 			Texture::Impl::~Impl()
 			{
-				SafeRelease(m_pResource);
+				if (m_pResource != nullptr)
+				{
+					const ULONG ref = m_pResource->Release();
+					if (ref > 0)
+					{
+						LOG_WARNING("RefCount is not zero : %s, %u", GetName().c_str(), ref);
+					}
+					m_pResource = nullptr;
+				}
 
 				DescriptorHeap* pDescriptorHeap = Device::GetInstance()->GetSRVDescriptorHeap();
 				pDescriptorHeap->FreePersistent(m_nDescriptorIndex);
@@ -392,7 +413,6 @@ namespace eastengine
 			bool Texture::Impl::Bind(ID3D12Resource* pResource, const D3D12_SHADER_RESOURCE_VIEW_DESC* pDesc)
 			{
 				m_pResource = pResource;
-				m_pResource->AddRef();
 
 				ID3D12Device* pDevice = Device::GetInstance()->GetInterface();
 
@@ -464,8 +484,21 @@ namespace eastengine
 				return true;
 			}
 
+			D3D12_RESOURCE_BARRIER Texture::Impl::Transition(D3D12_RESOURCE_STATES changeState)
+			{
+				assert(m_state != changeState);
+				D3D12_RESOURCE_STATES beforeState = m_state;
+				m_state = changeState;
+				return CD3DX12_RESOURCE_BARRIER::Transition(GetResource(), beforeState, changeState);
+			}
+
 			Texture::Texture(const ITexture::Key& key)
 				: m_pImpl{ std::make_unique<Impl>(key) }
+			{
+			}
+
+			Texture::Texture(const ITexture::Key& key, const D3D12_RESOURCE_STATES* pDefaultState)
+				: m_pImpl{ std::make_unique<Impl>(key, pDefaultState) }
 			{
 			}
 
@@ -491,6 +524,53 @@ namespace eastengine
 			const std::string& Texture::GetPath() const
 			{
 				return m_pImpl->GetPath();
+			}
+
+			bool Texture::Initialize(const TextureDesc& desc)
+			{
+				const CD3DX12_RESOURCE_DESC resource_desc = CD3DX12_RESOURCE_DESC::Tex2D(static_cast<DXGI_FORMAT>(desc.resourceFormat), desc.Width, desc.Height, 1, 1, 1, 0, D3D12_RESOURCE_FLAG_NONE, D3D12_TEXTURE_LAYOUT_UNKNOWN);
+				bool isSuccess = Initialize(&resource_desc);
+				if (isSuccess == false)
+					return false;
+
+				ID3D12Device* pDevice = Device::GetInstance()->GetInterface();
+				Uploader* pUploader = Device::GetInstance()->GetUploader();
+				
+				D3D12_PLACED_SUBRESOURCE_FOOTPRINT placedTexture2D{};
+				uint32_t numRows = 0;
+				uint64_t rowSizes = 0;
+				uint64_t nTextureMemSize = 0;
+				pDevice->GetCopyableFootprints(&resource_desc, 0, 1, 0, &placedTexture2D, &numRows, &rowSizes, &nTextureMemSize);
+				
+				UploadContext uploadContext = pUploader->BeginResourceUpload(nTextureMemSize);
+				
+				if (GetResourceState() != D3D12_RESOURCE_STATE_COPY_DEST)
+				{
+					const D3D12_RESOURCE_BARRIER transition[] =
+					{
+						m_pImpl->Transition(D3D12_RESOURCE_STATE_COPY_DEST),
+					};
+					uploadContext.pCommandList->ResourceBarrier(_countof(transition), transition);
+				}
+
+				D3D12_SUBRESOURCE_DATA textureData{};
+				textureData.pData = desc.subResourceData.pSysMem;
+				textureData.RowPitch = desc.subResourceData.SysMemPitch;
+				textureData.SlicePitch = desc.subResourceData.SysMemSlicePitch;
+				UpdateSubresources(uploadContext.pCommandList, GetResource(), uploadContext.pResource, 0, 0, 1, &textureData);
+
+				if (GetResourceState() != D3D12_RESOURCE_STATE_COMMON)
+				{
+					const D3D12_RESOURCE_BARRIER transition[] =
+					{
+						m_pImpl->Transition(D3D12_RESOURCE_STATE_COMMON),
+					};
+					uploadContext.pCommandList->ResourceBarrier(_countof(transition), transition);
+				}
+				
+				pUploader->EndResourceUpload(uploadContext);
+
+				return true;
 			}
 
 			bool Texture::Initialize(const D3D12_RESOURCE_DESC* pDesc)
@@ -553,6 +633,16 @@ namespace eastengine
 			const D3D12_GPU_DESCRIPTOR_HANDLE& Texture::GetGPUHandle(int nFrameIndex) const
 			{
 				return m_pImpl->GetGPUHandle(nFrameIndex);
+			}
+
+			void Texture::Transition(D3D12_RESOURCE_STATES changeState, D3D12_RESOURCE_BARRIER* pBarrier_out)
+			{
+				*pBarrier_out = m_pImpl->Transition(changeState);
+			}
+
+			D3D12_RESOURCE_STATES Texture::GetResourceState() const
+			{
+				return m_pImpl->GetResourceState();
 			}
 		}
 	}

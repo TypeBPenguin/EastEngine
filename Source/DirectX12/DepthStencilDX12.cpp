@@ -131,13 +131,11 @@ namespace eastengine
 				strKey.Format("DepthStencil_%d", s_nDepthStencilIndex++);
 
 				Texture::Key key(strKey);
-				pDepthStencil->m_pTexture = std::make_unique<Texture>(key);
+				pDepthStencil->m_pTexture = std::make_unique<Texture>(key, &resourceState);
 				if (pDepthStencil->m_pTexture->Bind(pResource, &srvDesc) == false)
 				{
 					throw_line("failed to create depth stencil texture");
 				}
-
-				pDepthStencil->m_state = resourceState;
 
 				return pDepthStencil;
 			}
@@ -149,10 +147,15 @@ namespace eastengine
 
 			D3D12_RESOURCE_BARRIER DepthStencil::Transition(D3D12_RESOURCE_STATES changeState)
 			{
-				assert(m_state != changeState);
-				D3D12_RESOURCE_STATES beforeState = m_state;
-				m_state = changeState;
-				return CD3DX12_RESOURCE_BARRIER::Transition(m_pTexture->GetResource(), beforeState, changeState);
+				D3D12_RESOURCE_BARRIER barrier{};
+				m_pTexture->Transition(changeState, &barrier);
+
+				return barrier;
+			}
+
+			D3D12_RESOURCE_DESC DepthStencil::GetDesc() const
+			{
+				return GetResource()->GetDesc();
 			}
 
 			D3D12_CPU_DESCRIPTOR_HANDLE DepthStencil::GetCPUHandle() const

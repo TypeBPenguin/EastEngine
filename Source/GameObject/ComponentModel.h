@@ -15,7 +15,7 @@ namespace eastengine
 
 		public:
 			void Init(graphics::IModelInstance* pModelInst);
-			void Init(graphics::ModelLoader* pLoader);
+			void Init(const graphics::ModelLoader* pLoader);
 			virtual void Update(float fElapsedTime) override;
 
 			virtual bool LoadToFile(file::Stream& file);

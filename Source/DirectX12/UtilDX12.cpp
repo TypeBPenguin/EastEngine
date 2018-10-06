@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "UtilDX12.h"
 
+#include <dxgidebug.h>
+
 namespace eastengine
 {
 	namespace graphics
@@ -9,7 +11,7 @@ namespace eastengine
 		{
 			namespace util
 			{
-				const float MipLODBias = -3.f;
+				const float MipLODBias = -2.f;
 
 				void WaitForFence(ID3D12Fence* pFence, uint64_t nCompletionValue, HANDLE hWaitEvent)
 				{
@@ -1040,6 +1042,19 @@ namespace eastengine
 					SafeRelease(pSignature);
 
 					return pRootSignature;
+				}
+
+				void ReportLiveObjects(ID3D12Device* pDevice)
+				{
+					if (pDevice != nullptr)
+					{
+						IDXGIDebug1* pDxgiDebug = nullptr;
+						if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&pDxgiDebug))))
+						{
+							pDxgiDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_FLAGS(DXGI_DEBUG_RLO_SUMMARY | DXGI_DEBUG_RLO_IGNORE_INTERNAL));
+						}
+						SafeRelease(pDxgiDebug);
+					}
 				}
 			}
 		}

@@ -50,9 +50,9 @@ namespace eastengine
 
 			math::Matrix m_matWorld;
 
-			bool m_isDestroy;
-			bool m_isVisible;
-			bool m_isBuildComplete;
+			bool m_isDestroy{ false };
+			bool m_isVisible{ true };
+			bool m_isBuildComplete{ false };
 
 			TerrainProperty m_property;
 
@@ -63,7 +63,7 @@ namespace eastengine
 			};
 			std::vector<HeightMapVertex> m_vecHeightMap;
 
-			graphics::IVertexBuffer* m_pHeightField;
+			graphics::IVertexBuffer* m_pHeightField{ nullptr };
 
 			graphics::ITexture* m_pTexHeightMap{ nullptr };
 			graphics::ITexture* m_pTexColorMap{ nullptr };
@@ -80,10 +80,10 @@ namespace eastengine
 				std::vector<uint32_t> vecIndices;
 			};
 			RigidBodyData m_rigidBodyData;
-			Physics::RigidBody* m_pPhysics;
+			Physics::RigidBody* m_pPhysics{ nullptr };
 
-			float m_fHeightMax;
-			float m_fHeightMin;
+			float m_fHeightMax{ std::numeric_limits<float>::max() };
+			float m_fHeightMin{ std::numeric_limits<float>::min() };
 		};
 	}
 }

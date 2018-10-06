@@ -141,15 +141,12 @@ namespace eastengine
 
 				SafeRelease(pShaderBlob);
 
-				if (util::CreateConstantBuffer(pDevice, sizeof(shader::DownScaleContents), &m_downScaleContents.pBuffer, "DownScaleContents") == false)
-				{
-					throw_line("failed to create DownScaleContents buffer");
-				}
+				m_downScaleContents.Create(pDevice, "DownScaleContents");
 			}
 
 			DownScale::Impl::~Impl()
 			{
-				SafeRelease(m_downScaleContents.pBuffer);
+				m_downScaleContents.Destroy();
 
 				SafeRelease(m_pVertexShader);
 				for (auto& pPixelShader : m_pPixelShaders)

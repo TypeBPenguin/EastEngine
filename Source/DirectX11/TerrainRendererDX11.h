@@ -6,22 +6,22 @@ namespace eastengine
 {
 	namespace graphics
 	{
+		class Camera;
+
 		namespace dx11
 		{
-			class RenderManager
+			class TerrainRenderer
 			{
 			public:
-				RenderManager();
-				~RenderManager();
+				TerrainRenderer();
+				~TerrainRenderer();
 
 			public:
+				void Render(ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext, Camera* pCamera);
 				void Flush();
-				void Render();
 
 			public:
-				void PushJob(const RenderJobStatic& renderJob);
-				void PushJob(const RenderJobSkinned& renderJob);
-				void PushJob(const RenderJobTerrain& renderJob);
+				void PushJob(const RenderJobTerrain& job);
 
 			private:
 				class Impl;

@@ -154,24 +154,17 @@ namespace eastengine
 
 				SafeRelease(pShaderBlob);
 
-				if (util::CreateConstantBuffer(pDevice, sizeof(shader::DeferredCcontents), &m_deferredCcontents.pBuffer, "DeferredContents") == false)
-				{
-					throw_line("failed to create DeferredContents buffer");
-				}
-
-				if (util::CreateConstantBuffer(pDevice, sizeof(shader::CommonContents), &m_commonContents.pBuffer, "CommonContents") == false)
-				{
-					throw_line("failed to create CommonContents buffer");
-				}
+				m_deferredCcontents.Create(pDevice, "DeferredContents");
+				m_commonContents.Create(pDevice, "CommonContents");
 			}
 
 			DeferredRenderer::Impl::~Impl()
 			{
-				SafeRelease(m_deferredCcontents.pBuffer);
-				SafeRelease(m_commonContents.pBuffer);
-
 				SafeRelease(m_pVertexShader);
 				SafeRelease(m_pPixelShader);
+
+				m_deferredCcontents.Destroy();
+				m_commonContents.Destroy();
 			}
 
 			void DeferredRenderer::Impl::Render(ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext, Camera* pCamera)

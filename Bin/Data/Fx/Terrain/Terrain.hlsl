@@ -1,71 +1,66 @@
-#ifndef _TERRAIN_
-#define _TERRAIN_
+#ifdef DX12
+#include "../DescriptorTablesDX12.hlsl"
+#endif
 
-#include "../Converter.fx"
+#include "../Converter.hlsl"
 
-Texture2D g_texHeightField;
-Texture2D g_texColor;
+#ifdef DX11
 
-Texture2D g_texDetail;
-Texture2D g_texDetailNormal;
+//RasterizerState CullBackMS
+//{
+//	CullMode = Back;
+//	FrontCounterClockwise = TRUE;
+//	MultisampleEnable = TRUE;
+//};
+//
+//RasterizerState WireframeMS
+//{
+//	CullMode = NONE;
+//	FillMode = WIREFRAME;
+//	MultisampleEnable = TRUE;
+//};
+//
+//DepthStencilState DepthNormal
+//{
+//	DepthFunc = LESS_EQUAL;
+//};
+//
+//BlendState NoBlending
+//{
+//	BlendEnable[0] = FALSE;
+//};
 
-SamplerState SamplerLinearWrap
-{
-	Filter = MIN_MAG_MIP_LINEAR;
-	AddressU = Wrap;
-	AddressV = Wrap;
-};
+SamplerState SamplerLinearWrap : register(s0);
+SamplerState SamplerLinearBorder : register(s1);
+SamplerState SamplerAnisotropicBorder : register(s2);
 
-SamplerState SamplerLinearBorder
-{
-	Filter = MIN_MAG_MIP_LINEAR;
-	AddressU = Border;
-	AddressV = Border;
-};
+Texture2D g_texHeightField : register(t0);
+Texture2D g_texColor : register(t1);
 
-SamplerState SamplerAnisotropicBorder
-{
-	Filter = ANISOTROPIC;
-	AddressU = Border;
-	AddressV = Border;
-	MaxAnisotropy = 16;
-};
+Texture2D g_texDetail : register(t2);
+Texture2D g_texDetailNormal : register(t3);
 
-SamplerComparisonState SamplerDepthAnisotropic
-{
-	Filter = COMPARISON_ANISOTROPIC;
-	AddressU = Border;
-	AddressV = Border;
-	ComparisonFunc = LESS;
-	BorderColor = float4(1, 1, 1, 1);
-	MaxAnisotropy = 16;
-};
+#define TexHeightField(uv)		g_texHeightField.SampleLevel(SamplerLinearBorder, uv, 0)
+#define TexColor(uv)			g_texColor.Sample(SamplerAnisotropicBorder, uv)
 
-RasterizerState CullBackMS
-{
-	CullMode = Back;
-	FrontCounterClockwise = TRUE;
-	MultisampleEnable = TRUE;
-};
+#define TexDetail(uv)			g_texDetail.Sample(SamplerLinearWrap, uv)
+#define TexDetailNormal(uv)		g_texDetailNormal.Sample(SamplerLinearWrap, uv)
 
-RasterizerState WireframeMS
-{
-	CullMode = NONE;
-	FillMode = WIREFRAME;
-	MultisampleEnable = TRUE;
-};
+#elif DX12
 
-DepthStencilState DepthNormal
-{
-	DepthFunc = LESS_EQUAL;
-};
+SamplerState SamplerLinearWrap : register(s0, space100);
+SamplerState SamplerLinearBorder : register(s1, space100);
+SamplerState SamplerAnisotropicBorder : register(s2, space100);
 
-BlendState NoBlending
-{
-	BlendEnable[0] = FALSE;
-};
+#define TexHeightField(uv)		Tex2DTable[g_nTexHeightFieldIndex].SampleLevel(SamplerLinearBorder, uv, 0)
+#define TexColor(uv)			Tex2DTable[g_nTexColor].Sample(SamplerAnisotropicBorder, uv)
 
-cbuffer cbContents
+#define TexDetail(uv)			Tex2DTable[g_nTexDetail].Sample(SamplerLinearWrap, uv)
+#define TexDetailNormal(uv)		Tex2DTable[g_nTexDetailNormal].Sample(SamplerLinearWrap, uv)
+
+#endif
+
+cbuffer cbContents : register(b0)
 {
 	float g_UseDynamicLOD;
 	float g_FrustumCullInHS;
@@ -76,10 +71,22 @@ cbuffer cbContents
 	float4x4 g_matWorld;
 
 	float3 g_CameraPosition;
+	float padding0;
+
 	float3 g_CameraDirection;
+	float padding1;
 
 	float2 g_f2PatchSize;
 	float2 g_f2HeightFieldSize;
+
+#ifdef DX12
+
+	uint g_nTexHeightFieldIndex;
+	uint g_nTexColor;
+	uint g_nTexDetail;
+	uint g_nTexDetailNormal;
+
+#endif
 };
 
 struct DUMMY
@@ -143,7 +150,7 @@ PatchData PatchConstantHS(InputPatch<HSIn_Heightfield, 1> inputPatch)
 	bool in_frustum = false;
 	if (g_FrustumCullInHS == 1)
 	{
-		height = g_texHeightField.SampleLevel(SamplerLinearBorder, texcoord0to1, 0).w;
+		height = TexHeightField(texcoord0to1).w;
 
 		// conservative frustum culling
 		float3 patch_center = 0.f;
@@ -248,7 +255,7 @@ PSIn_Diffuse HeightFieldPatchDS(PatchData input,
 	texcoord0to1.y = 1 - texcoord0to1.y;
 
 	// fetching base heightmap,normal and moving vertices along y axis
-	float4 base_texvalue = g_texHeightField.SampleLevel(SamplerLinearBorder, texcoord0to1, 0);
+	float4 base_texvalue = TexHeightField(texcoord0to1);
 	float3 base_normal = base_texvalue.xyz;
 	base_normal.z = -base_normal.z;
 
@@ -275,12 +282,12 @@ struct PS_OUTPUT
 
 PS_OUTPUT HeightFieldPatchPS(PSIn_Diffuse input)
 {
-	float3 albedo = saturate(pow(abs(g_texDetail.Sample(SamplerLinearWrap, input.texcoord_detail).rgb), 2.2f) * 2.f);
-	albedo = saturate(albedo  * g_texColor.Sample(SamplerAnisotropicBorder, input.texcoord).rgb);
+	float3 albedo = saturate(pow(abs(TexDetail(input.texcoord_detail).rgb), 2.2f) * 2.f);
+	albedo = saturate(albedo  * TexColor(input.texcoord).rgb);
 
 	float3 binormal = normalize(cross(input.tangent, input.normal));
 
-	float4 detailNormal = g_texDetailNormal.Sample(SamplerLinearWrap, input.texcoord_detail);
+	float4 detailNormal = TexDetailNormal(input.texcoord_detail);
 	float3 normal = normalize(2.f * detailNormal.xyz - 1.f);
 	normal = normalize((normal.x * input.tangent) + (normal.y * binormal) + input.normal);
 
@@ -304,28 +311,27 @@ float4 ColorPS(uniform float4 color) : SV_Target
 	return color;
 }
 
-technique11 RenderHeightfield
-{
-	pass Solid
-	{
-		SetVertexShader(CompileShader(vs_5_0, PassThroughVS()));
-		SetHullShader(CompileShader(hs_5_0, PatchHS()));
-		SetDomainShader(CompileShader(ds_5_0, HeightFieldPatchDS()));
-		SetGeometryShader(NULL);
-		SetPixelShader(CompileShader(ps_5_0, HeightFieldPatchPS()));
-	}
-
-	pass DepthOnly
-	{
-		SetRasterizerState(CullBackMS);
-		SetDepthStencilState(DepthNormal, 0);
-		SetBlendState(NoBlending, float4(0.0f, 0.0f, 0.0f, 0.0f), 0xFFFFFFFF);
-
-		SetVertexShader(CompileShader(vs_5_0, PassThroughVS()));
-		SetHullShader(CompileShader(hs_5_0, PatchHS()));
-		SetDomainShader(CompileShader(ds_5_0, HeightFieldPatchDS()));
-		SetGeometryShader(NULL);
-		SetPixelShader(CompileShader(ps_5_0, ColorPS(float4(1.0f, 1.0f, 1.0f, 1.0f))));
-	}
-}
-#endif
+//technique11 RenderHeightfield
+//{
+//	pass Solid
+//	{
+//		SetVertexShader(CompileShader(vs_5_0, PassThroughVS()));
+//		SetHullShader(CompileShader(hs_5_0, PatchHS()));
+//		SetDomainShader(CompileShader(ds_5_0, HeightFieldPatchDS()));
+//		SetGeometryShader(NULL);
+//		SetPixelShader(CompileShader(ps_5_0, HeightFieldPatchPS()));
+//	}
+//
+//	pass DepthOnly
+//	{
+//		SetRasterizerState(CullBackMS);
+//		SetDepthStencilState(DepthNormal, 0);
+//		SetBlendState(NoBlending, float4(0.0f, 0.0f, 0.0f, 0.0f), 0xFFFFFFFF);
+//
+//		SetVertexShader(CompileShader(vs_5_0, PassThroughVS()));
+//		SetHullShader(CompileShader(hs_5_0, PatchHS()));
+//		SetDomainShader(CompileShader(ds_5_0, HeightFieldPatchDS()));
+//		SetGeometryShader(NULL);
+//		SetPixelShader(CompileShader(ps_5_0, ColorPS(float4(1.0f, 1.0f, 1.0f, 1.0f))));
+//	}
+//}

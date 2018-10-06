@@ -163,15 +163,12 @@ namespace eastengine
 
 				SafeRelease(pShaderBlob);
 
-				if (util::CreateConstantBuffer(pDevice, sizeof(shader::BloomFilterContents), &m_bloomFilterContents.pBuffer, "BloomFilterContents") == false)
-				{
-					throw_line("failed to create BloomFilterContents buffer");
-				}
+				m_bloomFilterContents.Create(pDevice, "BloomFilterContents");
 			}
 
 			BloomFilter::Impl::~Impl()
 			{
-				SafeRelease(m_bloomFilterContents.pBuffer);
+				m_bloomFilterContents.Destroy();
 
 				SafeRelease(m_pVertexShader);
 

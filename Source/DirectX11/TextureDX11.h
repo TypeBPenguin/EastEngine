@@ -28,7 +28,8 @@ namespace eastengine
 				virtual const std::string& GetPath() const override { return m_strPath; }
 
 			public:
-				void Initialize(const D3D11_TEXTURE2D_DESC* pDesc, const D3D11_SUBRESOURCE_DATA* pInitialData);
+				bool Initialize(const TextureDesc& desc);
+				bool Initialize(const D3D11_TEXTURE2D_DESC* pDesc, const D3D11_SUBRESOURCE_DATA* pInitialData);
 				bool Load(const char* strFilePath);
 
 			public:

@@ -128,15 +128,12 @@ namespace eastengine
 
 				SafeRelease(pShaderBlob);
 
-				if (util::CreateConstantBuffer(pDevice, sizeof(shader::GaussianBlurContents), &m_gaussianBlurContents.pBuffer, "GaussianBlurContents") == false)
-				{
-					throw_line("failed to create GaussianBlurContents buffer");
-				}
+				m_gaussianBlurContents.Create(pDevice, "GaussianBlurContents");
 			}
 
 			GaussianBlur::Impl::~Impl()
 			{
-				SafeRelease(m_gaussianBlurContents.pBuffer);
+				m_gaussianBlurContents.Destroy();
 
 				SafeRelease(m_pVertexShader);
 				for (auto& pPixelShader : m_pPixelShaders)

@@ -18,13 +18,6 @@ namespace eastengine
 
 		Terrain::Terrain(const Handle& handle)
 			: ITerrain(handle)
-			, m_isDestroy(false)
-			, m_isVisible(true)
-			, m_isBuildComplete(false)
-			, m_pHeightField(nullptr)
-			, m_pPhysics(nullptr)
-			, m_fHeightMax(std::numeric_limits<float>::max())
-			, m_fHeightMin(std::numeric_limits<float>::min())
 		{
 		}
 
@@ -77,7 +70,7 @@ namespace eastengine
 
 			m_property.rigidBodyProperty.nCollisionFlag = Physics::EmCollision::eStaticObject;
 
-			m_matWorld = math::Matrix::Compose(m_property.f3Scale, m_property.quatRotation, m_property.f3Position);
+			m_matWorld = math::Matrix::Compose(m_property.transform.scale, m_property.transform.rotation, m_property.transform.position);
 			m_property.rigidBodyProperty.matOffset = m_matWorld;
 
 			if (m_rigidBodyData.vecVertices.empty() == false && m_rigidBodyData.vecIndices.empty() == false)
@@ -110,35 +103,32 @@ namespace eastengine
 					m_pTexDetailMap->GetState() == graphics::IResource::eComplete &&
 					m_pTexDetailNormalMap->GetState() == graphics::IResource::eComplete)
 				{
-					// 터레인 렌더러를 고치고 사용하시오.
-					assert(false);
+					graphics::RenderJobTerrain job;
+					job.pVertexBuffer = m_pHeightField;
 
-					//graphics::RenderSubsetTerrain subset;
-					//subset.pVertexBuffer = m_pHeightField;
+					job.f2PatchSize.x = static_cast<float>(m_property.n2Size.x) / static_cast<float>(m_property.n2Patches.x);
+					job.f2PatchSize.y = static_cast<float>(m_property.n2Size.y) / static_cast<float>(m_property.n2Patches.y);
 
-					//subset.f2PatchSize.x = static_cast<float>(m_property.n2Size.x) / static_cast<float>(m_property.n2Patches.x);
-					//subset.f2PatchSize.y = static_cast<float>(m_property.n2Size.y) / static_cast<float>(m_property.n2Patches.y);
+					job.f2HeightFieldSize.x = static_cast<float>(m_property.n2Size.x);
+					job.f2HeightFieldSize.y = static_cast<float>(m_property.n2Size.y);
 
-					//subset.f2HeightFieldSize.x = static_cast<float>(m_property.n2Size.x);
-					//subset.f2HeightFieldSize.y = static_cast<float>(m_property.n2Size.y);
+					job.pTexHeightField = m_pTexHeightMap;
+					job.pTexColorMap = m_pTexColorMap;
 
-					//subset.pTexHeightField = m_pTexHeightMap;
-					//subset.pTexColorMap = m_pTexColorMap;
+					job.pTexDetailMap = m_pTexDetailMap;
+					job.pTexDetailNormalMap = m_pTexDetailNormalMap;
 
-					//subset.pTexDetailMap = m_pTexDetailMap;
-					//subset.pTexDetailNormalMap = m_pTexDetailNormalMap;
+					job.matWorld = m_matWorld;
 
-					//subset.matWorld = m_matWorld;
+					// 컬링 방식, 그리려고하는 패치의 중점을 계산한뒤, World * View * Proj 를 곱해서 프로젝션 영역안에 있는지 판별하는 방식
+					// 근데, 패치의 중점만 있는지 없는지 판단하기 때문에 패치의 꼭지점이 프로젝션 영역 안에 있어도 컬링되고맘
+					// 모든 꼭지점을 컬링할까 했지만 성능 문제로 패스
+					// 얼마나 느려지는지 확인해보려했으나 전부 안나옴 흐흐
+					// 나중에 심심할때 다시 테스트 해보자
+					// 컬링 하냐마냐의 차이는 1025 x 1025 사이즈 터레인에서 0.03 ms 정도
+					job.isEnableFrustumCullInHS = false;
 
-					//// 컬링 방식, 그리려고하는 패치의 중점을 계산한뒤, World * View * Proj 를 곱해서 프로젝션 영역안에 있는지 판별하는 방식
-					//// 근데, 패치의 중점만 있는지 없는지 판단하기 때문에 패치의 꼭지점이 프로젝션 영역 안에 있어도 컬링되고맘
-					//// 모든 꼭지점을 컬링할까 했지만 성능 문제로 패스
-					//// 얼마나 느려지는지 확인해보려했으나 전부 안나옴 흐흐
-					//// 나중에 심심할때 다시 테스트 해보자
-					//// 컬링 하냐마냐의 차이는 1025 x 1025 사이즈 터레인에서 0.03 ms 정도
-					//subset.isEnableFrustumCullInHS = false;
-
-					//graphics::RendererManager::GetInstance()->AddRender(subset);
+					graphics::PushRenderJob(job);
 				}
 			}
 
@@ -156,8 +146,8 @@ namespace eastengine
 			if (m_pPhysics != nullptr)
 			{
 				const float fOffset = 100.f;
-				math::Vector3 f3From(fPosX, m_property.f3Position.y + m_fHeightMax + fOffset, fPosZ);
-				math::Vector3 f3To(fPosX, m_property.f3Position.y + m_fHeightMin - fOffset, fPosZ);
+				const math::Vector3 f3From(fPosX, m_property.transform.position.y + m_fHeightMax + fOffset, fPosZ);
+				const math::Vector3 f3To(fPosX, m_property.transform.position.y + m_fHeightMin - fOffset, fPosZ);
 
 				math::Vector3 f3HitPoint;
 				if (m_pPhysics->RayTest(f3From, f3To, &f3HitPoint) == true)
@@ -167,7 +157,7 @@ namespace eastengine
 			}
 			else
 			{
-				math::Matrix matInvWorld = m_matWorld.Invert();
+				const math::Matrix matInvWorld = m_matWorld.Invert();
 
 				math::Vector3 f3Pos(fPosX, 0.f, fPosZ);
 				f3Pos = math::Vector3::Transform(f3Pos, matInvWorld);
@@ -474,8 +464,21 @@ namespace eastengine
 				}
 			}
 
-			// 외부에서 텍스쳐 생성하는 로직 고치고 사용하시오.
-			assert(false);
+			graphics::TextureDesc desc;
+			desc.name.Format("TerrainHeightMap_%d", s_nTerrainIndex);
+			desc.Width = m_property.n2Size.x;
+			desc.Height = m_property.n2Size.y;
+
+			desc.resourceFormat = graphics::eRF_R32G32B32A32_FLOAT;
+			desc.isDynamic = false;
+
+			desc.subResourceData.pSysMem = vecHeightLinear.data();
+			desc.subResourceData.SysMemPitch = m_property.n2Size.x * sizeof(math::Vector4);
+			desc.subResourceData.SysMemSlicePitch = 0;
+
+			desc.subResourceData.MemSize = vecHeightLinear.size() * sizeof(math::Vector4);
+
+			m_pTexHeightMap = graphics::CreateTexture(desc);
 
 			/*D3D11_SUBRESOURCE_DATA subresource_data;
 			subresource_data.pSysMem = vecHeightLinear.data();

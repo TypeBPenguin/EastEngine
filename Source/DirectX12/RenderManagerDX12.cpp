@@ -9,6 +9,7 @@
 #include "ModelRendererDX12.h"
 #include "DeferredRendererDX12.h"
 #include "EnvironmentRendererDX12.h"
+#include "TerrainRendererDX12.h"
 
 #include "FxaaDX12.h"
 #include "DownScaleDX12.h"
@@ -38,6 +39,7 @@ namespace eastengine
 			public:
 				void PushJob(const RenderJobStatic& renderJob) { m_pModelRenderer->PushJob(renderJob); }
 				void PushJob(const RenderJobSkinned& renderJob) { m_pModelRenderer->PushJob(renderJob); }
+				void PushJob(const RenderJobTerrain& renderJob) { m_pTerrainRenderer->PushJob(renderJob); }
 
 			private:
 				void UpdateOptions(const Options& curOptions);
@@ -46,6 +48,7 @@ namespace eastengine
 				std::unique_ptr<ModelRenderer> m_pModelRenderer;
 				std::unique_ptr<DeferredRenderer> m_pDeferredRenderer;
 				std::unique_ptr<EnvironmentRenderer> m_pEnvironmentRenderer;
+				std::unique_ptr<TerrainRenderer> m_pTerrainRenderer;
 
 				std::unique_ptr<Fxaa> m_pFxaa;
 				std::unique_ptr<DownScale> m_pDownScale;
@@ -63,6 +66,7 @@ namespace eastengine
 				: m_pModelRenderer{ std::make_unique<ModelRenderer>() }
 				, m_pDeferredRenderer{ std::make_unique<DeferredRenderer>() }
 				, m_pEnvironmentRenderer{ std::make_unique<EnvironmentRenderer>() }
+				, m_pTerrainRenderer{ std::make_unique<TerrainRenderer>() }
 			{
 			}
 
@@ -75,6 +79,7 @@ namespace eastengine
 				m_pModelRenderer->Flush();
 				m_pDeferredRenderer->Flush();
 				m_pEnvironmentRenderer->Flush();
+				m_pTerrainRenderer->Flush();
 			}
 
 			void RenderManager::Impl::Render()
@@ -113,6 +118,7 @@ namespace eastengine
 				UpdateOptions(options);
 
 				m_pEnvironmentRenderer->Render(pCamera);
+				m_pTerrainRenderer->Render(pCamera);
 
 				m_pModelRenderer->Render(pCamera, ModelRenderer::eDeferred);
 				m_pDeferredRenderer->Render(pCamera);
@@ -131,7 +137,7 @@ namespace eastengine
 						ID3D12GraphicsCommandList2* pCommandList = pDeviceInstance->GetCommandList(0);
 						pDeviceInstance->ResetCommandList(0, nullptr);
 
-						if (pSSS->GetState() != D3D12_RESOURCE_STATE_RENDER_TARGET)
+						if (pSSS->GetResourceState() != D3D12_RESOURCE_STATE_RENDER_TARGET)
 						{
 							const D3D12_RESOURCE_BARRIER transition[] =
 							{
@@ -141,7 +147,7 @@ namespace eastengine
 						}
 						pSSS->Clear(pCommandList);
 
-						if (pSource->GetState() != D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
+						if (pSource->GetResourceState() != D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
 						{
 							const D3D12_RESOURCE_BARRIER transition[] =
 							{
@@ -201,7 +207,7 @@ namespace eastengine
 						ID3D12GraphicsCommandList2* pCommandList = pDeviceInstance->GetCommandList(0);
 						pDeviceInstance->ResetCommandList(0, nullptr);
 
-						if (pSource->GetState() != D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
+						if (pSource->GetResourceState() != D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
 						{
 							const D3D12_RESOURCE_BARRIER transition[] =
 							{
@@ -212,7 +218,7 @@ namespace eastengine
 
 						m_pDepthOfField->Apply(pCommandList, pCamera, pSource, pDepth, pDepthOfField);
 
-						if (pSource->GetState() != D3D12_RESOURCE_STATE_RENDER_TARGET)
+						if (pSource->GetResourceState() != D3D12_RESOURCE_STATE_RENDER_TARGET)
 						{
 							const D3D12_RESOURCE_BARRIER transition[] =
 							{
@@ -379,6 +385,11 @@ namespace eastengine
 			}
 
 			void RenderManager::PushJob(const RenderJobSkinned& renderJob)
+			{
+				m_pImpl->PushJob(renderJob);
+			}
+
+			void RenderManager::PushJob(const RenderJobTerrain& renderJob)
 			{
 				m_pImpl->PushJob(renderJob);
 			}

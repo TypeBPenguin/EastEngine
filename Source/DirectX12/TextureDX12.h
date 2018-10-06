@@ -10,6 +10,10 @@ struct D3D12_SHADER_RESOURCE_VIEW_DESC;
 struct D3D12_CPU_DESCRIPTOR_HANDLE;
 struct D3D12_GPU_DESCRIPTOR_HANDLE;
 
+struct D3D12_RESOURCE_BARRIER;
+
+enum D3D12_RESOURCE_STATES;
+
 namespace eastengine
 {
 	namespace graphics
@@ -20,6 +24,7 @@ namespace eastengine
 			{
 			public:
 				Texture(const ITexture::Key& key);
+				Texture(const ITexture::Key& key, const D3D12_RESOURCE_STATES* pDefaultState);
 				virtual ~Texture();
 
 			public:
@@ -31,6 +36,7 @@ namespace eastengine
 				virtual const std::string& GetPath() const override;
 
 			public:
+				bool Initialize(const TextureDesc& desc);
 				bool Initialize(const D3D12_RESOURCE_DESC* pDesc);
 				bool Load(const char* strFilePath);
 				bool Bind(ID3D12Resource* pResource, const D3D12_SHADER_RESOURCE_VIEW_DESC* pDesc);
@@ -41,6 +47,9 @@ namespace eastengine
 
 				const D3D12_CPU_DESCRIPTOR_HANDLE& GetCPUHandle(int nFrameIndex) const;
 				const D3D12_GPU_DESCRIPTOR_HANDLE& GetGPUHandle(int nFrameIndex) const;
+
+				void Transition(D3D12_RESOURCE_STATES changeState, D3D12_RESOURCE_BARRIER* pBarrier_out);
+				D3D12_RESOURCE_STATES GetResourceState() const;
 
 			private:
 				class Impl;
