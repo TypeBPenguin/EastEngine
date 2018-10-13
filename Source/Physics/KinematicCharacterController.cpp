@@ -9,7 +9,7 @@
 
 namespace eastengine
 {
-	namespace Physics
+	namespace physics
 	{
 		class KinematicCharacterController::Impl
 		{

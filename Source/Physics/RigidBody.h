@@ -6,7 +6,7 @@ class btRigidBody;
 
 namespace eastengine
 {
-	namespace Physics
+	namespace physics
 	{
 		class RigidBody;
 		struct CollisionResult

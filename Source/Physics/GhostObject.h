@@ -6,7 +6,7 @@ class btPairCachingGhostObject;
 
 namespace eastengine
 {
-	namespace Physics
+	namespace physics
 	{
 		struct GhostProperty
 		{

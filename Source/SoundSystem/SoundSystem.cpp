@@ -1,29 +1,15 @@
 #include "stdafx.h"
 #include "SoundSystem.h"
 
-#include "fmod_errors.h"
-
+#include "CommonLib/Lock.h"
 #include "CommonLib/FileUtil.h"
+
+#include "SoundObject.h"
 
 namespace eastengine
 {
-	namespace Sound
+	namespace sound
 	{
-		struct SoundInstance
-		{
-			FMOD::Sound* pSound{ nullptr };
-			std::list<FMOD::Channel*> listChannel;
-
-			float m_fFlushTime{ 0.f };
-
-			~SoundInstance();
-		};
-
-		SoundInstance::~SoundInstance()
-		{
-			pSound->release();
-		}
-
 		class System::Impl
 		{
 		public:
@@ -33,95 +19,124 @@ namespace eastengine
 		public:
 			void Update(float fElapsedTime);
 
-			bool Play(const String::StringID& strSoundFile, float fVolume = 1.f, const math::Vector3* pf3Pos = nullptr, int mode = eLoopOff | e2D | eHardware);
-			void Stop(const String::StringID& strSoundFile);
+		public:
+			void SetListenerAttributes(const ListenerAttributes& listenerAttributes) { m_listenerAttributes = listenerAttributes; }
 
-			void SetListenerPosition(const math::Vector3* pf3ListenerPos);
+			ChannelID Play2D(const std::string& strSoundFilePath, float fVolume = 1.f, int mode = eLoopOff | eHardware);
+			ChannelID Play3D(const std::string& strSoundFilePath, const math::Vector3& f3Position, const math::Vector3& f3Velocity, float fVolume = 1.f, int mode = eLoopOff | eHardware);
+			void Stop(const ChannelID& channelID, float fFadeOutTime);
+			void Resume(const ChannelID& channelID);
+			void Pause(const ChannelID& channelID);
 
 		private:
-			FMOD::Sound* CreateSoundInst(const String::StringID& strSoundFile, int mode = eLoopOff | e2D | eHardware);
+			std::shared_ptr<Sound> CreateSound(const std::string& strSoundFilePath, int mode);
+			Channel* CreateChannel(const std::shared_ptr<Sound>& pSound, bool isPause);
+
+			ChannelID AllocateChannelID() { return { m_nChannelID_allocator++ }; }
 
 		private:
-			bool m_isInitialized{ false };
-			FMOD::System* m_pSystem{ nullptr };
-			const math::Vector3* m_pf3ListenerPos{ nullptr };
+			thread::Lock m_lock;
 
-			std::unordered_map<String::StringID, SoundInstance*> m_umapSoundInst;
-			std::list<String::StringID> m_listReqStopSound;
+			FMOD::System* m_pFmodSystem{ nullptr };
+			ListenerAttributes m_listenerAttributes;
+
+			uint64_t m_nChannelID_allocator{ 0 };
+
+			std::map<std::string, std::unordered_map<int, std::shared_ptr<Sound>>> m_mapModeSounds;
+			std::unordered_map<ChannelID, std::unique_ptr<Channel>> m_umapChannels;
+
+			struct StopChannel
+			{
+				ChannelID id{ eInvalidChannelID };
+				float fFadeOutTime{ 0.3f };
+
+				StopChannel(const ChannelID& id, float fFadeOutTime)
+					: id(id)
+					, fFadeOutTime(fFadeOutTime)
+				{
+				}
+			};
+			std::vector<StopChannel> m_vecReqStopChannels;
 		};
 
 		System::Impl::Impl()
 		{
 			// 사운드 시스템 생성
-			FMOD_RESULT fm_result = FMOD::System_Create(&m_pSystem);
+			FMOD_RESULT fm_result = FMOD::System_Create(&m_pFmodSystem);
 			if (fm_result != FMOD_OK)
 			{
 				LOG_ERROR("fmod system create failed, %s", FMOD_ErrorString(fm_result));
 				return;
 			}
 
-			m_pSystem->init(20, FMOD_INIT_NORMAL, nullptr);
-			m_pSystem->set3DSettings(1.f, 100.f, 1.f);
-
-			m_isInitialized = true;
+			m_pFmodSystem->init(eMaxChannel, FMOD_INIT_NORMAL, nullptr);
+			m_pFmodSystem->set3DSettings(1.f, 100.f, 1.f);
 		}
 
 		System::Impl::~Impl()
 		{
-			m_pf3ListenerPos = nullptr;
+			m_umapChannels.clear();
+			m_mapModeSounds.clear();
 
-			std::for_each(m_umapSoundInst.begin(), m_umapSoundInst.end(), DeleteSTLMapObject());
-			m_umapSoundInst.clear();
-
-			if (m_pSystem != nullptr)
+			if (m_pFmodSystem != nullptr)
 			{
-				m_pSystem->release();
-				m_pSystem = nullptr;
+				m_pFmodSystem->release();
+				m_pFmodSystem = nullptr;
 			}
 		}
 
 		void System::Impl::Update(float fElapsedTime)
 		{
-			if (m_isInitialized == false)
+			if (m_pFmodSystem == nullptr)
 				return;
 
-			TRACER_EVENT("SoundSystem::Update");
+			TRACER_EVENT(__FUNCTION__);
+
+			thread::AutoLock autoLock(&m_lock);
+
 			{
-				TRACER_BEGINEVENT("SoundSystem::Update", "RequestStopSound");
-				auto iter = m_listReqStopSound.begin();
-				while (iter != m_listReqStopSound.end())
+				TRACER_BEGINEVENT("RequestStopChannels");
+				m_vecReqStopChannels.erase(std::remove_if(m_vecReqStopChannels.begin(), m_vecReqStopChannels.end(), [&](const StopChannel& stopChannel)
 				{
+					auto iter = m_umapChannels.find(stopChannel.id);
+					if (iter == m_umapChannels.end())
+						return true;
+
+					Channel* pChannel = iter->second.get();
+					FMOD::Channel* pFmodChannel = pChannel->GetInterface();
+
 					float fVolume = 0.f;
+					pFmodChannel->getVolume(&fVolume);
 
-					auto iter_sound = m_umapSoundInst.find((*iter));
-					if (iter_sound == m_umapSoundInst.end())
-					{
-						iter = m_listReqStopSound.erase(iter);
-						continue;
-					}
-
-					SoundInstance* pSoundInst = iter_sound->second;
-
-					if (pSoundInst->listChannel.empty())
-					{
-						iter = m_listReqStopSound.erase(iter);
-						continue;
-					}
-
-					FMOD::Channel* pChannel = pSoundInst->listChannel.front();
-					pChannel->getVolume(&fVolume);
-
+					// FadeOutTime 음향 페이드아웃 후 종료 구현하도록 하셈 흐흐
 					if (fVolume < 0.01f)
 					{
-						pChannel->stop();
-
-						iter = m_listReqStopSound.erase(iter);
-						continue;
+						pFmodChannel->stop();
+						m_umapChannels.erase(iter);
+						return true;
 					}
 					else
 					{
-						fVolume += 0.5f;
-						pChannel->setVolume(fVolume);
+						fVolume -= 0.5f;
+						pFmodChannel->setVolume(fVolume);
+						return false;
+					}
+				}), m_vecReqStopChannels.end());
+
+				TRACER_ENDEVENT();
+			}
+
+			{
+				TRACER_BEGINEVENT("GarbageCollect_Channel");
+				for (auto iter = m_umapChannels.begin(); iter != m_umapChannels.end();)
+				{
+					Channel* pChannel = iter->second.get();
+					if (pChannel->GetState() == Channel::eEnd)
+					{
+						iter = m_umapChannels.erase(iter);
+					}
+					else
+					{
 						++iter;
 					}
 				}
@@ -129,152 +144,226 @@ namespace eastengine
 			}
 
 			{
-				TRACER_BEGINEVENT("SoundSystem::Update", "GarbageCollect");
-				auto iter = m_umapSoundInst.begin();
-				while (iter != m_umapSoundInst.end())
+				TRACER_BEGINEVENT("GarbageCollect_Sound");
+
+				const float DestroyWaitTime = 60.f;
+
+				for (auto iter_mode = m_mapModeSounds.begin(); iter_mode != m_mapModeSounds.end();)
 				{
-					SoundInstance* pSoundInst = iter->second;
-					std::list<FMOD::Channel*>& listChannel = pSoundInst->listChannel;
-
-					if (listChannel.empty())
+					std::unordered_map<int, std::shared_ptr<Sound>>& uampSounds = iter_mode->second;
+					for (auto iter_sound = uampSounds.begin(); iter_sound != uampSounds.end();)
 					{
-						pSoundInst->m_fFlushTime += fElapsedTime;
-						if (pSoundInst->m_fFlushTime >= 60.f)
+						const std::shared_ptr<Sound>& pSound = iter_sound->second;
+						if (pSound.use_count() == 1)
 						{
-							iter = m_umapSoundInst.erase(iter);
-							continue;
-						}
-
-						++iter;
-					}
-					else
-					{
-						auto iter_channel = listChannel.begin();
-						while (iter_channel != listChannel.end())
-						{
-							bool isPlaying = false;
-							(*iter_channel)->isPlaying(&isPlaying);
-
-							if (isPlaying == false)
+							pSound->UpdateDestroyWaitTime(fElapsedTime);
+							if (pSound->GetDestroyWaitTime() >= DestroyWaitTime)
 							{
-								iter_channel = listChannel.erase(iter_channel);
-								continue;
+								iter_sound = uampSounds.erase(iter_sound);
 							}
-
-							++iter_channel;
+							else
+							{
+								++iter_sound;
+							}
 						}
+						else
+						{
+							++iter_sound;
+						}
+					}
+
+					if (uampSounds.empty() == true)
+					{
+						iter_mode = m_mapModeSounds.erase(iter_mode);
+					}
+					else
+					{
+						++iter_mode;
 					}
 				}
 				TRACER_ENDEVENT();
 			}
 
 			{
-				TRACER_BEGINEVENT("SoundSystem::Update", "FMOD System Update");
-				m_pSystem->update();
+				TRACER_BEGINEVENT("FMOD System Update");
 
-				if (m_pf3ListenerPos != nullptr)
-				{
-					FMOD_VECTOR vPos = { m_pf3ListenerPos->x, m_pf3ListenerPos->y, m_pf3ListenerPos->z };
-					FMOD_VECTOR vForward = { 0.f, 1.f, 0.f };
-					FMOD_VECTOR vUp = { 0.f, 0.f, 1.f };
-					m_pSystem->set3DListenerAttributes(0, &vPos, nullptr, &vForward, &vUp);
-				}
+				const FMOD_VECTOR* pPosition = reinterpret_cast<const FMOD_VECTOR*>(&m_listenerAttributes.f3Position);
+				const FMOD_VECTOR* pVelocity = reinterpret_cast<const FMOD_VECTOR*>(&m_listenerAttributes.f3Velocity);
+				const FMOD_VECTOR* pForward = reinterpret_cast<const FMOD_VECTOR*>(&m_listenerAttributes.f3Forward);
+				const FMOD_VECTOR* pUp = reinterpret_cast<const FMOD_VECTOR*>(&m_listenerAttributes.f3Up);
+				m_pFmodSystem->set3DListenerAttributes(0, pPosition, pVelocity, pForward, pUp);
+				
+				m_pFmodSystem->update();
 				TRACER_ENDEVENT();
 			}
 		}
 
-		bool System::Impl::Play(const String::StringID& strSoundFile, float fVolume, const math::Vector3* pf3Pos, int mode)
+		ChannelID System::Impl::Play2D(const std::string& strSoundFilePath, float fVolume, int mode)
 		{
-			if (m_isInitialized == false)
-				return false;
+			if (m_pFmodSystem == nullptr)
+				return { eInvalidChannelID };
 
-			SoundInstance* pSoundInst = nullptr;
-			auto iter = m_umapSoundInst.find(strSoundFile);
-			if (iter == m_umapSoundInst.end())
+			TRACER_EVENT(__FUNCTION__);
+
+			mode ^= e3D;
+			mode |= e2D;
+
+			thread::AutoLock autoLock(&m_lock);
+
+			std::shared_ptr<Sound> pSound = CreateSound(strSoundFilePath, mode);
+			if (pSound == nullptr)
+				return { eInvalidChannelID };
+
+			Channel* pChannel = CreateChannel(pSound, false);
+			if (pChannel == nullptr)
+				return { eInvalidChannelID };
+
+			FMOD::Channel* pFmodChannel = pChannel->GetInterface();
+			pFmodChannel->setVolume(fVolume);
+
+			return pChannel->GetID();
+		}
+
+		ChannelID System::Impl::Play3D(const std::string& strSoundFilePath, const math::Vector3& f3Position, const math::Vector3& f3Velocity, float fVolume, int mode)
+		{
+			if (m_pFmodSystem == nullptr)
+				return { eInvalidChannelID };
+
+			TRACER_EVENT(__FUNCTION__);
+
+			mode ^= e2D;
+			mode |= e3D;
+
+			thread::AutoLock autoLock(&m_lock);
+
+			std::shared_ptr<Sound> pSound = CreateSound(strSoundFilePath, mode);
+			if (pSound == nullptr)
+				return { eInvalidChannelID };
+
+			Channel* pChannel = CreateChannel(pSound, true);
+			if (pChannel == nullptr)
+				return { eInvalidChannelID };
+
+			FMOD::Channel* pFmodChannel = pChannel->GetInterface();
+			pFmodChannel->setVolume(fVolume);
+
+			const FMOD_VECTOR* pPosition = reinterpret_cast<const FMOD_VECTOR*>(&f3Position);
+			const FMOD_VECTOR* pVelocity = reinterpret_cast<const FMOD_VECTOR*>(&f3Velocity);
+			pFmodChannel->set3DAttributes(pPosition, pVelocity);
+			pFmodChannel->setPaused(false);
+
+			return pChannel->GetID();
+		}
+
+		void System::Impl::Stop(const ChannelID& channelID, float fFadeOutTime)
+		{
+			if (m_pFmodSystem == nullptr)
+				return;
+
+			TRACER_EVENT(__FUNCTION__);
+
+			thread::AutoLock autoLock(&m_lock);
+
+			auto iter = std::find_if(m_vecReqStopChannels.begin(), m_vecReqStopChannels.end(), [&](const StopChannel& stopChannel)
 			{
-				FMOD::Sound* pNewSound = CreateSoundInst(strSoundFile, mode);
-				if (pNewSound == nullptr)
-					return false;
+				return stopChannel.id == channelID;
+			});
 
-				SoundInstance* pNewSoundInst = new SoundInstance;
-				pNewSoundInst->pSound = pNewSound;
+			if (iter != m_vecReqStopChannels.end())
+				return;
 
-				m_umapSoundInst.emplace(strSoundFile, pNewSoundInst);
+			m_vecReqStopChannels.emplace_back(channelID, fFadeOutTime);
+		}
 
-				pSoundInst = pNewSoundInst;
+		void System::Impl::Resume(const ChannelID& channelID)
+		{
+			if (m_pFmodSystem == nullptr)
+				return;
+
+			TRACER_EVENT(__FUNCTION__);
+
+			auto iter = m_umapChannels.find(channelID);
+			if (iter != m_umapChannels.end())
+			{
+				iter->second->Resume();
 			}
-			else
+		}
+
+		void System::Impl::Pause(const ChannelID& channelID)
+		{
+			if (m_pFmodSystem == nullptr)
+				return;
+
+			TRACER_EVENT(__FUNCTION__);
+
+			auto iter = m_umapChannels.find(channelID);
+			if (iter != m_umapChannels.end())
 			{
-				pSoundInst = iter->second;
+				iter->second->Pause();
 			}
+		}
 
-			pSoundInst->m_fFlushTime = 0.f;
+		std::shared_ptr<Sound> System::Impl::CreateSound(const std::string& strSoundFilePath, int mode)
+		{
+			TRACER_EVENT(__FUNCTION__);
 
-			pSoundInst->pSound->getMode(reinterpret_cast<FMOD_MODE*>(&mode));
+			std::shared_ptr<Sound> pSound;
 
-			FMOD::Channel* pNewChannel = nullptr;
-
-			if (mode & e3D)
+			auto iter_mode = m_mapModeSounds.find(strSoundFilePath);
+			if (iter_mode != m_mapModeSounds.end())
 			{
-				FMOD_VECTOR v = { 0.f, 0.f, 0.f };
-				if (pf3Pos)
+				auto iter_sound = iter_mode->second.find(mode);
+				if (iter_sound != iter_mode->second.end())
 				{
-					v.x = pf3Pos->x;
-					v.y = pf3Pos->y;
-					v.z = pf3Pos->z;
+					pSound = iter_sound->second;
 				}
-
-				m_pSystem->playSound(FMOD_CHANNEL_FREE, pSoundInst->pSound, true, &pNewChannel);
-				pNewChannel->set3DAttributes(&v, nullptr);
-				pNewChannel->setPaused(false);
-
-				pSoundInst->listChannel.push_back(pNewChannel);
 			}
-			else
+
+			if (pSound == nullptr)
 			{
-				m_pSystem->playSound(FMOD_CHANNEL_FREE, pSoundInst->pSound, false, &pNewChannel);
+				if (file::IsExists(strSoundFilePath) == false)
+					return nullptr;
+
+				FMOD::Sound* pFmodSound = nullptr;
+				const FMOD_RESULT fm_result = m_pFmodSystem->createSound(strSoundFilePath.c_str(), mode, nullptr, &pFmodSound);
+				if (fm_result != FMOD_OK)
+					return nullptr;
+
+				pSound = std::make_shared<Sound>(strSoundFilePath, pFmodSound, mode);
+
+				if (iter_mode != m_mapModeSounds.end())
+				{
+					iter_mode->second.emplace(mode, pSound);
+				}
+				else
+				{
+					auto iter_sound = m_mapModeSounds.emplace(strSoundFilePath, std::unordered_map<int, std::shared_ptr<Sound>>());
+					iter_sound.first->second.emplace(mode, pSound);
+				}
 			}
 
-			if (pNewChannel == nullptr)
-				return false;
+			pSound->Alive();
 
-			pNewChannel->setVolume(fVolume);
-
-			return true;
+			return pSound;
 		}
 
-		void System::Impl::Stop(const String::StringID& strSoundFile)
+		Channel* System::Impl::CreateChannel(const std::shared_ptr<Sound>& pSound, bool isPause)
 		{
-			if (m_isInitialized == false)
-				return;
+			TRACER_EVENT(__FUNCTION__);
 
-			m_listReqStopSound.emplace_back(strSoundFile);
-		}
-
-		void System::Impl::SetListenerPosition(const math::Vector3* pf3ListenerPos)
-		{
-			if (m_isInitialized == false)
-				return;
-
-			m_pf3ListenerPos = pf3ListenerPos;
-		}
-
-		FMOD::Sound* System::Impl::CreateSoundInst(const String::StringID& strSoundFile, int mode)
-		{
-			if (m_isInitialized == false)
+			FMOD::Channel* pFmodChannel = nullptr;
+			const FMOD_RESULT result = m_pFmodSystem->playSound(FMOD_CHANNEL_FREE, pSound->GetInterface(), isPause, &pFmodChannel);
+			if (result != FMOD_OK)
+			{
+				LOG_ERROR("Failed to FMOD PlaySound : ErrorCode[%d]", result);
 				return nullptr;
+			}
 
-			// 사운드 로딩
-			std::string strFile = file::GetPath(file::eSound);
-			strFile.append(strSoundFile.c_str());
+			const ChannelID channelID = AllocateChannelID();
+			std::unique_ptr<Channel> pChannel = std::make_unique<Channel>(channelID, pSound, pFmodChannel);
 
-			FMOD_RESULT fm_result;
-			FMOD::Sound* pNewSound = nullptr;
-			fm_result = m_pSystem->createSound(strFile.c_str(), mode, 0, &pNewSound);
-			if (fm_result != FMOD_OK)
-				return nullptr;
-
-			return pNewSound;
+			auto iter_result = m_umapChannels.emplace(channelID, std::move(pChannel));
+			return iter_result.first->second.get();
 		}
 
 		System::System()
@@ -286,19 +375,34 @@ namespace eastengine
 		{
 		}
 
-		bool System::Play(const String::StringID& strSoundFile, float fVolume, const math::Vector3* pf3Pos, int mode)
+		ChannelID System::Play2D(const std::string& strSoundFilePath, float fVolume, int mode)
 		{
-			return m_pImpl->Play(strSoundFile, fVolume, pf3Pos, mode);
+			return m_pImpl->Play2D(strSoundFilePath, fVolume, mode);
 		}
 
-		void System::Stop(const String::StringID& strSoundFile)
+		ChannelID System::Play3D(const std::string& strSoundFilePath, const math::Vector3& f3Position, const math::Vector3& f3Velocity, float fVolume, int mode)
 		{
-			m_pImpl->Stop(strSoundFile);
+			return m_pImpl->Play3D(strSoundFilePath, f3Position, f3Velocity, fVolume, mode);
 		}
 
-		void System::SetListenerPosition(const math::Vector3* pf3ListenerPos)
+		void System::Stop(const ChannelID& channelID, float fFadeOutTime)
 		{
-			m_pImpl->SetListenerPosition(pf3ListenerPos);
+			m_pImpl->Stop(channelID, fFadeOutTime);
+		}
+
+		void System::Resume(const ChannelID& channelID)
+		{
+			m_pImpl->Resume(channelID);
+		}
+
+		void System::Pause(const ChannelID& channelID)
+		{
+			m_pImpl->Pause(channelID);
+		}
+
+		void System::SetListenerAttributes(const ListenerAttributes& listenerAttributes)
+		{
+			m_pImpl->SetListenerAttributes(listenerAttributes);
 		}
 
 		void System::Update(float fElapsedTime)

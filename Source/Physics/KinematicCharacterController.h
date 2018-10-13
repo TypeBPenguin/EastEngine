@@ -5,7 +5,7 @@ class btKinematicCharacterController;
 
 namespace eastengine
 {
-	namespace Physics
+	namespace physics
 	{
 		class GhostObject;
 

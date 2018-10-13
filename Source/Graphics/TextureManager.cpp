@@ -110,7 +110,7 @@ namespace eastengine
 				IResource* pResource = iter.second;
 				if (pResource->GetReferenceCount() > 1)
 				{
-					String::StringID name(iter.second->GetKey().value);
+					String::StringID name(iter.second->GetKey());
 					LOG_WARNING("failed to reference count managed : refCount[%d], name[%s]", pResource->GetReferenceCount(), name.c_str());
 					Sleep(100);
 				}

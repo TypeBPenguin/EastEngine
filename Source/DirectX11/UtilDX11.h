@@ -128,9 +128,9 @@ namespace std
 	template <>
 	struct hash<eastengine::graphics::dx11::shader::MaskKey>
 	{
-		size_t operator()(const eastengine::graphics::dx11::shader::MaskKey& key) const
+		uint32_t operator()(const eastengine::graphics::dx11::shader::MaskKey& key) const
 		{
-			return key.value;
+			return key;
 		}
 	};
 }

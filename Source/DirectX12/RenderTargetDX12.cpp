@@ -29,7 +29,7 @@ namespace eastengine
 				D3D12_RESOURCE_DESC desc = pResource->GetDesc();
 
 				const Key key = RenderTarget::BuildKey(&desc, clearColor);
-				const String::StringID strName(key.value);
+				const String::StringID strName(key);
 
 				std::unique_ptr<RenderTarget> pRenderTarget = std::make_unique<RenderTarget>(key);
 				pRenderTarget->m_colorClearValue = clearColor;
@@ -57,7 +57,7 @@ namespace eastengine
 				DescriptorHeap* pRTVDescriptorHeap = Device::GetInstance()->GetRTVDescriptorHeap();
 
 				const Key key = RenderTarget::BuildKey(pResourceDesc, clearColor);
-				const String::StringID strName(key.value);
+				const String::StringID strName(key);
 
 				std::unique_ptr<RenderTarget> pRenderTarget = std::make_unique<RenderTarget>(key);
 				pRenderTarget->m_colorClearValue = clearColor;

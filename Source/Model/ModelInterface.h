@@ -484,7 +484,7 @@ namespace std
 	{
 		const eastengine::String::StringData* operator()(const eastengine::graphics::IModel::Key& key) const
 		{
-			return key.value.Key();
+			return key.Value().Key();
 		}
 	};
 
@@ -493,7 +493,7 @@ namespace std
 	{
 		const eastengine::String::StringData* operator()(const eastengine::graphics::IMotion::Key& key) const
 		{
-			return key.value.Key();
+			return key.Value().Key();
 		}
 	};
 }

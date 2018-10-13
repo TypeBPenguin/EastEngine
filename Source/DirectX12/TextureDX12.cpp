@@ -36,7 +36,7 @@ namespace eastengine
 
 			public:
 				const ITexture::Key& GetKey() const { return m_key; }
-				const String::StringID& GetName() const { return m_key.value; }
+				const String::StringID& GetName() const { return m_key.Value(); }
 
 			public:
 				const math::UInt2& GetSize() const { return m_n2Size; }
@@ -103,7 +103,7 @@ namespace eastengine
 
 			bool Texture::Impl::Initialize(const D3D12_RESOURCE_DESC* pDesc)
 			{
-				String::StringID strName(m_key.value);
+				const String::StringID strName(m_key);
 
 				ID3D12Device* pDevice = Device::GetInstance()->GetInterface();
 

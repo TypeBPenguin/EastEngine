@@ -68,7 +68,7 @@ namespace eastengine
 			m_property.rigidBodyProperty.fMass = 0.f;
 			m_property.rigidBodyProperty.strName = StrID::Terrain_Physics;
 
-			m_property.rigidBodyProperty.nCollisionFlag = Physics::EmCollision::eStaticObject;
+			m_property.rigidBodyProperty.nCollisionFlag = physics::EmCollision::eStaticObject;
 
 			m_matWorld = math::Matrix::Compose(m_property.transform.scale, m_property.transform.rotation, m_property.transform.position);
 			m_property.rigidBodyProperty.matOffset = m_matWorld;
@@ -77,13 +77,13 @@ namespace eastengine
 			{
 				m_property.rigidBodyProperty.shapeInfo.SetTriangleMesh(m_rigidBodyData.vecVertices.data(), static_cast<uint32_t>(m_rigidBodyData.vecVertices.size()), m_rigidBodyData.vecIndices.data(), static_cast<uint32_t>(m_rigidBodyData.vecIndices.size()));
 
-				m_pPhysics = Physics::RigidBody::Create(m_property.rigidBodyProperty);
+				m_pPhysics = physics::RigidBody::Create(m_property.rigidBodyProperty);
 			}
 			else if (m_rigidBodyData.vecVertices.empty() == false)
 			{
 				m_property.rigidBodyProperty.shapeInfo.SetTriangleMesh(m_rigidBodyData.vecVertices.data(), static_cast<uint32_t>(m_rigidBodyData.vecVertices.size()));
 
-				m_pPhysics = Physics::RigidBody::Create(m_property.rigidBodyProperty);
+				m_pPhysics = physics::RigidBody::Create(m_property.rigidBodyProperty);
 			}
 
 			m_isBuildComplete = true;

@@ -71,7 +71,7 @@ namespace std
 	{
 		const eastengine::String::StringData* operator()(const eastengine::graphics::vulkan::PSOKey& key) const
 		{
-			return key.value.Key();
+			return key.Value().Key();
 		}
 	};
 }

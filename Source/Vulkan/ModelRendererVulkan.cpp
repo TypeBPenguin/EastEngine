@@ -781,7 +781,7 @@ namespace eastengine
 				uint32_t b = 0;
 				uint32_t d = 0;
 
-				sscanf_s(key.value.c_str(), "%llu_%u_%u_%u", &nMask_out, &r, &b, &d);
+				sscanf_s(key.Value().c_str(), "%llu_%u_%u_%u", &nMask_out, &r, &b, &d);
 
 				emRasterizerState_out = static_cast<EmRasterizerState::Type>(r);
 				emBlendState_out = static_cast<EmBlendState::Type>(b);

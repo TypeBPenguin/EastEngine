@@ -8,7 +8,7 @@
 
 namespace eastengine
 {
-	namespace Physics
+	namespace physics
 	{
 		static_assert(EmActiveState::eActiveTag == ACTIVE_TAG, "ActiveState Mismatch");
 		static_assert(EmActiveState::eIslandSleeping == ISLAND_SLEEPING, "ActiveState Mismatch");

@@ -6,7 +6,7 @@ struct ImDrawList;
 
 namespace eastengine
 {
-	namespace Physics
+	namespace physics
 	{
 		class RigidBody;
 	}
@@ -46,7 +46,7 @@ private:
 
 		eastengine::graphics::IVertexBuffer* pVertexBuffer = nullptr;
 		eastengine::graphics::IIndexBuffer* pIndexBuffer = nullptr;
-		eastengine::Physics::RigidBody* pRigidBody = nullptr;
+		eastengine::physics::RigidBody* pRigidBody = nullptr;
 
 		eastengine::math::Matrix matTransform;
 	};

@@ -187,7 +187,7 @@ namespace eastengine
 					vecMacros.push_back({ "DX11", "1" });
 					for (uint32_t i = 0; i < shader::MaskCount; ++i)
 					{
-						if ((maskKey.value & (1 << i)) != 0)
+						if ((maskKey & (1 << i)) != 0)
 						{
 							vecMacros.push_back({GetMaskName(i), "1"});
 						}
@@ -936,7 +936,7 @@ namespace eastengine
 						pDeviceContext->IASetInputLayout(pRenderState->pInputLayout);
 						pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-						if ((iter.first.value & shader::eUseInstancing) == shader::eUseInstancing)
+						if ((iter.first & shader::eUseInstancing) == shader::eUseInstancing)
 						{
 							pDeviceContext->VSSetConstantBuffers(shader::eCB_StaticInstancingData, 1, &m_staticInstancingDataBuffer.pBuffer);
 
@@ -1078,8 +1078,8 @@ namespace eastengine
 							else
 							{
 								shader::MaskKey maskKey = shader::GetMaterialMask(jobBatch.pJob->data.pMaterial);
-								umapMaterialMask.emplace(jobBatch.pJob->data.pMaterial, maskKey.value);
-								nMask = maskKey.value;
+								umapMaterialMask.emplace(jobBatch.pJob->data.pMaterial, maskKey);
+								nMask = maskKey;
 							}
 
 							if (jobBatch.vecInstanceData.size() > 1)
@@ -1119,7 +1119,7 @@ namespace eastengine
 						pDeviceContext->IASetInputLayout(pRenderState->pInputLayout);
 						pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-						if ((iter.first.value & shader::eUseInstancing) == shader::eUseInstancing)
+						if ((iter.first & shader::eUseInstancing) == shader::eUseInstancing)
 						{
 							pDeviceContext->VSSetConstantBuffers(shader::eCB_SkinningInstancingData, 1, &m_skinningInstancingDataBuffer.pBuffer);
 
@@ -1245,7 +1245,7 @@ namespace eastengine
 				const D3D11_INPUT_ELEMENT_DESC* pInputElements = nullptr;
 				size_t nElementCount = 0;
 
-				if ((maskKey.value & shader::eUseSkinning) == shader::eUseSkinning)
+				if ((maskKey & shader::eUseSkinning) == shader::eUseSkinning)
 				{
 					util::GetInputElementDesc(VertexPosTexNorWeiIdx::Format(), &pInputElements, &nElementCount);
 				}
@@ -1259,14 +1259,14 @@ namespace eastengine
 					throw_line("invalid vertex shader input elements");
 				}
 
-				const std::string strDebugName = String::Format("ModelVertexShader : %u", maskKey.value);
+				const std::string strDebugName = String::Format("ModelVertexShader : %u", maskKey);
 
 				ID3D11VertexShader* pVertexShader = nullptr;
 				ID3D11InputLayout* pInputLayout = nullptr;
 
 				if (util::CreateVertexShader(pDevice, m_pShaderBlob, vecMacros.data(), m_strShaderPath.c_str(), pFunctionName, "vs_5_0", &pVertexShader, pInputElements, nElementCount, &pInputLayout, strDebugName.c_str()) == false)
 				{
-					LOG_ERROR("failed to create vertex shader : %u", maskKey.value);
+					LOG_ERROR("failed to create vertex shader : %u", maskKey);
 					return;
 				}
 
@@ -1278,12 +1278,12 @@ namespace eastengine
 			{
 				const std::vector<D3D_SHADER_MACRO> vecMacros = shader::GetMacros(maskKey);
 
-				const std::string strDebugName = String::Format("ModelPixelShader : %u", maskKey.value);
+				const std::string strDebugName = String::Format("ModelPixelShader : %u", maskKey);
 
 				ID3D11PixelShader* pPixelShader = nullptr;
 				if (util::CreatePixelShader(pDevice, m_pShaderBlob, vecMacros.data(), m_strShaderPath.c_str(), pFunctionName, "ps_5_0", &pPixelShader, strDebugName.c_str()) == false)
 				{
-					LOG_ERROR("failed to create pixel shader : %u", maskKey.value);
+					LOG_ERROR("failed to create pixel shader : %u", maskKey);
 					return;
 				}
 

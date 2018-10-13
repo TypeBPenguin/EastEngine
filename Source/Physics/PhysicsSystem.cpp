@@ -6,7 +6,7 @@
 
 namespace eastengine
 {
-	namespace Physics
+	namespace physics
 	{
 		class System::Impl
 		{

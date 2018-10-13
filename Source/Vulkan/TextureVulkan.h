@@ -18,7 +18,7 @@ namespace eastengine
 
 			public:
 				virtual const ITexture::Key& GetKey() const override { return m_key; }
-				virtual const String::StringID& GetName() const override { return m_key.value; }
+				virtual const String::StringID& GetName() const override { return m_key; }
 
 			public:
 				virtual const math::UInt2& GetSize() const override { return m_n2Size; }

@@ -30,9 +30,9 @@ SkeletonController::SkeletonController()
 		{
 			Controller& controller = m_controllers[j][i];
 
-			Physics::RigidBodyProperty rigidBodyProperty;
+			physics::RigidBodyProperty rigidBodyProperty;
 			rigidBodyProperty.strName.Format("%s_%d_%d", "SkeletonController", i, j);
-			rigidBodyProperty.nCollisionFlag = Physics::EmCollision::eKinematicObject;
+			rigidBodyProperty.nCollisionFlag = physics::EmCollision::eKinematicObject;
 
 			switch (i)
 			{
@@ -53,7 +53,7 @@ SkeletonController::SkeletonController()
 				graphics::geometry::CreateCone(&controller.pVertexBuffer, &controller.pIndexBuffer, 0.01f, 0.05f);
 
 				rigidBodyProperty.shapeInfo.SetTriangleMesh(reinterpret_cast<const math::Vector3*>(controller.pVertexBuffer->GetVertexPosPtr()), controller.pVertexBuffer->GetVertexNum(), controller.pIndexBuffer->GetRawValuePtr(), controller.pIndexBuffer->GetIndexNum());
-				controller.pRigidBody = Physics::RigidBody::Create(rigidBodyProperty);
+				controller.pRigidBody = physics::RigidBody::Create(rigidBodyProperty);
 			}
 			break;
 			case Type::eScale:
@@ -77,7 +77,7 @@ SkeletonController::SkeletonController()
 				graphics::geometry::CreateTorus(&controller.pVertexBuffer, &controller.pIndexBuffer, 0.2f, 0.003f);
 
 				rigidBodyProperty.shapeInfo.SetTriangleMesh(reinterpret_cast<const math::Vector3*>(controller.pVertexBuffer->GetVertexPosPtr()), controller.pVertexBuffer->GetVertexNum(), controller.pIndexBuffer->GetRawValuePtr(), controller.pIndexBuffer->GetIndexNum());
-				controller.pRigidBody = Physics::RigidBody::Create(rigidBodyProperty);
+				controller.pRigidBody = physics::RigidBody::Create(rigidBodyProperty);
 			}
 			break;
 			}

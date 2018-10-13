@@ -13,8 +13,20 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="SoundSystem">
+    <Filter Include="Sound">
       <UniqueIdentifier>{4b52f37c-5e77-4765-81db-296743913dce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sound\Object">
+      <UniqueIdentifier>{5a8f1189-9dab-41d3-a280-3c0d84fad431}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sound\System">
+      <UniqueIdentifier>{8c51914f-1792-45fb-8fa9-c19e7381e83f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sound\Define">
+      <UniqueIdentifier>{8b2aa63e-1bc2-4f2a-bf6c-db9d2ebb66ea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sound\Interface">
+      <UniqueIdentifier>{6d414b90-b9fb-4825-81f6-46d236036656}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -28,7 +40,16 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="SoundSystem.h">
-      <Filter>SoundSystem</Filter>
+      <Filter>Sound\System</Filter>
+    </ClInclude>
+    <ClInclude Include="SoundObject.h">
+      <Filter>Sound\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="SoundDefine.h">
+      <Filter>Sound\Define</Filter>
+    </ClInclude>
+    <ClInclude Include="SoundInterface.h">
+      <Filter>Sound\Interface</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -36,7 +57,16 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="SoundSystem.cpp">
-      <Filter>SoundSystem</Filter>
+      <Filter>Sound\System</Filter>
+    </ClCompile>
+    <ClCompile Include="SoundObject.cpp">
+      <Filter>Sound\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="SoundDefine.cpp">
+      <Filter>Sound\Define</Filter>
+    </ClCompile>
+    <ClCompile Include="SoundInterface.cpp">
+      <Filter>Sound\Interface</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

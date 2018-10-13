@@ -109,10 +109,10 @@ namespace eastengine
 
 				graphics::IModelInstance* pPhysicsModelInst = graphics::IModel::CreateInstance(modelLoader);
 
-				Physics::RigidBodyProperty prop;
+				physics::RigidBodyProperty prop;
 				prop.fLinearDamping = 0.05f;
 				prop.fAngularDamping = 0.85f;
-				prop.nCollisionFlag = Physics::EmCollision::eCharacterObject;
+				prop.nCollisionFlag = physics::EmCollision::eCharacterObject;
 				prop.strName = strName;
 				prop.f3OriginPos = f3NewPos;
 				prop.originQuat = newQuat;
@@ -128,22 +128,22 @@ namespace eastengine
 				pBodyPart->fHeight = fNewHeight;
 				//pBodyPart->isChildBone = isChildBone;
 
-				pBodyPart->pRigidBody->SetActiveState(Physics::EmActiveState::eIslandSleeping);
+				pBodyPart->pRigidBody->SetActiveState(physics::EmActiveState::eIslandSleeping);
 
 				return pBodyPart;
 			};
 
-			//Physics::RigidBody* pPelvis = CreateBodyPart("Pelvis", StrID::Pelvis, fScale * 0.15f, fScale * 0.2f, math::Vector3(0.f, fScale * 1.f, 0.f));
-			//Physics::RigidBody* pSpine = CreateBodyPart("Spine", StrID::Spine, fScale * 0.15f, fScale * 0.28f, math::Vector3(0.f, fScale * 1.2f, 0.f));
-			//Physics::RigidBody* pHead = CreateBodyPart("Head", StrID::Head, fScale * 0.1f, fScale * 0.05f, math::Vector3(0.f, fScale * 1.6f, 0.f));
-			//Physics::RigidBody* pLeftUpperLeg = CreateBodyPart("L_Thigh1", StrID::LeftUpperLeg, fScale * 0.07f, fScale * 0.45f, math::Vector3(fScale * -0.18f, fScale * 0.65f, 0.f));
-			//Physics::RigidBody* pLeftLowerLeg = CreateBodyPart("L_Knee2", StrID::LeftLowerLeg, fScale * 0.05f, fScale * 0.37f, math::Vector3(fScale * -0.18f, fScale * 0.2f, 0.f));
-			//Physics::RigidBody* pRightUpperLeg = CreateBodyPart("R_Thigh", StrID::RightUpperLeg, fScale * 0.07f, fScale * 0.45f, math::Vector3(fScale * 0.18f, fScale * 0.65f, 0.f));
-			//Physics::RigidBody* pRightLowerLeg = CreateBodyPart("R_Knee", StrID::RightLowerLeg, fScale * 0.05f, fScale * 0.37f, math::Vector3(fScale * 0.18f, fScale * 0.2f, 0.f));
-			//Physics::RigidBody* pLeftUpperArm = CreateBodyPart("L_UpperArm", StrID::LeftUpperArm, fScale * 0.05f, fScale * 0.33f, math::Vector3(fScale * -0.35f, fScale * 1.45f, 0.f), math::Quaternion::CreateFromYawPitchRoll(0.f, 0.f, math::PIDIV2));
-			//Physics::RigidBody* pLeftLowerArm = CreateBodyPart("L_Forearm", StrID::LeftLowerArm, fScale * 0.04f, fScale * 0.25f, math::Vector3(fScale * -0.7f, fScale * 1.45f, 0.f), math::Quaternion::CreateFromYawPitchRoll(0.f, 0.f, math::PIDIV2));
-			//Physics::RigidBody* pRightUpperArm = CreateBodyPart("R_UpperArm", StrID::RightUpperArm, fScale * 0.05f, fScale * 0.33f, math::Vector3(fScale * 0.35f, fScale * 1.45f, 0.f), math::Quaternion::CreateFromYawPitchRoll(0.f, 0.f, -math::PIDIV2));
-			//Physics::RigidBody* pRightLowerArm = CreateBodyPart("R_Forearm", StrID::RightLowerArm, fScale * 0.04f, fScale * 0.25f, math::Vector3(fScale * 0.7f, fScale * 1.45f, 0.f), math::Quaternion::CreateFromYawPitchRoll(0.f, 0.f, -math::PIDIV2));
+			//physics::RigidBody* pPelvis = CreateBodyPart("Pelvis", StrID::Pelvis, fScale * 0.15f, fScale * 0.2f, math::Vector3(0.f, fScale * 1.f, 0.f));
+			//physics::RigidBody* pSpine = CreateBodyPart("Spine", StrID::Spine, fScale * 0.15f, fScale * 0.28f, math::Vector3(0.f, fScale * 1.2f, 0.f));
+			//physics::RigidBody* pHead = CreateBodyPart("Head", StrID::Head, fScale * 0.1f, fScale * 0.05f, math::Vector3(0.f, fScale * 1.6f, 0.f));
+			//physics::RigidBody* pLeftUpperLeg = CreateBodyPart("L_Thigh1", StrID::LeftUpperLeg, fScale * 0.07f, fScale * 0.45f, math::Vector3(fScale * -0.18f, fScale * 0.65f, 0.f));
+			//physics::RigidBody* pLeftLowerLeg = CreateBodyPart("L_Knee2", StrID::LeftLowerLeg, fScale * 0.05f, fScale * 0.37f, math::Vector3(fScale * -0.18f, fScale * 0.2f, 0.f));
+			//physics::RigidBody* pRightUpperLeg = CreateBodyPart("R_Thigh", StrID::RightUpperLeg, fScale * 0.07f, fScale * 0.45f, math::Vector3(fScale * 0.18f, fScale * 0.65f, 0.f));
+			//physics::RigidBody* pRightLowerLeg = CreateBodyPart("R_Knee", StrID::RightLowerLeg, fScale * 0.05f, fScale * 0.37f, math::Vector3(fScale * 0.18f, fScale * 0.2f, 0.f));
+			//physics::RigidBody* pLeftUpperArm = CreateBodyPart("L_UpperArm", StrID::LeftUpperArm, fScale * 0.05f, fScale * 0.33f, math::Vector3(fScale * -0.35f, fScale * 1.45f, 0.f), math::Quaternion::CreateFromYawPitchRoll(0.f, 0.f, math::PIDIV2));
+			//physics::RigidBody* pLeftLowerArm = CreateBodyPart("L_Forearm", StrID::LeftLowerArm, fScale * 0.04f, fScale * 0.25f, math::Vector3(fScale * -0.7f, fScale * 1.45f, 0.f), math::Quaternion::CreateFromYawPitchRoll(0.f, 0.f, math::PIDIV2));
+			//physics::RigidBody* pRightUpperArm = CreateBodyPart("R_UpperArm", StrID::RightUpperArm, fScale * 0.05f, fScale * 0.33f, math::Vector3(fScale * 0.35f, fScale * 1.45f, 0.f), math::Quaternion::CreateFromYawPitchRoll(0.f, 0.f, -math::PIDIV2));
+			//physics::RigidBody* pRightLowerArm = CreateBodyPart("R_Forearm", StrID::RightLowerArm, fScale * 0.04f, fScale * 0.25f, math::Vector3(fScale * 0.7f, fScale * 1.45f, 0.f), math::Quaternion::CreateFromYawPitchRoll(0.f, 0.f, -math::PIDIV2));
 
 			BodyPart* pPelvis = CreateBodyPart(false, "Character1_Hips", StrID::Pelvis, fScale * 0.15f, fScale * 0.05f, math::Vector3(0.f, fScale * 1.1f, 0.f));
 			pPelvis->isRootNode = true;
@@ -190,12 +190,12 @@ namespace eastengine
 
 				graphics::IModelInstance* pPhysicsModelInst = graphics::IModel::CreateInstance(modelLoader);*/
 
-				Physics::ConstraintProperty prop;
+				physics::ConstraintProperty prop;
 				prop.SetGeneric6Dof(pBodyPartA->pRigidBody, f3PosA, quatA, pBodyPartB->pRigidBody, f3PosB, quatB, true, true);
 
 				Joint* pJoint = AddJoint(strJointName, prop, pBodyPartA, pBodyPartB, nullptr);
 
-				Physics::Generic6DofConstraint* pConstraint = static_cast<Physics::Generic6DofConstraint*>(pJoint->pConstraint);
+				physics::Generic6DofConstraint* pConstraint = static_cast<physics::Generic6DofConstraint*>(pJoint->pConstraint);
 				pConstraint->SetAngularLowerLimit(f3AngularLowerLimit);
 				pConstraint->SetAngularUpperLimit(f3AngularUpperLimit);
 
@@ -355,13 +355,13 @@ namespace eastengine
 			}
 		}
 
-		RagDoll::BodyPart* RagDoll::AddBodyPart(const String::StringID& strPartName, const Physics::RigidBodyProperty& rigidBodyProperty, graphics::IModelInstance* pPhysicsModelInstance, graphics::ISkeletonInstance::IBone* pBone)
+		RagDoll::BodyPart* RagDoll::AddBodyPart(const String::StringID& strPartName, const physics::RigidBodyProperty& rigidBodyProperty, graphics::IModelInstance* pPhysicsModelInstance, graphics::ISkeletonInstance::IBone* pBone)
 		{
 			if (GetBodyPort(strPartName) != nullptr)
 				return nullptr;
 
 			BodyPart* pBodyPart = nullptr;
-			Physics::RigidBody* pRigidBody = Physics::RigidBody::Create(rigidBodyProperty);
+			physics::RigidBody* pRigidBody = physics::RigidBody::Create(rigidBodyProperty);
 			if (pRigidBody != nullptr)
 			{
 				m_vecBodyParts.emplace_back(new BodyPart(strPartName, pRigidBody, pPhysicsModelInstance, pBone));
@@ -373,13 +373,13 @@ namespace eastengine
 			return pBodyPart;
 		}
 
-		RagDoll::Joint* RagDoll::AddJoint(const String::StringID& strJointName, const Physics::ConstraintProperty& constraintProperty, BodyPart* pBodyPartA, BodyPart* pBodyPartB, graphics::IModelInstance* pPhysicsModelInstance)
+		RagDoll::Joint* RagDoll::AddJoint(const String::StringID& strJointName, const physics::ConstraintProperty& constraintProperty, BodyPart* pBodyPartA, BodyPart* pBodyPartB, graphics::IModelInstance* pPhysicsModelInstance)
 		{
 			if (GetJoint(strJointName) != nullptr)
 				return nullptr;
 
 			Joint* pJoint = nullptr;
-			Physics::ConstraintInterface* pConstraint = Physics::ConstraintInterface::Create(constraintProperty);
+			physics::ConstraintInterface* pConstraint = physics::ConstraintInterface::Create(constraintProperty);
 			if (pConstraint != nullptr)
 			{
 				m_vecJoints.emplace_back(new Joint(strJointName, pConstraint, pPhysicsModelInstance));
@@ -391,7 +391,7 @@ namespace eastengine
 			return pJoint;
 		}
 
-		Physics::RigidBody* RagDoll::GetBodyPort(const String::StringID& strPartName)
+		physics::RigidBody* RagDoll::GetBodyPort(const String::StringID& strPartName)
 		{
 			for (auto& pBodyPart : m_vecBodyParts)
 			{
@@ -402,7 +402,7 @@ namespace eastengine
 			return nullptr;
 		}
 
-		Physics::ConstraintInterface* RagDoll::GetJoint(const String::StringID& strJointName)
+		physics::ConstraintInterface* RagDoll::GetJoint(const String::StringID& strJointName)
 		{
 			for (auto& pJoint : m_vecJoints)
 			{
@@ -421,7 +421,7 @@ namespace eastengine
 
 			for (auto& pBodyPart : m_vecBodyParts)
 			{
-				pBodyPart->pRigidBody->SetActiveState(Physics::EmActiveState::eActiveTag);
+				pBodyPart->pRigidBody->SetActiveState(physics::EmActiveState::eActiveTag);
 			}
 		}
 

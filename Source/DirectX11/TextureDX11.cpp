@@ -71,7 +71,7 @@ namespace eastengine
 
 			bool Texture::Initialize(const D3D11_TEXTURE2D_DESC* pDesc, const D3D11_SUBRESOURCE_DATA* pInitialData)
 			{
-				const String::StringID strTextureName(m_key.value);
+				const String::StringID strTextureName(m_key);
 
 				SetState(State::eLoading);
 

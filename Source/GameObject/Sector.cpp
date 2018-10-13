@@ -50,11 +50,11 @@ namespace eastengine
 
 				if (pCompPhysics != nullptr)
 				{
-					Physics::RigidBodyProperty prop;
+					physics::RigidBodyProperty prop;
 					prop.fRestitution = 0.75f;
 					prop.strName = StrID::Sector_RigidBody;
 					prop.fMass = 0.f;
-					prop.nCollisionFlag = Physics::EmCollision::eStaticObject;
+					prop.nCollisionFlag = physics::EmCollision::eStaticObject;
 					prop.shapeInfo.SetTriangleMesh();
 					prop.f3OriginPos = f3Pos;
 					pCompPhysics->Init(pModelInst, prop);

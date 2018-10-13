@@ -7,7 +7,7 @@
 
 namespace eastengine
 {
-	namespace Physics
+	namespace physics
 	{
 		ConstraintInterface::ConstraintInterface(EmConstraint::Type emConstraintType)
 			: m_emConstraintType(emConstraintType)

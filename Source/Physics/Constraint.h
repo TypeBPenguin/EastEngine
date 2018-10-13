@@ -8,7 +8,7 @@ class btDiscreteDynamicsWorld;
 
 namespace eastengine
 {
-	namespace Physics
+	namespace physics
 	{
 		class RigidBody;
 

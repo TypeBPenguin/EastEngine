@@ -7,7 +7,7 @@
 
 namespace eastengine
 {
-	namespace Physics
+	namespace physics
 	{
 		class RigidBody::Impl
 		{

@@ -80,7 +80,7 @@ namespace eastengine
 				std::vector<uint32_t> vecIndices;
 			};
 			RigidBodyData m_rigidBodyData;
-			Physics::RigidBody* m_pPhysics{ nullptr };
+			physics::RigidBody* m_pPhysics{ nullptr };
 
 			float m_fHeightMax{ std::numeric_limits<float>::max() };
 			float m_fHeightMin{ std::numeric_limits<float>::min() };

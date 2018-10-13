@@ -5,7 +5,7 @@
 
 namespace eastengine
 {
-	namespace Physics
+	namespace physics
 	{
 		DebugTriangleDrawCallback::DebugTriangleDrawCallback(std::vector<math::Vector3>* pTriangles)
 			: m_pTriangles(pTriangles)

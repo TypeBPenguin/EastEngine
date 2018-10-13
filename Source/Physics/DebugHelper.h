@@ -2,7 +2,7 @@
 
 namespace eastengine
 {
-	namespace Physics
+	namespace physics
 	{
 		class DebugTriangleDrawCallback : public btTriangleCallback
 		{

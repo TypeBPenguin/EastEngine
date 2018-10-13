@@ -219,6 +219,9 @@
     <ProjectReference Include="..\Model\Model.vcxproj">
       <Project>{a9465262-7336-4f6b-be75-1926f34c1484}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\SoundSystem\SoundSystem.vcxproj">
+      <Project>{708443e0-3b63-4e03-8196-cc8b75f8989c}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

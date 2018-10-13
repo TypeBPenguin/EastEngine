@@ -10,6 +10,7 @@
 #include "Model/ModelManager.h"
 #include "GameObject/GameObjectManager.h"
 #include "Physics/PhysicsSystem.h"
+#include "SoundSystem/SoundSystem.h"
 
 #include "FpsChecker.h"
 #include "SceneManager.h"
@@ -49,7 +50,8 @@ namespace eastengine
 		input::Device* s_pInputDevice{ nullptr };
 		graphics::ModelManager* s_pModelManager{ nullptr };
 		gameobject::GameObjectManager* s_pGameObjectManager{ nullptr };
-		Physics::System* s_pPhysicsSystem{ nullptr };
+		physics::System* s_pPhysicsSystem{ nullptr };
+		sound::System* s_pSoundSystem{ nullptr };
 	};
 
 	MainSystem::Impl::Impl()
@@ -75,8 +77,6 @@ namespace eastengine
 
 		graphics::Initialize(emAPI, nWidth, nHeight, isFullScreen, strApplicationTitle, strApplicationName);
 
-		s_pPhysicsSystem = Physics::System::GetInstance();
-
 		s_pInputDevice = input::Device::GetInstance();
 		s_pInputDevice->Initialize(graphics::GetHInstance(), graphics::GetHwnd());
 
@@ -84,6 +84,9 @@ namespace eastengine
 		{
 			input::Device::GetInstance()->HandleMessage(hWnd, nMsg, wParam, lParam);
 		});
+
+		s_pPhysicsSystem = physics::System::GetInstance();
+		s_pSoundSystem = sound::System::GetInstance();
 
 		s_pModelManager = graphics::ModelManager::GetInstance();
 		s_pGameObjectManager = gameobject::GameObjectManager::GetInstance();
@@ -106,11 +109,14 @@ namespace eastengine
 		graphics::ModelManager::DestroyInstance();
 		s_pModelManager = nullptr;
 
+		sound::System::DestroyInstance();
+		s_pSoundSystem = nullptr;
+
+		physics::System::DestroyInstance();
+		s_pPhysicsSystem = nullptr;
+
 		input::Device::DestroyInstance();
 		s_pInputDevice = nullptr;
-
-		Physics::System::DestroyInstance();
-		s_pPhysicsSystem = nullptr;
 
 		graphics::Release();
 		Timer::DestroyInstance();
@@ -157,6 +163,7 @@ namespace eastengine
 		s_pPhysicsSystem->Update(fElapsedTime);
 		s_pGameObjectManager->Update(fElapsedTime);
 		s_pModelManager->Update();
+		s_pSoundSystem->Update(fElapsedTime);
 		graphics::Update(fElapsedTime);
 	}
 

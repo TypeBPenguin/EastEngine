@@ -498,7 +498,7 @@ namespace std
 	{
 		const eastengine::String::StringData* operator()(const eastengine::graphics::ITexture::Key& key) const
 		{
-			return key.value.Key();
+			return key.Value().Key();
 		}
 	};
 }

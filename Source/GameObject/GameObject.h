@@ -116,7 +116,7 @@ namespace eastengine
 			float fRoughness{ 1.f };
 			float fMetallic{ 0.f };
 
-			Physics::RigidBodyProperty rigidBodyProperty;
+			physics::RigidBodyProperty rigidBodyProperty;
 		};
 
 		class ITerrain : public IGameObject
@@ -194,7 +194,7 @@ namespace std
 	{
 		uint64_t operator()(const eastengine::gameobject::IGameObject::Handle& key) const
 		{
-			return key.value;
+			return key;
 		}
 	};
 }

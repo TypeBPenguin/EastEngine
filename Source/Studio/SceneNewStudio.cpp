@@ -15,6 +15,8 @@
 #include "GameObject/ComponentModel.h"
 #include "GameObject/ComponentPhysics.h"
 
+#include "SoundSystem/SoundInterface.h"
+
 #include "GraphicsInterface/imguiHelper.h"
 
 using namespace eastengine;
@@ -121,11 +123,11 @@ void SceneNewStudio::Enter()
 
 		//auto pCompPhysics = static_cast<gameobject::ComponentPhysics*>(pActor->CreateComponent(gameobject::EmComponent::ePhysics));
 		//
-		//Physics::RigidBodyProperty prop;
+		//physics::RigidBodyProperty prop;
 		//prop.fRestitution = 0.75f;
 		//prop.strName = StrID::Studio_Ground;
 		//prop.fMass = 0.f;
-		//prop.nCollisionFlag = Physics::EmCollision::eStaticObject;
+		//prop.nCollisionFlag = physics::EmCollision::eStaticObject;
 		//prop.shapeInfo.SetTriangleMesh();
 		//pCompPhysics->Init(pModelInst, prop);
 
@@ -205,18 +207,19 @@ void SceneNewStudio::Enter()
 
 	//		gameobject::ComponentPhysics* pCompPhysics = static_cast<gameobject::ComponentPhysics*>(pActor->CreateComponent(gameobject::EmComponent::ePhysics));
 
-	//		Physics::RigidBodyProperty prop;
+	//		physics::RigidBodyProperty prop;
 	//		prop.fRestitution = 0.5f;
 	//		prop.strName.Format("TestBox_RigidBody%d", i).c_str();
 
 	//		prop.shapeInfo.SetBox(math::Vector3(1.f));
 	//		//prop.shapeInfo.SetCapsule(math::Random(0.5f, 1.f), math::Random(1.f, 2.f));
-	//		prop.nCollisionFlag = Physics::EmCollision::eCharacterObject;
+	//		prop.nCollisionFlag = physics::EmCollision::eCharacterObject;
 	//		prop.f3OriginPos = f3Pos;
 	//		pCompPhysics->Init(prop);
 	//	}
 	//}
 
+	if (false)
 	{
 		gameobject::TerrainProperty terrain;
 
@@ -623,6 +626,13 @@ void SceneNewStudio::Enter()
 		strPath.append("Model\\ElementalSwordIce\\LP.emod");
 
 		gameobject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
+	}
+
+	// Sound
+	{
+		strPath = file::GetPath(file::eSound);
+		strPath += "Canada, Ho!.mp3";
+		sound::Play2D(strPath);
 	}
 }
 

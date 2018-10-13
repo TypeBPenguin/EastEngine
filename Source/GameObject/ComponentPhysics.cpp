@@ -12,7 +12,7 @@ namespace eastengine
 {
 	namespace gameobject
 	{
-		PhysicsNode::PhysicsNode(const math::Matrix* pMatWorld, Physics::RigidBody* pRigidBody, graphics::IModelInstance* pPhysicsModelInstance, graphics::IModelInstance* pModelInstance)
+		PhysicsNode::PhysicsNode(const math::Matrix* pMatWorld, physics::RigidBody* pRigidBody, graphics::IModelInstance* pPhysicsModelInstance, graphics::IModelInstance* pModelInstance)
 			: pMatWorld(pMatWorld)
 			, pRigidBody(pRigidBody)
 			, pPhysicsModelInstance(pPhysicsModelInstance)
@@ -41,7 +41,7 @@ namespace eastengine
 			m_umapPhysicsNode.clear();
 		}
 
-		void ComponentPhysics::Init(const Physics::RigidBodyProperty& rigidBodyProperty, bool isCollisionModelVisible)
+		void ComponentPhysics::Init(const physics::RigidBodyProperty& rigidBodyProperty, bool isCollisionModelVisible)
 		{
 			m_emRigidBodyType = RigidBodyType::eBasic;
 
@@ -51,7 +51,7 @@ namespace eastengine
 			m_isCollisionModelVisible = isCollisionModelVisible;
 		}
 
-		void ComponentPhysics::Init(graphics::IModelInstance* pModelInstance, const Physics::RigidBodyProperty& rigidBodyProperty, uint32_t nTargetLod, bool isCollisionModelVisible)
+		void ComponentPhysics::Init(graphics::IModelInstance* pModelInstance, const physics::RigidBodyProperty& rigidBodyProperty, uint32_t nTargetLod, bool isCollisionModelVisible)
 		{
 			m_emRigidBodyType = RigidBodyType::eModel;
 
@@ -61,7 +61,7 @@ namespace eastengine
 			m_isCollisionModelVisible = isCollisionModelVisible;
 		}
 
-		void ComponentPhysics::Init(const String::StringID& strID, const graphics::IVertexBuffer* pVertexBuffer, const graphics::IIndexBuffer* pIndexBuffer, math::Matrix* pMatWorld, const Physics::RigidBodyProperty& rigidBodyProperty, bool isCollisionModelVisible)
+		void ComponentPhysics::Init(const String::StringID& strID, const graphics::IVertexBuffer* pVertexBuffer, const graphics::IIndexBuffer* pIndexBuffer, math::Matrix* pMatWorld, const physics::RigidBodyProperty& rigidBodyProperty, bool isCollisionModelVisible)
 		{
 			m_emRigidBodyType = RigidBodyType::eCustom;
 
@@ -182,7 +182,7 @@ namespace eastengine
 			}
 		}
 
-		void ComponentPhysics::SetActiveState(Physics::EmActiveState::Type emActiveState)
+		void ComponentPhysics::SetActiveState(physics::EmActiveState::Type emActiveState)
 		{
 			for (auto& iter : m_umapPhysicsNode)
 			{
@@ -190,23 +190,23 @@ namespace eastengine
 			}
 		}
 
-		void ComponentPhysics::initPhysics(const String::StringID& strID, const Physics::RigidBodyProperty& rigidBodyProperty, const math::Matrix* pMatWorld, graphics::IModelInstance* pModelInstance)
+		void ComponentPhysics::initPhysics(const String::StringID& strID, const physics::RigidBodyProperty& rigidBodyProperty, const math::Matrix* pMatWorld, graphics::IModelInstance* pModelInstance)
 		{
 			graphics::MaterialInfo materialInfo;
 			materialInfo.strName = strID;
 			materialInfo.colorAlbedo = math::Color::Red;
 			materialInfo.emRasterizerState = graphics::EmRasterizerState::eWireframeCullNone;
 
-			Physics::RigidBody* pRigidBody = nullptr;
+			physics::RigidBody* pRigidBody = nullptr;
 			graphics::IModelInstance* pPhysicsModelInst = nullptr;
 
 			switch (rigidBodyProperty.shapeInfo.emPhysicsShapeType)
 			{
-			case Physics::EmPhysicsShape::eBox:
+			case physics::EmPhysicsShape::eBox:
 			{
-				pRigidBody = Physics::RigidBody::Create(rigidBodyProperty);
+				pRigidBody = physics::RigidBody::Create(rigidBodyProperty);
 
-				const Physics::Shape::Box* pBox = std::get_if<Physics::Shape::Box>(&rigidBodyProperty.shapeInfo.element);
+				const physics::Shape::Box* pBox = std::get_if<physics::Shape::Box>(&rigidBodyProperty.shapeInfo.element);
 				if (pBox == nullptr)
 					return;
 
@@ -215,11 +215,11 @@ namespace eastengine
 				pPhysicsModelInst = graphics::IModel::CreateInstance(modelLoader);
 			}
 			break;
-			case Physics::EmPhysicsShape::eSphere:
+			case physics::EmPhysicsShape::eSphere:
 			{
-				pRigidBody = Physics::RigidBody::Create(rigidBodyProperty);
+				pRigidBody = physics::RigidBody::Create(rigidBodyProperty);
 
-				const Physics::Shape::Sphere* pSphere = std::get_if<Physics::Shape::Sphere>(&rigidBodyProperty.shapeInfo.element);
+				const physics::Shape::Sphere* pSphere = std::get_if<physics::Shape::Sphere>(&rigidBodyProperty.shapeInfo.element);
 				if (pSphere == nullptr)
 					return;
 
@@ -228,17 +228,17 @@ namespace eastengine
 				pPhysicsModelInst = graphics::IModel::CreateInstance(modelLoader);
 			}
 			break;
-			case Physics::EmPhysicsShape::eCylinder:
+			case physics::EmPhysicsShape::eCylinder:
 				break;
-			case Physics::EmPhysicsShape::eCylinder_X:
+			case physics::EmPhysicsShape::eCylinder_X:
 				break;
-			case Physics::EmPhysicsShape::eCylinder_Z:
+			case physics::EmPhysicsShape::eCylinder_Z:
 				break;
-			case Physics::EmPhysicsShape::eCapsule:
+			case physics::EmPhysicsShape::eCapsule:
 			{
-				pRigidBody = Physics::RigidBody::Create(rigidBodyProperty);
+				pRigidBody = physics::RigidBody::Create(rigidBodyProperty);
 
-				const Physics::Shape::Capsule* pCapsule = std::get_if<Physics::Shape::Capsule>(&rigidBodyProperty.shapeInfo.element);
+				const physics::Shape::Capsule* pCapsule = std::get_if<physics::Shape::Capsule>(&rigidBodyProperty.shapeInfo.element);
 				if (pCapsule == nullptr)
 					return;
 
@@ -247,15 +247,15 @@ namespace eastengine
 				pPhysicsModelInst = graphics::IModel::CreateInstance(modelLoader);
 			}
 			break;
-			case Physics::EmPhysicsShape::eCapsule_X:
+			case physics::EmPhysicsShape::eCapsule_X:
 				break;
-			case Physics::EmPhysicsShape::eCapsule_Z:
+			case physics::EmPhysicsShape::eCapsule_Z:
 				break;
-			case Physics::EmPhysicsShape::eCone:
+			case physics::EmPhysicsShape::eCone:
 			{
-				pRigidBody = Physics::RigidBody::Create(rigidBodyProperty);
+				pRigidBody = physics::RigidBody::Create(rigidBodyProperty);
 
-				const Physics::Shape::Cone* pCone = std::get_if<Physics::Shape::Cone>(&rigidBodyProperty.shapeInfo.element);
+				const physics::Shape::Cone* pCone = std::get_if<physics::Shape::Cone>(&rigidBodyProperty.shapeInfo.element);
 				if (pCone == nullptr)
 					return;
 
@@ -264,18 +264,18 @@ namespace eastengine
 				pPhysicsModelInst = graphics::IModel::CreateInstance(modelLoader);
 			}
 			break;
-			case Physics::EmPhysicsShape::eCone_X:
+			case physics::EmPhysicsShape::eCone_X:
 				break;
-			case Physics::EmPhysicsShape::eCone_Z:
+			case physics::EmPhysicsShape::eCone_Z:
 				break;
-			case Physics::EmPhysicsShape::eHull:
+			case physics::EmPhysicsShape::eHull:
 			{
-				pRigidBody = Physics::RigidBody::Create(rigidBodyProperty);
+				pRigidBody = physics::RigidBody::Create(rigidBodyProperty);
 			}
 			break;
-			case Physics::EmPhysicsShape::eTriangleMesh:
+			case physics::EmPhysicsShape::eTriangleMesh:
 			{
-				pRigidBody = Physics::RigidBody::Create(rigidBodyProperty);
+				pRigidBody = physics::RigidBody::Create(rigidBodyProperty);
 			}
 			break;
 			}
