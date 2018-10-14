@@ -2,6 +2,7 @@
 #include "SceneNewStudio.h"
 
 #include "CommonLib/FileUtil.h"
+
 #include "GraphicsInterface/Camera.h"
 #include "Input/InputInterface.h"
 #include "Model/ModelInterface.h"
@@ -1242,14 +1243,14 @@ void ShowMotion(bool& isShowMotionMenu, gameobject::ComponentModel* pCompModel)
 		ofn.nMaxFile = 256;
 		if (GetOpenFileName(&ofn) != 0)
 		{
-			std::string strFileExtension = file::GetFileExtension(ofn.lpstrFile);
-			if (String::IsEqualsNoCase(strFileExtension.c_str(), "fbx") == true)
+			const std::string strFileExtension = file::GetFileExtension(ofn.lpstrFile);
+			if (String::IsEqualsNoCase(strFileExtension.c_str(), ".fbx") == true)
 			{
 				graphics::MotionLoader loader;
 				loader.InitFBX(file::GetFileName(ofn.lpstrFile).c_str(), ofn.lpstrFile, 0.01f);
 				graphics::IMotion::Create(loader);
 			}
-			else if (String::IsEqualsNoCase(strFileExtension.c_str(), "emot") == true)
+			else if (String::IsEqualsNoCase(strFileExtension.c_str(), ".emot") == true)
 			{
 				graphics::MotionLoader loader;
 				loader.InitEast(file::GetFileName(ofn.lpstrFile).c_str(), ofn.lpstrFile);
@@ -1768,6 +1769,45 @@ void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nInd
 	ImGui::End();
 }
 
+void ShowSoundWindow(bool& isShowSoundMenu)
+{
+	ImGui::SetNextWindowSize(ImVec2(400, 600), ImGuiSetCond_FirstUseEver);
+	ImGui::Begin("Sound System", &isShowSoundMenu);
+
+	ImGui::PushID("SoundSystem");
+
+	static std::vector<std::string> vecFiles;
+	if (vecFiles.empty() == true)
+	{
+		const std::string strSoundPath = file::GetPath(file::eSound);
+		file::GetFiles(strSoundPath, ".*", vecFiles);
+	}
+
+	static std::vector<const char*> vecFilePaths;
+	if (vecFilePaths.empty() == true)
+	{
+		vecFilePaths.reserve(vecFiles.size());
+
+		for (auto& filePath : vecFiles)
+		{
+			vecFilePaths.emplace_back(filePath.c_str());
+		}
+	}
+
+	static int nSelectedIndex = 0;
+	if (vecFiles.empty() == false)
+	{
+		if (ImGui::ListBox("Sound List", &nSelectedIndex, &vecFilePaths.front(), static_cast<int>(vecFilePaths.size()), 6) == true)
+		{
+			sound::Play2D(vecFilePaths[nSelectedIndex]);
+		}
+	}
+
+	ImGui::PopID();
+
+	ImGui::End();
+}
+
 void SceneNewStudio::RenderImGui(float fElapsedTime)
 {
 	ShowConfig();
@@ -1818,6 +1858,9 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 
 		ImGui::End();
 	}
+
+	static bool isShowSoundWindow = true;
+	ShowSoundWindow(isShowSoundWindow);
 
 	static bool isShowActorWindow = true;
 	if (isShowActorWindow == true)
@@ -1957,13 +2000,13 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 			ofn.nMaxFile = 255;
 			if (GetSaveFileName(&ofn) != 0)
 			{
-				std::string strFileExtension = file::GetFileExtension(path);
+				const std::string strFileExtension = file::GetFileExtension(path);
 				if (strFileExtension.empty() == true)
 				{
 					String::Concat(path, sizeof(path), ".eact");
 				}
 
-				if (String::IsEqualsNoCase(file::GetFileExtension(path).c_str(), "eact") == true)
+				if (String::IsEqualsNoCase(file::GetFileExtension(path).c_str(), ".eact") == true)
 				{
 					gameobject::IActor::SaveToFile(pActor, path);
 				}
@@ -2179,13 +2222,13 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 										ofn.nMaxFile = 255;
 										if (GetSaveFileName(&ofn) != 0)
 										{
-											std::string strFileExtension = file::GetFileExtension(path);
+											const std::string strFileExtension = file::GetFileExtension(path);
 											if (strFileExtension.empty() == true)
 											{
 												String::Concat(path, sizeof(path), ".emod");
 											}
 
-											if (String::IsEqualsNoCase(file::GetFileExtension(path).c_str(), "emod") == true)
+											if (String::IsEqualsNoCase(file::GetFileExtension(path).c_str(), ".emod") == true)
 											{
 												if (graphics::IModel::SaveToFile(pModel, path) == false)
 												{
@@ -2316,7 +2359,7 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 								if (GetOpenFileName(&ofn) != 0)
 								{
 									const std::string strFileExtension = file::GetFileExtension(ofn.lpstrFile);
-									if (String::IsEqualsNoCase(strFileExtension.c_str(), "fbx") == true)
+									if (String::IsEqualsNoCase(strFileExtension.c_str(), ".fbx") == true)
 									{
 										String::StringID strName;
 										strName.Format("%s(%f)", file::GetFileName(ofn.lpstrFile).c_str(), fScaleFactor);
@@ -2327,7 +2370,7 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 
 										pCompModel->Init(&loader);
 									}
-									else if (String::IsEqualsNoCase(strFileExtension.c_str(), "obj") == true)
+									else if (String::IsEqualsNoCase(strFileExtension.c_str(), ".obj") == true)
 									{
 										String::StringID strName;
 										strName.Format("%s(%f)", file::GetFileName(ofn.lpstrFile).c_str(), fScaleFactor);
@@ -2338,7 +2381,7 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 
 										pCompModel->Init(&loader);
 									}
-									else if (String::IsEqualsNoCase(strFileExtension.c_str(), "emod") == true)
+									else if (String::IsEqualsNoCase(strFileExtension.c_str(), ".emod") == true)
 									{
 										graphics::ModelLoader loader;
 										loader.InitEast(file::GetFileName(ofn.lpstrFile).c_str(), ofn.lpstrFile);

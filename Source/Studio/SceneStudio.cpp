@@ -1695,14 +1695,14 @@ void ShowMotion(bool& isShowMotionMenu, gameobject::ComponentModel* pCompModel)
 		ofn.nMaxFile = 256;
 		if (GetOpenFileName(&ofn) != 0)
 		{
-			std::string strFileExtension = file::GetFileExtension(ofn.lpstrFile);
-			if (String::IsEqualsNoCase(strFileExtension.c_str(), "fbx") == true)
+			const std::string strFileExtension = file::GetFileExtension(ofn.lpstrFile);
+			if (String::IsEqualsNoCase(strFileExtension.c_str(), ".fbx") == true)
 			{
 				graphics::MotionLoader loader;
 				loader.InitFBX(file::GetFileName(ofn.lpstrFile).c_str(), ofn.lpstrFile, 0.01f);
 				graphics::IMotion::Create(loader);
 			}
-			else if (String::IsEqualsNoCase(strFileExtension.c_str(), "emot") == true)
+			else if (String::IsEqualsNoCase(strFileExtension.c_str(), ".emot") == true)
 			{
 				graphics::MotionLoader loader;
 				loader.InitEast(file::GetFileName(ofn.lpstrFile).c_str(), ofn.lpstrFile);
@@ -2415,13 +2415,13 @@ void SceneStudio::RenderUI()
 			ofn.nMaxFile = 255;
 			if (GetSaveFileName(&ofn) != 0)
 			{
-				std::string strFileExtension = file::GetFileExtension(path);
+				const std::string strFileExtension = file::GetFileExtension(path);
 				if (strFileExtension.empty() == true)
 				{
 					String::Concat(path, sizeof(path), ".eact");
 				}
 
-				if (String::IsEqualsNoCase(file::GetFileExtension(path).c_str(), "eact") == true)
+				if (String::IsEqualsNoCase(file::GetFileExtension(path).c_str(), ".eact") == true)
 				{
 					gameobject::IActor::SaveToFile(pActor, path);
 				}
@@ -2637,13 +2637,13 @@ void SceneStudio::RenderUI()
 										ofn.nMaxFile = 255;
 										if (GetSaveFileName(&ofn) != 0)
 										{
-											std::string strFileExtension = file::GetFileExtension(path);
+											const std::string strFileExtension = file::GetFileExtension(path);
 											if (strFileExtension.empty() == true)
 											{
 												String::Concat(path, sizeof(path), ".emod");
 											}
 
-											if (String::IsEqualsNoCase(file::GetFileExtension(path).c_str(), "emod") == true)
+											if (String::IsEqualsNoCase(file::GetFileExtension(path).c_str(), ".emod") == true)
 											{
 												if (graphics::IModel::SaveToFile(pModel, path) == false)
 												{
@@ -2773,8 +2773,8 @@ void SceneStudio::RenderUI()
 								ofn.nMaxFile = 256;
 								if (GetOpenFileName(&ofn) != 0)
 								{
-									std::string strFileExtension = file::GetFileExtension(ofn.lpstrFile);
-									if (String::IsEqualsNoCase(strFileExtension.c_str(), "fbx") == true)
+									const std::string strFileExtension = file::GetFileExtension(ofn.lpstrFile);
+									if (String::IsEqualsNoCase(strFileExtension.c_str(), ".fbx") == true)
 									{
 										String::StringID strName;
 										strName.Format("%s(%f)", file::GetFileName(ofn.lpstrFile).c_str(), fScaleFactor);
@@ -2785,7 +2785,7 @@ void SceneStudio::RenderUI()
 
 										pCompModel->Init(&loader);
 									}
-									else if (String::IsEqualsNoCase(strFileExtension.c_str(), "obj") == true)
+									else if (String::IsEqualsNoCase(strFileExtension.c_str(), ".obj") == true)
 									{
 										String::StringID strName;
 										strName.Format("%s(%f)", file::GetFileName(ofn.lpstrFile).c_str(), fScaleFactor);
@@ -2796,7 +2796,7 @@ void SceneStudio::RenderUI()
 
 										pCompModel->Init(&loader);
 									}
-									else if (String::IsEqualsNoCase(strFileExtension.c_str(), "emod") == true)
+									else if (String::IsEqualsNoCase(strFileExtension.c_str(), ".emod") == true)
 									{
 										graphics::ModelLoader loader;
 										loader.InitEast(file::GetFileName(ofn.lpstrFile).c_str(), ofn.lpstrFile);

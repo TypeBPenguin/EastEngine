@@ -12,14 +12,12 @@ namespace eastengine
 			return PathFindFileNameA(strPath.c_str());
 		}
 
-		std::string GetFileNameWithoutExtension(const char* strPath)
+		std::string GetFileNameWithoutExtension(const std::string& strPath)
 		{
-			std::string strName = GetFileName(strPath);
-			size_t pos = strName.find_last_of(".");
+			const std::string strName = GetFileName(strPath);
+			const size_t pos = strName.find_last_of(".");
 			if (pos != std::string::npos)
-			{
-				strName = strName.substr(0, pos);
-			}
+				return strName.substr(0, pos);
 
 			return strName;
 		}
@@ -29,14 +27,12 @@ namespace eastengine
 			return PathFindFileNameW(strPath.c_str());
 		}
 
-		std::wstring GetFileNameWithoutExtension(const wchar_t* strPath)
+		std::wstring GetFileNameWithoutExtension(const std::wstring& strPath)
 		{
-			std::wstring strName = GetFileName(strPath);
-			size_t pos = strName.find_last_of(L".");
+			const std::wstring strName = GetFileName(strPath);
+			const size_t pos = strName.find_last_of(L".");
 			if (pos != std::wstring::npos)
-			{
-				strName = strName.substr(0, pos);
-			}
+				return strName.substr(0, pos);
 
 			return strName;
 		}
@@ -44,11 +40,8 @@ namespace eastengine
 		std::string GetFileExtension(const std::string& strPath)
 		{
 			const char* str = PathFindExtensionA(strPath.c_str());
-			if (str != nullptr && String::IsEquals(str, "") == false)
-			{
-				str += 1;
+			if (str != nullptr)
 				return str;
-			}
 
 			return "";
 		}
@@ -56,90 +49,54 @@ namespace eastengine
 		std::wstring GetFileExtension(const std::wstring& strPath)
 		{
 			const wchar_t* str = PathFindExtensionW(strPath.c_str());
-			if (str != nullptr && String::IsEquals(str, L"") == false)
-			{
-				str += 1;
+			if (str != nullptr)
 				return str;
-			}
 
 			return L"";
 		}
 
 		std::string GetFilePath(const std::string& strPath)
 		{
-			size_t pos = strPath.find_last_of("\\");
+			const size_t pos = strPath.find_last_of("\\");
 			if (pos != std::string::npos)
-			{
 				return strPath.substr(0, pos + 1);
-			}
 
 			return strPath;
-		}
-
-		std::string GetFilePath(const char* strPath)
-		{
-			return GetFilePath(std::string(strPath));
 		}
 
 		std::wstring GetFilePath(const std::wstring& strPath)
 		{
-			size_t pos = strPath.find_last_of(L"\\");
+			const size_t pos = strPath.find_last_of(L"\\");
 			if (pos != std::wstring::npos)
-			{
 				return strPath.substr(0, pos + 1);
-			}
 
 			return strPath;
 		}
 
-		std::wstring GetFilePath(const wchar_t* strPath)
-		{
-			return GetFilePath(std::wstring(strPath));
-		}
-
-		bool IsExists(const char* strPath)
+		bool IsExists(const std::string& strPath)
 		{
 			return std::experimental::filesystem::exists(strPath);
 		}
 
-		bool IsExists(const std::string& strPath)
+		void GetFiles(const std::string& strDirectoryPath, const std::string& strExtension, std::vector<std::string>& vecFiles_out)
 		{
-			return IsExists(strPath.c_str());
-		}
+			const std::experimental::filesystem::path path(strDirectoryPath);
 
-		std::vector<std::string> GetFilesInFolder(const char* strPath, const char* strType, bool bWithPath)
-		{
-			std::vector<std::string> vecFiles;
+			std::experimental::filesystem::directory_iterator iter_start(path);
+			std::experimental::filesystem::directory_iterator iter_end;
 
-			std::string strFullPath = strPath;
-			strFullPath += strType;
-
-			WIN32_FIND_DATA folder;
-			HANDLE hFind = ::FindFirstFile(strFullPath.c_str(), &folder);
-			if (hFind != INVALID_HANDLE_VALUE)
+			for (; iter_start != iter_end; ++iter_start)
 			{
-				do
+				if (std::experimental::filesystem::is_directory(iter_start->status()) == true)
 				{
-					if ((folder.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
-					{
-						std::string strFilePath;
-						if (bWithPath)
-						{
-							strFilePath = strPath;
-							strFilePath += folder.cFileName;
-						}
-						else
-						{
-							strFilePath = folder.cFileName;
-						}
-
-						vecFiles.emplace_back(strFilePath);
-					}
-				} while (::FindNextFile(hFind, &folder));
-				::FindClose(hFind);
+					const std::string strSubDirectory = iter_start->path().generic_string();
+					GetFiles(strSubDirectory, strExtension, vecFiles_out);
+				}
+				else if (strExtension.empty() == true || strExtension == ".*" || iter_start->path().extension() == strExtension)
+				{
+					vecFiles_out.emplace_back(iter_start->path().generic_string());
+				}
 			}
-
-			return vecFiles;
 		}
 
 		const char* GetPath(EmPath emPath)

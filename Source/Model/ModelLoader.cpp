@@ -408,9 +408,10 @@ namespace eastengine
 
 		void ModelLoader::AddAnimInfoByFBXFolder(const char* strAnimPath)
 		{
-			auto vecFiles = file::GetFilesInFolder(strAnimPath, "*.fbx", true);
+			std::vector<std::string> vecFiles;
+			file::GetFiles(strAnimPath, ".fbx", vecFiles);
 
-			std::copy(vecFiles.begin(), vecFiles.end(), std::back_inserter(m_listAnimationList));
+			std::copy(vecFiles.begin(), vecFiles.end(), std::back_inserter(m_vecAnimationList));
 		}
 	}
 }

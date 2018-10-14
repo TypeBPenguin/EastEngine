@@ -187,8 +187,8 @@ namespace eastengine
 			void InitCustomStaticModel(const String::StringID& strModelName, const String::StringID& strNodeName, IVertexBuffer* pVertexBuffer, IIndexBuffer* pIndexBuffer, MaterialInfo* pMaterialInfo = nullptr);
 
 			void AddAnimInfoByFBXFolder(const char* strAnimPath);
-			void AddAnimInfoByFBX(std::string strAnimPath) { m_listAnimationList.emplace_back(strAnimPath); }
-			const std::list<std::string>& GetAnimInfo() const { return m_listAnimationList; }
+			void AddAnimInfoByFBX(const std::string& strAnimPath) { m_vecAnimationList.emplace_back(strAnimPath); }
+			const std::vector<std::string>& GetAnimList() const { return m_vecAnimationList; }
 
 			void AddDevideByKeywordByXPS(const char* strKeyword) { m_vecDevideByKeywords.emplace_back(strKeyword); }
 			const std::string* GetDevideKeywords() const { return m_vecDevideByKeywords.data(); }
@@ -253,7 +253,7 @@ namespace eastengine
 			LoadType m_emLoadModelType;
 			GeometryType m_emLoadGeometryType;
 
-			std::list<std::string> m_listAnimationList;
+			std::vector<std::string> m_vecAnimationList;
 			std::vector<std::string> m_vecDevideByKeywords;
 
 			std::string m_strFilePath;

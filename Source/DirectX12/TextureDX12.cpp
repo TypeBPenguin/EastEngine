@@ -201,9 +201,8 @@ namespace eastengine
 
 				ID3D12Device* pDevice = Device::GetInstance()->GetInterface();
 
-				std::string strFileExtension(file::GetFileExtension(strFilePath));
-
-				if (String::IsEqualsNoCase(strFileExtension.c_str(), "dds"))
+				const std::string strFileExtension(file::GetFileExtension(strFilePath));
+				if (String::IsEqualsNoCase(strFileExtension.c_str(), ".dds"))
 				{
 					hr = DirectX::LoadFromDDSFile(String::MultiToWide(strFilePath).c_str(), DirectX::DDS_FLAGS_NONE, nullptr, image);
 
@@ -213,7 +212,7 @@ namespace eastengine
 						return false;
 					}
 				}
-				else if (String::IsEqualsNoCase(strFileExtension.c_str(), "tga"))
+				else if (String::IsEqualsNoCase(strFileExtension.c_str(), ".tga"))
 				{
 					DirectX::ScratchImage tempImage;
 					hr = DirectX::LoadFromTGAFile(String::MultiToWide(strFilePath).c_str(), nullptr, tempImage);

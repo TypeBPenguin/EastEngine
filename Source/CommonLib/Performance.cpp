@@ -314,7 +314,7 @@ namespace eastengine
 				root["traceEvents"] = traceEvents;
 				root["displayTimeUnit"] = "ms";
 
-				std::string strFileExtension = file::GetFileExtension(m_strSaveFilePath);
+				const std::string strFileExtension = file::GetFileExtension(m_strSaveFilePath);
 				if (strFileExtension.empty() == true)
 				{
 					m_strSaveFilePath.append(".json");

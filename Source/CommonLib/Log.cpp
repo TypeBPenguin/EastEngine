@@ -72,7 +72,7 @@ namespace eastengine
 				SetConsoleTextAttribute(m_hConsole, message.color | m_wBackgroundAttributes);
 
 				DWORD len = 0;
-				WriteConsoleA(m_hConsole, message.message.c_str(), message.message.length(), &len, nullptr);
+				WriteConsoleA(m_hConsole, message.message.c_str(), static_cast<DWORD>(message.message.length()), &len, nullptr);
 
 				SetConsoleTextAttribute(m_hConsole, m_wDefaultConsoleTextAttributes);
 			}

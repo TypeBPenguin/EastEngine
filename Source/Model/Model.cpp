@@ -507,10 +507,10 @@ namespace eastengine
 
 		bool Model::LoadToFile(const char* strFilePath)
 		{
-			std::string strFileExtension = file::GetFileExtension(strFilePath);
-			if (strFileExtension != "emod")
+			const std::string strFileExtension = file::GetFileExtension(strFilePath);
+			if (strFileExtension != ".emod")
 			{
-				LOG_ERROR("Invalid Extension, Required[%s] != Request[%s]", "emod", strFileExtension.c_str());
+				LOG_ERROR("Invalid Extension, Required[%s] != Request[%s]", ".emod", strFileExtension.c_str());
 				return false;
 			}
 
