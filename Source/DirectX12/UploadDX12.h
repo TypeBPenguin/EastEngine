@@ -73,8 +73,8 @@ namespace eastengine
 				ID3D12Resource* m_pUploadBuffer{ nullptr };
 				uint8_t* m_pUploadBufferCPUAddr{ nullptr };
 
-				thread::Lock m_uploadSubmissionLock;
-				thread::Lock m_uploadQueueLock;
+				thread::SRWLock m_uploadSubmissionLock;
+				thread::SRWLock m_uploadQueueLock;
 
 				ID3D12CommandQueue* m_pUploadCommandQueue{ nullptr };
 				ID3D12Fence* m_pUploadFence{ nullptr };

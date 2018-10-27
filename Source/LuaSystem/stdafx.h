@@ -17,7 +17,5 @@
 #include <queue>
 #include <stack>
 
-#include <boost/unordered_map.hpp>
-
 #include <luabind/luabind.hpp>
 #include <lua.hpp>

@@ -77,13 +77,15 @@ namespace eastengine
 			{
 				assert(m_pDescriptorHeaps[0] != nullptr);
 
-				m_lock.Enter();
+				uint32_t nIndex = eInvalidDescriptorIndex;
 
-				assert(m_nAllocatedPersistentCount < m_nPersistentCount);
-				uint32_t nIndex = m_vecDeadList[m_nAllocatedPersistentCount];
-				++m_nAllocatedPersistentCount;
+				{
+					thread::SRWWriteLock writeLock(&m_srwLock);
 
-				m_lock.Leave();
+					assert(m_nAllocatedPersistentCount < m_nPersistentCount);
+					nIndex = m_vecDeadList[m_nAllocatedPersistentCount];
+					++m_nAllocatedPersistentCount;
+				}
 
 				PersistentDescriptorAlloc alloc;
 				alloc.nIndex = nIndex;
@@ -104,13 +106,13 @@ namespace eastengine
 				assert(nIndex < m_nPersistentCount);
 				assert(m_pDescriptorHeaps[0] != nullptr);
 
-				m_lock.Enter();
+				{
+					thread::SRWWriteLock writeLock(&m_srwLock);
 
-				assert(m_nAllocatedPersistentCount > 0);
-				m_vecDeadList[m_nAllocatedPersistentCount - 1] = nIndex;
-				--m_nAllocatedPersistentCount;
-
-				m_lock.Leave();
+					assert(m_nAllocatedPersistentCount > 0);
+					m_vecDeadList[m_nAllocatedPersistentCount - 1] = nIndex;
+					--m_nAllocatedPersistentCount;
+				}
 
 				nIndex = eInvalidDescriptorIndex;
 			}

@@ -28,7 +28,7 @@ namespace eastengine
 			std::vector<StringData*> tables;
 			size_t nCount{ 0 };
 
-			thread::Lock lock;
+			thread::SRWLock srwLock;
 
 			StringTable()
 			{
@@ -66,7 +66,7 @@ namespace eastengine
 
 				const uint64_t key = Hash(str);
 
-				thread::AutoLock autoLock(&lock);
+				thread::SRWWriteLock writeLock(&srwLock);
 
 				const StringData* pStringData = tables[key % TABLE_SIZE];
 				if (pStringData != nullptr)

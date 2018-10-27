@@ -50,7 +50,7 @@ namespace eastengine
 
 			bool VTFManager::Allocate(uint32_t nMatrixCount, math::Matrix** ppDest_Out, uint32_t& nVTFID_Out)
 			{
-				thread::AutoLock autoLock(&m_lock);
+				thread::SRWWriteLock writeLock(&m_srwLock);
 
 				if (m_vtfInstance.nAllocatedCount + nMatrixCount >= eBufferCapacity)
 				{
@@ -69,6 +69,8 @@ namespace eastengine
 
 			bool VTFManager::Bake()
 			{
+				thread::SRWWriteLock writeLock(&m_srwLock);
+
 				if (m_vtfInstance.nAllocatedCount == 0)
 					return true;
 

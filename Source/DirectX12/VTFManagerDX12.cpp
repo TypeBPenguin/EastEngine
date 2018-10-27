@@ -32,7 +32,7 @@ namespace eastengine
 				Texture* GetTexture() const { return m_vtfInstance.pVTFs[m_nFrameIndex].get(); }
 
 			private:
-				thread::Lock m_lock;
+				thread::SRWLock m_srwLock;
 
 				struct VTFInstance
 				{
@@ -78,7 +78,7 @@ namespace eastengine
 
 			bool VTFManager::Impl::Allocate(uint32_t nMatrixCount, math::Matrix** ppDest_Out, uint32_t& nVTFID_Out)
 			{
-				thread::AutoLock autoLock(&m_lock);
+				thread::SRWWriteLock writeLock(&m_srwLock);
 
 				if (m_vtfInstance.nAllocatedCount + nMatrixCount >= eBufferCapacity)
 				{
@@ -97,6 +97,8 @@ namespace eastengine
 
 			bool VTFManager::Impl::Bake()
 			{
+				thread::SRWWriteLock writeLock(&m_srwLock);
+
 				if (m_vtfInstance.nAllocatedCount == 0)
 					return true;
 

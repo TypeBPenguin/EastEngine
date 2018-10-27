@@ -135,15 +135,15 @@ namespace eastengine
 
 			void Uploader::EndFrame(ID3D12CommandQueue* pCommandQueue)
 			{
-				if (m_uploadSubmissionLock.TryEnter() == true)
+				if (m_uploadSubmissionLock.TryAcquireWriteLock() == true)
 				{
 					ClearFinishedUploads(0);
 
-					m_uploadSubmissionLock.Leave();
+					m_uploadSubmissionLock.ReleaseWriteLock();
 				}
 
 				{
-					thread::AutoLock autoLock(&m_uploadQueueLock);
+					thread::SRWWriteLock writeLock(&m_uploadQueueLock);
 
 					ClearFinishedUploads(0);
 					if (FAILED(pCommandQueue->Wait(m_pUploadFence, m_nUploadFenceValue)))
@@ -163,7 +163,7 @@ namespace eastengine
 				UploadSubmission* pSubmission = nullptr;
 
 				{
-					thread::AutoLock autoLock(&m_uploadSubmissionLock);
+					thread::SRWWriteLock writeLock(&m_uploadSubmissionLock);
 
 					ClearFinishedUploads(0);
 
@@ -202,7 +202,7 @@ namespace eastengine
 				UploadSubmission* pSubmission = reinterpret_cast<UploadSubmission*>(context.pSubmission);
 
 				{
-					thread::AutoLock autoLock(&m_uploadQueueLock);
+					thread::SRWWriteLock writeLock(&m_uploadQueueLock);
 
 					// Finish off and execute the command list
 					if (FAILED(pSubmission->pCommandList->Close()))

@@ -91,7 +91,7 @@ namespace eastengine
 				std::string m_strVideoCardDescription;
 				std::vector<DXGI_MODE_DESC> m_vecDisplayModes;
 
-				thread::Lock m_lock;
+				thread::SRWLock m_srwLock;
 
 				D3D11_VIEWPORT m_viewport{};
 
@@ -285,7 +285,7 @@ namespace eastengine
 
 			RenderTarget* Device::Impl::GetRenderTarget(const D3D11_TEXTURE2D_DESC* pDesc, bool isIncludeLastUseRenderTarget)
 			{
-				thread::AutoLock autoLock(&m_lock);
+				thread::SRWWriteLock writeLock(&m_srwLock);
 
 				RenderTarget::Key key = RenderTarget::BuildKey(pDesc);
 				auto iter_range = m_ummapRenderTargetPool.equal_range(key);
@@ -317,7 +317,7 @@ namespace eastengine
 
 			void Device::Impl::ReleaseRenderTargets(RenderTarget** ppRenderTarget, uint32_t nSize, bool isSetLastRenderTarget)
 			{
-				thread::AutoLock autoLock(&m_lock);
+				thread::SRWWriteLock writeLock(&m_srwLock);
 
 				for (uint32_t i = 0; i < nSize; ++i)
 				{

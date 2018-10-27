@@ -133,7 +133,7 @@ class my_exception : public std::runtime_error
 {
 public:
 	my_exception(const char* expression, const char* fileName, unsigned int lineNo);
-	~my_exception() {}
+	~my_exception() = default;
 
 	const char* what() const throw();
 

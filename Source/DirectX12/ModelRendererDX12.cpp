@@ -20,8 +20,6 @@
 #include "IndexBufferDX12.h"
 #include "TextureDX12.h"
 
-#include <queue>
-
 namespace eastengine
 {
 	namespace graphics
@@ -426,9 +424,9 @@ namespace eastengine
 				void CreatePipelineState(ID3D12Device* pDevice, uint32_t nMask, EmRasterizerState::Type emRasterizerState, EmBlendState::Type emBlendState, EmDepthStencilState::Type emDepthStencilState);
 
 			private:
-				thread::Lock m_lock_job;
-				thread::Lock m_lock_pipelines;
-				thread::Lock m_lock_logic;
+				thread::SRWLock m_job_srwLock;
+				thread::SRWLock m_pipelines_srwLock;
+				thread::SRWLock m_logic_srwLock;
 
 				std::string m_strShaderPath;
 				ID3DBlob* m_pShaderBlob{ nullptr };
@@ -697,6 +695,8 @@ namespace eastengine
 
 			void ModelRenderer::Impl::Flush()
 			{
+				thread::SRWWriteLock writeLock(&m_job_srwLock);
+
 				m_nJobStaticCount.fill(0);
 				m_nJobSkinnedCount.fill(0);
 
@@ -720,7 +720,7 @@ namespace eastengine
 					emGroup = eAlphaBlend;
 				}
 
-				thread::AutoLock autoLock(&m_lock_job);
+				thread::SRWWriteLock writeLock(&m_job_srwLock);
 
 				if (m_nJobStaticCount[emGroup] >= shader::eMaxJobCount)
 				{
@@ -748,7 +748,7 @@ namespace eastengine
 					emGroup = eAlphaBlend;
 				}
 
-				thread::AutoLock autoLock(&m_lock_job);
+				thread::SRWWriteLock writeLock(&m_job_srwLock);
 
 				if (m_nJobSkinnedCount[emGroup] >= shader::eMaxJobCount)
 				{
@@ -764,11 +764,18 @@ namespace eastengine
 
 			const ModelRenderer::Impl::RenderPipeline* ModelRenderer::Impl::GetRenderPipeline(ID3D12Device* pDevice, const shader::PSOKey& psoKey)
 			{
-				const RenderPipeline* pRenderPipeline = nullptr;
+				{
+					thread::SRWReadLock readLock(&m_pipelines_srwLock);
 
+					auto iter = m_umapRenderPipelines.find(psoKey);
+					if (iter != m_umapRenderPipelines.end())
+						return &iter->second;
+				}
+
+				const RenderPipeline* pRenderPipeline = nullptr;
 				bool isRequestCreatePipeline = false;
 				{
-					thread::AutoLock autoLock(&m_lock_pipelines);
+					thread::SRWWriteLock writeLock(&m_pipelines_srwLock);
 
 					auto iter = m_umapRenderPipelines.find(psoKey);
 					if (iter != m_umapRenderPipelines.end())
@@ -913,7 +920,7 @@ namespace eastengine
 							const shader::PSOKey* pPSOKey = nullptr;
 							std::vector<const JobStaticBatch*>* pJobBatchs = nullptr;
 							{
-								thread::AutoLock autoLock(&m_lock_logic);
+								thread::SRWWriteLock writeLock(&m_logic_srwLock);
 
 								if (iter == umapJobStaticMaskBatch.end())
 									break;
@@ -1245,7 +1252,7 @@ namespace eastengine
 							const shader::PSOKey* pPSOKey = nullptr;
 							std::vector<const JobSkinnedBatch*>* pJobBatchs = nullptr;
 							{
-								thread::AutoLock autoLock(&m_lock_logic);
+								thread::SRWWriteLock writeLock(&m_logic_srwLock);
 
 								if (iter == umapJobSkinnedMaskBatch.end())
 									break;
@@ -1627,7 +1634,7 @@ namespace eastengine
 				pPipelineState->SetName(wstrName.c_str());
 
 				{
-					thread::AutoLock autoLock(&m_lock_pipelines);
+					thread::SRWWriteLock writeLock(&m_pipelines_srwLock);
 
 					RenderPipeline& renderPipeline = m_umapRenderPipelines[key];
 					renderPipeline.pPipelineState = pPipelineState;

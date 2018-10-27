@@ -4,50 +4,84 @@ namespace eastengine
 {
 	namespace thread
 	{
-		class Lock
+		class SRWLock
 		{
 		public:
-			Lock() = default;
-			~Lock()
+			SRWLock()
 			{
-				ReleaseSRWLockExclusive(&m_lock);
+				InitializeSRWLock(&m_lock);
 			}
 
-			void Enter()
+			~SRWLock() = default;
+
+			void AcquireReadLock()
+			{
+				AcquireSRWLockShared(&m_lock);
+			}
+
+			bool TryAcquireReadLock()
+			{
+				return TryAcquireSRWLockShared(&m_lock) == TRUE;
+			}
+
+			void ReleaseReadLock()
+			{
+				ReleaseSRWLockShared(&m_lock);
+			}
+
+			void AcquireWriteLock()
 			{
 				AcquireSRWLockExclusive(&m_lock);
 			}
 
-			void Leave()
-			{
-				ReleaseSRWLockExclusive(&m_lock);
-			}
-
-			bool TryEnter()
+			bool TryAcquireWriteLock()
 			{
 				return TryAcquireSRWLockExclusive(&m_lock) == TRUE;
+			}
+
+			void ReleaseWriteLock()
+			{
+				ReleaseSRWLockExclusive(&m_lock);
 			}
 
 		private:
 			SRWLOCK m_lock{ SRWLOCK_INIT };
 		};
 
-		class AutoLock
+		class SRWReadLock
 		{
 		public:
-			AutoLock(Lock* pLock)
+			SRWReadLock(SRWLock* pLock)
 				: m_pLock(pLock)
 			{
-				m_pLock->Enter();
+				m_pLock->AcquireReadLock();
 			}
 
-			~AutoLock()
+			~SRWReadLock()
 			{
-				m_pLock->Leave();
+				m_pLock->ReleaseReadLock();
 			}
 
 		private:
-			Lock* m_pLock{ nullptr };
+			SRWLock* m_pLock{ nullptr };
+		};
+
+		class SRWWriteLock
+		{
+		public:
+			SRWWriteLock(SRWLock* pLock)
+				: m_pLock(pLock)
+			{
+				m_pLock->AcquireWriteLock();
+			}
+
+			~SRWWriteLock()
+			{
+				m_pLock->ReleaseWriteLock();
+			}
+
+		private:
+			SRWLock * m_pLock{ nullptr };
 		};
 	}
 }

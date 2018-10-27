@@ -35,7 +35,7 @@ namespace eastengine
 			ChannelID AllocateChannelID() { return { m_nChannelID_allocator++ }; }
 
 		private:
-			thread::Lock m_lock;
+			thread::SRWLock m_srwLock;
 
 			FMOD::System* m_pFmodSystem{ nullptr };
 			ListenerAttributes m_listenerAttributes;
@@ -92,7 +92,7 @@ namespace eastengine
 
 			TRACER_EVENT(__FUNCTION__);
 
-			thread::AutoLock autoLock(&m_lock);
+			thread::SRWWriteLock writeLock(&m_srwLock);
 
 			{
 				TRACER_BEGINEVENT("RequestStopChannels");
@@ -208,7 +208,7 @@ namespace eastengine
 			mode ^= e3D;
 			mode |= e2D;
 
-			thread::AutoLock autoLock(&m_lock);
+			thread::SRWWriteLock writeLock(&m_srwLock);
 
 			std::shared_ptr<Sound> pSound = CreateSound(strSoundFilePath, mode);
 			if (pSound == nullptr)
@@ -234,7 +234,7 @@ namespace eastengine
 			mode ^= e2D;
 			mode |= e3D;
 
-			thread::AutoLock autoLock(&m_lock);
+			thread::SRWWriteLock writeLock(&m_srwLock);
 
 			std::shared_ptr<Sound> pSound = CreateSound(strSoundFilePath, mode);
 			if (pSound == nullptr)
@@ -262,7 +262,7 @@ namespace eastengine
 
 			TRACER_EVENT(__FUNCTION__);
 
-			thread::AutoLock autoLock(&m_lock);
+			thread::SRWWriteLock writeLock(&m_srwLock);
 
 			auto iter = std::find_if(m_vecReqStopChannels.begin(), m_vecReqStopChannels.end(), [&](const StopChannel& stopChannel)
 			{

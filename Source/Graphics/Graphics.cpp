@@ -205,7 +205,7 @@ namespace eastengine
 
 			virtual IVertexBuffer* CreateVertexBuffer(const uint8_t* pData, size_t nBufferSize, uint32_t nVertexCount) override
 			{
-				thread::AutoLock autoLock(&m_lock);
+				thread::SRWWriteLock writeLock(&m_srwLock);
 
 				std::unique_ptr<VertexBuffer> pVertexBuffer = std::make_unique<VertexBuffer>(pData, nBufferSize, nVertexCount);
 				auto iter = m_umapVertexBuffers.emplace(pVertexBuffer.get(), std::move(pVertexBuffer));
@@ -221,7 +221,7 @@ namespace eastengine
 
 			virtual IIndexBuffer* CreateIndexBuffer(const uint8_t* pData, size_t nBufferSize, uint32_t nVertexCount) override
 			{
-				thread::AutoLock autoLock(&m_lock);
+				thread::SRWWriteLock writeLock(&m_srwLock);
 
 				std::unique_ptr<IndexBuffer> pIndexBuffer = std::make_unique<IndexBuffer>(pData, nBufferSize, nVertexCount);
 				auto iter = m_umapIndexBuffers.emplace(pIndexBuffer.get(), std::move(pIndexBuffer));
@@ -290,7 +290,7 @@ namespace eastengine
 				std::unique_ptr<Material> pMaterial = Material::Create(pInfo);
 				pMaterial->IncreaseReference();
 
-				thread::AutoLock autoLock(&m_lock);
+				thread::SRWWriteLock writeLock(&m_srwLock);
 
 				auto iter = m_umapMaterials.emplace(pMaterial.get(), std::move(pMaterial));
 				if (iter.second == false)
@@ -306,7 +306,7 @@ namespace eastengine
 				std::unique_ptr<Material> pMaterial = Material::Create(strFileName, strFilePath);
 				pMaterial->IncreaseReference();
 
-				thread::AutoLock autoLock(&m_lock);
+				thread::SRWWriteLock writeLock(&m_srwLock);
 
 				auto iter = m_umapMaterials.emplace(pMaterial.get(), std::move(pMaterial));
 				if (iter.second == false)
@@ -325,7 +325,7 @@ namespace eastengine
 				std::unique_ptr<Material> pMaterial = Material::Clone(static_cast<const Material*>(pMaterialSource));
 				pMaterial->IncreaseReference();
 
-				thread::AutoLock autoLock(&m_lock);
+				thread::SRWWriteLock writeLock(&m_srwLock);
 
 				auto iter = m_umapMaterials.emplace(pMaterial.get(), std::move(pMaterial));
 				if (iter.second == false)
@@ -364,7 +364,7 @@ namespace eastengine
 				{
 					if (pResource->DecreaseReference() <= 0)
 					{
-						thread::AutoLock autoLock(&m_lock);
+						thread::SRWWriteLock writeLock(&m_srwLock);
 						m_vecGarbages.emplace_back(pResource);
 					}
 				}
@@ -372,7 +372,7 @@ namespace eastengine
 
 			virtual void FlushGarbageCollection() override
 			{
-				thread::AutoLock autoLock(&m_lock);
+				thread::SRWWriteLock writeLock(&m_srwLock);
 
 				std::sort(m_vecGarbages.begin(), m_vecGarbages.end());
 				m_vecGarbages.erase(std::unique(m_vecGarbages.begin(), m_vecGarbages.end()), m_vecGarbages.end());
@@ -401,7 +401,7 @@ namespace eastengine
 			}
 
 		protected:
-			thread::Lock m_lock;
+			thread::SRWLock m_srwLock;
 			std::vector<IResource*> m_vecGarbages;
 
 			std::unique_ptr<TextureManager> m_pTextureManager;

@@ -549,7 +549,7 @@ namespace eastengine
 				void CreatePixelShader(ID3D11Device* pDevice, const shader::MaskKey& nMask, const char* pFunctionName);
 
 			private:
-				thread::Lock m_lock;
+				thread::SRWLock m_srwLock;
 				std::string m_strShaderPath;
 				ID3DBlob* m_pShaderBlob{ nullptr };
 
@@ -768,7 +768,7 @@ namespace eastengine
 					emGroup = eAlphaBlend;
 				}
 
-				thread::AutoLock autoLock(&m_lock);
+				const thread::SRWWriteLock writeLock(&m_srwLock);
 
 				size_t nIndex = m_nJobStaticCount[emGroup];
 				if (nIndex >= m_vecJobStatics[emGroup].size())
@@ -794,9 +794,9 @@ namespace eastengine
 					emGroup = eAlphaBlend;
 				}
 
-				thread::AutoLock autoLock(&m_lock);
+				thread::SRWWriteLock writeLock(&m_srwLock);
 
-				size_t nIndex = m_nJobSkinnedCount[emGroup];
+				const size_t nIndex = m_nJobSkinnedCount[emGroup];
 				if (nIndex >= m_vecJobSkinneds[emGroup].size())
 				{
 					m_vecJobSkinneds[emGroup].resize(m_vecJobSkinneds[emGroup].size() * 2);

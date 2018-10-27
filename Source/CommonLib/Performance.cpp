@@ -33,7 +33,7 @@ namespace eastengine
 					if (IsTracing() == false)
 						return;
 
-					thread::AutoLock autoLock(&m_lock);
+					thread::SRWWriteLock lock(&m_srwLock);
 
 					Event* pEvent = GetLastEvent();
 					if (pEvent != nullptr)
@@ -48,7 +48,7 @@ namespace eastengine
 					if (IsTracing() == false)
 						return;
 
-					thread::AutoLock autoLock(&m_lock);
+					thread::SRWWriteLock lock(&m_srwLock);
 
 					Event* pEvent = GetLastEvent();
 					if (pEvent != nullptr)
@@ -103,7 +103,7 @@ namespace eastengine
 				Event* GetLastEvent();
 
 			private:
-				thread::Lock m_lock;
+				thread::SRWLock m_srwLock;
 
 				std::optional<std::chrono::system_clock::time_point> m_startTime;
 				std::unordered_map<uint32_t, std::vector<Event>> m_umapEvents;
@@ -169,7 +169,7 @@ namespace eastengine
 				if (IsTracing() == false)
 					return;
 
-				thread::AutoLock autoLock(&m_lock);
+				thread::SRWWriteLock lock(&m_srwLock);
 
 				const uint32_t nThreadID = GetCurrentThreadId();
 
@@ -192,7 +192,7 @@ namespace eastengine
 				if (IsTracing() == false)
 					return;
 
-				thread::AutoLock autoLock(&m_lock);
+				thread::SRWWriteLock lock(&m_srwLock);
 
 				const uint32_t nThreadID = GetCurrentThreadId();
 				if (m_umapEventLinkers[nThreadID].empty() == true)

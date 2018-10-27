@@ -27,7 +27,7 @@ namespace eastengine
 				Texture* GetTexture() const { return m_vtfInstance.pVTF; }
 
 			private:
-				thread::Lock m_lock;
+				thread::SRWLock m_srwLock;
 
 				struct VTFInstance
 				{

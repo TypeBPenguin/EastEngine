@@ -131,21 +131,21 @@ namespace eastengine
 			void ParseSubDiv(fbxsdk::FbxNode* pNode, fbxsdk::FbxSubDiv* pFbxSubD, ATG::ExportFrame* pParentFrame);
 
 		private:
-			thread::Lock m_lock;
+			thread::SRWLock m_srwLock;
 
-			fbxsdk::FbxManager* m_pSDKManager;
-			fbxsdk::FbxImporter* m_pImporter;
-			fbxsdk::FbxScene* m_pFBXScene;
+			fbxsdk::FbxManager* m_pSDKManager{ nullptr };
+			fbxsdk::FbxImporter* m_pImporter{ nullptr };
+			fbxsdk::FbxScene* m_pFBXScene{ nullptr };
 
 			std::unordered_map<eastengine::String::StringID, eastengine::math::Matrix> m_umapMotionOffsetMarix;
 
 			std::unordered_map<String::StringID, fbxsdk::FbxMatrix> m_BindPoseMap;
-			bool m_isBindPoseFixupRequired;
+			bool m_isBindPoseFixupRequired{ false };
 
-			class ConsoleOutListener* m_pConsoleOutListener;
-			class ATG::DebugSpewListener* m_pDebugSpewListener;
+			class ConsoleOutListener* m_pConsoleOutListener{ nullptr };
+			class ATG::DebugSpewListener* m_pDebugSpewListener{ nullptr };
 			FBXTransformer m_fbxTransformer;
-			ATG::ExportManifest* m_pManifest;
+			ATG::ExportManifest* m_pManifest{ nullptr };
 		};
 	}
 }

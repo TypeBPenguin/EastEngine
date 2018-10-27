@@ -359,7 +359,7 @@ namespace eastengine
 			if (pModel == nullptr || strFilePath == nullptr)
 				return false;
 
-			thread::AutoLock autoLock(&m_lock);
+			thread::SRWWriteLock writeLock(&m_srwLock);
 
 			if (Initialize() == false)
 			{
@@ -415,7 +415,7 @@ namespace eastengine
 			if (pMotion == nullptr || strFilePath == nullptr)
 				return false;
 
-			thread::AutoLock autoLock(&m_lock);
+			thread::SRWWriteLock writeLock(&m_srwLock);
 
 			if (Initialize() == false)
 			{

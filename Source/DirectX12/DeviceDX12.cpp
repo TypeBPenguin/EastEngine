@@ -147,7 +147,7 @@ namespace eastengine
 				std::unique_ptr<DescriptorHeap> m_pUAVDescriptorHeap;
 				std::unique_ptr<DescriptorHeap> m_pSamplerDescriptorHeap;
 
-				thread::Lock m_lockRT;
+				thread::SRWLock m_renderTargetLock;
 
 				struct RenderTargetPool
 				{
@@ -430,7 +430,7 @@ namespace eastengine
 
 			RenderTarget* Device::Impl::GetRenderTarget(const D3D12_RESOURCE_DESC* pDesc, const math::Color& clearColor, bool isIncludeLastUseRenderTarget)
 			{
-				thread::AutoLock autoLock(&m_lockRT);
+				thread::SRWWriteLock writeLock(&m_renderTargetLock);
 
 				RenderTarget::Key key = RenderTarget::BuildKey(pDesc, clearColor);
 				auto iter_range = m_ummapRenderTargetPool.equal_range(key);
@@ -462,7 +462,7 @@ namespace eastengine
 
 			void Device::Impl::ReleaseRenderTargets(RenderTarget** ppRenderTarget, uint32_t nSize, bool isSetLastRenderTarget)
 			{
-				thread::AutoLock autoLock(&m_lockRT);
+				thread::SRWWriteLock writeLock(&m_renderTargetLock);
 
 				for (uint32_t i = 0; i < nSize; ++i)
 				{

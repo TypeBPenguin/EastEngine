@@ -3,6 +3,7 @@
 
 #include "CommonLib/FileStream.h"
 #include "CommonLib/FileUtil.h"
+#include "CommonLib/Lock.h"
 
 #include "GraphicsInterface/Instancing.h"
 #include "GraphicsInterface/Camera.h"
@@ -229,7 +230,7 @@ namespace eastengine
 				void CreateUniformBuffer(VkDevice device, uint32_t nFrameCount);
 
 			private:
-				std::mutex m_mutex;
+				thread::SRWLock m_srwLock;
 
 				struct JobStatic
 				{
@@ -753,7 +754,7 @@ namespace eastengine
 
 			void ModelRenderer::Impl::PushJob(const RenderJobStatic& job)
 			{
-				std::lock_guard<std::mutex> lock(m_mutex);
+				thread::SRWWriteLock writeLock(&m_srwLock);
 
 				auto iter = m_umapDescriptorSetCaching.find(job.pMaterial);
 				if (iter != m_umapDescriptorSetCaching.end())
@@ -765,7 +766,7 @@ namespace eastengine
 
 			void ModelRenderer::Impl::PushJob(const RenderJobSkinned& job)
 			{
-				std::lock_guard<std::mutex> lock(m_mutex);
+				thread::SRWWriteLock writeLock(&m_srwLock);
 
 				auto iter = m_umapDescriptorSetCaching.find(job.pMaterial);
 				if (iter != m_umapDescriptorSetCaching.end())

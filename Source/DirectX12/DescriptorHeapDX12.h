@@ -76,7 +76,8 @@ namespace eastengine
 				D3D12_DESCRIPTOR_HEAP_TYPE m_heapType{ D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV };
 				std::array<D3D12_CPU_DESCRIPTOR_HANDLE, eFrameBufferCount> m_startCPUHandle{};
 				std::array<D3D12_GPU_DESCRIPTOR_HANDLE, eFrameBufferCount> m_startGPUHandle{};
-				thread::Lock m_lock;
+
+				thread::SRWLock m_srwLock;
 			};
 		}
 	}

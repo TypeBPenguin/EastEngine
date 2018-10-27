@@ -290,7 +290,7 @@ namespace eastengine
 			SSSConfig sssConfig;
 		};
 
-		const Options& GetOptions();
+		Options& GetOptions();
 		void SetOptions(const Options& options);
 
 		class IVertexBuffer : public IResource

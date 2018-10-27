@@ -130,7 +130,7 @@ namespace eastengine
 
 		static Options s_options;
 
-		const Options& GetOptions()
+		Options& GetOptions()
 		{
 			return s_options;
 		}
