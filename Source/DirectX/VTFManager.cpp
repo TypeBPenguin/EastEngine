@@ -44,7 +44,7 @@ namespace eastengine
 				srd.SysMemPitch = eTextureWidth * (sizeof(math::Vector4));
 				srd.SysMemSlicePitch = 1;
 
-				String::StringID strName;
+				string::StringID strName;
 				strName.Format("EastEngine_VTF%d", i);
 				m_vtfInstances[i].pVTF = ITexture::Create(strName, desc, &srd);
 				if (m_vtfInstances[i].pVTF == nullptr)

@@ -106,7 +106,7 @@ namespace eastengine
 				strShaderPath.append("PostProcessing\\DownScale\\DownScale.hlsl");
 
 				ID3DBlob* pShaderBlob{ nullptr };
-				if (FAILED(D3DReadFileToBlob(String::MultiToWide(strShaderPath).c_str(), &pShaderBlob)))
+				if (FAILED(D3DReadFileToBlob(string::MultiToWide(strShaderPath).c_str(), &pShaderBlob)))
 				{
 					throw_line("failed to read shader file : DownScale.hlsl");
 				}
@@ -118,22 +118,22 @@ namespace eastengine
 						{ nullptr, nullptr },
 					};
 
-					if (util::CreateVertexShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), "VS", "vs_5_0", &m_pVertexShader, "DownScaleVS") == false)
+					if (util::CreateVertexShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), "VS", shader::VS_CompileVersion, &m_pVertexShader, "DownScaleVS") == false)
 					{
 						throw_line("failed to create DownScaleVS");
 					}
 
-					if (util::CreatePixelShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), GetDownScalePSTypeString(shader::ePS_Downscale4), "ps_5_0", &m_pPixelShaders[shader::ePS_Downscale4], GetDownScalePSTypeString(shader::ePS_Downscale4)) == false)
+					if (util::CreatePixelShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), GetDownScalePSTypeString(shader::ePS_Downscale4), shader::PS_CompileVersion, &m_pPixelShaders[shader::ePS_Downscale4], GetDownScalePSTypeString(shader::ePS_Downscale4)) == false)
 					{
 						throw_line("failed to create DownscalePS");
 					}
 
-					if (util::CreatePixelShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), GetDownScalePSTypeString(shader::ePS_DownscaleHW), "ps_5_0", &m_pPixelShaders[shader::ePS_DownscaleHW], GetDownScalePSTypeString(shader::ePS_DownscaleHW)) == false)
+					if (util::CreatePixelShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), GetDownScalePSTypeString(shader::ePS_DownscaleHW), shader::PS_CompileVersion, &m_pPixelShaders[shader::ePS_DownscaleHW], GetDownScalePSTypeString(shader::ePS_DownscaleHW)) == false)
 					{
 						throw_line("failed to create HWScalePS");
 					}
 
-					if (util::CreatePixelShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), GetDownScalePSTypeString(shader::ePS_Downscale4Luminance), "ps_5_0", &m_pPixelShaders[shader::ePS_Downscale4Luminance], GetDownScalePSTypeString(shader::ePS_Downscale4Luminance)) == false)
+					if (util::CreatePixelShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), GetDownScalePSTypeString(shader::ePS_Downscale4Luminance), shader::PS_CompileVersion, &m_pPixelShaders[shader::ePS_Downscale4Luminance], GetDownScalePSTypeString(shader::ePS_Downscale4Luminance)) == false)
 					{
 						throw_line("failed to create DownscalePS_Luminance");
 					}

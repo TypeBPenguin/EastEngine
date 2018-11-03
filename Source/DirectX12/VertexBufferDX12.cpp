@@ -137,7 +137,8 @@ namespace eastengine
 
 			VertexBuffer::Impl::~Impl()
 			{
-				SafeRelease(m_pBuffer);
+				util::ReleaseResource(m_pBuffer);
+				m_pBuffer = nullptr;
 			}
 
 			bool VertexBuffer::Impl::Map(void** ppData)

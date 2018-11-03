@@ -1,5 +1,7 @@
 #pragma once
 
+#include "RendererDX12.h"
+
 namespace eastengine
 {
 	namespace graphics
@@ -8,11 +10,15 @@ namespace eastengine
 		{
 			class RenderTarget;
 
-			class DownScale
+			class DownScale : public IRendererDX12
 			{
 			public:
 				DownScale();
-				~DownScale();
+				virtual ~DownScale();
+
+			public:
+				virtual Type GetType() const override { return IRenderer::eDownScale; }
+				virtual void RefreshPSO(ID3D12Device* pDevice) override;
 
 			public:
 				void Apply4SW(const RenderTarget* pSource, RenderTarget* pResult, bool isLuminance = false);

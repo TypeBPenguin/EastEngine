@@ -27,7 +27,7 @@ namespace eastengine
 
 			for (auto& iter : vecMacros)
 			{
-				strBuf += String::Format("%s(%s) |", iter.Name, iter.Definition);
+				strBuf += string::Format("%s(%s) |", iter.Name, iter.Definition);
 			}
 		}
 
@@ -51,7 +51,7 @@ namespace eastengine
 			const D3D_SHADER_MACRO* pMacros = pShaderMacros == nullptr ? nullptr : reinterpret_cast<const D3D_SHADER_MACRO*>(pShaderMacros->GetMacros());
 
 			ID3DBlob* pError = nullptr;
-			if (FAILED(D3DX11CompileEffectFromFile(String::MultiToWide(strPath).c_str(), pMacros, D3D_COMPILE_STANDARD_FILE_INCLUDE, nHLSLFlag, 0, GetDevice()->GetInterface(), &pD3DEffect, &pError)))
+			if (FAILED(D3DX11CompileEffectFromFile(string::MultiToWide(strPath).c_str(), pMacros, D3D_COMPILE_STANDARD_FILE_INCLUDE, nHLSLFlag, 0, GetDevice()->GetInterface(), &pD3DEffect, &pError)))
 			{
 				std::string str;
 				if (pShaderMacros != nullptr)
@@ -74,7 +74,7 @@ namespace eastengine
 			return pD3DEffect;
 		}
 
-		IEffect* IEffect::Compile(const String::StringID& strName, const std::string& strPath, const ShaderMacros* pShaderMacros)
+		IEffect* IEffect::Compile(const string::StringID& strName, const std::string& strPath, const ShaderMacros* pShaderMacros)
 		{
 			IEffect* pEffect = ShaderManager::GetInstance()->GetEffect(strName);
 			if (pEffect != nullptr)
@@ -101,7 +101,7 @@ namespace eastengine
 			return nullptr;
 		}
 
-		IEffect* IEffect::CompileAsync(const String::StringID& strName, const std::string& strPath, const ShaderMacros* pShaderMacros, std::function<void(IEffect*, bool)> funcCallback)
+		IEffect* IEffect::CompileAsync(const string::StringID& strName, const std::string& strPath, const ShaderMacros* pShaderMacros, std::function<void(IEffect*, bool)> funcCallback)
 		{
 			IEffect* pEffect = ShaderManager::GetInstance()->GetEffect(strName);
 			if (pEffect != nullptr)
@@ -162,7 +162,7 @@ namespace eastengine
 			return pNewEffect;
 		}
 
-		IEffect* IEffect::Create(const String::StringID& strName, const std::string& strPath)
+		IEffect* IEffect::Create(const string::StringID& strName, const std::string& strPath)
 		{
 			IEffect* pEffect = ShaderManager::GetInstance()->GetEffect(strName);
 			if (pEffect != nullptr)
@@ -171,7 +171,7 @@ namespace eastengine
 			ID3DX11Effect* pD3DEffect = nullptr;
 
 			ID3DBlob* pBlob = nullptr;
-			std::wstring wstrPath(String::MultiToWide(strPath));
+			std::wstring wstrPath(string::MultiToWide(strPath));
 			if (FAILED(D3DReadFileToBlob(wstrPath.c_str(), &pBlob)))
 			{
 				LOG_ERROR("Cant Load Effect File : %s, %s", strName.c_str(), strPath.c_str());

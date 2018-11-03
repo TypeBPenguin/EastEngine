@@ -77,7 +77,7 @@ namespace eastengine
 			return { pDeviceContext, strBeginEvent };
 		}
 
-		std::shared_ptr<ITexture> ITexture::Create(const String::StringID& strName, ID3D11Texture2D* pTexture2D, const TextureDesc2D* pCustomDesc2D)
+		std::shared_ptr<ITexture> ITexture::Create(const string::StringID& strName, ID3D11Texture2D* pTexture2D, const TextureDesc2D* pCustomDesc2D)
 		{
 			std::shared_ptr<ITexture> pITexture = TextureManager::GetInstance()->GetTexture(strName);
 			if (pITexture != nullptr)
@@ -96,7 +96,7 @@ namespace eastengine
 			return pTexture;
 		}
 
-		std::shared_ptr<ITexture> ITexture::Create(const String::StringID& strName, const TextureDesc1D& desc, D3D11_SUBRESOURCE_DATA* pData)
+		std::shared_ptr<ITexture> ITexture::Create(const string::StringID& strName, const TextureDesc1D& desc, D3D11_SUBRESOURCE_DATA* pData)
 		{
 			std::shared_ptr<ITexture> pITexture = TextureManager::GetInstance()->GetTexture(strName);
 			if (pITexture != nullptr)
@@ -115,7 +115,7 @@ namespace eastengine
 			return pTexture;
 		}
 
-		std::shared_ptr<ITexture> ITexture::Create(const String::StringID& strName, const TextureDesc2D& desc, D3D11_SUBRESOURCE_DATA* pData)
+		std::shared_ptr<ITexture> ITexture::Create(const string::StringID& strName, const TextureDesc2D& desc, D3D11_SUBRESOURCE_DATA* pData)
 		{
 			std::shared_ptr<ITexture> pITexture = TextureManager::GetInstance()->GetTexture(strName);
 			if (pITexture != nullptr)
@@ -134,7 +134,7 @@ namespace eastengine
 			return pTexture;
 		}
 
-		std::shared_ptr<ITexture> ITexture::Create(const String::StringID& strName, const TextureDesc3D& desc, D3D11_SUBRESOURCE_DATA* pData)
+		std::shared_ptr<ITexture> ITexture::Create(const string::StringID& strName, const TextureDesc3D& desc, D3D11_SUBRESOURCE_DATA* pData)
 		{
 			std::shared_ptr<ITexture> pITexture = TextureManager::GetInstance()->GetTexture(strName);
 			if (pITexture != nullptr)
@@ -158,7 +158,7 @@ namespace eastengine
 			if (strFilePath.empty() == true)
 				return nullptr;
 
-			String::StringID strName = strFilePath.c_str();
+			string::StringID strName = strFilePath.c_str();
 			std::shared_ptr<ITexture> pITexture = TextureManager::GetInstance()->GetTexture(strName);
 			if (pITexture != nullptr)
 				return pITexture;
@@ -406,7 +406,7 @@ namespace eastengine
 			return pMaterial;
 		}
 
-		IMaterial* IMaterial::Create(const String::StringID& strName)
+		IMaterial* IMaterial::Create(const string::StringID& strName)
 		{
 			Material* pMaterial = nullptr;
 			{
@@ -538,7 +538,7 @@ namespace eastengine
 
 			for (int i = 0; i < EmMaterial::TypeCount; ++i)
 			{
-				const String::StringID& strName = pMaterial->GetTextureName(static_cast<EmMaterial::Type>(i));
+				const string::StringID& strName = pMaterial->GetTextureName(static_cast<EmMaterial::Type>(i));
 				if (strName.empty() == true)
 				{
 					file << "None";

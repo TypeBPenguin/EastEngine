@@ -1,5 +1,7 @@
 #pragma once
 
+#include "RendererDX12.h"
+
 namespace eastengine
 {
 	namespace graphics
@@ -9,11 +11,15 @@ namespace eastengine
 			class RenderTarget;
 			class DepthStencil;
 
-			class GaussianBlur
+			class GaussianBlur : public IRendererDX12
 			{
 			public:
 				GaussianBlur();
-				~GaussianBlur();
+				virtual ~GaussianBlur();
+
+			public:
+				virtual Type GetType() const override { return IRenderer::eGaussianBlur; }
+				virtual void RefreshPSO(ID3D12Device* pDevice) override;
 
 			public:
 				void Apply(const RenderTarget* pSource, RenderTarget* pResult, float fSigma);

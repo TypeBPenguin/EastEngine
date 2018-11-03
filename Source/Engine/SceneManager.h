@@ -14,17 +14,16 @@ namespace eastengine
 		virtual ~SceneManager();
 
 	public:
-		void Flush();
 		void Update(float fElapsedTime);
 
 	public:
 		void AddScene(IScene* pScene);
 		void RemoveScene(IScene* pScene);
-		void RemoveScene(const String::StringID& strSceneName);
+		void RemoveScene(const string::StringID& strSceneName);
 		
-		void ChangeScene(const String::StringID& strSceneName);
+		void ChangeScene(const string::StringID& strSceneName);
 
-		IScene* GetScene(const String::StringID& strSceneName);
+		IScene* GetScene(const string::StringID& strSceneName);
 
 	private:
 		class Impl;

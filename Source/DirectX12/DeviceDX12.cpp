@@ -17,6 +17,8 @@
 #include "GraphicsInterface/imgui_impl_win32.h"
 #include "imgui_impl_dx12.h"
 
+#include <dxgidebug.h>
+
 namespace StrID
 {
 	RegisterStringID(DeviceDX12);
@@ -42,14 +44,16 @@ namespace eastengine
 				void RenderImgui();
 
 			public:
-				void Initialize(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const String::StringID& strApplicationTitle, const String::StringID& strApplicationName);
+				void Initialize(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const string::StringID& strApplicationTitle, const string::StringID& strApplicationName);
 				void Release();
 
-				void Flush(float fElapsedTime);
+				void Cleanup(float fElapsedTime);
 
 			public:
 				RenderTarget* GetRenderTarget(const D3D12_RESOURCE_DESC* pDesc, const math::Color& clearColor, bool isIncludeLastUseRenderTarget = true);
 				void ReleaseRenderTargets(RenderTarget** ppRenderTarget, uint32_t nSize = 1, bool isSetLastRenderTarget = true);
+
+				void ReleaseResource(ID3D12DeviceChild* pResource);
 
 			public:
 				void MessageHandler(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam);
@@ -69,10 +73,10 @@ namespace eastengine
 				uint64_t GetFenceValue() const { return m_nFenceValues[m_nFrameIndex]; }
 				uint32_t GetFrameIndex() const { return m_nFrameIndex; }
 
-				RenderTarget* GetSwapChainRenderTarget(int nFrameIndex) const { return m_pSwapChainRenderTargets[nFrameIndex].get(); }
+				RenderTarget* GetSwapChainRenderTarget(uint32_t nFrameIndex) const { return m_pSwapChainRenderTargets[nFrameIndex].get(); }
 				RenderTarget* GetLastUsedRenderTarget() const { return m_pLastUseRenderTarget; }
 
-				GBuffer* GetGBuffer(int nFrameIndex) const { return m_pGBuffers[nFrameIndex].get(); }
+				GBuffer* GetGBuffer(uint32_t nFrameIndex) const { return m_pGBuffers[nFrameIndex].get(); }
 				IImageBasedLight* GetImageBasedLight() const { return m_pImageBasedLight; }
 				void SetImageBasedLight(IImageBasedLight* pImageBasedLight) { m_pImageBasedLight = pImageBasedLight; }
 				RenderManager* GetRenderManager() const { return m_pRenderManager.get(); }
@@ -153,18 +157,45 @@ namespace eastengine
 				{
 					std::unique_ptr<RenderTarget> pRenderTarget;
 					bool isUsing{ false };
+					uint32_t nFrameIndex{ 0 };
 					float fUnusedTime{ 0.f };
 
 					RenderTargetPool() = default;
 					RenderTargetPool(RenderTargetPool&& source) noexcept
 						: pRenderTarget(std::move(source.pRenderTarget))
 						, isUsing(std::move(source.isUsing))
+						, nFrameIndex(std::move(source.nFrameIndex))
 						, fUnusedTime(std::move(source.fUnusedTime))
 					{
 					}
 				};
 				std::unordered_multimap<RenderTarget::Key, RenderTargetPool> m_ummapRenderTargetPool;
 				RenderTarget* m_pLastUseRenderTarget{ nullptr };
+
+				struct ReleaseObject
+				{
+					ID3D12DeviceChild* pDeviceChild{ nullptr };
+					uint32_t nFrameIndex{ 0 };
+
+					ReleaseObject(ID3D12DeviceChild* pDeviceChild)
+						: pDeviceChild(pDeviceChild)
+					{
+					}
+
+					ReleaseObject(ReleaseObject&& source) noexcept
+					{
+						*this = std::move(source);
+					}
+
+					ReleaseObject& operator = (ReleaseObject&& source) noexcept
+					{
+						pDeviceChild = std::move(source.pDeviceChild);
+						nFrameIndex = std::move(source.nFrameIndex);
+						return *this;
+					}
+				};
+				std::vector<ReleaseObject> m_vecReleaseResources;
+				thread::SRWLock m_srwLock_releaseResource;
 
 				uint32_t m_nNullTextureIndex{ eInvalidDescriptorIndex };
 				uint32_t m_nImGuiFontSRVIndex{ eInvalidDescriptorIndex };
@@ -285,7 +316,7 @@ namespace eastengine
 				ExecuteCommandList(pCommandList);
 			}
 
-			void Device::Impl::Initialize(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const String::StringID& strApplicationTitle, const String::StringID& strApplicationName)
+			void Device::Impl::Initialize(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const string::StringID& strApplicationTitle, const string::StringID& strApplicationName)
 			{
 				if (m_isInitislized == true)
 					return;
@@ -358,6 +389,14 @@ namespace eastengine
 					m_pGBuffers[i].reset();
 				}
 
+				m_ummapRenderTargetPool.clear();
+
+				for (auto& releaseObj : m_vecReleaseResources)
+				{
+					SafeRelease(releaseObj.pDeviceChild);
+				}
+				m_vecReleaseResources.clear();
+
 				m_pUploader.reset();
 
 				BOOL fs = FALSE;
@@ -373,8 +412,6 @@ namespace eastengine
 					SafeRelease(pCommandList);
 				}
 				m_vecCommandLists.clear();
-
-				m_ummapRenderTargetPool.clear();
 
 				SafeRelease(m_pBundleAllocators);
 
@@ -400,27 +437,49 @@ namespace eastengine
 				SafeRelease(m_pCommandQueue);
 				SafeRelease(m_pDebug);
 
-				util::ReportLiveObjects(m_pDevice);
-
 				SafeRelease(m_pDevice);
+
+				util::ReportLiveObjects();
 
 				m_isInitislized = false;
 			}
 
-			void Device::Impl::Flush(float fElapsedTime)
+			void Device::Impl::Cleanup(float fElapsedTime)
 			{
-				m_pRenderManager->Flush();
+				{
+					thread::SRWWriteLock writeLock(&m_srwLock_releaseResource);
+					m_vecReleaseResources.erase(std::remove_if(m_vecReleaseResources.begin(), m_vecReleaseResources.end(), [](ReleaseObject& releaseObj)
+					{
+						if (releaseObj.nFrameIndex >= eFrameBufferCount)
+						{
+							SafeRelease(releaseObj.pDeviceChild);
+							return true;
+						}
+
+						++releaseObj.nFrameIndex;
+						return false;
+					}), m_vecReleaseResources.end());
+				}
+
+				m_pRenderManager->Cleanup();
 
 				for (auto iter = m_ummapRenderTargetPool.begin(); iter != m_ummapRenderTargetPool.end();)
 				{
 					if (iter->second.isUsing == false)
 					{
-						iter->second.fUnusedTime += fElapsedTime;
-
-						if (iter->second.fUnusedTime > 120.f)
+						if (iter->second.nFrameIndex >= eFrameBufferCount)
 						{
-							iter = m_ummapRenderTargetPool.erase(iter);
-							continue;
+							iter->second.fUnusedTime += fElapsedTime;
+
+							if (iter->second.fUnusedTime > 30.f)
+							{
+								iter = m_ummapRenderTargetPool.erase(iter);
+								continue;
+							}
+						}
+						else
+						{
+							++iter->second.nFrameIndex;
 						}
 					}
 
@@ -444,6 +503,7 @@ namespace eastengine
 							continue;
 
 						pool.isUsing = true;
+						pool.nFrameIndex = 0;
 						pool.fUnusedTime = 0.f;
 						return pool.pRenderTarget.get();
 					}
@@ -484,6 +544,15 @@ namespace eastengine
 							break;
 						}
 					}
+				}
+			}
+
+			void Device::Impl::ReleaseResource(ID3D12DeviceChild* pResource)
+			{
+				if (pResource != nullptr)
+				{
+					thread::SRWWriteLock writeLock(&m_srwLock_releaseResource);
+					m_vecReleaseResources.emplace_back(pResource);
 				}
 			}
 
@@ -578,8 +647,22 @@ namespace eastengine
 
 			void Device::Impl::InitializeD3D()
 			{
+				uint32_t nDxgiFactoryFlags = 0;
+
+#if defined(DEBUG) || defined(_DEBUG)
+				IDXGIInfoQueue* pDxgiInfoQueue = nullptr;
+				if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&pDxgiInfoQueue))))
+				{
+					nDxgiFactoryFlags = DXGI_CREATE_FACTORY_DEBUG;
+
+					pDxgiInfoQueue->SetBreakOnSeverity(DXGI_DEBUG_ALL, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_ERROR, true);
+					pDxgiInfoQueue->SetBreakOnSeverity(DXGI_DEBUG_ALL, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_CORRUPTION, true);
+					SafeRelease(pDxgiInfoQueue);
+				}
+#endif
+
 				IDXGIFactory4* pDxgiFactory{ nullptr };
-				HRESULT hr = CreateDXGIFactory(IID_PPV_ARGS(&pDxgiFactory));
+				HRESULT hr = CreateDXGIFactory2(nDxgiFactoryFlags, IID_PPV_ARGS(&pDxgiFactory));
 				if (FAILED(hr))
 				{
 					throw_line("failed to create dxgi factory");
@@ -607,6 +690,8 @@ namespace eastengine
 						break;
 					}
 
+					SafeRelease(pAdapter);
+
 					++nAdapterIndex;
 				}
 
@@ -620,6 +705,8 @@ namespace eastengine
 				{
 					throw_line("failed to create d3d device");
 				}
+
+				SafeRelease(pAdapter);
 
 				D3D12_COMMAND_QUEUE_DESC cqDesc{};
 				cqDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
@@ -881,7 +968,7 @@ namespace eastengine
 			{
 			}
 
-			void Device::Initialize(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const String::StringID& strApplicationTitle, const String::StringID& strApplicationName)
+			void Device::Initialize(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const string::StringID& strApplicationTitle, const string::StringID& strApplicationName)
 			{
 				m_pImpl->Initialize(nWidth, nHeight, isFullScreen, strApplicationTitle, strApplicationName);
 			}
@@ -891,9 +978,9 @@ namespace eastengine
 				m_pImpl->Run(funcUpdate);
 			}
 
-			void Device::Flush(float fElapsedTime)
+			void Device::Cleanup(float fElapsedTime)
 			{
-				m_pImpl->Flush(fElapsedTime);
+				m_pImpl->Cleanup(fElapsedTime);
 			}
 
 			RenderTarget* Device::GetRenderTarget(const D3D12_RESOURCE_DESC* pDesc, const math::Color& clearColor, bool isIncludeLastUseRenderTarget)
@@ -906,6 +993,11 @@ namespace eastengine
 				m_pImpl->ReleaseRenderTargets(ppRenderTarget, nSize, isSetLastRenderTarget);
 			}
 
+			void Device::ReleaseResource(ID3D12DeviceChild* pResource)
+			{
+				m_pImpl->ReleaseResource(pResource);
+			}
+
 			HWND Device::GetHwnd() const
 			{
 				return m_pImpl->GetHwnd();
@@ -916,12 +1008,12 @@ namespace eastengine
 				return m_pImpl->GetHInstance();
 			}
 
-			void Device::AddMessageHandler(const String::StringID& strName, std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler)
+			void Device::AddMessageHandler(const string::StringID& strName, std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler)
 			{
 				m_pImpl->AddMessageHandler(strName, funcHandler);
 			}
 
-			void Device::RemoveMessageHandler(const String::StringID& strName)
+			void Device::RemoveMessageHandler(const string::StringID& strName)
 			{
 				m_pImpl->RemoveMessageHandler(strName);
 			}
@@ -966,7 +1058,7 @@ namespace eastengine
 				return m_pImpl->GetFrameIndex();
 			}
 
-			RenderTarget* Device::GetSwapChainRenderTarget(int nFrameIndex) const
+			RenderTarget* Device::GetSwapChainRenderTarget(uint32_t nFrameIndex) const
 			{
 				return m_pImpl->GetSwapChainRenderTarget(nFrameIndex);
 			}
@@ -976,7 +1068,7 @@ namespace eastengine
 				return m_pImpl->GetLastUsedRenderTarget();
 			}
 
-			GBuffer* Device::GetGBuffer(int nFrameIndex) const
+			GBuffer* Device::GetGBuffer(uint32_t nFrameIndex) const
 			{
 				return m_pImpl->GetGBuffer(nFrameIndex);
 			}

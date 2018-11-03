@@ -1,5 +1,7 @@
 #pragma once
 
+#include "RendererDX12.h"
+
 namespace eastengine
 {
 	namespace graphics
@@ -11,14 +13,18 @@ namespace eastengine
 			class RenderTarget;
 			class DepthStencil;
 
-			class SSS
+			class SSS : public IRendererDX12
 			{
 			public:
 				SSS();
-				~SSS();
+				virtual ~SSS();
 
 			public:
-				void Apply(ID3D12GraphicsCommandList2* pCommandList, const RenderTarget* pSource, const DepthStencil* pDepth, RenderTarget* pResult);
+				virtual Type GetType() const override { return IRenderer::eGaussianBlur; }
+				virtual void RefreshPSO(ID3D12Device* pDevice) override;
+
+			public:
+				void Apply(RenderTarget* pSource, const DepthStencil* pDepth, RenderTarget* pResult);
 
 			private:
 				class Impl;

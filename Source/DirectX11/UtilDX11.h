@@ -55,6 +55,12 @@ namespace eastengine
 
 			namespace shader
 			{
+				const char VS_CompileVersion[]{ "vs_5_0" };
+				const char PS_CompileVersion[]{ "ps_5_0" };
+				const char GS_CompileVersion[]{ "gs_5_0" };
+				const char HS_CompileVersion[]{ "hs_5_0" };
+				const char DS_CompileVersion[]{ "ds_5_0" };
+
 				struct tMaskKey {};
 				using MaskKey = PhantomType<tMaskKey, const uint32_t>;
 			}

@@ -25,7 +25,7 @@ namespace Contents
 		~Sun();
 
 	public:
-		bool Init(const String::StringID& strName, graphics::ILight* pLight, float fRadius, const math::Vector3& f3CenterAxis, const math::Vector3& f3Velocity, const math::Vector3& f3OrbitalPos);
+		bool Init(const string::StringID& strName, graphics::ILight* pLight, float fRadius, const math::Vector3& f3CenterAxis, const math::Vector3& f3Velocity, const math::Vector3& f3OrbitalPos);
 		void Update(float fElapsedTime);
 
 	public:

@@ -13,8 +13,8 @@ namespace eastengine
 			virtual ~MotionRecorder();
 
 		public:
-			virtual void SetTransform(const String::StringID& strBoneName, const math::Transform& keyframe) override;
-			virtual const math::Transform* GetTransform(const String::StringID& strBoneName) const override;
+			virtual void SetTransform(const string::StringID& strBoneName, const math::Transform& keyframe) override;
+			virtual const math::Transform* GetTransform(const string::StringID& strBoneName) const override;
 
 			virtual void PushEvent(const IMotionEvent* pMotionEvent) override { m_queueEvents.push(pMotionEvent); }
 			virtual const IMotionEvent* PopEvent() override
@@ -34,7 +34,7 @@ namespace eastengine
 			void Clear(float fStartTime);
 
 		private:
-			std::unordered_map<String::StringID, math::Transform> m_umapMotionData;
+			std::unordered_map<string::StringID, math::Transform> m_umapMotionData;
 			std::queue<const IMotionEvent*> m_queueEvents;
 			float m_fLastPlayTime{ 0.f };
 		};

@@ -40,9 +40,9 @@ namespace eastengine
 {
 	namespace graphics
 	{
-		const String::StringID& GetGeometryTypeName(ModelLoader::GeometryType emGeometryType)
+		const string::StringID& GetGeometryTypeName(ModelLoader::GeometryType emGeometryType)
 		{
-			static String::StringID strGeometryType[] =
+			static string::StringID strGeometryType[] =
 			{
 				StrID::EastEngine_CustomStaticModel,
 				StrID::EastEngine_Cube,
@@ -176,7 +176,7 @@ namespace eastengine
 			});
 		}
 
-		IModelNode* Model::GetNode(const String::StringID& strName) const
+		IModelNode* Model::GetNode(const string::StringID& strName) const
 		{
 			auto iter = std::find_if(m_vecModelNodes.begin(), m_vecModelNodes.end(), [&](IModelNode* pNode)
 			{
@@ -199,12 +199,12 @@ namespace eastengine
 			});
 		}
 
-		void Model::ChangeName(const String::StringID& strName)
+		void Model::ChangeName(const string::StringID& strName)
 		{
 			SetName(strName);
 		}
 
-		void Model::AddNode(IModelNode* pNode, const String::StringID& strNodeName, bool isRootNode)
+		void Model::AddNode(IModelNode* pNode, const string::StringID& strNodeName, bool isRootNode)
 		{
 			if (isRootNode == true)
 			{
@@ -273,7 +273,7 @@ namespace eastengine
 
 				Collision::AABB aabb;
 
-				auto SetModelNode = [&](const String::StringID& strNodeName, const Collision::AABB& aabb)
+				auto SetModelNode = [&](const string::StringID& strNodeName, const Collision::AABB& aabb)
 				{
 					ModelNodeStatic* pModelStatic = new ModelNodeStatic;
 					pModelStatic->SetVertexBuffer(pVertexBuffer);
@@ -716,7 +716,7 @@ namespace eastengine
 					uint32_t nBoneCount = 0;
 					file >> nBoneCount;
 
-					std::vector<String::StringID> vecBones;
+					std::vector<string::StringID> vecBones;
 					vecBones.resize(nBoneCount);
 
 					for (uint32_t j = 0; j < nBoneCount; ++j)
@@ -784,7 +784,7 @@ namespace eastengine
 
 					uint32_t nIncludBoneCount = pNodeSkinned->GetBoneCount();
 
-					std::vector<String::StringID> vecBoneNames;
+					std::vector<string::StringID> vecBoneNames;
 					vecBoneNames.resize(nIncludBoneCount);
 
 					for (uint32_t j = 0; j < nIncludBoneCount; ++j)

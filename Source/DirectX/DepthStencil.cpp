@@ -22,7 +22,7 @@ namespace eastengine
 
 		bool DepthStencil::Init(const DepthStencilDesc& depthStencilDesc)
 		{
-			String::StringID strName;
+			string::StringID strName;
 			strName.Format("EastEngine_DepthStencil_%d", s_nDepthStencilCount);
 
 			m_pTexture = ITexture::Create(strName, depthStencilDesc);

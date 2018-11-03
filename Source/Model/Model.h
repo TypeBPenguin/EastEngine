@@ -30,7 +30,7 @@ namespace eastengine
 		public:
 			virtual void Update(float fElapsedTime, const math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance) override;
 
-			virtual void ChangeName(const String::StringID& strName) override;
+			virtual void ChangeName(const string::StringID& strName) override;
 
 			void LoadCompleteCallback(bool isSuccess);
 
@@ -44,12 +44,12 @@ namespace eastengine
 
 			virtual const math::Matrix& GetLocalMatrix() const override { return m_matLocal; }
 
-			virtual const String::StringID& GetName() const override { return m_strModelName; }
+			virtual const string::StringID& GetName() const override { return m_strModelName; }
 			virtual const std::string& GetFilePath() const override { return m_strFilePath; }
 
 			virtual uint32_t GetNodeCount() const override { return static_cast<uint32_t>(m_vecModelNodes.size()); }
 			virtual IModelNode* GetNode(uint32_t nIndex) const override { return m_vecModelNodes[nIndex]; }
-			virtual IModelNode* GetNode(const String::StringID& strName) const override;
+			virtual IModelNode* GetNode(const string::StringID& strName) const override;
 
 			virtual bool IsVisible() const override { return m_isVisible; }
 			virtual void SetVisible(bool bVisible) override { m_isVisible = bVisible; }
@@ -57,11 +57,11 @@ namespace eastengine
 			virtual ISkeleton* GetSkeleton() override { return &m_skeleton; }
 
 		public:
-			void AddNode(IModelNode* pNode, const String::StringID& strNodeName, bool isRootNode);
+			void AddNode(IModelNode* pNode, const string::StringID& strNodeName, bool isRootNode);
 
 			bool Load(const ModelLoader& loader);
 			bool LoadToFile(const char* strFilePath);
-			void SetName(const String::StringID& strModelName) { m_strModelName = strModelName; }
+			void SetName(const string::StringID& strModelName) { m_strModelName = strModelName; }
 			void SetFilePath(const std::string& strFilePath) { m_strFilePath = strFilePath; }
 
 		private:
@@ -78,7 +78,7 @@ namespace eastengine
 
 			math::Matrix m_matLocal;
 
-			String::StringID m_strModelName;
+			string::StringID m_strModelName;
 			std::string	m_strFilePath;
 
 			std::vector<IModelNode*> m_vecHierarchyModelNodes;	// 계층 구조 노드

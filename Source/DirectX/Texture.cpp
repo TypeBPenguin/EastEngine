@@ -24,7 +24,7 @@ namespace eastengine
 			SafeRelease(m_pShaderResourceView);
 		}
 
-		bool Texture::Load(const String::StringID& strName, ID3D11Texture2D* pTexture2D, const TextureDesc2D* pCustomDesc2D)
+		bool Texture::Load(const string::StringID& strName, ID3D11Texture2D* pTexture2D, const TextureDesc2D* pCustomDesc2D)
 		{
 			m_pTexture2D = pTexture2D;
 			m_pTexture2D->AddRef();
@@ -55,7 +55,7 @@ namespace eastengine
 			return true;
 		}
 
-		bool Texture::Load(const String::StringID& strName, const TextureDesc1D& desc, D3D11_SUBRESOURCE_DATA* pData)
+		bool Texture::Load(const string::StringID& strName, const TextureDesc1D& desc, D3D11_SUBRESOURCE_DATA* pData)
 		{
 			if (FAILED(GetDevice()->CreateTexture1D(&desc, pData, &m_pTexture1D)))
 				return false;
@@ -76,7 +76,7 @@ namespace eastengine
 			return true;
 		}
 
-		bool Texture::Load(const String::StringID& strName, const TextureDesc2D& desc, D3D11_SUBRESOURCE_DATA* pData)
+		bool Texture::Load(const string::StringID& strName, const TextureDesc2D& desc, D3D11_SUBRESOURCE_DATA* pData)
 		{
 			if (FAILED(GetDevice()->CreateTexture2D(&desc, pData, &m_pTexture2D)))
 				return false;
@@ -98,7 +98,7 @@ namespace eastengine
 			return true;
 		}
 
-		bool Texture::Load(const String::StringID& strName, const TextureDesc3D& desc, D3D11_SUBRESOURCE_DATA* pData)
+		bool Texture::Load(const string::StringID& strName, const TextureDesc3D& desc, D3D11_SUBRESOURCE_DATA* pData)
 		{
 			if (FAILED(GetDevice()->CreateTexture3D(&desc, pData, &m_pTexture3D)))
 				return false;

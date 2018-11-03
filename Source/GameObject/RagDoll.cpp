@@ -70,7 +70,7 @@ namespace eastengine
 			//math::Matrix matTranslation = math::Matrix::Compose(math::Vector3::One, math::Quaternion::CreateFromYawPitchRoll(math::ToRadians(180.f), 0.f, 0.f), f3Pos);
 			math::Matrix matTranslation = math::Matrix::Compose(math::Vector3::One, quatRotation, f3Pos);
 
-			auto CreateBodyPart = [&](bool isChildBone, const String::StringID& strBoneName, const String::StringID& strName, float fRadius, float fHeight, const math::Vector3& f3Pos, const math::Quaternion& quat = math::Quaternion::Identity)
+			auto CreateBodyPart = [&](bool isChildBone, const string::StringID& strBoneName, const string::StringID& strName, float fRadius, float fHeight, const math::Vector3& f3Pos, const math::Quaternion& quat = math::Quaternion::Identity)
 			{
 				float fNewHeight = fHeight;
 				math::Vector3 f3NewPos = f3Pos;
@@ -175,7 +175,7 @@ namespace eastengine
 				m_vecBodyParts[i]->pRigidBody->SetSleepingThresholds(1.6f, 2.5f);
 			}
 
-			auto CreateJoint = [&](const String::StringID& strJointName, BodyPart* pBodyPartA, BodyPart* pBodyPartB,
+			auto CreateJoint = [&](const string::StringID& strJointName, BodyPart* pBodyPartA, BodyPart* pBodyPartB,
 				const math::Vector3& f3PosA, const math::Vector3& f3PosB,
 				const math::Quaternion& quatA, const math::Quaternion& quatB,
 				const math::Vector3& f3AngularLowerLimit, const math::Vector3& f3AngularUpperLimit)
@@ -355,7 +355,7 @@ namespace eastengine
 			}
 		}
 
-		RagDoll::BodyPart* RagDoll::AddBodyPart(const String::StringID& strPartName, const physics::RigidBodyProperty& rigidBodyProperty, graphics::IModelInstance* pPhysicsModelInstance, graphics::ISkeletonInstance::IBone* pBone)
+		RagDoll::BodyPart* RagDoll::AddBodyPart(const string::StringID& strPartName, const physics::RigidBodyProperty& rigidBodyProperty, graphics::IModelInstance* pPhysicsModelInstance, graphics::ISkeletonInstance::IBone* pBone)
 		{
 			if (GetBodyPort(strPartName) != nullptr)
 				return nullptr;
@@ -373,7 +373,7 @@ namespace eastengine
 			return pBodyPart;
 		}
 
-		RagDoll::Joint* RagDoll::AddJoint(const String::StringID& strJointName, const physics::ConstraintProperty& constraintProperty, BodyPart* pBodyPartA, BodyPart* pBodyPartB, graphics::IModelInstance* pPhysicsModelInstance)
+		RagDoll::Joint* RagDoll::AddJoint(const string::StringID& strJointName, const physics::ConstraintProperty& constraintProperty, BodyPart* pBodyPartA, BodyPart* pBodyPartB, graphics::IModelInstance* pPhysicsModelInstance)
 		{
 			if (GetJoint(strJointName) != nullptr)
 				return nullptr;
@@ -391,7 +391,7 @@ namespace eastengine
 			return pJoint;
 		}
 
-		physics::RigidBody* RagDoll::GetBodyPort(const String::StringID& strPartName)
+		physics::RigidBody* RagDoll::GetBodyPort(const string::StringID& strPartName)
 		{
 			for (auto& pBodyPart : m_vecBodyParts)
 			{
@@ -402,7 +402,7 @@ namespace eastengine
 			return nullptr;
 		}
 
-		physics::ConstraintInterface* RagDoll::GetJoint(const String::StringID& strJointName)
+		physics::ConstraintInterface* RagDoll::GetJoint(const string::StringID& strJointName)
 		{
 			for (auto& pJoint : m_vecJoints)
 			{

@@ -19,7 +19,7 @@ namespace eastengine
 			void Flush();
 
 		public:
-			IEffect* GetEffect(const String::StringID& strName);
+			IEffect* GetEffect(const string::StringID& strName);
 			bool AddEffect(IEffect* pEffect);
 			void RemoveEffect(IEffect* pEffect);
 

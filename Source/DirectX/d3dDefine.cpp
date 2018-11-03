@@ -17,7 +17,7 @@ namespace eastengine
 
 		SamplerStateKey SamplerStateDesc::GetKey() const
 		{
-			String::StringID strKey;
+			string::StringID strKey;
 			strKey.Format("%lu_%lu_%lu_%lu_%x_%lu_%lu_%x_%x_%x_%x_%x_%x",
 				Filter, AddressU, AddressV, AddressW,
 				*(reinterpret_cast<const uint32_t*>(&MipLODBias)),
@@ -39,7 +39,7 @@ namespace eastengine
 
 		BlendStateKey BlendStateDesc::GetKey() const
 		{
-			String::StringID strKey;
+			string::StringID strKey;
 			strKey.Format("%d_%d_{%d_%ld_%ld_%ld_%ld_%ld_%ld_%d}_{%d_%ld_%ld_%ld_%ld_%ld_%ld_%d}_{%d_%ld_%ld_%ld_%ld_%ld_%ld_%d}_{%d_%ld_%ld_%ld_%ld_%ld_%ld_%d}_{%d_%ld_%ld_%ld_%ld_%ld_%ld_%d}_{%d_%ld_%ld_%ld_%ld_%ld_%ld_%d}_{%d_%ld_%ld_%ld_%ld_%ld_%ld_%d}_{%d_%ld_%ld_%ld_%ld_%ld_%ld_%d}",
 				static_cast<int>(AlphaToCoverageEnable), static_cast<int>(IndependentBlendEnable),
 				static_cast<int>(RenderTarget[0].BlendEnable), RenderTarget[0].SrcBlend, RenderTarget[0].DestBlend, RenderTarget[0].BlendOp,
@@ -69,7 +69,7 @@ namespace eastengine
 
 		DepthStencilStateKey DepthStencilStateDesc::GetKey() const
 		{
-			String::StringID strKey;
+			string::StringID strKey;
 			strKey.Format("%d_%u_%u_%d_%d_%d_%u_%u_%u_%u_%u_%u_%u_%u",
 				static_cast<int>(DepthEnable), DepthWriteMask, DepthFunc,
 				static_cast<int>(StencilEnable), StencilReadMask, StencilWriteMask,
@@ -92,7 +92,7 @@ namespace eastengine
 
 		RasterizerStateKey RasterizerStateDesc::GetKey() const
 		{
-			String::StringID strKey;
+			string::StringID strKey;
 			strKey.Format("%u_%u_%d_%d_%x_%x_%d_%d_%d_%d",
 				FillMode, CullMode, FrontCounterClockwise, DepthBias,
 				*(reinterpret_cast<const uint32_t*>(&DepthBiasClamp)),
@@ -226,7 +226,7 @@ namespace eastengine
 
 		RenderTargetKey RenderTargetDesc1D::GetKey() const
 		{
-			String::StringID strKey;
+			string::StringID strKey;
 			strKey.Format("1D_%u_%u_%u_%u_%u_%u_%u_%u",
 				Width, MipLevels, ArraySize, Format, Usage, BindFlags, CPUAccessFlags, MiscFlags);
 
@@ -263,7 +263,7 @@ namespace eastengine
 
 		RenderTargetKey RenderTargetDesc2D::GetKey() const
 		{
-			String::StringID strKey;
+			string::StringID strKey;
 			strKey.Format("2D_%u_%u_%u_%u_%u_%u_%u_%u_%u_%u_%u",
 				Width,
 				Height,

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GraphicsInterface/RenderJob.h"
+#include "GraphicsInterface/Renderer.h"
 
 namespace eastengine
 {
@@ -10,15 +11,18 @@ namespace eastengine
 
 		namespace dx11
 		{
-			class TerrainRenderer
+			class TerrainRenderer : public IRenderer
 			{
 			public:
 				TerrainRenderer();
-				~TerrainRenderer();
+				virtual ~TerrainRenderer();
+
+			public:
+				virtual Type GetType() const { return IRenderer::eTerrain; }
 
 			public:
 				void Render(ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext, Camera* pCamera);
-				void Flush();
+				void Cleanup();
 
 			public:
 				void PushJob(const RenderJobTerrain& job);

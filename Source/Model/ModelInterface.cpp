@@ -42,7 +42,7 @@ namespace eastengine
 
 		IMotion* IMotion::Create(const MotionLoader& loader)
 		{
-			String::StringID strKey = loader.GetFilePath().c_str();
+			string::StringID strKey = loader.GetFilePath().c_str();
 
 			IMotion* pIMotion = ModelManager::GetInstance()->GetMotion(strKey);
 			if (pIMotion != nullptr)
@@ -56,7 +56,7 @@ namespace eastengine
 			{
 			case EmMotionLoader::eFbx:
 			{
-				String::StringID strMotionName = file::GetFileNameWithoutExtension(loader.GetFilePath().c_str()).c_str();
+				string::StringID strMotionName = file::GetFileNameWithoutExtension(loader.GetFilePath().c_str()).c_str();
 
 				if (ModelManager::GetInstance()->LoadMotionFBX(pMotion, loader.GetFilePath().c_str(), loader.GetScaleFactor()) == false)
 				{
@@ -71,7 +71,7 @@ namespace eastengine
 			break;
 			case EmMotionLoader::eXps:
 			{
-				String::StringID strMotionName = file::GetFileNameWithoutExtension(loader.GetFilePath().c_str()).c_str();
+				string::StringID strMotionName = file::GetFileNameWithoutExtension(loader.GetFilePath().c_str()).c_str();
 
 				if (XPSImport::LoadMotion(pMotion, loader.GetFilePath().c_str()) == false)
 				{
@@ -183,7 +183,7 @@ namespace eastengine
 
 		IModel* IModel::Create(const ModelLoader& loader, bool isThreadLoad)
 		{
-			String::StringID strKey;
+			string::StringID strKey;
 			if (loader.GetLoadModelType() == ModelLoader::LoadType::eGeometry)
 			{
 				strKey = loader.GetModelName();

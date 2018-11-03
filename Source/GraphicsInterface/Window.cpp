@@ -42,14 +42,14 @@ namespace eastengine
 		{
 		}
 
-		void Window::AddMessageHandler(const String::StringID& strName, std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler)
+		void Window::AddMessageHandler(const string::StringID& strName, std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler)
 		{
 			RemoveMessageHandler(strName);
 
 			m_umapHandlers.emplace(strName, funcHandler);
 		}
 
-		void Window::RemoveMessageHandler(const String::StringID& strName)
+		void Window::RemoveMessageHandler(const string::StringID& strName)
 		{
 			m_umapHandlers.erase(strName);
 		}
@@ -93,7 +93,7 @@ namespace eastengine
 			}
 		}
 
-		void Window::InitializeWindow(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const String::StringID& strApplicationTitle, const String::StringID& strApplicationName)
+		void Window::InitializeWindow(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const string::StringID& strApplicationTitle, const string::StringID& strApplicationName)
 		{
 			m_hInstance = GetModuleHandle(NULL);
 			m_n2ScreenSize = { nWidth, nHeight };

@@ -137,9 +137,9 @@ namespace eastengine
 			fbxsdk::FbxImporter* m_pImporter{ nullptr };
 			fbxsdk::FbxScene* m_pFBXScene{ nullptr };
 
-			std::unordered_map<eastengine::String::StringID, eastengine::math::Matrix> m_umapMotionOffsetMarix;
+			std::unordered_map<eastengine::string::StringID, eastengine::math::Matrix> m_umapMotionOffsetMarix;
 
-			std::unordered_map<String::StringID, fbxsdk::FbxMatrix> m_BindPoseMap;
+			std::unordered_map<string::StringID, fbxsdk::FbxMatrix> m_BindPoseMap;
 			bool m_isBindPoseFixupRequired{ false };
 
 			class ConsoleOutListener* m_pConsoleOutListener{ nullptr };

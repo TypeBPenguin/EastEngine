@@ -14,7 +14,7 @@ namespace eastengine
 
 		public:
 			virtual void Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag) override;
-			virtual void Flush() override;
+			virtual void Cleanup() override;
 
 		private:
 			class Impl;

@@ -15,7 +15,7 @@ namespace eastengine
 			bool Init(const char* strFileName, const char* strPath);
 			void Release();
 
-			IMaterial* GetMaterial(const String::StringID& strName)
+			IMaterial* GetMaterial(const string::StringID& strName)
 			{
 				auto iter = m_umapNewMtrl.find(strName);
 				if (iter != m_umapNewMtrl.end())
@@ -25,7 +25,7 @@ namespace eastengine
 			}
 
 		private:
-			std::unordered_map<String::StringID, IMaterial*> m_umapNewMtrl;
+			std::unordered_map<string::StringID, IMaterial*> m_umapNewMtrl;
 		};
 	}
 }

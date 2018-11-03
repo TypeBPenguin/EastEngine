@@ -19,7 +19,7 @@ namespace eastengine
 			void Update(float fElapsedTime);
 
 		public:
-			IActor* CreateActor(const String::StringID& strActorName);
+			IActor* CreateActor(const string::StringID& strActorName);
 
 			IActor* GetActor(const IGameObject::Handle& handle);
 			IActor* GetActor(size_t nIndex);
@@ -28,7 +28,7 @@ namespace eastengine
 			void ExecuteFunction(std::function<void(IActor*)> func);
 
 		public:
-			ISkybox* CreateSkybox(const String::StringID& strName, const SkyboxProperty& property);
+			ISkybox* CreateSkybox(const string::StringID& strName, const SkyboxProperty& property);
 
 			ISkybox* GetSkybox(const IGameObject::Handle& handle);
 			ISkybox* GetSkybox(size_t nIndex);
@@ -37,8 +37,8 @@ namespace eastengine
 			void ExecuteFunction(std::function<void(ISkybox*)> func);
 
 		public:
-			ITerrain * CreateTerrain(const String::StringID& strTerrainName, const TerrainProperty& terrainProperty);
-			ITerrain* CreateTerrainAsync(const String::StringID& strTerrainName, const TerrainProperty& terrainProperty);
+			ITerrain * CreateTerrain(const string::StringID& strTerrainName, const TerrainProperty& terrainProperty);
+			ITerrain* CreateTerrainAsync(const string::StringID& strTerrainName, const TerrainProperty& terrainProperty);
 
 			ITerrain* GetTerrain(const IGameObject::Handle& handle);
 			ITerrain* GetTerrain(size_t nIndex);

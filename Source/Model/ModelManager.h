@@ -26,26 +26,26 @@ namespace eastengine
 
 		public:
 			void Update();
-			void Flush(float fElapsedTime);
+			void Cleanup(float fElapsedTime);
 
 		public:
 			// Model
 			void AsyncLoadModel(IModel* pModel, const ModelLoader& loader);
 
 			// FilePath or ModelName
-			IModel* AllocateModel(const String::StringID& strKey);
+			IModel* AllocateModel(const string::StringID& strKey);
 			IModelInstance* AllocateModelInstance(Model* pModel);
 			bool DestroyModelInstance(ModelInstance** ppModelInstance);
 
 			// FilePath or ModelName
-			IModel* GetModel(const String::StringID& strKey) const;
+			IModel* GetModel(const string::StringID& strKey) const;
 
 		public:
 			// FilePath or ModelName
-			IMotion* AllocateMotion(const String::StringID& strKey);
+			IMotion* AllocateMotion(const string::StringID& strKey);
 
 			// FilePath or ModelName
-			IMotion* GetMotion(const String::StringID& strKey);
+			IMotion* GetMotion(const string::StringID& strKey);
 			IMotion* GetMotion(const size_t nIndex);
 
 			size_t GetMotionCount() const;

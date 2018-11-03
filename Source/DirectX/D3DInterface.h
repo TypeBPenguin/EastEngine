@@ -271,10 +271,10 @@ namespace eastengine
 			virtual Key GetKey() const = 0;
 
 		public:
-			static std::shared_ptr<ITexture> Create(const String::StringID& strName, ID3D11Texture2D* pTexture2D, const TextureDesc2D* pCustomDesc2D = nullptr);
-			static std::shared_ptr<ITexture> Create(const String::StringID& strName, const TextureDesc1D& desc, D3D11_SUBRESOURCE_DATA* pData = nullptr);
-			static std::shared_ptr<ITexture> Create(const String::StringID& strName, const TextureDesc2D& desc, D3D11_SUBRESOURCE_DATA* pData = nullptr);
-			static std::shared_ptr<ITexture> Create(const String::StringID& strName, const TextureDesc3D& desc, D3D11_SUBRESOURCE_DATA* pData = nullptr);
+			static std::shared_ptr<ITexture> Create(const string::StringID& strName, ID3D11Texture2D* pTexture2D, const TextureDesc2D* pCustomDesc2D = nullptr);
+			static std::shared_ptr<ITexture> Create(const string::StringID& strName, const TextureDesc1D& desc, D3D11_SUBRESOURCE_DATA* pData = nullptr);
+			static std::shared_ptr<ITexture> Create(const string::StringID& strName, const TextureDesc2D& desc, D3D11_SUBRESOURCE_DATA* pData = nullptr);
+			static std::shared_ptr<ITexture> Create(const string::StringID& strName, const TextureDesc3D& desc, D3D11_SUBRESOURCE_DATA* pData = nullptr);
 			static std::shared_ptr<ITexture> Create(const std::string& strFilePath, bool isThreadLoad = true);
 
 		public:
@@ -291,7 +291,7 @@ namespace eastengine
 			virtual ID3D11ShaderResourceView** GetShaderResourceViewPtr() = 0;
 
 			virtual const math::UInt2& GetSize() = 0;
-			virtual const String::StringID& GetName() = 0;
+			virtual const string::StringID& GetName() = 0;
 		};
 
 		class IVertexBuffer
@@ -473,7 +473,7 @@ namespace eastengine
 
 		struct MaterialInfo
 		{
-			String::StringID strName;
+			string::StringID strName;
 			std::string strPath;
 
 			math::Color colorAlbedo;
@@ -489,7 +489,7 @@ namespace eastengine
 			bool isVisible;
 			bool isInsideTextureForder{ true };
 
-			std::array<String::StringID, EmMaterial::TypeCount> strTextureNameArray;
+			std::array<string::StringID, EmMaterial::TypeCount> strTextureNameArray;
 
 			EmSamplerState::Type emSamplerState;
 			EmBlendState::Type emBlendState;
@@ -508,7 +508,7 @@ namespace eastengine
 
 		public:
 			static IMaterial* Create(const MaterialInfo* pInfo);
-			static IMaterial* Create(const String::StringID& strName);
+			static IMaterial* Create(const string::StringID& strName);
 			static IMaterial* Clone(const IMaterial* pSource);
 
 			static IMaterial* Create(const char* strFileName, const char* strFilePath);
@@ -518,8 +518,8 @@ namespace eastengine
 		public:
 			virtual void LoadTexture() = 0;
 
-			virtual const String::StringID& GetName() const = 0;
-			virtual void SetName(const String::StringID& strName) = 0;
+			virtual const string::StringID& GetName() const = 0;
+			virtual void SetName(const string::StringID& strName) = 0;
 
 			virtual const std::string& GetPath() const = 0;
 			virtual void SetPath(const std::string& strPath) = 0;
@@ -530,8 +530,8 @@ namespace eastengine
 			virtual const math::Color& GetEmissiveColor() const = 0;
 			virtual void SetEmissiveColor(const math::Color& color) = 0;
 
-			virtual const String::StringID& GetTextureName(EmMaterial::Type emType) const = 0;
-			virtual void SetTextureName(EmMaterial::Type emType, const String::StringID& strName) = 0;
+			virtual const string::StringID& GetTextureName(EmMaterial::Type emType) const = 0;
+			virtual void SetTextureName(EmMaterial::Type emType, const string::StringID& strName) = 0;
 
 			virtual const std::shared_ptr<ITexture>& GetTexture(EmMaterial::Type emType) const = 0;
 			virtual void SetTexture(EmMaterial::Type emType, const std::shared_ptr<ITexture>& pTexture) = 0;

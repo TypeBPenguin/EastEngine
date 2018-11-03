@@ -29,7 +29,7 @@ namespace eastengine
 				D3D12_RESOURCE_DESC desc = pResource->GetDesc();
 
 				const Key key = RenderTarget::BuildKey(&desc, clearColor);
-				const String::StringID strName(key);
+				const string::StringID strName(key);
 
 				std::unique_ptr<RenderTarget> pRenderTarget = std::make_unique<RenderTarget>(key);
 				pRenderTarget->m_colorClearValue = clearColor;
@@ -45,7 +45,7 @@ namespace eastengine
 				{
 					throw_line("failed to create render target texture");
 				}
-				const std::wstring wstrDebugName = String::MultiToWide(strName.c_str());
+				const std::wstring wstrDebugName = string::MultiToWide(strName.c_str());
 				pResource->SetName(wstrDebugName.c_str());
 
 				return pRenderTarget;
@@ -57,7 +57,7 @@ namespace eastengine
 				DescriptorHeap* pRTVDescriptorHeap = Device::GetInstance()->GetRTVDescriptorHeap();
 
 				const Key key = RenderTarget::BuildKey(pResourceDesc, clearColor);
-				const String::StringID strName(key);
+				const string::StringID strName(key);
 
 				std::unique_ptr<RenderTarget> pRenderTarget = std::make_unique<RenderTarget>(key);
 				pRenderTarget->m_colorClearValue = clearColor;
@@ -107,7 +107,7 @@ namespace eastengine
 				{
 					throw_line("failed to create RenderTarget");
 				}
-				const std::wstring wstrDebugName = String::MultiToWide(strName.c_str());
+				const std::wstring wstrDebugName = string::MultiToWide(strName.c_str());
 				pResource->SetName(wstrDebugName.c_str());
 
 				pDevice->CreateRenderTargetView(pResource, &rtvDesc, rtvAlloc.cpuHandles[0]);
@@ -123,7 +123,7 @@ namespace eastengine
 
 			RenderTarget::Key RenderTarget::BuildKey(const D3D12_RESOURCE_DESC* pDesc, const math::Color& clearColor)
 			{
-				String::StringID strKey;
+				string::StringID strKey;
 				strKey.Format("RenderTarget_%d_%llu_%llu_%u_%u_%u_%u_%u_%u_%u_%u_%u_%d_%d",
 					pDesc->Dimension,
 					pDesc->Alignment,

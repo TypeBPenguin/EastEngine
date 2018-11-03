@@ -189,7 +189,7 @@ namespace eastengine
 
 			public:
 				void Render(Camera* pCamera);
-				void Flush();
+				void Cleanup();
 
 			public:
 				void PushJob(const RenderJobStatic& job);
@@ -719,7 +719,7 @@ namespace eastengine
 				}
 			}
 
-			void ModelRenderer::Impl::Flush()
+			void ModelRenderer::Impl::Cleanup()
 			{
 				const uint32_t nFrameIndex = Device::GetInstance()->GetFrameIndex();
 
@@ -791,7 +791,7 @@ namespace eastengine
 
 			PSOKey ModelRenderer::Impl::GetPSOKey(uint64_t nMask, EmRasterizerState::Type emRasterizerState, EmBlendState::Type emBlendState, EmDepthStencilState::Type emDepthStencilState)
 			{
-				String::StringID strKey;
+				string::StringID strKey;
 				strKey.Format("%lld_%d_%d_%d", nMask, emRasterizerState, emBlendState, emDepthStencilState);
 
 				return PSOKey{ strKey };
@@ -1451,9 +1451,9 @@ namespace eastengine
 				m_pImpl->Render(pCamera);
 			}
 
-			void ModelRenderer::Flush()
+			void ModelRenderer::Cleanup()
 			{
-				m_pImpl->Flush();
+				m_pImpl->Cleanup();
 			}
 
 			void ModelRenderer::PushJob(const RenderJobStatic& renderJob)

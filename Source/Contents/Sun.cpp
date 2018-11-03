@@ -23,7 +23,7 @@ namespace Contents
 		m_pLight = nullptr;
 	}
 
-	bool Sun::Init(const String::StringID& strName, graphics::ILight* pLight, float fRadius, const math::Vector3& f3CenterAxis, const math::Vector3& f3Velocity, const math::Vector3& f3OrbitalPos)
+	bool Sun::Init(const string::StringID& strName, graphics::ILight* pLight, float fRadius, const math::Vector3& f3CenterAxis, const math::Vector3& f3Velocity, const math::Vector3& f3OrbitalPos)
 	{
 		m_f3CenterAxis = f3CenterAxis;
 		m_f3OrbitalRotateVelocity = f3Velocity;

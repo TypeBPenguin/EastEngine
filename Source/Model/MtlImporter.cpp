@@ -53,7 +53,7 @@ namespace eastengine
 
 					MaterialInfo info;
 					info.strName = strNewMtlName.c_str();
-					auto iter = m_umapNewMtrl.emplace(String::StringID(strNewMtlName.c_str()), CreateMaterial(&info));
+					auto iter = m_umapNewMtrl.emplace(string::StringID(strNewMtlName.c_str()), CreateMaterial(&info));
 					pMaterial = iter.first->second;
 				}
 				else if (temp == "Ka")
@@ -424,7 +424,7 @@ namespace eastengine
 
 		void MtlImporter::Release()
 		{
-			std::for_each(m_umapNewMtrl.begin(), m_umapNewMtrl.end(), [](std::pair<const String::StringID, IMaterial*>& iter)
+			std::for_each(m_umapNewMtrl.begin(), m_umapNewMtrl.end(), [](std::pair<const string::StringID, IMaterial*>& iter)
 			{
 				ReleaseResource(&iter.second);
 			});

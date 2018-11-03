@@ -11,39 +11,39 @@ namespace eastengine
 	{
 		ModelLoader::GeometryType ModelLoader::GetGeometryType(const char* strType)
 		{
-			if (String::IsEquals(strType, "CustomStaticModel"))
+			if (string::IsEquals(strType, "CustomStaticModel"))
 				return eCustomStaticModel;
-			if (String::IsEquals(strType, "Cube"))
+			if (string::IsEquals(strType, "Cube"))
 				return eCube;
-			if (String::IsEquals(strType, "Box"))
+			if (string::IsEquals(strType, "Box"))
 				return eBox;
-			if (String::IsEquals(strType, "Sphere"))
+			if (string::IsEquals(strType, "Sphere"))
 				return eSphere;
-			if (String::IsEquals(strType, "GeoSphere"))
+			if (string::IsEquals(strType, "GeoSphere"))
 				return eGeoSphere;
-			if (String::IsEquals(strType, "Cylinder"))
+			if (string::IsEquals(strType, "Cylinder"))
 				return eCylinder;
-			if (String::IsEquals(strType, "Cone"))
+			if (string::IsEquals(strType, "Cone"))
 				return eCone;
-			if (String::IsEquals(strType, "Torus"))
+			if (string::IsEquals(strType, "Torus"))
 				return eTorus;
-			if (String::IsEquals(strType, "Tetrahedron"))
+			if (string::IsEquals(strType, "Tetrahedron"))
 				return eTetrahedron;
-			if (String::IsEquals(strType, "Octahedron"))
+			if (string::IsEquals(strType, "Octahedron"))
 				return eOctahedron;
-			if (String::IsEquals(strType, "Dodecahedron"))
+			if (string::IsEquals(strType, "Dodecahedron"))
 				return eDodecahedron;
-			if (String::IsEquals(strType, "Icosahedron"))
+			if (string::IsEquals(strType, "Icosahedron"))
 				return eIcosahedron;
-			if (String::IsEquals(strType, "Teapot"))
+			if (string::IsEquals(strType, "Teapot"))
 				return eTeapot;
-			if (String::IsEquals(strType, "Hexagon"))
+			if (string::IsEquals(strType, "Hexagon"))
 				return eHexagon;
-			if (String::IsEquals(strType, "Capsule"))
+			if (string::IsEquals(strType, "Capsule"))
 				return eCapsule;
-			if (String::IsEquals(strType, "Grid"))
+			if (string::IsEquals(strType, "Grid"))
 				return eGrid;
-			if (String::IsEquals(strType, "Plane"))
+			if (string::IsEquals(strType, "Plane"))
 				return ePlane;
 
 			return eInvalid;
@@ -110,7 +110,7 @@ namespace eastengine
 		{
 		}
 
-		void ModelLoader::InitFBX(const String::StringID& strModelName, const char* strFilePath, float fScaleFactor, bool isFlipZ, uint32_t nLodMax, const LODReductionRate& reductionRate)
+		void ModelLoader::InitFBX(const string::StringID& strModelName, const char* strFilePath, float fScaleFactor, bool isFlipZ, uint32_t nLodMax, const LODReductionRate& reductionRate)
 		{
 			m_strModelName = strModelName;
 			m_strFilePath = strFilePath;
@@ -123,7 +123,7 @@ namespace eastengine
 			m_emLoadModelType = ModelLoader::eFbx;
 		}
 
-		void ModelLoader::InitObj(const String::StringID& strModelName, const char* strFilePath, float fScaleFactor, uint32_t nLodMax, const LODReductionRate& reductionRate)
+		void ModelLoader::InitObj(const string::StringID& strModelName, const char* strFilePath, float fScaleFactor, uint32_t nLodMax, const LODReductionRate& reductionRate)
 		{
 			m_strModelName = strModelName;
 			m_strFilePath = strFilePath;
@@ -135,7 +135,7 @@ namespace eastengine
 			m_emLoadModelType = ModelLoader::eObj;
 		}
 
-		void ModelLoader::InitXPS(const String::StringID& strModelName, const char* strFilePath)
+		void ModelLoader::InitXPS(const string::StringID& strModelName, const char* strFilePath)
 		{
 			m_strModelName = strModelName;
 			m_strFilePath = strFilePath;
@@ -143,7 +143,7 @@ namespace eastengine
 			m_emLoadModelType = ModelLoader::eXps;
 		}
 
-		void ModelLoader::InitEast(const String::StringID& strModelName, const char* strFilePath)
+		void ModelLoader::InitEast(const string::StringID& strModelName, const char* strFilePath)
 		{
 			m_strModelName = strModelName;
 			m_strFilePath = strFilePath;
@@ -152,7 +152,7 @@ namespace eastengine
 			m_emLoadModelType = ModelLoader::eEast;
 		}
 
-		void ModelLoader::InitCube(const String::StringID& strModelName, MaterialInfo* pMaterialInfo,
+		void ModelLoader::InitCube(const string::StringID& strModelName, MaterialInfo* pMaterialInfo,
 			float fSize, bool rhcoords)
 		{
 			m_strModelName = strModelName;
@@ -166,7 +166,7 @@ namespace eastengine
 			m_emLoadGeometryType = ModelLoader::eCube;
 		}
 
-		void ModelLoader::InitBox(const String::StringID& strModelName, MaterialInfo* pMaterialInfo,
+		void ModelLoader::InitBox(const string::StringID& strModelName, MaterialInfo* pMaterialInfo,
 			const math::Vector3& size, bool rhcoords, bool invertn)
 		{
 			m_strModelName = strModelName;
@@ -181,7 +181,7 @@ namespace eastengine
 			m_emLoadGeometryType = ModelLoader::eBox;
 		}
 
-		void ModelLoader::InitSphere(const String::StringID& strModelName, MaterialInfo* pMaterialInfo,
+		void ModelLoader::InitSphere(const string::StringID& strModelName, MaterialInfo* pMaterialInfo,
 			float diameter, uint32_t nTessellation, bool rhcoords, bool invertn)
 		{
 			m_strModelName = strModelName;
@@ -197,7 +197,7 @@ namespace eastengine
 			m_emLoadGeometryType = ModelLoader::eSphere;
 		}
 
-		void ModelLoader::InitGeoSphere(const String::StringID& strModelName, MaterialInfo* pMaterialInfo,
+		void ModelLoader::InitGeoSphere(const string::StringID& strModelName, MaterialInfo* pMaterialInfo,
 			float diameter, uint32_t nTessellation, bool rhcoords)
 		{
 			m_strModelName = strModelName;
@@ -212,7 +212,7 @@ namespace eastengine
 			m_emLoadGeometryType = ModelLoader::eGeoSphere;
 		}
 
-		void ModelLoader::InitCylinder(const String::StringID& strModelName, MaterialInfo* pMaterialInfo,
+		void ModelLoader::InitCylinder(const string::StringID& strModelName, MaterialInfo* pMaterialInfo,
 			float height, float diameter, uint32_t nTessellation, bool rhcoords)
 		{
 			m_strModelName = strModelName;
@@ -228,7 +228,7 @@ namespace eastengine
 			m_emLoadGeometryType = ModelLoader::eCylinder;
 		}
 
-		void ModelLoader::InitCone(const String::StringID& strModelName, MaterialInfo* pMaterialInfo,
+		void ModelLoader::InitCone(const string::StringID& strModelName, MaterialInfo* pMaterialInfo,
 			float diameter, float height, uint32_t nTessellation, bool rhcoords)
 		{
 			m_strModelName = strModelName;
@@ -244,7 +244,7 @@ namespace eastengine
 			m_emLoadGeometryType = ModelLoader::eCone;
 		}
 
-		void ModelLoader::InitTorus(const String::StringID& strModelName, MaterialInfo* pMaterialInfo,
+		void ModelLoader::InitTorus(const string::StringID& strModelName, MaterialInfo* pMaterialInfo,
 			float diameter, float thickness, uint32_t nTessellation, bool rhcoords)
 		{
 			m_strModelName = strModelName;
@@ -260,7 +260,7 @@ namespace eastengine
 			m_emLoadGeometryType = ModelLoader::eTorus;
 		}
 
-		void ModelLoader::InitTetrahedron(const String::StringID& strModelName, MaterialInfo* pMaterialInfo,
+		void ModelLoader::InitTetrahedron(const string::StringID& strModelName, MaterialInfo* pMaterialInfo,
 			float fSize, bool rhcoords)
 		{
 			m_strModelName = strModelName;
@@ -274,7 +274,7 @@ namespace eastengine
 			m_emLoadGeometryType = ModelLoader::eTetrahedron;
 		}
 
-		void ModelLoader::InitOctahedron(const String::StringID& strModelName, MaterialInfo* pMaterialInfo,
+		void ModelLoader::InitOctahedron(const string::StringID& strModelName, MaterialInfo* pMaterialInfo,
 			float fSize, bool rhcoords)
 		{
 			m_strModelName = strModelName;
@@ -288,7 +288,7 @@ namespace eastengine
 			m_emLoadGeometryType = ModelLoader::eOctahedron;
 		}
 
-		void ModelLoader::InitDodecahedron(const String::StringID& strModelName, MaterialInfo* pMaterialInfo,
+		void ModelLoader::InitDodecahedron(const string::StringID& strModelName, MaterialInfo* pMaterialInfo,
 			float fSize, bool rhcoords)
 		{
 			m_strModelName = strModelName;
@@ -302,7 +302,7 @@ namespace eastengine
 			m_emLoadGeometryType = ModelLoader::eDodecahedron;
 		}
 
-		void ModelLoader::InitIcosahedron(const String::StringID& strModelName, MaterialInfo* pMaterialInfo,
+		void ModelLoader::InitIcosahedron(const string::StringID& strModelName, MaterialInfo* pMaterialInfo,
 			float fSize, bool rhcoords)
 		{
 			m_strModelName = strModelName;
@@ -316,7 +316,7 @@ namespace eastengine
 			m_emLoadGeometryType = ModelLoader::eIcosahedron;
 		}
 
-		void ModelLoader::InitTeapot(const String::StringID& strModelName, MaterialInfo* pMaterialInfo,
+		void ModelLoader::InitTeapot(const string::StringID& strModelName, MaterialInfo* pMaterialInfo,
 			float fSize, uint32_t nTessellation, bool rhcoords)
 		{
 			m_strModelName = strModelName;
@@ -331,7 +331,7 @@ namespace eastengine
 			m_emLoadGeometryType = ModelLoader::eTeapot;
 		}
 
-		void ModelLoader::InitHexagon(const String::StringID& strModelName, MaterialInfo* pMaterialInfo,
+		void ModelLoader::InitHexagon(const string::StringID& strModelName, MaterialInfo* pMaterialInfo,
 			float radius)
 		{
 			m_strModelName = strModelName;
@@ -344,7 +344,7 @@ namespace eastengine
 			m_emLoadGeometryType = ModelLoader::eHexagon;
 		}
 
-		void ModelLoader::InitCapsule(const String::StringID& strModelName, MaterialInfo* pMaterialInfo, float fRadius, float fHeight, int nSubdivisionHeight, int nSegments)
+		void ModelLoader::InitCapsule(const string::StringID& strModelName, MaterialInfo* pMaterialInfo, float fRadius, float fHeight, int nSubdivisionHeight, int nSegments)
 		{
 			m_strModelName = strModelName;
 			m_materialInfo = pMaterialInfo != nullptr ? *pMaterialInfo : MaterialInfo();
@@ -359,7 +359,7 @@ namespace eastengine
 			m_emLoadGeometryType = ModelLoader::eCapsule;
 		}
 
-		void ModelLoader::InitGrid(const String::StringID& strModelName, float fGridSizeX, float fGridSizeZ,
+		void ModelLoader::InitGrid(const string::StringID& strModelName, float fGridSizeX, float fGridSizeZ,
 			uint32_t nBlockCountWidth, uint32_t nBlockCountLength, MaterialInfo* pMaterialInfo)
 		{
 			m_strModelName = strModelName;
@@ -375,7 +375,7 @@ namespace eastengine
 			m_emLoadGeometryType = ModelLoader::eGrid;
 		}
 
-		void ModelLoader::InitPlane(const String::StringID& strModelName, float fEachLengthX, float fEachLengthZ,
+		void ModelLoader::InitPlane(const string::StringID& strModelName, float fEachLengthX, float fEachLengthZ,
 			int nTotalCountX, int nTotalCountZ, MaterialInfo* pMaterialInfo)
 		{
 			m_strModelName = strModelName;
@@ -391,7 +391,7 @@ namespace eastengine
 			m_emLoadGeometryType = ModelLoader::ePlane;
 		}
 
-		void ModelLoader::InitCustomStaticModel(const String::StringID& strModelName, const String::StringID& strNodeName,
+		void ModelLoader::InitCustomStaticModel(const string::StringID& strModelName, const string::StringID& strNodeName,
 			IVertexBuffer* pVertexBuffer, IIndexBuffer* pIndexBuffer, MaterialInfo* pMaterialInfo)
 		{
 			m_strModelName = strModelName;

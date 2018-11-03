@@ -18,7 +18,7 @@ namespace eastengine
 
 			public:
 				void Render(Camera* pCamera);
-				void Flush();
+				void Cleanup();
 
 			public:
 				void PushJob(const RenderJobStatic& renderJob);

@@ -34,22 +34,22 @@ namespace eastengine
 			class INode
 			{
 			public:
-				INode(String::StringID strName) : m_strName(strName) {}
+				INode(string::StringID strName) : m_strName(strName) {}
 				virtual ~INode() = 0 {}
 
 				virtual bool Run(float fElapsedTime) = 0;
 
 			public:
-				String::StringID GetName() { return m_strName; }
+				string::StringID GetName() { return m_strName; }
 
 			private:
-				String::StringID m_strName;
+				string::StringID m_strName;
 			};
 
 			class ICompositeNode : public INode
 			{
 			public:
-				ICompositeNode(String::StringID strName) : INode(strName) {}
+				ICompositeNode(string::StringID strName) : INode(strName) {}
 				virtual ~ICompositeNode() {}
 
 			public:
@@ -87,7 +87,7 @@ namespace eastengine
 			class Selector : public ICompositeNode
 			{
 			public:
-				Selector(String::StringID strName) : ICompositeNode(strName) {};
+				Selector(string::StringID strName) : ICompositeNode(strName) {};
 				virtual ~Selector() {}
 
 				virtual bool Run(float fElapsedTime) override
@@ -106,7 +106,7 @@ namespace eastengine
 			class RandomSelector : public ICompositeNode
 			{
 			public:
-				RandomSelector(String::StringID strName) : ICompositeNode(strName) {};
+				RandomSelector(string::StringID strName) : ICompositeNode(strName) {};
 				virtual ~RandomSelector() {}
 
 				virtual bool Run(float fElapsedTime) override
@@ -127,7 +127,7 @@ namespace eastengine
 			class Sequence : public ICompositeNode
 			{
 			public:
-				Sequence(String::StringID strName) : ICompositeNode(strName) {};
+				Sequence(string::StringID strName) : ICompositeNode(strName) {};
 				virtual ~Sequence() {}
 
 				virtual bool Run(float fElapsedTime) override
@@ -146,7 +146,7 @@ namespace eastengine
 			//class Action : public INode
 			//{
 			//public:
-			//	Action(String::StringID strName, std::function<bool()> func) : INode(strName), m_func(func) {}
+			//	Action(string::StringID strName, std::function<bool()> func) : INode(strName), m_func(func) {}
 			//	virtual ~Action() {};
 			//
 			//	virtual bool Run(float fElapsedTime) override { m_func(); }
@@ -158,7 +158,7 @@ namespace eastengine
 			class DecoratorNode : public INode
 			{
 			public:
-				DecoratorNode(String::StringID strName) : INode(strName), m_pChildNode(nullptr) {}
+				DecoratorNode(string::StringID strName) : INode(strName), m_pChildNode(nullptr) {}
 				virtual ~DecoratorNode() {}
 
 				void SetChild(INode* pNewChild) { m_pChildNode = pNewChild; }
@@ -175,7 +175,7 @@ namespace eastengine
 			private:
 				friend class BehaviorTree;
 
-				Root(String::StringID strName) : DecoratorNode(strName) {}
+				Root(string::StringID strName) : DecoratorNode(strName) {}
 				virtual ~Root() {}
 
 				virtual bool Run(float fElapsedTime) override
@@ -187,7 +187,7 @@ namespace eastengine
 			class Inverter : public DecoratorNode
 			{
 			public:
-				Inverter(String::StringID strName) : DecoratorNode(strName) {}
+				Inverter(string::StringID strName) : DecoratorNode(strName) {}
 				virtual ~Inverter() {}
 
 			private:
@@ -200,7 +200,7 @@ namespace eastengine
 			class Succeeder : public DecoratorNode
 			{
 			public:
-				Succeeder(String::StringID strName) : DecoratorNode(strName) {}
+				Succeeder(string::StringID strName) : DecoratorNode(strName) {}
 				virtual ~Succeeder() {}
 
 			private:
@@ -214,7 +214,7 @@ namespace eastengine
 			class Failer : public DecoratorNode
 			{
 			public:
-				Failer(String::StringID strName) : DecoratorNode(strName) {}
+				Failer(string::StringID strName) : DecoratorNode(strName) {}
 				virtual ~Failer() {}
 
 			private:
@@ -228,7 +228,7 @@ namespace eastengine
 			class Repeater : public DecoratorNode
 			{
 			private:
-				Repeater(String::StringID strName, int num = -1) : DecoratorNode(strName), m_nRepeats(num) {}
+				Repeater(string::StringID strName, int num = -1) : DecoratorNode(strName), m_nRepeats(num) {}
 				virtual ~Repeater() {}
 
 				virtual bool Run(float fElapsedTime) override
@@ -258,7 +258,7 @@ namespace eastengine
 			class RepeatUntilFail : public DecoratorNode
 			{
 			public:
-				RepeatUntilFail(String::StringID strName) : DecoratorNode(strName) {}
+				RepeatUntilFail(string::StringID strName) : DecoratorNode(strName) {}
 				virtual ~RepeatUntilFail() {}
 
 			private:
@@ -276,7 +276,7 @@ namespace eastengine
 			class StackNode : public INode
 			{
 			protected:
-				CStackNode(String::StringID strName, std::stack<T*>& stack) : INode(strName), m_stack(stack) {}
+				CStackNode(string::StringID strName, std::stack<T*>& stack) : INode(strName), m_stack(stack) {}
 
 			protected:
 				std::stack<T*>& m_stack;
@@ -286,7 +286,7 @@ namespace eastengine
 			class PushToStack : public CStackNode<T>
 			{
 			public:
-				CPushToStack(String::StringID strName, T*& t, std::stack<T*>& stack) : CStackNode<T>(strName, s), m_item(t) {}
+				CPushToStack(string::StringID strName, T*& t, std::stack<T*>& stack) : CStackNode<T>(strName, s), m_item(t) {}
 
 			private:
 				virtual bool Run(float fElapsedTime) override
@@ -303,7 +303,7 @@ namespace eastengine
 			class GetStack : public CStackNode<T>
 			{
 			public:
-				CGetStack(String::StringID strName, std::stack<T*>& stack, const std::stack<T*>& obtainedStack, T* t = nullptr)
+				CGetStack(string::StringID strName, std::stack<T*>& stack, const std::stack<T*>& obtainedStack, T* t = nullptr)
 					: CStackNode<T>(strName, s), m_obtainedStack(obtainedStack), m_pObject(pObject) {}
 
 			private:
@@ -327,7 +327,7 @@ namespace eastengine
 			class PopFromStack : public CStackNode<T>
 			{
 			public:
-				CPopFromStack(String::StringID strName, T*& t, std::stack<T*>& stack) : CStackNode<T>(strName, s), m_item(t) {}
+				CPopFromStack(string::StringID strName, T*& t, std::stack<T*>& stack) : CStackNode<T>(strName, s), m_item(t) {}
 
 			private:
 				virtual bool Run(float fElapsedTime) override
@@ -350,7 +350,7 @@ namespace eastengine
 			class SetVariable : public INode
 			{
 			public:
-				CSetVariable(String::StringID strName, T*& t, T*& pObject) : INode(strName), m_pVariable(t), m_pObject(pObject) {}
+				CSetVariable(string::StringID strName, T*& t, T*& pObject) : INode(strName), m_pVariable(t), m_pObject(pObject) {}
 
 				virtual bool Run(float fElapsedTime) override
 				{
@@ -367,7 +367,7 @@ namespace eastengine
 			class IsNull : public INode
 			{
 			public:
-				IsNull(String::StringID strName, T*& t) : INode(strName), m_pObject(t) {}
+				IsNull(string::StringID strName, T*& t) : INode(strName), m_pObject(t) {}
 
 				virtual bool Run(float fElapsedTime) override
 				{

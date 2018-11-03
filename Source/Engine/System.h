@@ -18,7 +18,7 @@ namespace eastengine
 		virtual ~MainSystem();
 
 	public:
-		bool Initialize(graphics::APIs emAPI, uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const String::StringID& strApplicationTitle, const String::StringID& strApplicationName);
+		bool Initialize(graphics::APIs emAPI, uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const string::StringID& strApplicationTitle, const string::StringID& strApplicationName);
 
 	public:
 		void Run(IScene** ppScene, size_t nSceneCount, size_t nMainScene);

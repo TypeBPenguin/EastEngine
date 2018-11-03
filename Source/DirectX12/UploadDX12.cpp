@@ -226,7 +226,7 @@ namespace eastengine
 
 			MapResult Uploader::AcquireTempBufferMem(uint64_t nSize, uint64_t nAlignment)
 			{
-				int nFrameIndex = Device::GetInstance()->GetFrameIndex();
+				const uint32_t nFrameIndex = Device::GetInstance()->GetFrameIndex();
 
 				uint64_t nAllocSize = nSize + nAlignment;
 				uint64_t nOffset = InterlockedAdd64(&m_nTempFrameUsed, nAllocSize) - nAllocSize;

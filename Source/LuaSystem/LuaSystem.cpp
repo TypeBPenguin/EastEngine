@@ -28,7 +28,7 @@ namespace eastengine
 
 			std::vector<std::shared_ptr<LuaThread>> m_vecLuaThread;
 
-			std::unordered_map<String::StringID, std::string> m_umapCompiledLua;
+			std::unordered_map<string::StringID, std::string> m_umapCompiledLua;
 
 			size_t m_nIndex{ 0 };
 		};

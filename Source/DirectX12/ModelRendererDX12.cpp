@@ -381,8 +381,9 @@ namespace eastengine
 				~Impl();
 
 			public:
+				void RefreshPSO(ID3D12Device* pDevice);
 				void Render(Camera* pCamera, Group emGroup);
-				void Flush();
+				void Cleanup();
 
 			public:
 				void PushJob(const RenderJobStatic& job);
@@ -413,15 +414,14 @@ namespace eastengine
 
 				struct RenderPipeline
 				{
-					ID3D12PipelineState* pPipelineState{ nullptr };
-					ID3D12RootSignature* pRootSignature{ nullptr };
+					PSOCache psoCache;
 
 					std::array<uint32_t, eRP_Count> nRootParameterIndex;
 				};
-				const RenderPipeline* GetRenderPipeline(ID3D12Device* pDevice, const shader::PSOKey& psoKey);
+				const RenderPipeline* CreateRenderPipeline(ID3D12Device* pDevice, const PSOKey& psoKey);
 
 				ID3D12RootSignature* CreateRootSignature(ID3D12Device* pDevice, uint32_t nMask, std::array<uint32_t, eRP_Count>& nRootParameterIndex_out);
-				void CreatePipelineState(ID3D12Device* pDevice, uint32_t nMask, EmRasterizerState::Type emRasterizerState, EmBlendState::Type emBlendState, EmDepthStencilState::Type emDepthStencilState);
+				void CreatePipelineState(ID3D12Device* pDevice, const PSOKey& psoKey, RenderPipeline* pRenderPipeline);
 
 			private:
 				thread::SRWLock m_job_srwLock;
@@ -430,8 +430,8 @@ namespace eastengine
 
 				std::string m_strShaderPath;
 				ID3DBlob* m_pShaderBlob{ nullptr };
-				
-				std::unordered_map<shader::PSOKey, RenderPipeline> m_umapRenderPipelines;
+
+				std::unordered_map<PSOKey, RenderPipeline> m_umapRenderPipelines;
 
 				std::atomic<size_t> m_nSkinningBufferIndex{ 0 };
 				std::atomic<size_t> m_nStaticBufferIndex{ 0 };
@@ -445,7 +445,7 @@ namespace eastengine
 
 				ConstantBuffer<shader::VSConstantsBuffer> m_vsConstantsBuffer;
 				ConstantBuffer<shader::CommonContents> m_commonContentsBuffer;
-				
+
 				struct JobStatic
 				{
 					std::pair<const void*, const IMaterial*> pairKey;
@@ -518,22 +518,22 @@ namespace eastengine
 				m_strShaderPath = file::GetPath(file::eFx);
 				m_strShaderPath.append("Model\\Model.hlsl");
 
-				if (FAILED(D3DReadFileToBlob(String::MultiToWide(m_strShaderPath).c_str(), &m_pShaderBlob)))
+				if (FAILED(D3DReadFileToBlob(string::MultiToWide(m_strShaderPath).c_str(), &m_pShaderBlob)))
 				{
 					throw_line("failed to read shader file : Model.hlsl");
 				}
 
 				ID3D12Device* pDevice = Device::GetInstance()->GetInterface();
 
-				CreatePipelineState(pDevice, 0, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On);
-				CreatePipelineState(pDevice, shader::eUseInstancing, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On);
-				CreatePipelineState(pDevice, shader::eUseAlphaBlending, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On);
-				CreatePipelineState(pDevice, shader::eUseInstancing | shader::eUseAlphaBlending, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On);
+				CreateRenderPipeline(pDevice, { 0, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On });
+				CreateRenderPipeline(pDevice, { shader::eUseInstancing, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On });
+				CreateRenderPipeline(pDevice, { shader::eUseAlphaBlending, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On });
+				CreateRenderPipeline(pDevice, { shader::eUseInstancing | shader::eUseAlphaBlending, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On });
 
-				CreatePipelineState(pDevice, shader::eUseSkinning, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On);
-				CreatePipelineState(pDevice, shader::eUseSkinning | shader::eUseInstancing, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On);
-				CreatePipelineState(pDevice, shader::eUseSkinning | shader::eUseAlphaBlending, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On);
-				CreatePipelineState(pDevice, shader::eUseSkinning | shader::eUseInstancing | shader::eUseAlphaBlending, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On);
+				CreateRenderPipeline(pDevice, { shader::eUseSkinning, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On });
+				CreateRenderPipeline(pDevice, { shader::eUseSkinning | shader::eUseInstancing, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On });
+				CreateRenderPipeline(pDevice, { shader::eUseSkinning | shader::eUseAlphaBlending, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On });
+				CreateRenderPipeline(pDevice, { shader::eUseSkinning | shader::eUseInstancing | shader::eUseAlphaBlending, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On });
 
 				m_skinningInstancingDataBuffer.Create(pDevice, shader::eMaxInstancingJobCount, "SkinningInstancingDataBuffer");
 				m_staticInstancingDataBuffer.Create(pDevice, shader::eMaxInstancingJobCount, "StaticInstancingDataBuffer");
@@ -555,15 +555,26 @@ namespace eastengine
 				m_srvIndexConstantsBuffer.Destroy();
 				m_commonContentsBuffer.Destroy();
 
-				std::for_each(m_umapRenderPipelines.begin(), m_umapRenderPipelines.end(), [](std::pair<const shader::PSOKey, RenderPipeline>& iter)
+				std::for_each(m_umapRenderPipelines.begin(), m_umapRenderPipelines.end(), [](std::pair<const PSOKey, RenderPipeline>& iter)
 				{
 					RenderPipeline& renderPipeline = iter.second;
-					SafeRelease(renderPipeline.pPipelineState);
-					SafeRelease(renderPipeline.pRootSignature);
+					renderPipeline.psoCache.Destroy();
 				});
 				m_umapRenderPipelines.clear();
 
 				SafeRelease(m_pShaderBlob);
+			}
+
+			void ModelRenderer::Impl::RefreshPSO(ID3D12Device* pDevice)
+			{
+				for (auto& iter : m_umapRenderPipelines)
+				{
+					const PSOKey& psoKey = iter.first;
+					if ((psoKey.nMask & shader::eUseAlphaBlending) == shader::eUseAlphaBlending)
+					{
+						CreatePipelineState(pDevice, psoKey, &iter.second);
+					}
+				}
 			}
 
 			void ModelRenderer::Impl::Render(Camera* pCamera, Group emGroup)
@@ -576,7 +587,7 @@ namespace eastengine
 				Device* pDeviceInstance = Device::GetInstance();
 				ID3D12Device* pDevice = pDeviceInstance->GetInterface();
 
-				int nFrameIndex = pDeviceInstance->GetFrameIndex();
+				const uint32_t nFrameIndex = pDeviceInstance->GetFrameIndex();
 				GBuffer* pGBuffer = pDeviceInstance->GetGBuffer(nFrameIndex);
 
 				DepthStencil* pDepthStencil = pGBuffer->GetDepthStencil();
@@ -602,7 +613,7 @@ namespace eastengine
 					const RenderTarget* pColorsRT = pGBuffer->GetRenderTarget(EmGBuffer::eColors);
 					const RenderTarget* pDisneyBRDFRT = pGBuffer->GetRenderTarget(EmGBuffer::eDisneyBRDF);
 
-					vecRTVHandles = 
+					vecRTVHandles =
 					{
 						pNormalsRT->GetCPUHandle(),
 						pColorsRT->GetCPUHandle(),
@@ -693,7 +704,7 @@ namespace eastengine
 				}
 			}
 
-			void ModelRenderer::Impl::Flush()
+			void ModelRenderer::Impl::Cleanup()
 			{
 				thread::SRWWriteLock writeLock(&m_job_srwLock);
 
@@ -762,7 +773,7 @@ namespace eastengine
 				}
 			}
 
-			const ModelRenderer::Impl::RenderPipeline* ModelRenderer::Impl::GetRenderPipeline(ID3D12Device* pDevice, const shader::PSOKey& psoKey)
+			const ModelRenderer::Impl::RenderPipeline* ModelRenderer::Impl::CreateRenderPipeline(ID3D12Device* pDevice, const PSOKey& psoKey)
 			{
 				{
 					thread::SRWReadLock readLock(&m_pipelines_srwLock);
@@ -772,7 +783,7 @@ namespace eastengine
 						return &iter->second;
 				}
 
-				const RenderPipeline* pRenderPipeline = nullptr;
+				RenderPipeline* pRenderPipeline = nullptr;
 				bool isRequestCreatePipeline = false;
 				{
 					thread::SRWWriteLock writeLock(&m_pipelines_srwLock);
@@ -785,8 +796,8 @@ namespace eastengine
 					else
 					{
 						RenderPipeline& renderPipeline = m_umapRenderPipelines[psoKey];
-						renderPipeline.pPipelineState = nullptr;
-						renderPipeline.pRootSignature = nullptr;
+						renderPipeline.psoCache.pPipelineState = nullptr;
+						renderPipeline.psoCache.pRootSignature = nullptr;
 						renderPipeline.nRootParameterIndex.fill(0);
 
 						pRenderPipeline = &renderPipeline;
@@ -799,13 +810,13 @@ namespace eastengine
 				{
 					//thread::CreateTask([&, psoKey = psoKey]()
 					//{
-						Stopwatch stopwatch;
-						stopwatch.Start();
-					
-						CreatePipelineState(Device::GetInstance()->GetInterface(), psoKey.nMask, psoKey.emRasterizerState, psoKey.emBlendState, psoKey.emDepthStencilState);
-					
-						stopwatch.Stop();
-						LOG_MESSAGE("CreatePipelineState[%u_%d_%d_%d] : ElapsedTime[%lf]", psoKey.nMask, psoKey.emRasterizerState, psoKey.emBlendState, psoKey.emDepthStencilState, stopwatch.Elapsed());
+					Stopwatch stopwatch;
+					stopwatch.Start();
+
+					CreatePipelineState(pDevice, psoKey, pRenderPipeline);
+
+					stopwatch.Stop();
+					LOG_MESSAGE("CreatePipelineState[%u_%d_%d_%d] : ElapsedTime[%lf]", psoKey.nMask, psoKey.emRasterizerState, psoKey.emBlendState, psoKey.emDepthStencilState, stopwatch.Elapsed());
 					//});
 				}
 
@@ -814,7 +825,7 @@ namespace eastengine
 
 			void ModelRenderer::Impl::RenderStaticElement(Device* pDeviceInstance, ID3D12Device* pDevice, Camera* pCamera, Group emGroup, shader::Pass emPass, const D3D12_CPU_DESCRIPTOR_HANDLE* pRTVHandles, size_t nRTVHandleCount, const D3D12_CPU_DESCRIPTOR_HANDLE* pDSVHandle, std::unordered_map<const IMaterial*, uint32_t>& umapMaterialMask)
 			{
-				int nFrameIndex = pDeviceInstance->GetFrameIndex();
+				const uint32_t nFrameIndex = pDeviceInstance->GetFrameIndex();
 				DescriptorHeap* pSRVDescriptorHeap = pDeviceInstance->GetSRVDescriptorHeap();
 				DescriptorHeap* pSamplerDescriptorHeap = pDeviceInstance->GetSamplerDescriptorHeap();
 
@@ -848,7 +859,7 @@ namespace eastengine
 						}
 					}
 
-					std::unordered_map<shader::PSOKey, std::vector<const JobStaticBatch*>> umapJobStaticMaskBatch;
+					std::unordered_map<PSOKey, std::vector<const JobStaticBatch*>> umapJobStaticMaskBatch;
 					umapJobStaticMaskBatch.rehash(m_umapJobStaticMasterBatchs.size());
 
 					for (auto& iter_master : m_umapJobStaticMasterBatchs)
@@ -881,7 +892,7 @@ namespace eastengine
 								nMask |= shader::eUseAlphaBlending;
 							}
 
-							shader::PSOKey maskKey = GetPSOKey(emGroup, emPass, nMask, jobBatch.pJob->data.pMaterial);
+							PSOKey maskKey = GetPSOKey(emGroup, emPass, nMask, jobBatch.pJob->data.pMaterial);
 							umapJobStaticMaskBatch[maskKey].emplace_back(&jobBatch);
 						}
 					}
@@ -917,7 +928,7 @@ namespace eastengine
 						{
 							const RenderPipeline* pRenderPipeline = nullptr;
 
-							const shader::PSOKey* pPSOKey = nullptr;
+							const PSOKey* pPSOKey = nullptr;
 							std::vector<const JobStaticBatch*>* pJobBatchs = nullptr;
 							{
 								thread::SRWWriteLock writeLock(&m_logic_srwLock);
@@ -929,15 +940,15 @@ namespace eastengine
 								pJobBatchs = &iter->second;
 								++iter;
 
-								pRenderPipeline = GetRenderPipeline(pDevice, *pPSOKey);
+								pRenderPipeline = CreateRenderPipeline(pDevice, *pPSOKey);
 
-								if (pRenderPipeline == nullptr || pRenderPipeline->pPipelineState == nullptr || pRenderPipeline->pRootSignature == nullptr)
+								if (pRenderPipeline == nullptr || pRenderPipeline->psoCache.pPipelineState == nullptr || pRenderPipeline->psoCache.pRootSignature == nullptr)
 								{
 									const uint32_t nMask = (pPSOKey->nMask & shader::eUseAlphaBlending) | (pPSOKey->nMask & shader::eUseInstancing);
 
-									const shader::PSOKey psoDefaultStaticKey(nMask, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On);
-									pRenderPipeline = GetRenderPipeline(pDevice, psoDefaultStaticKey);
-									if (pRenderPipeline == nullptr || pRenderPipeline->pPipelineState == nullptr || pRenderPipeline->pRootSignature == nullptr)
+									const PSOKey psoDefaultStaticKey(nMask, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On);
+									pRenderPipeline = CreateRenderPipeline(pDevice, psoDefaultStaticKey);
+									if (pRenderPipeline == nullptr || pRenderPipeline->psoCache.pPipelineState == nullptr || pRenderPipeline->psoCache.pRootSignature == nullptr)
 									{
 										throw_line("invalid default static pipeline state");
 										continue;
@@ -945,8 +956,8 @@ namespace eastengine
 								}
 							}
 
-							pCommandList->SetPipelineState(pRenderPipeline->pPipelineState);
-							pCommandList->SetGraphicsRootSignature(pRenderPipeline->pRootSignature);
+							pCommandList->SetPipelineState(pRenderPipeline->psoCache.pPipelineState);
+							pCommandList->SetGraphicsRootSignature(pRenderPipeline->psoCache.pRootSignature);
 
 							if (pPSOKey->emBlendState != EmBlendState::eOff)
 							{
@@ -1010,7 +1021,7 @@ namespace eastengine
 
 										pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->nRootParameterIndex[eRP_SRVIndicesCB], gpuAddress);
 									}
-									
+
 									const math::Matrix* pInstanceData = pJobBatch->vecInstanceData.data();
 									const size_t nInstanceCount = pJobBatch->vecInstanceData.size();
 
@@ -1144,7 +1155,7 @@ namespace eastengine
 
 			void ModelRenderer::Impl::RenderSkinnedElement(Device* pDeviceInstance, ID3D12Device* pDevice, Camera* pCamera, Group emGroup, shader::Pass emPass, const D3D12_CPU_DESCRIPTOR_HANDLE* pRTVHandles, size_t nRTVHandleCount, const D3D12_CPU_DESCRIPTOR_HANDLE* pDSVHandle, std::unordered_map<const IMaterial*, uint32_t>& umapMaterialMask)
 			{
-				int nFrameIndex = pDeviceInstance->GetFrameIndex();
+				const uint32_t nFrameIndex = pDeviceInstance->GetFrameIndex();
 				DescriptorHeap* pSRVDescriptorHeap = pDeviceInstance->GetSRVDescriptorHeap();
 				DescriptorHeap* pSamplerDescriptorHeap = pDeviceInstance->GetSamplerDescriptorHeap();
 
@@ -1178,7 +1189,7 @@ namespace eastengine
 						}
 					}
 
-					std::unordered_map<shader::PSOKey, std::vector<const JobSkinnedBatch*>> umapJobSkinnedMaskBatch;
+					std::unordered_map<PSOKey, std::vector<const JobSkinnedBatch*>> umapJobSkinnedMaskBatch;
 					umapJobSkinnedMaskBatch.rehash(m_umapJobSkinnedMasterBatchs.size());
 
 					for (auto& iter_master : m_umapJobSkinnedMasterBatchs)
@@ -1213,7 +1224,7 @@ namespace eastengine
 
 							nMask |= shader::eUseSkinning;
 
-							shader::PSOKey maskKey = GetPSOKey(emGroup, emPass, nMask, jobBatch.pJob->data.pMaterial);
+							PSOKey maskKey = GetPSOKey(emGroup, emPass, nMask, jobBatch.pJob->data.pMaterial);
 							umapJobSkinnedMaskBatch[maskKey].emplace_back(&jobBatch);
 						}
 					}
@@ -1249,7 +1260,7 @@ namespace eastengine
 						{
 							const RenderPipeline* pRenderPipeline = nullptr;
 
-							const shader::PSOKey* pPSOKey = nullptr;
+							const PSOKey* pPSOKey = nullptr;
 							std::vector<const JobSkinnedBatch*>* pJobBatchs = nullptr;
 							{
 								thread::SRWWriteLock writeLock(&m_logic_srwLock);
@@ -1261,15 +1272,15 @@ namespace eastengine
 								pJobBatchs = &iter->second;
 								++iter;
 
-								pRenderPipeline = GetRenderPipeline(pDevice, *pPSOKey);
+								pRenderPipeline = CreateRenderPipeline(pDevice, *pPSOKey);
 
-								if (pRenderPipeline == nullptr || pRenderPipeline->pPipelineState == nullptr || pRenderPipeline->pRootSignature == nullptr)
+								if (pRenderPipeline == nullptr || pRenderPipeline->psoCache.pPipelineState == nullptr || pRenderPipeline->psoCache.pRootSignature == nullptr)
 								{
 									const uint32_t nMask = shader::eUseSkinning | (pPSOKey->nMask & shader::eUseAlphaBlending) | (pPSOKey->nMask & shader::eUseInstancing);
 
-									const shader::PSOKey psoDefaultSkinnedKey(nMask, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On);
-									pRenderPipeline = GetRenderPipeline(pDevice, psoDefaultSkinnedKey);
-									if (pRenderPipeline == nullptr || pRenderPipeline->pPipelineState == nullptr || pRenderPipeline->pRootSignature == nullptr)
+									const PSOKey psoDefaultSkinnedKey(nMask, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On);
+									pRenderPipeline = CreateRenderPipeline(pDevice, psoDefaultSkinnedKey);
+									if (pRenderPipeline == nullptr || pRenderPipeline->psoCache.pPipelineState == nullptr || pRenderPipeline->psoCache.pRootSignature == nullptr)
 									{
 										throw_line("invalid default skinned pipeline state");
 										continue;
@@ -1277,8 +1288,8 @@ namespace eastengine
 								}
 							}
 
-							pCommandList->SetPipelineState(pRenderPipeline->pPipelineState);
-							pCommandList->SetGraphicsRootSignature(pRenderPipeline->pRootSignature);
+							pCommandList->SetPipelineState(pRenderPipeline->psoCache.pPipelineState);
+							pCommandList->SetGraphicsRootSignature(pRenderPipeline->psoCache.pRootSignature);
 
 							if (pPSOKey->emBlendState != EmBlendState::eOff)
 							{
@@ -1526,7 +1537,7 @@ namespace eastengine
 					commonContentsParameter.InitAsConstantBufferView(shader::eCB_CommonContents, 0, D3D12_SHADER_VISIBILITY_PIXEL);
 					nRootParameterIndex_out[eRP_CommonContentsCB] = static_cast<uint32_t>(vecRootParameters.size() - 1);
 
-					vecStaticSamplers = 
+					vecStaticSamplers =
 					{
 						util::GetStaticSamplerDesc(EmSamplerState::eMinMagMipPointClamp, 0, 100, D3D12_SHADER_VISIBILITY_PIXEL),
 						util::GetStaticSamplerDesc(EmSamplerState::eMinMagMipLinearClamp, 1, 100, D3D12_SHADER_VISIBILITY_PIXEL),
@@ -1541,34 +1552,59 @@ namespace eastengine
 					D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS);
 			}
 
-			void ModelRenderer::Impl::CreatePipelineState(ID3D12Device* pDevice, uint32_t nMask, EmRasterizerState::Type emRasterizerState, EmBlendState::Type emBlendState, EmDepthStencilState::Type emDepthStencilState)
+			void ModelRenderer::Impl::CreatePipelineState(ID3D12Device* pDevice, const PSOKey& psoKey, RenderPipeline* pRenderPipeline)
 			{
-				std::vector<D3D_SHADER_MACRO> vecMacros = shader::GetMacros(nMask);
-
-				ID3DBlob* pVertexShaderBlob = nullptr;
-				bool isSuccess = util::CompileShader(m_pShaderBlob, vecMacros.data(), m_strShaderPath.c_str(), "VS", "vs_5_1", &pVertexShaderBlob);
-				if (isSuccess == false)
+				if (pRenderPipeline->psoCache.pVSBlob == nullptr || pRenderPipeline->psoCache.pPSBlob == nullptr)
 				{
-					throw_line("failed to compile vertex shader");
+					std::vector<D3D_SHADER_MACRO> vecMacros = shader::GetMacros(psoKey.nMask);
+
+					if (pRenderPipeline->psoCache.pVSBlob == nullptr)
+					{
+						const bool isSuccess = util::CompileShader(m_pShaderBlob, vecMacros.data(), m_strShaderPath.c_str(), "VS", shader::VS_CompileVersion, &pRenderPipeline->psoCache.pVSBlob);
+						if (isSuccess == false)
+						{
+							throw_line("failed to compile vertex shader");
+						}
+					}
+
+					if (pRenderPipeline->psoCache.pPSBlob == nullptr)
+					{
+						const bool isSuccess = util::CompileShader(m_pShaderBlob, vecMacros.data(), m_strShaderPath.c_str(), "PS", shader::PS_CompileVersion, &pRenderPipeline->psoCache.pPSBlob);
+						if (isSuccess == false)
+						{
+							throw_line("failed to compile pixel shader");
+						}
+					}
 				}
 
-				ID3DBlob* pPixelShaderBlob = nullptr;
-				isSuccess = util::CompileShader(m_pShaderBlob, vecMacros.data(), m_strShaderPath.c_str(), "PS", "ps_5_1", &pPixelShaderBlob);
-				if (isSuccess == false)
+				const std::string strName = string::Format("%u_%d_%d_%d", psoKey.nMask, psoKey.emRasterizerState, psoKey.emBlendState, psoKey.emDepthStencilState);
+				const std::wstring wstrName = string::MultiToWide(strName);
+
+				std::array<uint32_t, eRP_Count> nRootParameterIndex;
+				nRootParameterIndex.fill(eRP_InvalidIndex);
+
+				ID3D12RootSignature* pRootSignature = nullptr;
+				if (pRenderPipeline->psoCache.pRootSignature != nullptr)
 				{
-					throw_line("failed to compile pixel shader");
+					pRootSignature = pRenderPipeline->psoCache.pRootSignature;
+					nRootParameterIndex = pRenderPipeline->nRootParameterIndex;
+				}
+				else
+				{
+					pRootSignature = CreateRootSignature(pDevice, psoKey.nMask, nRootParameterIndex);
+					pRootSignature->SetName(wstrName.c_str());
 				}
 
 				D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc{};
-				psoDesc.VS.BytecodeLength = pVertexShaderBlob->GetBufferSize();
-				psoDesc.VS.pShaderBytecode = pVertexShaderBlob->GetBufferPointer();
+				psoDesc.VS.BytecodeLength = pRenderPipeline->psoCache.pVSBlob->GetBufferSize();
+				psoDesc.VS.pShaderBytecode = pRenderPipeline->psoCache.pVSBlob->GetBufferPointer();
 
-				psoDesc.PS.BytecodeLength = pPixelShaderBlob->GetBufferSize();
-				psoDesc.PS.pShaderBytecode = pPixelShaderBlob->GetBufferPointer();
+				psoDesc.PS.BytecodeLength = pRenderPipeline->psoCache.pPSBlob->GetBufferSize();
+				psoDesc.PS.pShaderBytecode = pRenderPipeline->psoCache.pPSBlob->GetBufferPointer();
 
 				const D3D12_INPUT_ELEMENT_DESC* pInputElements = nullptr;
 				size_t nElementCount = 0;
-				if ((nMask & shader::eUseSkinning) == shader::eUseSkinning)
+				if ((psoKey.nMask & shader::eUseSkinning) == shader::eUseSkinning)
 				{
 					util::GetInputElementDesc(VertexPosTexNorWeiIdx::Format(), &pInputElements, &nElementCount);
 				}
@@ -1582,25 +1618,15 @@ namespace eastengine
 
 				psoDesc.SampleDesc.Count = 1;
 
-				std::array<uint32_t, eRP_Count> nRootParameterIndex;
-				nRootParameterIndex.fill(eRP_InvalidIndex);
-				ID3D12RootSignature* pRootSignature = CreateRootSignature(pDevice, nMask, nRootParameterIndex);
-
-				shader::PSOKey key(nMask, emRasterizerState, emBlendState, emDepthStencilState);
-
-				std::string strName = String::Format("%u_%d_%d_%d", key.nMask, key.emRasterizerState, key.emBlendState, key.emDepthStencilState);
-				std::wstring wstrName = String::MultiToWide(strName);
-				pRootSignature->SetName(wstrName.c_str());
-
 				psoDesc.pRootSignature = pRootSignature;
 				psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 				psoDesc.SampleMask = 0xffffffff;
-				psoDesc.RasterizerState = util::GetRasterizerDesc(emRasterizerState);
-				psoDesc.BlendState = util::GetBlendDesc(emBlendState);
+				psoDesc.RasterizerState = util::GetRasterizerDesc(psoKey.emRasterizerState);
+				psoDesc.BlendState = util::GetBlendDesc(psoKey.emBlendState);
 
 				GBuffer* pGBuffer = Device::GetInstance()->GetGBuffer(0);
 
-				if ((nMask & shader::eUseAlphaBlending) == shader::eUseAlphaBlending)
+				if ((psoKey.nMask & shader::eUseAlphaBlending) == shader::eUseAlphaBlending)
 				{
 					psoDesc.NumRenderTargets = 1;
 
@@ -1623,7 +1649,7 @@ namespace eastengine
 				}
 
 				psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
-				psoDesc.DepthStencilState = util::GetDepthStencilDesc(emDepthStencilState);
+				psoDesc.DepthStencilState = util::GetDepthStencilDesc(psoKey.emDepthStencilState);
 
 				ID3D12PipelineState* pPipelineState = nullptr;
 				HRESULT hr = pDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pPipelineState));
@@ -1636,14 +1662,16 @@ namespace eastengine
 				{
 					thread::SRWWriteLock writeLock(&m_pipelines_srwLock);
 
-					RenderPipeline& renderPipeline = m_umapRenderPipelines[key];
-					renderPipeline.pPipelineState = pPipelineState;
-					renderPipeline.pRootSignature = pRootSignature;
-					renderPipeline.nRootParameterIndex = nRootParameterIndex;
-				}
+					if (pRenderPipeline->psoCache.pPipelineState != nullptr)
+					{
+						util::ReleaseResource(pRenderPipeline->psoCache.pPipelineState);
+						pRenderPipeline->psoCache.pPipelineState = nullptr;
+					}
 
-				SafeRelease(pVertexShaderBlob);
-				SafeRelease(pPixelShaderBlob);
+					pRenderPipeline->psoCache.pPipelineState = pPipelineState;
+					pRenderPipeline->psoCache.pRootSignature = pRootSignature;
+					pRenderPipeline->nRootParameterIndex = nRootParameterIndex;
+				}
 			}
 
 			ModelRenderer::ModelRenderer()
@@ -1655,16 +1683,21 @@ namespace eastengine
 			{
 			}
 
+			void ModelRenderer::RefreshPSO(ID3D12Device* pDevice)
+			{
+				m_pImpl->RefreshPSO(pDevice);
+			}
+
 			void ModelRenderer::Render(Camera* pCamera, Group emGroup)
 			{
 				m_pImpl->Render(pCamera, emGroup);
 			}
 
-			void ModelRenderer::Flush()
+			void ModelRenderer::Cleanup()
 			{
-				m_pImpl->Flush();
+				m_pImpl->Cleanup();
 			}
-			
+
 			void ModelRenderer::PushJob(const RenderJobStatic& renderJob)
 			{
 				m_pImpl->PushJob(renderJob);

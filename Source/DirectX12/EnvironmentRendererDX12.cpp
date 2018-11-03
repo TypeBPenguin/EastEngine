@@ -64,8 +64,9 @@ namespace eastengine
 				~Impl();
 
 			public:
+				void RefreshPSO(ID3D12Device* pDevice);
 				void Render(Camera* pCamera);
-				void Flush();
+				void Cleanup();
 
 			private:
 				enum RootParameters : uint32_t
@@ -83,8 +84,7 @@ namespace eastengine
 				void CreatePipelineState(ID3D12Device* pDevice, ID3DBlob* pShaderBlob, const char* strShaderPath);
 
 			private:
-				ID3D12PipelineState* m_pPipelineState{ nullptr };
-				ID3D12RootSignature* m_pRootSignature{ nullptr };
+				PSOCache m_psoCache;
 
 				ConstantBuffer<shader::EnvironmentContents> m_environmentContents;
 			};
@@ -95,7 +95,7 @@ namespace eastengine
 				strShaderPath.append("Environment\\Environment.hlsl");
 
 				ID3DBlob* pShaderBlob{ nullptr };
-				if (FAILED(D3DReadFileToBlob(String::MultiToWide(strShaderPath).c_str(), &pShaderBlob)))
+				if (FAILED(D3DReadFileToBlob(string::MultiToWide(strShaderPath).c_str(), &pShaderBlob)))
 				{
 					throw_line("failed to read shader file : Environment.hlsl");
 				}
@@ -113,8 +113,12 @@ namespace eastengine
 			{
 				m_environmentContents.Destroy();
 
-				SafeRelease(m_pPipelineState);
-				SafeRelease(m_pRootSignature);
+				m_psoCache.Destroy();
+			}
+
+			void EnvironmentRenderer::Impl::RefreshPSO(ID3D12Device* pDevice)
+			{
+				CreatePipelineState(pDevice, nullptr, nullptr);
 			}
 
 			void EnvironmentRenderer::Impl::Render(Camera* pCamera)
@@ -131,7 +135,7 @@ namespace eastengine
 				if (pVertexBuffer == nullptr || pIndexBuffer == nullptr)
 					return;
 
-				int nFrameIndex = pDeviceInstance->GetFrameIndex();
+				const uint32_t nFrameIndex = pDeviceInstance->GetFrameIndex();
 				DescriptorHeap* pSRVDescriptorHeap = pDeviceInstance->GetSRVDescriptorHeap();
 
 				const D3D12_VIEWPORT* pViewport = pDeviceInstance->GetViewport();
@@ -159,11 +163,12 @@ namespace eastengine
 				shader::SetEnvironmentContents(pEnvironmentContents, pCamera, 1.f, pEnvironmentHDR->GetDescriptorIndex());
 
 				ID3D12GraphicsCommandList2* pCommandList = pDeviceInstance->GetCommandList(0);
-				pDeviceInstance->ResetCommandList(0, m_pPipelineState);
+				pDeviceInstance->ResetCommandList(0, m_psoCache.pPipelineState);
 
+				util::ChangeResourceState(pCommandList, pRenderTarget, D3D12_RESOURCE_STATE_RENDER_TARGET);
 				pRenderTarget->Clear(pCommandList);
 
-				pCommandList->SetGraphicsRootSignature(m_pRootSignature);
+				pCommandList->SetGraphicsRootSignature(m_psoCache.pRootSignature);
 
 				ID3D12DescriptorHeap* pDescriptorHeaps[] =
 				{
@@ -195,7 +200,7 @@ namespace eastengine
 				pDeviceInstance->ReleaseRenderTargets(&pRenderTarget);
 			}
 
-			void EnvironmentRenderer::Impl::Flush()
+			void EnvironmentRenderer::Impl::Cleanup()
 			{
 			}
 
@@ -223,33 +228,52 @@ namespace eastengine
 
 			void EnvironmentRenderer::Impl::CreatePipelineState(ID3D12Device* pDevice, ID3DBlob* pShaderBlob, const char* strShaderPath)
 			{
-				const D3D_SHADER_MACRO macros[] =
+				if (pShaderBlob != nullptr)
 				{
-					{ "DX12", "1" },
-					{ nullptr, nullptr },
-				};
+					const D3D_SHADER_MACRO macros[] =
+					{
+						{ "DX12", "1" },
+						{ nullptr, nullptr },
+					};
 
-				ID3DBlob* pVertexShaderBlob = nullptr;
-				bool isSuccess = util::CompileShader(pShaderBlob, macros, strShaderPath, "VS", "vs_5_1", &pVertexShaderBlob);
-				if (isSuccess == false)
-				{
-					throw_line("failed to compile vertex shader");
+					if (m_psoCache.pVSBlob == nullptr)
+					{
+						const bool isSuccess = util::CompileShader(pShaderBlob, macros, strShaderPath, "VS", shader::VS_CompileVersion, &m_psoCache.pVSBlob);
+						if (isSuccess == false)
+						{
+							throw_line("failed to compile vertex shader");
+						}
+					}
+
+					if (m_psoCache.pPSBlob == nullptr)
+					{
+						const bool isSuccess = util::CompileShader(pShaderBlob, macros, strShaderPath, "PS", shader::PS_CompileVersion, &m_psoCache.pPSBlob);
+						if (isSuccess == false)
+						{
+							throw_line("failed to compile pixel shader");
+						}
+					}
 				}
 
-				ID3DBlob* pPixelShaderBlob = nullptr;
-				isSuccess = util::CompileShader(pShaderBlob, macros, strShaderPath, "PS", "ps_5_1", &pPixelShaderBlob);
-				if (isSuccess == false)
+				if (m_psoCache.pRootSignature == nullptr)
 				{
-					throw_line("failed to compile pixel shader");
+					m_psoCache.pRootSignature = CreateRootSignature(pDevice);
+					m_psoCache.pRootSignature->SetName(L"EnvironmentRenderer");
+				}
+
+				if (m_psoCache.pPipelineState != nullptr)
+				{
+					util::ReleaseResource(m_psoCache.pPipelineState);
+					m_psoCache.pPipelineState = nullptr;
 				}
 
 				D3D12_SHADER_BYTECODE vertexShaderBytecode{};
-				vertexShaderBytecode.BytecodeLength = pVertexShaderBlob->GetBufferSize();
-				vertexShaderBytecode.pShaderBytecode = pVertexShaderBlob->GetBufferPointer();
+				vertexShaderBytecode.BytecodeLength = m_psoCache.pVSBlob->GetBufferSize();
+				vertexShaderBytecode.pShaderBytecode = m_psoCache.pVSBlob->GetBufferPointer();
 
 				D3D12_SHADER_BYTECODE pixelShaderBytecode{};
-				pixelShaderBytecode.BytecodeLength = pPixelShaderBlob->GetBufferSize();
-				pixelShaderBytecode.pShaderBytecode = pPixelShaderBlob->GetBufferPointer();
+				pixelShaderBytecode.BytecodeLength = m_psoCache.pPSBlob->GetBufferSize();
+				pixelShaderBytecode.pShaderBytecode = m_psoCache.pPSBlob->GetBufferPointer();
 
 				const D3D12_INPUT_ELEMENT_DESC* pInputElements = nullptr;
 				size_t nElementCount = 0;
@@ -262,12 +286,9 @@ namespace eastengine
 				DXGI_SAMPLE_DESC sampleDesc{};
 				sampleDesc.Count = 1;
 
-				m_pRootSignature = CreateRootSignature(pDevice);
-				m_pRootSignature->SetName(L"EnvironmentRenderer");
-
 				D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc{};
 				psoDesc.InputLayout = inputLayoutDesc;
-				psoDesc.pRootSignature = m_pRootSignature;
+				psoDesc.pRootSignature = m_psoCache.pRootSignature;
 				psoDesc.VS = vertexShaderBytecode;
 				psoDesc.PS = pixelShaderBytecode;
 				psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
@@ -290,15 +311,12 @@ namespace eastengine
 				psoDesc.DSVFormat = DXGI_FORMAT_UNKNOWN;
 				psoDesc.DepthStencilState = util::GetDepthStencilDesc(EmDepthStencilState::eRead_Write_Off);
 
-				HRESULT hr = pDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPipelineState));
+				HRESULT hr = pDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_psoCache.pPipelineState));
 				if (FAILED(hr))
 				{
 					throw_line("failed to create graphics pipeline state");
 				}
-				m_pPipelineState->SetName(L"EnvironmentRenderer");
-
-				SafeRelease(pVertexShaderBlob);
-				SafeRelease(pPixelShaderBlob);
+				m_psoCache.pPipelineState->SetName(L"EnvironmentRenderer");
 			}
 
 			EnvironmentRenderer::EnvironmentRenderer()
@@ -310,14 +328,19 @@ namespace eastengine
 			{
 			}
 
+			void EnvironmentRenderer::RefreshPSO(ID3D12Device* pDevice)
+			{
+				m_pImpl->RefreshPSO(pDevice);
+			}
+
 			void EnvironmentRenderer::Render(Camera* pCamera)
 			{
 				m_pImpl->Render(pCamera);
 			}
 
-			void EnvironmentRenderer::Flush()
+			void EnvironmentRenderer::Cleanup()
 			{
-				m_pImpl->Flush();
+				m_pImpl->Cleanup();
 			}
 		}
 	}

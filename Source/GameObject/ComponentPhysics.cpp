@@ -33,7 +33,7 @@ namespace eastengine
 		{
 			SafeDelete(m_pRagDoll);
 
-			std::for_each(m_umapPhysicsNode.begin(), m_umapPhysicsNode.end(), [](std::pair<String::StringID, PhysicsNode> key)
+			std::for_each(m_umapPhysicsNode.begin(), m_umapPhysicsNode.end(), [](std::pair<string::StringID, PhysicsNode> key)
 			{
 				SafeDelete(key.second.pRigidBody);
 				graphics::IModel::DestroyInstance(&key.second.pPhysicsModelInstance);
@@ -61,7 +61,7 @@ namespace eastengine
 			m_isCollisionModelVisible = isCollisionModelVisible;
 		}
 
-		void ComponentPhysics::Init(const String::StringID& strID, const graphics::IVertexBuffer* pVertexBuffer, const graphics::IIndexBuffer* pIndexBuffer, math::Matrix* pMatWorld, const physics::RigidBodyProperty& rigidBodyProperty, bool isCollisionModelVisible)
+		void ComponentPhysics::Init(const string::StringID& strID, const graphics::IVertexBuffer* pVertexBuffer, const graphics::IIndexBuffer* pIndexBuffer, math::Matrix* pMatWorld, const physics::RigidBodyProperty& rigidBodyProperty, bool isCollisionModelVisible)
 		{
 			m_emRigidBodyType = RigidBodyType::eCustom;
 
@@ -120,7 +120,7 @@ namespace eastengine
 							//	reinterpret_cast<const math::Vector3*>(pModelNode->GetVertexBuffer()->GetVertexPosPtr()), pModelNode->GetVertexBuffer()->GetVertexNum(),
 							//	pModelNode->GetIndexBuffer()->GetRawValuePtr(), pModelNode->GetIndexBuffer()->GetIndexNum());
 							//
-							//String::StringID strName;
+							//string::StringID strName;
 							//strName.Format("%s_%s", modelRigidBody.rigidBodyProperty.strName.c_str(), pModelNode->GetName().c_str());
 							//
 							//initPhysics(strName, modelRigidBody.rigidBodyProperty, nullptr, nullptr);
@@ -190,7 +190,7 @@ namespace eastengine
 			}
 		}
 
-		void ComponentPhysics::initPhysics(const String::StringID& strID, const physics::RigidBodyProperty& rigidBodyProperty, const math::Matrix* pMatWorld, graphics::IModelInstance* pModelInstance)
+		void ComponentPhysics::initPhysics(const string::StringID& strID, const physics::RigidBodyProperty& rigidBodyProperty, const math::Matrix* pMatWorld, graphics::IModelInstance* pModelInstance)
 		{
 			graphics::MaterialInfo materialInfo;
 			materialInfo.strName = strID;

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "GraphicsInterface/Renderer.h"
+
 namespace eastengine
 {
 	namespace graphics
@@ -11,11 +13,14 @@ namespace eastengine
 			class RenderTarget;
 			class DepthStencil;
 
-			class DepthOfField
+			class DepthOfField : public IRenderer
 			{
 			public:
 				DepthOfField();
-				~DepthOfField();
+				virtual ~DepthOfField();
+
+			public:
+				virtual Type GetType() const { return IRenderer::eDepthOfField; }
 
 			public:
 				void Apply(Camera* pCamera, const RenderTarget* pSource, const DepthStencil* pDepth, RenderTarget* pResult);

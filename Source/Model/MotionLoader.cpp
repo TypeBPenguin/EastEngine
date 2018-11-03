@@ -15,7 +15,7 @@ namespace eastengine
 		{
 		}
 
-		void MotionLoader::InitFBX(const String::StringID& strMotionName, const char* strFilePath, float fScaleFactor)
+		void MotionLoader::InitFBX(const string::StringID& strMotionName, const char* strFilePath, float fScaleFactor)
 		{
 			m_strMotionName = strMotionName;
 			m_strFilePath = strFilePath;
@@ -24,7 +24,7 @@ namespace eastengine
 			m_emLoadMotionType = EmMotionLoader::eFbx;
 		}
 
-		void MotionLoader::InitXPS(const String::StringID& strMotionName, const char* strFilePath)
+		void MotionLoader::InitXPS(const string::StringID& strMotionName, const char* strFilePath)
 		{
 			m_strMotionName = strMotionName;
 			m_strFilePath = strFilePath;
@@ -33,7 +33,7 @@ namespace eastengine
 			m_emLoadMotionType = EmMotionLoader::eXps;
 		}
 
-		void MotionLoader::InitEast(const String::StringID& strMotionName, const char* strFilePath)
+		void MotionLoader::InitEast(const string::StringID& strMotionName, const char* strFilePath)
 		{
 			m_strMotionName = strMotionName;
 			m_strFilePath = strFilePath;

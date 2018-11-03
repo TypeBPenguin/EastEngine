@@ -64,7 +64,7 @@ namespace eastengine
 
 		struct ObjectData
 		{
-			String::StringID strObjName;
+			string::StringID strObjName;
 
 			std::vector<math::Vector3> vecVertex;
 			std::vector<math::Vector2> vecTexcoord;
@@ -113,7 +113,7 @@ namespace eastengine
 
 		public:
 			const ObjectData& GetObjectData() { return m_objData; }
-			IMaterial* GetMaterial(const String::StringID& strName);
+			IMaterial* GetMaterial(const string::StringID& strName);
 
 		private:
 			bool loadModelData(file::Stream& file, const float fScaleFactor);

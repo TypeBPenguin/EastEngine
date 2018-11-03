@@ -40,10 +40,10 @@ namespace eastengine
 				virtual void Present() override;
 
 			public:
-				void Initialize(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const String::StringID& strApplicationTitle, const String::StringID& strApplicationName);
+				void Initialize(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const string::StringID& strApplicationTitle, const string::StringID& strApplicationName);
 				void Release();
 
-				void Flush(float fElapsedTime);
+				void Cleanup(float fElapsedTime);
 
 			public:
 				RenderTarget* GetRenderTarget(const D3D11_TEXTURE2D_DESC* pDesc, bool isIncludeLastUseRenderTarget);
@@ -183,7 +183,7 @@ namespace eastengine
 				}
 			}
 
-			void Device::Impl::Initialize(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const String::StringID& strApplicationTitle, const String::StringID& strApplicationName)
+			void Device::Impl::Initialize(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const string::StringID& strApplicationTitle, const string::StringID& strApplicationName)
 			{
 				if (m_isInitislized == true)
 					return;
@@ -262,9 +262,9 @@ namespace eastengine
 				SafeRelease(m_pDevice);
 			}
 
-			void Device::Impl::Flush(float fElapsedTime)
+			void Device::Impl::Cleanup(float fElapsedTime)
 			{
-				m_pRenderManager->Flush();
+				m_pRenderManager->Cleanup();
 
 				for (auto iter = m_ummapRenderTargetPool.begin(); iter != m_ummapRenderTargetPool.end();)
 				{
@@ -272,7 +272,7 @@ namespace eastengine
 					{
 						iter->second.fUnusedTime += fElapsedTime;
 
-						if (iter->second.fUnusedTime > 120.f)
+						if (iter->second.fUnusedTime > 30.f)
 						{
 							iter = m_ummapRenderTargetPool.erase(iter);
 							continue;
@@ -423,7 +423,7 @@ namespace eastengine
 
 				m_nVideoCardMemory = static_cast<size_t>(adapterDesc.DedicatedVideoMemory / 1024Ui64 / 1024Ui64);
 
-				m_strVideoCardDescription = String::WideToMulti(adapterDesc.Description);
+				m_strVideoCardDescription = string::WideToMulti(adapterDesc.Description);
 
 				D3D_FEATURE_LEVEL requestedLevels[] = { D3D_FEATURE_LEVEL_11_1, D3D_FEATURE_LEVEL_11_0 };
 
@@ -601,7 +601,7 @@ namespace eastengine
 					HRESULT hr = m_pDevice->CreateRasterizerState(&desc, &m_pRasterizerStates[emRasterizerState]);
 					if (FAILED(hr))
 					{
-						std::string str = String::Format("failed to create rasterizer state : %d", emRasterizerState);
+						std::string str = string::Format("failed to create rasterizer state : %d", emRasterizerState);
 						throw_line(str.c_str());
 					}
 				};
@@ -755,7 +755,7 @@ namespace eastengine
 					HRESULT hr = m_pDevice->CreateBlendState(&desc, &m_pBlendStates[emBlendState]);
 					if (FAILED(hr))
 					{
-						std::string str = String::Format("failed to create blend state : %d", emBlendState);
+						std::string str = string::Format("failed to create blend state : %d", emBlendState);
 						throw_line(str.c_str());
 					}
 				};
@@ -958,7 +958,7 @@ namespace eastengine
 					HRESULT hr = m_pDevice->CreateSamplerState(&desc, &m_pSamplerStates[emSamplerState]);
 					if (FAILED(hr))
 					{
-						std::string str = String::Format("failed to create sampler state : %d", emSamplerState);
+						std::string str = string::Format("failed to create sampler state : %d", emSamplerState);
 						throw_line(str.c_str());
 					}
 				};
@@ -1074,7 +1074,7 @@ namespace eastengine
 					HRESULT hr = m_pDevice->CreateDepthStencilState(&desc, &m_pDepthStencilStates[emDepthStencilState]);
 					if (FAILED(hr))
 					{
-						std::string str = String::Format("failed to create depth stencil state : %d", emDepthStencilState);
+						std::string str = string::Format("failed to create depth stencil state : %d", emDepthStencilState);
 						throw_line(str.c_str());
 					}
 				};
@@ -1155,7 +1155,7 @@ namespace eastengine
 			{
 			}
 
-			void Device::Initialize(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const String::StringID& strApplicationTitle, const String::StringID& strApplicationName)
+			void Device::Initialize(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const string::StringID& strApplicationTitle, const string::StringID& strApplicationName)
 			{
 				m_pImpl->Initialize(nWidth, nHeight, isFullScreen, strApplicationTitle, strApplicationName);
 			}
@@ -1165,9 +1165,9 @@ namespace eastengine
 				m_pImpl->Run(funcUpdate);
 			}
 
-			void Device::Flush(float fElapsedTime)
+			void Device::Cleanup(float fElapsedTime)
 			{
-				m_pImpl->Flush(fElapsedTime);
+				m_pImpl->Cleanup(fElapsedTime);
 			}
 
 			RenderTarget* Device::GetRenderTarget(const D3D11_TEXTURE2D_DESC* pDesc, bool isIncludeLastUseRenderTarget)
@@ -1190,12 +1190,12 @@ namespace eastengine
 				return m_pImpl->GetHInstance();
 			}
 
-			void Device::AddMessageHandler(const String::StringID& strName, std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler)
+			void Device::AddMessageHandler(const string::StringID& strName, std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler)
 			{
 				m_pImpl->AddMessageHandler(strName, funcHandler);
 			}
 
-			void Device::RemoveMessageHandler(const String::StringID& strName)
+			void Device::RemoveMessageHandler(const string::StringID& strName)
 			{
 				m_pImpl->RemoveMessageHandler(strName);
 			}

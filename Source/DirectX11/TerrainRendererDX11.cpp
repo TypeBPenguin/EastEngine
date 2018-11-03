@@ -130,7 +130,7 @@ namespace eastengine
 
 			public:
 				void Render(ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext, Camera* pCamera);
-				void Flush();
+				void Cleanup();
 
 			public:
 				void PushJob(const RenderJobTerrain& job) { m_vecTerrains.emplace_back(job); }
@@ -155,7 +155,7 @@ namespace eastengine
 				strShaderPath.append("Terrain\\Terrain.hlsl");
 
 				ID3DBlob* pShaderBlob{ nullptr };
-				if (FAILED(D3DReadFileToBlob(String::MultiToWide(strShaderPath).c_str(), &pShaderBlob)))
+				if (FAILED(D3DReadFileToBlob(string::MultiToWide(strShaderPath).c_str(), &pShaderBlob)))
 				{
 					throw_line("failed to read shader file : Terrain.hlsl");
 				}
@@ -172,33 +172,33 @@ namespace eastengine
 
 					util::GetInputElementDesc(VertexPos4::Format(), &pInputElements, &nElementCount);
 
-					if (util::CreateVertexShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), "PassThroughVS", "vs_5_0", &m_pVertexShader, pInputElements, nElementCount, &m_pInputLayout, "Terrain_VS") == false)
+					if (util::CreateVertexShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), "PassThroughVS", shader::VS_CompileVersion, &m_pVertexShader, pInputElements, nElementCount, &m_pInputLayout, "Terrain_VS") == false)
 					{
 						throw_line("failed to create vertex shader");
 					}
 				}
 
 				{
-					if (util::CreatePixelShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), shader::GetTerrainPSTypeToString(shader::eSolid), "ps_5_0", &m_pPixelShader[shader::eSolid], shader::GetTerrainPSTypeToString(shader::eSolid)) == false)
+					if (util::CreatePixelShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), shader::GetTerrainPSTypeToString(shader::eSolid), shader::PS_CompileVersion, &m_pPixelShader[shader::eSolid], shader::GetTerrainPSTypeToString(shader::eSolid)) == false)
 					{
 						throw_line("failed to create pixel shader");
 					}
 
-					if (util::CreatePixelShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), shader::GetTerrainPSTypeToString(shader::eDepthOnly), "ps_5_0", &m_pPixelShader[shader::eDepthOnly], shader::GetTerrainPSTypeToString(shader::eDepthOnly)) == false)
+					if (util::CreatePixelShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), shader::GetTerrainPSTypeToString(shader::eDepthOnly), shader::PS_CompileVersion, &m_pPixelShader[shader::eDepthOnly], shader::GetTerrainPSTypeToString(shader::eDepthOnly)) == false)
 					{
 						throw_line("failed to create pixel shader");
 					}
 				}
 
 				{
-					if (util::CreateHullShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), "PatchHS", "hs_5_0", &m_pHullShader, "Terrain_HS") == false)
+					if (util::CreateHullShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), "PatchHS", shader::HS_CompileVersion, &m_pHullShader, "Terrain_HS") == false)
 					{
 						throw_line("failed to create hull shader");
 					}
 				}
 
 				{
-					if (util::CreateDomainShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), "HeightFieldPatchDS", "ds_5_0", &m_pDomainShader, "Terrain_DS") == false)
+					if (util::CreateDomainShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), "HeightFieldPatchDS", shader::DS_CompileVersion, &m_pDomainShader, "Terrain_DS") == false)
 					{
 						throw_line("failed to create Domain shader");
 					}
@@ -305,7 +305,7 @@ namespace eastengine
 				}
 			}
 
-			void TerrainRenderer::Impl::Flush()
+			void TerrainRenderer::Impl::Cleanup()
 			{
 				m_vecTerrains.clear();
 			}
@@ -324,9 +324,9 @@ namespace eastengine
 				m_pImpl->Render(pDevice, pDeviceContext, pCamera);
 			}
 
-			void TerrainRenderer::Flush()
+			void TerrainRenderer::Cleanup()
 			{
-				m_pImpl->Flush();
+				m_pImpl->Cleanup();
 			}
 
 			void TerrainRenderer::PushJob(const RenderJobTerrain& job)

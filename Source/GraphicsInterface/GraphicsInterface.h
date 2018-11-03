@@ -142,10 +142,10 @@ namespace eastengine
 
 		struct TextureDesc
 		{
-			String::StringID name;
+			string::StringID name;
 
-			uint32_t Width;
-			uint32_t Height;
+			uint32_t Width{ 0 };
+			uint32_t Height{ 0 };
 
 			ResourceFormat resourceFormat;
 			bool isDynamic{ false };
@@ -223,7 +223,6 @@ namespace eastengine
 				float Bias{ 0.5f };					// 0.f ~ 1.f
 
 				int LumMapMipLevel{ 10 };		// 0 ~ 10
-				float TimeDelta{ 0.f };
 
 				ToneMappingType emToneMappingType{ ToneMappingType::eNone };
 				AutoExposureType emAutoExposureType{ AutoExposureType::eManual };
@@ -300,7 +299,7 @@ namespace eastengine
 			virtual ~IVertexBuffer() = default;
 
 		public:
-			virtual const String::StringID& GetResourceType() const override { return StrID::VertexBuffer; }
+			virtual const string::StringID& GetResourceType() const override { return StrID::VertexBuffer; }
 
 		public:
 			virtual uint32_t GetVertexCount() const = 0;
@@ -317,7 +316,7 @@ namespace eastengine
 			virtual ~IIndexBuffer() = default;
 
 		public:
-			virtual const String::StringID& GetResourceType() const override { return StrID::IndexBuffer; }
+			virtual const string::StringID& GetResourceType() const override { return StrID::IndexBuffer; }
 
 		public:
 			virtual uint32_t GetIndexCount() const = 0;
@@ -333,17 +332,17 @@ namespace eastengine
 			virtual ~ITexture() = default;
 
 		public:
-			virtual const String::StringID& GetResourceType() const override { return StrID::Texture; }
+			virtual const string::StringID& GetResourceType() const override { return StrID::Texture; }
 
 		private:
 			struct tKey {};
 
 		public:
-			using Key = PhantomType<tKey, const String::StringID>;
+			using Key = PhantomType<tKey, const string::StringID>;
 
 		public:
 			virtual const Key& GetKey() const = 0;
-			virtual const String::StringID& GetName() const = 0;
+			virtual const string::StringID& GetName() const = 0;
 
 		public:
 			virtual const math::UInt2& GetSize() const = 0;
@@ -357,7 +356,7 @@ namespace eastengine
 			virtual ~IMaterial() = default;
 
 		public:
-			virtual const String::StringID& GetResourceType() const override { return StrID::Material; }
+			virtual const string::StringID& GetResourceType() const override { return StrID::Material; }
 
 		public:
 			virtual bool SaveToFile(const char* strFilePath) const = 0;
@@ -365,8 +364,8 @@ namespace eastengine
 		public:
 			virtual void LoadTexture() = 0;
 
-			virtual const String::StringID& GetName() const = 0;
-			virtual void SetName(const String::StringID& strName) = 0;
+			virtual const string::StringID& GetName() const = 0;
+			virtual void SetName(const string::StringID& strName) = 0;
 
 			virtual const std::string& GetPath() const = 0;
 			virtual void SetPath(const std::string& strPath) = 0;
@@ -377,8 +376,8 @@ namespace eastengine
 			virtual const math::Color& GetEmissiveColor() const = 0;
 			virtual void SetEmissiveColor(const math::Color& color) = 0;
 
-			virtual const String::StringID& GetTextureName(EmMaterial::Type emType) const = 0;
-			virtual void SetTextureName(EmMaterial::Type emType, const String::StringID& strName) = 0;
+			virtual const string::StringID& GetTextureName(EmMaterial::Type emType) const = 0;
+			virtual void SetTextureName(EmMaterial::Type emType, const string::StringID& strName) = 0;
 
 			virtual ITexture* GetTexture(EmMaterial::Type emType) const = 0;
 			virtual void SetTexture(EmMaterial::Type emType, ITexture* pTexture) = 0;
@@ -496,7 +495,7 @@ namespace std
 	template <>
 	struct hash<eastengine::graphics::ITexture::Key>
 	{
-		const eastengine::String::StringData* operator()(const eastengine::graphics::ITexture::Key& key) const
+		const eastengine::string::StringData* operator()(const eastengine::graphics::ITexture::Key& key) const
 		{
 			return key.Value().Key();
 		}

@@ -19,6 +19,7 @@
 #include "ColorGradingDX11.h"
 #include "BloomFilterDX11.h"
 #include "SSSDX11.h"
+#include "HDRFilterDX11.h"
 
 namespace eastengine
 {
@@ -33,54 +34,56 @@ namespace eastengine
 				~Impl();
 
 			public:
-				void Flush();
+				void Cleanup();
 				void Render();
 
 			public:
-				void PushJob(const RenderJobStatic& renderJob) { m_pModelRenderer->PushJob(renderJob); }
-				void PushJob(const RenderJobSkinned& renderJob) { m_pModelRenderer->PushJob(renderJob); }
-				void PushJob(const RenderJobTerrain& renderJob) { m_pTerrainRenderer->PushJob(renderJob); }
+				void PushJob(const RenderJobStatic& renderJob) { GetModelRenderer()->PushJob(renderJob); }
+				void PushJob(const RenderJobSkinned& renderJob) { GetModelRenderer()->PushJob(renderJob); }
+				void PushJob(const RenderJobTerrain& renderJob) { GetTerrainRenderer()->PushJob(renderJob); }
 
 			private:
 				void UpdateOptions(const Options& curOptions);
 
 			private:
-				std::unique_ptr<ModelRenderer> m_pModelRenderer;
-				std::unique_ptr<DeferredRenderer> m_pDeferredRenderer;
-				std::unique_ptr<EnvironmentRenderer> m_pEnvironmentRenderer;
-				std::unique_ptr<TerrainRenderer> m_pTerrainRenderer;
+				ModelRenderer* GetModelRenderer() const { return static_cast<ModelRenderer*>(m_pRenderers[IRenderer::eModel].get()); }
+				DeferredRenderer* GetDeferredRenderer() const { return static_cast<DeferredRenderer*>(m_pRenderers[IRenderer::eDeferred].get()); }
+				EnvironmentRenderer* GetEnvironmentRenderer() const { return static_cast<EnvironmentRenderer*>(m_pRenderers[IRenderer::eEnvironment].get()); }
+				TerrainRenderer* GetTerrainRenderer() const { return static_cast<TerrainRenderer*>(m_pRenderers[IRenderer::eTerrain].get()); }
+				Fxaa* GetFxaa() const { return static_cast<Fxaa*>(m_pRenderers[IRenderer::eFxaa].get()); }
+				DownScale* GetDownScale() const { return static_cast<DownScale*>(m_pRenderers[IRenderer::eDownScale].get()); }
+				GaussianBlur* GetGaussianBlur() const { return static_cast<GaussianBlur*>(m_pRenderers[IRenderer::eGaussianBlur].get()); }
+				DepthOfField* GetDepthOfField() const { return static_cast<DepthOfField*>(m_pRenderers[IRenderer::eDepthOfField].get()); }
+				Assao* GetAssao() const { return static_cast<Assao*>(m_pRenderers[IRenderer::eAssao].get()); }
+				ColorGrading* GetColorGrading() const { return static_cast<ColorGrading*>(m_pRenderers[IRenderer::eColorGrading].get()); }
+				BloomFilter* GetBloomFilter() const { return static_cast<BloomFilter*>(m_pRenderers[IRenderer::eBloomFilter].get()); }
+				SSS* GetSSS() const { return static_cast<SSS*>(m_pRenderers[IRenderer::eSSS].get()); }
+				HDRFilter* GetHDRFilter() const { return static_cast<HDRFilter*>(m_pRenderers[IRenderer::eHDR].get()); }
 
-				// PostProcessing
-				std::unique_ptr<Fxaa> m_pFxaa;
-				std::unique_ptr<DownScale> m_pDownScale;
-				std::unique_ptr<GaussianBlur> m_pGaussianBlur;
-				std::unique_ptr<DepthOfField> m_pDepthOfField;
-				std::unique_ptr<Assao> m_pAssao;
-				std::unique_ptr<ColorGrading> m_pColorGrading;
-				std::unique_ptr<BloomFilter> m_pBloomFilter;
-				std::unique_ptr<SSS> m_pSSS;
+			private:
+				std::array<std::unique_ptr<IRenderer>, IRenderer::TypeCount> m_pRenderers{ nullptr };
 
 				Options m_prevOptions;
 			};
 
 			RenderManager::Impl::Impl()
-				: m_pModelRenderer{ std::make_unique<ModelRenderer>() }
-				, m_pDeferredRenderer{ std::make_unique<DeferredRenderer>() }
-				, m_pEnvironmentRenderer{ std::make_unique<EnvironmentRenderer>() }
-				, m_pTerrainRenderer{ std::make_unique<TerrainRenderer>() }
 			{
+				m_pRenderers[IRenderer::eModel] = std::make_unique<ModelRenderer>();
+				m_pRenderers[IRenderer::eDeferred] = std::make_unique<DeferredRenderer>();
+				m_pRenderers[IRenderer::eEnvironment] = std::make_unique<EnvironmentRenderer>();
+				m_pRenderers[IRenderer::eTerrain] = std::make_unique<TerrainRenderer>();
 			}
 
 			RenderManager::Impl::~Impl()
 			{
 			}
 
-			void RenderManager::Impl::Flush()
+			void RenderManager::Impl::Cleanup()
 			{
-				m_pModelRenderer->Flush();
-				m_pDeferredRenderer->Flush();
-				m_pEnvironmentRenderer->Flush();
-				m_pTerrainRenderer->Flush();
+				GetModelRenderer()->Cleanup();
+				GetDeferredRenderer()->Cleanup();
+				GetEnvironmentRenderer()->Cleanup();
+				GetTerrainRenderer()->Cleanup();
 			}
 
 			void RenderManager::Impl::Render()
@@ -96,15 +99,20 @@ namespace eastengine
 
 				UpdateOptions(options);
 
-				m_pEnvironmentRenderer->Render(pDevice, pImmediateContext, pCamera);
-				m_pTerrainRenderer->Render(pDevice, pImmediateContext, pCamera);
+				GetEnvironmentRenderer()->Render(pDevice, pImmediateContext, pCamera);
+				GetTerrainRenderer()->Render(pDevice, pImmediateContext, pCamera);
 
-				m_pModelRenderer->Render(pDevice, pImmediateContext, pCamera, ModelRenderer::eDeferred);
-				m_pDeferredRenderer->Render(pDevice, pImmediateContext, pCamera);
+				GetModelRenderer()->Render(pDevice, pImmediateContext, pCamera, ModelRenderer::eDeferred);
+				GetDeferredRenderer()->Render(pDevice, pImmediateContext, pCamera);
 
 				D3D11_TEXTURE2D_DESC swapchainDesc{};
 				pDeviceInstance->GetSwapChainRenderTarget()->GetDesc2D(&swapchainDesc);
 				swapchainDesc.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
+
+				if (options.OnHDR == true)
+				{
+					swapchainDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				}
 
 				// PostProcessing
 				{
@@ -115,7 +123,7 @@ namespace eastengine
 
 						const RenderTarget* pSource = pDeviceInstance->GetLastUsedRenderTarget();
 						const DepthStencil* pDepth = pGBuffer->GetDepthStencil();
-						m_pSSS->Apply(pSource, pDepth, pSSS);
+						GetSSS()->Apply(pSource, pDepth, pSSS);
 
 						pDeviceInstance->ReleaseRenderTargets(&pSSS);
 					}
@@ -126,18 +134,26 @@ namespace eastengine
 						const RenderTarget* pNormalMap = pGBuffer->GetRenderTarget(EmGBuffer::eNormals);
 						const DepthStencil* pDepth = pGBuffer->GetDepthStencil();
 
-						m_pAssao->Apply(pCamera, pNormalMap, pDepth, pLastUseRenderTarget);
+						GetAssao()->Apply(pCamera, pNormalMap, pDepth, pLastUseRenderTarget);
 					}
 				}
 
-				m_pModelRenderer->Render(pDevice, pImmediateContext, pCamera, ModelRenderer::eAlphaBlend);
+				GetModelRenderer()->Render(pDevice, pImmediateContext, pCamera, ModelRenderer::eAlphaBlend);
 
 				{
-					// HDR
+					if (options.OnHDR == true)
+					{
+						RenderTarget* pHDR = pDeviceInstance->GetRenderTarget(&swapchainDesc, false);
+						const RenderTarget* pSource = pDeviceInstance->GetLastUsedRenderTarget();
+						GetHDRFilter()->Apply(pSource, pHDR);
+
+						pDeviceInstance->ReleaseRenderTargets(&pHDR);
+					}
+
 					if (options.OnBloomFilter == true)
 					{
-						RenderTarget* pSource = pDeviceInstance->GetLastUsedRenderTarget();
-						m_pBloomFilter->Apply(pSource);
+						RenderTarget* pSourceAndResult = pDeviceInstance->GetLastUsedRenderTarget();
+						GetBloomFilter()->Apply(pSourceAndResult);
 					}
 
 					if (options.OnColorGrading == true)
@@ -145,7 +161,7 @@ namespace eastengine
 						RenderTarget* pColorGrading = pDeviceInstance->GetRenderTarget(&swapchainDesc, false);
 						const RenderTarget* pSource = pDeviceInstance->GetLastUsedRenderTarget();
 
-						m_pColorGrading->Apply(pCamera, pSource, pColorGrading);
+						GetColorGrading()->Apply(pCamera, pSource, pColorGrading);
 
 						pDeviceInstance->ReleaseRenderTargets(&pColorGrading);
 					}
@@ -156,7 +172,7 @@ namespace eastengine
 						const RenderTarget* pSource = pDeviceInstance->GetLastUsedRenderTarget();
 						const DepthStencil* pDepth = pGBuffer->GetDepthStencil();
 
-						m_pDepthOfField->Apply(pCamera, pSource, pDepth, pDepthOfField);
+						GetDepthOfField()->Apply(pCamera, pSource, pDepth, pDepthOfField);
 
 						pDeviceInstance->ReleaseRenderTargets(&pDepthOfField);
 					}
@@ -166,7 +182,7 @@ namespace eastengine
 						RenderTarget* pFxaa = pDeviceInstance->GetRenderTarget(&swapchainDesc, false);
 						const RenderTarget* pSource = pDeviceInstance->GetLastUsedRenderTarget();
 
-						m_pFxaa->Apply(pSource, pFxaa);
+						GetFxaa()->Apply(pSource, pFxaa);
 
 						pDeviceInstance->ReleaseRenderTargets(&pFxaa);
 					}
@@ -183,9 +199,11 @@ namespace eastengine
 				{
 					if (curOptions.OnHDR == true)
 					{
+						m_pRenderers[IRenderer::eHDR] = std::make_unique<HDRFilter>();
 					}
 					else
 					{
+						m_pRenderers[IRenderer::eHDR].reset();
 					}
 				}
 
@@ -193,11 +211,11 @@ namespace eastengine
 				{
 					if (curOptions.OnFXAA == true)
 					{
-						m_pFxaa = std::make_unique<Fxaa>();
+						m_pRenderers[IRenderer::eFxaa] = std::make_unique<Fxaa>();
 					}
 					else
 					{
-						m_pFxaa.reset();
+						m_pRenderers[IRenderer::eFxaa].reset();
 					}
 				}
 
@@ -205,11 +223,11 @@ namespace eastengine
 				{
 					if (curOptions.OnDOF == true)
 					{
-						m_pDepthOfField = std::make_unique<DepthOfField>();
+						m_pRenderers[IRenderer::eDepthOfField] = std::make_unique<DepthOfField>();
 					}
 					else
 					{
-						m_pDepthOfField.reset();
+						m_pRenderers[IRenderer::eDepthOfField].reset();
 					}
 				}
 
@@ -217,11 +235,11 @@ namespace eastengine
 				{
 					if (curOptions.OnASSAO == true)
 					{
-						m_pAssao = std::make_unique<Assao>();
+						m_pRenderers[IRenderer::eAssao] = std::make_unique<Assao>();
 					}
 					else
 					{
-						m_pAssao.reset();
+						m_pRenderers[IRenderer::eAssao].reset();
 					}
 				}
 
@@ -229,11 +247,11 @@ namespace eastengine
 				{
 					if (curOptions.OnColorGrading == true)
 					{
-						m_pColorGrading = std::make_unique<ColorGrading>();
+						m_pRenderers[IRenderer::eColorGrading] = std::make_unique<ColorGrading>();
 					}
 					else
 					{
-						m_pColorGrading.reset();
+						m_pRenderers[IRenderer::eColorGrading].reset();
 					}
 				}
 
@@ -241,11 +259,11 @@ namespace eastengine
 				{
 					if (curOptions.OnBloomFilter == true)
 					{
-						m_pBloomFilter = std::make_unique<BloomFilter>();
+						m_pRenderers[IRenderer::eBloomFilter] = std::make_unique<BloomFilter>();
 					}
 					else
 					{
-						m_pBloomFilter.reset();
+						m_pRenderers[IRenderer::eBloomFilter].reset();
 					}
 				}
 
@@ -253,11 +271,11 @@ namespace eastengine
 				{
 					if (curOptions.OnSSS == true)
 					{
-						m_pSSS = std::make_unique<SSS>();
+						m_pRenderers[IRenderer::eSSS] = std::make_unique<SSS>();
 					}
 					else
 					{
-						m_pSSS.reset();
+						m_pRenderers[IRenderer::eSSS].reset();
 					}
 				}
 
@@ -273,9 +291,9 @@ namespace eastengine
 			{
 			}
 
-			void RenderManager::Flush()
+			void RenderManager::Cleanup()
 			{
-				m_pImpl->Flush();
+				m_pImpl->Cleanup();
 			}
 
 			void RenderManager::Render()

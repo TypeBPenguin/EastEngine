@@ -132,7 +132,7 @@ namespace eastengine
 
 			RenderTarget::Key RenderTarget::BuildKey(const D3D11_TEXTURE2D_DESC* pDesc)
 			{
-				String::StringID strKey;
+				string::StringID strKey;
 				strKey.Format("RenderTarget_%u_%u_%u_%u_%u_%u_%u_%u_%u_%u_%u",
 					pDesc->Width,
 					pDesc->Height,

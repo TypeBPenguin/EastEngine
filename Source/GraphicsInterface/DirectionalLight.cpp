@@ -21,7 +21,7 @@ namespace eastengine
 		{
 		}
 
-		DirectionalLight* DirectionalLight::Create(const String::StringID& strName, const math::Vector3& f3Direction, const math::Color& color, float fIntensity, float fAmbientIntensity, float fReflectionIntensity)
+		DirectionalLight* DirectionalLight::Create(const string::StringID& strName, const math::Vector3& f3Direction, const math::Color& color, float fIntensity, float fAmbientIntensity, float fReflectionIntensity)
 		{
 			DirectionalLight* pLight = new DirectionalLight;
 			pLight->m_strName = strName;

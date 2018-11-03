@@ -29,7 +29,7 @@ namespace eastengine
 		~Impl();
 
 	public:
-		bool Initialize(graphics::APIs emAPI, uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const String::StringID& strApplicationTitle, const String::StringID& strApplicationName);
+		bool Initialize(graphics::APIs emAPI, uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const string::StringID& strApplicationTitle, const string::StringID& strApplicationName);
 		void Release();
 
 	public:
@@ -39,7 +39,7 @@ namespace eastengine
 		float GetFPS() const { return m_pFpsChecker->GetFps(); }
 
 	private:
-		void Flush(float fElapsedTime);
+		void Cleanup(float fElapsedTime);
 		void Update(float fElapsedTime);
 
 	private:
@@ -64,7 +64,7 @@ namespace eastengine
 		Release();
 	}
 
-	bool MainSystem::Impl::Initialize(graphics::APIs emAPI, uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const String::StringID& strApplicationTitle, const String::StringID& strApplicationName)
+	bool MainSystem::Impl::Initialize(graphics::APIs emAPI, uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const string::StringID& strApplicationTitle, const string::StringID& strApplicationName)
 	{
 		std::string strDumpPath = file::GetBinPath();
 		strDumpPath.append("Dump\\");
@@ -123,7 +123,7 @@ namespace eastengine
 
 		CrashHandler::Release();
 
-		String::Release();
+		string::Release();
 	}
 
 	void MainSystem::Impl::Run(IScene** ppScene, size_t nSceneCount, size_t nMainScene)
@@ -142,16 +142,15 @@ namespace eastengine
 			s_pTimer->Tick();
 
 			const float fElapsedTime = s_pTimer->GetElapsedTime();
-			Flush(fElapsedTime);
+			Cleanup(fElapsedTime);
 			Update(fElapsedTime);
 		});
 	}
 
-	void MainSystem::Impl::Flush(float fElapsedTime)
+	void MainSystem::Impl::Cleanup(float fElapsedTime)
 	{
-		s_pSceneManager->Flush();
-		s_pModelManager->Flush(fElapsedTime);
-		graphics::Flush(fElapsedTime);
+		s_pModelManager->Cleanup(fElapsedTime);
+		graphics::Cleanup(fElapsedTime);
 	}
 
 	void MainSystem::Impl::Update(float fElapsedTime)
@@ -176,7 +175,7 @@ namespace eastengine
 	{
 	}
 
-	bool MainSystem::Initialize(graphics::APIs emAPI, uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const String::StringID& strApplicationTitle, const String::StringID& strApplicationName)
+	bool MainSystem::Initialize(graphics::APIs emAPI, uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const string::StringID& strApplicationTitle, const string::StringID& strApplicationName)
 	{
 		return m_pImpl->Initialize(emAPI, nWidth, nHeight, isFullScreen, strApplicationTitle, strApplicationName);
 	}

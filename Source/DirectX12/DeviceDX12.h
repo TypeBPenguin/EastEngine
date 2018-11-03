@@ -9,6 +9,7 @@ struct ID3D12CommandQueue;
 struct ID3D12CommandList;
 struct ID3D12GraphicsCommandList2;
 struct ID3D12PipelineState;
+struct ID3D12DeviceChild;
 
 struct ID3D12Fence;
 struct ID3D12Resource;
@@ -40,21 +41,23 @@ namespace eastengine
 				virtual ~Device();
 
 			public:
-				void Initialize(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const String::StringID& strApplicationTitle, const String::StringID& strApplicationName);
+				void Initialize(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const string::StringID& strApplicationTitle, const string::StringID& strApplicationName);
 
 				void Run(std::function<void()> funcUpdate);
 
-				void Flush(float fElapsedTime);
+				void Cleanup(float fElapsedTime);
 
 			public:
 				RenderTarget* GetRenderTarget(const D3D12_RESOURCE_DESC* pDesc, const math::Color& clearColor, bool isIncludeLastUseRenderTarget = true);
 				void ReleaseRenderTargets(RenderTarget** ppRenderTarget, uint32_t nSize = 1, bool isSetLastRenderTarget = true);
 
+				void ReleaseResource(ID3D12DeviceChild* pResource);
+
 			public:
 				HWND GetHwnd() const;
 				HINSTANCE GetHInstance() const;
-				void AddMessageHandler(const String::StringID& strName, std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler);
-				void RemoveMessageHandler(const String::StringID& strName);
+				void AddMessageHandler(const string::StringID& strName, std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler);
+				void RemoveMessageHandler(const string::StringID& strName);
 
 				const math::UInt2& GetScreenSize() const;
 				const D3D12_VIEWPORT* GetViewport() const;
@@ -68,10 +71,10 @@ namespace eastengine
 
 				uint32_t GetFrameIndex() const;
 
-				RenderTarget* GetSwapChainRenderTarget(int nFrameIndex) const;
+				RenderTarget* GetSwapChainRenderTarget(uint32_t nFrameIndex) const;
 				RenderTarget* GetLastUsedRenderTarget() const;
 
-				GBuffer* GetGBuffer(int nFrameIndex) const;
+				GBuffer* GetGBuffer(uint32_t nFrameIndex) const;
 				IImageBasedLight* GetImageBasedLight() const;
 				void SetImageBasedLight(IImageBasedLight* pImageBasedLight);
 

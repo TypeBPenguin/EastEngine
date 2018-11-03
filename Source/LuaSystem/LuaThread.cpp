@@ -27,17 +27,17 @@ namespace eastengine
 		public:
 			void PushInt(intptr_t nValue);
 			void PushDouble(double dValue);
-			void PushString(const String::StringID& sValue);
+			void PushString(const string::StringID& sValue);
 			void PushBool(bool bValue);
 
 		public:
 			intptr_t PopInt(size_t nIndex);
 			double PopDouble(size_t nIndex);
-			const String::StringID& PopString(size_t nIndex);
+			const string::StringID& PopString(size_t nIndex);
 			bool PopBool(size_t nIndex);
 
 		public:
-			bool Run(const String::StringID& strFuncName, const int nReturnValueCount);
+			bool Run(const string::StringID& strFuncName, const int nReturnValueCount);
 
 		private:
 			lua_State* m_pLuaState;
@@ -54,7 +54,7 @@ namespace eastengine
 				TypeCount,
 			};
 
-			const std::array<const String::StringID, TypeCount> TypeToString =
+			const std::array<const string::StringID, TypeCount> TypeToString =
 			{
 				"Int",
 				"Double",
@@ -62,8 +62,8 @@ namespace eastengine
 				"Bool",
 			};
 
-			std::queue<std::variant<intptr_t, double, String::StringID, bool>> m_queueInputValue;
-			std::vector<std::variant<intptr_t, double, String::StringID, bool>> m_vecOutputValue;
+			std::queue<std::variant<intptr_t, double, string::StringID, bool>> m_queueInputValue;
+			std::vector<std::variant<intptr_t, double, string::StringID, bool>> m_vecOutputValue;
 		};
 
 		LuaThread::Impl::Impl()
@@ -94,7 +94,7 @@ namespace eastengine
 			m_queueInputValue.emplace(dValue);
 		}
 
-		void LuaThread::Impl::PushString(const String::StringID& sValue)
+		void LuaThread::Impl::PushString(const string::StringID& sValue)
 		{
 			m_queueInputValue.emplace(sValue);
 		}
@@ -126,7 +126,7 @@ namespace eastengine
 			return std::get<double>(m_vecOutputValue[nIndex]);
 		}
 
-		const String::StringID& LuaThread::Impl::PopString(size_t nIndex)
+		const string::StringID& LuaThread::Impl::PopString(size_t nIndex)
 		{
 			if (nIndex >= m_vecOutputValue.size())
 			{
@@ -140,7 +140,7 @@ namespace eastengine
 				return 0;
 			}
 
-			return std::get<String::StringID>(m_vecOutputValue[nIndex]);
+			return std::get<string::StringID>(m_vecOutputValue[nIndex]);
 		}
 
 		bool LuaThread::Impl::PopBool(size_t nIndex)
@@ -160,7 +160,7 @@ namespace eastengine
 			return std::get<bool>(m_vecOutputValue[nIndex]);
 		}
 
-		bool LuaThread::Impl::Run(const String::StringID& strFuncName, const int nReturnValueCount)
+		bool LuaThread::Impl::Run(const string::StringID& strFuncName, const int nReturnValueCount)
 		{
 			lua_getglobal(m_pLuaState, strFuncName.c_str());
 
@@ -170,7 +170,7 @@ namespace eastengine
 
 			while (m_queueInputValue.empty() == false)
 			{
-				std::variant<intptr_t, double, String::StringID, bool>& variantValue = m_queueInputValue.front();
+				std::variant<intptr_t, double, string::StringID, bool>& variantValue = m_queueInputValue.front();
 
 				switch (variantValue.index())
 				{
@@ -181,7 +181,7 @@ namespace eastengine
 					lua_pushnumber(m_pLuaState, std::get<double>(variantValue));
 					break;
 				case eString:
-					lua_pushstring(m_pLuaState, std::get<String::StringID>(variantValue).c_str());
+					lua_pushstring(m_pLuaState, std::get<string::StringID>(variantValue).c_str());
 					break;
 				case eBool:
 					lua_pushboolean(m_pLuaState, std::get<bool>(variantValue));
@@ -212,7 +212,7 @@ namespace eastengine
 				{
 				case LUA_TSTRING:
 				{
-					String::StringID value = lua_tostring(m_pLuaState, -1);
+					string::StringID value = lua_tostring(m_pLuaState, -1);
 					m_vecOutputValue.emplace_back(value);
 				}
 				break;
@@ -270,7 +270,7 @@ namespace eastengine
 			m_pImpl->PushDouble(dValue);
 		}
 
-		void LuaThread::PushString(const String::StringID& sValue)
+		void LuaThread::PushString(const string::StringID& sValue)
 		{
 			m_pImpl->PushString(sValue);
 		}
@@ -290,7 +290,7 @@ namespace eastengine
 			return m_pImpl->PopDouble(nIndex);
 		}
 
-		const String::StringID& LuaThread::PopString(size_t nIndex)
+		const string::StringID& LuaThread::PopString(size_t nIndex)
 		{
 			return m_pImpl->PopString(nIndex);
 		}
@@ -300,7 +300,7 @@ namespace eastengine
 			return m_pImpl->PopBool(nIndex);
 		}
 
-		bool LuaThread::Run(const String::StringID& strFuncName, const int nReturnValueCount)
+		bool LuaThread::Run(const string::StringID& strFuncName, const int nReturnValueCount)
 		{
 			return m_pImpl->Run(strFuncName, nReturnValueCount);
 		}

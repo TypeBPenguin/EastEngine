@@ -12,11 +12,11 @@ namespace eastengine
 			class Bone : public IMotion::IBone
 			{
 			public:
-				Bone(const String::StringID& strBoneName, const std::vector<Keyframe>& _vecKeyframes, float fFrameInterval);
+				Bone(const string::StringID& strBoneName, const std::vector<Keyframe>& _vecKeyframes, float fFrameInterval);
 				virtual ~Bone() override;
 
 			public:
-				virtual const String::StringID& GetName() const override { return m_strBoneName; }
+				virtual const string::StringID& GetName() const override { return m_strBoneName; }
 
 				virtual float GetStartTime() const override
 				{
@@ -41,7 +41,7 @@ namespace eastengine
 				virtual const Keyframe* GetKeyframe(uint32_t nIndex) const override { return &m_vecKeyframes[nIndex]; }
 
 			private:
-				String::StringID m_strBoneName;
+				string::StringID m_strBoneName;
 				std::vector<Keyframe> m_vecKeyframes;
 				float m_fFrameInterval;
 			};
@@ -62,17 +62,17 @@ namespace eastengine
 			virtual float GetEndTime() const override { return m_fEndTime; }
 
 		public:
-			virtual const String::StringID& GetName() const override { return m_strName; }
+			virtual const string::StringID& GetName() const override { return m_strName; }
 			virtual const std::string& GetFilePath() const override { return m_strFilePath; }
 
 			virtual uint32_t GetBoneCount() const override { return static_cast<uint32_t>(m_vecBones.size()); }
 			virtual const IBone* GetBone(uint32_t nIndex) const override { return &m_vecBones[nIndex]; }
-			virtual const IBone* GetBone(const String::StringID& strBoneName) const override;
+			virtual const IBone* GetBone(const string::StringID& strBoneName) const override;
 			
 		public:
-			void SetName(const String::StringID& strName) { m_strName; }
+			void SetName(const string::StringID& strName) { m_strName; }
 			void SetFilePath(const std::string& strFilePath) { m_strFilePath = strFilePath; }
-			void AddBoneKeyframes(const String::StringID& strBoneName, const std::vector<Keyframe>& vecKeyframes);
+			void AddBoneKeyframes(const string::StringID& strBoneName, const std::vector<Keyframe>& vecKeyframes);
 			void SetInfo(float fStartTime, float fEndTime, float fFrameInterval);
 
 			void AddEvent(const IMotionEvent* pMotionEvent) { m_vecEvents.emplace_back(pMotionEvent); }
@@ -80,7 +80,7 @@ namespace eastengine
 		private:
 			const Key m_key;
 
-			String::StringID m_strName;
+			string::StringID m_strName;
 			std::string m_strFilePath;
 
 			float m_fStartTime{ 0.f };
@@ -88,7 +88,7 @@ namespace eastengine
 			float m_fFrameInterval{ 0.f };
 
 			std::vector<Bone> m_vecBones;
-			std::unordered_map<String::StringID, Bone*> m_umapBones;
+			std::unordered_map<string::StringID, Bone*> m_umapBones;
 
 			std::vector<const IMotionEvent*> m_vecEvents;
 		};

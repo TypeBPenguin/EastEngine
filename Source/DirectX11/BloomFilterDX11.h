@@ -1,5 +1,7 @@
 #pragma once
 
+#include "GraphicsInterface/Renderer.h"
+
 namespace eastengine
 {
 	namespace graphics
@@ -8,14 +10,17 @@ namespace eastengine
 		{
 			class RenderTarget;
 
-			class BloomFilter
+			class BloomFilter : public IRenderer
 			{
 			public:
 				BloomFilter();
-				~BloomFilter();
+				virtual ~BloomFilter();
 
 			public:
-				void Apply(RenderTarget* pSource);
+				virtual Type GetType() const { return IRenderer::eBloomFilter; }
+
+			public:
+				void Apply(RenderTarget* pSourceAndResult);
 
 			private:
 				class Impl;

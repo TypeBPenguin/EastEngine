@@ -43,7 +43,7 @@ namespace eastengine
 			FuncCollisionCallback funcCollisionCallback = nullptr;
 			FuncTriangleDrawCallback funcTriangleDrawCallback = nullptr;
 
-			String::StringID strName;
+			string::StringID strName;
 
 			math::Vector3 f3OriginPos;
 			math::Quaternion originQuat;
@@ -75,8 +75,8 @@ namespace eastengine
 			void SetEnableTriangleDrawCallback(bool isEnableTriangleDrawCallback);
 
 		public:
-			const String::StringID& GetName() const;
-			void SetName(const String::StringID& strName);
+			const string::StringID& GetName() const;
+			void SetName(const string::StringID& strName);
 
 			const RigidBodyProperty& GetRigidBodyProperty() const;
 

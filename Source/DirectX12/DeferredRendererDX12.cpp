@@ -67,8 +67,10 @@ namespace eastengine
 				~Impl();
 
 			public:
+				void RefreshPSO(ID3D12Device* pDevice);
+
 				void Render(Camera* pCamera);
-				void Flush();
+				void Cleanup();
 
 			private:
 				enum RootParameters : uint32_t
@@ -84,15 +86,13 @@ namespace eastengine
 				};
 
 				ID3D12RootSignature* CreateRootSignature(ID3D12Device* pDevice);
-				void CreatePipelineState(ID3D12Device* pDevice, ID3DBlob* pShaderBlob);
+				void CreatePipelineState(ID3D12Device* pDevice, ID3DBlob* pShaderBlob, const char* strShaderPath);
+				void CreateBundles();
 
 			private:
-				std::string m_strShaderPath;
+				PSOCache m_psoCache;
 
-				ID3D12PipelineState* m_pPipelineState{ nullptr };
-				ID3D12RootSignature* m_pRootSignature{ nullptr };
-
-				std::array<ID3D12GraphicsCommandList2*, eFrameBufferCount> m_pBundles;
+				std::array<ID3D12GraphicsCommandList2*, eFrameBufferCount> m_pBundles{ nullptr };
 
 				ConstantBuffer<shader::DeferredContents> m_deferredContentsBuffer;
 				ConstantBuffer<shader::CommonContents> m_commonContentsBuffer;
@@ -100,54 +100,24 @@ namespace eastengine
 
 			DeferredRenderer::Impl::Impl()
 			{
-				m_strShaderPath = file::GetPath(file::eFx);
-				m_strShaderPath.append("Model\\Deferred.hlsl");
+				std::string strShaderPath = file::GetPath(file::eFx);
+				strShaderPath.append("Model\\Deferred.hlsl");
 
 				ID3DBlob* pShaderBlob = nullptr;
-				if (FAILED(D3DReadFileToBlob(String::MultiToWide(m_strShaderPath).c_str(), &pShaderBlob)))
+				if (FAILED(D3DReadFileToBlob(string::MultiToWide(strShaderPath).c_str(), &pShaderBlob)))
 				{
 					throw_line("failed to read shader file : Deferred.hlsl");
 				}
 
 				ID3D12Device* pDevice = Device::GetInstance()->GetInterface();
-
-				CreatePipelineState(pDevice, pShaderBlob);
+				CreatePipelineState(pDevice, pShaderBlob, strShaderPath.c_str());
 
 				m_deferredContentsBuffer.Create(pDevice, 1, "DeferredContent");
 				m_commonContentsBuffer.Create(pDevice, 1, "CommonContents");
 
 				SafeRelease(pShaderBlob);
 
-				DescriptorHeap* pSRVDescriptorHeap = Device::GetInstance()->GetSRVDescriptorHeap();
-
-				for (int i = 0; i < eFrameBufferCount; ++i)
-				{
-					m_pBundles[i] = Device::GetInstance()->CreateBundle(m_pPipelineState);
-
-					m_pBundles[i]->SetGraphicsRootSignature(m_pRootSignature);
-
-					ID3D12DescriptorHeap* pDescriptorHeaps[] =
-					{
-						pSRVDescriptorHeap->GetHeap(i),
-					};
-					m_pBundles[i]->SetDescriptorHeaps(_countof(pDescriptorHeaps), pDescriptorHeaps);
-
-					m_pBundles[i]->SetGraphicsRootDescriptorTable(eRP_StandardDescriptor, pSRVDescriptorHeap->GetStartGPUHandle(i));
-					m_pBundles[i]->SetGraphicsRootConstantBufferView(eRP_DeferrecContentsCB, m_deferredContentsBuffer.GPUAddress(i));
-					m_pBundles[i]->SetGraphicsRootConstantBufferView(eRP_CommonContentsCB, m_commonContentsBuffer.GPUAddress(i));
-
-					m_pBundles[i]->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-					m_pBundles[i]->IASetVertexBuffers(0, 0, nullptr);
-					m_pBundles[i]->IASetIndexBuffer(nullptr);
-
-					m_pBundles[i]->DrawInstanced(4, 1, 0, 0);
-
-					HRESULT hr = m_pBundles[i]->Close();
-					if (FAILED(hr))
-					{
-						throw_line("failed to close bundle");
-					}
-				}
+				CreateBundles();
 			}
 
 			DeferredRenderer::Impl::~Impl()
@@ -155,13 +125,19 @@ namespace eastengine
 				m_deferredContentsBuffer.Destroy();
 				m_commonContentsBuffer.Destroy();
 
-				SafeRelease(m_pPipelineState);
-				SafeRelease(m_pRootSignature);
+				m_psoCache.Destroy();
 
 				for (auto& pBundle : m_pBundles)
 				{
-					SafeRelease(pBundle);
+					util::ReleaseResource(pBundle);
+					pBundle = nullptr;
 				}
+			}
+
+			void DeferredRenderer::Impl::RefreshPSO(ID3D12Device* pDevice)
+			{
+				CreatePipelineState(pDevice, nullptr, nullptr);
+				CreateBundles();
 			}
 
 			void DeferredRenderer::Impl::Render(Camera* pCamera)
@@ -169,7 +145,7 @@ namespace eastengine
 				Device* pDeviceInstance = Device::GetInstance();
 				LightManager* pLightManager = LightManager::GetInstance();
 
-				const int nFrameIndex = pDeviceInstance->GetFrameIndex();
+				const uint32_t nFrameIndex = pDeviceInstance->GetFrameIndex();
 				GBuffer* pGBuffer = pDeviceInstance->GetGBuffer(nFrameIndex);
 				const IImageBasedLight* pImageBasedLight = pDeviceInstance->GetImageBasedLight();
 				DescriptorHeap* pSRVDescriptorHeap = pDeviceInstance->GetSRVDescriptorHeap();
@@ -257,7 +233,7 @@ namespace eastengine
 				pCommandList->RSSetScissorRects(1, pScissorRect);
 				pCommandList->OMSetRenderTargets(_countof(rtvHandles), rtvHandles, FALSE, nullptr);
 
-				pCommandList->SetGraphicsRootSignature(m_pRootSignature);
+				pCommandList->SetGraphicsRootSignature(m_psoCache.pRootSignature);
 
 				ID3D12DescriptorHeap* pDescriptorHeaps[] =
 				{
@@ -277,7 +253,7 @@ namespace eastengine
 				pDeviceInstance->ReleaseRenderTargets(&pRenderTarget);
 			}
 
-			void DeferredRenderer::Impl::Flush()
+			void DeferredRenderer::Impl::Cleanup()
 			{
 			}
 
@@ -306,44 +282,60 @@ namespace eastengine
 					D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS);
 			}
 
-			void DeferredRenderer::Impl::CreatePipelineState(ID3D12Device* pDevice, ID3DBlob* pShaderBlob)
+			void DeferredRenderer::Impl::CreatePipelineState(ID3D12Device* pDevice, ID3DBlob* pShaderBlob, const char* strShaderPath)
 			{
-				const D3D_SHADER_MACRO macros[] = 
+				if (pShaderBlob != nullptr)
 				{
-					{ "DX12", "1" },
-					{ nullptr, nullptr },
-				};
+					const D3D_SHADER_MACRO macros[] =
+					{
+						{ "DX12", "1" },
+						{ nullptr, nullptr },
+					};
 
-				ID3DBlob* pVertexShaderBlob = nullptr;
-				bool isSuccess = util::CompileShader(pShaderBlob, macros, m_strShaderPath.c_str(), "VS", "vs_5_1", &pVertexShaderBlob);
-				if (isSuccess == false)
-				{
-					throw_line("failed to compile vertex shader");
+					if (m_psoCache.pVSBlob == nullptr)
+					{
+						const bool isSuccess = util::CompileShader(pShaderBlob, macros, strShaderPath, "VS", shader::VS_CompileVersion, &m_psoCache.pVSBlob);
+						if (isSuccess == false)
+						{
+							throw_line("failed to compile vertex shader");
+						}
+					}
+
+					if (m_psoCache.pPSBlob == nullptr)
+					{
+						const bool isSuccess = util::CompileShader(pShaderBlob, macros, strShaderPath, "PS", shader::PS_CompileVersion, &m_psoCache.pPSBlob);
+						if (isSuccess == false)
+						{
+							throw_line("failed to compile pixel shader");
+						}
+					}
 				}
 
-				ID3DBlob* pPixelShaderBlob = nullptr;
-				isSuccess = util::CompileShader(pShaderBlob, macros, m_strShaderPath.c_str(), "PS", "ps_5_1", &pPixelShaderBlob);
-				if (isSuccess == false)
+				if (m_psoCache.pRootSignature == nullptr)
 				{
-					throw_line("failed to compile pixel shader");
+					m_psoCache.pRootSignature = CreateRootSignature(pDevice);
+					m_psoCache.pRootSignature->SetName(L"DeferredRenderer");
+				}
+
+				if (m_psoCache.pPipelineState != nullptr)
+				{
+					util::ReleaseResource(m_psoCache.pPipelineState);
+					m_psoCache.pPipelineState = nullptr;
 				}
 
 				D3D12_SHADER_BYTECODE vertexShaderBytecode{};
-				vertexShaderBytecode.BytecodeLength = pVertexShaderBlob->GetBufferSize();
-				vertexShaderBytecode.pShaderBytecode = pVertexShaderBlob->GetBufferPointer();
+				vertexShaderBytecode.BytecodeLength = m_psoCache.pVSBlob->GetBufferSize();
+				vertexShaderBytecode.pShaderBytecode = m_psoCache.pVSBlob->GetBufferPointer();
 
 				D3D12_SHADER_BYTECODE pixelShaderBytecode{};
-				pixelShaderBytecode.BytecodeLength = pPixelShaderBlob->GetBufferSize();
-				pixelShaderBytecode.pShaderBytecode = pPixelShaderBlob->GetBufferPointer();
+				pixelShaderBytecode.BytecodeLength = m_psoCache.pPSBlob->GetBufferSize();
+				pixelShaderBytecode.pShaderBytecode = m_psoCache.pPSBlob->GetBufferPointer();
 
 				DXGI_SAMPLE_DESC sampleDesc{};
 				sampleDesc.Count = 1;
 
-				m_pRootSignature = CreateRootSignature(pDevice);
-				m_pRootSignature->SetName(L"DeferredRenderer");
-
 				D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc{};
-				psoDesc.pRootSignature = m_pRootSignature;
+				psoDesc.pRootSignature = m_psoCache.pRootSignature;
 				psoDesc.VS = vertexShaderBytecode;
 				psoDesc.PS = pixelShaderBytecode;
 				psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
@@ -366,15 +358,52 @@ namespace eastengine
 				psoDesc.DSVFormat = DXGI_FORMAT_UNKNOWN;
 				psoDesc.DepthStencilState = util::GetDepthStencilDesc(EmDepthStencilState::eRead_Write_Off);
 
-				HRESULT hr = pDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPipelineState));
+				HRESULT hr = pDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_psoCache.pPipelineState));
 				if (FAILED(hr))
 				{
 					throw_line("failed to create graphics pipeline state");
 				}
-				m_pPipelineState->SetName(L"DeferredRenderer");
+				m_psoCache.pPipelineState->SetName(L"DeferredRenderer");
+			}
 
-				SafeRelease(pVertexShaderBlob);
-				SafeRelease(pPixelShaderBlob);
+			void DeferredRenderer::Impl::CreateBundles()
+			{
+				DescriptorHeap* pSRVDescriptorHeap = Device::GetInstance()->GetSRVDescriptorHeap();
+
+				for (int i = 0; i < eFrameBufferCount; ++i)
+				{
+					if (m_pBundles[i] != nullptr)
+					{
+						util::ReleaseResource(m_pBundles[i]);
+						m_pBundles[i] = nullptr;
+					}
+
+					m_pBundles[i] = Device::GetInstance()->CreateBundle(m_psoCache.pPipelineState);
+
+					m_pBundles[i]->SetGraphicsRootSignature(m_psoCache.pRootSignature);
+
+					ID3D12DescriptorHeap* pDescriptorHeaps[] =
+					{
+						pSRVDescriptorHeap->GetHeap(i),
+					};
+					m_pBundles[i]->SetDescriptorHeaps(_countof(pDescriptorHeaps), pDescriptorHeaps);
+
+					m_pBundles[i]->SetGraphicsRootDescriptorTable(eRP_StandardDescriptor, pSRVDescriptorHeap->GetStartGPUHandle(i));
+					m_pBundles[i]->SetGraphicsRootConstantBufferView(eRP_DeferrecContentsCB, m_deferredContentsBuffer.GPUAddress(i));
+					m_pBundles[i]->SetGraphicsRootConstantBufferView(eRP_CommonContentsCB, m_commonContentsBuffer.GPUAddress(i));
+
+					m_pBundles[i]->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+					m_pBundles[i]->IASetVertexBuffers(0, 0, nullptr);
+					m_pBundles[i]->IASetIndexBuffer(nullptr);
+
+					m_pBundles[i]->DrawInstanced(4, 1, 0, 0);
+
+					HRESULT hr = m_pBundles[i]->Close();
+					if (FAILED(hr))
+					{
+						throw_line("failed to close bundle");
+					}
+				}
 			}
 
 			DeferredRenderer::DeferredRenderer()
@@ -386,14 +415,19 @@ namespace eastengine
 			{
 			}
 
+			void DeferredRenderer::RefreshPSO(ID3D12Device* pDevice)
+			{
+				m_pImpl->RefreshPSO(pDevice);
+			}
+
 			void DeferredRenderer::Render(Camera* pCamera)
 			{
 				m_pImpl->Render(pCamera);
 			}
 
-			void DeferredRenderer::Flush()
+			void DeferredRenderer::Cleanup()
 			{
-				m_pImpl->Flush();
+				m_pImpl->Cleanup();
 			}
 		}
 	}

@@ -108,15 +108,15 @@ namespace eastengine
 			ILight();
 			virtual ~ILight() = 0;
 
-			static IDirectionalLight* CreateDirectionalLight(const String::StringID& strName, const math::Vector3& f3Direction, const math::Color& color, float fIntensity, float fAmbientIntensity = 0.f, float fReflectionIntensity = 0.f);
-			static IPointLight* CreatePointLight(const String::StringID& strName, const math::Vector3& f3Position, const math::Color& color, float fIntensity, float fAmbientIntensity = 0.f, float fReflectionIntensity = 0.f);
-			static ISpotLight* CreateSpotLight(const String::StringID& strName, const math::Vector3& f3Position, const math::Vector3& f3Direction, float fAngle, const math::Color& color, float fIntensity, float fAmbientIntensity = 0.f, float fReflectionIntensity = 0.f);
+			static IDirectionalLight* CreateDirectionalLight(const string::StringID& strName, const math::Vector3& f3Direction, const math::Color& color, float fIntensity, float fAmbientIntensity = 0.f, float fReflectionIntensity = 0.f);
+			static IPointLight* CreatePointLight(const string::StringID& strName, const math::Vector3& f3Position, const math::Color& color, float fIntensity, float fAmbientIntensity = 0.f, float fReflectionIntensity = 0.f);
+			static ISpotLight* CreateSpotLight(const string::StringID& strName, const math::Vector3& f3Position, const math::Vector3& f3Direction, float fAngle, const math::Color& color, float fIntensity, float fAmbientIntensity = 0.f, float fReflectionIntensity = 0.f);
 
 		public:
 			virtual void Update(float fElapsedTime) = 0;
 
 		public:
-			virtual const String::StringID& GetName() const = 0;
+			virtual const string::StringID& GetName() const = 0;
 
 			virtual float GetIntensity() const = 0;
 			virtual void SetIntensity(float fDiffuseIntensity) = 0;

@@ -8,7 +8,7 @@
 
 namespace eastengine
 {
-	namespace String
+	namespace string
 	{
 		std::size_t Length(const char* string)
 		{

@@ -104,7 +104,7 @@ namespace eastengine
 			std::copy(vecModelPiece.begin(), vecModelPiece.end(), std::back_inserter(m_vecModelSubsets[std::min(nLod, m_nLodMax)]));
 		}
 
-		IMaterial* ModelNode::GetMaterial(const String::StringID& strMaterialName, uint32_t& nMaterialID_out) const
+		IMaterial* ModelNode::GetMaterial(const string::StringID& strMaterialName, uint32_t& nMaterialID_out) const
 		{
 			const size_t nSize = m_vecMaterial.size();
 			for (size_t i = 0; i < nSize; ++i)

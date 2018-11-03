@@ -10,20 +10,19 @@ namespace eastengine
 		~Impl();
 
 	public:
-		void Flush();
 		void Update(float fElapsedTime);
 
 	public:
 		void AddScene(IScene* pScene);
 		void RemoveScene(IScene* pScene);
-		void RemoveScene(const String::StringID& strSceneName);
+		void RemoveScene(const string::StringID& strSceneName);
 
-		void ChangeScene(const String::StringID& strSceneName);
+		void ChangeScene(const string::StringID& strSceneName);
 
-		IScene* GetScene(const String::StringID& strSceneName);
+		IScene* GetScene(const string::StringID& strSceneName);
 
 	private:
-		std::unordered_map<String::StringID, IScene*> m_umapScene;
+		std::unordered_map<string::StringID, IScene*> m_umapScene;
 		IScene* m_pCurScene{ nullptr };
 		IScene* m_pChangeScene{ nullptr };
 	};
@@ -46,7 +45,7 @@ namespace eastengine
 		m_umapScene.clear();
 	}
 
-	void SceneManager::Impl::Flush()
+	void SceneManager::Impl::Update(float fElapsedTime)
 	{
 		TRACER_EVENT(__FUNCTION__);
 		if (m_pChangeScene != nullptr)
@@ -71,11 +70,7 @@ namespace eastengine
 
 			m_pChangeScene = nullptr;
 		}
-	}
 
-	void SceneManager::Impl::Update(float fElapsedTime)
-	{
-		TRACER_EVENT(__FUNCTION__);
 		if (m_pCurScene != nullptr)
 		{
 			TRACER_PUSHARGS("Scene Name", m_pCurScene->GetName().c_str());
@@ -98,7 +93,7 @@ namespace eastengine
 		RemoveScene(pScene->GetName().c_str());
 	}
 
-	void SceneManager::Impl::RemoveScene(const String::StringID& strSceneName)
+	void SceneManager::Impl::RemoveScene(const string::StringID& strSceneName)
 	{
 		auto iter = m_umapScene.find(strSceneName);
 		if (iter == m_umapScene.end())
@@ -121,7 +116,7 @@ namespace eastengine
 		}
 	}
 
-	void SceneManager::Impl::ChangeScene(const String::StringID& strSceneName)
+	void SceneManager::Impl::ChangeScene(const string::StringID& strSceneName)
 	{
 		if (m_pCurScene != nullptr)
 		{
@@ -136,7 +131,7 @@ namespace eastengine
 		m_pChangeScene = iter->second;
 	}
 
-	IScene* SceneManager::Impl::GetScene(const String::StringID& strSceneName)
+	IScene* SceneManager::Impl::GetScene(const string::StringID& strSceneName)
 	{
 		auto iter = m_umapScene.find(strSceneName);
 		if (iter == m_umapScene.end())
@@ -154,11 +149,6 @@ namespace eastengine
 	{
 	}
 
-	void SceneManager::Flush()
-	{
-		m_pImpl->Flush();
-	}
-
 	void SceneManager::Update(float fElapsedTime)
 	{
 		m_pImpl->Update(fElapsedTime);
@@ -174,17 +164,17 @@ namespace eastengine
 		m_pImpl->RemoveScene(pScene->GetName());
 	}
 
-	void SceneManager::RemoveScene(const String::StringID& strSceneName)
+	void SceneManager::RemoveScene(const string::StringID& strSceneName)
 	{
 		m_pImpl->RemoveScene(strSceneName);
 	}
 
-	void SceneManager::ChangeScene(const String::StringID& strSceneName)
+	void SceneManager::ChangeScene(const string::StringID& strSceneName)
 	{
 		m_pImpl->ChangeScene(strSceneName);
 	}
 	
-	IScene* SceneManager::GetScene(const String::StringID& strSceneName)
+	IScene* SceneManager::GetScene(const string::StringID& strSceneName)
 	{
 		return m_pImpl->GetScene(strSceneName);
 	}

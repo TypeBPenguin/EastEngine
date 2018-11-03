@@ -5,7 +5,7 @@ namespace eastengine
 	class IScene
 	{
 	public:
-		IScene(const String::StringID& strName);
+		IScene(const string::StringID& strName);
 		virtual ~IScene() = 0;
 
 		virtual void Enter() = 0;
@@ -14,9 +14,9 @@ namespace eastengine
 		virtual void Update(float fElapsedTime) = 0;
 
 	public:
-		const String::StringID& GetName() const { return m_strName; }
+		const string::StringID& GetName() const { return m_strName; }
 
 	private:
-		String::StringID m_strName;
+		string::StringID m_strName;
 	};
 }

@@ -178,7 +178,7 @@ namespace eastengine
 			m_pEffect->SetFloat(StrID::LumMapMipLevel, m_settings.LumMapMipLevel);
 			m_pEffect->SetFloat(StrID::Bias, m_settings.Bias);
 
-			auto PostProcess = [&](const String::StringID& strTechName, IRenderTarget* pResult, IRenderTarget** ppSource, size_t nSourceCount = 1)
+			auto PostProcess = [&](const string::StringID& strTechName, IRenderTarget* pResult, IRenderTarget** ppSource, size_t nSourceCount = 1)
 			{
 				IEffectTech* pTech = m_pEffect->GetTechnique(strTechName);
 				if (pTech == nullptr)
@@ -208,12 +208,12 @@ namespace eastengine
 
 				for (size_t i = 0; i < nSourceCount; ++i)
 				{
-					String::StringID strSizeName;
+					string::StringID strSizeName;
 					strSizeName.Format("InputSize%d", i);
 					math::Vector2 InputSize = GetSize(ppSource[i]);
 					m_pEffect->SetVector(strSizeName, InputSize);
 
-					String::StringID strTextureName;
+					string::StringID strTextureName;
 					strTextureName.Format("InputTexture%d", i);
 					m_pEffect->SetTexture(strTextureName, ppSource[i]->GetTexture());
 				}

@@ -6,7 +6,7 @@
 
 namespace eastengine
 {
-	namespace String
+	namespace string
 	{
 		struct StringData
 		{
@@ -73,7 +73,7 @@ namespace eastengine
 				{
 					while (pStringData != nullptr)
 					{
-						if (pStringData->nLength == nLength && String::IsEquals(pStringData->pString, str) == true)
+						if (pStringData->nLength == nLength && string::IsEquals(pStringData->pString, str) == true)
 							return pStringData;
 
 						pStringData = pStringData->pNext;
@@ -82,7 +82,7 @@ namespace eastengine
 
 				StringData* pNewStringData = new StringData;
 				char* pNewString = new char[nLength + 1];
-				String::Copy(pNewString, nLength + 1, str);
+				string::Copy(pNewString, nLength + 1, str);
 
 				pNewStringData->pString = pNewString;
 				pNewStringData->nLength = nLength;
@@ -99,7 +99,7 @@ namespace eastengine
 				if (str == nullptr)
 					return StrID::EmptyString.Key();
 
-				const size_t nLength = String::Length(str);
+				const size_t nLength = string::Length(str);
 
 				return Register(str, nLength);
 			}
@@ -191,12 +191,12 @@ namespace eastengine
 
 		bool StringID::operator == (const char* rValue) const
 		{
-			return String::IsEquals(c_str(), rValue);
+			return string::IsEquals(c_str(), rValue);
 		}
 
 		bool StringID::operator != (const char* rValue) const
 		{
-			return String::IsEquals(c_str(), rValue) == false;
+			return string::IsEquals(c_str(), rValue) == false;
 		}
 
 		const char* StringID::c_str() const

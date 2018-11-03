@@ -113,7 +113,7 @@ namespace eastengine
 
 			public:
 				void Render(ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext, Camera* pCamera);
-				void Flush();
+				void Cleanup();
 
 			private:
 				ID3D11VertexShader* m_pVertexShader{ nullptr };
@@ -131,7 +131,7 @@ namespace eastengine
 				strShaderPath.append("Model\\Deferred.hlsl");
 
 				ID3DBlob* pShaderBlob = nullptr;
-				if (FAILED(D3DReadFileToBlob(String::MultiToWide(strShaderPath).c_str(), &pShaderBlob)))
+				if (FAILED(D3DReadFileToBlob(string::MultiToWide(strShaderPath).c_str(), &pShaderBlob)))
 				{
 					throw_line("failed to read shader file : Model.hlsl");
 				}
@@ -142,12 +142,12 @@ namespace eastengine
 					{ nullptr, nullptr },
 				};
 
-				if (util::CreateVertexShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), "VS", "vs_5_0", &m_pVertexShader, "DeferredRenderer_VS") == false)
+				if (util::CreateVertexShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), "VS", shader::VS_CompileVersion, &m_pVertexShader, "DeferredRenderer_VS") == false)
 				{
 					throw_line("failed to create DeferredRenderer VertexShader");
 				}
 
-				if (util::CreatePixelShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), "PS", "ps_5_0", &m_pPixelShader, "DeferredRenderer_PS") == false)
+				if (util::CreatePixelShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), "PS", shader::PS_CompileVersion, &m_pPixelShader, "DeferredRenderer_PS") == false)
 				{
 					throw_line("failed to create DeferredRenderer PixelShader");
 				}
@@ -263,7 +263,7 @@ namespace eastengine
 				pDeviceInstance->ReleaseRenderTargets(&pRenderTarget);
 			}
 
-			void DeferredRenderer::Impl::Flush()
+			void DeferredRenderer::Impl::Cleanup()
 			{
 			}
 
@@ -281,9 +281,9 @@ namespace eastengine
 				m_pImpl->Render(pDevice, pDeviceContext, pCamera);
 			}
 
-			void DeferredRenderer::Flush()
+			void DeferredRenderer::Cleanup()
 			{
-				m_pImpl->Flush();
+				m_pImpl->Cleanup();
 			}
 		}
 	}

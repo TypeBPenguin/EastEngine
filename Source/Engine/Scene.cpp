@@ -3,7 +3,7 @@
 
 namespace eastengine
 {
-	IScene::IScene(const String::StringID& strName)
+	IScene::IScene(const string::StringID& strName)
 		: m_strName(strName)
 	{
 	}

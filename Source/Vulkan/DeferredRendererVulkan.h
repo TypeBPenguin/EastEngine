@@ -16,7 +16,7 @@ namespace eastengine
 
 			public:
 				void Render(Camera* pCamera);
-				void Flush();
+				void Cleanup();
 
 			private:
 				class Impl;

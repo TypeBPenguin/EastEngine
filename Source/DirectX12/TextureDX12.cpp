@@ -36,7 +36,7 @@ namespace eastengine
 
 			public:
 				const ITexture::Key& GetKey() const { return m_key; }
-				const String::StringID& GetName() const { return m_key.Value(); }
+				const string::StringID& GetName() const { return m_key.Value(); }
 
 			public:
 				const math::UInt2& GetSize() const { return m_n2Size; }
@@ -51,8 +51,8 @@ namespace eastengine
 				ID3D12Resource* GetResource() const { return m_pResource; }
 				uint32_t GetDescriptorIndex() const { return m_nDescriptorIndex; }
 
-				const D3D12_CPU_DESCRIPTOR_HANDLE& GetCPUHandle(int nFrameIndex) const { return m_cpuHandles[nFrameIndex]; }
-				const D3D12_GPU_DESCRIPTOR_HANDLE& GetGPUHandle(int nFrameIndex) const { return m_gpuHandles[nFrameIndex]; }
+				const D3D12_CPU_DESCRIPTOR_HANDLE& GetCPUHandle(uint32_t nFrameIndex) const { return m_cpuHandles[nFrameIndex]; }
+				const D3D12_GPU_DESCRIPTOR_HANDLE& GetGPUHandle(uint32_t nFrameIndex) const { return m_gpuHandles[nFrameIndex]; }
 
 				D3D12_RESOURCE_BARRIER Transition(D3D12_RESOURCE_STATES changeState);
 				D3D12_RESOURCE_STATES GetResourceState() const { return m_state; }
@@ -103,7 +103,7 @@ namespace eastengine
 
 			bool Texture::Impl::Initialize(const D3D12_RESOURCE_DESC* pDesc)
 			{
-				const String::StringID strName(m_key);
+				const string::StringID strName(m_key);
 
 				ID3D12Device* pDevice = Device::GetInstance()->GetInterface();
 
@@ -120,7 +120,7 @@ namespace eastengine
 				m_n2Size.x = static_cast<uint32_t>(pDesc->Width);
 				m_n2Size.y = static_cast<uint32_t>(pDesc->Height);
 
-				const std::wstring wstrName = String::MultiToWide(strName.c_str());
+				const std::wstring wstrName = string::MultiToWide(strName.c_str());
 				pResource->SetName(wstrName.c_str());
 
 				const uint64_t numSubResources = pDesc->MipLevels * pDesc->DepthOrArraySize;
@@ -202,9 +202,9 @@ namespace eastengine
 				ID3D12Device* pDevice = Device::GetInstance()->GetInterface();
 
 				const std::string strFileExtension(file::GetFileExtension(strFilePath));
-				if (String::IsEqualsNoCase(strFileExtension.c_str(), ".dds"))
+				if (string::IsEqualsNoCase(strFileExtension.c_str(), ".dds"))
 				{
-					hr = DirectX::LoadFromDDSFile(String::MultiToWide(strFilePath).c_str(), DirectX::DDS_FLAGS_NONE, nullptr, image);
+					hr = DirectX::LoadFromDDSFile(string::MultiToWide(strFilePath).c_str(), DirectX::DDS_FLAGS_NONE, nullptr, image);
 
 					if (FAILED(hr))
 					{
@@ -212,10 +212,10 @@ namespace eastengine
 						return false;
 					}
 				}
-				else if (String::IsEqualsNoCase(strFileExtension.c_str(), ".tga"))
+				else if (string::IsEqualsNoCase(strFileExtension.c_str(), ".tga"))
 				{
 					DirectX::ScratchImage tempImage;
-					hr = DirectX::LoadFromTGAFile(String::MultiToWide(strFilePath).c_str(), nullptr, tempImage);
+					hr = DirectX::LoadFromTGAFile(string::MultiToWide(strFilePath).c_str(), nullptr, tempImage);
 
 					if (FAILED(hr))
 					{
@@ -228,7 +228,7 @@ namespace eastengine
 				else
 				{
 					DirectX::ScratchImage tempImage;
-					hr = DirectX::LoadFromWICFile(String::MultiToWide(strFilePath).c_str(), DirectX::WIC_FLAGS_NONE, nullptr, tempImage);
+					hr = DirectX::LoadFromWICFile(string::MultiToWide(strFilePath).c_str(), DirectX::WIC_FLAGS_NONE, nullptr, tempImage);
 
 					if (FAILED(hr))
 					{
@@ -279,7 +279,7 @@ namespace eastengine
 				m_n2Size.x = static_cast<uint32_t>(textureDesc.Width);
 				m_n2Size.y = static_cast<uint32_t>(textureDesc.Height);
 
-				const std::wstring wstrName = String::MultiToWide(file::GetFileName(strFilePath));
+				const std::wstring wstrName = string::MultiToWide(file::GetFileName(strFilePath));
 				m_pResource->SetName(wstrName.c_str());
 
 				DescriptorHeap* pDescriptorHeap = Device::GetInstance()->GetSRVDescriptorHeap();
@@ -510,7 +510,7 @@ namespace eastengine
 				return m_pImpl->GetKey();
 			}
 
-			const String::StringID& Texture::GetName() const
+			const string::StringID& Texture::GetName() const
 			{
 				return m_pImpl->GetName();
 			}
@@ -624,12 +624,12 @@ namespace eastengine
 				return m_pImpl->GetDescriptorIndex();
 			}
 
-			const D3D12_CPU_DESCRIPTOR_HANDLE& Texture::GetCPUHandle(int nFrameIndex) const
+			const D3D12_CPU_DESCRIPTOR_HANDLE& Texture::GetCPUHandle(uint32_t nFrameIndex) const
 			{
 				return m_pImpl->GetCPUHandle(nFrameIndex);
 			}
 
-			const D3D12_GPU_DESCRIPTOR_HANDLE& Texture::GetGPUHandle(int nFrameIndex) const
+			const D3D12_GPU_DESCRIPTOR_HANDLE& Texture::GetGPUHandle(uint32_t nFrameIndex) const
 			{
 				return m_pImpl->GetGPUHandle(nFrameIndex);
 			}

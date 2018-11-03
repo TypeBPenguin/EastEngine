@@ -1,5 +1,7 @@
 #pragma once
 
+#include "GraphicsInterface/Renderer.h"
+
 namespace eastengine
 {
 	namespace graphics
@@ -10,11 +12,14 @@ namespace eastengine
 		{
 			class RenderTarget;
 
-			class ColorGrading
+			class ColorGrading : public IRenderer
 			{
 			public:
 				ColorGrading();
-				~ColorGrading();
+				virtual ~ColorGrading();
+
+			public:
+				virtual Type GetType() const { return IRenderer::eColorGrading; }
 
 			public:
 				void Apply(Camera* pCamera, const RenderTarget* pSource, RenderTarget* pResult);

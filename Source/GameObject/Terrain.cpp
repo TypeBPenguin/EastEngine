@@ -499,7 +499,7 @@ namespace eastengine
 			tex_desc.MiscFlags = 0;
 			tex_desc.Build();
 
-			String::StringID strName;
+			string::StringID strName;
 			strName.Format("TerrainHeightMap_%d", s_nTerrainIndex);
 
 			m_pTexHeightMap = graphics::ITexture::Create(strName, tex_desc, &subresource_data);*/

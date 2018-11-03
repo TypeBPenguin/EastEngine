@@ -246,7 +246,7 @@ namespace eastengine
 						pIndexBuffer = WriteIndexBuffer(pMesh->GetIB());
 
 						const size_t nInfluenceCount = pMesh->GetInfluenceCount();
-						std::vector<String::StringID> vecBoneNames;
+						std::vector<string::StringID> vecBoneNames;
 						vecBoneNames.resize(nInfluenceCount);
 
 						for (size_t i = 0; i < nInfluenceCount; ++i)
@@ -293,7 +293,7 @@ namespace eastengine
 						const size_t nMaterialCount = vecMaterials.size();
 						for (size_t j = 0; j < nMaterialCount; ++j)
 						{
-							if (String::IsEquals(vecMaterials[j]->GetName().c_str(), pBinding->pMaterial->GetName()) == true)
+							if (string::IsEquals(vecMaterials[j]->GetName().c_str(), pBinding->pMaterial->GetName()) == true)
 							{
 								vecSubsets[i].nMaterialID = static_cast<uint32_t>(j);
 								break;
@@ -338,10 +338,10 @@ namespace eastengine
 			return nullptr;
 		}
 
-		void CreateModel(ExportFrame* pFrame, Model* pModel, ModelNode* pParentNode, const std::unordered_map<String::StringID, math::Matrix>& umapMotionOffset, Skeleton* pSkeleton, const String::StringID& strParentBoneName)
+		void CreateModel(ExportFrame* pFrame, Model* pModel, ModelNode* pParentNode, const std::unordered_map<string::StringID, math::Matrix>& umapMotionOffset, Skeleton* pSkeleton, const string::StringID& strParentBoneName)
 		{
 			ModelNode* pModelNode = nullptr;
-			String::StringID strBoneName;
+			string::StringID strBoneName;
 
 			const size_t nModelCount = pFrame->GetModelCount();
 			if (nModelCount > 0)
@@ -382,7 +382,7 @@ namespace eastengine
 				strBoneName = pFrame->GetName().SafeString();
 
 				math::Matrix matMotionOffset;
-				const String::StringID strName = pFrame->GetName().SafeString();
+				const string::StringID strName = pFrame->GetName().SafeString();
 				auto iter = umapMotionOffset.find(strName);
 				if (iter != umapMotionOffset.end())
 				{
@@ -409,12 +409,12 @@ namespace eastengine
 			}
 		}
 
-		bool WriteModel(Model* pModel, const std::unordered_map<String::StringID, math::Matrix>& umapMotionOffset)
+		bool WriteModel(Model* pModel, const std::unordered_map<string::StringID, math::Matrix>& umapMotionOffset)
 		{
 			if (g_pScene == nullptr || pModel == nullptr)
 				return false;
 
-			CreateModel(g_pScene, pModel, nullptr, umapMotionOffset, nullptr, String::StringID());
+			CreateModel(g_pScene, pModel, nullptr, umapMotionOffset, nullptr, string::StringID());
 
 			Skeleton* pSkeleton = static_cast<Skeleton*>(pModel->GetSkeleton());
 			if (pSkeleton != nullptr && pSkeleton->GetBoneCount() > 0)
@@ -433,7 +433,7 @@ namespace eastengine
 
 					const uint32_t nBoneCount = pSkinnedNode->GetBoneCount();
 
-					std::vector<String::StringID> vecBoneNames;
+					std::vector<string::StringID> vecBoneNames;
 					vecBoneNames.resize(nBoneCount);
 
 					for (uint32_t j = 0; j < nBoneCount; ++j)
@@ -634,7 +634,7 @@ namespace eastengine
 			std::vector<Motion::Keyframe> vecKeyframes;
 			ExportAnimationTransformTrack& transformTrack = pTrack->TransformTrack;
 
-			String::StringID strName;
+			string::StringID strName;
 			if (transformTrack.pSourceFrame != nullptr)
 			{
 				strName = transformTrack.pSourceFrame->GetName().SafeString();

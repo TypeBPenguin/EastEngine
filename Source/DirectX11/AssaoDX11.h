@@ -1,5 +1,7 @@
 #pragma once
 
+#include "GraphicsInterface/Renderer.h"
+
 namespace eastengine
 {
 	namespace graphics
@@ -11,11 +13,14 @@ namespace eastengine
 			class RenderTarget;
 			class DepthStencil;
 
-			class Assao
+			class Assao : public IRenderer
 			{
 			public:
 				Assao();
-				~Assao();
+				virtual ~Assao();
+
+			public:
+				virtual Type GetType() const { return IRenderer::eAssao; }
 
 			public:
 				void Apply(const Camera* pCamera, const RenderTarget* pNormalMap, const DepthStencil* pDepth, RenderTarget* pResult);

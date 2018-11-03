@@ -120,8 +120,9 @@ namespace eastengine
 				~Impl();
 
 			public:
+				void RefreshPSO(ID3D12Device* pDevice);
 				void Render(Camera* pCamera);
-				void Flush();
+				void Cleanup();
 
 			public:
 				void PushJob(const RenderJobTerrain& job)
@@ -151,7 +152,7 @@ namespace eastengine
 				ID3D12RootSignature* CreateRootSignature(ID3D12Device* pDevice);
 				void CreatePipelineState(ID3D12Device* pDevice, ID3DBlob* pShaderBlob, const char* strShaderPath, shader::PSType emPSType);
 
-				shader::TerrainContents* AllocateTerrainContents(int nFrameIndex)
+				shader::TerrainContents* AllocateTerrainContents(uint32_t nFrameIndex)
 				{
 					assert(m_nTerrainBufferIndex < shader::eMaxJobCount);
 					shader::TerrainContents* pBuffer = m_terrainContents.Cast(nFrameIndex, m_nTerrainBufferIndex);
@@ -161,19 +162,14 @@ namespace eastengine
 					return pBuffer;
 				}
 
-				void ResetBloomFilterContents(int nFrameIndex)
+				void ResetBloomFilterContents(uint32_t nFrameIndex)
 				{
 					m_nTerrainBufferIndex = 0;
 					m_terrainBufferGPUAddress = m_terrainContents.GPUAddress(nFrameIndex, 0);
 				}
 
 			private:
-				struct RenderPipeline
-				{
-					ID3D12PipelineState* pPipelineState{ nullptr };
-					ID3D12RootSignature* pRootSignature{ nullptr };
-				};
-				std::array<RenderPipeline, shader::ePS_Count> m_pipelineStates;
+				std::array<PSOCache, shader::ePS_Count> m_psoCaches;
 
 				ConstantBuffer<shader::TerrainContents> m_terrainContents;
 				D3D12_GPU_VIRTUAL_ADDRESS m_terrainBufferGPUAddress{};
@@ -188,7 +184,7 @@ namespace eastengine
 				strShaderPath.append("Terrain\\Terrain.hlsl");
 
 				ID3DBlob* pShaderBlob{ nullptr };
-				if (FAILED(D3DReadFileToBlob(String::MultiToWide(strShaderPath).c_str(), &pShaderBlob)))
+				if (FAILED(D3DReadFileToBlob(string::MultiToWide(strShaderPath).c_str(), &pShaderBlob)))
 				{
 					throw_line("failed to read shader file : Terrain.hlsl");
 				}
@@ -206,11 +202,14 @@ namespace eastengine
 			{
 				for (int i = 0; i < shader::ePS_Count; ++i)
 				{
-					SafeRelease(m_pipelineStates[i].pPipelineState);
-					SafeRelease(m_pipelineStates[i].pRootSignature);
+					m_psoCaches[i].Destroy();
 				}
 
 				m_terrainContents.Destroy();
+			}
+
+			void TerrainRenderer::Impl::RefreshPSO(ID3D12Device* pDevice)
+			{
 			}
 
 			void TerrainRenderer::Impl::Render(Camera* pCamera)
@@ -225,7 +224,7 @@ namespace eastengine
 				const D3D12_VIEWPORT* pViewport = pDeviceInstance->GetViewport();
 				const D3D12_RECT* pScissorRect = pDeviceInstance->GetScissorRect();
 
-				int nFrameIndex = pDeviceInstance->GetFrameIndex();
+				const uint32_t nFrameIndex = pDeviceInstance->GetFrameIndex();
 				GBuffer* pGBuffer = pDeviceInstance->GetGBuffer(nFrameIndex);
 
 				const RenderTarget* pNormalsRT = pGBuffer->GetRenderTarget(EmGBuffer::eNormals);
@@ -247,9 +246,9 @@ namespace eastengine
 				ResetBloomFilterContents(nFrameIndex);
 
 				ID3D12GraphicsCommandList2* pCommandList = pDeviceInstance->GetCommandList(0);
-				pDeviceInstance->ResetCommandList(0, m_pipelineStates[shader::eSolid].pPipelineState);
+				pDeviceInstance->ResetCommandList(0, m_psoCaches[shader::eSolid].pPipelineState);
 
-				pCommandList->SetGraphicsRootSignature(m_pipelineStates[shader::eSolid].pRootSignature);
+				pCommandList->SetGraphicsRootSignature(m_psoCaches[shader::eSolid].pRootSignature);
 
 				pCommandList->RSSetViewports(1, pViewport);
 				pCommandList->RSSetScissorRects(1, pScissorRect);
@@ -287,7 +286,7 @@ namespace eastengine
 				pDeviceInstance->ExecuteCommandList(pCommandList);
 			}
 
-			void TerrainRenderer::Impl::Flush()
+			void TerrainRenderer::Impl::Cleanup()
 			{
 				m_vecTerrains.clear();
 			}
@@ -316,52 +315,78 @@ namespace eastengine
 
 			void TerrainRenderer::Impl::CreatePipelineState(ID3D12Device* pDevice, ID3DBlob* pShaderBlob, const char* strShaderPath, shader::PSType emPSType)
 			{
-				const D3D_SHADER_MACRO macros[] =
+				PSOCache& psoCache = m_psoCaches[emPSType];
+				if (pShaderBlob != nullptr)
 				{
-					{ "DX12", "1" },
-					{ nullptr, nullptr },
-				};
+					const D3D_SHADER_MACRO macros[] =
+					{
+						{ "DX12", "1" },
+						{ nullptr, nullptr },
+					};
 
-				ID3DBlob* pVertexShaderBlob = nullptr;
-				bool isSuccess = util::CompileShader(pShaderBlob, macros, strShaderPath, "PassThroughVS", "vs_5_1", &pVertexShaderBlob);
-				if (isSuccess == false)
-				{
-					throw_line("failed to compile vertex shader");
+					if (psoCache.pVSBlob == nullptr)
+					{
+						const bool isSuccess = util::CompileShader(pShaderBlob, macros, strShaderPath, "PassThroughVS", shader::VS_CompileVersion, &psoCache.pVSBlob);
+						if (isSuccess == false)
+						{
+							throw_line("failed to compile vertex shader");
+						}
+					}
+
+					if (psoCache.pPSBlob == nullptr)
+					{
+						const bool isSuccess = util::CompileShader(pShaderBlob, macros, strShaderPath, shader::GetTerrainPSTypeToString(emPSType), shader::PS_CompileVersion, &psoCache.pPSBlob);
+						if (isSuccess == false)
+						{
+							throw_line("failed to compile pixel shader");
+						}
+					}
+
+					if (psoCache.pHSBlob == nullptr)
+					{
+						const bool isSuccess = util::CompileShader(pShaderBlob, macros, strShaderPath, "PatchHS", shader::HS_CompileVersion, &psoCache.pHSBlob);
+						if (isSuccess == false)
+						{
+							throw_line("failed to compile hull shader");
+						}
+					}
+
+					if (psoCache.pDSBlob == nullptr)
+					{
+						const bool isSuccess = util::CompileShader(pShaderBlob, macros, strShaderPath, "HeightFieldPatchDS", shader::DS_CompileVersion, &psoCache.pDSBlob);
+						if (isSuccess == false)
+						{
+							throw_line("failed to compile domain shader");
+						}
+					}
 				}
 
-				ID3DBlob* pPixelShaderBlob = nullptr;
-				isSuccess = util::CompileShader(pShaderBlob, macros, strShaderPath, shader::GetTerrainPSTypeToString(emPSType), "ps_5_1", &pPixelShaderBlob);
-				if (isSuccess == false)
+				const std::wstring wstrDebugName = string::MultiToWide(shader::GetTerrainPSTypeToString(emPSType));
+
+				if (psoCache.pRootSignature == nullptr)
 				{
-					throw_line("failed to compile pixel shader");
+					psoCache.pRootSignature = CreateRootSignature(pDevice);
+					psoCache.pRootSignature->SetName(wstrDebugName.c_str());
 				}
 
-				ID3DBlob* pHullShaderBlob = nullptr;
-				isSuccess = util::CompileShader(pShaderBlob, macros, strShaderPath, "PatchHS", "hs_5_1", &pHullShaderBlob);
-				if (isSuccess == false)
+				if (psoCache.pPipelineState != nullptr)
 				{
-					throw_line("failed to compile hull shader");
-				}
-
-				ID3DBlob* pDomainShaderBlob = nullptr;
-				isSuccess = util::CompileShader(pShaderBlob, macros, strShaderPath, "HeightFieldPatchDS", "ds_5_1", &pDomainShaderBlob);
-				if (isSuccess == false)
-				{
-					throw_line("failed to compile domain shader");
+					util::ReleaseResource(psoCache.pPipelineState);
+					psoCache.pPipelineState = nullptr;
 				}
 
 				D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc{};
-				psoDesc.VS.BytecodeLength = pVertexShaderBlob->GetBufferSize();
-				psoDesc.VS.pShaderBytecode = pVertexShaderBlob->GetBufferPointer();
+				psoDesc.VS.BytecodeLength = psoCache.pVSBlob->GetBufferSize();
+				psoDesc.VS.pShaderBytecode = psoCache.pVSBlob->GetBufferPointer();
 
-				psoDesc.PS.BytecodeLength = pPixelShaderBlob->GetBufferSize();
-				psoDesc.PS.pShaderBytecode = pPixelShaderBlob->GetBufferPointer();
+				psoDesc.PS.BytecodeLength = psoCache.pPSBlob->GetBufferSize();
+				psoDesc.PS.pShaderBytecode = psoCache.pPSBlob->GetBufferPointer();
 
-				psoDesc.HS.BytecodeLength = pHullShaderBlob->GetBufferSize();
-				psoDesc.HS.pShaderBytecode = pHullShaderBlob->GetBufferPointer();
+				psoDesc.HS.BytecodeLength = psoCache.pHSBlob->GetBufferSize();
+				psoDesc.HS.pShaderBytecode = psoCache.pHSBlob->GetBufferPointer();
 
-				psoDesc.DS.BytecodeLength = pDomainShaderBlob->GetBufferSize();
-				psoDesc.DS.pShaderBytecode = pDomainShaderBlob->GetBufferPointer();
+				psoDesc.DS.BytecodeLength = psoCache.pDSBlob->GetBufferSize();
+				psoDesc.DS.pShaderBytecode = psoCache.pDSBlob->GetBufferPointer();
 
 				const D3D12_INPUT_ELEMENT_DESC* pInputElements = nullptr;
 				size_t nElementCount = 0;
@@ -372,12 +397,7 @@ namespace eastengine
 
 				psoDesc.SampleDesc.Count = 1;
 
-				const std::wstring wstrDebugName = String::MultiToWide(shader::GetTerrainPSTypeToString(emPSType));
-
-				ID3D12RootSignature* pRootSignature = CreateRootSignature(pDevice);
-				pRootSignature->SetName(wstrDebugName.c_str());
-
-				psoDesc.pRootSignature = pRootSignature;
+				psoDesc.pRootSignature = psoCache.pRootSignature;
 				psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH;
 				psoDesc.SampleMask = 0xffffffff;
 				psoDesc.RasterizerState = util::GetRasterizerDesc(EmRasterizerState::eSolidCCW);
@@ -402,19 +422,12 @@ namespace eastengine
 				psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
 				psoDesc.DepthStencilState = util::GetDepthStencilDesc(EmDepthStencilState::eRead_Write_On);
 
-				ID3D12PipelineState* pPipelineState = nullptr;
-				HRESULT hr = pDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pPipelineState));
+				HRESULT hr = pDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&psoCache.pPipelineState));
 				if (FAILED(hr))
 				{
 					throw_line("failed to create graphics pipeline state");
 				}
-				pPipelineState->SetName(wstrDebugName.c_str());
-
-				m_pipelineStates[emPSType].pRootSignature = pRootSignature;
-				m_pipelineStates[emPSType].pPipelineState = pPipelineState;
-
-				SafeRelease(pVertexShaderBlob);
-				SafeRelease(pPixelShaderBlob);
+				psoCache.pPipelineState->SetName(wstrDebugName.c_str());
 			}
 
 			TerrainRenderer::TerrainRenderer()
@@ -426,14 +439,19 @@ namespace eastengine
 			{
 			}
 
+			void TerrainRenderer::RefreshPSO(ID3D12Device* pDevice)
+			{
+				m_pImpl->RefreshPSO(pDevice);
+			}
+
 			void TerrainRenderer::Render(Camera* pCamera)
 			{
 				m_pImpl->Render(pCamera);
 			}
 
-			void TerrainRenderer::Flush()
+			void TerrainRenderer::Cleanup()
 			{
-				m_pImpl->Flush();
+				m_pImpl->Cleanup();
 			}
 
 			void TerrainRenderer::PushJob(const RenderJobTerrain& job)

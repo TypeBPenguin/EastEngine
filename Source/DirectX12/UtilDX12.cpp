@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "UtilDX12.h"
 
+#include "DeviceDX12.h"
+
 #include <dxgidebug.h>
 
 namespace eastengine
@@ -12,6 +14,11 @@ namespace eastengine
 			namespace util
 			{
 				const float MipLODBias = -2.f;
+
+				void ReleaseResource(ID3D12DeviceChild* pResource)
+				{
+					Device::GetInstance()->ReleaseResource(pResource);
+				}
 
 				void WaitForFence(ID3D12Fence* pFence, uint64_t nCompletionValue, HANDLE hWaitEvent)
 				{
@@ -1028,7 +1035,7 @@ namespace eastengine
 					HRESULT hr = D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &pSignature, &pError);
 					if (FAILED(hr))
 					{
-						const std::string strError = String::Format("%s : %s", "failed to serialize root signature", pError->GetBufferPointer());
+						const std::string strError = string::Format("%s : %s", "failed to serialize root signature", pError->GetBufferPointer());
 						SafeRelease(pError);
 						throw_line(strError.c_str());
 					}
@@ -1044,18 +1051,43 @@ namespace eastengine
 					return pRootSignature;
 				}
 
-				void ReportLiveObjects(ID3D12Device* pDevice)
+				void ReportLiveObjects()
 				{
-					if (pDevice != nullptr)
+					IDXGIDebug1* pDxgiDebug = nullptr;
+					if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&pDxgiDebug))))
 					{
-						IDXGIDebug1* pDxgiDebug = nullptr;
-						if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&pDxgiDebug))))
-						{
-							pDxgiDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_FLAGS(DXGI_DEBUG_RLO_SUMMARY | DXGI_DEBUG_RLO_IGNORE_INTERNAL));
-						}
-						SafeRelease(pDxgiDebug);
+						pDxgiDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_FLAGS(DXGI_DEBUG_RLO_SUMMARY | DXGI_DEBUG_RLO_IGNORE_INTERNAL));
 					}
+					SafeRelease(pDxgiDebug);
 				}
+			}
+
+			PSOKey::PSOKey(uint32_t nMask, EmRasterizerState::Type emRasterizerState, EmBlendState::Type emBlendState, EmDepthStencilState::Type emDepthStencilState)
+				: nMask(nMask)
+				, emRasterizerState(emRasterizerState)
+				, emBlendState(emBlendState)
+				, emDepthStencilState(emDepthStencilState)
+			{
+			}
+
+			PSOCache::~PSOCache()
+			{
+				Destroy();
+			}
+
+			void PSOCache::Destroy()
+			{
+				SafeRelease(pVSBlob);
+				SafeRelease(pPSBlob);
+				SafeRelease(pGSBlob);
+				SafeRelease(pHSBlob);
+				SafeRelease(pDSBlob);
+
+				util::ReleaseResource(pPipelineState);
+				pPipelineState = nullptr;
+
+				util::ReleaseResource(pRootSignature);
+				pRootSignature = nullptr;
 			}
 		}
 	}

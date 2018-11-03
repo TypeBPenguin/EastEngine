@@ -46,7 +46,7 @@ namespace eastengine
 				eInvalidMaterialID = std::numeric_limits<uint32_t>::max(),
 			};
 
-			String::StringID strName;
+			string::StringID strName;
 
 			uint32_t nMaterialID = eInvalidMaterialID;
 			uint32_t nStartIndex = 0;
@@ -100,7 +100,7 @@ namespace eastengine
 			struct tKey {};
 
 		public:
-			using Key = PhantomType<tKey, const String::StringID>;
+			using Key = PhantomType<tKey, const string::StringID>;
 			virtual Key GetKey() const = 0;
 
 		public:
@@ -117,7 +117,7 @@ namespace eastengine
 				virtual ~IBone() = default;
 
 			public:
-				virtual const String::StringID& GetName() const = 0;
+				virtual const string::StringID& GetName() const = 0;
 				virtual float GetStartTime() const = 0;
 				virtual float GetEndTime() const = 0;
 
@@ -133,7 +133,7 @@ namespace eastengine
 			virtual ~IMotion() = default;
 
 		public:
-			virtual const String::StringID& GetResourceType() const override { return StrID::Motion; }
+			virtual const string::StringID& GetResourceType() const override { return StrID::Motion; }
 
 		public:
 			static IMotion* Create(const MotionLoader& loader);
@@ -148,12 +148,12 @@ namespace eastengine
 			virtual float GetEndTime() const = 0;
 
 		public:
-			virtual const String::StringID& GetName() const = 0;
+			virtual const string::StringID& GetName() const = 0;
 			virtual const std::string& GetFilePath() const = 0;
 
 			virtual uint32_t GetBoneCount() const = 0;
 			virtual const IBone* GetBone(uint32_t nIndex) const = 0;
-			virtual const IBone* GetBone(const String::StringID& strBoneName) const = 0;
+			virtual const IBone* GetBone(const string::StringID& strBoneName) const = 0;
 		};
 
 		namespace EmMotion
@@ -232,8 +232,8 @@ namespace eastengine
 			virtual ~IMotionRecorder() = default;
 
 		public:
-			virtual void SetTransform(const String::StringID& strBoneName, const math::Transform& keyframe) = 0;
-			virtual const math::Transform* GetTransform(const String::StringID& strBoneName) const = 0;
+			virtual void SetTransform(const string::StringID& strBoneName, const math::Transform& keyframe) = 0;
+			virtual const math::Transform* GetTransform(const string::StringID& strBoneName) const = 0;
 
 			virtual void PushEvent(const IMotionEvent* pMotionEvent) = 0;
 			virtual const IMotionEvent* PopEvent() = 0;
@@ -262,7 +262,7 @@ namespace eastengine
 			virtual ~IMaterialInstance() = default;
 
 		public:
-			virtual IMaterial* GetMaterial(const String::StringID& strNodeName, uint32_t nIndex) const = 0;
+			virtual IMaterial* GetMaterial(const string::StringID& strNodeName, uint32_t nIndex) const = 0;
 		};
 
 		class IModelNode
@@ -283,8 +283,8 @@ namespace eastengine
 			virtual float GetDistanceFromCamera() const = 0;
 			virtual void SetDistanceFromCamera(float fDist) = 0;
 
-			virtual const String::StringID& GetName() const = 0;
-			virtual const String::StringID& GetAttachedBoneName() const = 0;
+			virtual const string::StringID& GetName() const = 0;
+			virtual const string::StringID& GetAttachedBoneName() const = 0;
 
 			virtual IModelNode* GetParentNode() const = 0;
 
@@ -296,7 +296,7 @@ namespace eastengine
 
 			virtual uint32_t GetMaterialCount() const = 0;
 			virtual IMaterial* GetMaterial(uint32_t nIndex) const = 0;
-			virtual IMaterial* GetMaterial(const String::StringID& strMaterialName, uint32_t& nMaterialID_out) const = 0;
+			virtual IMaterial* GetMaterial(const string::StringID& strMaterialName, uint32_t& nMaterialID_out) const = 0;
 
 			virtual uint32_t GetModelSubsetCount(uint32_t nLOD = 0) const = 0;
 			virtual const ModelSubset* GetModelSubset(uint32_t nIndex, uint32_t nLOD = 0) const = 0;
@@ -313,7 +313,7 @@ namespace eastengine
 		private:
 			struct tKey {};
 		public:
-			using Key = PhantomType<tKey, const String::StringID>;
+			using Key = PhantomType<tKey, const string::StringID>;
 			virtual Key GetKey() const = 0;
 
 		protected:
@@ -321,7 +321,7 @@ namespace eastengine
 			virtual ~IModel() = default;
 
 		public:
-			virtual const String::StringID& GetResourceType() const override { return StrID::Model; }
+			virtual const string::StringID& GetResourceType() const override { return StrID::Model; }
 
 		public:
 			static IModel* Create(const ModelLoader& loader, bool isThreadLoad = true);
@@ -335,7 +335,7 @@ namespace eastengine
 		public:
 			virtual void Update(float fElapsedTime, const math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance) = 0;
 
-			virtual void ChangeName(const String::StringID& strName) = 0;
+			virtual void ChangeName(const string::StringID& strName) = 0;
 
 		public:
 			virtual const math::Vector3& GetLocalPosition() const = 0;
@@ -347,12 +347,12 @@ namespace eastengine
 
 			virtual const math::Matrix& GetLocalMatrix() const = 0;
 
-			virtual const String::StringID& GetName() const = 0;
+			virtual const string::StringID& GetName() const = 0;
 			virtual const std::string& GetFilePath() const = 0;
 
 			virtual uint32_t GetNodeCount() const = 0;
 			virtual IModelNode* GetNode(uint32_t nIndex) const = 0;
-			virtual IModelNode* GetNode(const String::StringID& strName) const = 0;
+			virtual IModelNode* GetNode(const string::StringID& strName) const = 0;
 
 			virtual bool IsVisible() const = 0;
 			virtual void SetVisible(bool bVisible) = 0;
@@ -369,7 +369,7 @@ namespace eastengine
 		public:
 			virtual void Update(float fElapsedTime, const math::Matrix& matParent) = 0;
 
-			virtual bool Attachment(IModelInstance* pInstance, const String::StringID& strNodeName, const math::Matrix& matOffset = math::Matrix::Identity) = 0;
+			virtual bool Attachment(IModelInstance* pInstance, const string::StringID& strNodeName, const math::Matrix& matOffset = math::Matrix::Identity) = 0;
 			virtual bool Attachment(IModelInstance* pInstance, const math::Matrix& matOffset = math::Matrix::Identity) = 0;
 			virtual IModelInstance* GetAttachment(size_t nIndex) const = 0;
 			virtual size_t GetAttachmentCount() const = 0;
@@ -383,7 +383,7 @@ namespace eastengine
 			virtual void SetVisible(bool isVisible) = 0;
 			virtual bool IsVisible() const = 0;
 
-			virtual void ChangeMaterial(const String::StringID& strNodeName, uint32_t nIndex, IMaterial* pMaterial) = 0;
+			virtual void ChangeMaterial(const string::StringID& strNodeName, uint32_t nIndex, IMaterial* pMaterial) = 0;
 
 		public:
 			virtual IModel* GetModel() = 0;
@@ -408,7 +408,7 @@ namespace eastengine
 				virtual ~IBone() = default;
 
 			public:
-				virtual const String::StringID& GetName() const = 0;
+				virtual const string::StringID& GetName() const = 0;
 				virtual const math::Matrix& GetMotionOffsetMatrix() const = 0;
 				virtual const math::Matrix& GetDefaultMotionData() const = 0;
 
@@ -423,10 +423,10 @@ namespace eastengine
 		public:
 			virtual uint32_t GetBoneCount() const = 0;
 			virtual IBone* GetBone(uint32_t nIndex) = 0;
-			virtual IBone* GetBone(const String::StringID& strBoneName) = 0;
+			virtual IBone* GetBone(const string::StringID& strBoneName) = 0;
 
 			virtual uint32_t GetSkinnedListCount() const = 0;
-			virtual void GetSkinnedList(uint32_t nIndex, String::StringID& strSkinnedName_out, const String::StringID** ppBoneNames_out, uint32_t& nElementCount_out) = 0;
+			virtual void GetSkinnedList(uint32_t nIndex, string::StringID& strSkinnedName_out, const string::StringID** ppBoneNames_out, uint32_t& nElementCount_out) = 0;
 		};
 
 		class ISkeletonInstance
@@ -440,7 +440,7 @@ namespace eastengine
 
 			public:
 				virtual uint32_t GetIndex() const = 0;
-				virtual const String::StringID& GetName() const = 0;
+				virtual const string::StringID& GetName() const = 0;
 
 				virtual IBone* GetParent() const = 0;
 
@@ -466,9 +466,9 @@ namespace eastengine
 
 			virtual size_t GetBoneCount() const = 0;
 			virtual IBone* GetBone(size_t nIndex) = 0;
-			virtual IBone* GetBone(const String::StringID& strBoneName) = 0;
+			virtual IBone* GetBone(const string::StringID& strBoneName) = 0;
 
-			virtual void GetSkinnedData(const String::StringID& strSkinnedName, const math::Matrix*** pppMatrixList_out, uint32_t& nElementCount_out) = 0;
+			virtual void GetSkinnedData(const string::StringID& strSkinnedName, const math::Matrix*** pppMatrixList_out, uint32_t& nElementCount_out) = 0;
 			virtual void SetIdentity() = 0;
 			virtual void SetDirty() = 0;
 			virtual bool IsDirty() const = 0;
@@ -482,7 +482,7 @@ namespace std
 	template <>
 	struct hash<eastengine::graphics::IModel::Key>
 	{
-		const eastengine::String::StringData* operator()(const eastengine::graphics::IModel::Key& key) const
+		const eastengine::string::StringData* operator()(const eastengine::graphics::IModel::Key& key) const
 		{
 			return key.Value().Key();
 		}
@@ -491,7 +491,7 @@ namespace std
 	template <>
 	struct hash<eastengine::graphics::IMotion::Key>
 	{
-		const eastengine::String::StringData* operator()(const eastengine::graphics::IMotion::Key& key) const
+		const eastengine::string::StringData* operator()(const eastengine::graphics::IMotion::Key& key) const
 		{
 			return key.Value().Key();
 		}

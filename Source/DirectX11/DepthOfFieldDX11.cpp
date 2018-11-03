@@ -110,7 +110,7 @@ namespace eastengine
 				strShaderPath.append("PostProcessing\\DepthOfField\\DepthOfField.hlsl");
 
 				ID3DBlob* pShaderBlob{ nullptr };
-				if (FAILED(D3DReadFileToBlob(String::MultiToWide(strShaderPath).c_str(), &pShaderBlob)))
+				if (FAILED(D3DReadFileToBlob(string::MultiToWide(strShaderPath).c_str(), &pShaderBlob)))
 				{
 					throw_line("failed to read shader file : DepthOfField.hlsl");
 				}
@@ -121,12 +121,12 @@ namespace eastengine
 					{ nullptr, nullptr },
 				};
 
-				if (util::CreateVertexShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), "VS", "vs_5_0", &m_pVertexShader, "DepthOfField_VS") == false)
+				if (util::CreateVertexShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), "VS", shader::VS_CompileVersion, &m_pVertexShader, "DepthOfField_VS") == false)
 				{
 					throw_line("failed to create DepthOfField_VS");
 				}
 
-				if (util::CreatePixelShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), "DofDiscPS", "ps_5_0", &m_pPixelShader, "DofDiscPS") == false)
+				if (util::CreatePixelShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), "DofDiscPS", shader::PS_CompileVersion, &m_pPixelShader, "DofDiscPS") == false)
 				{
 					throw_line("failed to create DepthOfFieldH_PS");
 				}

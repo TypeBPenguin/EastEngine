@@ -75,11 +75,11 @@ namespace eastengine
 				~Impl();
 
 			public:
-				void Initialize(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const String::StringID& strApplicationTitle, const String::StringID& strApplicationName);
+				void Initialize(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const string::StringID& strApplicationTitle, const string::StringID& strApplicationName);
 				void Release();
 
 				void Run(std::function<void()> funcUpdate);
-				void Flush(float fElapsedTime);
+				void Cleanup(float fElapsedTime);
 
 				void Render();
 
@@ -112,7 +112,7 @@ namespace eastengine
 				const Texture* GetEmptyTexture() const { return m_pTextureEmpty.get(); }
 
 			private:
-				void InitializeWindow(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const String::StringID& strApplicationTitle, const String::StringID& strApplicationName);
+				void InitializeWindow(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const string::StringID& strApplicationTitle, const string::StringID& strApplicationName);
 				void InitializeVK();
 
 				void CleanupSwapChain();
@@ -171,8 +171,8 @@ namespace eastengine
 			private:
 				math::UInt2 m_n2ScreenSize{ 800, 600 };
 
-				String::StringID m_strApplicationTitle;
-				String::StringID m_strApplicationName;
+				string::StringID m_strApplicationTitle;
+				string::StringID m_strApplicationName;
 
 				GLFWwindow* m_pWindow{ nullptr };
 
@@ -220,7 +220,7 @@ namespace eastengine
 				Release();
 			}
 
-			void Device::Impl::Initialize(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const String::StringID& strApplicationTitle, const String::StringID& strApplicationName)
+			void Device::Impl::Initialize(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const string::StringID& strApplicationTitle, const string::StringID& strApplicationName)
 			{
 				InitializeWindow(nWidth, nHeight, isFullScreen, strApplicationTitle, strApplicationName);
 				InitializeVK();
@@ -278,7 +278,7 @@ namespace eastengine
 				vkDeviceWaitIdle(m_device);
 			}
 
-			void Device::Impl::Flush(float fElapsedTime)
+			void Device::Impl::Cleanup(float fElapsedTime)
 			{
 			}
 
@@ -390,7 +390,7 @@ namespace eastengine
 				vkQueueWaitIdle(m_presentQueue);
 			}
 
-			void Device::Impl::InitializeWindow(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const String::StringID& strApplicationTitle, const String::StringID& strApplicationName)
+			void Device::Impl::InitializeWindow(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const string::StringID& strApplicationTitle, const string::StringID& strApplicationName)
 			{
 				if (glfwInit() == GLFW_FALSE)
 				{
@@ -1060,7 +1060,7 @@ namespace eastengine
 
 					for (const VkLayerProperties& layerProperties : vecAvailableLayers)
 					{
-						if (String::IsEquals(strLayerName, layerProperties.layerName) == true)
+						if (string::IsEquals(strLayerName, layerProperties.layerName) == true)
 						{
 							isLayerFound = true;
 							break;
@@ -1320,7 +1320,7 @@ namespace eastengine
 			{
 			}
 
-			void Device::Initialize(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const String::StringID& strApplicationTitle, const String::StringID& strApplicationName)
+			void Device::Initialize(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const string::StringID& strApplicationTitle, const string::StringID& strApplicationName)
 			{
 				m_pImpl->Initialize(nWidth, nHeight, isFullScreen, strApplicationTitle, strApplicationName);
 			}
@@ -1330,9 +1330,9 @@ namespace eastengine
 				m_pImpl->Run(funcUpdate);
 			}
 
-			void Device::Flush(float fElapsedTime)
+			void Device::Cleanup(float fElapsedTime)
 			{
-				m_pImpl->Flush(fElapsedTime);
+				m_pImpl->Cleanup(fElapsedTime);
 			}
 
 			const math::UInt2& Device::GetScreenSize() const

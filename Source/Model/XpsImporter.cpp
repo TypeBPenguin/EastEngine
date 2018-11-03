@@ -290,7 +290,7 @@ namespace eastengine
 
 						struct MeshOptimizer
 						{
-							String::StringID strName;
+							string::StringID strName;
 							std::vector<int> vecMeshIndex;
 							uint32_t numVertices = 0;
 							uint32_t numElements = 0;
@@ -506,10 +506,10 @@ namespace eastengine
 
 					pModel->AddNode(pSkinnedNode, pSkinnedNode->GetName(), true);
 
-					std::unordered_map<uint16_t, std::pair<String::StringID, math::Matrix>> umapBones;
+					std::unordered_map<uint16_t, std::pair<string::StringID, math::Matrix>> umapBones;
 					umapBones.reserve(nBoneCount);
 
-					std::vector<String::StringID> vecBoneNames;
+					std::vector<string::StringID> vecBoneNames;
 					vecBoneNames.resize(nBoneCount);
 
 					Skeleton* pSkeleton = static_cast<Skeleton*>(pModel->GetSkeleton());
@@ -523,7 +523,7 @@ namespace eastengine
 						math::Matrix matDefaultMotionData = math::Matrix::CreateTranslation(bone.defaultPositionX, bone.defaultPositionY, bone.defaultPositionZ);
 						math::Matrix matParent;
 
-						String::StringID strParentBoneName;
+						string::StringID strParentBoneName;
 						auto iter = umapBones.find(bone.parentIndex);
 						if (iter != umapBones.end())
 						{
@@ -534,7 +534,7 @@ namespace eastengine
 						math::Matrix matDefault = matParent.Invert() * matDefaultMotionData;
 						math::Matrix matMotionOffset = matDefaultMotionData.Invert();
 
-						String::StringID strBoneName = bone.name.c_str();
+						string::StringID strBoneName = bone.name.c_str();
 						if (strParentBoneName.empty() == false)
 						{
 							pSkeleton->CreateBone(strParentBoneName, strBoneName, matMotionOffset, matDefault);
@@ -566,7 +566,7 @@ namespace eastengine
 
 					const uint32_t nSkinnedBoneCount = pSkinnedNode->GetBoneCount();
 
-					std::vector<String::StringID> vecBoneNames;
+					std::vector<string::StringID> vecBoneNames;
 					vecBoneNames.resize(nSkinnedBoneCount);
 
 					for (uint32_t j = 0; j < nSkinnedBoneCount; ++j)
@@ -599,7 +599,7 @@ namespace eastengine
 					{
 						std::vector<Motion::Keyframe> vecKeyframes;
 
-						String::StringID strName;
+						string::StringID strName;
 						math::Vector3 f3Rotation;
 
 						Motion::Keyframe keyframe;

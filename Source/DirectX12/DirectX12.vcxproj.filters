@@ -91,6 +91,12 @@
     <Filter Include="Renderer\Terrain">
       <UniqueIdentifier>{07c11590-0ddb-4050-84f5-3c9c5fffdb87}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Renderer\PostProcessing\HDR">
+      <UniqueIdentifier>{ee25a43d-ddec-4c88-8524-480fa9c171b1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\Interface">
+      <UniqueIdentifier>{7cdcc936-1184-42d2-b60f-07965c8eb652}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -120,9 +126,6 @@
     <ClInclude Include="ModelRendererDX12.h">
       <Filter>Renderer\Model</Filter>
     </ClInclude>
-    <ClInclude Include="UtilDX12.h">
-      <Filter>Util</Filter>
-    </ClInclude>
     <ClInclude Include="GBufferDX12.h">
       <Filter>GBuffer</Filter>
     </ClInclude>
@@ -143,9 +146,6 @@
     </ClInclude>
     <ClInclude Include="DeferredRendererDX12.h">
       <Filter>Renderer\Deferred</Filter>
-    </ClInclude>
-    <ClInclude Include="VTFManagerDX12.h">
-      <Filter>VTF</Filter>
     </ClInclude>
     <ClInclude Include="EnvironmentRendererDX12.h">
       <Filter>Renderer\Environment</Filter>
@@ -179,6 +179,18 @@
     </ClInclude>
     <ClInclude Include="TerrainRendererDX12.h">
       <Filter>Renderer\Terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="HDRFilterDX12.h">
+      <Filter>Renderer\PostProcessing\HDR</Filter>
+    </ClInclude>
+    <ClInclude Include="VTFManagerDX12.h">
+      <Filter>VTF</Filter>
+    </ClInclude>
+    <ClInclude Include="RendererDX12.h">
+      <Filter>Renderer\Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="UtilDX12.h">
+      <Filter>Util</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -262,6 +274,12 @@
     </ClCompile>
     <ClCompile Include="TerrainRendererDX12.cpp">
       <Filter>Renderer\Terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="HDRFilterDX12.cpp">
+      <Filter>Renderer\PostProcessing\HDR</Filter>
+    </ClCompile>
+    <ClCompile Include="RendererDX12.cpp">
+      <Filter>Renderer\Interface</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

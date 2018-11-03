@@ -10,7 +10,7 @@ namespace eastengine
 {
 	namespace graphics
 	{
-		EffectTech::EffectTech(ID3DX11EffectTechnique* pTech, EmVertexFormat::Type emLayoutFormat, const String::StringID& strTechName)
+		EffectTech::EffectTech(ID3DX11EffectTechnique* pTech, EmVertexFormat::Type emLayoutFormat, const string::StringID& strTechName)
 			: m_pTech(pTech)
 			, m_emVertexFormat(emLayoutFormat)
 			, m_strTechName(strTechName)
@@ -48,7 +48,7 @@ namespace eastengine
 			return desc.Passes;
 		}
 
-		Effect::Effect(const String::StringID& strName)
+		Effect::Effect(const string::StringID& strName)
 			: m_pEffect(nullptr)
 			, m_strName(strName)
 			, m_isOptimized(false)
@@ -85,7 +85,7 @@ namespace eastengine
 			pEffectTech->PassApply(0, pd3dDeviceContext);
 		}
 
-		IEffectTech* Effect::CreateTechnique(const String::StringID& strName, EmVertexFormat::Type emLayoutFormat)
+		IEffectTech* Effect::CreateTechnique(const string::StringID& strName, EmVertexFormat::Type emLayoutFormat)
 		{
 			auto iter = m_umapEffectTech.find(strName);
 			if (iter != m_umapEffectTech.end())
@@ -119,7 +119,7 @@ namespace eastengine
 			return pTech;
 		}
 
-		IEffectTech* Effect::GetTechnique(const String::StringID& strName)
+		IEffectTech* Effect::GetTechnique(const string::StringID& strName)
 		{
 			auto iter = m_umapEffectTech.find(strName);
 			if (iter != m_umapEffectTech.end())
@@ -128,7 +128,7 @@ namespace eastengine
 			return nullptr;
 		}
 
-		EffectRawHandle* Effect::GetRawHandle(const String::StringID& strName)
+		EffectRawHandle* Effect::GetRawHandle(const string::StringID& strName)
 		{
 			EffectHandle* pHandle = GetHandle(strName);
 			if (pHandle != nullptr)
@@ -150,7 +150,7 @@ namespace eastengine
 			return pNewVariable;
 		}
 
-		EffectScalarHandle* Effect::GetScalarHandle(const String::StringID& strName)
+		EffectScalarHandle* Effect::GetScalarHandle(const string::StringID& strName)
 		{
 			EffectHandle* pVariable = GetHandle(strName);
 			if (pVariable != nullptr)
@@ -172,7 +172,7 @@ namespace eastengine
 			return pNewVariable;
 		}
 
-		EffectVectorHandle* Effect::GetVectorHandle(const String::StringID& strName)
+		EffectVectorHandle* Effect::GetVectorHandle(const string::StringID& strName)
 		{
 			EffectHandle* pHandle = GetHandle(strName);
 			if (pHandle != nullptr)
@@ -194,7 +194,7 @@ namespace eastengine
 			return pNewVariable;
 		}
 
-		EffectMatrixHandle* Effect::GetMatrixHandle(const String::StringID& strName)
+		EffectMatrixHandle* Effect::GetMatrixHandle(const string::StringID& strName)
 		{
 			EffectHandle* pHandle = GetHandle(strName);
 			if (pHandle != nullptr)
@@ -216,7 +216,7 @@ namespace eastengine
 			return pNewVariable;
 		}
 
-		EffectStringHandle* Effect::GetStringHandle(const String::StringID& strName)
+		EffectStringHandle* Effect::GetStringHandle(const string::StringID& strName)
 		{
 			EffectHandle* pHandle = GetHandle(strName);
 			if (pHandle != nullptr)
@@ -238,7 +238,7 @@ namespace eastengine
 			return pNewVariable;
 		}
 
-		EffectShaderResourceHandle* Effect::GetShaderResourceHandle(const String::StringID& strName)
+		EffectShaderResourceHandle* Effect::GetShaderResourceHandle(const string::StringID& strName)
 		{
 			EffectHandle* pHandle = GetHandle(strName);
 			if (pHandle != nullptr)
@@ -260,7 +260,7 @@ namespace eastengine
 			return pNewVariable;
 		}
 
-		EffectUnorderedAccessViewHandle* Effect::GetUnorderedAccessViewHandle(const String::StringID& strName)
+		EffectUnorderedAccessViewHandle* Effect::GetUnorderedAccessViewHandle(const string::StringID& strName)
 		{
 			EffectHandle* pHandle = GetHandle(strName);
 			if (pHandle != nullptr)
@@ -282,7 +282,7 @@ namespace eastengine
 			return pNewVariable;
 		}
 
-		EffectRenderTargetViewHandle* Effect::GetRenderTargetViewHandle(const String::StringID& strName)
+		EffectRenderTargetViewHandle* Effect::GetRenderTargetViewHandle(const string::StringID& strName)
 		{
 			EffectHandle* pHandle = GetHandle(strName);
 			if (pHandle != nullptr)
@@ -304,7 +304,7 @@ namespace eastengine
 			return pNewVariable;
 		}
 
-		EffectDepthStencilViewHandle* Effect::GetDepthStencilViewHandle(const String::StringID& strName)
+		EffectDepthStencilViewHandle* Effect::GetDepthStencilViewHandle(const string::StringID& strName)
 		{
 			EffectHandle* pHandle = GetHandle(strName);
 			if (pHandle != nullptr)
@@ -326,7 +326,7 @@ namespace eastengine
 			return pNewVariable;
 		}
 
-		EffectConstanceBufferHandle* Effect::GetConstanceBufferHandle(const String::StringID& strName)
+		EffectConstanceBufferHandle* Effect::GetConstanceBufferHandle(const string::StringID& strName)
 		{
 			EffectHandle* pHandle = GetHandle(strName);
 			if (pHandle != nullptr)
@@ -348,7 +348,7 @@ namespace eastengine
 			return pNewVariable;
 		}
 
-		EffectBlendHandle* Effect::GetBlendHandle(const String::StringID& strName)
+		EffectBlendHandle* Effect::GetBlendHandle(const string::StringID& strName)
 		{
 			EffectHandle* pHandle = GetHandle(strName);
 			if (pHandle != nullptr)
@@ -370,7 +370,7 @@ namespace eastengine
 			return pNewVariable;
 		}
 
-		EffectDepthStencilHandle* Effect::GetDepthStencilHandle(const String::StringID& strName)
+		EffectDepthStencilHandle* Effect::GetDepthStencilHandle(const string::StringID& strName)
 		{
 			EffectHandle* pHandle = GetHandle(strName);
 			if (pHandle != nullptr)
@@ -392,7 +392,7 @@ namespace eastengine
 			return pNewVariable;
 		}
 
-		EffectRasterizerHandle* Effect::GetRasterizerHandle(const String::StringID& strName)
+		EffectRasterizerHandle* Effect::GetRasterizerHandle(const string::StringID& strName)
 		{
 			EffectHandle* pHandle = GetHandle(strName);
 			if (pHandle != nullptr)
@@ -414,7 +414,7 @@ namespace eastengine
 			return pNewVariable;
 		}
 
-		EffectSamplerHandle* Effect::GetSamplerHandle(const String::StringID& strName)
+		EffectSamplerHandle* Effect::GetSamplerHandle(const string::StringID& strName)
 		{
 			EffectHandle* pHandle = GetHandle(strName);
 			if (pHandle != nullptr)
@@ -436,7 +436,7 @@ namespace eastengine
 			return pNewVariable;
 		}
 
-		void Effect::SetRawValue(const String::StringID& strName, const void* pData, uint32_t nByteOffset, uint32_t nByteCount)
+		void Effect::SetRawValue(const string::StringID& strName, const void* pData, uint32_t nByteOffset, uint32_t nByteCount)
 		{
 			EffectRawHandle* pHandle = GetRawHandle(strName);
 			if (pHandle != nullptr)
@@ -445,7 +445,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::SetBool(const String::StringID& strName, bool value)
+		void Effect::SetBool(const string::StringID& strName, bool value)
 		{
 			EffectScalarHandle* pHandle = GetScalarHandle(strName);
 			if (pHandle != nullptr)
@@ -454,7 +454,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::SetBoolArray(const String::StringID& strName, bool* pValue, uint32_t nOffset, uint32_t nCount)
+		void Effect::SetBoolArray(const string::StringID& strName, bool* pValue, uint32_t nOffset, uint32_t nCount)
 		{
 			EffectScalarHandle* pHandle = GetScalarHandle(strName);
 			if (pHandle != nullptr)
@@ -463,7 +463,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::SetInt(const String::StringID& strName, int nValue)
+		void Effect::SetInt(const string::StringID& strName, int nValue)
 		{
 			EffectScalarHandle* pHandle = GetScalarHandle(strName);
 			if (pHandle != nullptr)
@@ -472,7 +472,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::SetIntArray(const String::StringID& strName, const int* pValue, uint32_t nOffset, uint32_t nCount)
+		void Effect::SetIntArray(const string::StringID& strName, const int* pValue, uint32_t nOffset, uint32_t nCount)
 		{
 			EffectScalarHandle* pHandle = GetScalarHandle(strName);
 			if (pHandle != nullptr)
@@ -481,7 +481,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::SetFloat(const String::StringID& strName, float fValue)
+		void Effect::SetFloat(const string::StringID& strName, float fValue)
 		{
 			EffectScalarHandle* pHandle = GetScalarHandle(strName);
 			if (pHandle != nullptr)
@@ -490,7 +490,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::SetFloatArray(const String::StringID& strName, const float* pValue, uint32_t nOffset, uint32_t nCount)
+		void Effect::SetFloatArray(const string::StringID& strName, const float* pValue, uint32_t nOffset, uint32_t nCount)
 		{
 			EffectScalarHandle* pHandle = GetScalarHandle(strName);
 			if (pHandle != nullptr)
@@ -499,7 +499,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::SetVector(const String::StringID& strName, const math::Int2& n2Value)
+		void Effect::SetVector(const string::StringID& strName, const math::Int2& n2Value)
 		{
 			EffectVectorHandle* pHandle = GetVectorHandle(strName);
 			if (pHandle != nullptr)
@@ -508,7 +508,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::SetVector(const String::StringID& strName, const math::Int3& n3Value)
+		void Effect::SetVector(const string::StringID& strName, const math::Int3& n3Value)
 		{
 			EffectVectorHandle* pHandle = GetVectorHandle(strName);
 			if (pHandle != nullptr)
@@ -517,7 +517,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::SetVector(const String::StringID& strName, const math::Int4& n4Value)
+		void Effect::SetVector(const string::StringID& strName, const math::Int4& n4Value)
 		{
 			EffectVectorHandle* pHandle = GetVectorHandle(strName);
 			if (pHandle != nullptr)
@@ -526,7 +526,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::SetVector(const String::StringID& strName, const math::Vector2& f2Value)
+		void Effect::SetVector(const string::StringID& strName, const math::Vector2& f2Value)
 		{
 			EffectVectorHandle* pHandle = GetVectorHandle(strName);
 			if (pHandle != nullptr)
@@ -535,7 +535,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::SetVector(const String::StringID& strName, const math::Vector3& f3Value)
+		void Effect::SetVector(const string::StringID& strName, const math::Vector3& f3Value)
 		{
 			EffectVectorHandle* pHandle = GetVectorHandle(strName);
 			if (pHandle != nullptr)
@@ -544,7 +544,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::SetVector(const String::StringID& strName, const math::Vector4& f4Value)
+		void Effect::SetVector(const string::StringID& strName, const math::Vector4& f4Value)
 		{
 			EffectVectorHandle* pHandle = GetVectorHandle(strName);
 			if (pHandle != nullptr)
@@ -553,7 +553,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::SetVectorArray(const String::StringID& strName, const math::Int2* pn2Value, uint32_t nOffset, uint32_t nCount)
+		void Effect::SetVectorArray(const string::StringID& strName, const math::Int2* pn2Value, uint32_t nOffset, uint32_t nCount)
 		{
 			EffectVectorHandle* pHandle = GetVectorHandle(strName);
 			if (pHandle != nullptr)
@@ -562,7 +562,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::SetVectorArray(const String::StringID& strName, const math::Int3* pn3Value, uint32_t nOffset, uint32_t nCount)
+		void Effect::SetVectorArray(const string::StringID& strName, const math::Int3* pn3Value, uint32_t nOffset, uint32_t nCount)
 		{
 			EffectVectorHandle* pHandle = GetVectorHandle(strName);
 			if (pHandle != nullptr)
@@ -571,7 +571,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::SetVectorArray(const String::StringID& strName, const math::Int4* pn4Value, uint32_t nOffset, uint32_t nCount)
+		void Effect::SetVectorArray(const string::StringID& strName, const math::Int4* pn4Value, uint32_t nOffset, uint32_t nCount)
 		{
 			EffectVectorHandle* pHandle = GetVectorHandle(strName);
 			if (pHandle != nullptr)
@@ -580,7 +580,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::SetVectorArray(const String::StringID& strName, const math::Vector2* pf2Value, uint32_t nOffset, uint32_t nCount)
+		void Effect::SetVectorArray(const string::StringID& strName, const math::Vector2* pf2Value, uint32_t nOffset, uint32_t nCount)
 		{
 			EffectVectorHandle* pHandle = GetVectorHandle(strName);
 			if (pHandle != nullptr)
@@ -589,7 +589,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::SetVectorArray(const String::StringID& strName, const math::Vector3* pf3Value, uint32_t nOffset, uint32_t nCount)
+		void Effect::SetVectorArray(const string::StringID& strName, const math::Vector3* pf3Value, uint32_t nOffset, uint32_t nCount)
 		{
 			EffectVectorHandle* pHandle = GetVectorHandle(strName);
 			if (pHandle != nullptr)
@@ -598,7 +598,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::SetVectorArray(const String::StringID& strName, const math::Vector4* pf4Value, uint32_t nOffset, uint32_t nCount)
+		void Effect::SetVectorArray(const string::StringID& strName, const math::Vector4* pf4Value, uint32_t nOffset, uint32_t nCount)
 		{
 			EffectVectorHandle* pHandle = GetVectorHandle(strName);
 			if (pHandle != nullptr)
@@ -607,7 +607,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::SetMatrix(const String::StringID& strName, const math::Matrix& matrix)
+		void Effect::SetMatrix(const string::StringID& strName, const math::Matrix& matrix)
 		{
 			EffectMatrixHandle* pHandle = GetMatrixHandle(strName);
 			if (pHandle != nullptr)
@@ -616,7 +616,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::SetMatrixArray(const String::StringID& strName, const math::Matrix* pMatrix, uint32_t nOffset, uint32_t nCount)
+		void Effect::SetMatrixArray(const string::StringID& strName, const math::Matrix* pMatrix, uint32_t nOffset, uint32_t nCount)
 		{
 			EffectMatrixHandle* pHandle = GetMatrixHandle(strName);
 			if (pHandle != nullptr)
@@ -625,7 +625,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::SetString(const String::StringID& strName, const char* str, uint32_t nCount)
+		void Effect::SetString(const string::StringID& strName, const char* str, uint32_t nCount)
 		{
 			EffectStringHandle* pHandle = GetStringHandle(strName);
 			if (pHandle != nullptr)
@@ -634,7 +634,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::SetTexture(const String::StringID& strName, const std::shared_ptr<ITexture>& pTexture)
+		void Effect::SetTexture(const string::StringID& strName, const std::shared_ptr<ITexture>& pTexture)
 		{
 			EffectShaderResourceHandle* pHandle = GetShaderResourceHandle(strName);
 			if (pHandle != nullptr)
@@ -643,7 +643,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::SetTextureArray(const String::StringID& strName, const std::shared_ptr<ITexture>* pTextures, uint32_t nOffset, uint32_t nCount)
+		void Effect::SetTextureArray(const string::StringID& strName, const std::shared_ptr<ITexture>* pTextures, uint32_t nOffset, uint32_t nCount)
 		{
 			EffectShaderResourceHandle* pHandle = GetShaderResourceHandle(strName);
 			if (pHandle != nullptr)
@@ -652,7 +652,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::SetStructuredBuffer(const String::StringID& strName, IStructuredBuffer* pDataBuffer)
+		void Effect::SetStructuredBuffer(const string::StringID& strName, IStructuredBuffer* pDataBuffer)
 		{
 			EffectShaderResourceHandle* pHandle = GetShaderResourceHandle(strName);
 			if (pHandle != nullptr)
@@ -661,7 +661,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::SetUnorderedAccessView(const String::StringID& strName, IStructuredBuffer* pDataBuffer)
+		void Effect::SetUnorderedAccessView(const string::StringID& strName, IStructuredBuffer* pDataBuffer)
 		{
 			EffectUnorderedAccessViewHandle* pHandle = GetUnorderedAccessViewHandle(strName);
 			if (pHandle != nullptr)
@@ -670,7 +670,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::SetUnorderedAccessViewArray(const String::StringID& strName, IStructuredBuffer** ppDataBuffer, uint32_t nOffset, uint32_t nCount)
+		void Effect::SetUnorderedAccessViewArray(const string::StringID& strName, IStructuredBuffer** ppDataBuffer, uint32_t nOffset, uint32_t nCount)
 		{
 			EffectUnorderedAccessViewHandle* pHandle = GetUnorderedAccessViewHandle(strName);
 			if (pHandle != nullptr)
@@ -679,7 +679,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::SetBlendState(const String::StringID& strName, IBlendState* pBlendState, uint32_t nIndex)
+		void Effect::SetBlendState(const string::StringID& strName, IBlendState* pBlendState, uint32_t nIndex)
 		{
 			EffectBlendHandle* pHandle = GetBlendHandle(strName);
 			if (pHandle != nullptr)
@@ -688,7 +688,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::UndoBlendState(const String::StringID& strName, uint32_t nIndex)
+		void Effect::UndoBlendState(const string::StringID& strName, uint32_t nIndex)
 		{
 			EffectBlendHandle* pHandle = GetBlendHandle(strName);
 			if (pHandle != nullptr)
@@ -697,7 +697,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::SetDepthStencilState(const String::StringID& strName, IDepthStencilState* pDepthStencilState, uint32_t nIndex)
+		void Effect::SetDepthStencilState(const string::StringID& strName, IDepthStencilState* pDepthStencilState, uint32_t nIndex)
 		{
 			EffectDepthStencilHandle* pHandle = GetDepthStencilHandle(strName);
 			if (pHandle != nullptr)
@@ -706,7 +706,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::UndoDepthStencilState(const String::StringID& strName, uint32_t nIndex)
+		void Effect::UndoDepthStencilState(const string::StringID& strName, uint32_t nIndex)
 		{
 			EffectDepthStencilHandle* pHandle = GetDepthStencilHandle(strName);
 			if (pHandle != nullptr)
@@ -715,7 +715,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::SetRasterizerState(const String::StringID& strName, IRasterizerState* pRasterizerState, uint32_t nIndex)
+		void Effect::SetRasterizerState(const string::StringID& strName, IRasterizerState* pRasterizerState, uint32_t nIndex)
 		{
 			EffectRasterizerHandle* pHandle = GetRasterizerHandle(strName);
 			if (pHandle != nullptr)
@@ -724,7 +724,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::UndoRasterizerState(const String::StringID& strName, uint32_t nIndex)
+		void Effect::UndoRasterizerState(const string::StringID& strName, uint32_t nIndex)
 		{
 			EffectRasterizerHandle* pHandle = GetRasterizerHandle(strName);
 			if (pHandle != nullptr)
@@ -733,7 +733,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::SetSamplerState(const String::StringID& strName, ISamplerState* pSamplerState, uint32_t nIndex)
+		void Effect::SetSamplerState(const string::StringID& strName, ISamplerState* pSamplerState, uint32_t nIndex)
 		{
 			EffectSamplerHandle* pHandle = GetSamplerHandle(strName);
 			if (pHandle != nullptr)
@@ -742,7 +742,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::UndoSamplerState(const String::StringID& strName, uint32_t nIndex)
+		void Effect::UndoSamplerState(const string::StringID& strName, uint32_t nIndex)
 		{
 			EffectSamplerHandle* pHandle = GetSamplerHandle(strName);
 			if (pHandle != nullptr)
@@ -751,7 +751,7 @@ namespace eastengine
 			}
 		}
 
-		EffectHandle* Effect::GetHandle(const String::StringID& strName)
+		EffectHandle* Effect::GetHandle(const string::StringID& strName)
 		{
 			auto iter = m_umapEffectHandle.find(strName);
 			if (iter != m_umapEffectHandle.end())

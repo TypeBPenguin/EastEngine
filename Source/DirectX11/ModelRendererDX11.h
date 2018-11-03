@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GraphicsInterface/RenderJob.h"
+#include "GraphicsInterface/Renderer.h"
 
 namespace eastengine
 {
@@ -10,11 +11,11 @@ namespace eastengine
 
 		namespace dx11
 		{
-			class ModelRenderer
+			class ModelRenderer : public IRenderer
 			{
 			public:
 				ModelRenderer();
-				~ModelRenderer();
+				virtual ~ModelRenderer();
 
 				enum Group
 				{
@@ -25,8 +26,11 @@ namespace eastengine
 				};
 
 			public:
+				virtual Type GetType() const { return IRenderer::eModel; }
+
+			public:
 				void Render(ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext, Camera* pCamera, Group emGroup);
-				void Flush();
+				void Cleanup();
 
 			public:
 				void PushJob(const RenderJobStatic& job);

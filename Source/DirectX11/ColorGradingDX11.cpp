@@ -73,7 +73,7 @@ namespace eastengine
 				strShaderPath.append("PostProcessing\\ColorGrading\\ColorGrading.hlsl");
 
 				ID3DBlob* pShaderBlob{ nullptr };
-				if (FAILED(D3DReadFileToBlob(String::MultiToWide(strShaderPath).c_str(), &pShaderBlob)))
+				if (FAILED(D3DReadFileToBlob(string::MultiToWide(strShaderPath).c_str(), &pShaderBlob)))
 				{
 					throw_line("failed to read shader file : ColorGrading.hlsl");
 				}
@@ -84,12 +84,12 @@ namespace eastengine
 					{ nullptr, nullptr },
 				};
 
-				if (util::CreateVertexShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), "VS", "vs_5_0", &m_pVertexShader, "ColorGrading_VS") == false)
+				if (util::CreateVertexShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), "VS", shader::VS_CompileVersion, &m_pVertexShader, "ColorGrading_VS") == false)
 				{
 					throw_line("failed to create ColorGrading_VS");
 				}
 
-				if (util::CreatePixelShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), "PS", "ps_5_0", &m_pPixelShader, "ColorGrading_PS") == false)
+				if (util::CreatePixelShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), "PS", shader::PS_CompileVersion, &m_pPixelShader, "ColorGrading_PS") == false)
 				{
 					throw_line("failed to create ColorGrading_PS");
 				}

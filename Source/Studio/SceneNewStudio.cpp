@@ -72,7 +72,7 @@ void SceneNewStudio::Enter()
 
 	std::string strPath = file::GetPath(file::eTexture);
 	{
-		strPath = String::Format("%sIBL\\%s\\%s", file::GetPath(file::eTexture), IBL_Type[1], IBL_Type[1]);
+		strPath = string::Format("%sIBL\\%s\\%s", file::GetPath(file::eTexture), IBL_Type[1], IBL_Type[1]);
 
 		graphics::IImageBasedLight* pImageBasedLight = graphics::GetImageBasedLight();
 
@@ -184,7 +184,7 @@ void SceneNewStudio::Enter()
 	//		gameobject::ComponentModel* pCompModel = static_cast<gameobject::ComponentModel*>(pActor->CreateComponent(gameobject::EmComponent::eModel));
 
 	//		graphics::ModelLoader loader;
-	//		//loader.InitBox(String::Format("TestBox%d", (i % 10) + 1).c_str(), &materialInfo);
+	//		//loader.InitBox(string::Format("TestBox%d", (i % 10) + 1).c_str(), &materialInfo);
 	//		loader.InitBox("TestBox", &materialInfo);
 	//		pCompModel->Init(&loader);
 	//		auto pModelInst = pCompModel->GetModelInstance();
@@ -252,7 +252,7 @@ void SceneNewStudio::Enter()
 		//gameobject::ITerrain::CreateAsync("BaseTerrain", terrain);
 	}
 
-	auto CreateActor = [](const String::StringID& strActorName, const char* strModelFilePath,
+	auto CreateActor = [](const string::StringID& strActorName, const char* strModelFilePath,
 		const math::Vector3& f3Position,
 		graphics::ModelLoader::LoadType emModelType = graphics::ModelLoader::eEast)
 	{
@@ -262,7 +262,7 @@ void SceneNewStudio::Enter()
 
 		graphics::ModelLoader loader;
 
-		String::StringID strFileName = file::GetFileName(strModelFilePath).c_str();
+		string::StringID strFileName = file::GetFileName(strModelFilePath).c_str();
 		switch (emModelType)
 		{
 		case graphics::ModelLoader::LoadType::eFbx:
@@ -284,9 +284,9 @@ void SceneNewStudio::Enter()
 		return pActor;
 	};
 
-	for (int i = 0; i < 100; ++i)
+	for (int i = 0; i < 1; ++i)
 	{
-		String::StringID name;
+		string::StringID name;
 		name.Format("UnityChan%d", i);
 
 		strPath = file::GetDataPath();
@@ -315,7 +315,7 @@ void SceneNewStudio::Enter()
 			//strPathMotion.append("Actor\\UnityChan\\Animations\\unitychan_WAIT00.fbx");
 			strPathMotion.append(vecAnim[math::Random(0llu, vecAnim.size() - 1)]);
 
-			String::StringID strMotionName;
+			string::StringID strMotionName;
 			strMotionName.Format("%s", file::GetFileName(strPathMotion).c_str());
 			graphics::MotionLoader motionLoader;
 			motionLoader.InitFBX(strMotionName, strPathMotion.c_str(), 0.01f);
@@ -346,7 +346,7 @@ void SceneNewStudio::Enter()
 		//	//strPathMotion.append("Actor\\UnityChan\\Animations\\unitychan_RUN00_F.fbx");
 		//	strPathMotion.append(vecAnim[math::Random(0u, vecAnim.size() - 1)]);
 
-		//	String::StringID strMotionName;
+		//	string::StringID strMotionName;
 		//	strMotionName.Format("%s", file::GetFileName(strPathMotion).c_str());
 		//	graphics::MotionLoader motionLoader;
 		//	motionLoader.InitFBX(strMotionName, strPathMotion.c_str(), 0.01f);
@@ -384,7 +384,7 @@ void SceneNewStudio::Enter()
 	}
 
 	{
-		String::StringID name;
+		string::StringID name;
 		name.Format("KimJiYoon");
 
 		math::Vector3 pos;
@@ -401,7 +401,7 @@ void SceneNewStudio::Enter()
 			std::string strPathMotion(file::GetDataPath());
 			strPathMotion.append("Model\\KimJiYoon\\AR_Idle_CC.fbx");
 
-			String::StringID strMotionName;
+			string::StringID strMotionName;
 			strMotionName.Format("%s", file::GetFileName(strPathMotion).c_str());
 			graphics::MotionLoader motionLoader;
 			motionLoader.InitFBX(strMotionName, strPathMotion.c_str(), 0.01f);
@@ -417,7 +417,7 @@ void SceneNewStudio::Enter()
 
 	for (int i = 0; i < 2; ++i)
 	{
-		String::StringID name;
+		string::StringID name;
 		name.Format("2B_NierAutomata_%d", i);
 
 		math::Vector3 pos;
@@ -435,7 +435,7 @@ void SceneNewStudio::Enter()
 		{
 			graphics::IModelNode* pNode = pModelInstance->GetModel()->GetNode("Generic_Item.mesh");
 
-			auto SetMaterialVisible = [&](const String::StringID& strMaterialName)
+			auto SetMaterialVisible = [&](const string::StringID& strMaterialName)
 			{
 				uint32_t nMaterialID = 0;
 				graphics::IMaterial* pMaterial = pNode->GetMaterial(strMaterialName, nMaterialID);
@@ -454,7 +454,7 @@ void SceneNewStudio::Enter()
 
 	//if (false)
 	{
-		String::StringID name;
+		string::StringID name;
 		name.Format("Delia");
 
 		math::Vector3 pos;
@@ -468,7 +468,7 @@ void SceneNewStudio::Enter()
 
 	//if (false)
 	{
-		String::StringID name;
+		string::StringID name;
 		name.Format("Misaki");
 
 		math::Vector3 pos;
@@ -482,7 +482,7 @@ void SceneNewStudio::Enter()
 
 	//if (false)
 	{
-		String::StringID name;
+		string::StringID name;
 		name.Format("Naotora");
 
 		math::Vector3 pos;
@@ -496,7 +496,7 @@ void SceneNewStudio::Enter()
 
 	//if (false)
 	{
-		String::StringID name;
+		string::StringID name;
 		name.Format("Naotora_ShirtDress");
 
 		math::Vector3 pos;
@@ -510,7 +510,7 @@ void SceneNewStudio::Enter()
 
 	//if (false)
 	{
-		String::StringID name;
+		string::StringID name;
 		name.Format("Bugeikloth");
 
 		math::Vector3 pos;
@@ -524,7 +524,7 @@ void SceneNewStudio::Enter()
 
 	//if (false)
 	{
-		String::StringID name;
+		string::StringID name;
 		name.Format("DarkKnight_Female");
 
 		math::Vector3 pos;
@@ -540,7 +540,7 @@ void SceneNewStudio::Enter()
 
 	//if (false)
 	{
-		String::StringID name;
+		string::StringID name;
 		name.Format("DarkKnight_Transformed_Female");
 
 		math::Vector3 pos;
@@ -556,7 +556,7 @@ void SceneNewStudio::Enter()
 
 	//if (false)
 	{
-		String::StringID name;
+		string::StringID name;
 		name.Format("Paladin_Female");
 
 		math::Vector3 pos;
@@ -571,7 +571,7 @@ void SceneNewStudio::Enter()
 
 	//if (false)
 	{
-		String::StringID name;
+		string::StringID name;
 		name.Format("Paladin_Transformed_Female");
 
 		math::Vector3 pos;
@@ -587,7 +587,7 @@ void SceneNewStudio::Enter()
 
 	//if (false)
 	{
-		String::StringID name;
+		string::StringID name;
 		name.Format("Evie_Temptress");
 
 		math::Vector3 pos;
@@ -602,7 +602,7 @@ void SceneNewStudio::Enter()
 
 	//if (false)
 	{
-		String::StringID name;
+		string::StringID name;
 		name.Format("Lynn_DancingBlade");
 
 		math::Vector3 pos;
@@ -616,7 +616,7 @@ void SceneNewStudio::Enter()
 	}
 
 	{
-		String::StringID name;
+		string::StringID name;
 		name.Format("ElementalSwordIce");
 
 		math::Vector3 pos;
@@ -633,7 +633,7 @@ void SceneNewStudio::Enter()
 	{
 		strPath = file::GetPath(file::eSound);
 		strPath += "Canada, Ho!.mp3";
-		sound::Play2D(strPath);
+		sound::Play2D(strPath, 0.1f);
 	}
 }
 
@@ -834,7 +834,7 @@ void ShowConfig()
 	ImGui::SetNextWindowSize(ImVec2(400, 800), ImGuiSetCond_FirstUseEver);
 	ImGui::Begin("Config", &isShowMainMenu);
 
-	graphics::Options graphicsOptions = graphics::GetOptions();
+	graphics::Options& graphicsOptions = graphics::GetOptions();
 
 	if (ImGui::CollapsingHeader("Debug") == true)
 	{
@@ -1118,7 +1118,7 @@ void ShowConfig()
 		static int nSelectedIndex = 0;
 		if (ImGui::Combo("Env", &nSelectedIndex, IBL_Type, _countof(IBL_Type)) == true)
 		{
-			const std::string strPath = String::Format("%sIBL\\%s\\%s", file::GetPath(file::eTexture), IBL_Type[nSelectedIndex], IBL_Type[nSelectedIndex]);
+			const std::string strPath = string::Format("%sIBL\\%s\\%s", file::GetPath(file::eTexture), IBL_Type[nSelectedIndex], IBL_Type[nSelectedIndex]);
 
 			graphics::IImageBasedLight* pImageBasedLight = graphics::GetImageBasedLight();
 
@@ -1244,13 +1244,13 @@ void ShowMotion(bool& isShowMotionMenu, gameobject::ComponentModel* pCompModel)
 		if (GetOpenFileName(&ofn) != 0)
 		{
 			const std::string strFileExtension = file::GetFileExtension(ofn.lpstrFile);
-			if (String::IsEqualsNoCase(strFileExtension.c_str(), ".fbx") == true)
+			if (string::IsEqualsNoCase(strFileExtension.c_str(), ".fbx") == true)
 			{
 				graphics::MotionLoader loader;
 				loader.InitFBX(file::GetFileName(ofn.lpstrFile).c_str(), ofn.lpstrFile, 0.01f);
 				graphics::IMotion::Create(loader);
 			}
-			else if (String::IsEqualsNoCase(strFileExtension.c_str(), ".emot") == true)
+			else if (string::IsEqualsNoCase(strFileExtension.c_str(), ".emot") == true)
 			{
 				graphics::MotionLoader loader;
 				loader.InitEast(file::GetFileName(ofn.lpstrFile).c_str(), ofn.lpstrFile);
@@ -1329,7 +1329,7 @@ void ShowMotion(bool& isShowMotionMenu, gameobject::ComponentModel* pCompModel)
 			graphics::EmMotion::Layers emLayer = static_cast<graphics::EmMotion::Layers>(i);
 			graphics::IMotionPlayer* pPlayer = pMotionSystem->GetPlayer(emLayer);
 
-			std::string strLayer = String::Format("Layer%d", i);
+			std::string strLayer = string::Format("Layer%d", i);
 
 			ImGui::PushID(strLayer.c_str());
 
@@ -1339,7 +1339,7 @@ void ShowMotion(bool& isShowMotionMenu, gameobject::ComponentModel* pCompModel)
 			if (pMotionPlaying != nullptr)
 			{
 				char buf[128]{};
-				String::Copy(buf, sizeof(buf), pMotionPlaying->GetName().c_str());
+				string::Copy(buf, sizeof(buf), pMotionPlaying->GetName().c_str());
 				ImGui::InputText("Name", buf, sizeof(buf), ImGuiInputTextFlags_::ImGuiInputTextFlags_ReadOnly);
 
 				if (ImGui::Button("Stop") == true)
@@ -1361,7 +1361,7 @@ void ShowMotion(bool& isShowMotionMenu, gameobject::ComponentModel* pCompModel)
 				ImGui::DragFloat("Weight", &fMotionWeight, 0.001f, 0.f, 1.f);
 				pPlayer->SetWeight(fMotionWeight);
 
-				const std::string strBuf = String::Format("%.2f/%.2f", pPlayer->GetBlendWeight(), pPlayer->GetWeight());
+				const std::string strBuf = string::Format("%.2f/%.2f", pPlayer->GetBlendWeight(), pPlayer->GetWeight());
 				ImGui::ProgressBar(pPlayer->GetBlendWeight() / pPlayer->GetWeight(), ImVec2(0.0f, 0.0f), strBuf.c_str());
 				ImGui::SameLine(0.0f, ImGui::GetStyle().ItemInnerSpacing.x);
 				ImGui::Text("BlendWeight");
@@ -1370,12 +1370,12 @@ void ShowMotion(bool& isShowMotionMenu, gameobject::ComponentModel* pCompModel)
 				float fEndTime = pMotionPlaying->GetEndTime();
 				if (pPlayer->IsInverse() == true)
 				{
-					const std::string strBuf2 = String::Format("%.2f/%.2f", fEndTime - fMotionPlayTime, fEndTime);
+					const std::string strBuf2 = string::Format("%.2f/%.2f", fEndTime - fMotionPlayTime, fEndTime);
 					ImGui::ProgressBar((fEndTime - fMotionPlayTime) / fEndTime, ImVec2(0.0f, 0.0f), strBuf2.c_str());
 				}
 				else
 				{
-					const std::string strBuf2 = String::Format("%.2f/%.2f", fMotionPlayTime, fEndTime);
+					const std::string strBuf2 = string::Format("%.2f/%.2f", fMotionPlayTime, fEndTime);
 					ImGui::ProgressBar(fMotionPlayTime / fEndTime, ImVec2(0.0f, 0.0f), strBuf2.c_str());
 				}
 				ImGui::SameLine(0.0f, ImGui::GetStyle().ItemInnerSpacing.x);
@@ -1400,10 +1400,10 @@ void ShowMotion(bool& isShowMotionMenu, gameobject::ComponentModel* pCompModel)
 void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nIndex)
 {
 	ImGui::SetNextWindowSize(ImVec2(400, 800), ImGuiSetCond_FirstUseEver);
-	ImGui::Begin(String::Format("%d. %s Info", nIndex, pMaterial->GetName().c_str()).c_str(), &isShowMaterial);
+	ImGui::Begin(string::Format("%d. %s Info", nIndex, pMaterial->GetName().c_str()).c_str(), &isShowMaterial);
 
 	static char bufName[128]{};
-	String::Copy(bufName, pMaterial->GetName().c_str());
+	string::Copy(bufName, pMaterial->GetName().c_str());
 
 	ImGui::PushID(bufName);
 
@@ -1413,7 +1413,7 @@ void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nInd
 	}
 
 	char buf[1024]{};
-	String::Copy(buf, pMaterial->GetPath().c_str());
+	string::Copy(buf, pMaterial->GetPath().c_str());
 	ImGui::InputText("Path", buf, sizeof(buf), ImGuiInputTextFlags_ReadOnly);
 
 	float fTessellationFactor = pMaterial->GetTessellationFactor();
@@ -1511,7 +1511,7 @@ void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nInd
 
 	auto TextureInfo = [&](graphics::EmMaterial::Type emType, int nIndex)
 	{
-		if (ImGui::Button(String::Format("%d.Texture", nIndex).c_str()) == true)
+		if (ImGui::Button(string::Format("%d.Texture", nIndex).c_str()) == true)
 		{
 			char path[512]{};
 
@@ -1531,16 +1531,16 @@ void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nInd
 			}
 		}
 
-		const String::StringID& strName = pMaterial->GetTextureName(emType);
+		const string::StringID& strName = pMaterial->GetTextureName(emType);
 		char buf[1024]{};
-		String::Copy(buf, strName.c_str());
+		string::Copy(buf, strName.c_str());
 		ImGui::SameLine();
 		ImGui::InputText("", buf, sizeof(buf), ImGuiInputTextFlags_ReadOnly);
 
 		graphics::ITexture* pTexture = pMaterial->GetTexture(emType);
 		if (pTexture != nullptr)
 		{
-			if (ImGui::Button(String::Format("%d.Clear", nIndex).c_str()) == true)
+			if (ImGui::Button(string::Format("%d.Clear", nIndex).c_str()) == true)
 			{
 				pMaterial->SetTextureName(emType, "");
 				pMaterial->SetTexture(emType, nullptr);
@@ -1549,7 +1549,7 @@ void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nInd
 			ImGui::SameLine();
 			if (pTexture->GetState() == graphics::IResource::eComplete)
 			{
-				static std::unordered_map<String::StringID, bool> umapIsShowBigTexture;
+				static std::unordered_map<string::StringID, bool> umapIsShowBigTexture;
 
 				bool& isShow = umapIsShowBigTexture[pTexture->GetName()];
 
@@ -1923,7 +1923,7 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 
 			if (ImGui::Button("Confirm") == true)
 			{
-				if (String::Length(buf) > 1)
+				if (string::Length(buf) > 1)
 				{
 					gameobject::IActor::Create(buf);
 				}
@@ -2003,10 +2003,10 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 				const std::string strFileExtension = file::GetFileExtension(path);
 				if (strFileExtension.empty() == true)
 				{
-					String::Concat(path, sizeof(path), ".eact");
+					string::Concat(path, sizeof(path), ".eact");
 				}
 
-				if (String::IsEqualsNoCase(file::GetFileExtension(path).c_str(), ".eact") == true)
+				if (string::IsEqualsNoCase(file::GetFileExtension(path).c_str(), ".eact") == true)
 				{
 					gameobject::IActor::SaveToFile(pActor, path);
 				}
@@ -2018,7 +2018,7 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 			if (pActor != nullptr)
 			{
 				static char buf[128]{};
-				String::Copy(buf, pActor->GetName().c_str());
+				string::Copy(buf, pActor->GetName().c_str());
 
 				ImGui::PushID(buf);
 
@@ -2225,10 +2225,10 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 											const std::string strFileExtension = file::GetFileExtension(path);
 											if (strFileExtension.empty() == true)
 											{
-												String::Concat(path, sizeof(path), ".emod");
+												string::Concat(path, sizeof(path), ".emod");
 											}
 
-											if (String::IsEqualsNoCase(file::GetFileExtension(path).c_str(), ".emod") == true)
+											if (string::IsEqualsNoCase(file::GetFileExtension(path).c_str(), ".emod") == true)
 											{
 												if (graphics::IModel::SaveToFile(pModel, path) == false)
 												{
@@ -2253,7 +2253,7 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 									}
 
 									static char bufName[128]{};
-									String::Copy(bufName, pModel->GetName().c_str());
+									string::Copy(bufName, pModel->GetName().c_str());
 
 									ImGui::PushID(bufName);
 
@@ -2263,7 +2263,7 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 									}
 
 									static char bufPath[512]{};
-									String::Copy(bufPath, pModel->GetFilePath().c_str());
+									string::Copy(bufPath, pModel->GetFilePath().c_str());
 									ImGui::InputText("Path", bufPath, sizeof(bufPath), ImGuiInputTextFlags_::ImGuiInputTextFlags_ReadOnly);
 
 									int nModelNode = 0;
@@ -2290,7 +2290,7 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 											ImGui::Text("IndexCount : %u", nIndexCount);
 
 											bool isVisibleModelNode = pModelNode->IsVisible();
-											if (ImGui::Checkbox(String::Format("%d. Model Visible", nModelNode).c_str(), &isVisibleModelNode) == true)
+											if (ImGui::Checkbox(string::Format("%d. Model Visible", nModelNode).c_str(), &isVisibleModelNode) == true)
 											{
 												pModelNode->SetVisible(isVisibleModelNode);
 											}
@@ -2304,7 +2304,7 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 											{
 												graphics::IMaterial* pMaterial = pModelNode->GetMaterial(k);
 
-												std::string strMtrlName = String::Format("%d. %s", nMaterialIndex, pMaterial->GetName().c_str());
+												std::string strMtrlName = string::Format("%d. %s", nMaterialIndex, pMaterial->GetName().c_str());
 
 												static std::unordered_map<std::string, bool> umapIsShowMaterial;
 												bool& isShow = umapIsShowMaterial[strMtrlName];
@@ -2359,9 +2359,9 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 								if (GetOpenFileName(&ofn) != 0)
 								{
 									const std::string strFileExtension = file::GetFileExtension(ofn.lpstrFile);
-									if (String::IsEqualsNoCase(strFileExtension.c_str(), ".fbx") == true)
+									if (string::IsEqualsNoCase(strFileExtension.c_str(), ".fbx") == true)
 									{
-										String::StringID strName;
+										string::StringID strName;
 										strName.Format("%s(%f)", file::GetFileName(ofn.lpstrFile).c_str(), fScaleFactor);
 
 										graphics::ModelLoader loader;
@@ -2370,9 +2370,9 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 
 										pCompModel->Init(&loader);
 									}
-									else if (String::IsEqualsNoCase(strFileExtension.c_str(), ".obj") == true)
+									else if (string::IsEqualsNoCase(strFileExtension.c_str(), ".obj") == true)
 									{
-										String::StringID strName;
+										string::StringID strName;
 										strName.Format("%s(%f)", file::GetFileName(ofn.lpstrFile).c_str(), fScaleFactor);
 
 										graphics::ModelLoader loader;
@@ -2381,7 +2381,7 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 
 										pCompModel->Init(&loader);
 									}
-									else if (String::IsEqualsNoCase(strFileExtension.c_str(), ".emod") == true)
+									else if (string::IsEqualsNoCase(strFileExtension.c_str(), ".emod") == true)
 									{
 										graphics::ModelLoader loader;
 										loader.InitEast(file::GetFileName(ofn.lpstrFile).c_str(), ofn.lpstrFile);

@@ -5,7 +5,7 @@
 class SceneWorld : public eastengine::IScene
 {
 public:
-	SceneWorld(const eastengine::String::StringID& strSceneName);
+	SceneWorld(const eastengine::string::StringID& strSceneName);
 	virtual ~SceneWorld();
 
 public:

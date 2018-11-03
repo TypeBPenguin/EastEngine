@@ -269,7 +269,7 @@ namespace eastengine
 		{
 			if ((m_nOpenMode & OpenMode::eBinary) == 0)
 			{
-				m_file << String::WideToMulti(value.c_str(), CP_ACP);
+				m_file << string::WideToMulti(value.c_str(), CP_ACP);
 			}
 			else
 			{
@@ -287,7 +287,7 @@ namespace eastengine
 				std::string str;
 				m_file >> str;
 
-				value = String::MultiToWide(str.c_str(), CP_ACP);
+				value = string::MultiToWide(str.c_str(), CP_ACP);
 			}
 			else
 			{

@@ -73,6 +73,9 @@
     <Filter Include="imgui\Win32">
       <UniqueIdentifier>{31d75df5-49df-4868-b266-7057c5ca583a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Render\Interface">
+      <UniqueIdentifier>{4b36d37c-bedc-47e3-ad9f-42960b2d1581}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -147,6 +150,9 @@
     <ClInclude Include="imstb_truetype.h">
       <Filter>imgui</Filter>
     </ClInclude>
+    <ClInclude Include="Renderer.h">
+      <Filter>Render\Interface</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -211,6 +217,9 @@
     </ClCompile>
     <ClCompile Include="imgui_widgets.cpp">
       <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer.cpp">
+      <Filter>Render\Interface</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

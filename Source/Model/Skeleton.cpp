@@ -7,12 +7,12 @@ namespace eastengine
 {
 	namespace graphics
 	{
-		Skeleton::SkinnedData::SkinnedData(const String::StringID& strName)
+		Skeleton::SkinnedData::SkinnedData(const string::StringID& strName)
 			: strName(strName)
 		{
 		}
 
-		Skeleton::Bone::Bone(const String::StringID& strBoneName, const math::Matrix& matMotionOffset, const math::Matrix& matDefaultMotionData, uint32_t nIndex, uint32_t nParentIndex)
+		Skeleton::Bone::Bone(const string::StringID& strBoneName, const math::Matrix& matMotionOffset, const math::Matrix& matDefaultMotionData, uint32_t nIndex, uint32_t nParentIndex)
 			: m_strBoneName(strBoneName)
 			, m_matMotionOffset(matMotionOffset)
 			, m_matDefaultMotionData(matDefaultMotionData)
@@ -47,7 +47,7 @@ namespace eastengine
 		{
 		}
 
-		ISkeleton::IBone* Skeleton::GetBone(const String::StringID& strBoneName)
+		ISkeleton::IBone* Skeleton::GetBone(const string::StringID& strBoneName)
 		{
 			auto iter = std::find_if(m_vecBones.begin(), m_vecBones.end(), [&](Skeleton::Bone& bone)
 			{
@@ -60,7 +60,7 @@ namespace eastengine
 			return nullptr;
 		}
 
-		void Skeleton::GetSkinnedList(uint32_t nIndex, String::StringID& strSkinnedName_out, const String::StringID** pBoneNames_out, uint32_t& nElementCount_out)
+		void Skeleton::GetSkinnedList(uint32_t nIndex, string::StringID& strSkinnedName_out, const string::StringID** pBoneNames_out, uint32_t& nElementCount_out)
 		{
 			if (nIndex >= m_vecSkinnedList.size())
 			{
@@ -75,7 +75,7 @@ namespace eastengine
 			nElementCount_out = static_cast<uint32_t>(m_vecSkinnedList[nIndex].vecBoneNames.size());
 		}
 
-		bool Skeleton::CreateBone(const String::StringID& strBoneName, const math::Matrix& matMotionOffset, const math::Matrix& matDefaultMotionData)
+		bool Skeleton::CreateBone(const string::StringID& strBoneName, const math::Matrix& matMotionOffset, const math::Matrix& matDefaultMotionData)
 		{
 			if (strBoneName.empty() == true)
 				return false;
@@ -86,7 +86,7 @@ namespace eastengine
 			return true;
 		}
 
-		bool Skeleton::CreateBone(const String::StringID& strParentBoneName, const String::StringID& strBoneName, const math::Matrix& matMotionOffset, const math::Matrix& matDefaultMotionData)
+		bool Skeleton::CreateBone(const string::StringID& strParentBoneName, const string::StringID& strBoneName, const math::Matrix& matMotionOffset, const math::Matrix& matDefaultMotionData)
 		{
 			if (strParentBoneName.empty() == true || strBoneName.empty() == true)
 				return false;
@@ -101,7 +101,7 @@ namespace eastengine
 			return true;
 		}
 
-		void Skeleton::SetSkinnedList(const String::StringID& strSkinnedName, const String::StringID* pBoneNames, size_t nNameCount)
+		void Skeleton::SetSkinnedList(const string::StringID& strSkinnedName, const string::StringID* pBoneNames, size_t nNameCount)
 		{
 			if (strSkinnedName.empty() == true || pBoneNames == nullptr || nNameCount == 0)
 				return;
@@ -116,7 +116,7 @@ namespace eastengine
 
 			m_vecSkinnedList.emplace_back(strSkinnedName);
 
-			std::vector<String::StringID>& vecNames = m_vecSkinnedList.back().vecBoneNames;
+			std::vector<string::StringID>& vecNames = m_vecSkinnedList.back().vecBoneNames;
 			vecNames.reserve(nNameCount);
 
 			vecNames.insert(vecNames.end(), pBoneNames, pBoneNames + nNameCount);
@@ -185,7 +185,7 @@ namespace eastengine
 			});
 		}
 
-		SkeletonInstance::IBone* SkeletonInstance::GetBone(const String::StringID& strBoneName)
+		SkeletonInstance::IBone* SkeletonInstance::GetBone(const string::StringID& strBoneName)
 		{
 			auto iter = m_umapBones.find(strBoneName);
 			if (iter != m_umapBones.end())
@@ -194,7 +194,7 @@ namespace eastengine
 			return nullptr;
 		}
 
-		void SkeletonInstance::GetSkinnedData(const String::StringID& strSkinnedName, const math::Matrix*** pppMatrixList_out, uint32_t& nElementCount_out)
+		void SkeletonInstance::GetSkinnedData(const string::StringID& strSkinnedName, const math::Matrix*** pppMatrixList_out, uint32_t& nElementCount_out)
 		{
 			auto iter = m_umapSkinnendData.find(strSkinnedName);
 			if (iter == m_umapSkinnendData.end())
@@ -226,8 +226,8 @@ namespace eastengine
 			const uint32_t nCount = pSkeleton->GetSkinnedListCount();
 			for (uint32_t i = 0; i < nCount; ++i)
 			{
-				String::StringID strSkinnedName;
-				const String::StringID* pBoneNames = nullptr;
+				string::StringID strSkinnedName;
+				const string::StringID* pBoneNames = nullptr;
 				uint32_t nBoneCount = 0;
 
 				pSkeleton->GetSkinnedList(i, strSkinnedName, &pBoneNames, nBoneCount);

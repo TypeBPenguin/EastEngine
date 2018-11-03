@@ -10,7 +10,7 @@ namespace eastengine
 		namespace vulkan
 		{
 			struct tKey {};
-			using PSOKey = PhantomType<tKey, const String::StringID>;
+			using PSOKey = PhantomType<tKey, const string::StringID>;
 
 			enum CompileShaderType
 			{
@@ -69,7 +69,7 @@ namespace std
 	template <>
 	struct hash<eastengine::graphics::vulkan::PSOKey>
 	{
-		const eastengine::String::StringData* operator()(const eastengine::graphics::vulkan::PSOKey& key) const
+		const eastengine::string::StringData* operator()(const eastengine::graphics::vulkan::PSOKey& key) const
 		{
 			return key.Value().Key();
 		}

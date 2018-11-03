@@ -47,7 +47,7 @@ namespace eastengine
 
 			void Reset(float fStartTime);
 
-			const math::Transform* GetTransform(const String::StringID& strBoneName) const;
+			const math::Transform* GetTransform(const string::StringID& strBoneName) const;
 
 		private:
 			bool m_isStop;

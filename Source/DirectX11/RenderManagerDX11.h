@@ -15,7 +15,7 @@ namespace eastengine
 				~RenderManager();
 
 			public:
-				void Flush();
+				void Cleanup();
 				void Render();
 
 			public:

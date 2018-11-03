@@ -3,6 +3,7 @@
 
 #include "GraphicsInterface/Camera.h"
 
+#include "UtilDX12.h"
 #include "DeviceDX12.h"
 #include "GBufferDX12.h"
 
@@ -19,6 +20,7 @@
 #include "ColorGradingDX12.h"
 #include "BloomFilterDX12.h"
 #include "SSSDX12.h"
+#include "HDRFilterDX12.h"
 
 namespace eastengine
 {
@@ -33,59 +35,62 @@ namespace eastengine
 				~Impl();
 
 			public:
-				void Flush();
+				void Cleanup();
 				void Render();
 
 			public:
-				void PushJob(const RenderJobStatic& renderJob) { m_pModelRenderer->PushJob(renderJob); }
-				void PushJob(const RenderJobSkinned& renderJob) { m_pModelRenderer->PushJob(renderJob); }
-				void PushJob(const RenderJobTerrain& renderJob) { m_pTerrainRenderer->PushJob(renderJob); }
+				void PushJob(const RenderJobStatic& renderJob) { GetModelRenderer()->PushJob(renderJob); }
+				void PushJob(const RenderJobSkinned& renderJob) { GetModelRenderer()->PushJob(renderJob); }
+				void PushJob(const RenderJobTerrain& renderJob) { GetTerrainRenderer()->PushJob(renderJob); }
 
 			private:
 				void UpdateOptions(const Options& curOptions);
 
 			private:
-				std::unique_ptr<ModelRenderer> m_pModelRenderer;
-				std::unique_ptr<DeferredRenderer> m_pDeferredRenderer;
-				std::unique_ptr<EnvironmentRenderer> m_pEnvironmentRenderer;
-				std::unique_ptr<TerrainRenderer> m_pTerrainRenderer;
+				ModelRenderer* GetModelRenderer() const { return static_cast<ModelRenderer*>(m_pRenderers[IRenderer::eModel].get()); }
+				DeferredRenderer* GetDeferredRenderer() const { return static_cast<DeferredRenderer*>(m_pRenderers[IRenderer::eDeferred].get()); }
+				EnvironmentRenderer* GetEnvironmentRenderer() const { return static_cast<EnvironmentRenderer*>(m_pRenderers[IRenderer::eEnvironment].get()); }
+				TerrainRenderer* GetTerrainRenderer() const { return static_cast<TerrainRenderer*>(m_pRenderers[IRenderer::eTerrain].get()); }
+				Fxaa* GetFxaa() const { return static_cast<Fxaa*>(m_pRenderers[IRenderer::eFxaa].get()); }
+				DownScale* GetDownScale() const { return static_cast<DownScale*>(m_pRenderers[IRenderer::eDownScale].get()); }
+				GaussianBlur* GetGaussianBlur() const { return static_cast<GaussianBlur*>(m_pRenderers[IRenderer::eGaussianBlur].get()); }
+				DepthOfField* GetDepthOfField() const { return static_cast<DepthOfField*>(m_pRenderers[IRenderer::eDepthOfField].get()); }
+				Assao* GetAssao() const { return static_cast<Assao*>(m_pRenderers[IRenderer::eAssao].get()); }
+				ColorGrading* GetColorGrading() const { return static_cast<ColorGrading*>(m_pRenderers[IRenderer::eColorGrading].get()); }
+				BloomFilter* GetBloomFilter() const { return static_cast<BloomFilter*>(m_pRenderers[IRenderer::eBloomFilter].get()); }
+				SSS* GetSSS() const { return static_cast<SSS*>(m_pRenderers[IRenderer::eSSS].get()); }
+				HDRFilter* GetHDRFilter() const { return static_cast<HDRFilter*>(m_pRenderers[IRenderer::eHDR].get()); }
 
-				std::unique_ptr<Fxaa> m_pFxaa;
-				std::unique_ptr<DownScale> m_pDownScale;
-				std::unique_ptr<GaussianBlur> m_pGaussianBlur;
-				std::unique_ptr<DepthOfField> m_pDepthOfField;
-				std::unique_ptr<Assao> m_pAssao;
-				std::unique_ptr<ColorGrading> m_pColorGrading;
-				std::unique_ptr<BloomFilter> m_pBloomFilter;
-				std::unique_ptr<SSS> m_pSSS;
+			private:
+				std::array<std::unique_ptr<IRendererDX12>, IRenderer::TypeCount> m_pRenderers{ nullptr };
 
 				Options m_prevOptions;
 			};
 
 			RenderManager::Impl::Impl()
-				: m_pModelRenderer{ std::make_unique<ModelRenderer>() }
-				, m_pDeferredRenderer{ std::make_unique<DeferredRenderer>() }
-				, m_pEnvironmentRenderer{ std::make_unique<EnvironmentRenderer>() }
-				, m_pTerrainRenderer{ std::make_unique<TerrainRenderer>() }
 			{
+				m_pRenderers[IRenderer::eModel] = std::make_unique<ModelRenderer>();
+				m_pRenderers[IRenderer::eDeferred] = std::make_unique<DeferredRenderer>();
+				m_pRenderers[IRenderer::eEnvironment] = std::make_unique<EnvironmentRenderer>();
+				m_pRenderers[IRenderer::eTerrain] = std::make_unique<TerrainRenderer>();
 			}
 
 			RenderManager::Impl::~Impl()
 			{
 			}
 
-			void RenderManager::Impl::Flush()
+			void RenderManager::Impl::Cleanup()
 			{
-				m_pModelRenderer->Flush();
-				m_pDeferredRenderer->Flush();
-				m_pEnvironmentRenderer->Flush();
-				m_pTerrainRenderer->Flush();
+				GetModelRenderer()->Cleanup();
+				GetDeferredRenderer()->Cleanup();
+				GetEnvironmentRenderer()->Cleanup();
+				GetTerrainRenderer()->Cleanup();
 			}
 
 			void RenderManager::Impl::Render()
 			{
 				Device* pDeviceInstance = Device::GetInstance();
-				int nFrameIndex = pDeviceInstance->GetFrameIndex();
+				const uint32_t nFrameIndex = pDeviceInstance->GetFrameIndex();
 
 				GBuffer* pGBuffer = pDeviceInstance->GetGBuffer(nFrameIndex);
 				{
@@ -97,14 +102,10 @@ namespace eastengine
 					ID3D12GraphicsCommandList2* pCommandList = pDeviceInstance->GetCommandList(0);
 					pDeviceInstance->ResetCommandList(0, nullptr);
 
-					const D3D12_RESOURCE_BARRIER transition[] =
-					{
-						pNormalsRT->Transition(D3D12_RESOURCE_STATE_RENDER_TARGET),
-						pColorsRT->Transition(D3D12_RESOURCE_STATE_RENDER_TARGET),
-						pDisneyBRDFRT->Transition(D3D12_RESOURCE_STATE_RENDER_TARGET),
-						pDepthStencil->Transition(D3D12_RESOURCE_STATE_DEPTH_WRITE),
-					};
-					pCommandList->ResourceBarrier(_countof(transition), transition);
+					util::ChangeResourceState(pCommandList, pNormalsRT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+					util::ChangeResourceState(pCommandList, pColorsRT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+					util::ChangeResourceState(pCommandList, pDisneyBRDFRT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+					util::ChangeResourceState(pCommandList, pDepthStencil, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 
 					pGBuffer->Clear(pCommandList);
 
@@ -117,13 +118,17 @@ namespace eastengine
 
 				UpdateOptions(options);
 
-				m_pEnvironmentRenderer->Render(pCamera);
-				m_pTerrainRenderer->Render(pCamera);
+				GetEnvironmentRenderer()->Render(pCamera);
+				GetTerrainRenderer()->Render(pCamera);
 
-				m_pModelRenderer->Render(pCamera, ModelRenderer::eDeferred);
-				m_pDeferredRenderer->Render(pCamera);
+				GetModelRenderer()->Render(pCamera, ModelRenderer::eDeferred);
+				GetDeferredRenderer()->Render(pCamera);
 
-				const D3D12_RESOURCE_DESC swapchainDesc = pDeviceInstance->GetSwapChainRenderTarget(nFrameIndex)->GetDesc();
+				D3D12_RESOURCE_DESC swapchainDesc = pDeviceInstance->GetSwapChainRenderTarget(nFrameIndex)->GetDesc();
+				if (options.OnHDR == true)
+				{
+					swapchainDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				}
 
 				// PostProcessing
 				{
@@ -134,36 +139,7 @@ namespace eastengine
 						RenderTarget* pSource = pDeviceInstance->GetLastUsedRenderTarget();
 						DepthStencil* pDepth = pGBuffer->GetDepthStencil();
 
-						ID3D12GraphicsCommandList2* pCommandList = pDeviceInstance->GetCommandList(0);
-						pDeviceInstance->ResetCommandList(0, nullptr);
-
-						if (pSSS->GetResourceState() != D3D12_RESOURCE_STATE_RENDER_TARGET)
-						{
-							const D3D12_RESOURCE_BARRIER transition[] =
-							{
-								pSSS->Transition(D3D12_RESOURCE_STATE_RENDER_TARGET),
-							};
-							pCommandList->ResourceBarrier(_countof(transition), transition);
-						}
-						pSSS->Clear(pCommandList);
-
-						if (pSource->GetResourceState() != D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
-						{
-							const D3D12_RESOURCE_BARRIER transition[] =
-							{
-								pSource->Transition(D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
-							};
-							pCommandList->ResourceBarrier(_countof(transition), transition);
-						}
-
-						m_pSSS->Apply(pCommandList, pSource, pDepth, pSSS);
-
-						HRESULT hr = pCommandList->Close();
-						if (FAILED(hr))
-						{
-							throw_line("failed to close command list");
-						}
-						pDeviceInstance->ExecuteCommandList(pCommandList);
+						GetSSS()->Apply(pSource, pDepth, pSSS);
 
 						pDeviceInstance->ReleaseRenderTargets(&pSSS);
 					}
@@ -174,26 +150,34 @@ namespace eastengine
 						const RenderTarget* pNormalMap = pGBuffer->GetRenderTarget(EmGBuffer::eNormals);
 						const DepthStencil* pDepth = pGBuffer->GetDepthStencil();
 
-						m_pAssao->Apply(pCamera, pNormalMap, pDepth, pLastUseRenderTarget);
+						GetAssao()->Apply(pCamera, pNormalMap, pDepth, pLastUseRenderTarget);
 					}
 				}
 
-				m_pModelRenderer->Render(pCamera, ModelRenderer::eAlphaBlend);
+				GetModelRenderer()->Render(pCamera, ModelRenderer::eAlphaBlend);
 
 				{
-					// HDR
+					if (options.OnHDR == true)
+					{
+						RenderTarget* pHDR = pDeviceInstance->GetRenderTarget(&swapchainDesc, math::Color::Transparent, false);
+						RenderTarget* pSource = pDeviceInstance->GetLastUsedRenderTarget();
+						GetHDRFilter()->Apply(pSource, pHDR);
+
+						pDeviceInstance->ReleaseRenderTargets(&pHDR);
+					}
+
 					if (options.OnBloomFilter == true)
 					{
 						RenderTarget* pSource = pDeviceInstance->GetLastUsedRenderTarget();
-						m_pBloomFilter->Apply(pSource);
+						GetBloomFilter()->Apply(pSource);
 					}
 
 					if (options.OnColorGrading == true)
 					{
 						RenderTarget* pColorGrading = pDeviceInstance->GetRenderTarget(&swapchainDesc, math::Color::Transparent, false);
-						const RenderTarget* pSource = pDeviceInstance->GetLastUsedRenderTarget();
+						RenderTarget* pSource = pDeviceInstance->GetLastUsedRenderTarget();
 
-						m_pColorGrading->Apply(pCamera, pSource, pColorGrading);
+						GetColorGrading()->Apply(pCamera, pSource, pColorGrading);
 
 						pDeviceInstance->ReleaseRenderTargets(&pColorGrading);
 					}
@@ -204,35 +188,7 @@ namespace eastengine
 						RenderTarget* pSource = pDeviceInstance->GetLastUsedRenderTarget();
 						DepthStencil* pDepth = pGBuffer->GetDepthStencil();
 
-						ID3D12GraphicsCommandList2* pCommandList = pDeviceInstance->GetCommandList(0);
-						pDeviceInstance->ResetCommandList(0, nullptr);
-
-						if (pSource->GetResourceState() != D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
-						{
-							const D3D12_RESOURCE_BARRIER transition[] =
-							{
-								pSource->Transition(D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
-							};
-							pCommandList->ResourceBarrier(_countof(transition), transition);
-						}
-
-						m_pDepthOfField->Apply(pCommandList, pCamera, pSource, pDepth, pDepthOfField);
-
-						if (pSource->GetResourceState() != D3D12_RESOURCE_STATE_RENDER_TARGET)
-						{
-							const D3D12_RESOURCE_BARRIER transition[] =
-							{
-								pSource->Transition(D3D12_RESOURCE_STATE_RENDER_TARGET),
-							};
-							pCommandList->ResourceBarrier(_countof(transition), transition);
-						}
-
-						HRESULT hr = pCommandList->Close();
-						if (FAILED(hr))
-						{
-							throw_line("failed to close command list");
-						}
-						pDeviceInstance->ExecuteCommandList(pCommandList);
+						GetDepthOfField()->Apply(pCamera, pSource, pDepth, pDepthOfField);
 
 						pDeviceInstance->ReleaseRenderTargets(&pDepthOfField);
 					}
@@ -240,9 +196,9 @@ namespace eastengine
 					if (options.OnFXAA == true)
 					{
 						RenderTarget* pFxaa = pDeviceInstance->GetRenderTarget(&swapchainDesc, math::Color::Transparent, false);
-						const RenderTarget* pSource = pDeviceInstance->GetLastUsedRenderTarget();
+						RenderTarget* pSource = pDeviceInstance->GetLastUsedRenderTarget();
 
-						m_pFxaa->Apply(pSource, pFxaa);
+						GetFxaa()->Apply(pSource, pFxaa);
 
 						pDeviceInstance->ReleaseRenderTargets(&pFxaa);
 					}
@@ -255,25 +211,14 @@ namespace eastengine
 
 					ID3D12GraphicsCommandList2* pCommandList = pDeviceInstance->GetCommandList(0);
 					pDeviceInstance->ResetCommandList(0, nullptr);
-					{
-						const D3D12_RESOURCE_BARRIER transition[] =
-						{
-							pSwapChainRenderTarget->Transition(D3D12_RESOURCE_STATE_COPY_DEST),
-							pLastUseRenderTarget->Transition(D3D12_RESOURCE_STATE_COPY_SOURCE),
-						};
-						pCommandList->ResourceBarrier(_countof(transition), transition);
-					}
+
+					util::ChangeResourceState(pCommandList, pSwapChainRenderTarget, D3D12_RESOURCE_STATE_COPY_DEST);
+					util::ChangeResourceState(pCommandList, pLastUseRenderTarget, D3D12_RESOURCE_STATE_COPY_SOURCE);
 
 					pCommandList->CopyResource(pSwapChainRenderTarget->GetResource(), pLastUseRenderTarget->GetResource());
 
-					{
-						const D3D12_RESOURCE_BARRIER transition[] =
-						{
-							pSwapChainRenderTarget->Transition(D3D12_RESOURCE_STATE_PRESENT),
-							pLastUseRenderTarget->Transition(D3D12_RESOURCE_STATE_RENDER_TARGET),
-						};
-						pCommandList->ResourceBarrier(_countof(transition), transition);
-					}
+					util::ChangeResourceState(pCommandList, pSwapChainRenderTarget, D3D12_RESOURCE_STATE_PRESENT);
+					util::ChangeResourceState(pCommandList, pLastUseRenderTarget, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
 					HRESULT hr = pCommandList->Close();
 					if (FAILED(hr))
@@ -291,9 +236,20 @@ namespace eastengine
 				{
 					if (curOptions.OnHDR == true)
 					{
+						m_pRenderers[IRenderer::eHDR] = std::make_unique<HDRFilter>();
 					}
 					else
 					{
+						m_pRenderers[IRenderer::eHDR].reset();
+					}
+
+					ID3D12Device* pDevice = Device::GetInstance()->GetInterface();
+					for (auto& pRenderer : m_pRenderers)
+					{
+						if (pRenderer != nullptr)
+						{
+							pRenderer->RefreshPSO(pDevice);
+						}
 					}
 				}
 
@@ -301,11 +257,11 @@ namespace eastengine
 				{
 					if (curOptions.OnFXAA == true)
 					{
-						m_pFxaa = std::make_unique<Fxaa>();
+						m_pRenderers[IRenderer::eFxaa] = std::make_unique<Fxaa>();
 					}
 					else
 					{
-						m_pFxaa.reset();
+						m_pRenderers[IRenderer::eFxaa].reset();
 					}
 				}
 
@@ -313,11 +269,11 @@ namespace eastengine
 				{
 					if (curOptions.OnDOF == true)
 					{
-						m_pDepthOfField = std::make_unique<DepthOfField>();
+						m_pRenderers[IRenderer::eDepthOfField] = std::make_unique<DepthOfField>();
 					}
 					else
 					{
-						m_pDepthOfField.reset();
+						m_pRenderers[IRenderer::eDepthOfField].reset();
 					}
 				}
 
@@ -325,11 +281,11 @@ namespace eastengine
 				{
 					if (curOptions.OnASSAO == true)
 					{
-						m_pAssao = std::make_unique<Assao>();
+						m_pRenderers[IRenderer::eAssao] = std::make_unique<Assao>();
 					}
 					else
 					{
-						m_pAssao.reset();
+						m_pRenderers[IRenderer::eAssao].reset();
 					}
 				}
 
@@ -337,11 +293,11 @@ namespace eastengine
 				{
 					if (curOptions.OnColorGrading == true)
 					{
-						m_pColorGrading = std::make_unique<ColorGrading>();
+						m_pRenderers[IRenderer::eColorGrading] = std::make_unique<ColorGrading>();
 					}
 					else
 					{
-						m_pColorGrading.reset();
+						m_pRenderers[IRenderer::eColorGrading].reset();
 					}
 				}
 
@@ -349,11 +305,23 @@ namespace eastengine
 				{
 					if (curOptions.OnBloomFilter == true)
 					{
-						m_pBloomFilter = std::make_unique<BloomFilter>();
+						m_pRenderers[IRenderer::eBloomFilter] = std::make_unique<BloomFilter>();
 					}
 					else
 					{
-						m_pBloomFilter.reset();
+						m_pRenderers[IRenderer::eBloomFilter].reset();
+					}
+				}
+
+				if (m_prevOptions.OnSSS != curOptions.OnSSS)
+				{
+					if (curOptions.OnSSS == true)
+					{
+						m_pRenderers[IRenderer::eSSS] = std::make_unique<SSS>();
+					}
+					else
+					{
+						m_pRenderers[IRenderer::eSSS].reset();
 					}
 				}
 
@@ -369,9 +337,9 @@ namespace eastengine
 			{
 			}
 
-			void RenderManager::Flush()
+			void RenderManager::Cleanup()
 			{
-				m_pImpl->Flush();
+				m_pImpl->Cleanup();
 			}
 
 			void RenderManager::Render()

@@ -16,19 +16,19 @@ namespace eastengine
 			virtual ~MaterialInstance();
 
 		public:
-			virtual IMaterial* GetMaterial(const String::StringID& strNodeName, uint32_t nIndex) const override;
+			virtual IMaterial* GetMaterial(const string::StringID& strNodeName, uint32_t nIndex) const override;
 
 		public:
-			void AddMaterial(const String::StringID& strNodeName, uint32_t nIndex, IMaterial* pMaterial);
+			void AddMaterial(const string::StringID& strNodeName, uint32_t nIndex, IMaterial* pMaterial);
 
 		private:
 			struct NodeMaterial
 			{
-				String::StringID strNodeName;
+				string::StringID strNodeName;
 				uint32_t nIndex = std::numeric_limits<uint32_t>::max();
 				IMaterial* pMaterial = nullptr;
 
-				NodeMaterial(const String::StringID& strNodeName, uint32_t nIndex, IMaterial* pMaterial);
+				NodeMaterial(const string::StringID& strNodeName, uint32_t nIndex, IMaterial* pMaterial);
 			};
 
 			std::vector<NodeMaterial> m_vecMaterials;
@@ -46,11 +46,11 @@ namespace eastengine
 				};
 
 				ModelInstance* pInstance{ nullptr };
-				String::StringID strNodeName;
+				string::StringID strNodeName;
 				Type emType = Type::eNone;
 				math::Matrix matOffset;
 
-				AttachmentNode(ModelInstance* pInstance, const String::StringID& strNodeName, const math::Matrix& matOffset, Type emAttachNodeType);
+				AttachmentNode(ModelInstance* pInstance, const string::StringID& strNodeName, const math::Matrix& matOffset, Type emAttachNodeType);
 			};
 
 		public:
@@ -64,7 +64,7 @@ namespace eastengine
 		public:
 			virtual void Update(float fElapsedTime, const math::Matrix& matParent) override;
 
-			virtual bool Attachment(IModelInstance* pInstance, const String::StringID& strNodeName, const math::Matrix& matOffset = math::Matrix::Identity) override;
+			virtual bool Attachment(IModelInstance* pInstance, const string::StringID& strNodeName, const math::Matrix& matOffset = math::Matrix::Identity) override;
 			virtual bool Attachment(IModelInstance* pInstance, const math::Matrix& matOffset = math::Matrix::Identity) override;
 			virtual IModelInstance* GetAttachment(size_t nIndex) const override { return m_vecAttachmentNode[nIndex].pInstance; }
 			virtual size_t GetAttachmentCount() const override { return m_vecAttachmentNode.size(); }
@@ -78,7 +78,7 @@ namespace eastengine
 			virtual void SetVisible(bool isVisible) { m_isVisible = isVisible; }
 			virtual bool IsVisible() const { return m_isVisible; }
 
-			virtual void ChangeMaterial(const String::StringID& strNodeName, uint32_t nIndex, IMaterial* pMaterial);
+			virtual void ChangeMaterial(const string::StringID& strNodeName, uint32_t nIndex, IMaterial* pMaterial);
 
 		public:
 			virtual IModel* GetModel() override { return m_pModel; }

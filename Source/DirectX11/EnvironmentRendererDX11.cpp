@@ -63,7 +63,7 @@ namespace eastengine
 
 			public:
 				void Render(ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext, Camera* pCamera);
-				void Flush();
+				void Cleanup();
 
 			private:
 				ID3D11VertexShader* m_pVertexShader{ nullptr };
@@ -81,7 +81,7 @@ namespace eastengine
 				strShaderPath.append("Environment\\Environment.hlsl");
 
 				ID3DBlob* pShaderBlob{ nullptr };
-				if (FAILED(D3DReadFileToBlob(String::MultiToWide(strShaderPath).c_str(), &pShaderBlob)))
+				if (FAILED(D3DReadFileToBlob(string::MultiToWide(strShaderPath).c_str(), &pShaderBlob)))
 				{
 					throw_line("failed to read shader file : Environment.hlsl");
 				}
@@ -98,14 +98,14 @@ namespace eastengine
 
 					util::GetInputElementDesc(VertexPosTexNor::Format(), &pInputElements, &nElementCount);
 
-					if (util::CreateVertexShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), "VS", "vs_5_0", &m_pVertexShader, pInputElements, nElementCount, &m_pInputLayout, "Environment_VS") == false)
+					if (util::CreateVertexShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), "VS", shader::VS_CompileVersion, &m_pVertexShader, pInputElements, nElementCount, &m_pInputLayout, "Environment_VS") == false)
 					{
 						throw_line("failed to create vertex shader");
 					}
 				}
 
 				{
-					if (util::CreatePixelShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), "PS", "ps_5_0", &m_pPixelShader, "Environment_PS") == false)
+					if (util::CreatePixelShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), "PS", shader::PS_CompileVersion, &m_pPixelShader, "Environment_PS") == false)
 					{
 						throw_line("failed to create pixel shader");
 					}
@@ -201,7 +201,7 @@ namespace eastengine
 				pDeviceInstance->ReleaseRenderTargets(&pRenderTarget);
 			}
 
-			void EnvironmentRenderer::Impl::Flush()
+			void EnvironmentRenderer::Impl::Cleanup()
 			{
 			}
 
@@ -219,9 +219,9 @@ namespace eastengine
 				m_pImpl->Render(pDevice, pDeviceContext, pCamera);
 			}
 
-			void EnvironmentRenderer::Flush()
+			void EnvironmentRenderer::Cleanup()
 			{
-				m_pImpl->Flush();
+				m_pImpl->Cleanup();
 			}
 		}
 	}

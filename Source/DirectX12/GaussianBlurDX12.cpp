@@ -62,7 +62,7 @@ namespace eastengine
 					}
 				}
 
-				void SetGaussianBlurContents(GaussianBlurContents* pGaussianBlurContents, 
+				void SetGaussianBlurContents(GaussianBlurContents* pGaussianBlurContents,
 					float fSigma, const math::Vector2& f2SourceDimensions,
 					uint32_t nTexColorIndex, uint32_t nTexDepthIndex)
 				{
@@ -83,6 +83,7 @@ namespace eastengine
 				~Impl();
 
 			public:
+				void RefreshPSO(ID3D12Device* pDevice);
 				void Apply(const RenderTarget* pSource, RenderTarget* pResult, float fSigma);
 				void Apply(const RenderTarget* pSource, const DepthStencil* pDepth, RenderTarget* pResult, float fSigma);
 
@@ -100,14 +101,14 @@ namespace eastengine
 
 				ID3D12RootSignature* CreateRootSignature(ID3D12Device* pDevice);
 				void CreatePipelineState(ID3D12Device* pDevice, ID3DBlob* pShaderBlob, const char* strShaderPath, shader::PSType emPSType);
+				void CreateBundles(ID3D12Device* pDevice, shader::PSType emPSType);
 
 				void ApplyBlur(Device* pDeviceInstance, shader::PSType emPSType, float fSigma, const RenderTarget* pSource, const DepthStencil* pDepth, RenderTarget* pResult);
 
 			private:
 				struct RenderState
 				{
-					ID3D12PipelineState* pPipelineState{ nullptr };
-					ID3D12RootSignature* pRootSignature{ nullptr };
+					PSOCache psoCache;
 
 					std::array<ID3D12GraphicsCommandList2*, eFrameBufferCount> pBundles{ nullptr };
 				};
@@ -122,7 +123,7 @@ namespace eastengine
 				strShaderPath.append("PostProcessing\\GaussianBlur\\GaussianBlur.hlsl");
 
 				ID3DBlob* pShaderBlob{ nullptr };
-				if (FAILED(D3DReadFileToBlob(String::MultiToWide(strShaderPath).c_str(), &pShaderBlob)))
+				if (FAILED(D3DReadFileToBlob(string::MultiToWide(strShaderPath).c_str(), &pShaderBlob)))
 				{
 					throw_line("failed to read shader file : GaussianBlur.hlsl");
 				}
@@ -131,48 +132,18 @@ namespace eastengine
 
 				for (int i = 0; i < shader::ePS_Count; ++i)
 				{
-					CreatePipelineState(pDevice, pShaderBlob, strShaderPath.c_str(), static_cast<shader::PSType>(i));
+					const shader::PSType emPSType = static_cast<shader::PSType>(i);
+					CreatePipelineState(pDevice, pShaderBlob, strShaderPath.c_str(), emPSType);
 				}
 
 				m_gaussianBlurContents.Create(pDevice, 1, "GaussianBlurContents");
 
 				SafeRelease(pShaderBlob);
 
-				DescriptorHeap* pSRVDescriptorHeap = Device::GetInstance()->GetSRVDescriptorHeap();
-
 				for (int i = 0; i < shader::ePS_Count; ++i)
 				{
 					const shader::PSType emPSType = static_cast<shader::PSType>(i);
-
-					for (int j = 0; j < eFrameBufferCount; ++j)
-					{
-						m_renderStates[emPSType].pBundles[j] = Device::GetInstance()->CreateBundle(m_renderStates[emPSType].pPipelineState);
-
-						ID3D12GraphicsCommandList2* pCommandList = m_renderStates[emPSType].pBundles[j];
-
-						pCommandList->SetGraphicsRootSignature(m_renderStates[emPSType].pRootSignature);
-
-						ID3D12DescriptorHeap* pDescriptorHeaps[] =
-						{
-							pSRVDescriptorHeap->GetHeap(j),
-						};
-						pCommandList->SetDescriptorHeaps(_countof(pDescriptorHeaps), pDescriptorHeaps);
-
-						pCommandList->SetGraphicsRootDescriptorTable(eRP_StandardDescriptor, pSRVDescriptorHeap->GetStartGPUHandle(j));
-						pCommandList->SetGraphicsRootConstantBufferView(eRP_GaussianBlurContents, m_gaussianBlurContents.GPUAddress(j));
-
-						pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-						pCommandList->IASetVertexBuffers(0, 0, nullptr);
-						pCommandList->IASetIndexBuffer(nullptr);
-
-						pCommandList->DrawInstanced(4, 1, 0, 0);
-
-						HRESULT hr = pCommandList->Close();
-						if (FAILED(hr))
-						{
-							throw_line("failed to close bundle");
-						}
-					}
+					CreateBundles(pDevice, emPSType);
 				}
 			}
 
@@ -184,11 +155,21 @@ namespace eastengine
 				{
 					for (int j = 0; j < eFrameBufferCount; ++j)
 					{
-						SafeRelease(renderState.pBundles[j]);
+						util::ReleaseResource(renderState.pBundles[j]);
+						renderState.pBundles[j] = nullptr;
 					}
 
-					SafeRelease(renderState.pPipelineState);
-					SafeRelease(renderState.pRootSignature);
+					renderState.psoCache.Destroy();
+				}
+			}
+
+			void GaussianBlur::Impl::RefreshPSO(ID3D12Device* pDevice)
+			{
+				for (int i = 0; i < shader::ePS_Count; ++i)
+				{
+					const shader::PSType emPSType = static_cast<shader::PSType>(i);
+					CreatePipelineState(pDevice, nullptr, nullptr, emPSType);
+					CreateBundles(pDevice, emPSType);
 				}
 			}
 
@@ -247,44 +228,56 @@ namespace eastengine
 
 			void GaussianBlur::Impl::CreatePipelineState(ID3D12Device* pDevice, ID3DBlob* pShaderBlob, const char* strShaderPath, shader::PSType emPSType)
 			{
-				const D3D_SHADER_MACRO macros[] =
-				{
-					{ "DX12", "1" },
-					{ nullptr, nullptr },
-				};
+				PSOCache& psoCache = m_renderStates[emPSType].psoCache;
 
-				ID3DBlob* pVertexShaderBlob = nullptr;
-				bool isSuccess = util::CompileShader(pShaderBlob, macros, strShaderPath, "VS", "vs_5_1", &pVertexShaderBlob);
-				if (isSuccess == false)
+				if (pShaderBlob != nullptr)
 				{
-					throw_line("failed to compile vertex shader");
+					const D3D_SHADER_MACRO macros[] =
+					{
+						{ "DX12", "1" },
+						{ nullptr, nullptr },
+					};
+
+					if (psoCache.pVSBlob == nullptr)
+					{
+						const bool isSuccess = util::CompileShader(pShaderBlob, macros, strShaderPath, "VS", shader::VS_CompileVersion, &psoCache.pVSBlob);
+						if (isSuccess == false)
+						{
+							throw_line("failed to compile vertex shader");
+						}
+					}
+
+					if (psoCache.pPSBlob == nullptr)
+					{
+						const bool isSuccess = util::CompileShader(pShaderBlob, macros, strShaderPath, GetGaussianBlurPSTypeString(emPSType), shader::PS_CompileVersion, &psoCache.pPSBlob);
+						if (isSuccess == false)
+						{
+							throw_line("failed to compile pixel shader");
+						}
+					}
 				}
 
-				ID3DBlob* pPixelShaderBlob = nullptr;
-				isSuccess = util::CompileShader(pShaderBlob, macros, strShaderPath, GetGaussianBlurPSTypeString(emPSType), "ps_5_1", &pPixelShaderBlob);
-				if (isSuccess == false)
+				const std::wstring wstrDebugName = string::MultiToWide(GetGaussianBlurPSTypeString(emPSType));
+
+				if (psoCache.pRootSignature == nullptr)
 				{
-					throw_line("failed to compile pixel shader");
+					psoCache.pRootSignature = CreateRootSignature(pDevice);
+					psoCache.pRootSignature->SetName(wstrDebugName.c_str());
 				}
 
 				D3D12_SHADER_BYTECODE vertexShaderBytecode{};
-				vertexShaderBytecode.BytecodeLength = pVertexShaderBlob->GetBufferSize();
-				vertexShaderBytecode.pShaderBytecode = pVertexShaderBlob->GetBufferPointer();
+				vertexShaderBytecode.BytecodeLength = psoCache.pVSBlob->GetBufferSize();
+				vertexShaderBytecode.pShaderBytecode = psoCache.pVSBlob->GetBufferPointer();
 
 				D3D12_SHADER_BYTECODE pixelShaderBytecode{};
-				pixelShaderBytecode.BytecodeLength = pPixelShaderBlob->GetBufferSize();
-				pixelShaderBytecode.pShaderBytecode = pPixelShaderBlob->GetBufferPointer();
+				pixelShaderBytecode.BytecodeLength = psoCache.pPSBlob->GetBufferSize();
+				pixelShaderBytecode.pShaderBytecode = psoCache.pPSBlob->GetBufferPointer();
 
 				DXGI_SAMPLE_DESC sampleDesc{};
 				sampleDesc.Count = 1;
 
-				std::wstring wstrDebugName = String::MultiToWide(GetGaussianBlurPSTypeString(emPSType));
-
-				ID3D12RootSignature* pRootSignature = CreateRootSignature(pDevice);
-				pRootSignature->SetName(wstrDebugName.c_str());
-
 				D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc{};
-				psoDesc.pRootSignature = pRootSignature;
+				psoDesc.pRootSignature = psoCache.pRootSignature;
 				psoDesc.VS = vertexShaderBytecode;
 				psoDesc.PS = pixelShaderBytecode;
 				psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
@@ -307,24 +300,58 @@ namespace eastengine
 				psoDesc.DSVFormat = DXGI_FORMAT_UNKNOWN;
 				psoDesc.DepthStencilState = util::GetDepthStencilDesc(EmDepthStencilState::eRead_Write_Off);
 
-				ID3D12PipelineState* pPipelineState = nullptr;
-				HRESULT hr = pDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pPipelineState));
+				HRESULT hr = pDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&psoCache.pPipelineState));
 				if (FAILED(hr))
 				{
 					throw_line("failed to create graphics pipeline state");
 				}
-				pPipelineState->SetName(wstrDebugName.c_str());
+				psoCache.pPipelineState->SetName(wstrDebugName.c_str());
+			}
 
-				m_renderStates[emPSType].pPipelineState = pPipelineState;
-				m_renderStates[emPSType].pRootSignature = pRootSignature;
+			void GaussianBlur::Impl::CreateBundles(ID3D12Device* pDevice, shader::PSType emPSType)
+			{
+				DescriptorHeap* pSRVDescriptorHeap = Device::GetInstance()->GetSRVDescriptorHeap();
 
-				SafeRelease(pVertexShaderBlob);
-				SafeRelease(pPixelShaderBlob);
+				for (int i = 0; i < eFrameBufferCount; ++i)
+				{
+					if (m_renderStates[emPSType].pBundles[i] != nullptr)
+					{
+						util::ReleaseResource(m_renderStates[emPSType].pBundles[i]);
+						m_renderStates[emPSType].pBundles[i] = nullptr;
+					}
+
+					m_renderStates[emPSType].pBundles[i] = Device::GetInstance()->CreateBundle(m_renderStates[emPSType].psoCache.pPipelineState);
+
+					ID3D12GraphicsCommandList2* pCommandList = m_renderStates[emPSType].pBundles[i];
+
+					pCommandList->SetGraphicsRootSignature(m_renderStates[emPSType].psoCache.pRootSignature);
+
+					ID3D12DescriptorHeap* pDescriptorHeaps[] =
+					{
+						pSRVDescriptorHeap->GetHeap(i),
+					};
+					pCommandList->SetDescriptorHeaps(_countof(pDescriptorHeaps), pDescriptorHeaps);
+
+					pCommandList->SetGraphicsRootDescriptorTable(eRP_StandardDescriptor, pSRVDescriptorHeap->GetStartGPUHandle(i));
+					pCommandList->SetGraphicsRootConstantBufferView(eRP_GaussianBlurContents, m_gaussianBlurContents.GPUAddress(i));
+
+					pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+					pCommandList->IASetVertexBuffers(0, 0, nullptr);
+					pCommandList->IASetIndexBuffer(nullptr);
+
+					pCommandList->DrawInstanced(4, 1, 0, 0);
+
+					HRESULT hr = pCommandList->Close();
+					if (FAILED(hr))
+					{
+						throw_line("failed to close bundle");
+					}
+				}
 			}
 
 			void GaussianBlur::Impl::ApplyBlur(Device* pDeviceInstance, shader::PSType emPSType, float fSigma, const RenderTarget* pSource, const DepthStencil* pDepth, RenderTarget* pResult)
 			{
-				const int nFrameIndex = pDeviceInstance->GetFrameIndex();
+				const uint32_t nFrameIndex = pDeviceInstance->GetFrameIndex();
 				const DescriptorHeap* pSRVDescriptorHeap = pDeviceInstance->GetSRVDescriptorHeap();
 
 				const D3D12_RESOURCE_DESC desc = pResult->GetDesc();
@@ -367,7 +394,7 @@ namespace eastengine
 				pCommandList->RSSetScissorRects(1, &scissorRect);
 				pCommandList->OMSetRenderTargets(_countof(rtvHandles), rtvHandles, FALSE, nullptr);
 
-				pCommandList->SetGraphicsRootSignature(m_renderStates[emPSType].pRootSignature);
+				pCommandList->SetGraphicsRootSignature(m_renderStates[emPSType].psoCache.pRootSignature);
 
 				ID3D12DescriptorHeap* pDescriptorHeaps[] =
 				{
@@ -393,6 +420,11 @@ namespace eastengine
 
 			GaussianBlur::~GaussianBlur()
 			{
+			}
+
+			void GaussianBlur::RefreshPSO(ID3D12Device* pDevice)
+			{
+				m_pImpl->RefreshPSO(pDevice);
 			}
 
 			void GaussianBlur::Apply(const RenderTarget* pSource, RenderTarget* pResult, float fSigma)

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "GraphicsInterface/Renderer.h"
+
 namespace eastengine
 {
 	namespace graphics
@@ -8,11 +10,14 @@ namespace eastengine
 		{
 			class RenderTarget;
 
-			class Fxaa
+			class Fxaa : public IRenderer
 			{
 			public:
 				Fxaa();
-				~Fxaa();
+				virtual ~Fxaa();
+
+			public:
+				virtual Type GetType() const { return IRenderer::eFxaa; }
 
 			public:
 				void Apply(const RenderTarget* pSource, RenderTarget* pResult);

@@ -109,7 +109,7 @@ namespace eastengine
 
 		static IEffect* GetEffect(uint64_t nMask)
 		{
-			String::StringID strName;
+			string::StringID strName;
 			strName.Format("IEffect_%lld", nMask);
 
 			IEffect* pEffect = ShaderManager::GetInstance()->GetEffect(strName);

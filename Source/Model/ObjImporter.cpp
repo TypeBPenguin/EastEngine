@@ -63,7 +63,7 @@ namespace eastengine
 			}
 		}
 
-		IMaterial* ObjImporter::GetMaterial(const String::StringID& strName)
+		IMaterial* ObjImporter::GetMaterial(const string::StringID& strName)
 		{
 			if (m_pMtlImporter == nullptr)
 				return nullptr;
@@ -180,7 +180,7 @@ namespace eastengine
 					std::string strFace;
 					file.ReadLine(strFace);
 
-					std::vector<std::string> vecFace = String::Tokenizer(strFace, " ");
+					std::vector<std::string> vecFace = string::Tokenizer(strFace, " ");
 					if (vecFace.empty() == false)
 					{
 						// 귀찮아서 급하게 만든거 나중에 여유되면 고치삼
@@ -201,7 +201,7 @@ namespace eastengine
 									}
 									else if (t.empty() == false)
 									{
-										indexArray[nIndex] = String::ToValue<int>(t.c_str());
+										indexArray[nIndex] = string::ToValue<int>(t.c_str());
 									}
 									else
 									{
@@ -213,7 +213,7 @@ namespace eastengine
 
 								if (i == str.size() - 1)
 								{
-									indexArray[nIndex] = String::ToValue<int>(str.substr(nPrevPos).c_str());
+									indexArray[nIndex] = string::ToValue<int>(str.substr(nPrevPos).c_str());
 								}
 							}
 
@@ -233,11 +233,11 @@ namespace eastengine
 								pT[2 - i] = indexArray[1];
 								pN[2 - i] = indexArray[2];
 
-								//std::vector<std::string> vecValue = String::Tokenizer(vecFace[i], "/");
+								//std::vector<std::string> vecValue = string::Tokenizer(vecFace[i], "/");
 
-								//pV[2 - i] = vecValue[0].empty() == false ? String::ToValue<int>(vecValue[0].c_str()) : 0;
-								//pT[2 - i] = vecValue[1].empty() == false ? String::ToValue<int>(vecValue[1].c_str()) : 0;
-								//pN[2 - i] = vecValue[2].empty() == false ? String::ToValue<int>(vecValue[2].c_str()) : 0;
+								//pV[2 - i] = vecValue[0].empty() == false ? string::ToValue<int>(vecValue[0].c_str()) : 0;
+								//pT[2 - i] = vecValue[1].empty() == false ? string::ToValue<int>(vecValue[1].c_str()) : 0;
+								//pN[2 - i] = vecValue[2].empty() == false ? string::ToValue<int>(vecValue[2].c_str()) : 0;
 							}
 
 							m_objData.GetCurGroupData().GetCurSubModel().vecFaceType.push_back(faceType);
@@ -265,20 +265,20 @@ namespace eastengine
 							pT[0] = indexArray[1];
 							pN[0] = indexArray[2];
 
-							//std::vector<std::string> vecValue = String::Tokenizer(vecFace[0], "/");
-							//pV[2] = vecValue[0].empty() == false ? String::ToValue<int>(vecValue[0].c_str()) : 0;
-							//pT[2] = vecValue[1].empty() == false ? String::ToValue<int>(vecValue[1].c_str()) : 0;
-							//pN[2] = vecValue[2].empty() == false ? String::ToValue<int>(vecValue[2].c_str()) : 0;
+							//std::vector<std::string> vecValue = string::Tokenizer(vecFace[0], "/");
+							//pV[2] = vecValue[0].empty() == false ? string::ToValue<int>(vecValue[0].c_str()) : 0;
+							//pT[2] = vecValue[1].empty() == false ? string::ToValue<int>(vecValue[1].c_str()) : 0;
+							//pN[2] = vecValue[2].empty() == false ? string::ToValue<int>(vecValue[2].c_str()) : 0;
 							//
-							//vecValue = String::Tokenizer(vecFace[2], "/");
-							//pV[1] = vecValue[0].empty() == false ? String::ToValue<int>(vecValue[0].c_str()) : 0;
-							//pT[1] = vecValue[1].empty() == false ? String::ToValue<int>(vecValue[1].c_str()) : 0;
-							//pN[1] = vecValue[2].empty() == false ? String::ToValue<int>(vecValue[2].c_str()) : 0;
+							//vecValue = string::Tokenizer(vecFace[2], "/");
+							//pV[1] = vecValue[0].empty() == false ? string::ToValue<int>(vecValue[0].c_str()) : 0;
+							//pT[1] = vecValue[1].empty() == false ? string::ToValue<int>(vecValue[1].c_str()) : 0;
+							//pN[1] = vecValue[2].empty() == false ? string::ToValue<int>(vecValue[2].c_str()) : 0;
 							//
-							//vecValue = String::Tokenizer(vecFace[3], "/");
-							//pV[0] = vecValue[0].empty() == false ? String::ToValue<int>(vecValue[0].c_str()) : 0;
-							//pT[0] = vecValue[1].empty() == false ? String::ToValue<int>(vecValue[1].c_str()) : 0;
-							//pN[0] = vecValue[2].empty() == false ? String::ToValue<int>(vecValue[2].c_str()) : 0;
+							//vecValue = string::Tokenizer(vecFace[3], "/");
+							//pV[0] = vecValue[0].empty() == false ? string::ToValue<int>(vecValue[0].c_str()) : 0;
+							//pT[0] = vecValue[1].empty() == false ? string::ToValue<int>(vecValue[1].c_str()) : 0;
+							//pN[0] = vecValue[2].empty() == false ? string::ToValue<int>(vecValue[2].c_str()) : 0;
 
 							m_objData.GetCurGroupData().GetCurSubModel().vecFaceType.push_back(faceType);
 						}

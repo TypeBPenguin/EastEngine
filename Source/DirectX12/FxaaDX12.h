@@ -1,5 +1,7 @@
 #pragma once
 
+#include "RendererDX12.h"
+
 namespace eastengine
 {
 	namespace graphics
@@ -8,14 +10,18 @@ namespace eastengine
 		{
 			class RenderTarget;
 
-			class Fxaa
+			class Fxaa : public IRendererDX12
 			{
 			public:
 				Fxaa();
-				~Fxaa();
+				virtual ~Fxaa();
 
 			public:
-				void Apply(const RenderTarget* pSource, RenderTarget* pResult);
+				virtual Type GetType() const override { return IRenderer::eFxaa; }
+				virtual void RefreshPSO(ID3D12Device* pDevice) override;
+
+			public:
+				void Apply(RenderTarget* pSource, RenderTarget* pResult);
 
 			private:
 				class Impl;

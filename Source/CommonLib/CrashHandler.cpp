@@ -140,7 +140,7 @@ namespace eastengine
 			std::tm tmTime;
 			localtime_s(&tmTime, &curTime);
 			
-			std::string strDumpPath = String::Format("%s%s_[%d%02d%02d-%02d%02d%02d]_CrashMiniDump.dmp", 
+			std::string strDumpPath = string::Format("%s%s_[%d%02d%02d-%02d%02d%02d]_CrashMiniDump.dmp", 
 				s_strMiniDumpPath.c_str(), 
 				file::GetProgramFileName(),
 				tmTime.tm_year + 1900,

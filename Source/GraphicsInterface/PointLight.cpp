@@ -26,7 +26,7 @@ namespace eastengine
 		{
 		}
 
-		PointLight* PointLight::Create(const String::StringID& strName, const math::Vector3& f3Position, const math::Color& color, float fIntensity, float fAmbientIntensity, float fReflectionIntensity)
+		PointLight* PointLight::Create(const string::StringID& strName, const math::Vector3& f3Position, const math::Color& color, float fIntensity, float fAmbientIntensity, float fReflectionIntensity)
 		{
 			PointLight* pLight = new PointLight;
 			pLight->m_strName = strName;

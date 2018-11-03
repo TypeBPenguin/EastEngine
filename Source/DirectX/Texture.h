@@ -29,16 +29,16 @@ namespace eastengine
 			virtual ID3D11ShaderResourceView** GetShaderResourceViewPtr() override { return &m_pShaderResourceView; }
 
 			virtual const math::UInt2& GetSize() override { return m_n2Size; }
-			virtual const String::StringID& GetName() override { return m_strName; }
+			virtual const string::StringID& GetName() override { return m_strName; }
 
 		public:
-			void SetName(const String::StringID& strName) { m_strName = strName; }
+			void SetName(const string::StringID& strName) { m_strName = strName; }
 
 		public:
-			bool Load(const String::StringID& strName, ID3D11Texture2D* pTexture2D, const TextureDesc2D* pCustomDesc2D = nullptr);
-			bool Load(const String::StringID& strName, const TextureDesc1D& desc, D3D11_SUBRESOURCE_DATA* pData = nullptr);
-			bool Load(const String::StringID& strName, const TextureDesc2D& desc, D3D11_SUBRESOURCE_DATA* pData = nullptr);
-			bool Load(const String::StringID& strName, const TextureDesc3D& desc, D3D11_SUBRESOURCE_DATA* pData = nullptr);
+			bool Load(const string::StringID& strName, ID3D11Texture2D* pTexture2D, const TextureDesc2D* pCustomDesc2D = nullptr);
+			bool Load(const string::StringID& strName, const TextureDesc1D& desc, D3D11_SUBRESOURCE_DATA* pData = nullptr);
+			bool Load(const string::StringID& strName, const TextureDesc2D& desc, D3D11_SUBRESOURCE_DATA* pData = nullptr);
+			bool Load(const string::StringID& strName, const TextureDesc3D& desc, D3D11_SUBRESOURCE_DATA* pData = nullptr);
 			bool Load(ID3D11Texture2D* pTexture2D, ID3D11ShaderResourceView* pShaderResourceView);
 
 		protected:
@@ -51,7 +51,7 @@ namespace eastengine
 
 			math::UInt2 m_n2Size;
 
-			String::StringID m_strName;
+			string::StringID m_strName;
 		};
 	}
 }

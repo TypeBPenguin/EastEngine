@@ -16,8 +16,8 @@ namespace eastengine
 			virtual void Update(float fElapsedTime) override;
 
 		public:
-			virtual const String::StringID& GetName() const override { return m_strName; }
-			virtual void SetName(const String::StringID& strName) override { m_strName = strName; }
+			virtual const string::StringID& GetName() const override { return m_strName; }
+			virtual void SetName(const string::StringID& strName) override { m_strName = strName; }
 
 			virtual void SetVisible(bool bVisible) override { m_isVisible = bVisible; }
 			virtual bool IsVisible() const override { return m_isVisible; }
@@ -33,7 +33,7 @@ namespace eastengine
 			void Init(const SkyboxProperty& property);
 
 		private:
-			String::StringID m_strName;
+			string::StringID m_strName;
 
 			bool m_isDestroy{ false };
 			bool m_isVisible{ true };

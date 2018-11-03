@@ -16,12 +16,12 @@ namespace eastengine
 			virtual void Present() = 0;
 
 		public:
-			void AddMessageHandler(const String::StringID& strName, std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler);
-			void RemoveMessageHandler(const String::StringID& strName);
+			void AddMessageHandler(const string::StringID& strName, std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler);
+			void RemoveMessageHandler(const string::StringID& strName);
 			void Run(std::function<void()> funcUpdate);
 
 		protected:
-			void InitializeWindow(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const String::StringID& strApplicationTitle, const String::StringID& strApplicationName);
+			void InitializeWindow(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const string::StringID& strApplicationTitle, const string::StringID& strApplicationName);
 
 		protected:
 			HWND m_hWnd{ nullptr };
@@ -30,10 +30,10 @@ namespace eastengine
 			math::UInt2 m_n2ScreenSize{ 800, 600 };
 			bool m_isFullScreen{ false };
 
-			String::StringID m_strApplicationTitle;
-			String::StringID m_strApplicationName;
+			string::StringID m_strApplicationTitle;
+			string::StringID m_strApplicationName;
 
-			std::unordered_map<String::StringID, std::function<void(HWND, uint32_t, WPARAM, LPARAM)>> m_umapHandlers;
+			std::unordered_map<string::StringID, std::function<void(HWND, uint32_t, WPARAM, LPARAM)>> m_umapHandlers;
 		};
 	}
 }

@@ -1798,7 +1798,7 @@ namespace eastengine
 			strPath += "PostProcessing\\ASSAO\\ASSAO.fx";
 
 			ID3DBlob* pBlob = nullptr;
-			if (FAILED(D3DReadFileToBlob(String::MultiToWide(strPath).c_str(), &pBlob)))
+			if (FAILED(D3DReadFileToBlob(string::MultiToWide(strPath).c_str(), &pBlob)))
 				return nullptr;
 
 			m_pEffect = ASSAO_Effect::CreateInstance(ASSAO_CreateDesc(GetDevice()->GetInterface(), pBlob->GetBufferPointer(), pBlob->GetBufferSize()));

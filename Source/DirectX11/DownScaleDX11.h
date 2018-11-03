@@ -1,5 +1,7 @@
 #pragma once
 
+#include "GraphicsInterface/Renderer.h"
+
 namespace eastengine
 {
 	namespace graphics
@@ -8,11 +10,14 @@ namespace eastengine
 		{
 			class RenderTarget;
 
-			class DownScale
+			class DownScale : public IRenderer
 			{
 			public:
 				DownScale();
-				~DownScale();
+				virtual ~DownScale();
+
+			public:
+				virtual Type GetType() const { return IRenderer::eDownScale; }
 
 			public:
 				void Apply4SW(const RenderTarget* pSource, RenderTarget* pResult, bool isLuminance = false);

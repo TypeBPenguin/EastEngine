@@ -51,14 +51,14 @@ namespace eastengine
 			if (m_bInit == false)
 				return false;
 
-			std::wstring wstrCommandLine = String::MultiToWide(strCommandLine);
+			std::wstring wstrCommandLine = string::MultiToWide(strCommandLine);
 
 			auto iter = m_umapCommandLine.find(wstrCommandLine);
 			if (iter != m_umapCommandLine.end())
 			{
 				if (pValue != nullptr)
 				{
-					*pValue = String::WideToMulti(iter->second);
+					*pValue = string::WideToMulti(iter->second);
 				}
 
 				return true;

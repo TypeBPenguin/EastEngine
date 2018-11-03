@@ -137,7 +137,7 @@ namespace eastengine
 
 			IndexBuffer::Impl::~Impl()
 			{
-				SafeRelease(m_pBuffer);
+				util::ReleaseResource(m_pBuffer);
 			}
 
 			bool IndexBuffer::Impl::Map(void** ppData)

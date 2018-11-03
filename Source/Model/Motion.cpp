@@ -5,7 +5,7 @@ namespace eastengine
 {
 	namespace graphics
 	{
-		Motion::Bone::Bone(const String::StringID& strBoneName, const std::vector<Keyframe>& _vecKeyframes, float fFrameInterval)
+		Motion::Bone::Bone(const string::StringID& strBoneName, const std::vector<Keyframe>& _vecKeyframes, float fFrameInterval)
 			: m_strBoneName(strBoneName)
 			, m_fFrameInterval(fFrameInterval)
 		{
@@ -224,7 +224,7 @@ namespace eastengine
 			pRecorder->SetLastPlayTime(fPlayTime);
 		}
 
-		const IMotion::IBone* Motion::GetBone(const String::StringID& strBoneName) const
+		const IMotion::IBone* Motion::GetBone(const string::StringID& strBoneName) const
 		{
 			auto iter = m_umapBones.find(strBoneName);
 			if (iter != m_umapBones.end())
@@ -233,7 +233,7 @@ namespace eastengine
 			return nullptr;
 		}
 
-		void Motion::AddBoneKeyframes(const String::StringID& strBoneName, const std::vector<Keyframe>& vecKeyframes)
+		void Motion::AddBoneKeyframes(const string::StringID& strBoneName, const std::vector<Keyframe>& vecKeyframes)
 		{
 			m_vecBones.emplace_back(strBoneName, vecKeyframes, m_fFrameInterval);
 			m_umapBones.emplace(strBoneName, &m_vecBones.back());

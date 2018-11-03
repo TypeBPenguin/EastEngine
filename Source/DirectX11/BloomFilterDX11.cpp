@@ -106,7 +106,7 @@ namespace eastengine
 				~Impl();
 
 			public:
-				void Apply(RenderTarget* pSource);
+				void Apply(RenderTarget* pSourceAndResult);
 
 			private:
 				RenderTarget* Sampling(Device* pDevice, ID3D11DeviceContext* pDeviceContext, const Options::BloomFilterConfig& bloomFilterConfig, shader::PSType emPSType, bool isResult, uint32_t nWidth, uint32_t nHeight, int nPass, const math::Vector2& f2InverseResolution, RenderTarget* pSource, RenderTarget* pResult = nullptr);
@@ -133,7 +133,7 @@ namespace eastengine
 				strShaderPath.append("PostProcessing\\BloomFilter\\BloomFilter.hlsl");
 
 				ID3DBlob* pShaderBlob{ nullptr };
-				if (FAILED(D3DReadFileToBlob(String::MultiToWide(strShaderPath).c_str(), &pShaderBlob)))
+				if (FAILED(D3DReadFileToBlob(string::MultiToWide(strShaderPath).c_str(), &pShaderBlob)))
 				{
 					throw_line("failed to read shader file : BloomFilter.hlsl");
 				}
@@ -144,7 +144,7 @@ namespace eastengine
 					{ nullptr, nullptr },
 				};
 
-				if (util::CreateVertexShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), "VS", "vs_5_0", &m_pVertexShader, "BloomFilter_VS") == false)
+				if (util::CreateVertexShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), "VS", shader::VS_CompileVersion, &m_pVertexShader, "BloomFilter_VS") == false)
 				{
 					throw_line("failed to create BloomFilter_VS");
 				}
@@ -154,9 +154,9 @@ namespace eastengine
 					shader::PSType emPSType = static_cast<shader::PSType>(i);
 
 					const char* strPSName = shader::GetBloomFilterPSTypeToString(emPSType);
-					if (util::CreatePixelShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), strPSName, "ps_5_0", &m_pPixelShaders[i], strPSName) == false)
+					if (util::CreatePixelShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), strPSName, shader::PS_CompileVersion, &m_pPixelShaders[i], strPSName) == false)
 					{
-						std::string dump = String::Format("failed to create %s", strPSName);
+						std::string dump = string::Format("failed to create %s", strPSName);
 						throw_line(dump.c_str());
 					}
 				}
@@ -178,9 +178,9 @@ namespace eastengine
 				}
 			}
 
-			void BloomFilter::Impl::Apply(RenderTarget* pSource)
+			void BloomFilter::Impl::Apply(RenderTarget* pSourceAndResult)
 			{
-				if (pSource == nullptr)
+				if (pSourceAndResult == nullptr)
 					return;
 
 				DX_PROFILING(BloomFilter);
@@ -190,7 +190,7 @@ namespace eastengine
 				SetBloomPreset(bloomFilterConfig.emPreset);
 
 				D3D11_TEXTURE2D_DESC sourceDesc{};
-				pSource->GetDesc2D(&sourceDesc);
+				pSourceAndResult->GetDesc2D(&sourceDesc);
 
 				const math::UInt2 n2TargetSize(sourceDesc.Width / 2, sourceDesc.Height / 2);
 				m_fRadiusMultiplier = static_cast<float>(sourceDesc.Width) / static_cast<float>(sourceDesc.Height);
@@ -221,7 +221,7 @@ namespace eastengine
 				const math::Vector2 f2InverseResolution(1.f / n2TargetSize.x, 1.f / n2TargetSize.y);
 
 				shader::PSType emPSType = bloomFilterConfig.isEnableLuminance == true ? shader::eExtractLuminance : shader::eExtract;
-				RenderTarget* pMip0 = Sampling(pDeviceInstance, pDeviceContext, bloomFilterConfig, emPSType, true, n2TargetSize.x, n2TargetSize.y, 0, f2InverseResolution, pSource);
+				RenderTarget* pMip0 = Sampling(pDeviceInstance, pDeviceContext, bloomFilterConfig, emPSType, true, n2TargetSize.x, n2TargetSize.y, 0, f2InverseResolution, pSourceAndResult);
 
 				RenderTarget* pMip1 = Sampling(pDeviceInstance, pDeviceContext, bloomFilterConfig, shader::eDownsample, false, n2TargetSize.x, n2TargetSize.y, 0, f2InverseResolution, pMip0, nullptr);
 				RenderTarget* pMip2 = Sampling(pDeviceInstance, pDeviceContext, bloomFilterConfig, shader::eDownsample, false, n2TargetSize.x, n2TargetSize.y, 1, f2InverseResolution, pMip1, nullptr);
@@ -242,7 +242,7 @@ namespace eastengine
 				pBlendState = pDeviceInstance->GetBlendState(EmBlendState::eAdditive);
 				pDeviceContext->OMSetBlendState(pBlendState, &math::Vector4::Zero.x, 0xffffffff);
 
-				Sampling(pDeviceInstance, pDeviceContext, bloomFilterConfig, shader::eApply, true, n2TargetSize.x, n2TargetSize.y, 0, f2InverseResolution, pMip0, pSource);
+				Sampling(pDeviceInstance, pDeviceContext, bloomFilterConfig, shader::eApply, true, n2TargetSize.x, n2TargetSize.y, 0, f2InverseResolution, pMip0, pSourceAndResult);
 
 				pDeviceInstance->ReleaseRenderTargets(&pMip0, 1, false);
 				pDeviceInstance->ReleaseRenderTargets(&pMip1, 1, false);
@@ -254,7 +254,7 @@ namespace eastengine
 
 			RenderTarget* BloomFilter::Impl::Sampling(Device* pDevice, ID3D11DeviceContext* pDeviceContext, const Options::BloomFilterConfig& bloomFilterConfig, shader::PSType emPSType, bool isResult, uint32_t nWidth, uint32_t nHeight, int nPass, const math::Vector2& f2InverseResolution, RenderTarget* pSource, RenderTarget* pResult)
 			{
-				const std::wstring wstrDebugName = String::MultiToWide(shader::GetBloomFilterPSTypeToString(emPSType));
+				const std::wstring wstrDebugName = string::MultiToWide(shader::GetBloomFilterPSTypeToString(emPSType));
 				eastengine::graphics::dx11::util::DXProfiler profiler(wstrDebugName.c_str());
 
 				if (m_nDownsamplePasses > nPass)
@@ -418,9 +418,9 @@ namespace eastengine
 			{
 			}
 
-			void BloomFilter::Apply(RenderTarget* pSource)
+			void BloomFilter::Apply(RenderTarget* pSourceAndResult)
 			{
-				m_pImpl->Apply(pSource);
+				m_pImpl->Apply(pSourceAndResult);
 			}
 		}
 	}

@@ -137,7 +137,7 @@ namespace eastengine
 			m_nVideoCardMemory = (int)(adapterDesc.DedicatedVideoMemory / 1024 / 1024);
 
 			// 그래픽카드의 이름을 char형 문자열 배열로 바꾼 뒤 저장합니다.
-			m_strVideoCardDescription = String::WideToMulti(adapterDesc.Description);
+			m_strVideoCardDescription = string::WideToMulti(adapterDesc.Description);
 
 			D3D_FEATURE_LEVEL requestedLevels[] = { D3D_FEATURE_LEVEL_11_1, D3D_FEATURE_LEVEL_11_0 };
 

@@ -28,7 +28,7 @@ namespace eastengine
 
 		public:
 			void Update();
-			void Flush(float fElapsedTime);
+			void Cleanup(float fElapsedTime);
 
 		public:
 			void AsyncLoadModel(IModel* pModel, const ModelLoader& loader);
@@ -139,7 +139,7 @@ namespace eastengine
 			TRACER_ENDEVENT();
 		}
 
-		void ModelManager::Impl::Flush(float fElapsedTime)
+		void ModelManager::Impl::Cleanup(float fElapsedTime)
 		{
 			TRACER_EVENT("ModelManager::Flush");
 
@@ -378,9 +378,9 @@ namespace eastengine
 			m_pImpl->Update();
 		}
 
-		void ModelManager::Flush(float fElapsedTime)
+		void ModelManager::Cleanup(float fElapsedTime)
 		{
-			m_pImpl->Flush(fElapsedTime);
+			m_pImpl->Cleanup(fElapsedTime);
 		}
 
 		void ModelManager::AsyncLoadModel(IModel* pModel, const ModelLoader& loader)
@@ -388,7 +388,7 @@ namespace eastengine
 			m_pImpl->AsyncLoadModel(pModel, loader);
 		}
 
-		IModel* ModelManager::AllocateModel(const String::StringID& strKey)
+		IModel* ModelManager::AllocateModel(const string::StringID& strKey)
 		{
 			IModel::Key key(strKey);
 			return m_pImpl->AllocateModel(key);
@@ -404,19 +404,19 @@ namespace eastengine
 			return m_pImpl->DestroyModelInstance(ppModelInstance);
 		}
 
-		IModel* ModelManager::GetModel(const String::StringID& strKey) const
+		IModel* ModelManager::GetModel(const string::StringID& strKey) const
 		{
 			IModel::Key key(strKey);
 			return m_pImpl->GetModel(key);
 		}
 
-		IMotion* ModelManager::AllocateMotion(const String::StringID& strKey)
+		IMotion* ModelManager::AllocateMotion(const string::StringID& strKey)
 		{
 			IMotion::Key key(strKey);
 			return m_pImpl->AllocateMotion(key);
 		}
 
-		IMotion* ModelManager::GetMotion(const String::StringID& strKey)
+		IMotion* ModelManager::GetMotion(const string::StringID& strKey)
 		{
 			IMotion::Key key(strKey);
 			return m_pImpl->GetMotion(key);

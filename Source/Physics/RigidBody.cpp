@@ -32,8 +32,8 @@ namespace eastengine
 			void SetEnableTriangleDrawCallback(bool isEnableTriangleDrawCallback);
 
 		public:
-			const String::StringID& GetName() const;
-			void SetName(const String::StringID& strName);
+			const string::StringID& GetName() const;
+			void SetName(const string::StringID& strName);
 
 			const RigidBodyProperty& GetRigidBodyProperty() const;
 
@@ -327,12 +327,12 @@ namespace eastengine
 			m_isEnableTriangleDrawCallback = isEnableTriangleDrawCallback;
 		}
 
-		const String::StringID& RigidBody::Impl::GetName() const
+		const string::StringID& RigidBody::Impl::GetName() const
 		{
 			return m_rigidBodyProperty.strName;
 		}
 
-		void RigidBody::Impl::SetName(const String::StringID& strName)
+		void RigidBody::Impl::SetName(const string::StringID& strName)
 		{
 			m_rigidBodyProperty.strName = strName;
 		}
@@ -496,12 +496,12 @@ namespace eastengine
 			m_pImpl->SetEnableTriangleDrawCallback(isEnableTriangleDrawCallback);
 		}
 
-		const String::StringID& RigidBody::GetName() const
+		const string::StringID& RigidBody::GetName() const
 		{
 			return m_pImpl->GetName();
 		}
 
-		void RigidBody::SetName(const String::StringID& strName)
+		void RigidBody::SetName(const string::StringID& strName)
 		{
 			m_pImpl->SetName(strName);
 		}

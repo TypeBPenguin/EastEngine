@@ -127,7 +127,7 @@ namespace eastengine
 					srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
 				}
 
-				String::StringID strKey;
+				string::StringID strKey;
 				strKey.Format("DepthStencil_%d", s_nDepthStencilIndex++);
 
 				Texture::Key key(strKey);

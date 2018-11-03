@@ -85,6 +85,9 @@
     <Filter Include="Renderer\Model">
       <UniqueIdentifier>{3fb95925-2914-48bc-a6f1-e7cb2ffa2184}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Renderer\PostProcessing\HDR">
+      <UniqueIdentifier>{850f4a89-1bd7-41c3-8cd4-434de15421be}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -162,6 +165,9 @@
     <ClInclude Include="BloomFilterDX11.h">
       <Filter>Renderer\PostProcessing\BloomFilter</Filter>
     </ClInclude>
+    <ClInclude Include="HDRFilterDX11.h">
+      <Filter>Renderer\PostProcessing\HDR</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -235,6 +241,9 @@
     </ClCompile>
     <ClCompile Include="TerrainRendererDX11.cpp">
       <Filter>Renderer\Terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="HDRFilterDX11.cpp">
+      <Filter>Renderer\PostProcessing\HDR</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

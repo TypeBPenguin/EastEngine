@@ -154,7 +154,7 @@ namespace eastengine
 
 		struct MaterialInfo
 		{
-			String::StringID strName;
+			string::StringID strName;
 			std::string strPath;
 
 			math::Color colorAlbedo{ math::Color::White };
@@ -170,7 +170,7 @@ namespace eastengine
 			bool isVisible{ true };
 			bool isAsyncTextureLoad{ true };
 
-			std::array<String::StringID, EmMaterial::TypeCount> strTextureNameArray;
+			std::array<string::StringID, EmMaterial::TypeCount> strTextureNameArray;
 
 			EmSamplerState::Type emSamplerState{ EmSamplerState::eMinMagMipLinearWrap };
 			EmBlendState::Type emBlendState{ EmBlendState::eOff };

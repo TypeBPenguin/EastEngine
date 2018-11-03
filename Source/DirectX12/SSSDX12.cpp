@@ -77,7 +77,8 @@ namespace eastengine
 				~Impl();
 
 			public:
-				void Apply(ID3D12GraphicsCommandList2* pCommandList, const RenderTarget* pSource, const DepthStencil* pDepth, RenderTarget* pResult);
+				void RefreshPSO(ID3D12Device* pDevice);
+				void Apply(RenderTarget* pSource, const DepthStencil* pDepth, RenderTarget* pResult);
 
 			private:
 				enum RootParameters : uint32_t
@@ -93,14 +94,14 @@ namespace eastengine
 
 				ID3D12RootSignature* CreateRootSignature(ID3D12Device* pDevice);
 				void CreatePipelineState(ID3D12Device* pDevice, ID3DBlob* pShaderBlob, const char* strShaderPath, shader::PSType emPSType);
+				void CreateBundles(ID3D12Device* pDevice, shader::PSType emPSType);
 
 			private:
 				struct RenderPipeline
 				{
-					ID3D12PipelineState* pPipelineState{ nullptr };
-					ID3D12RootSignature* pRootSignature{ nullptr };
+					PSOCache psoCache;
 
-					std::array<ID3D12GraphicsCommandList2*, eFrameBufferCount> pBundles;
+					std::array<ID3D12GraphicsCommandList2*, eFrameBufferCount> pBundles{ nullptr };
 				};
 				std::array<RenderPipeline, shader::ePS_Count> m_pipelineStates;
 
@@ -113,7 +114,7 @@ namespace eastengine
 				strShaderPath.append("PostProcessing\\SSS\\SSS.hlsl");
 
 				ID3DBlob* pShaderBlob{ nullptr };
-				if (FAILED(D3DReadFileToBlob(String::MultiToWide(strShaderPath).c_str(), &pShaderBlob)))
+				if (FAILED(D3DReadFileToBlob(string::MultiToWide(strShaderPath).c_str(), &pShaderBlob)))
 				{
 					throw_line("failed to read shader file : SSS.hlsl");
 				}
@@ -123,7 +124,6 @@ namespace eastengine
 				for (int i = 0; i < shader::ePS_Count; ++i)
 				{
 					const shader::PSType emPSType = static_cast<shader::PSType>(i);
-
 					CreatePipelineState(pDevice, pShaderBlob, strShaderPath.c_str(), emPSType);
 				}
 
@@ -131,41 +131,10 @@ namespace eastengine
 
 				SafeRelease(pShaderBlob);
 
-				DescriptorHeap* pDescriptorHeapSRV = Device::GetInstance()->GetSRVDescriptorHeap();
-
 				for (int i = 0; i < shader::ePS_Count; ++i)
 				{
 					const shader::PSType emPSType = static_cast<shader::PSType>(i);
-
-					for (int j = 0; j < eFrameBufferCount; ++j)
-					{
-						m_pipelineStates[emPSType].pBundles[j] = Device::GetInstance()->CreateBundle(m_pipelineStates[emPSType].pPipelineState);
-						ID3D12GraphicsCommandList2* pBundles = m_pipelineStates[emPSType].pBundles[j];
-
-						pBundles->SetGraphicsRootSignature(m_pipelineStates[emPSType].pRootSignature);
-
-						ID3D12DescriptorHeap* pDescriptorHeaps[] =
-						{
-							pDescriptorHeapSRV->GetHeap(j),
-						};
-						pBundles->SetDescriptorHeaps(_countof(pDescriptorHeaps), pDescriptorHeaps);
-
-						pBundles->SetGraphicsRootDescriptorTable(eRP_StandardDescriptor, pDescriptorHeapSRV->GetStartGPUHandle(j));
-
-						pBundles->SetGraphicsRootConstantBufferView(eRP_SSSContents, m_sssContents.GPUAddress(j));
-
-						pBundles->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-						pBundles->IASetVertexBuffers(0, 0, nullptr);
-						pBundles->IASetIndexBuffer(nullptr);
-
-						pBundles->DrawInstanced(4, 1, 0, 0);
-
-						HRESULT hr = pBundles->Close();
-						if (FAILED(hr))
-						{
-							throw_line("failed to close bundle");
-						}
-					}
+					CreateBundles(pDevice, emPSType);
 				}
 			}
 
@@ -177,22 +146,32 @@ namespace eastengine
 				{
 					for (int j = 0; j < eFrameBufferCount; ++j)
 					{
-						SafeRelease(m_pipelineStates[i].pBundles[j]);
+						util::ReleaseResource(m_pipelineStates[i].pBundles[j]);
+						m_pipelineStates[i].pBundles[j] = nullptr;
 					}
 
-					SafeRelease(m_pipelineStates[i].pPipelineState);
-					SafeRelease(m_pipelineStates[i].pRootSignature);
+					m_pipelineStates[i].psoCache.Destroy();
 				}
 			}
 
-			void SSS::Impl::Apply(ID3D12GraphicsCommandList2* pCommandList, const RenderTarget* pSource, const DepthStencil* pDepth, RenderTarget* pResult)
+			void SSS::Impl::RefreshPSO(ID3D12Device* pDevice)
+			{
+				for (int i = 0; i < shader::ePS_Count; ++i)
+				{
+					const shader::PSType emPSType = static_cast<shader::PSType>(i);
+					CreatePipelineState(pDevice, nullptr, nullptr, emPSType);
+					CreateBundles(pDevice, emPSType);
+				}
+			}
+
+			void SSS::Impl::Apply(RenderTarget* pSource, const DepthStencil* pDepth, RenderTarget* pResult)
 			{
 				if (pSource == nullptr || pResult == nullptr)
 					return;
 
 				Device* pDeviceInstance = Device::GetInstance();
 
-				int nFrameIndex = pDeviceInstance->GetFrameIndex();
+				const uint32_t nFrameIndex = pDeviceInstance->GetFrameIndex();
 				DescriptorHeap* pSRVDescriptorHeap = pDeviceInstance->GetSRVDescriptorHeap();
 
 				const D3D12_VIEWPORT* pViewport = pDeviceInstance->GetViewport();
@@ -211,6 +190,13 @@ namespace eastengine
 					shader::SetSSSContents(pSSSContents, config.fWidth, pSource->GetTexture()->GetDescriptorIndex(), pDepth->GetTexture()->GetDescriptorIndex());
 				}
 
+				ID3D12GraphicsCommandList2* pCommandList = pDeviceInstance->GetCommandList(0);
+				pDeviceInstance->ResetCommandList(0, nullptr);
+
+				util::ChangeResourceState(pCommandList, pResult, D3D12_RESOURCE_STATE_RENDER_TARGET);
+				util::ChangeResourceState(pCommandList, pSource, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+				pResult->Clear(pCommandList);
+
 				pCommandList->RSSetViewports(1, pViewport);
 				pCommandList->RSSetScissorRects(1, pScissorRect);
 				pCommandList->OMSetRenderTargets(_countof(rtvHandles), rtvHandles, FALSE, nullptr);
@@ -221,11 +207,18 @@ namespace eastengine
 				};
 				pCommandList->SetDescriptorHeaps(_countof(pDescriptorHeaps), pDescriptorHeaps);
 
-				pCommandList->SetGraphicsRootSignature(m_pipelineStates[shader::eHorizontal].pRootSignature);
+				pCommandList->SetGraphicsRootSignature(m_pipelineStates[shader::eHorizontal].psoCache.pRootSignature);
 				pCommandList->ExecuteBundle(m_pipelineStates[shader::eHorizontal].pBundles[nFrameIndex]);
 
-				pCommandList->SetGraphicsRootSignature(m_pipelineStates[shader::eVertical].pRootSignature);
+				pCommandList->SetGraphicsRootSignature(m_pipelineStates[shader::eVertical].psoCache.pRootSignature);
 				pCommandList->ExecuteBundle(m_pipelineStates[shader::eVertical].pBundles[nFrameIndex]);
+
+				HRESULT hr = pCommandList->Close();
+				if (FAILED(hr))
+				{
+					throw_line("failed to close command list");
+				}
+				pDeviceInstance->ExecuteCommandList(pCommandList);
 			}
 
 			ID3D12RootSignature* SSS::Impl::CreateRootSignature(ID3D12Device* pDevice)
@@ -252,44 +245,62 @@ namespace eastengine
 
 			void SSS::Impl::CreatePipelineState(ID3D12Device* pDevice, ID3DBlob* pShaderBlob, const char* strShaderPath, shader::PSType emPSType)
 			{
-				const D3D_SHADER_MACRO macros[] =
-				{
-					{ "DX12", "1" },
-					{ nullptr, nullptr },
-				};
+				PSOCache& psoCache = m_pipelineStates[emPSType].psoCache;
 
-				ID3DBlob* pVertexShaderBlob = nullptr;
-				bool isSuccess = util::CompileShader(pShaderBlob, macros, strShaderPath, "SSSSBlurVS", "vs_5_1", &pVertexShaderBlob);
-				if (isSuccess == false)
+				if (pShaderBlob != nullptr)
 				{
-					throw_line("failed to compile vertex shader");
+					const D3D_SHADER_MACRO macros[] =
+					{
+						{ "DX12", "1" },
+						{ nullptr, nullptr },
+					};
+
+					if (psoCache.pVSBlob == nullptr)
+					{
+						const bool isSuccess = util::CompileShader(pShaderBlob, macros, strShaderPath, "SSSSBlurVS", shader::VS_CompileVersion, &psoCache.pVSBlob);
+						if (isSuccess == false)
+						{
+							throw_line("failed to compile vertex shader");
+						}
+					}
+
+					if (psoCache.pPSBlob == nullptr)
+					{
+						const bool isSuccess = util::CompileShader(pShaderBlob, macros, strShaderPath, shader::GetSSSPSTypeToString(emPSType), shader::PS_CompileVersion, &psoCache.pPSBlob);
+						if (isSuccess == false)
+						{
+							throw_line("failed to compile pixel shader");
+						}
+					}
 				}
 
-				ID3DBlob* pPixelShaderBlob = nullptr;
-				isSuccess = util::CompileShader(pShaderBlob, macros, strShaderPath, shader::GetSSSPSTypeToString(emPSType), "ps_5_1", &pPixelShaderBlob);
-				if (isSuccess == false)
+				const std::wstring wstrDebugName = string::MultiToWide(shader::GetSSSPSTypeToString(emPSType));
+
+				if (psoCache.pRootSignature == nullptr)
 				{
-					throw_line("failed to compile pixel shader");
+					psoCache.pRootSignature = CreateRootSignature(pDevice);
+					psoCache.pRootSignature->SetName(wstrDebugName.c_str());
+				}
+
+				if (psoCache.pPipelineState != nullptr)
+				{
+					util::ReleaseResource(psoCache.pPipelineState);
+					psoCache.pPipelineState = nullptr;
 				}
 
 				D3D12_SHADER_BYTECODE vertexShaderBytecode{};
-				vertexShaderBytecode.BytecodeLength = pVertexShaderBlob->GetBufferSize();
-				vertexShaderBytecode.pShaderBytecode = pVertexShaderBlob->GetBufferPointer();
+				vertexShaderBytecode.BytecodeLength = psoCache.pVSBlob->GetBufferSize();
+				vertexShaderBytecode.pShaderBytecode = psoCache.pVSBlob->GetBufferPointer();
 
 				D3D12_SHADER_BYTECODE pixelShaderBytecode{};
-				pixelShaderBytecode.BytecodeLength = pPixelShaderBlob->GetBufferSize();
-				pixelShaderBytecode.pShaderBytecode = pPixelShaderBlob->GetBufferPointer();
+				pixelShaderBytecode.BytecodeLength = psoCache.pPSBlob->GetBufferSize();
+				pixelShaderBytecode.pShaderBytecode = psoCache.pPSBlob->GetBufferPointer();
 
 				DXGI_SAMPLE_DESC sampleDesc{};
 				sampleDesc.Count = 1;
 
-				const std::wstring wstrDebugName = String::MultiToWide(shader::GetSSSPSTypeToString(emPSType));
-
-				ID3D12RootSignature* pRootSignature = CreateRootSignature(pDevice);
-				pRootSignature->SetName(wstrDebugName.c_str());
-
 				D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc{};
-				psoDesc.pRootSignature = pRootSignature;
+				psoDesc.pRootSignature = psoCache.pRootSignature;
 				psoDesc.VS = vertexShaderBytecode;
 				psoDesc.PS = pixelShaderBytecode;
 				psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
@@ -313,19 +324,53 @@ namespace eastengine
 				psoDesc.DSVFormat = DXGI_FORMAT_UNKNOWN;
 				psoDesc.DepthStencilState = util::GetDepthStencilDesc(EmDepthStencilState::eRead_Write_Off);
 
-				ID3D12PipelineState* pPipelineState = nullptr;
-				HRESULT hr = pDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pPipelineState));
+				HRESULT hr = pDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&psoCache.pPipelineState));
 				if (FAILED(hr))
 				{
 					throw_line("failed to create graphics pipeline state");
 				}
-				pPipelineState->SetName(wstrDebugName.c_str());
+				psoCache.pPipelineState->SetName(wstrDebugName.c_str());
+			}
 
-				m_pipelineStates[emPSType].pRootSignature = pRootSignature;
-				m_pipelineStates[emPSType].pPipelineState = pPipelineState;
+			void SSS::Impl::CreateBundles(ID3D12Device* pDevice, shader::PSType emPSType)
+			{
+				DescriptorHeap* pDescriptorHeapSRV = Device::GetInstance()->GetSRVDescriptorHeap();
 
-				SafeRelease(pVertexShaderBlob);
-				SafeRelease(pPixelShaderBlob);
+				for (int i = 0; i < eFrameBufferCount; ++i)
+				{
+					if (m_pipelineStates[emPSType].pBundles[i] != nullptr)
+					{
+						util::ReleaseResource(m_pipelineStates[emPSType].pBundles[i]);
+						m_pipelineStates[emPSType].pBundles[i] = nullptr;
+					}
+
+					m_pipelineStates[emPSType].pBundles[i] = Device::GetInstance()->CreateBundle(m_pipelineStates[emPSType].psoCache.pPipelineState);
+					ID3D12GraphicsCommandList2* pBundles = m_pipelineStates[emPSType].pBundles[i];
+
+					pBundles->SetGraphicsRootSignature(m_pipelineStates[emPSType].psoCache.pRootSignature);
+
+					ID3D12DescriptorHeap* pDescriptorHeaps[] =
+					{
+						pDescriptorHeapSRV->GetHeap(i),
+					};
+					pBundles->SetDescriptorHeaps(_countof(pDescriptorHeaps), pDescriptorHeaps);
+
+					pBundles->SetGraphicsRootDescriptorTable(eRP_StandardDescriptor, pDescriptorHeapSRV->GetStartGPUHandle(i));
+
+					pBundles->SetGraphicsRootConstantBufferView(eRP_SSSContents, m_sssContents.GPUAddress(i));
+
+					pBundles->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+					pBundles->IASetVertexBuffers(0, 0, nullptr);
+					pBundles->IASetIndexBuffer(nullptr);
+
+					pBundles->DrawInstanced(4, 1, 0, 0);
+
+					HRESULT hr = pBundles->Close();
+					if (FAILED(hr))
+					{
+						throw_line("failed to close bundle");
+					}
+				}
 			}
 
 			SSS::SSS()
@@ -337,9 +382,14 @@ namespace eastengine
 			{
 			}
 
-			void SSS::Apply(ID3D12GraphicsCommandList2* pCommandList, const RenderTarget* pSource, const DepthStencil* pDepth, RenderTarget* pResult)
+			void SSS::RefreshPSO(ID3D12Device* pDevice)
 			{
-				m_pImpl->Apply(pCommandList, pSource, pDepth, pResult);
+				m_pImpl->RefreshPSO(pDevice);
+			}
+
+			void SSS::Apply(RenderTarget* pSource, const DepthStencil* pDepth, RenderTarget* pResult)
+			{
+				m_pImpl->Apply(pSource, pDepth, pResult);
 			}
 		}
 	}

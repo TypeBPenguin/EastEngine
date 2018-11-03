@@ -1,5 +1,7 @@
 #pragma once
 
+#include "GraphicsInterface/Renderer.h"
+
 namespace eastengine
 {
 	namespace graphics
@@ -9,11 +11,14 @@ namespace eastengine
 			class RenderTarget;
 			class DepthStencil;
 
-			class GaussianBlur
+			class GaussianBlur : public IRenderer
 			{
 			public:
 				GaussianBlur();
-				~GaussianBlur();
+				virtual ~GaussianBlur();
+
+			public:
+				virtual Type GetType() const { return IRenderer::eGaussianBlur; }
 
 			public:
 				void Apply(const RenderTarget* pSource, RenderTarget* pResult, float fSigma);

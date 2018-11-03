@@ -12,7 +12,7 @@ namespace eastengine
 		class Motion;
 		class Model;
 
-		bool WriteModel(Model* pModel, const std::unordered_map<String::StringID, math::Matrix>& umapMotionOffset);
+		bool WriteModel(Model* pModel, const std::unordered_map<string::StringID, math::Matrix>& umapMotionOffset);
 		bool WriteMotion(Motion* pMotion);
 	}
 }

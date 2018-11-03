@@ -12,7 +12,7 @@ namespace eastengine
 		public:
 			virtual ~IResource() = default;
 
-			virtual const String::StringID& GetResourceType() const = 0;
+			virtual const string::StringID& GetResourceType() const = 0;
 
 			enum State
 			{

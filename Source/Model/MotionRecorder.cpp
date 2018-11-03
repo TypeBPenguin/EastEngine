@@ -13,12 +13,12 @@ namespace eastengine
 		{
 		}
 		
-		void MotionRecorder::SetTransform(const String::StringID& strBoneName, const math::Transform& transform)
+		void MotionRecorder::SetTransform(const string::StringID& strBoneName, const math::Transform& transform)
 		{
 			m_umapMotionData[strBoneName] = transform;
 		}
 
-		const math::Transform* MotionRecorder::GetTransform(const String::StringID& strBoneName) const
+		const math::Transform* MotionRecorder::GetTransform(const string::StringID& strBoneName) const
 		{
 			auto iter = m_umapMotionData.find(strBoneName);
 			if (iter != m_umapMotionData.end())

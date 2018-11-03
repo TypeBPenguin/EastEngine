@@ -29,8 +29,8 @@ namespace eastengine
 			virtual float GetDistanceFromCamera() const override { return m_fDistanceFromCamera; }
 			virtual void SetDistanceFromCamera(float fDist) override { m_fDistanceFromCamera = fDist; }
 
-			virtual const String::StringID& GetName() const override { return m_strNodeName; }
-			virtual const String::StringID& GetAttachedBoneName() const override { return m_strAttachedBoneName; }
+			virtual const string::StringID& GetName() const override { return m_strNodeName; }
+			virtual const string::StringID& GetAttachedBoneName() const override { return m_strAttachedBoneName; }
 
 			virtual IModelNode* GetParentNode() const override { return m_pParentNode; }
 
@@ -42,7 +42,7 @@ namespace eastengine
 
 			virtual uint32_t GetMaterialCount() const override { return static_cast<uint32_t>(m_vecMaterial.size()); }
 			virtual IMaterial* GetMaterial(uint32_t nIndex) const override { return m_vecMaterial[nIndex]; }
-			virtual IMaterial* GetMaterial(const String::StringID& strMaterialName, uint32_t& nMaterialID_out) const override;
+			virtual IMaterial* GetMaterial(const string::StringID& strMaterialName, uint32_t& nMaterialID_out) const override;
 
 			virtual uint32_t GetModelSubsetCount(uint32_t nLod = 0) const override { return static_cast<uint32_t>(m_vecModelSubsets[nLod].size()); }
 			virtual const ModelSubset* GetModelSubset(uint32_t nIndex, uint32_t nLod = 0) const override { return &m_vecModelSubsets[nLod][nIndex]; }
@@ -53,8 +53,8 @@ namespace eastengine
 			virtual uint32_t GetLOD() const override { return m_nLod; }
 			virtual void SetLOD(uint32_t nLod) override { m_nLod = nLod; }
 
-			void SetNodeName(const String::StringID& strNodeName) { m_strNodeName = strNodeName; }
-			void SetAttachedBoneName(const String::StringID& strNodeName) { m_strAttachedBoneName = strNodeName; }
+			void SetNodeName(const string::StringID& strNodeName) { m_strNodeName = strNodeName; }
+			void SetAttachedBoneName(const string::StringID& strNodeName) { m_strAttachedBoneName = strNodeName; }
 
 			void SetParentNode(IModelNode* pModelNode) { m_pParentNode = pModelNode; }
 			void AddChildNode(IModelNode* pChildNode) { m_vecChildModelNode.push_back(pChildNode); }
@@ -69,8 +69,8 @@ namespace eastengine
 
 		protected:
 			bool m_isVisible;
-			String::StringID m_strNodeName;
-			String::StringID m_strAttachedBoneName;
+			string::StringID m_strNodeName;
+			string::StringID m_strAttachedBoneName;
 
 			IModelNode* m_pParentNode;
 			std::vector<IModelNode*> m_vecChildModelNode;

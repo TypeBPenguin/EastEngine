@@ -147,7 +147,7 @@ namespace eastengine
 				eModelSkinned_Tessellation,
 			};
 
-			String::StringID strName;
+			string::StringID strName;
 			strName.Format("EffectModel_%lld", nMask);
 
 			IEffect* pEffect = ShaderManager::GetInstance()->GetEffect(strName);
@@ -380,7 +380,7 @@ namespace eastengine
 					return;
 			}
 
-			String::StringID strTechName = StrID::ModelStatic;
+			string::StringID strTechName = StrID::ModelStatic;
 			if (isSkinnedModel == true)
 			{
 				strTechName = isEnableTessellation == true ? StrID::ModelSkinned_Tessellation : StrID::ModelSkinned;

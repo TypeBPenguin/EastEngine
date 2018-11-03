@@ -19,17 +19,17 @@ namespace eastengine
 		public:
 			void PushInt(intptr_t nValue);
 			void PushDouble(double dValue);
-			void PushString(const String::StringID& sValue);
+			void PushString(const string::StringID& sValue);
 			void PushBool(bool bValue);
 
 		public:
 			intptr_t PopInt(size_t nIndex);
 			double PopDouble(size_t nIndex);
-			const String::StringID& PopString(size_t nIndex);
+			const string::StringID& PopString(size_t nIndex);
 			bool PopBool(size_t nIndex);
 
 		public:
-			bool Run(const String::StringID& strFuncName, const int nReturnValueCount);
+			bool Run(const string::StringID& strFuncName, const int nReturnValueCount);
 
 		private:
 			class Impl;

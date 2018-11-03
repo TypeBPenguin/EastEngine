@@ -46,7 +46,7 @@ namespace eastengine
 						file::Stream file;
 						if (file.Open(strFilePath.c_str()) == false)
 						{
-							std::string error = String::Format("not exists file : %s", strFilePath.c_str());
+							std::string error = string::Format("not exists file : %s", strFilePath.c_str());
 							throw_line(error.c_str());
 						}
 
@@ -80,7 +80,7 @@ namespace eastengine
 					file::Stream fileVertShader;
 					if (fileVertShader.Open(strFilePath) == false)
 					{
-						std::string error = String::Format("failed to open file : %s", strFilePath);
+						std::string error = string::Format("failed to open file : %s", strFilePath);
 						throw_line(error.c_str());
 					}
 

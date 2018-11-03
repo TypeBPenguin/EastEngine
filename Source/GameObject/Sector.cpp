@@ -26,7 +26,7 @@ namespace eastengine
 		{
 			math::Vector3 f3Pos((float)(nCoordinateX)* fRadius * 1.5f * 1.05f, 1.f, ((float)(nCoordinateY)+(float)(nCoordinateX) * -0.5f) * fRadius * 2.f * 1.05f);
 
-			String::StringID strName;
+			string::StringID strName;
 			strName.Format("%s_%d/%d", StrID::Sector.c_str(), nCoordinateX, nCoordinateY);
 
 			m_pActor = IActor::Create(strName);

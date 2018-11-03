@@ -162,7 +162,7 @@ namespace eastengine
 			m_motionRecorder.Clear(fStartTime);
 		}
 
-		const math::Transform* MotionPlayer::GetTransform(const String::StringID& strBoneName) const
+		const math::Transform* MotionPlayer::GetTransform(const string::StringID& strBoneName) const
 		{
 			return m_motionRecorder.GetTransform(strBoneName);
 		}

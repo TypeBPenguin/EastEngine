@@ -1,5 +1,7 @@
 #pragma once
 
+#include "GraphicsInterface/Renderer.h"
+
 namespace eastengine
 {
 	namespace graphics
@@ -8,15 +10,18 @@ namespace eastengine
 
 		namespace dx11
 		{
-			class DeferredRenderer
+			class DeferredRenderer : public IRenderer
 			{
 			public:
 				DeferredRenderer();
-				~DeferredRenderer();
+				virtual ~DeferredRenderer();
+
+			public:
+				virtual Type GetType() const { return IRenderer::eDeferred; }
 
 			public:
 				void Render(ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext, Camera* pCamera);
-				void Flush();
+				void Cleanup();
 
 			private:
 				class Impl;

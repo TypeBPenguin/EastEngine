@@ -1,5 +1,7 @@
 #pragma once
 
+#include "RendererDX12.h"
+
 namespace eastengine
 {
 	namespace graphics
@@ -8,11 +10,15 @@ namespace eastengine
 		{
 			class RenderTarget;
 
-			class BloomFilter
+			class BloomFilter : public IRendererDX12
 			{
 			public:
 				BloomFilter();
-				~BloomFilter();;
+				virtual ~BloomFilter();
+
+			public:
+				virtual Type GetType() const override { return IRenderer::eBloomFilter; }
+				virtual void RefreshPSO(ID3D12Device* pDevice) override;
 
 			public:
 				void Apply(RenderTarget* pSource);

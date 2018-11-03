@@ -58,7 +58,7 @@ namespace eastengine
 			return pActor;
 		}
 
-		IActor* IActor::Create(const String::StringID& strName)
+		IActor* IActor::Create(const string::StringID& strName)
 		{
 			return GameObjectManager::GetInstance()->CreateActor(strName);
 		}
@@ -118,12 +118,12 @@ namespace eastengine
 		{
 		}
 
-		ITerrain* ITerrain::Create(const String::StringID& strName, const TerrainProperty& terrainProperty)
+		ITerrain* ITerrain::Create(const string::StringID& strName, const TerrainProperty& terrainProperty)
 		{
 			return GameObjectManager::GetInstance()->CreateTerrain(strName, terrainProperty);
 		}
 
-		ITerrain* ITerrain::CreateAsync(const String::StringID& strName, const TerrainProperty& terrainProperty)
+		ITerrain* ITerrain::CreateAsync(const string::StringID& strName, const TerrainProperty& terrainProperty)
 		{
 			return GameObjectManager::GetInstance()->CreateTerrainAsync(strName, terrainProperty);
 		}
@@ -144,7 +144,7 @@ namespace eastengine
 		{
 		}
 
-		ISkybox* ISkybox::Create(const String::StringID& strName, const SkyboxProperty& property)
+		ISkybox* ISkybox::Create(const string::StringID& strName, const SkyboxProperty& property)
 		{
 			return GameObjectManager::GetInstance()->CreateSkybox(strName, property);
 		}

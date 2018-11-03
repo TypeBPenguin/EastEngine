@@ -119,7 +119,7 @@ namespace eastengine
 			const math::UInt2 n2TargetSize(n2Size.x / 2, n2Size.y / 2);
 			m_fRadiusMultiplier = static_cast<float>(n2Size.x) / n2TargetSize.x;
 
-			auto Sampling = [&](bool isResult, uint32_t nWidth, uint32_t nHeight, int nPass, const math::Vector2& f2InverseResolution, IRenderTarget* pSource, const String::StringID& strTechName, IRenderTarget* pResult = nullptr) -> IRenderTarget*
+			auto Sampling = [&](bool isResult, uint32_t nWidth, uint32_t nHeight, int nPass, const math::Vector2& f2InverseResolution, IRenderTarget* pSource, const string::StringID& strTechName, IRenderTarget* pResult = nullptr) -> IRenderTarget*
 			{
 				if (m_nDownsamplePasses > nPass)
 				{

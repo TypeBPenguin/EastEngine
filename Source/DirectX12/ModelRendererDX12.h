@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GraphicsInterface/RenderJob.h"
+#include "RendererDX12.h"
 
 namespace eastengine
 {
@@ -10,11 +11,11 @@ namespace eastengine
 
 		namespace dx12
 		{
-			class ModelRenderer
+			class ModelRenderer : public IRendererDX12
 			{
 			public:
 				ModelRenderer();
-				~ModelRenderer();
+				virtual ~ModelRenderer();
 
 				enum Group
 				{
@@ -25,8 +26,12 @@ namespace eastengine
 				};
 
 			public:
+				virtual Type GetType() const override { return IRenderer::eModel; }
+				virtual void RefreshPSO(ID3D12Device* pDevice) override;
+
+			public:
 				void Render(Camera* pCamera, Group emGroup);
-				void Flush();
+				void Cleanup();
 
 			public:
 				void PushJob(const RenderJobStatic& renderJob);

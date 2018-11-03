@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GraphicsInterface/RenderJob.h"
+#include "GraphicsInterface/Renderer.h"
 
 namespace eastengine
 {
@@ -10,15 +11,18 @@ namespace eastengine
 
 		namespace dx11
 		{
-			class EnvironmentRenderer
+			class EnvironmentRenderer : public IRenderer
 			{
 			public:
 				EnvironmentRenderer();
-				~EnvironmentRenderer();
+				virtual ~EnvironmentRenderer();
+
+			public:
+				virtual Type GetType() const { return IRenderer::eEnvironment; }
 
 			public:
 				void Render(ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext, Camera* pCamera);
-				void Flush();
+				void Cleanup();
 
 			private:
 				class Impl;

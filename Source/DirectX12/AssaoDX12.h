@@ -1,5 +1,7 @@
 #pragma once
 
+#include "RendererDX12.h"
+
 namespace eastengine
 {
 	namespace graphics
@@ -11,11 +13,15 @@ namespace eastengine
 			class RenderTarget;
 			class DepthStencil;
 
-			class Assao
+			class Assao : public IRendererDX12
 			{
 			public:
 				Assao();
-				~Assao();
+				virtual ~Assao();
+
+			public:
+				virtual Type GetType() const override { return IRenderer::eAssao; }
+				virtual void RefreshPSO(ID3D12Device* pDevice) override;
 
 			public:
 				void Apply(const Camera* pCamera, const RenderTarget* pNormalMap, const DepthStencil* pDepth, RenderTarget* pResult);

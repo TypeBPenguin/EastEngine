@@ -523,7 +523,7 @@ namespace eastengine
 
 			public:
 				void Render(ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext, Camera* pCamera, Group emGroup);
-				void Flush();
+				void Cleanup();
 
 			public:
 				void PushJob(const RenderJobStatic& job);
@@ -631,7 +631,7 @@ namespace eastengine
 				m_strShaderPath = file::GetPath(file::eFx);
 				m_strShaderPath.append("Model\\Model.hlsl");
 
-				if (FAILED(D3DReadFileToBlob(String::MultiToWide(m_strShaderPath).c_str(), &m_pShaderBlob)))
+				if (FAILED(D3DReadFileToBlob(string::MultiToWide(m_strShaderPath).c_str(), &m_pShaderBlob)))
 				{
 					throw_line("failed to read shader file : Model.hlsl");
 				}
@@ -745,7 +745,7 @@ namespace eastengine
 				}
 			}
 
-			void ModelRenderer::Impl::Flush()
+			void ModelRenderer::Impl::Cleanup()
 			{
 				m_nJobStaticCount.fill(0);
 				m_nJobSkinnedCount.fill(0);
@@ -1259,12 +1259,12 @@ namespace eastengine
 					throw_line("invalid vertex shader input elements");
 				}
 
-				const std::string strDebugName = String::Format("ModelVertexShader : %u", maskKey);
+				const std::string strDebugName = string::Format("ModelVertexShader : %u", maskKey);
 
 				ID3D11VertexShader* pVertexShader = nullptr;
 				ID3D11InputLayout* pInputLayout = nullptr;
 
-				if (util::CreateVertexShader(pDevice, m_pShaderBlob, vecMacros.data(), m_strShaderPath.c_str(), pFunctionName, "vs_5_0", &pVertexShader, pInputElements, nElementCount, &pInputLayout, strDebugName.c_str()) == false)
+				if (util::CreateVertexShader(pDevice, m_pShaderBlob, vecMacros.data(), m_strShaderPath.c_str(), pFunctionName, shader::VS_CompileVersion, &pVertexShader, pInputElements, nElementCount, &pInputLayout, strDebugName.c_str()) == false)
 				{
 					LOG_ERROR("failed to create vertex shader : %u", maskKey);
 					return;
@@ -1278,10 +1278,10 @@ namespace eastengine
 			{
 				const std::vector<D3D_SHADER_MACRO> vecMacros = shader::GetMacros(maskKey);
 
-				const std::string strDebugName = String::Format("ModelPixelShader : %u", maskKey);
+				const std::string strDebugName = string::Format("ModelPixelShader : %u", maskKey);
 
 				ID3D11PixelShader* pPixelShader = nullptr;
-				if (util::CreatePixelShader(pDevice, m_pShaderBlob, vecMacros.data(), m_strShaderPath.c_str(), pFunctionName, "ps_5_0", &pPixelShader, strDebugName.c_str()) == false)
+				if (util::CreatePixelShader(pDevice, m_pShaderBlob, vecMacros.data(), m_strShaderPath.c_str(), pFunctionName, shader::PS_CompileVersion, &pPixelShader, strDebugName.c_str()) == false)
 				{
 					LOG_ERROR("failed to create pixel shader : %u", maskKey);
 					return;
@@ -1304,9 +1304,9 @@ namespace eastengine
 				m_pImpl->Render(pDevice, pDeviceContext, pCamera, emGroup);
 			}
 
-			void ModelRenderer::Flush()
+			void ModelRenderer::Cleanup()
 			{
-				m_pImpl->Flush();
+				m_pImpl->Cleanup();
 			}
 
 			void ModelRenderer::PushJob(const RenderJobStatic& job)

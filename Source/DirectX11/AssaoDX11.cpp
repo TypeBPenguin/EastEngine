@@ -657,7 +657,7 @@ namespace eastengine
 
 				// shader load
 				ID3DBlob* pShaderBlob = nullptr;
-				if (FAILED(D3DReadFileToBlob(String::MultiToWide(strShaderPath).c_str(), &pShaderBlob)))
+				if (FAILED(D3DReadFileToBlob(string::MultiToWide(strShaderPath).c_str(), &pShaderBlob)))
 				{
 					throw_line("failed to read shader file : Model.hlsl");
 				}
@@ -778,7 +778,7 @@ namespace eastengine
 
 					// vertex shader
 					{
-						if (util::CreateVertexShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "VSMain", "vs_5_0", &m_pVertexShader, "ASSAO_VSMain") == false)
+						if (util::CreateVertexShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "VSMain", shader::VS_CompileVersion, &m_pVertexShader, "ASSAO_VSMain") == false)
 						{
 							CleanupDX();
 							throw_line("failed to create vertex shader");
@@ -788,70 +788,70 @@ namespace eastengine
 
 					// pixel shaders
 					{
-						if (util::CreatePixelShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "PSPrepareDepths", "ps_5_0", &m_pixelShaderPrepareDepths, "PSPrepareDepths") == false)
+						if (util::CreatePixelShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "PSPrepareDepths", shader::PS_CompileVersion, &m_pixelShaderPrepareDepths, "PSPrepareDepths") == false)
 						{
 							CleanupDX();
 							throw_line("failed to create pixel shader");
 							return false;
 						}
 						
-						if (util::CreatePixelShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "PSPrepareDepthsAndNormals", "ps_5_0", &m_pixelShaderPrepareDepthsAndNormals, "PSPrepareDepthsAndNormals") == false)
+						if (util::CreatePixelShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "PSPrepareDepthsAndNormals", shader::PS_CompileVersion, &m_pixelShaderPrepareDepthsAndNormals, "PSPrepareDepthsAndNormals") == false)
 						{
 							CleanupDX();
 							throw_line("failed to create pixel shader");
 							return false;
 						}
 
-						if (util::CreatePixelShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "PSPrepareDepthsHalf", "ps_5_0", &m_pixelShaderPrepareDepthsHalf, "PSPrepareDepthsHalf") == false)
+						if (util::CreatePixelShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "PSPrepareDepthsHalf", shader::PS_CompileVersion, &m_pixelShaderPrepareDepthsHalf, "PSPrepareDepthsHalf") == false)
 						{
 							CleanupDX();
 							throw_line("failed to create pixel shader");
 							return false;
 						}
 
-						if (util::CreatePixelShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "PSPrepareDepthsAndNormalsHalf", "ps_5_0", &m_pixelShaderPrepareDepthsAndNormalsHalf, "PSPrepareDepthsAndNormalsHalf") == false)
+						if (util::CreatePixelShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "PSPrepareDepthsAndNormalsHalf", shader::PS_CompileVersion, &m_pixelShaderPrepareDepthsAndNormalsHalf, "PSPrepareDepthsAndNormalsHalf") == false)
 						{
 							CleanupDX();
 							throw_line("failed to create pixel shader");
 							return false;
 						}
 
-						if (util::CreatePixelShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "PSPrepareDepthMip1", "ps_5_0", &m_pixelShaderPrepareDepthMip[0], "PSPrepareDepthMip1") == false)
+						if (util::CreatePixelShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "PSPrepareDepthMip1", shader::PS_CompileVersion, &m_pixelShaderPrepareDepthMip[0], "PSPrepareDepthMip1") == false)
 						{
 							CleanupDX();
 							throw_line("failed to create pixel shader");
 							return false;
 						}
 
-						if (util::CreatePixelShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "PSPrepareDepthMip2", "ps_5_0", &m_pixelShaderPrepareDepthMip[1], "PSPrepareDepthMip2") == false)
+						if (util::CreatePixelShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "PSPrepareDepthMip2", shader::PS_CompileVersion, &m_pixelShaderPrepareDepthMip[1], "PSPrepareDepthMip2") == false)
 						{
 							CleanupDX();
 							throw_line("failed to create pixel shader");
 							return false;
 						}
 
-						if (util::CreatePixelShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "PSPrepareDepthMip3", "ps_5_0", &m_pixelShaderPrepareDepthMip[2], "PSPrepareDepthMip3") == false)
+						if (util::CreatePixelShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "PSPrepareDepthMip3", shader::PS_CompileVersion, &m_pixelShaderPrepareDepthMip[2], "PSPrepareDepthMip3") == false)
 						{
 							CleanupDX();
 							throw_line("failed to create pixel shader");
 							return false;
 						}
 
-						if (util::CreatePixelShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "PSGenerateQ0", "ps_5_0", &m_pixelShaderGenerate[0], "PSGenerateQ0") == false)
+						if (util::CreatePixelShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "PSGenerateQ0", shader::PS_CompileVersion, &m_pixelShaderGenerate[0], "PSGenerateQ0") == false)
 						{
 							CleanupDX();
 							throw_line("failed to create pixel shader");
 							return false;
 						}
 
-						if (util::CreatePixelShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "PSGenerateQ1", "ps_5_0", &m_pixelShaderGenerate[1], "PSGenerateQ1") == false)
+						if (util::CreatePixelShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "PSGenerateQ1", shader::PS_CompileVersion, &m_pixelShaderGenerate[1], "PSGenerateQ1") == false)
 						{
 							CleanupDX();
 							throw_line("failed to create pixel shader");
 							return false;
 						}
 
-						if (util::CreatePixelShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "PSGenerateQ2", "ps_5_0", &m_pixelShaderGenerate[2], "PSGenerateQ2") == false)
+						if (util::CreatePixelShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "PSGenerateQ2", shader::PS_CompileVersion, &m_pixelShaderGenerate[2], "PSGenerateQ2") == false)
 						{
 							CleanupDX();
 							throw_line("failed to create pixel shader");
@@ -859,14 +859,14 @@ namespace eastengine
 						}
 
 #ifdef INTEL_SSAO_ENABLE_ADAPTIVE_QUALITY
-						if (util::CreatePixelShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "PSGenerateQ3", "ps_5_0", &m_pixelShaderGenerate[3], "PSGenerateQ3") == false)
+						if (util::CreatePixelShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "PSGenerateQ3", shader::PS_CompileVersion, &m_pixelShaderGenerate[3], "PSGenerateQ3") == false)
 						{
 							CleanupDX();
 							throw_line("failed to create pixel shader");
 							return false;
 						}
 
-						if (util::CreatePixelShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "PSGenerateQ3Base", "ps_5_0", &m_pixelShaderGenerate[4], "PSGenerateQ3Base") == false)
+						if (util::CreatePixelShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "PSGenerateQ3Base", shader::PS_CompileVersion, &m_pixelShaderGenerate[4], "PSGenerateQ3Base") == false)
 						{
 							CleanupDX();
 							throw_line("failed to create pixel shader");
@@ -874,42 +874,42 @@ namespace eastengine
 						}
 #endif
 
-						if (util::CreatePixelShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "PSSmartBlur", "ps_5_0", &m_pixelShaderSmartBlur, "PSSmartBlur") == false)
+						if (util::CreatePixelShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "PSSmartBlur", shader::PS_CompileVersion, &m_pixelShaderSmartBlur, "PSSmartBlur") == false)
 						{
 							CleanupDX();
 							throw_line("failed to create pixel shader");
 							return false;
 						}
 
-						if (util::CreatePixelShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "PSSmartBlurWide", "ps_5_0", &m_pixelShaderSmartBlurWide, "PSSmartBlurWide") == false)
+						if (util::CreatePixelShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "PSSmartBlurWide", shader::PS_CompileVersion, &m_pixelShaderSmartBlurWide, "PSSmartBlurWide") == false)
 						{
 							CleanupDX();
 							throw_line("failed to create pixel shader");
 							return false;
 						}
 
-						if (util::CreatePixelShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "PSNonSmartBlur", "ps_5_0", &m_pixelShaderNonSmartBlur, "PSNonSmartBlur") == false)
+						if (util::CreatePixelShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "PSNonSmartBlur", shader::PS_CompileVersion, &m_pixelShaderNonSmartBlur, "PSNonSmartBlur") == false)
 						{
 							CleanupDX();
 							throw_line("failed to create pixel shader");
 							return false;
 						}
 
-						if (util::CreatePixelShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "PSApply", "ps_5_0", &m_pixelShaderApply, "PSApply") == false)
+						if (util::CreatePixelShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "PSApply", shader::PS_CompileVersion, &m_pixelShaderApply, "PSApply") == false)
 						{
 							CleanupDX();
 							throw_line("failed to create pixel shader");
 							return false;
 						}
 
-						if (util::CreatePixelShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "PSNonSmartApply", "ps_5_0", &m_pixelShaderNonSmartApply, "PSNonSmartApply") == false)
+						if (util::CreatePixelShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "PSNonSmartApply", shader::PS_CompileVersion, &m_pixelShaderNonSmartApply, "PSNonSmartApply") == false)
 						{
 							CleanupDX();
 							throw_line("failed to create pixel shader");
 							return false;
 						}
 
-						if (util::CreatePixelShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "PSNonSmartHalfApply", "ps_5_0", &m_pixelShaderNonSmartHalfApply, "PSNonSmartHalfApply") == false)
+						if (util::CreatePixelShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "PSNonSmartHalfApply", shader::PS_CompileVersion, &m_pixelShaderNonSmartHalfApply, "PSNonSmartHalfApply") == false)
 						{
 							CleanupDX();
 							throw_line("failed to create pixel shader");
@@ -917,21 +917,21 @@ namespace eastengine
 						}
 
 #ifdef INTEL_SSAO_ENABLE_ADAPTIVE_QUALITY
-						if (util::CreatePixelShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "PSGenerateImportanceMap", "ps_5_0", &m_pixelShaderGenerateImportanceMap, "PSGenerateImportanceMap") == false)
+						if (util::CreatePixelShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "PSGenerateImportanceMap", shader::PS_CompileVersion, &m_pixelShaderGenerateImportanceMap, "PSGenerateImportanceMap") == false)
 						{
 							CleanupDX();
 							throw_line("failed to create pixel shader");
 							return false;
 						}
 
-						if (util::CreatePixelShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "PSPostprocessImportanceMapA", "ps_5_0", &m_pixelShaderPostprocessImportanceMapA, "PSPostprocessImportanceMapA") == false)
+						if (util::CreatePixelShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "PSPostprocessImportanceMapA", shader::PS_CompileVersion, &m_pixelShaderPostprocessImportanceMapA, "PSPostprocessImportanceMapA") == false)
 						{
 							CleanupDX();
 							throw_line("failed to create pixel shader");
 							return false;
 						}
 
-						if (util::CreatePixelShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "PSPostprocessImportanceMapB", "ps_5_0", &m_pixelShaderPostprocessImportanceMapB, "PSPostprocessImportanceMapB") == false)
+						if (util::CreatePixelShader(m_device, pShaderBlob, shaderMacros, strShaderPath.c_str(), "PSPostprocessImportanceMapB", shader::PS_CompileVersion, &m_pixelShaderPostprocessImportanceMapB, "PSPostprocessImportanceMapB") == false)
 						{
 							CleanupDX();
 							throw_line("failed to create pixel shader");

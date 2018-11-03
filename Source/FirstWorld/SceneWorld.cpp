@@ -11,7 +11,7 @@ namespace StrID
 	RegisterStringID(MainLight);
 }
 
-SceneWorld::SceneWorld(const eastengine::String::StringID& strSceneName)
+SceneWorld::SceneWorld(const eastengine::string::StringID& strSceneName)
 	: IScene(strSceneName)
 {
 }

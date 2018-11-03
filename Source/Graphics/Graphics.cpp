@@ -43,17 +43,17 @@ namespace eastengine
 			virtual ~IGraphicsAPI() = default;
 
 		public:
-			virtual void Initialize(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const String::StringID& strApplicationTitle, const String::StringID& strApplicationName) = 0;
+			virtual void Initialize(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const string::StringID& strApplicationTitle, const string::StringID& strApplicationName) = 0;
 			virtual void Release() = 0;
 			virtual void Run(std::function<void()> funcUpdate) = 0;
-			virtual void Flush(float fElapsedTime) = 0;
+			virtual void Cleanup(float fElapsedTime) = 0;
 
 		public:
 			virtual APIs GetType() const = 0;
 			virtual HWND GetHwnd() const = 0;
 			virtual HINSTANCE GetHInstance() const = 0;
-			virtual void AddMessageHandler(const String::StringID& strName, std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler) = 0;
-			virtual void RemoveMessageHandler(const String::StringID& strName) = 0;
+			virtual void AddMessageHandler(const string::StringID& strName, std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler) = 0;
+			virtual void RemoveMessageHandler(const string::StringID& strName) = 0;
 
 			virtual const math::UInt2& GetScreenSize() const = 0;
 			virtual IImageBasedLight* GetImageBasedLight() const = 0;
@@ -73,7 +73,7 @@ namespace eastengine
 			virtual void PushRenderJob(const RenderJobTerrain& renderJob) = 0;
 
 			virtual void ReleaseResource(IResource* pResource) = 0;
-			virtual void FlushGarbageCollection() = 0;
+			virtual void CleanupGarbageCollection() = 0;
 		};
 
 		template <
@@ -91,7 +91,7 @@ namespace eastengine
 			virtual ~TGraphicsAPI() = default;
 
 		public:
-			virtual void Initialize(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const String::StringID& strApplicationTitle, const String::StringID& strApplicationName) override
+			virtual void Initialize(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const string::StringID& strApplicationTitle, const string::StringID& strApplicationName) override
 			{
 				Device::GetInstance()->Initialize(nWidth, nHeight, isFullScreen, strApplicationTitle, strApplicationName);
 				m_pTextureManager = std::make_unique<TextureManager>();
@@ -104,13 +104,13 @@ namespace eastengine
 			{
 				m_pImageBasedLight.reset();
 
-				FlushGarbageCollection();
+				CleanupGarbageCollection();
 
 				if (m_umapVertexBuffers.empty() == false ||
 					m_umapIndexBuffers.empty() == false ||
 					m_umapMaterials.empty() == false)
 				{
-					std::string error = String::Format("please release all resource : vertexbuffer[%lld], indexbuffer[%lld], material[%lld]", m_umapVertexBuffers.size(), m_umapIndexBuffers.size(), m_umapMaterials.size());
+					std::string error = string::Format("please release all resource : vertexbuffer[%lld], indexbuffer[%lld], material[%lld]", m_umapVertexBuffers.size(), m_umapIndexBuffers.size(), m_umapMaterials.size());
 					OutputDebugString(error.c_str());
 					LOG_ERROR("%s", error.c_str());
 					Sleep(5000);
@@ -128,11 +128,11 @@ namespace eastengine
 				Device::GetInstance()->Run(funcUpdate);
 			}
 
-			virtual void Flush(float fElapsedTime) override
+			virtual void Cleanup(float fElapsedTime) override
 			{
-				FlushGarbageCollection();
-				m_pTextureManager->Flush(fElapsedTime);
-				Device::GetInstance()->Flush(fElapsedTime);
+				CleanupGarbageCollection();
+				m_pTextureManager->Cleanup(fElapsedTime);
+				Device::GetInstance()->Cleanup(fElapsedTime);
 			}
 
 		public:
@@ -165,7 +165,7 @@ namespace eastengine
 				}
 			}
 
-			virtual void AddMessageHandler(const String::StringID& strName, std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler) override
+			virtual void AddMessageHandler(const string::StringID& strName, std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler) override
 			{
 				if constexpr (APIType == APIs::eDX11 || APIType == APIs::eDX12)
 				{
@@ -173,7 +173,7 @@ namespace eastengine
 				}
 			}
 
-			virtual void RemoveMessageHandler(const String::StringID& strName) override
+			virtual void RemoveMessageHandler(const string::StringID& strName) override
 			{
 				if constexpr (APIType == APIs::eDX11 || APIType == APIs::eDX12)
 				{
@@ -237,7 +237,7 @@ namespace eastengine
 
 			virtual ITexture* CreateTexture(const char* strFilePath) override
 			{
-				const ITexture::Key key{ String::StringID(strFilePath) };
+				const ITexture::Key key{ string::StringID(strFilePath) };
 				ITexture* pITexture = m_pTextureManager->GetTexture(key);
 				if (pITexture != nullptr)
 					return pITexture;
@@ -253,7 +253,7 @@ namespace eastengine
 
 			virtual ITexture* CreateTextureAsync(const char* strFilePath) override
 			{
-				const ITexture::Key key{ String::StringID(strFilePath) };
+				const ITexture::Key key{ string::StringID(strFilePath) };
 				ITexture* pITexture = m_pTextureManager->GetTexture(key);
 				if (pITexture != nullptr)
 					return pITexture;
@@ -370,7 +370,7 @@ namespace eastengine
 				}
 			}
 
-			virtual void FlushGarbageCollection() override
+			virtual void CleanupGarbageCollection() override
 			{
 				thread::SRWWriteLock writeLock(&m_srwLock);
 
@@ -383,7 +383,7 @@ namespace eastengine
 					if (m_vecGarbages[i]->GetReferenceCount() > 0)
 						continue;
 
-					const String::StringID& strResourceType = m_vecGarbages[i]->GetResourceType();
+					const string::StringID& strResourceType = m_vecGarbages[i]->GetResourceType();
 					if (strResourceType == StrID::VertexBuffer)
 					{
 						m_umapVertexBuffers.erase(m_vecGarbages[i]);
@@ -431,7 +431,7 @@ namespace eastengine
 
 		std::unique_ptr<IGraphicsAPI> s_pGraphicsAPI;
 
-		void Initialize(APIs emAPI, uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const String::StringID& strApplicationTitle, const String::StringID& strApplicationName)
+		void Initialize(APIs emAPI, uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const string::StringID& strApplicationTitle, const string::StringID& strApplicationName)
 		{
 			if (s_pGraphicsAPI != nullptr)
 			{
@@ -478,9 +478,9 @@ namespace eastengine
 			s_pGraphicsAPI->Run(funcUpdate);
 		}
 
-		void Flush(float fElapsedTime)
+		void Cleanup(float fElapsedTime)
 		{
-			s_pGraphicsAPI->Flush(fElapsedTime);
+			s_pGraphicsAPI->Cleanup(fElapsedTime);
 		}
 
 		void Update(float fElapsedTime)
@@ -504,12 +504,12 @@ namespace eastengine
 			return s_pGraphicsAPI->GetHInstance();
 		}
 
-		void AddMessageHandler(const String::StringID& strName, std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler)
+		void AddMessageHandler(const string::StringID& strName, std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler)
 		{
 			s_pGraphicsAPI->AddMessageHandler(strName, funcHandler);
 		}
 
-		void RemoveMessageHandler(const String::StringID& strName)
+		void RemoveMessageHandler(const string::StringID& strName)
 		{
 			s_pGraphicsAPI->RemoveMessageHandler(strName);
 		}

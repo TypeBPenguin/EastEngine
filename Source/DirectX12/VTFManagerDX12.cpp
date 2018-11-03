@@ -59,7 +59,7 @@ namespace eastengine
 				
 				for (int i = 0; i < eFrameBufferCount; ++i)
 				{
-					String::StringID strName;
+					string::StringID strName;
 					strName.Format("EastEngine_VTF_%d", i);
 					Texture::Key key(strName);
 

@@ -56,7 +56,7 @@ namespace eastengine
 
 		public:
 			static IActor* CreateByFile(const char* strFilePath);
-			static IActor* Create(const String::StringID& strName);
+			static IActor* Create(const string::StringID& strName);
 			static void Destroy(IActor** ppActor);
 
 			static bool SaveToFile(IActor* pActor, const char* strFilePath);
@@ -70,8 +70,8 @@ namespace eastengine
 			virtual IComponent* GetComponent(EmComponent::Type emComponentType) = 0;
 
 		public:
-			virtual const String::StringID& GetName() const = 0;
-			virtual void SetName(const String::StringID& strActorName) = 0;
+			virtual const string::StringID& GetName() const = 0;
+			virtual void SetName(const string::StringID& strActorName) = 0;
 
 			virtual const math::Matrix* GetWorldMatrixPtr() const = 0;
 			virtual const math::Matrix& GetWorldMatrix() const = 0;
@@ -126,8 +126,8 @@ namespace eastengine
 			virtual ~ITerrain() = default;
 
 		public:
-			static ITerrain* Create(const String::StringID& strName, const TerrainProperty& terrainProperty);
-			static ITerrain* CreateAsync(const String::StringID& strName, const TerrainProperty& terrainProperty);
+			static ITerrain* Create(const string::StringID& strName, const TerrainProperty& terrainProperty);
+			static ITerrain* CreateAsync(const string::StringID& strName, const TerrainProperty& terrainProperty);
 			static void Destroy(ITerrain** ppTerrain);
 
 		public:
@@ -137,8 +137,8 @@ namespace eastengine
 			virtual void Update(float fElapsedTime) = 0;
 
 		public:
-			virtual const String::StringID& GetName() const = 0;
-			virtual void SetName(const String::StringID& strActorName) = 0;
+			virtual const string::StringID& GetName() const = 0;
+			virtual void SetName(const string::StringID& strActorName) = 0;
 
 			virtual void SetVisible(bool bVisible) = 0;
 			virtual bool IsVisible() const = 0;
@@ -165,7 +165,7 @@ namespace eastengine
 			virtual ~ISkybox() = default;
 
 		public:
-			static ISkybox* Create(const String::StringID& strName, const SkyboxProperty& property);
+			static ISkybox* Create(const string::StringID& strName, const SkyboxProperty& property);
 			static void Destroy(ISkybox** ppSkybox);
 
 		public:
@@ -175,8 +175,8 @@ namespace eastengine
 			virtual void Update(float fElapsedTime) = 0;
 
 		public:
-			virtual const String::StringID& GetName() const = 0;
-			virtual void SetName(const String::StringID& strActorName) = 0;
+			virtual const string::StringID& GetName() const = 0;
+			virtual void SetName(const string::StringID& strActorName) = 0;
 
 			virtual void SetVisible(bool bVisible) = 0;
 			virtual bool IsVisible() const = 0;

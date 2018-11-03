@@ -66,7 +66,7 @@ namespace eastengine
 
 		public:
 			void Render(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag);
-			void Flush();
+			void Cleanup();
 
 		private:
 			int RenderShadowMap(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, IRenderTarget* pRenderTarget);
@@ -219,7 +219,7 @@ namespace eastengine
 			}
 		}
 
-		void DeferredRenderer::Impl::Flush()
+		void DeferredRenderer::Impl::Cleanup()
 		{
 		}
 
@@ -592,9 +592,9 @@ namespace eastengine
 			m_pImpl->Render(pDevice, pDeviceContext, pCamera, nRenderGroupFlag);
 		}
 
-		void DeferredRenderer::Flush()
+		void DeferredRenderer::Cleanup()
 		{
-			m_pImpl->Flush();
+			m_pImpl->Cleanup();
 		}
 	}
 }

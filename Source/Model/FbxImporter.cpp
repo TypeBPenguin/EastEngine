@@ -241,9 +241,9 @@ namespace eastengine
 			ExportLog::EnableLogging(true);
 
 #ifdef _DEBUG
-			std::string strExporterName = String::Format("%s version %d.%d.%d (DEBUG)", CONTENT_EXPORTER_TITLE, CONTENT_EXPORTER_MAJOR_VERSION, CONTENT_EXPORTER_MINOR_VERSION, CONTENT_EXPORTER_REVISION);
+			std::string strExporterName = string::Format("%s version %d.%d.%d (DEBUG)", CONTENT_EXPORTER_TITLE, CONTENT_EXPORTER_MAJOR_VERSION, CONTENT_EXPORTER_MINOR_VERSION, CONTENT_EXPORTER_REVISION);
 #else
-			std::string strExporterName = String::Format("%s version %d.%d.%d", CONTENT_EXPORTER_TITLE, CONTENT_EXPORTER_MAJOR_VERSION, CONTENT_EXPORTER_MINOR_VERSION, CONTENT_EXPORTER_REVISION);
+			std::string strExporterName = string::Format("%s version %d.%d.%d", CONTENT_EXPORTER_TITLE, CONTENT_EXPORTER_MAJOR_VERSION, CONTENT_EXPORTER_MINOR_VERSION, CONTENT_EXPORTER_REVISION);
 #endif
 
 			ExportLog::LogMsg(0, strExporterName.c_str());
@@ -503,7 +503,7 @@ namespace eastengine
 			int nRevision = 0;
 			m_pSDKManager->GetFileFormatVersion(nMajorVersion, nMinorVersion, nRevision);
 
-			std::string strTemp = String::Format("FBX SDK %d.%d.%d", nMajorVersion, nMinorVersion, nRevision);
+			std::string strTemp = string::Format("FBX SDK %d.%d.%d", nMajorVersion, nMinorVersion, nRevision);
 			g_pScene->Information().DCCNameAndVersion = strTemp.c_str();
 
 			ExportLog::LogMsg(2, "Compiled against %s", strTemp.c_str());
@@ -561,7 +561,7 @@ namespace eastengine
 						std::string strCurrentAnimName;
 						if (i > 0)
 						{
-							strCurrentAnimName = String::Format("%s%Iu", AnimName.c_str(), i);
+							strCurrentAnimName = string::Format("%s%Iu", AnimName.c_str(), i);
 						}
 						else
 						{
@@ -1138,7 +1138,7 @@ namespace eastengine
 			}
 			else
 			{
-				OutputParam.Name = String::Format("%s%u", strParamName, nIndex).c_str();
+				OutputParam.Name = string::Format("%s%u", strParamName, nIndex).c_str();
 			}
 
 			ExportLog::LogMsg(4, "Material parameter \"%s\" = \"%s\"", OutputParam.Name.SafeString(), strFileName);
@@ -1241,7 +1241,7 @@ namespace eastengine
 				if (pSameNameMaterial)
 				{
 					isRenameMaterial = true;
-					MaterialName = String::Format("%s_%u", pFbxMaterial->GetName(), nRenameIndex++).c_str();
+					MaterialName = string::Format("%s_%u", pFbxMaterial->GetName(), nRenameIndex++).c_str();
 				}
 			} while (pSameNameMaterial != nullptr);
 
@@ -1559,7 +1559,7 @@ namespace eastengine
 				strSuffix = "";
 			}
 
-			std::string strDecoratedName = String::Format("%s_%s%s", g_pScene->Settings().strMeshNameDecoration, strName, strSuffix);
+			std::string strDecoratedName = string::Format("%s_%s%s", g_pScene->Settings().strMeshNameDecoration, strName, strSuffix);
 			ExportMesh* pMesh = new ExportMesh(strDecoratedName.c_str());
 			pMesh->SetDCCObject(pFbxMesh);
 
@@ -1963,7 +1963,7 @@ namespace eastengine
 				{
 					ATG::ExportMaterial* pMaterial = MaterialList[nSubset];
 					ATG::ExportIBSubset* pSubset = pMesh->GetSubset(nSubset);
-					std::string strUniqueSubsetName = String::Format("subset%Iu_%s", nSubset, pMaterial->GetName().SafeString());
+					std::string strUniqueSubsetName = string::Format("subset%Iu_%s", nSubset, pMaterial->GetName().SafeString());
 					pSubset->SetName(strUniqueSubsetName.c_str());
 					pModel->SetSubsetBinding(pSubset->GetName(), pMaterial);
 				}
@@ -1978,7 +1978,7 @@ namespace eastengine
 					assert(pSubset != nullptr);
 					assert(pSubset->iOriginalMeshSubset < static_cast<int>(nMaterialCount));
 					ATG::ExportMaterial* pMaterial = MaterialList[pSubset->iOriginalMeshSubset];
-					std::string strUniqueSubsetName = String::Format("subset%Iu_%s", nSubset, pMaterial->GetName().SafeString());
+					std::string strUniqueSubsetName = string::Format("subset%Iu_%s", nSubset, pMaterial->GetName().SafeString());
 					pSubset->Name = strUniqueSubsetName.c_str();
 					pModel->SetSubsetBinding(pSubset->Name, pMaterial, true);
 				}
@@ -2048,7 +2048,7 @@ namespace eastengine
 			assert(pLevelMesh != nullptr);
 
 			ExportLog::LogMsg(3, "Parsing level %u", nCurrentLevel);
-			std::string strSuffix = String::Format("_level%u", nCurrentLevel);
+			std::string strSuffix = string::Format("_level%u", nCurrentLevel);
 			ParseMesh(pNode, pLevelMesh, pParentFrame, true, strSuffix.c_str());
 		}
 	}

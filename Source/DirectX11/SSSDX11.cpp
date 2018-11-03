@@ -97,7 +97,7 @@ namespace eastengine
 				strShaderPath.append("PostProcessing\\SSS\\SSS.hlsl");
 
 				ID3DBlob* pShaderBlob{ nullptr };
-				if (FAILED(D3DReadFileToBlob(String::MultiToWide(strShaderPath).c_str(), &pShaderBlob)))
+				if (FAILED(D3DReadFileToBlob(string::MultiToWide(strShaderPath).c_str(), &pShaderBlob)))
 				{
 					throw_line("failed to read shader file : SSS.hlsl");
 				}
@@ -108,7 +108,7 @@ namespace eastengine
 					{ nullptr, nullptr },
 				};
 
-				if (util::CreateVertexShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), "SSSSBlurVS", "vs_5_0", &m_pVertexShader, "SSS_VS") == false)
+				if (util::CreateVertexShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), "SSSSBlurVS", shader::VS_CompileVersion, &m_pVertexShader, "SSS_VS") == false)
 				{
 					throw_line("failed to create SSS_VS");
 				}
@@ -118,9 +118,9 @@ namespace eastengine
 					shader::PSType emPSType = static_cast<shader::PSType>(i);
 
 					const char* strPSName = shader::GetSSSPSTypeToString(emPSType);
-					if (util::CreatePixelShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), strPSName, "ps_5_0", &m_pPixelShaders[i], strPSName) == false)
+					if (util::CreatePixelShader(pDevice, pShaderBlob, macros, strShaderPath.c_str(), strPSName, shader::PS_CompileVersion, &m_pPixelShaders[i], strPSName) == false)
 					{
-						std::string dump = String::Format("failed to create %s", strPSName);
+						std::string dump = string::Format("failed to create %s", strPSName);
 						throw_line(dump.c_str());
 					}
 				}

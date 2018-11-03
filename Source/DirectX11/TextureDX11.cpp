@@ -71,7 +71,7 @@ namespace eastengine
 
 			bool Texture::Initialize(const D3D11_TEXTURE2D_DESC* pDesc, const D3D11_SUBRESOURCE_DATA* pInitialData)
 			{
-				const String::StringID strTextureName(m_key);
+				const string::StringID strTextureName(m_key);
 
 				SetState(State::eLoading);
 
@@ -80,7 +80,7 @@ namespace eastengine
 				HRESULT hr = pDevice->CreateTexture2D(pDesc, pInitialData, &m_pTexture2D);
 				if (FAILED(hr))
 				{
-					const std::string error = String::Format("failed to create texture 2d : %s", strTextureName.c_str());
+					const std::string error = string::Format("failed to create texture 2d : %s", strTextureName.c_str());
 					throw_line(error.c_str());
 				}
 
@@ -91,7 +91,7 @@ namespace eastengine
 					D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = CD3D11_SHADER_RESOURCE_VIEW_DESC(pDesc->ArraySize == 1 ? D3D11_SRV_DIMENSION_TEXTURE2D : D3D11_SRV_DIMENSION_TEXTURE2DARRAY, pDesc->Format, 0, pDesc->MipLevels, 0, pDesc->ArraySize, 0);
 					if (FAILED(pDevice->CreateShaderResourceView(m_pTexture2D, &srvDesc, &m_pShaderResourceView)))
 					{
-						const std::string error = String::Format("failed to create shader resource view : %s", strTextureName.c_str());
+						const std::string error = string::Format("failed to create shader resource view : %s", strTextureName.c_str());
 						throw_line(error.c_str());
 					}
 
@@ -124,17 +124,17 @@ namespace eastengine
 				ID3D11Device* pDevice = Device::GetInstance()->GetInterface();
 
 				const std::string strFileExtension(file::GetFileExtension(strFilePath));
-				if (String::IsEqualsNoCase(strFileExtension.c_str(), ".dds"))
+				if (string::IsEqualsNoCase(strFileExtension.c_str(), ".dds"))
 				{
-					hr = DirectX::LoadFromDDSFile(String::MultiToWide(strFilePath).c_str(), DirectX::DDS_FLAGS_NONE, nullptr, image);
+					hr = DirectX::LoadFromDDSFile(string::MultiToWide(strFilePath).c_str(), DirectX::DDS_FLAGS_NONE, nullptr, image);
 				}
-				else if (String::IsEqualsNoCase(strFileExtension.c_str(), ".tga"))
+				else if (string::IsEqualsNoCase(strFileExtension.c_str(), ".tga"))
 				{
-					hr = DirectX::LoadFromTGAFile(String::MultiToWide(strFilePath).c_str(), nullptr, image);
+					hr = DirectX::LoadFromTGAFile(string::MultiToWide(strFilePath).c_str(), nullptr, image);
 				}
 				else
 				{
-					hr = DirectX::LoadFromWICFile(String::MultiToWide(strFilePath).c_str(), DirectX::WIC_FLAGS_NONE, nullptr, image);
+					hr = DirectX::LoadFromWICFile(string::MultiToWide(strFilePath).c_str(), DirectX::WIC_FLAGS_NONE, nullptr, image);
 				}
 
 				if (image.GetMetadata().dimension == DirectX::TEX_DIMENSION_TEXTURE3D)

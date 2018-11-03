@@ -4,7 +4,7 @@
 
 namespace eastengine
 {
-	namespace String
+	namespace string
 	{
 		void Release();
 
@@ -39,21 +39,21 @@ namespace eastengine
 			const StringData* m_pStringData{ nullptr };
 		};
 		
-#define RegisterStringID(name)	static const eastengine::String::StringID name(#name);
+#define RegisterStringID(name)	static const eastengine::string::StringID name(#name);
 	};
 }
 
 namespace StrID
 {
-	static const eastengine::String::StringID EmptyString("");
+	static const eastengine::string::StringID EmptyString("");
 }
 
 namespace std
 {
 	template <>
-	struct hash<eastengine::String::StringID>
+	struct hash<eastengine::string::StringID>
 	{
-		const eastengine::String::StringData* operator()(const eastengine::String::StringID& key) const
+		const eastengine::string::StringData* operator()(const eastengine::string::StringID& key) const
 		{
 			return key.Key();
 		}

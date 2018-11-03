@@ -114,7 +114,7 @@ namespace eastengine
 
 		struct LoadInfoCustomStaticModel
 		{
-			String::StringID strNodeName;
+			string::StringID strNodeName;
 			IVertexBuffer* pVertexBuffer = nullptr;
 			IIndexBuffer* pIndexBuffer = nullptr;
 		};
@@ -163,28 +163,28 @@ namespace eastengine
 			~ModelLoader();
 
 		public:
-			void InitFBX(const String::StringID& strModelName, const char* strFilePath, float fScaleFactor = 1.f, bool isFlipZ = true, uint32_t nLodMax = 0, const LODReductionRate& reductionRate = LODReductionRate());
-			void InitObj(const String::StringID& strModelName, const char* strFilePath, float fScaleFactor = 1.f, uint32_t nLodMax = 0, const LODReductionRate& reductionRate = LODReductionRate());
-			void InitXPS(const String::StringID& strModelName, const char* strFilePath);
-			void InitEast(const String::StringID& strModelName, const char* strFilePath);
+			void InitFBX(const string::StringID& strModelName, const char* strFilePath, float fScaleFactor = 1.f, bool isFlipZ = true, uint32_t nLodMax = 0, const LODReductionRate& reductionRate = LODReductionRate());
+			void InitObj(const string::StringID& strModelName, const char* strFilePath, float fScaleFactor = 1.f, uint32_t nLodMax = 0, const LODReductionRate& reductionRate = LODReductionRate());
+			void InitXPS(const string::StringID& strModelName, const char* strFilePath);
+			void InitEast(const string::StringID& strModelName, const char* strFilePath);
 
-			void InitCube(const String::StringID& strModelName, MaterialInfo* pMaterialInfo = nullptr, float fSize = 1.f, bool rhcoords = false);
-			void InitBox(const String::StringID& strModelName, MaterialInfo* pMaterialInfo = nullptr, const math::Vector3& size = math::Vector3(1.f, 1.f, 1.f), bool rhcoords = false, bool invertn = false);
-			void InitSphere(const String::StringID& strModelName, MaterialInfo* pMaterialInfo = nullptr, float diameter = 1.f, uint32_t nTessellation = 16, bool rhcoords = false, bool invertn = false);
-			void InitGeoSphere(const String::StringID& strModelName, MaterialInfo* pMaterialInfo = nullptr, float diameter = 1.f, uint32_t nTessellation = 3, bool rhcoords = false);
-			void InitCylinder(const String::StringID& strModelName, MaterialInfo* pMaterialInfo = nullptr, float height = 1.f, float diameter = 1.f, uint32_t nTessellation = 32, bool rhcoords = false);
-			void InitCone(const String::StringID& strModelName, MaterialInfo* pMaterialInfo = nullptr, float diameter = 1.f, float height = 1.f, uint32_t nTessellation = 32, bool rhcoords = false);
-			void InitTorus(const String::StringID& strModelName, MaterialInfo* pMaterialInfo = nullptr, float diameter = 1.f, float thickness = 0.333f, uint32_t nTessellation = 32, bool rhcoords = false);
-			void InitTetrahedron(const String::StringID& strModelName, MaterialInfo* pMaterialInfo = nullptr, float fSize = 1.f, bool rhcoords = false);
-			void InitOctahedron(const String::StringID& strModelName, MaterialInfo* pMaterialInfo = nullptr, float fSize = 1.f, bool rhcoords = false);
-			void InitDodecahedron(const String::StringID& strModelName, MaterialInfo* pMaterialInfo = nullptr, float fSize = 1.f, bool rhcoords = false);
-			void InitIcosahedron(const String::StringID& strModelName, MaterialInfo* pMaterialInfo = nullptr, float fSize = 1.f, bool rhcoords = false);
-			void InitTeapot(const String::StringID& strModelName, MaterialInfo* pMaterialInfo = nullptr, float fSize = 1.f, uint32_t nTessellation = 8, bool rhcoords = false);
-			void InitHexagon(const String::StringID& strModelName, MaterialInfo* pMaterialInfo = nullptr, float radius = 1.f);
-			void InitCapsule(const String::StringID& strModelName, MaterialInfo* pMaterialInfo = nullptr, float fRadius = 0.5f, float fHeight = 1.f, int nSubdivisionHeight = 12, int nSegments = 12);
-			void InitGrid(const String::StringID& strModelName, float fGridSizeX, float fGridSizeZ, uint32_t nBlockCountWidth, uint32_t nBlockCountLength, MaterialInfo* pMaterialInfo = nullptr);
-			void InitPlane(const String::StringID& strModelName, float fEachLengthX, float fEachLengthZ, int nTotalCountX, int nTotalCountZ, MaterialInfo* pMaterialInfo = nullptr);
-			void InitCustomStaticModel(const String::StringID& strModelName, const String::StringID& strNodeName, IVertexBuffer* pVertexBuffer, IIndexBuffer* pIndexBuffer, MaterialInfo* pMaterialInfo = nullptr);
+			void InitCube(const string::StringID& strModelName, MaterialInfo* pMaterialInfo = nullptr, float fSize = 1.f, bool rhcoords = false);
+			void InitBox(const string::StringID& strModelName, MaterialInfo* pMaterialInfo = nullptr, const math::Vector3& size = math::Vector3(1.f, 1.f, 1.f), bool rhcoords = false, bool invertn = false);
+			void InitSphere(const string::StringID& strModelName, MaterialInfo* pMaterialInfo = nullptr, float diameter = 1.f, uint32_t nTessellation = 16, bool rhcoords = false, bool invertn = false);
+			void InitGeoSphere(const string::StringID& strModelName, MaterialInfo* pMaterialInfo = nullptr, float diameter = 1.f, uint32_t nTessellation = 3, bool rhcoords = false);
+			void InitCylinder(const string::StringID& strModelName, MaterialInfo* pMaterialInfo = nullptr, float height = 1.f, float diameter = 1.f, uint32_t nTessellation = 32, bool rhcoords = false);
+			void InitCone(const string::StringID& strModelName, MaterialInfo* pMaterialInfo = nullptr, float diameter = 1.f, float height = 1.f, uint32_t nTessellation = 32, bool rhcoords = false);
+			void InitTorus(const string::StringID& strModelName, MaterialInfo* pMaterialInfo = nullptr, float diameter = 1.f, float thickness = 0.333f, uint32_t nTessellation = 32, bool rhcoords = false);
+			void InitTetrahedron(const string::StringID& strModelName, MaterialInfo* pMaterialInfo = nullptr, float fSize = 1.f, bool rhcoords = false);
+			void InitOctahedron(const string::StringID& strModelName, MaterialInfo* pMaterialInfo = nullptr, float fSize = 1.f, bool rhcoords = false);
+			void InitDodecahedron(const string::StringID& strModelName, MaterialInfo* pMaterialInfo = nullptr, float fSize = 1.f, bool rhcoords = false);
+			void InitIcosahedron(const string::StringID& strModelName, MaterialInfo* pMaterialInfo = nullptr, float fSize = 1.f, bool rhcoords = false);
+			void InitTeapot(const string::StringID& strModelName, MaterialInfo* pMaterialInfo = nullptr, float fSize = 1.f, uint32_t nTessellation = 8, bool rhcoords = false);
+			void InitHexagon(const string::StringID& strModelName, MaterialInfo* pMaterialInfo = nullptr, float radius = 1.f);
+			void InitCapsule(const string::StringID& strModelName, MaterialInfo* pMaterialInfo = nullptr, float fRadius = 0.5f, float fHeight = 1.f, int nSubdivisionHeight = 12, int nSegments = 12);
+			void InitGrid(const string::StringID& strModelName, float fGridSizeX, float fGridSizeZ, uint32_t nBlockCountWidth, uint32_t nBlockCountLength, MaterialInfo* pMaterialInfo = nullptr);
+			void InitPlane(const string::StringID& strModelName, float fEachLengthX, float fEachLengthZ, int nTotalCountX, int nTotalCountZ, MaterialInfo* pMaterialInfo = nullptr);
+			void InitCustomStaticModel(const string::StringID& strModelName, const string::StringID& strNodeName, IVertexBuffer* pVertexBuffer, IIndexBuffer* pIndexBuffer, MaterialInfo* pMaterialInfo = nullptr);
 
 			void AddAnimInfoByFBXFolder(const char* strAnimPath);
 			void AddAnimInfoByFBX(const std::string& strAnimPath) { m_vecAnimationList.emplace_back(strAnimPath); }
@@ -211,7 +211,7 @@ namespace eastengine
 			GeometryType GetLoadGeometryType() const { return m_emLoadGeometryType; }
 
 			const std::string& GetFilePath() const { return m_strFilePath; }
-			const String::StringID& GetModelName() const { return m_strModelName; }
+			const string::StringID& GetModelName() const { return m_strModelName; }
 
 			const MaterialInfo& GetMaterial() const { return m_materialInfo; }
 
@@ -257,7 +257,7 @@ namespace eastengine
 			std::vector<std::string> m_vecDevideByKeywords;
 
 			std::string m_strFilePath;
-			String::StringID m_strModelName;
+			string::StringID m_strModelName;
 
 			MaterialInfo m_materialInfo;
 

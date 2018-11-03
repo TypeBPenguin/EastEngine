@@ -14,7 +14,7 @@ namespace eastengine
 				struct tKey {};
 
 			public:
-				using Key = PhantomType<tKey, const String::StringID>;
+				using Key = PhantomType<tKey, const string::StringID>;
 
 			public:
 				RenderTarget(const Key& key);
@@ -48,7 +48,7 @@ namespace std
 	template <>
 	struct hash<eastengine::graphics::dx11::RenderTarget::Key>
 	{
-		const eastengine::String::StringData* operator()(const eastengine::graphics::dx11::RenderTarget::Key& key) const
+		const eastengine::string::StringData* operator()(const eastengine::graphics::dx11::RenderTarget::Key& key) const
 		{
 			return key.Value().Key();
 		}

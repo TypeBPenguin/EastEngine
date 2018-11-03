@@ -38,11 +38,11 @@ namespace eastengine
 				virtual ~Device();
 
 			public:
-				void Initialize(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const String::StringID& strApplicationTitle, const String::StringID& strApplicationName);
+				void Initialize(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const string::StringID& strApplicationTitle, const string::StringID& strApplicationName);
 
 				void Run(std::function<void()> funcUpdate);
 
-				void Flush(float fElapsedTime);
+				void Cleanup(float fElapsedTime);
 
 			public:
 				RenderTarget* GetRenderTarget(const D3D11_TEXTURE2D_DESC* pDesc, bool isIncludeLastUseRenderTarget = true);
@@ -51,8 +51,8 @@ namespace eastengine
 			public:
 				HWND GetHwnd() const;
 				HINSTANCE GetHInstance() const;
-				void AddMessageHandler(const String::StringID& strName, std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler);
-				void RemoveMessageHandler(const String::StringID& strName);
+				void AddMessageHandler(const string::StringID& strName, std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler);
+				void RemoveMessageHandler(const string::StringID& strName);
 				const math::UInt2& GetScreenSize() const;
 				const D3D11_VIEWPORT* GetViewport() const;
 				const GBuffer* GetGBuffer() const;

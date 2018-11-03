@@ -109,7 +109,7 @@ namespace eastengine
 			virtual uint32_t GetPassCount() = 0;
 
 		public:
-			virtual const String::StringID& GetTechName() const = 0;
+			virtual const string::StringID& GetTechName() const = 0;
 			virtual EmVertexFormat::Type GetLayoutFormat() const = 0;
 		};
 
@@ -120,73 +120,73 @@ namespace eastengine
 			virtual ~IEffect() = default;
 
 		public:
-			static IEffect* Compile(const String::StringID& strName, const std::string& strPath, const ShaderMacros* pShaderMacros);
-			static IEffect* CompileAsync(const String::StringID& strName, const std::string& strPath, const ShaderMacros* pShaderMacros, std::function<void(IEffect*, bool)> funcCallback);
-			static IEffect* Create(const String::StringID& strName, const std::string& strPath);
+			static IEffect* Compile(const string::StringID& strName, const std::string& strPath, const ShaderMacros* pShaderMacros);
+			static IEffect* CompileAsync(const string::StringID& strName, const std::string& strPath, const ShaderMacros* pShaderMacros, std::function<void(IEffect*, bool)> funcCallback);
+			static IEffect* Create(const string::StringID& strName, const std::string& strPath);
 			static void Destroy(IEffect** ppEffect);
 
 		public:
 			virtual bool IsValid() const = 0;
 			virtual void ClearState(IDeviceContext* pd3dDeviceContext, IEffectTech* pEffectTech) = 0;
 
-			virtual const String::StringID& GetName() = 0;
+			virtual const string::StringID& GetName() = 0;
 
 		public:
-			virtual IEffectTech* CreateTechnique(const String::StringID& strName, EmVertexFormat::Type emLayoutFormat) = 0;
-			virtual IEffectTech* GetTechnique(const String::StringID& strName) = 0;
+			virtual IEffectTech* CreateTechnique(const string::StringID& strName, EmVertexFormat::Type emLayoutFormat) = 0;
+			virtual IEffectTech* GetTechnique(const string::StringID& strName) = 0;
 
 		public:
-			virtual EffectRawHandle* GetRawHandle(const String::StringID& strName) = 0;
-			virtual EffectScalarHandle* GetScalarHandle(const String::StringID& strName) = 0;
-			virtual EffectVectorHandle* GetVectorHandle(const String::StringID& strName) = 0;
-			virtual EffectMatrixHandle* GetMatrixHandle(const String::StringID& strName) = 0;
-			virtual EffectStringHandle* GetStringHandle(const String::StringID& strName) = 0;
-			virtual EffectShaderResourceHandle* GetShaderResourceHandle(const String::StringID& strName) = 0;
-			virtual EffectUnorderedAccessViewHandle* GetUnorderedAccessViewHandle(const String::StringID& strName) = 0;
-			virtual EffectRenderTargetViewHandle* GetRenderTargetViewHandle(const String::StringID& strName) = 0;
-			virtual EffectDepthStencilViewHandle* GetDepthStencilViewHandle(const String::StringID& strName) = 0;
-			virtual EffectConstanceBufferHandle* GetConstanceBufferHandle(const String::StringID& strName) = 0;
-			virtual EffectBlendHandle* GetBlendHandle(const String::StringID& strName) = 0;
-			virtual EffectDepthStencilHandle* GetDepthStencilHandle(const String::StringID& strName) = 0;
-			virtual EffectRasterizerHandle* GetRasterizerHandle(const String::StringID& strName) = 0;
-			virtual EffectSamplerHandle* GetSamplerHandle(const String::StringID& strName) = 0;
+			virtual EffectRawHandle* GetRawHandle(const string::StringID& strName) = 0;
+			virtual EffectScalarHandle* GetScalarHandle(const string::StringID& strName) = 0;
+			virtual EffectVectorHandle* GetVectorHandle(const string::StringID& strName) = 0;
+			virtual EffectMatrixHandle* GetMatrixHandle(const string::StringID& strName) = 0;
+			virtual EffectStringHandle* GetStringHandle(const string::StringID& strName) = 0;
+			virtual EffectShaderResourceHandle* GetShaderResourceHandle(const string::StringID& strName) = 0;
+			virtual EffectUnorderedAccessViewHandle* GetUnorderedAccessViewHandle(const string::StringID& strName) = 0;
+			virtual EffectRenderTargetViewHandle* GetRenderTargetViewHandle(const string::StringID& strName) = 0;
+			virtual EffectDepthStencilViewHandle* GetDepthStencilViewHandle(const string::StringID& strName) = 0;
+			virtual EffectConstanceBufferHandle* GetConstanceBufferHandle(const string::StringID& strName) = 0;
+			virtual EffectBlendHandle* GetBlendHandle(const string::StringID& strName) = 0;
+			virtual EffectDepthStencilHandle* GetDepthStencilHandle(const string::StringID& strName) = 0;
+			virtual EffectRasterizerHandle* GetRasterizerHandle(const string::StringID& strName) = 0;
+			virtual EffectSamplerHandle* GetSamplerHandle(const string::StringID& strName) = 0;
 
 		public:
-			virtual void SetRawValue(const String::StringID& strName, const void* pData, uint32_t nByteOffset, uint32_t nByteCount) = 0;
-			virtual void SetBool(const String::StringID& strName, bool value) = 0;
-			virtual void SetBoolArray(const String::StringID& strName, bool* pValue, uint32_t nOffset, uint32_t nCount) = 0;
-			virtual void SetInt(const String::StringID& strName, int nValue) = 0;
-			virtual void SetIntArray(const String::StringID& strName, const int* pValue, uint32_t nOffset, uint32_t nCount) = 0;
-			virtual void SetFloat(const String::StringID& strName, float fValue) = 0;
-			virtual void SetFloatArray(const String::StringID& strName, const float* pValue, uint32_t nOffset, uint32_t nCount) = 0;
-			virtual void SetVector(const String::StringID& strName, const math::Int2& n2Value) = 0;
-			virtual void SetVector(const String::StringID& strName, const math::Int3& n3Value) = 0;
-			virtual void SetVector(const String::StringID& strName, const math::Int4& n4Value) = 0;
-			virtual void SetVector(const String::StringID& strName, const math::Vector2& f2Value) = 0;
-			virtual void SetVector(const String::StringID& strName, const math::Vector3& f3Value) = 0;
-			virtual void SetVector(const String::StringID& strName, const math::Vector4& f4Value) = 0;
-			virtual void SetVectorArray(const String::StringID& strName, const math::Int2* pn2Value, uint32_t nOffset, uint32_t nCount) = 0;
-			virtual void SetVectorArray(const String::StringID& strName, const math::Int3* pn3Value, uint32_t nOffset, uint32_t nCount) = 0;
-			virtual void SetVectorArray(const String::StringID& strName, const math::Int4* pn4Value, uint32_t nOffset, uint32_t nCount) = 0;
-			virtual void SetVectorArray(const String::StringID& strName, const math::Vector2* pf2Value, uint32_t nOffset, uint32_t nCount) = 0;
-			virtual void SetVectorArray(const String::StringID& strName, const math::Vector3* pf3Value, uint32_t nOffset, uint32_t nCount) = 0;
-			virtual void SetVectorArray(const String::StringID& strName, const math::Vector4* pf4Value, uint32_t nOffset, uint32_t nCount) = 0;
-			virtual void SetMatrix(const String::StringID& strName, const math::Matrix& matrix) = 0;
-			virtual void SetMatrixArray(const String::StringID& strName, const math::Matrix* pMatrix, uint32_t nOffset, uint32_t nCount) = 0;
-			virtual void SetString(const String::StringID& strName, const char* str, uint32_t nCount) = 0;
-			virtual void SetTexture(const String::StringID& strName, const std::shared_ptr<ITexture>& pTexture) = 0;
-			virtual void SetTextureArray(const String::StringID& strName, const std::shared_ptr<ITexture>* pTextures, uint32_t nOffset, uint32_t nCount) = 0;
-			virtual void SetStructuredBuffer(const String::StringID& strName, IStructuredBuffer* pDataBuffer) = 0;
-			virtual void SetUnorderedAccessView(const String::StringID& strName, IStructuredBuffer* pDataBuffer) = 0;
-			virtual void SetUnorderedAccessViewArray(const String::StringID& strName, IStructuredBuffer** ppDataBuffer, uint32_t nOffset, uint32_t nCount) = 0;
-			virtual void SetBlendState(const String::StringID& strName, IBlendState* pBlendState, uint32_t nIndex) = 0;
-			virtual void UndoBlendState(const String::StringID& strName, uint32_t nIndex) = 0;
-			virtual void SetDepthStencilState(const String::StringID& strName, IDepthStencilState* pDepthStencilState, uint32_t nIndex) = 0;
-			virtual void UndoDepthStencilState(const String::StringID& strName, uint32_t nIndex) = 0;
-			virtual void SetRasterizerState(const String::StringID& strName, IRasterizerState* pRasterizerState, uint32_t nIndex) = 0;
-			virtual void UndoRasterizerState(const String::StringID& strName, uint32_t nIndex) = 0;
-			virtual void SetSamplerState(const String::StringID& strName, ISamplerState* pSamplerState, uint32_t nIndex) = 0;
-			virtual void UndoSamplerState(const String::StringID& strName, uint32_t nIndex) = 0;
+			virtual void SetRawValue(const string::StringID& strName, const void* pData, uint32_t nByteOffset, uint32_t nByteCount) = 0;
+			virtual void SetBool(const string::StringID& strName, bool value) = 0;
+			virtual void SetBoolArray(const string::StringID& strName, bool* pValue, uint32_t nOffset, uint32_t nCount) = 0;
+			virtual void SetInt(const string::StringID& strName, int nValue) = 0;
+			virtual void SetIntArray(const string::StringID& strName, const int* pValue, uint32_t nOffset, uint32_t nCount) = 0;
+			virtual void SetFloat(const string::StringID& strName, float fValue) = 0;
+			virtual void SetFloatArray(const string::StringID& strName, const float* pValue, uint32_t nOffset, uint32_t nCount) = 0;
+			virtual void SetVector(const string::StringID& strName, const math::Int2& n2Value) = 0;
+			virtual void SetVector(const string::StringID& strName, const math::Int3& n3Value) = 0;
+			virtual void SetVector(const string::StringID& strName, const math::Int4& n4Value) = 0;
+			virtual void SetVector(const string::StringID& strName, const math::Vector2& f2Value) = 0;
+			virtual void SetVector(const string::StringID& strName, const math::Vector3& f3Value) = 0;
+			virtual void SetVector(const string::StringID& strName, const math::Vector4& f4Value) = 0;
+			virtual void SetVectorArray(const string::StringID& strName, const math::Int2* pn2Value, uint32_t nOffset, uint32_t nCount) = 0;
+			virtual void SetVectorArray(const string::StringID& strName, const math::Int3* pn3Value, uint32_t nOffset, uint32_t nCount) = 0;
+			virtual void SetVectorArray(const string::StringID& strName, const math::Int4* pn4Value, uint32_t nOffset, uint32_t nCount) = 0;
+			virtual void SetVectorArray(const string::StringID& strName, const math::Vector2* pf2Value, uint32_t nOffset, uint32_t nCount) = 0;
+			virtual void SetVectorArray(const string::StringID& strName, const math::Vector3* pf3Value, uint32_t nOffset, uint32_t nCount) = 0;
+			virtual void SetVectorArray(const string::StringID& strName, const math::Vector4* pf4Value, uint32_t nOffset, uint32_t nCount) = 0;
+			virtual void SetMatrix(const string::StringID& strName, const math::Matrix& matrix) = 0;
+			virtual void SetMatrixArray(const string::StringID& strName, const math::Matrix* pMatrix, uint32_t nOffset, uint32_t nCount) = 0;
+			virtual void SetString(const string::StringID& strName, const char* str, uint32_t nCount) = 0;
+			virtual void SetTexture(const string::StringID& strName, const std::shared_ptr<ITexture>& pTexture) = 0;
+			virtual void SetTextureArray(const string::StringID& strName, const std::shared_ptr<ITexture>* pTextures, uint32_t nOffset, uint32_t nCount) = 0;
+			virtual void SetStructuredBuffer(const string::StringID& strName, IStructuredBuffer* pDataBuffer) = 0;
+			virtual void SetUnorderedAccessView(const string::StringID& strName, IStructuredBuffer* pDataBuffer) = 0;
+			virtual void SetUnorderedAccessViewArray(const string::StringID& strName, IStructuredBuffer** ppDataBuffer, uint32_t nOffset, uint32_t nCount) = 0;
+			virtual void SetBlendState(const string::StringID& strName, IBlendState* pBlendState, uint32_t nIndex) = 0;
+			virtual void UndoBlendState(const string::StringID& strName, uint32_t nIndex) = 0;
+			virtual void SetDepthStencilState(const string::StringID& strName, IDepthStencilState* pDepthStencilState, uint32_t nIndex) = 0;
+			virtual void UndoDepthStencilState(const string::StringID& strName, uint32_t nIndex) = 0;
+			virtual void SetRasterizerState(const string::StringID& strName, IRasterizerState* pRasterizerState, uint32_t nIndex) = 0;
+			virtual void UndoRasterizerState(const string::StringID& strName, uint32_t nIndex) = 0;
+			virtual void SetSamplerState(const string::StringID& strName, ISamplerState* pSamplerState, uint32_t nIndex) = 0;
+			virtual void UndoSamplerState(const string::StringID& strName, uint32_t nIndex) = 0;
 		};
 
 		struct EffectHandle

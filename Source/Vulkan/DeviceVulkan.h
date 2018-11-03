@@ -59,11 +59,11 @@ namespace eastengine
 				virtual ~Device();
 
 			public:
-				void Initialize(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const String::StringID& strApplicationTitle, const String::StringID& strApplicationName);
+				void Initialize(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const string::StringID& strApplicationTitle, const string::StringID& strApplicationName);
 
 				void Run(std::function<void()> funcUpdate);
 
-				void Flush(float fElapsedTime);
+				void Cleanup(float fElapsedTime);
 
 			public:
 				const math::UInt2& GetScreenSize() const;

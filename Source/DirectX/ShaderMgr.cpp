@@ -21,7 +21,7 @@ namespace eastengine
 			void Flush();
 
 		public:
-			IEffect * GetEffect(const String::StringID& strName);
+			IEffect * GetEffect(const string::StringID& strName);
 			bool AddEffect(IEffect* pEffect);
 			void RemoveEffect(IEffect* pEffect);
 
@@ -38,7 +38,7 @@ namespace eastengine
 			};
 			Concurrency::concurrent_queue<CompleteEffectAsyncLoader> m_conQueueCompleteEffectAsyncLoader;
 
-			std::unordered_map<String::StringID, IEffect*> m_umapEffects;
+			std::unordered_map<string::StringID, IEffect*> m_umapEffects;
 		};
 
 		void CALLBACK DirectoryMonitorCallback(const char* strPath, DWORD dwAction, LPARAM lParam)
@@ -95,7 +95,7 @@ namespace eastengine
 			}
 		}
 
-		IEffect* ShaderManager::Impl::GetEffect(const String::StringID& strName)
+		IEffect* ShaderManager::Impl::GetEffect(const string::StringID& strName)
 		{
 			std::lock_guard<std::mutex> lock(m_mutex);
 
@@ -157,7 +157,7 @@ namespace eastengine
 			m_pImpl->Flush();
 		}
 
-		IEffect* ShaderManager::GetEffect(const String::StringID& strName)
+		IEffect* ShaderManager::GetEffect(const string::StringID& strName)
 		{
 			return m_pImpl->GetEffect(strName);
 		}

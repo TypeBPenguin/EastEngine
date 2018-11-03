@@ -1,5 +1,7 @@
 #pragma once
 
+#include "RendererDX12.h"
+
 namespace eastengine
 {
 	namespace graphics
@@ -10,14 +12,18 @@ namespace eastengine
 		{
 			class RenderTarget;
 
-			class ColorGrading
+			class ColorGrading : public IRendererDX12
 			{
 			public:
 				ColorGrading();
-				~ColorGrading();
+				virtual ~ColorGrading();
 
 			public:
-				void Apply(Camera* pCamera, const RenderTarget* pSource, RenderTarget* pResult);
+				virtual Type GetType() const override { return IRenderer::eColorGrading; }
+				virtual void RefreshPSO(ID3D12Device* pDevice) override;
+
+			public:
+				void Apply(Camera* pCamera, RenderTarget* pSource, RenderTarget* pResult);
 
 			private:
 				class Impl;

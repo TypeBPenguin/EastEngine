@@ -237,7 +237,8 @@ namespace eastengine
 					UAVIndex = 0;
 				}
 
-				SafeRelease(Resource);
+				util::ReleaseResource(Resource);
+				Resource = nullptr;
 				Size = math::UInt2::Zero;
 			}
 
@@ -294,7 +295,7 @@ namespace eastengine
 						throw_line("failed to create ASSAO Resource");
 					}
 
-					const std::wstring wstrDebugName = String::MultiToWide(debugName);
+					const std::wstring wstrDebugName = string::MultiToWide(debugName);
 					Resource->SetName(wstrDebugName.c_str());
 
 					DescriptorHeap* pDescriptorHeapSRV = Device::GetInstance()->GetSRVDescriptorHeap();
@@ -530,7 +531,7 @@ namespace eastengine
 				// to what it was originally after the Draw call.
 				uint32_t OverrideOutputRTV{ 0 };
 
-				int nFrameIndex{ -1 };
+				uint32_t nFrameIndex{ eFrameBufferCount };
 				DescriptorHeap* pDescriptorHeapSRV{ nullptr };
 				DescriptorHeap* pDescriptorHeapRTV{ nullptr };
 				DescriptorHeap* pDescriptorHeapUAV{ nullptr };
@@ -541,6 +542,9 @@ namespace eastengine
 			public:
 				Impl();
 				virtual ~Impl();
+
+			public:
+				void RefreshPSO(ID3D12Device* pDevice);
 
 			public:
 				// ASSAO_Effect implementation
@@ -565,9 +569,9 @@ namespace eastengine
 				void PrepareDepths(const Options::AssaoConfig& config, const AssaoInputsDX12* inputs);
 				void GenerateSSAO(const Options::AssaoConfig& config, const AssaoInputsDX12* inputs, bool adaptiveBasePass);
 
-				shader::ASSAOSRVContents* AllocateSRVContents(int nFrameIndex)
+				shader::ASSAOSRVContents* AllocateSRVContents(uint32_t nFrameIndex)
 				{
-					assert(m_nSrvBufferIndex < MaxSRVBufferCount);
+					assert(m_nSrvBufferIndex < eMaxSRVBufferCount);
 					shader::ASSAOSRVContents* pSRV = m_srvContentsBuffer.Cast(nFrameIndex, m_nSrvBufferIndex);
 					m_srvContentsBufferGPUAddress = m_srvContentsBuffer.GPUAddress(nFrameIndex, m_nSrvBufferIndex);
 					m_nSrvBufferIndex++;
@@ -575,15 +579,15 @@ namespace eastengine
 					return pSRV;
 				}
 
-				void ResetSRVContents(int nFrameIndex)
+				void ResetSRVContents(uint32_t nFrameIndex)
 				{
 					m_nSrvBufferIndex = 0;
 					m_srvContentsBufferGPUAddress = m_srvContentsBuffer.GPUAddress(nFrameIndex, 0);
 				}
 
-				shader::ASSAOConstants* AllocateConstantBuffer(int nFrameIndex)
+				shader::ASSAOConstants* AllocateConstantBuffer(uint32_t nFrameIndex)
 				{
-					assert(m_nConstantsBufferIndex < MaxConstantsBufferCount);
+					assert(m_nConstantsBufferIndex < eMaxConstantsBufferCount);
 					shader::ASSAOConstants* pConstantBuffer = m_constantsBuffer.Cast(nFrameIndex, m_nConstantsBufferIndex);
 					m_constantsBufferGPUAddress = m_constantsBuffer.GPUAddress(nFrameIndex, m_nConstantsBufferIndex);
 					m_nConstantsBufferIndex++;
@@ -591,7 +595,7 @@ namespace eastengine
 					return pConstantBuffer;
 				}
 
-				void ResetConstantBuffer(int nFrameIndex)
+				void ResetConstantBuffer(uint32_t nFrameIndex)
 				{
 					m_nConstantsBufferIndex = 0;
 					m_constantsBufferGPUAddress = m_constantsBuffer.GPUAddress(nFrameIndex, 0);
@@ -615,6 +619,7 @@ namespace eastengine
 
 				ID3D12RootSignature* CreateRootSignature(ID3D12Device* pDevice, shader::PSType emPSType);
 				void CreatePipelineState(ID3D12Device* pDevice, ID3DBlob* pShaderBlob, const char* strShaderPath, shader::PSType emPSType);
+				void CreateBundles(ID3D12Device* pDevice, shader::PSType emPSType);
 
 			private:
 				struct BufferFormats
@@ -634,24 +639,27 @@ namespace eastengine
 
 				uint32_t m_allocatedVRAM{ 0 };
 
+				enum
+				{
+					eMaxConstantsBufferCount = 5,
+					eMaxSRVBufferCount = 32,
+				};
+
 				ConstantBuffer<shader::ASSAOConstants> m_constantsBuffer;
 				D3D12_GPU_VIRTUAL_ADDRESS m_constantsBufferGPUAddress{};
 				uint32_t m_nConstantsBufferIndex{ 0 };
-				const uint32_t MaxConstantsBufferCount{ 5 };
 
 				ConstantBuffer<shader::ASSAOSRVContents> m_srvContentsBuffer;
 				D3D12_GPU_VIRTUAL_ADDRESS m_srvContentsBufferGPUAddress{};
 				uint32_t m_nSrvBufferIndex{ 0 };
-				const uint32_t MaxSRVBufferCount{ 32 };
 
 				ID3D12Device* m_pDevice{ nullptr };
 
 				struct RenderPipeline
 				{
-					ID3D12PipelineState* pPipelineState{ nullptr };
-					ID3D12RootSignature* pRootSignature{ nullptr };
+					PSOCache psoCache;
 
-					std::array<ID3D12GraphicsCommandList2*, eFrameBufferCount> pBundles;
+					std::array<ID3D12GraphicsCommandList2*, eFrameBufferCount> pBundles{ nullptr };
 				};
 				std::array<RenderPipeline, shader::ePS_Count> m_pipelineStates;
 
@@ -682,6 +690,18 @@ namespace eastengine
 			Assao::Impl::~Impl()
 			{
 				CleanupDX();
+			}
+
+			void Assao::Impl::RefreshPSO(ID3D12Device* pDevice)
+			{
+				CreatePipelineState(pDevice, nullptr, nullptr, shader::ePS_Apply);
+				CreateBundles(pDevice, shader::ePS_Apply);
+
+				CreatePipelineState(pDevice, nullptr, nullptr, shader::ePS_NonSmartApply);
+				CreateBundles(pDevice, shader::ePS_NonSmartApply);
+
+				CreatePipelineState(pDevice, nullptr, nullptr, shader::ePS_NonSmartHalfApply);
+				CreateBundles(pDevice, shader::ePS_NonSmartHalfApply);
 			}
 
 			void Assao::Impl::PreAllocateVideoMemory(const IAssaoInputs* _inputs)
@@ -939,22 +959,21 @@ namespace eastengine
 
 				// shader load
 				ID3DBlob* pShaderBlob = nullptr;
-				if (FAILED(D3DReadFileToBlob(String::MultiToWide(strShaderPath).c_str(), &pShaderBlob)))
+				if (FAILED(D3DReadFileToBlob(string::MultiToWide(strShaderPath).c_str(), &pShaderBlob)))
 				{
 					throw_line("failed to read shader file : Model.hlsl");
 				}
 
 				for (int i = 0; i < shader::ePS_Count; ++i)
 				{
-					shader::PSType emPSType = static_cast<shader::PSType>(i);
-
+					const shader::PSType emPSType = static_cast<shader::PSType>(i);
 					CreatePipelineState(m_pDevice, pShaderBlob, strShaderPath.c_str(), emPSType);
 				}
 
 				// constant buffer
 				{
-					m_constantsBuffer.Create(m_pDevice, MaxConstantsBufferCount, "ASSAOConstants");
-					m_srvContentsBuffer.Create(m_pDevice, MaxSRVBufferCount, "ASSAOSRVConstants");
+					m_constantsBuffer.Create(m_pDevice, eMaxConstantsBufferCount, "ASSAOConstants");
+					m_srvContentsBuffer.Create(m_pDevice, eMaxSRVBufferCount, "ASSAOSRVConstants");
 				}
 
 #ifdef INTEL_SSAO_ENABLE_ADAPTIVE_QUALITY
@@ -1006,51 +1025,10 @@ namespace eastengine
 				}
 #endif
 
-				DescriptorHeap* pDescriptorHeapSRV = Device::GetInstance()->GetSRVDescriptorHeap();
-				
 				for (int i = 0; i < shader::ePS_Count; ++i)
 				{
 					const shader::PSType emPSType = static_cast<shader::PSType>(i);
-				
-					for (int j = 0; j < eFrameBufferCount; ++j)
-					{
-						m_pipelineStates[emPSType].pBundles[j] = Device::GetInstance()->CreateBundle(m_pipelineStates[emPSType].pPipelineState);
-						ID3D12GraphicsCommandList2* pBundles = m_pipelineStates[emPSType].pBundles[j];
-				
-						pBundles->SetGraphicsRootSignature(m_pipelineStates[emPSType].pRootSignature);
-				
-						ID3D12DescriptorHeap* pDescriptorHeaps[] =
-						{
-							pDescriptorHeapSRV->GetHeap(j),
-						};
-						pBundles->SetDescriptorHeaps(_countof(pDescriptorHeaps), pDescriptorHeaps);
-				
-						pBundles->SetGraphicsRootDescriptorTable(eRP_StandardDescriptor, pDescriptorHeapSRV->GetStartGPUHandle(j));
-				
-						//if (emPSType == shader::ePS_PrepareDepthsAndNormalsHalf ||
-						//	emPSType == shader::ePS_PrepareDepthsAndNormals)
-						//{
-						//	pBundles->SetGraphicsRootUnorderedAccessView(eRP_NormalsUAV, m_normals.Resource->GetGPUVirtualAddress());
-						//}
-#ifdef INTEL_SSAO_ENABLE_ADAPTIVE_QUALITY
-						else if (emPSType == shader::ePS_PostprocessImportanceMapB)
-						{
-							pBundles->SetGraphicsRootUnorderedAccessView(eRP_LoadCounterUAV, m_loadCounter->GetGPUVirtualAddress());
-						}
-#endif
-				
-						pBundles->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-						pBundles->IASetVertexBuffers(0, 0, nullptr);
-						pBundles->IASetIndexBuffer(nullptr);
-				
-						pBundles->DrawInstanced(4, 1, 0, 0);
-				
-						HRESULT hr = pBundles->Close();
-						if (FAILED(hr))
-						{
-							throw_line("failed to close bundle");
-						}
-					}
+					CreateBundles(m_pDevice, emPSType);
 				}
 
 				return true;
@@ -1073,7 +1051,8 @@ namespace eastengine
 					pDescriptorHeapUAV->FreePersistent(m_nLoadCounterDescriptorUAVIndex);
 					m_nLoadCounterDescriptorUAVIndex = 0;
 				}
-				SafeRelease(m_loadCounter);
+				util::ReleaseResource(m_loadCounter);
+				m_loadCounter = nullptr;
 #endif
 				m_constantsBuffer.Destroy();
 				m_srvContentsBuffer.Destroy();
@@ -1082,11 +1061,11 @@ namespace eastengine
 				{
 					for (int j = 0; j < eFrameBufferCount; ++j)
 					{
-						SafeRelease(m_pipelineStates[i].pBundles[j]);
+						util::ReleaseResource(m_pipelineStates[i].pBundles[j]);
+						m_pipelineStates[i].pBundles[j] = nullptr;
 					}
 
-					SafeRelease(m_pipelineStates[i].pPipelineState);
-					SafeRelease(m_pipelineStates[i].pRootSignature);
+					m_pipelineStates[i].psoCache.Destroy();
 				}
 
 				SafeRelease(m_pDevice);
@@ -1162,7 +1141,7 @@ namespace eastengine
 
 				for (int i = 0; i < 4; i++)
 				{
-					const std::string strDebugName = String::Format("HalfDepth_%d", i);
+					const std::string strDebugName = string::Format("HalfDepth_%d", i);
 					if (m_halfDepths[i].ReCreateIfNeeded(m_pDevice, m_halfSize, m_formats.DepthBufferViewspaceLinear, totalSizeInMB, SSAO_DEPTH_MIP_LEVELS, 1, math::Color::Transparent, false, strDebugName.c_str()))
 					{
 						m_halfDepths[i].vecSubResource.clear();
@@ -1208,7 +1187,7 @@ namespace eastengine
 
 			void Assao::Impl::UpdateConstants(const Options::AssaoConfig& config, const AssaoInputsDX12* inputs, int pass)
 			{
-				const int nFrameIndex = inputs->nFrameIndex;
+				const uint32_t nFrameIndex = inputs->nFrameIndex;
 
 				const bool generateNormals = inputs->NormalSRV == 0;
 
@@ -1339,7 +1318,7 @@ namespace eastengine
 
 			void Assao::Impl::FullscreenPassDraw(const AssaoInputsDX12* inputs, shader::PSType emPSType)
 			{
-				inputs->pCommandList->SetGraphicsRootSignature(m_pipelineStates[emPSType].pRootSignature);
+				inputs->pCommandList->SetGraphicsRootSignature(m_pipelineStates[emPSType].psoCache.pRootSignature);
 
 				ID3D12DescriptorHeap* pDescriptorHeaps[] =
 				{
@@ -1734,48 +1713,65 @@ namespace eastengine
 
 			void Assao::Impl::CreatePipelineState(ID3D12Device* pDevice, ID3DBlob* pShaderBlob, const char* strShaderPath, shader::PSType emPSType)
 			{
-				const D3D_SHADER_MACRO macros[] =
-				{
-					{ "DX12", "1" },
-					{ "SSAO_MAX_TAPS" , SSA_STRINGIZIZER(SSAO_MAX_TAPS) },
-					{ "SSAO_ADAPTIVE_TAP_BASE_COUNT" , SSA_STRINGIZIZER(SSAO_ADAPTIVE_TAP_BASE_COUNT) },
-					{ "SSAO_ADAPTIVE_TAP_FLEXIBLE_COUNT" , SSA_STRINGIZIZER(SSAO_ADAPTIVE_TAP_FLEXIBLE_COUNT) },
-					{ "SSAO_ENABLE_NORMAL_WORLD_TO_VIEW_CONVERSION", SSA_STRINGIZIZER(SSAO_ENABLE_NORMAL_WORLD_TO_VIEW_CONVERSION) },
-					{ nullptr, nullptr }
-				};
+				PSOCache& psoCache = m_pipelineStates[emPSType].psoCache;
 
-				ID3DBlob* pVertexShaderBlob = nullptr;
-				bool isSuccess = util::CompileShader(pShaderBlob, macros, strShaderPath, "VSMain", "vs_5_1", &pVertexShaderBlob);
-				if (isSuccess == false)
+				if (pShaderBlob != nullptr)
 				{
-					throw_line("failed to compile vertex shader");
+					const D3D_SHADER_MACRO macros[] =
+					{
+						{ "DX12", "1" },
+						{ "SSAO_MAX_TAPS" , SSA_STRINGIZIZER(SSAO_MAX_TAPS) },
+						{ "SSAO_ADAPTIVE_TAP_BASE_COUNT" , SSA_STRINGIZIZER(SSAO_ADAPTIVE_TAP_BASE_COUNT) },
+						{ "SSAO_ADAPTIVE_TAP_FLEXIBLE_COUNT" , SSA_STRINGIZIZER(SSAO_ADAPTIVE_TAP_FLEXIBLE_COUNT) },
+						{ "SSAO_ENABLE_NORMAL_WORLD_TO_VIEW_CONVERSION", SSA_STRINGIZIZER(SSAO_ENABLE_NORMAL_WORLD_TO_VIEW_CONVERSION) },
+						{ nullptr, nullptr }
+					};
+
+					if (psoCache.pVSBlob == nullptr)
+					{
+						const bool isSuccess = util::CompileShader(pShaderBlob, macros, strShaderPath, "VSMain", shader::VS_CompileVersion, &psoCache.pVSBlob);
+						if (isSuccess == false)
+						{
+							throw_line("failed to compile vertex shader");
+						}
+					}
+
+					if (psoCache.pPSBlob == nullptr)
+					{
+						const bool isSuccess = util::CompileShader(pShaderBlob, macros, strShaderPath, shader::GetASSAOPSTypeString(emPSType), shader::PS_CompileVersion, &psoCache.pPSBlob);
+						if (isSuccess == false)
+						{
+							throw_line("failed to compile pixel shader");
+						}
+					}
 				}
 
-				ID3DBlob* pPixelShaderBlob = nullptr;
-				isSuccess = util::CompileShader(pShaderBlob, macros, strShaderPath, shader::GetASSAOPSTypeString(emPSType), "ps_5_1", &pPixelShaderBlob);
-				if (isSuccess == false)
+				const std::wstring wstrDebugName = string::MultiToWide(shader::GetASSAOPSTypeString(emPSType));
+				if (psoCache.pRootSignature == nullptr)
 				{
-					throw_line("failed to compile pixel shader");
+					psoCache.pRootSignature = CreateRootSignature(pDevice, emPSType);
+					psoCache.pRootSignature->SetName(wstrDebugName.c_str());
+				}
+
+				if (psoCache.pPipelineState != nullptr)
+				{
+					util::ReleaseResource(psoCache.pPipelineState);
+					psoCache.pPipelineState = nullptr;
 				}
 
 				D3D12_SHADER_BYTECODE vertexShaderBytecode{};
-				vertexShaderBytecode.BytecodeLength = pVertexShaderBlob->GetBufferSize();
-				vertexShaderBytecode.pShaderBytecode = pVertexShaderBlob->GetBufferPointer();
+				vertexShaderBytecode.BytecodeLength = psoCache.pVSBlob->GetBufferSize();
+				vertexShaderBytecode.pShaderBytecode = psoCache.pVSBlob->GetBufferPointer();
 
 				D3D12_SHADER_BYTECODE pixelShaderBytecode{};
-				pixelShaderBytecode.BytecodeLength = pPixelShaderBlob->GetBufferSize();
-				pixelShaderBytecode.pShaderBytecode = pPixelShaderBlob->GetBufferPointer();
+				pixelShaderBytecode.BytecodeLength = psoCache.pPSBlob->GetBufferSize();
+				pixelShaderBytecode.pShaderBytecode = psoCache.pPSBlob->GetBufferPointer();
 
 				DXGI_SAMPLE_DESC sampleDesc{};
 				sampleDesc.Count = 1;
 
-				const std::wstring wstrDebugName = String::MultiToWide(shader::GetASSAOPSTypeString(emPSType));
-
-				ID3D12RootSignature* pRootSignature = CreateRootSignature(pDevice, emPSType);
-				pRootSignature->SetName(wstrDebugName.c_str());
-
 				D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc{};
-				psoDesc.pRootSignature = pRootSignature;
+				psoDesc.pRootSignature = psoCache.pRootSignature;
 				psoDesc.VS = vertexShaderBytecode;
 				psoDesc.PS = pixelShaderBytecode;
 				psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
@@ -1904,19 +1900,63 @@ namespace eastengine
 				psoDesc.DSVFormat = DXGI_FORMAT_UNKNOWN;
 				psoDesc.DepthStencilState = util::GetDepthStencilDesc(EmDepthStencilState::eRead_Write_Off);
 
-				ID3D12PipelineState* pPipelineState = nullptr;
-				HRESULT hr = pDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pPipelineState));
+				HRESULT hr = pDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&psoCache.pPipelineState));
 				if (FAILED(hr))
 				{
 					throw_line("failed to create graphics pipeline state");
 				}
-				pPipelineState->SetName(wstrDebugName.c_str());
+				psoCache.pPipelineState->SetName(wstrDebugName.c_str());
+			}
 
-				m_pipelineStates[emPSType].pRootSignature = pRootSignature;
-				m_pipelineStates[emPSType].pPipelineState = pPipelineState;
+			void Assao::Impl::CreateBundles(ID3D12Device* pDevice, shader::PSType emPSType)
+			{
+				DescriptorHeap* pDescriptorHeapSRV = Device::GetInstance()->GetSRVDescriptorHeap();
 
-				SafeRelease(pVertexShaderBlob);
-				SafeRelease(pPixelShaderBlob);
+				for (int i = 0; i < eFrameBufferCount; ++i)
+				{
+					if (m_pipelineStates[emPSType].pBundles[i] != nullptr)
+					{
+						util::ReleaseResource(m_pipelineStates[emPSType].pBundles[i]);
+						m_pipelineStates[emPSType].pBundles[i] = nullptr;
+					}
+
+					m_pipelineStates[emPSType].pBundles[i] = Device::GetInstance()->CreateBundle(m_pipelineStates[emPSType].psoCache.pPipelineState);
+					ID3D12GraphicsCommandList2* pBundles = m_pipelineStates[emPSType].pBundles[i];
+
+					pBundles->SetGraphicsRootSignature(m_pipelineStates[emPSType].psoCache.pRootSignature);
+
+					ID3D12DescriptorHeap* pDescriptorHeaps[] =
+					{
+						pDescriptorHeapSRV->GetHeap(i),
+					};
+					pBundles->SetDescriptorHeaps(_countof(pDescriptorHeaps), pDescriptorHeaps);
+
+					pBundles->SetGraphicsRootDescriptorTable(eRP_StandardDescriptor, pDescriptorHeapSRV->GetStartGPUHandle(i));
+
+					//if (emPSType == shader::ePS_PrepareDepthsAndNormalsHalf ||
+					//	emPSType == shader::ePS_PrepareDepthsAndNormals)
+					//{
+					//	pBundles->SetGraphicsRootUnorderedAccessView(eRP_NormalsUAV, m_normals.Resource->GetGPUVirtualAddress());
+					//}
+#ifdef INTEL_SSAO_ENABLE_ADAPTIVE_QUALITY
+					else if (emPSType == shader::ePS_PostprocessImportanceMapB)
+					{
+						pBundles->SetGraphicsRootUnorderedAccessView(eRP_LoadCounterUAV, m_loadCounter->GetGPUVirtualAddress());
+					}
+#endif
+
+					pBundles->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+					pBundles->IASetVertexBuffers(0, 0, nullptr);
+					pBundles->IASetIndexBuffer(nullptr);
+
+					pBundles->DrawInstanced(4, 1, 0, 0);
+
+					HRESULT hr = pBundles->Close();
+					if (FAILED(hr))
+					{
+						throw_line("failed to close bundle");
+					}
+				}
 			}
 
 			Assao::Assao()
@@ -1926,6 +1966,11 @@ namespace eastengine
 
 			Assao::~Assao()
 			{
+			}
+
+			void Assao::RefreshPSO(ID3D12Device* pDevice)
+			{
+				m_pImpl->RefreshPSO(pDevice);
 			}
 
 			void Assao::Apply(const Camera* pCamera, const RenderTarget* pNormalMap, const DepthStencil* pDepth, RenderTarget* pResult)

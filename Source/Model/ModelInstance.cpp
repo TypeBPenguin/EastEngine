@@ -21,7 +21,7 @@ namespace eastengine
 			m_vecMaterials.clear();
 		}
 
-		IMaterial* MaterialInstance::GetMaterial(const String::StringID& strNodeName, uint32_t nIndex) const
+		IMaterial* MaterialInstance::GetMaterial(const string::StringID& strNodeName, uint32_t nIndex) const
 		{
 			auto iter = std::find_if(m_vecMaterials.begin(), m_vecMaterials.end(), [strNodeName, nIndex](const NodeMaterial& nodeMaterial)
 			{
@@ -34,21 +34,21 @@ namespace eastengine
 			return nullptr;
 		}
 
-		void MaterialInstance::AddMaterial(const String::StringID& strNodeName, uint32_t nIndex, IMaterial* pMaterial)
+		void MaterialInstance::AddMaterial(const string::StringID& strNodeName, uint32_t nIndex, IMaterial* pMaterial)
 		{
 			pMaterial->IncreaseReference();
 
 			m_vecMaterials.emplace_back(strNodeName, nIndex, pMaterial);
 		}
 
-		MaterialInstance::NodeMaterial::NodeMaterial(const String::StringID& strNodeName, uint32_t nIndex, IMaterial* pMaterial)
+		MaterialInstance::NodeMaterial::NodeMaterial(const string::StringID& strNodeName, uint32_t nIndex, IMaterial* pMaterial)
 			: strNodeName(strNodeName)
 			, nIndex(nIndex)
 			, pMaterial(pMaterial)
 		{
 		}
 
-		ModelInstance::AttachmentNode::AttachmentNode(ModelInstance* pInstance, const String::StringID& strNodeName, const math::Matrix& matOffset, Type emType)
+		ModelInstance::AttachmentNode::AttachmentNode(ModelInstance* pInstance, const string::StringID& strNodeName, const math::Matrix& matOffset, Type emType)
 			: pInstance(pInstance)
 			, strNodeName(strNodeName)
 			, matOffset(matOffset)
@@ -140,7 +140,7 @@ namespace eastengine
 			m_matParent = m_pModel->GetLocalMatrix() * matParent;
 		}
 
-		bool ModelInstance::Attachment(IModelInstance* pInstance, const String::StringID& strNodeName, const math::Matrix& matOffset)
+		bool ModelInstance::Attachment(IModelInstance* pInstance, const string::StringID& strNodeName, const math::Matrix& matOffset)
 		{
 			if (IsLoadComplete() == false)
 				return false;
@@ -207,7 +207,7 @@ namespace eastengine
 			return m_pModel->GetState() == IResource::eComplete;
 		}
 
-		void ModelInstance::ChangeMaterial(const String::StringID& strNodeName, uint32_t nIndex, IMaterial* pMaterial)
+		void ModelInstance::ChangeMaterial(const string::StringID& strNodeName, uint32_t nIndex, IMaterial* pMaterial)
 		{
 			m_materialInstance.AddMaterial(strNodeName, nIndex, pMaterial);
 		}

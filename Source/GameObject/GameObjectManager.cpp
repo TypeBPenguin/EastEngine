@@ -22,7 +22,7 @@ namespace eastengine
 			void Update(float fElapsedTime);
 
 		public:
-			IActor* CreateActor(const String::StringID& strActorName);
+			IActor* CreateActor(const string::StringID& strActorName);
 
 			IActor* GetActor(const IGameObject::Handle& handle);
 			IActor* GetActor(size_t nIndex);
@@ -38,7 +38,7 @@ namespace eastengine
 			}
 
 		public:
-			ISkybox* CreateSkybox(const String::StringID& strName, const SkyboxProperty& property);
+			ISkybox* CreateSkybox(const string::StringID& strName, const SkyboxProperty& property);
 
 			ISkybox* GetSkybox(const IGameObject::Handle& handle);
 			ISkybox* GetSkybox(size_t nIndex);
@@ -54,8 +54,8 @@ namespace eastengine
 			}
 
 		public:
-			ITerrain* CreateTerrain(const String::StringID& strTerrainName, const TerrainProperty& terrainProperty);
-			ITerrain* CreateTerrainAsync(const String::StringID& strTerrainName, const TerrainProperty& terrainProperty);
+			ITerrain* CreateTerrain(const string::StringID& strTerrainName, const TerrainProperty& terrainProperty);
+			ITerrain* CreateTerrainAsync(const string::StringID& strTerrainName, const TerrainProperty& terrainProperty);
 
 			ITerrain* GetTerrain(const IGameObject::Handle& handle);
 			ITerrain* GetTerrain(size_t nIndex);
@@ -174,7 +174,7 @@ namespace eastengine
 			}
 		}
 
-		IActor* GameObjectManager::Impl::CreateActor(const String::StringID& strActorName)
+		IActor* GameObjectManager::Impl::CreateActor(const string::StringID& strActorName)
 		{
 			thread::SRWWriteLock writeLock(&m_srwLockObjects[eActor]);
 
@@ -209,7 +209,7 @@ namespace eastengine
 			return &(*iter);
 		}
 
-		ISkybox* GameObjectManager::Impl::CreateSkybox(const String::StringID& strName, const SkyboxProperty& property)
+		ISkybox* GameObjectManager::Impl::CreateSkybox(const string::StringID& strName, const SkyboxProperty& property)
 		{
 			thread::SRWWriteLock writeLock(&m_srwLockObjects[eSky]);
 
@@ -245,7 +245,7 @@ namespace eastengine
 			return &(*iter);
 		}
 
-		ITerrain* GameObjectManager::Impl::CreateTerrain(const String::StringID& strTerrainName, const TerrainProperty& terrainProperty)
+		ITerrain* GameObjectManager::Impl::CreateTerrain(const string::StringID& strTerrainName, const TerrainProperty& terrainProperty)
 		{
 			thread::SRWWriteLock writeLock(&m_srwLockObjects[eTerrain]);
 
@@ -260,7 +260,7 @@ namespace eastengine
 			return &(*iter);
 		}
 
-		ITerrain* GameObjectManager::Impl::CreateTerrainAsync(const String::StringID& strTerrainName, const TerrainProperty& terrainProperty)
+		ITerrain* GameObjectManager::Impl::CreateTerrainAsync(const string::StringID& strTerrainName, const TerrainProperty& terrainProperty)
 		{
 			thread::SRWWriteLock writeLock(&m_srwLockObjects[eTerrain]);
 
@@ -310,7 +310,7 @@ namespace eastengine
 			m_pImpl->Update(fElapsedTime);
 		}
 
-		IActor* GameObjectManager::CreateActor(const String::StringID& strActorName)
+		IActor* GameObjectManager::CreateActor(const string::StringID& strActorName)
 		{
 			return m_pImpl->CreateActor(strActorName);
 		}
@@ -335,7 +335,7 @@ namespace eastengine
 			m_pImpl->ExecuteFunction(func);
 		}
 
-		ISkybox* GameObjectManager::CreateSkybox(const String::StringID& strName, const SkyboxProperty& property)
+		ISkybox* GameObjectManager::CreateSkybox(const string::StringID& strName, const SkyboxProperty& property)
 		{
 			return m_pImpl->CreateSkybox(strName, property);
 		}
@@ -360,12 +360,12 @@ namespace eastengine
 			m_pImpl->ExecuteFunction(func);
 		}
 
-		ITerrain* GameObjectManager::CreateTerrain(const String::StringID& strTerrainName, const TerrainProperty& terrainProperty)
+		ITerrain* GameObjectManager::CreateTerrain(const string::StringID& strTerrainName, const TerrainProperty& terrainProperty)
 		{
 			return m_pImpl->CreateTerrain(strTerrainName, terrainProperty);
 		}
 
-		ITerrain* GameObjectManager::CreateTerrainAsync(const String::StringID& strTerrainName, const TerrainProperty& terrainProperty)
+		ITerrain* GameObjectManager::CreateTerrainAsync(const string::StringID& strTerrainName, const TerrainProperty& terrainProperty)
 		{
 			return m_pImpl->CreateTerrainAsync(strTerrainName, terrainProperty);
 		}

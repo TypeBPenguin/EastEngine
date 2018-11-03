@@ -52,14 +52,14 @@ namespace eastengine
 			{
 				struct Default
 				{
-					RigidBody* pRigidBody = nullptr;
+					RigidBody* pRigidBody{ nullptr };
 				};
 
 				struct Group
 				{
-					RigidBody* pRigidBody = nullptr;
-					short group = 0;
-					short mask = 0;
+					RigidBody* pRigidBody{ nullptr };
+					short group{ 0 };
+					short mask{ 0 };
 				};
 
 				std::variant<Default, Group> rigidBody;
@@ -68,7 +68,7 @@ namespace eastengine
 
 			struct AddWaitConstraintInterface
 			{
-				ConstraintInterface* pConstraint = nullptr;
+				ConstraintInterface* pConstraint{ nullptr };
 				bool isEanbleCollisionBetweenLinkedBodies = true;
 			};
 			Concurrency::concurrent_queue<AddWaitConstraintInterface> m_conQueueAddWaitConstraintInterface;

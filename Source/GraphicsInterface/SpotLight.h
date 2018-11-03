@@ -14,13 +14,13 @@ namespace eastengine
 		public:
 			virtual ~SpotLight();
 
-			static SpotLight* Create(const String::StringID& strName, const math::Vector3& f3Position, const math::Vector3& f3Direction, float fAngle, const math::Color& color, float fIntensity, float fAmbientIntensity = 0.f, float fReflectionIntensity = 0.f);
+			static SpotLight* Create(const string::StringID& strName, const math::Vector3& f3Position, const math::Vector3& f3Direction, float fAngle, const math::Color& color, float fIntensity, float fAmbientIntensity = 0.f, float fReflectionIntensity = 0.f);
 
 		public:
 			virtual void Update(float fElapsedTime) override;
 
 		public:
-			virtual const String::StringID& GetName() const override { return m_strName; }
+			virtual const string::StringID& GetName() const override { return m_strName; }
 
 			virtual float GetIntensity() const override { return m_fIntensity; }
 			virtual void SetIntensity(float fIntensity) override { m_fIntensity = fIntensity; }
@@ -48,7 +48,7 @@ namespace eastengine
 			virtual void SetAngle(float fAngle) override { m_fAngle = fAngle; }
 
 		protected:
-			String::StringID m_strName;
+			string::StringID m_strName;
 			bool m_isEnableShadow;
 
 			math::Vector3 m_f3Pos;

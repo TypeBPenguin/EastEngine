@@ -21,8 +21,8 @@ namespace eastengine
 			virtual IComponent* GetComponent(EmComponent::Type emComponentType) override;
 
 		public:
-			virtual const String::StringID& GetName() const override { return m_strActorName; }
-			virtual void SetName(const String::StringID& strActorName) override { m_strActorName = strActorName; }
+			virtual const string::StringID& GetName() const override { return m_strActorName; }
+			virtual void SetName(const string::StringID& strActorName) override { m_strActorName = strActorName; }
 
 			virtual const math::Matrix* GetWorldMatrixPtr() const override { return &m_matWorld; }
 			virtual const math::Matrix& GetWorldMatrix() const override { return m_matWorld; }
@@ -53,7 +53,7 @@ namespace eastengine
 		private:
 			std::array<IComponent*, EmComponent::TypeCount> m_pComponents;
 
-			String::StringID m_strActorName;
+			string::StringID m_strActorName;
 
 			math::Matrix m_matWorld;
 			math::Vector3 m_f3Pos;

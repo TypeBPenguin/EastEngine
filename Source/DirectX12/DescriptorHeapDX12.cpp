@@ -45,7 +45,7 @@ namespace eastengine
 					heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 				}
 
-				for (int i = 0; i < m_nHeapCount; ++i)
+				for (uint32_t i = 0; i < m_nHeapCount; ++i)
 				{
 					if (FAILED(pDevice->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_pDescriptorHeaps[i]))))
 					{
@@ -89,7 +89,7 @@ namespace eastengine
 
 				PersistentDescriptorAlloc alloc;
 				alloc.nIndex = nIndex;
-				for (int i = 0; i < m_nHeapCount; ++i)
+				for (uint32_t i = 0; i < m_nHeapCount; ++i)
 				{
 					alloc.cpuHandles[i] = m_startCPUHandle[i];
 					alloc.cpuHandles[i].ptr += nIndex * m_nDescriptorSize;
@@ -166,12 +166,12 @@ namespace eastengine
 				m_nHeapIndex = (m_nHeapIndex + 1) % m_nHeapCount;
 			}
 
-			D3D12_CPU_DESCRIPTOR_HANDLE DescriptorHeap::GetStartCPUHandle(int nFrameIndex) const
+			D3D12_CPU_DESCRIPTOR_HANDLE DescriptorHeap::GetStartCPUHandle(uint32_t nFrameIndex) const
 			{
 				return m_startCPUHandle[nFrameIndex];
 			}
 
-			D3D12_GPU_DESCRIPTOR_HANDLE DescriptorHeap::GetStartGPUHandle(int nFrameIndex) const
+			D3D12_GPU_DESCRIPTOR_HANDLE DescriptorHeap::GetStartGPUHandle(uint32_t nFrameIndex) const
 			{
 				return m_startGPUHandle[nFrameIndex];
 			}
@@ -186,7 +186,7 @@ namespace eastengine
 				return GetGPUHandleFromIndex(nDescriptorIndex, m_nHeapIndex);
 			}
 
-			D3D12_CPU_DESCRIPTOR_HANDLE DescriptorHeap::GetCPUHandleFromIndex(uint32_t nDescriptorIndex, int nFrameIndex) const
+			D3D12_CPU_DESCRIPTOR_HANDLE DescriptorHeap::GetCPUHandleFromIndex(uint32_t nDescriptorIndex, uint32_t nFrameIndex) const
 			{
 				assert(m_pDescriptorHeaps[0] != nullptr);
 				assert(nFrameIndex < m_nHeapCount);
@@ -197,7 +197,7 @@ namespace eastengine
 				return handle;
 			}
 
-			D3D12_GPU_DESCRIPTOR_HANDLE DescriptorHeap::GetGPUHandleFromIndex(uint32_t nDescriptorIndex, int nFrameIndex) const
+			D3D12_GPU_DESCRIPTOR_HANDLE DescriptorHeap::GetGPUHandleFromIndex(uint32_t nDescriptorIndex, uint32_t nFrameIndex) const
 			{
 				assert(m_pDescriptorHeaps[0] != nullptr);
 				assert(nFrameIndex < m_nHeapCount);
@@ -233,7 +233,7 @@ namespace eastengine
 				return m_pDescriptorHeaps[m_nHeapIndex];
 			}
 
-			ID3D12DescriptorHeap* DescriptorHeap::GetHeap(int nFrameIndex) const
+			ID3D12DescriptorHeap* DescriptorHeap::GetHeap(uint32_t nFrameIndex) const
 			{
 				assert(m_pDescriptorHeaps[nFrameIndex] != nullptr);
 				return m_pDescriptorHeaps[nFrameIndex];

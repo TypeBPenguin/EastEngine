@@ -46,13 +46,13 @@ namespace eastengine
 		public:
 			void Init(const physics::RigidBodyProperty& rigidBodyProperty, bool isCollisionModelVisible = false);
 			void Init(graphics::IModelInstance* pModelInstance, const physics::RigidBodyProperty& rigidBodyProperty, uint32_t nTargetLod = 0, bool isCollisionModelVisible = false);
-			void Init(const String::StringID& strID, const graphics::IVertexBuffer* pVertexBuffer, const graphics::IIndexBuffer* pIndexBuffer, math::Matrix* pMatWorld, const physics::RigidBodyProperty& rigidBodyProperty, bool isCollisionModelVisible = false);
+			void Init(const string::StringID& strID, const graphics::IVertexBuffer* pVertexBuffer, const graphics::IIndexBuffer* pIndexBuffer, math::Matrix* pMatWorld, const physics::RigidBodyProperty& rigidBodyProperty, bool isCollisionModelVisible = false);
 			virtual void Update(float fElapsedTime) override;
 
 		public:
 			void SetActiveState(physics::EmActiveState::Type emActiveState);
 
-			const PhysicsNode* GetPhysicsNode(const String::StringID& strName)
+			const PhysicsNode* GetPhysicsNode(const string::StringID& strName)
 			{
 				auto iter = m_umapPhysicsNode.find(strName);
 				if (iter != m_umapPhysicsNode.end())
@@ -62,13 +62,13 @@ namespace eastengine
 			}
 
 		private:
-			void initPhysics(const String::StringID& strID, const physics::RigidBodyProperty& rigidBodyProperty, const math::Matrix* pMatWorld, graphics::IModelInstance* pModelInstance);
+			void initPhysics(const string::StringID& strID, const physics::RigidBodyProperty& rigidBodyProperty, const math::Matrix* pMatWorld, graphics::IModelInstance* pModelInstance);
 
 		private:
 			bool m_isInit;
 			bool m_isCollisionModelVisible;
 
-			std::unordered_map<String::StringID, PhysicsNode> m_umapPhysicsNode;
+			std::unordered_map<string::StringID, PhysicsNode> m_umapPhysicsNode;
 
 			enum RigidBodyType
 			{
@@ -104,13 +104,13 @@ namespace eastengine
 
 			struct CustomRigidBody
 			{
-				String::StringID strID;
+				string::StringID strID;
 				const graphics::IVertexBuffer* pVertexBuffer = nullptr;
 				const graphics::IIndexBuffer* pIndexBuffer = nullptr;
 				math::Matrix* pMatWorld = nullptr;
 				physics::RigidBodyProperty rigidBodyProperty;
 
-				void Set(const String::StringID& _strID, const graphics::IVertexBuffer* _pVertexBuffer, const graphics::IIndexBuffer* _pIndexBuffer, math::Matrix* _pMatWorld, const physics::RigidBodyProperty& _rigidBodyProperty)
+				void Set(const string::StringID& _strID, const graphics::IVertexBuffer* _pVertexBuffer, const graphics::IIndexBuffer* _pIndexBuffer, math::Matrix* _pMatWorld, const physics::RigidBodyProperty& _rigidBodyProperty)
 				{
 					strID = _strID;
 					pVertexBuffer = _pVertexBuffer;

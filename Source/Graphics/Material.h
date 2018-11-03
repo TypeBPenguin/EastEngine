@@ -24,8 +24,8 @@ namespace eastengine
 		public:
 			virtual void LoadTexture() override;
 
-			virtual const String::StringID& GetName() const override { return m_info.strName; }
-			virtual void SetName(const String::StringID& strName) override { m_info.strName = strName; }
+			virtual const string::StringID& GetName() const override { return m_info.strName; }
+			virtual void SetName(const string::StringID& strName) override { m_info.strName = strName; }
 
 			virtual const std::string& GetPath() const override { return m_info.strPath; }
 			virtual void SetPath(const std::string& strPath) override { m_info.strPath = strPath; }
@@ -36,8 +36,8 @@ namespace eastengine
 			virtual const math::Color& GetEmissiveColor() const override { return m_info.colorEmissive; }
 			virtual void SetEmissiveColor(const math::Color& color) override { m_info.colorEmissive = color; }
 
-			virtual const String::StringID& GetTextureName(EmMaterial::Type emType) const override { return m_info.strTextureNameArray[emType]; }
-			virtual void SetTextureName(EmMaterial::Type emType, const String::StringID& strName) override { m_info.strTextureNameArray[emType] = strName; }
+			virtual const string::StringID& GetTextureName(EmMaterial::Type emType) const override { return m_info.strTextureNameArray[emType]; }
+			virtual void SetTextureName(EmMaterial::Type emType, const string::StringID& strName) override { m_info.strTextureNameArray[emType] = strName; }
 
 			virtual ITexture* GetTexture(EmMaterial::Type emType) const override { return m_pTextureArray[emType]; }
 			virtual void SetTexture(EmMaterial::Type emType, ITexture* pTexture) override;

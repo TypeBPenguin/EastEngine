@@ -10,7 +10,7 @@ namespace eastengine
 {
 	namespace gameobject
 	{
-		ActionStateInterface::ActionStateInterface(const String::StringID& strName)
+		ActionStateInterface::ActionStateInterface(const string::StringID& strName)
 			: m_pOwnerComponent(nullptr)
 			, m_strName(strName)
 			, m_pParentNode(nullptr)
@@ -34,7 +34,7 @@ namespace eastengine
 			m_pParentNode = pParentNode;
 		}
 
-		ActionStateInterface* ActionStateInterface::AddChildNode(const String::StringID& strName, ActionStateInterface* pChildNode)
+		ActionStateInterface* ActionStateInterface::AddChildNode(const string::StringID& strName, ActionStateInterface* pChildNode)
 		{
 			pChildNode->Init(m_pOwnerComponent, this);
 
@@ -43,7 +43,7 @@ namespace eastengine
 			return pChildNode;
 		}
 
-		void ActionStateInterface::SetState(const String::StringID& strStateName)
+		void ActionStateInterface::SetState(const string::StringID& strStateName)
 		{
 			m_pOwnerComponent->SetState(strStateName);
 		}
@@ -87,7 +87,7 @@ namespace eastengine
 			}
 		}
 
-		void ComponentActionState::SetState(const String::StringID& strStateName)
+		void ComponentActionState::SetState(const string::StringID& strStateName)
 		{
 			m_strChangeState = strStateName;
 		}

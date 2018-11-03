@@ -7,17 +7,17 @@ namespace eastengine
 {
 	namespace graphics
 	{
-		void Initialize(APIs emAPI, uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const String::StringID& strApplicationTitle, const String::StringID& strApplicationName);
+		void Initialize(APIs emAPI, uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const string::StringID& strApplicationTitle, const string::StringID& strApplicationName);
 		void Release();
 		void Run(std::function<void()> funcUpdate);
-		void Flush(float fElapsedTime);
+		void Cleanup(float fElapsedTime);
 		void Update(float fElapsedTime);
 
 		APIs GetAPI();
 		HWND GetHwnd();
 		HINSTANCE GetHInstance();
-		void AddMessageHandler(const String::StringID& strName, std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler);
-		void RemoveMessageHandler(const String::StringID& strName);
+		void AddMessageHandler(const string::StringID& strName, std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler);
+		void RemoveMessageHandler(const string::StringID& strName);
 
 		const math::UInt2& GetScreenSize();
 

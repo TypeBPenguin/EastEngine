@@ -44,7 +44,7 @@ namespace eastengine
 			};
 
 		public:
-			void Flush(float fElapsedTime);
+			void Cleanup(float fElapsedTime);
 
 			void AsyncLoadTexture(ITexture* pTexture, const char* strFilePath, std::function<bool(const std::string&)> funcLoad);
 
@@ -110,7 +110,7 @@ namespace eastengine
 				IResource* pResource = iter.second;
 				if (pResource->GetReferenceCount() > 1)
 				{
-					String::StringID name(iter.second->GetKey());
+					string::StringID name(iter.second->GetKey());
 					LOG_WARNING("failed to reference count managed : refCount[%d], name[%s]", pResource->GetReferenceCount(), name.c_str());
 					Sleep(100);
 				}
@@ -120,7 +120,7 @@ namespace eastengine
 			m_umapTexture.clear();
 		}
 
-		void TextureManager::Impl::Flush(float fElapsedTime)
+		void TextureManager::Impl::Cleanup(float fElapsedTime)
 		{
 			TRACER_EVENT("TextureManager::Flush");
 			m_fTime += fElapsedTime;
@@ -220,9 +220,9 @@ namespace eastengine
 		{
 		}
 
-		void TextureManager::Flush(float fElapsedTime)
+		void TextureManager::Cleanup(float fElapsedTime)
 		{
-			m_pImpl->Flush(fElapsedTime);
+			m_pImpl->Cleanup(fElapsedTime);
 		}
 
 		void TextureManager::AsyncLoadTexture(ITexture* pTexture, const char* strFilePath, std::function<bool(const std::string&)> funcLoad)

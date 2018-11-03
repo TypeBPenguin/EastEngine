@@ -178,9 +178,11 @@
     <ClInclude Include="FxaaDX12.h" />
     <ClInclude Include="GaussianBlurDX12.h" />
     <ClInclude Include="GBufferDX12.h" />
+    <ClInclude Include="HDRFilterDX12.h" />
     <ClInclude Include="imgui_impl_dx12.h" />
     <ClInclude Include="IndexBufferDX12.h" />
     <ClInclude Include="ModelRendererDX12.h" />
+    <ClInclude Include="RendererDX12.h" />
     <ClInclude Include="RenderManagerDX12.h" />
     <ClInclude Include="RenderTargetDX12.h" />
     <ClInclude Include="SSSDX12.h" />
@@ -208,9 +210,11 @@
     <ClCompile Include="FxaaDX12.cpp" />
     <ClCompile Include="GaussianBlurDX12.cpp" />
     <ClCompile Include="GBufferDX12.cpp" />
+    <ClCompile Include="HDRFilterDX12.cpp" />
     <ClCompile Include="imgui_impl_dx12.cpp" />
     <ClCompile Include="IndexBufferDX12.cpp" />
     <ClCompile Include="ModelRendererDX12.cpp" />
+    <ClCompile Include="RendererDX12.cpp" />
     <ClCompile Include="RenderManagerDX12.cpp" />
     <ClCompile Include="RenderTargetDX12.cpp" />
     <ClCompile Include="SSSDX12.cpp" />

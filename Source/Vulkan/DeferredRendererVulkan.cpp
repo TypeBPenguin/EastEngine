@@ -99,7 +99,7 @@ namespace eastengine
 
 			public:
 				void Render(Camera* pCamera);
-				void Flush();
+				void Cleanup();
 
 			private:
 				enum PipelineLayouts
@@ -315,7 +315,7 @@ namespace eastengine
 				vkCmdEndRenderPass(commandBuffer);
 			}
 
-			void DeferredRenderer::Impl::Flush()
+			void DeferredRenderer::Impl::Cleanup()
 			{
 			}
 
@@ -720,9 +720,9 @@ namespace eastengine
 				m_pImpl->Render(pCamera);
 			}
 
-			void DeferredRenderer::Flush()
+			void DeferredRenderer::Cleanup()
 			{
-				m_pImpl->Flush();
+				m_pImpl->Cleanup();
 			}
 		}
 	}

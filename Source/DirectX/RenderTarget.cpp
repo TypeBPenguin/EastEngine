@@ -36,7 +36,7 @@ namespace eastengine
 
 		bool RenderTarget::Init(ID3D11Texture2D* pTexture2D, const RenderTargetDesc2D* pRenderTargetDesc)
 		{
-			String::StringID strName;
+			string::StringID strName;
 			strName.Format("EastEngine_RenderTarget_%d", s_nRenderTargetCount);
 
 			if (pRenderTargetDesc == nullptr)
@@ -117,7 +117,7 @@ namespace eastengine
 
 		bool RenderTarget::Init(const RenderTargetDesc1D& renderTargetDesc)
 		{
-			String::StringID strName;
+			string::StringID strName;
 			strName.Format("EastEngine_RenderTarget_%d", s_nRenderTargetCount);
 
 			m_renderTargetDesc1D = renderTargetDesc;
@@ -194,7 +194,7 @@ namespace eastengine
 
 		bool RenderTarget::Init(const RenderTargetDesc2D& renderTargetDesc)
 		{
-			String::StringID strName;
+			string::StringID strName;
 			strName.Format("EastEngine_RenderTarget_%d", s_nRenderTargetCount);
 
 			m_renderTargetDesc2D = renderTargetDesc;

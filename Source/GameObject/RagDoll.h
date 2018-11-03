@@ -17,7 +17,7 @@ namespace eastengine
 		private:
 			struct BodyPart
 			{
-				String::StringID strName;
+				string::StringID strName;
 				physics::RigidBody* pRigidBody = nullptr;
 				graphics::IModelInstance* pPhysicsModelInstance = nullptr;
 				graphics::ISkeletonInstance::IBone* pBone = nullptr;
@@ -30,7 +30,7 @@ namespace eastengine
 				math::Matrix matOrigin;
 				math::Matrix matBodyOrigin;
 
-				BodyPart(const String::StringID& strName, physics::RigidBody* pRigidBody, graphics::IModelInstance* pPhysicsModelInstance, graphics::ISkeletonInstance::IBone* pBone)
+				BodyPart(const string::StringID& strName, physics::RigidBody* pRigidBody, graphics::IModelInstance* pPhysicsModelInstance, graphics::ISkeletonInstance::IBone* pBone)
 					: strName(strName)
 					, pRigidBody(pRigidBody)
 					, pPhysicsModelInstance(pPhysicsModelInstance)
@@ -41,14 +41,14 @@ namespace eastengine
 
 			struct Joint
 			{
-				String::StringID strName;
+				string::StringID strName;
 				physics::ConstraintInterface* pConstraint = nullptr;
 				graphics::IModelInstance* pPhysicsModelInstance = nullptr;
 
 				BodyPart* pBodyPartA = nullptr;
 				BodyPart* pBodyPartB = nullptr;
 
-				Joint(const String::StringID& strName, physics::ConstraintInterface* pConstraint, graphics::IModelInstance* pPhysicsModelInstance = nullptr)
+				Joint(const string::StringID& strName, physics::ConstraintInterface* pConstraint, graphics::IModelInstance* pPhysicsModelInstance = nullptr)
 					: strName(strName)
 					, pConstraint(pConstraint)
 					, pPhysicsModelInstance(pPhysicsModelInstance)
@@ -63,11 +63,11 @@ namespace eastengine
 			bool BuildBipadRagDoll(graphics::ISkeletonInstance* pSkeleton, const math::Vector3& f3Pos, const math::Quaternion& quatRotation, float fScale);
 			void Update(float fElapsedTime);
 
-			BodyPart* AddBodyPart(const String::StringID& strPartName, const physics::RigidBodyProperty& rigidBodyProperty, graphics::IModelInstance* pPhysicsModelInstance, graphics::ISkeletonInstance::IBone* pBone);
-			Joint* AddJoint(const String::StringID& strJointName, const physics::ConstraintProperty& constraintProperty, BodyPart* pBodyPartA, BodyPart* pBodyPartB, graphics::IModelInstance* pPhysicsModelInstance);
+			BodyPart* AddBodyPart(const string::StringID& strPartName, const physics::RigidBodyProperty& rigidBodyProperty, graphics::IModelInstance* pPhysicsModelInstance, graphics::ISkeletonInstance::IBone* pBone);
+			Joint* AddJoint(const string::StringID& strJointName, const physics::ConstraintProperty& constraintProperty, BodyPart* pBodyPartA, BodyPart* pBodyPartB, graphics::IModelInstance* pPhysicsModelInstance);
 
-			physics::RigidBody* GetBodyPort(const String::StringID& strPartName);
-			physics::ConstraintInterface* GetJoint(const String::StringID& strJointName);
+			physics::RigidBody* GetBodyPort(const string::StringID& strPartName);
+			physics::ConstraintInterface* GetJoint(const string::StringID& strJointName);
 
 			void Start();
 			void End();

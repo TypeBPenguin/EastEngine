@@ -29,7 +29,7 @@ namespace eastengine
 
 			public:
 				virtual const ITexture::Key& GetKey() const override;
-				virtual const String::StringID& GetName() const override;
+				virtual const string::StringID& GetName() const override;
 
 			public:
 				virtual const math::UInt2& GetSize() const override;
@@ -45,8 +45,8 @@ namespace eastengine
 				ID3D12Resource* GetResource() const;
 				uint32_t GetDescriptorIndex() const;
 
-				const D3D12_CPU_DESCRIPTOR_HANDLE& GetCPUHandle(int nFrameIndex) const;
-				const D3D12_GPU_DESCRIPTOR_HANDLE& GetGPUHandle(int nFrameIndex) const;
+				const D3D12_CPU_DESCRIPTOR_HANDLE& GetCPUHandle(uint32_t nFrameIndex) const;
+				const D3D12_GPU_DESCRIPTOR_HANDLE& GetGPUHandle(uint32_t nFrameIndex) const;
 
 				void Transition(D3D12_RESOURCE_STATES changeState, D3D12_RESOURCE_BARRIER* pBarrier_out);
 				D3D12_RESOURCE_STATES GetResourceState() const;

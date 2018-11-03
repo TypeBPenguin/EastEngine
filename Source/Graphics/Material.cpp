@@ -153,7 +153,7 @@ namespace eastengine
 
 			for (int i = 0; i < EmMaterial::TypeCount; ++i)
 			{
-				const String::StringID& strName = GetTextureName(static_cast<EmMaterial::Type>(i));
+				const string::StringID& strName = GetTextureName(static_cast<EmMaterial::Type>(i));
 				if (strName.empty() == true)
 				{
 					file << "None";

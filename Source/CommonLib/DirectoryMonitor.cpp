@@ -116,7 +116,7 @@ namespace eastengine
 							if (pFni->Action != 0)
 							{
 								StringCbCopyNW(temp, sizeof(temp), pFni->FileName, pFni->FileNameLength);
-								pMonitor->callback(String::WideToMulti(temp, CP_ACP).c_str(),
+								pMonitor->callback(string::WideToMulti(temp, CP_ACP).c_str(),
 									pFni->Action, pMonitor->lParam);
 							}
 						} while (pFni->NextEntryOffset > 0);

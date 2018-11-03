@@ -11,7 +11,7 @@ namespace eastengine
 		class ActionStateInterface
 		{
 		public:
-			ActionStateInterface(const String::StringID& strName);
+			ActionStateInterface(const string::StringID& strName);
 			virtual ~ActionStateInterface();
 
 			void Init(ComponentActionState* pOwner, ActionStateInterface* pParentNode);
@@ -21,10 +21,10 @@ namespace eastengine
 			virtual void Leave() = 0;
 
 		public:
-			const String::StringID& GetName() { return m_strName; }
+			const string::StringID& GetName() { return m_strName; }
 
 			ActionStateInterface* GetParentNode() { return m_pParentNode; }
-			const String::StringID& GetParentName()
+			const string::StringID& GetParentName()
 			{
 				if (m_pParentNode == nullptr)
 					return StrID::EmptyString;
@@ -32,7 +32,7 @@ namespace eastengine
 				return m_pParentNode->GetName();
 			}
 
-			ActionStateInterface* GetNode(const String::StringID& strStateName)
+			ActionStateInterface* GetNode(const string::StringID& strStateName)
 			{
 				for (auto& pNode : m_vecChildNode)
 				{
@@ -44,17 +44,17 @@ namespace eastengine
 			}
 
 			const std::vector<ActionStateInterface*>& GetChildNodes() { return m_vecChildNode; }
-			ActionStateInterface* AddChildNode(const String::StringID& strName, ActionStateInterface* pChildNode);
+			ActionStateInterface* AddChildNode(const string::StringID& strName, ActionStateInterface* pChildNode);
 			void AddChildNode(ActionStateInterface* pChildNode) { m_vecChildNode.emplace_back(pChildNode); }
 			IActor* GetActor() const { return m_pActor; }
 			ComponentActionState* GetComponent() const { return m_pOwnerComponent; }
 
-			void SetState(const String::StringID& strStateName);
+			void SetState(const string::StringID& strStateName);
 
 		private:
 			IActor* m_pActor;
 			ComponentActionState* m_pOwnerComponent;
-			String::StringID m_strName;
+			string::StringID m_strName;
 
 			ActionStateInterface* m_pParentNode;
 			std::vector<ActionStateInterface*> m_vecChildNode;
@@ -83,8 +83,8 @@ namespace eastengine
 
 			ActionStateInterface* GetRootNode() { return m_pRootNode; }
 
-			void SetState(const String::StringID& strStateName);
-			ActionStateInterface* GetNode(const String::StringID& strName)
+			void SetState(const string::StringID& strStateName);
+			ActionStateInterface* GetNode(const string::StringID& strName)
 			{
 				auto iter = m_umapActionStateNode.find(strName);
 				if (iter != m_umapActionStateNode.end())
@@ -112,11 +112,11 @@ namespace eastengine
 			ActionStateInterface* m_pRootNode;
 			ActionStateInterface* m_pCurNode;
 
-			String::StringID m_strChangeState;
+			string::StringID m_strChangeState;
 
 			float m_fUpdateTime;
 
-			std::unordered_map<String::StringID, ActionStateInterface*> m_umapActionStateNode;
+			std::unordered_map<string::StringID, ActionStateInterface*> m_umapActionStateNode;
 		};
 	}
 }

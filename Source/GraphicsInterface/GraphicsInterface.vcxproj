@@ -170,6 +170,7 @@
     <ClInclude Include="Light.h" />
     <ClInclude Include="LightManager.h" />
     <ClInclude Include="PointLight.h" />
+    <ClInclude Include="Renderer.h" />
     <ClInclude Include="RenderJob.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="SpotLight.h" />
@@ -194,6 +195,7 @@
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="LightManager.cpp" />
     <ClCompile Include="PointLight.cpp" />
+    <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderJob.cpp" />
     <ClCompile Include="Resource.cpp" />
     <ClCompile Include="SpotLight.cpp" />

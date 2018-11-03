@@ -1,5 +1,7 @@
 #pragma once
 
+#include "RendererDX12.h"
+
 namespace eastengine
 {
 	namespace graphics
@@ -8,15 +10,19 @@ namespace eastengine
 
 		namespace dx12
 		{
-			class EnvironmentRenderer
+			class EnvironmentRenderer : public IRendererDX12
 			{
 			public:
 				EnvironmentRenderer();
-				~EnvironmentRenderer();
+				virtual ~EnvironmentRenderer();
+
+			public:
+				virtual Type GetType() const override { return IRenderer::eEnvironment; }
+				virtual void RefreshPSO(ID3D12Device* pDevice) override;
 
 			public:
 				void Render(Camera* pCamera);
-				void Flush();
+				void Cleanup();
 
 			private:
 				class Impl;

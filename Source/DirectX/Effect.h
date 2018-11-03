@@ -11,7 +11,7 @@ namespace eastengine
 		class EffectTech : public IEffectTech
 		{
 		public:
-			EffectTech(ID3DX11EffectTechnique* pTech, EmVertexFormat::Type emLayoutFormat, const String::StringID& strTechName);
+			EffectTech(ID3DX11EffectTechnique* pTech, EmVertexFormat::Type emLayoutFormat, const string::StringID& strTechName);
 			virtual ~EffectTech();
 
 			virtual void PassApply(uint32_t nIndex, IDeviceContext* pd3dDeviceContext, uint32_t applyFlags = 0) override;
@@ -20,19 +20,19 @@ namespace eastengine
 			virtual uint32_t GetPassCount() override;
 
 		public:
-			virtual const String::StringID& GetTechName() const override { return m_strTechName; }
+			virtual const string::StringID& GetTechName() const override { return m_strTechName; }
 			virtual EmVertexFormat::Type GetLayoutFormat() const override { return m_emVertexFormat; }
 
 		private:
 			ID3DX11EffectTechnique* m_pTech;
-			String::StringID m_strTechName;
+			string::StringID m_strTechName;
 			EmVertexFormat::Type m_emVertexFormat;
 		};
 
 		class Effect : public IEffect
 		{
 		public:
-			Effect(const String::StringID& strName);
+			Effect(const string::StringID& strName);
 			virtual ~Effect();
 
 		public:
@@ -44,78 +44,78 @@ namespace eastengine
 			virtual bool IsValid() const override { return m_isValid; }
 			virtual void ClearState(IDeviceContext* pd3dDeviceContext, IEffectTech* pEffectTech) override;
 
-			virtual const String::StringID& GetName() override { return m_strName; }
+			virtual const string::StringID& GetName() override { return m_strName; }
 
 		public:
-			virtual IEffectTech* CreateTechnique(const String::StringID& strName, EmVertexFormat::Type emLayoutFormat) override;
-			virtual IEffectTech* GetTechnique(const String::StringID& strName) override;
+			virtual IEffectTech* CreateTechnique(const string::StringID& strName, EmVertexFormat::Type emLayoutFormat) override;
+			virtual IEffectTech* GetTechnique(const string::StringID& strName) override;
 
 		public:
-			virtual EffectRawHandle* GetRawHandle(const String::StringID& strName) override;
-			virtual EffectScalarHandle* GetScalarHandle(const String::StringID& strName) override;
-			virtual EffectVectorHandle* GetVectorHandle(const String::StringID& strName) override;
-			virtual EffectMatrixHandle* GetMatrixHandle(const String::StringID& strName) override;
-			virtual EffectStringHandle* GetStringHandle(const String::StringID& strName) override;
-			virtual EffectShaderResourceHandle* GetShaderResourceHandle(const String::StringID& strName) override;
-			virtual EffectUnorderedAccessViewHandle* GetUnorderedAccessViewHandle(const String::StringID& strName) override;
-			virtual EffectRenderTargetViewHandle* GetRenderTargetViewHandle(const String::StringID& strName) override;
-			virtual EffectDepthStencilViewHandle* GetDepthStencilViewHandle(const String::StringID& strName) override;
-			virtual EffectConstanceBufferHandle* GetConstanceBufferHandle(const String::StringID& strName) override;
-			virtual EffectBlendHandle* GetBlendHandle(const String::StringID& strName) override;
-			virtual EffectDepthStencilHandle* GetDepthStencilHandle(const String::StringID& strName) override;
-			virtual EffectRasterizerHandle* GetRasterizerHandle(const String::StringID& strName) override;
-			virtual EffectSamplerHandle* GetSamplerHandle(const String::StringID& strName) override;
+			virtual EffectRawHandle* GetRawHandle(const string::StringID& strName) override;
+			virtual EffectScalarHandle* GetScalarHandle(const string::StringID& strName) override;
+			virtual EffectVectorHandle* GetVectorHandle(const string::StringID& strName) override;
+			virtual EffectMatrixHandle* GetMatrixHandle(const string::StringID& strName) override;
+			virtual EffectStringHandle* GetStringHandle(const string::StringID& strName) override;
+			virtual EffectShaderResourceHandle* GetShaderResourceHandle(const string::StringID& strName) override;
+			virtual EffectUnorderedAccessViewHandle* GetUnorderedAccessViewHandle(const string::StringID& strName) override;
+			virtual EffectRenderTargetViewHandle* GetRenderTargetViewHandle(const string::StringID& strName) override;
+			virtual EffectDepthStencilViewHandle* GetDepthStencilViewHandle(const string::StringID& strName) override;
+			virtual EffectConstanceBufferHandle* GetConstanceBufferHandle(const string::StringID& strName) override;
+			virtual EffectBlendHandle* GetBlendHandle(const string::StringID& strName) override;
+			virtual EffectDepthStencilHandle* GetDepthStencilHandle(const string::StringID& strName) override;
+			virtual EffectRasterizerHandle* GetRasterizerHandle(const string::StringID& strName) override;
+			virtual EffectSamplerHandle* GetSamplerHandle(const string::StringID& strName) override;
 
 		public:
-			virtual void SetRawValue(const String::StringID& strName, const void* pData, uint32_t nByteOffset, uint32_t nByteCount) override;
-			virtual void SetBool(const String::StringID& strName, bool value) override;
-			virtual void SetBoolArray(const String::StringID& strName, bool* pValue, uint32_t nOffset, uint32_t nCount) override;
-			virtual void SetInt(const String::StringID& strName, int nValue) override;
-			virtual void SetIntArray(const String::StringID& strName, const int* pValue, uint32_t nOffset, uint32_t nCount) override;
-			virtual void SetFloat(const String::StringID& strName, float fValue) override;
-			virtual void SetFloatArray(const String::StringID& strName, const float* pValue, uint32_t nOffset, uint32_t nCount) override;
-			virtual void SetVector(const String::StringID& strName, const math::Int2& n2Value) override;
-			virtual void SetVector(const String::StringID& strName, const math::Int3& n3Value) override;
-			virtual void SetVector(const String::StringID& strName, const math::Int4& n4Value) override;
-			virtual void SetVector(const String::StringID& strName, const math::Vector2& f2Value) override;
-			virtual void SetVector(const String::StringID& strName, const math::Vector3& f3Value) override;
-			virtual void SetVector(const String::StringID& strName, const math::Vector4& f4Value) override;
-			virtual void SetVectorArray(const String::StringID& strName, const math::Int2* pn2Value, uint32_t nOffset, uint32_t nCount) override;
-			virtual void SetVectorArray(const String::StringID& strName, const math::Int3* pn3Value, uint32_t nOffset, uint32_t nCount) override;
-			virtual void SetVectorArray(const String::StringID& strName, const math::Int4* pn4Value, uint32_t nOffset, uint32_t nCount) override;
-			virtual void SetVectorArray(const String::StringID& strName, const math::Vector2* pf2Value, uint32_t nOffset, uint32_t nCount) override;
-			virtual void SetVectorArray(const String::StringID& strName, const math::Vector3* pf3Value, uint32_t nOffset, uint32_t nCount) override;
-			virtual void SetVectorArray(const String::StringID& strName, const math::Vector4* pf4Value, uint32_t nOffset, uint32_t nCount) override;
-			virtual void SetMatrix(const String::StringID& strName, const math::Matrix& matrix) override;
-			virtual void SetMatrixArray(const String::StringID& strName, const math::Matrix* pMatrix, uint32_t nOffset, uint32_t nCount) override;
-			virtual void SetString(const String::StringID& strName, const char* str, uint32_t nCount) override;
-			virtual void SetTexture(const String::StringID& strName, const std::shared_ptr<ITexture>& pTexture) override;
-			virtual void SetTextureArray(const String::StringID& strName, const std::shared_ptr<ITexture>* pTextures, uint32_t nOffset, uint32_t nCount) override;
-			virtual void SetStructuredBuffer(const String::StringID& strName, IStructuredBuffer* pDataBuffer) override;
-			virtual void SetUnorderedAccessView(const String::StringID& strName, IStructuredBuffer* pDataBuffer) override;
-			virtual void SetUnorderedAccessViewArray(const String::StringID& strName, IStructuredBuffer** ppDataBuffer, uint32_t nOffset, uint32_t nCount) override;
-			virtual void SetBlendState(const String::StringID& strName, IBlendState* pBlendState, uint32_t nIndex) override;
-			virtual void UndoBlendState(const String::StringID& strName, uint32_t nIndex) override;
-			virtual void SetDepthStencilState(const String::StringID& strName, IDepthStencilState* pDepthStencilState, uint32_t nIndex) override;
-			virtual void UndoDepthStencilState(const String::StringID& strName, uint32_t nIndex) override;
-			virtual void SetRasterizerState(const String::StringID& strName, IRasterizerState* pRasterizerState, uint32_t nIndex) override;
-			virtual void UndoRasterizerState(const String::StringID& strName, uint32_t nIndex) override;
-			virtual void SetSamplerState(const String::StringID& strName, ISamplerState* pSamplerState, uint32_t nIndex) override;
-			virtual void UndoSamplerState(const String::StringID& strName, uint32_t nIndex) override;
+			virtual void SetRawValue(const string::StringID& strName, const void* pData, uint32_t nByteOffset, uint32_t nByteCount) override;
+			virtual void SetBool(const string::StringID& strName, bool value) override;
+			virtual void SetBoolArray(const string::StringID& strName, bool* pValue, uint32_t nOffset, uint32_t nCount) override;
+			virtual void SetInt(const string::StringID& strName, int nValue) override;
+			virtual void SetIntArray(const string::StringID& strName, const int* pValue, uint32_t nOffset, uint32_t nCount) override;
+			virtual void SetFloat(const string::StringID& strName, float fValue) override;
+			virtual void SetFloatArray(const string::StringID& strName, const float* pValue, uint32_t nOffset, uint32_t nCount) override;
+			virtual void SetVector(const string::StringID& strName, const math::Int2& n2Value) override;
+			virtual void SetVector(const string::StringID& strName, const math::Int3& n3Value) override;
+			virtual void SetVector(const string::StringID& strName, const math::Int4& n4Value) override;
+			virtual void SetVector(const string::StringID& strName, const math::Vector2& f2Value) override;
+			virtual void SetVector(const string::StringID& strName, const math::Vector3& f3Value) override;
+			virtual void SetVector(const string::StringID& strName, const math::Vector4& f4Value) override;
+			virtual void SetVectorArray(const string::StringID& strName, const math::Int2* pn2Value, uint32_t nOffset, uint32_t nCount) override;
+			virtual void SetVectorArray(const string::StringID& strName, const math::Int3* pn3Value, uint32_t nOffset, uint32_t nCount) override;
+			virtual void SetVectorArray(const string::StringID& strName, const math::Int4* pn4Value, uint32_t nOffset, uint32_t nCount) override;
+			virtual void SetVectorArray(const string::StringID& strName, const math::Vector2* pf2Value, uint32_t nOffset, uint32_t nCount) override;
+			virtual void SetVectorArray(const string::StringID& strName, const math::Vector3* pf3Value, uint32_t nOffset, uint32_t nCount) override;
+			virtual void SetVectorArray(const string::StringID& strName, const math::Vector4* pf4Value, uint32_t nOffset, uint32_t nCount) override;
+			virtual void SetMatrix(const string::StringID& strName, const math::Matrix& matrix) override;
+			virtual void SetMatrixArray(const string::StringID& strName, const math::Matrix* pMatrix, uint32_t nOffset, uint32_t nCount) override;
+			virtual void SetString(const string::StringID& strName, const char* str, uint32_t nCount) override;
+			virtual void SetTexture(const string::StringID& strName, const std::shared_ptr<ITexture>& pTexture) override;
+			virtual void SetTextureArray(const string::StringID& strName, const std::shared_ptr<ITexture>* pTextures, uint32_t nOffset, uint32_t nCount) override;
+			virtual void SetStructuredBuffer(const string::StringID& strName, IStructuredBuffer* pDataBuffer) override;
+			virtual void SetUnorderedAccessView(const string::StringID& strName, IStructuredBuffer* pDataBuffer) override;
+			virtual void SetUnorderedAccessViewArray(const string::StringID& strName, IStructuredBuffer** ppDataBuffer, uint32_t nOffset, uint32_t nCount) override;
+			virtual void SetBlendState(const string::StringID& strName, IBlendState* pBlendState, uint32_t nIndex) override;
+			virtual void UndoBlendState(const string::StringID& strName, uint32_t nIndex) override;
+			virtual void SetDepthStencilState(const string::StringID& strName, IDepthStencilState* pDepthStencilState, uint32_t nIndex) override;
+			virtual void UndoDepthStencilState(const string::StringID& strName, uint32_t nIndex) override;
+			virtual void SetRasterizerState(const string::StringID& strName, IRasterizerState* pRasterizerState, uint32_t nIndex) override;
+			virtual void UndoRasterizerState(const string::StringID& strName, uint32_t nIndex) override;
+			virtual void SetSamplerState(const string::StringID& strName, ISamplerState* pSamplerState, uint32_t nIndex) override;
+			virtual void UndoSamplerState(const string::StringID& strName, uint32_t nIndex) override;
 
 		protected:
-			EffectHandle* GetHandle(const String::StringID& strName);
+			EffectHandle* GetHandle(const string::StringID& strName);
 
 		private:
 			ID3DX11Effect* m_pEffect;
 
-			String::StringID m_strName;
+			string::StringID m_strName;
 
 			bool m_isOptimized;
 			bool m_isValid;
 
-			std::unordered_map<String::StringID, IEffectTech*> m_umapEffectTech;
-			std::unordered_map<String::StringID, EffectHandle*> m_umapEffectHandle;
+			std::unordered_map<string::StringID, IEffectTech*> m_umapEffectTech;
+			std::unordered_map<string::StringID, EffectHandle*> m_umapEffectHandle;
 		};
 
 		struct EffectVariable

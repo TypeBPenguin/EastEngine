@@ -33,23 +33,23 @@ namespace eastengine
 
 			Type GetType(const char* strType)
 			{
-				if (String::IsEquals(strType, "ActionState"))
+				if (string::IsEquals(strType, "ActionState"))
 				{
 					return gameobject::EmComponent::eActionState;
 				}
-				else if (String::IsEquals(strType, "Timer"))
+				else if (string::IsEquals(strType, "Timer"))
 				{
 					return gameobject::EmComponent::eTimer;
 				}
-				else if (String::IsEquals(strType, "Physics"))
+				else if (string::IsEquals(strType, "Physics"))
 				{
 					return gameobject::EmComponent::ePhysics;
 				}
-				else if (String::IsEquals(strType, "Model"))
+				else if (string::IsEquals(strType, "Model"))
 				{
 					return gameobject::EmComponent::eModel;
 				}
-				else if (String::IsEquals(strType, "Camera"))
+				else if (string::IsEquals(strType, "Camera"))
 				{
 					return gameobject::EmComponent::eCamera;
 				}

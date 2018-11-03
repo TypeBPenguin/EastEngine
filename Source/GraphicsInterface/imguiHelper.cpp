@@ -34,7 +34,7 @@ namespace eastengine
 						lRet = ImmGetCompositionStringW(himc, GCS_RESULTSTR, szCompStr, 256) / sizeof(wchar_t);
 						szCompStr[lRet] = 0;
 
-						strPrevUniCode = eastengine::String::WideToMulti(szCompStr);
+						strPrevUniCode = eastengine::string::WideToMulti(szCompStr);
 
 						if (lRet > 0)
 						{
