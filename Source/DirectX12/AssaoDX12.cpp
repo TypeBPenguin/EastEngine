@@ -192,9 +192,9 @@ namespace eastengine
 			struct D3D12Texture2D
 			{
 				ID3D12Resource* Resource{ nullptr };
-				uint32_t SRVIndex{ 0 };
-				uint32_t RTVIndex{ 0 };
-				uint32_t UAVIndex{ 0 };
+				uint32_t SRVIndex{ eInvalidDescriptorIndex };
+				uint32_t RTVIndex{ eInvalidDescriptorIndex };
+				uint32_t UAVIndex{ eInvalidDescriptorIndex };
 				math::UInt2 Size;
 
 				math::Color ClearColor{ math::Color::Transparent };
@@ -215,28 +215,9 @@ namespace eastengine
 
 			void D3D12Texture2D::Reset()
 			{
-				DescriptorHeap* pDescriptorHeapSRV = Device::GetInstance()->GetSRVDescriptorHeap();
-				DescriptorHeap* pDescriptorHeapRTV = Device::GetInstance()->GetRTVDescriptorHeap();
-				DescriptorHeap* pDescriptorHeapUAV = Device::GetInstance()->GetUAVDescriptorHeap();
-
-				if (SRVIndex > 0)
-				{
-					pDescriptorHeapSRV->FreePersistent(SRVIndex);
-					SRVIndex = 0;
-				}
-
-				if (RTVIndex > 0)
-				{
-					pDescriptorHeapRTV->FreePersistent(RTVIndex);
-					RTVIndex = 0;
-				}
-
-				if (UAVIndex > 0)
-				{
-					pDescriptorHeapUAV->FreePersistent(UAVIndex);
-					UAVIndex = 0;
-				}
-
+				util::ReleaseResourceSRV(SRVIndex);
+				util::ReleaseResourceRTV(RTVIndex);
+				util::ReleaseResourceUAV(UAVIndex);
 				util::ReleaseResource(Resource);
 				Resource = nullptr;
 				Size = math::UInt2::Zero;

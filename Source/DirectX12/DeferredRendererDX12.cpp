@@ -7,7 +7,6 @@
 #include "GraphicsInterface/LightManager.h"
 
 #include "UtilDX12.h"
-#include "DefineDX12.h"
 #include "DeviceDX12.h"
 #include "GBufferDX12.h"
 

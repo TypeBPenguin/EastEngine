@@ -20,6 +20,30 @@ namespace eastengine
 					Device::GetInstance()->ReleaseResource(pResource);
 				}
 
+				void ReleaseResourceRTV(uint32_t& nDescriptorIndex)
+				{
+					Device::GetInstance()->ReleaseResourceRTV(nDescriptorIndex);
+					nDescriptorIndex = eInvalidDescriptorIndex;
+				}
+
+				void ReleaseResourceSRV(uint32_t& nDescriptorIndex)
+				{
+					Device::GetInstance()->ReleaseResourceSRV(nDescriptorIndex);
+					nDescriptorIndex = eInvalidDescriptorIndex;
+				}
+
+				void ReleaseResourceDSV(uint32_t& nDescriptorIndex)
+				{
+					Device::GetInstance()->ReleaseResourceDSV(nDescriptorIndex);
+					nDescriptorIndex = eInvalidDescriptorIndex;
+				}
+
+				void ReleaseResourceUAV(uint32_t& nDescriptorIndex)
+				{
+					Device::GetInstance()->ReleaseResourceUAV(nDescriptorIndex);
+					nDescriptorIndex = eInvalidDescriptorIndex;
+				}
+
 				void WaitForFence(ID3D12Fence* pFence, uint64_t nCompletionValue, HANDLE hWaitEvent)
 				{
 					if (pFence->GetCompletedValue() < nCompletionValue)
@@ -1082,6 +1106,7 @@ namespace eastengine
 				SafeRelease(pGSBlob);
 				SafeRelease(pHSBlob);
 				SafeRelease(pDSBlob);
+				SafeRelease(pCSBlob);
 
 				util::ReleaseResource(pPipelineState);
 				pPipelineState = nullptr;

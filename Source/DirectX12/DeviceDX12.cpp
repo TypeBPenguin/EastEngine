@@ -54,6 +54,10 @@ namespace eastengine
 				void ReleaseRenderTargets(RenderTarget** ppRenderTarget, uint32_t nSize = 1, bool isSetLastRenderTarget = true);
 
 				void ReleaseResource(ID3D12DeviceChild* pResource);
+				void ReleaseResourceRTV(uint32_t nDescriptorIndex);
+				void ReleaseResourceSRV(uint32_t nDescriptorIndex);
+				void ReleaseResourceDSV(uint32_t nDescriptorIndex);
+				void ReleaseResourceUAV(uint32_t nDescriptorIndex);
 
 			public:
 				void MessageHandler(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam);
@@ -174,11 +178,32 @@ namespace eastengine
 
 				struct ReleaseObject
 				{
-					ID3D12DeviceChild* pDeviceChild{ nullptr };
+					enum Type
+					{
+						eDeviceChild = 0,
+						eDescriptorHeapIndex_RTV,
+						eDescriptorHeapIndex_SRV,
+						eDescriptorHeapIndex_DSV,
+						eDescriptorHeapIndex_UAV,
+					};
+
+					union
+					{
+						ID3D12DeviceChild* pDeviceChild;
+						uint32_t nDescriptorHeapIndex;
+					};
+					Type emType{ eDeviceChild };
 					uint32_t nFrameIndex{ 0 };
 
 					ReleaseObject(ID3D12DeviceChild* pDeviceChild)
 						: pDeviceChild(pDeviceChild)
+						, emType(eDeviceChild)
+					{
+					}
+
+					ReleaseObject(uint32_t nDescriptorHeapIndex, Type emType)
+						: nDescriptorHeapIndex(nDescriptorHeapIndex)
+						, emType(emType)
 					{
 					}
 
@@ -190,6 +215,7 @@ namespace eastengine
 					ReleaseObject& operator = (ReleaseObject&& source) noexcept
 					{
 						pDeviceChild = std::move(source.pDeviceChild);
+						emType = std::move(source.emType);
 						nFrameIndex = std::move(source.nFrameIndex);
 						return *this;
 					}
@@ -387,13 +413,31 @@ namespace eastengine
 				for (int i = 0; i < eFrameBufferCount; ++i)
 				{
 					m_pGBuffers[i].reset();
+					m_pSwapChainRenderTargets[i].reset();
 				}
 
 				m_ummapRenderTargetPool.clear();
 
 				for (auto& releaseObj : m_vecReleaseResources)
 				{
-					SafeRelease(releaseObj.pDeviceChild);
+					switch (releaseObj.emType)
+					{
+					case ReleaseObject::eDeviceChild:
+						SafeRelease(releaseObj.pDeviceChild);
+						break;
+					case ReleaseObject::eDescriptorHeapIndex_RTV:
+						m_pRTVDescriptorHeap->FreePersistent(releaseObj.nDescriptorHeapIndex);
+						break;
+					case ReleaseObject::eDescriptorHeapIndex_SRV:
+						m_pSRVDescriptorHeap->FreePersistent(releaseObj.nDescriptorHeapIndex);
+						break;
+					case ReleaseObject::eDescriptorHeapIndex_DSV:
+						m_pDSVDescriptorHeap->FreePersistent(releaseObj.nDescriptorHeapIndex);
+						break;
+					case ReleaseObject::eDescriptorHeapIndex_UAV:
+						m_pUAVDescriptorHeap->FreePersistent(releaseObj.nDescriptorHeapIndex);
+						break;
+					}
 				}
 				m_vecReleaseResources.clear();
 
@@ -448,11 +492,28 @@ namespace eastengine
 			{
 				{
 					thread::SRWWriteLock writeLock(&m_srwLock_releaseResource);
-					m_vecReleaseResources.erase(std::remove_if(m_vecReleaseResources.begin(), m_vecReleaseResources.end(), [](ReleaseObject& releaseObj)
+					m_vecReleaseResources.erase(std::remove_if(m_vecReleaseResources.begin(), m_vecReleaseResources.end(), [&](ReleaseObject& releaseObj)
 					{
 						if (releaseObj.nFrameIndex >= eFrameBufferCount)
 						{
-							SafeRelease(releaseObj.pDeviceChild);
+							switch (releaseObj.emType)
+							{
+							case ReleaseObject::eDeviceChild:
+								SafeRelease(releaseObj.pDeviceChild);
+								break;
+							case ReleaseObject::eDescriptorHeapIndex_RTV:
+								m_pRTVDescriptorHeap->FreePersistent(releaseObj.nDescriptorHeapIndex);
+								break;
+							case ReleaseObject::eDescriptorHeapIndex_SRV:
+								m_pSRVDescriptorHeap->FreePersistent(releaseObj.nDescriptorHeapIndex);
+								break;
+							case ReleaseObject::eDescriptorHeapIndex_DSV:
+								m_pDSVDescriptorHeap->FreePersistent(releaseObj.nDescriptorHeapIndex);
+								break;
+							case ReleaseObject::eDescriptorHeapIndex_UAV:
+								m_pUAVDescriptorHeap->FreePersistent(releaseObj.nDescriptorHeapIndex);
+								break;
+							}
 							return true;
 						}
 
@@ -553,6 +614,42 @@ namespace eastengine
 				{
 					thread::SRWWriteLock writeLock(&m_srwLock_releaseResource);
 					m_vecReleaseResources.emplace_back(pResource);
+				}
+			}
+
+			void Device::Impl::ReleaseResourceRTV(uint32_t nDescriptorIndex)
+			{
+				if (nDescriptorIndex != eInvalidDescriptorIndex)
+				{
+					thread::SRWWriteLock writeLock(&m_srwLock_releaseResource);
+					m_vecReleaseResources.emplace_back(nDescriptorIndex, ReleaseObject::eDescriptorHeapIndex_RTV);
+				}
+			}
+
+			void Device::Impl::ReleaseResourceSRV(uint32_t nDescriptorIndex)
+			{
+				if (nDescriptorIndex != eInvalidDescriptorIndex)
+				{
+					thread::SRWWriteLock writeLock(&m_srwLock_releaseResource);
+					m_vecReleaseResources.emplace_back(nDescriptorIndex, ReleaseObject::eDescriptorHeapIndex_SRV);
+				}
+			}
+
+			void Device::Impl::ReleaseResourceDSV(uint32_t nDescriptorIndex)
+			{
+				if (nDescriptorIndex != eInvalidDescriptorIndex)
+				{
+					thread::SRWWriteLock writeLock(&m_srwLock_releaseResource);
+					m_vecReleaseResources.emplace_back(nDescriptorIndex, ReleaseObject::eDescriptorHeapIndex_DSV);
+				}
+			}
+
+			void Device::Impl::ReleaseResourceUAV(uint32_t nDescriptorIndex)
+			{
+				if (nDescriptorIndex != eInvalidDescriptorIndex)
+				{
+					thread::SRWWriteLock writeLock(&m_srwLock_releaseResource);
+					m_vecReleaseResources.emplace_back(nDescriptorIndex, ReleaseObject::eDescriptorHeapIndex_UAV);
 				}
 			}
 
@@ -718,10 +815,10 @@ namespace eastengine
 				}
 				m_pCommandQueue->SetName(L"DX12_CommandQueue");
 
-				m_pRTVDescriptorHeap = std::make_unique<DescriptorHeap>(256, 0, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, false, L"RTVDescriptorHeap");
-				m_pSRVDescriptorHeap = std::make_unique<DescriptorHeap>(1024, 1024, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, true, L"SRVDescriptorHeap");
-				m_pDSVDescriptorHeap = std::make_unique<DescriptorHeap>(256, 0, D3D12_DESCRIPTOR_HEAP_TYPE_DSV, false, L"DSVDescriptorHeap");
-				m_pUAVDescriptorHeap = std::make_unique<DescriptorHeap>(256, 0, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, false, L"UAVDescriptorHeap");
+				m_pRTVDescriptorHeap = std::make_unique<DescriptorHeap>(eDescriptorHeap_Capacity_RTV, 0, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, false, L"RTVDescriptorHeap");
+				m_pSRVDescriptorHeap = std::make_unique<DescriptorHeap>(eDescriptorHeap_Capacity_SRV, eDescriptorHeap_Capacity_SRV, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, true, L"SRVDescriptorHeap");
+				m_pDSVDescriptorHeap = std::make_unique<DescriptorHeap>(eDescriptorHeap_Capacity_DSV, 0, D3D12_DESCRIPTOR_HEAP_TYPE_DSV, false, L"DSVDescriptorHeap");
+				m_pUAVDescriptorHeap = std::make_unique<DescriptorHeap>(eDescriptorHeap_Capacity_UAV, 0, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, false, L"UAVDescriptorHeap");
 				m_pSamplerDescriptorHeap = std::make_unique<DescriptorHeap>(EmSamplerState::TypeCount, 0, D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, true, L"SamplerDescriptorHeap");
 
 				{
@@ -996,6 +1093,26 @@ namespace eastengine
 			void Device::ReleaseResource(ID3D12DeviceChild* pResource)
 			{
 				m_pImpl->ReleaseResource(pResource);
+			}
+
+			void Device::ReleaseResourceRTV(uint32_t nDescriptorIndex)
+			{
+				m_pImpl->ReleaseResourceRTV(nDescriptorIndex);
+			}
+
+			void Device::ReleaseResourceSRV(uint32_t nDescriptorIndex)
+			{
+				m_pImpl->ReleaseResourceSRV(nDescriptorIndex);
+			}
+
+			void Device::ReleaseResourceDSV(uint32_t nDescriptorIndex)
+			{
+				m_pImpl->ReleaseResourceDSV(nDescriptorIndex);
+			}
+
+			void Device::ReleaseResourceUAV(uint32_t nDescriptorIndex)
+			{
+				m_pImpl->ReleaseResourceUAV(nDescriptorIndex);
 			}
 
 			HWND Device::GetHwnd() const

@@ -52,6 +52,10 @@ namespace eastengine
 				void ReleaseRenderTargets(RenderTarget** ppRenderTarget, uint32_t nSize = 1, bool isSetLastRenderTarget = true);
 
 				void ReleaseResource(ID3D12DeviceChild* pResource);
+				void ReleaseResourceRTV(uint32_t nDescriptorIndex);
+				void ReleaseResourceSRV(uint32_t nDescriptorIndex);
+				void ReleaseResourceDSV(uint32_t nDescriptorIndex);
+				void ReleaseResourceUAV(uint32_t nDescriptorIndex);
 
 			public:
 				HWND GetHwnd() const;

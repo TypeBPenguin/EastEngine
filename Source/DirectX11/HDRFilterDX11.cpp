@@ -231,12 +231,13 @@ namespace eastengine
 					desc.Width = 1024;
 					desc.Height = 1024;
 					desc.ArraySize = 1;
-					desc.MipLevels = 11;
+					desc.MipLevels = 1;
 					desc.SampleDesc.Count = 1;
 					desc.Usage = D3D11_USAGE_DEFAULT;
 					desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 					desc.CPUAccessFlags = 0;
-					desc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
+					//desc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
+					desc.MiscFlags = 0;
 
 					m_pAdaptedLuminances[0] = RenderTarget::Create(&desc);
 					m_pAdaptedLuminances[1] = RenderTarget::Create(&desc);
@@ -307,6 +308,8 @@ namespace eastengine
 				shader::SetHDRContents(pDeviceContext, &m_hdrContents, hdrConfig, Timer::GetInstance()->GetElapsedTime());
 				pDeviceContext->PSSetConstantBuffers(shader::eCB_HDR_Constants, 1, &m_hdrContents.pBuffer);
 
+				RenderTarget* pAdaptedLuminance_downScale = nullptr;
+
 				// CalcAvgLuminance
 				{
 					// Luminance mapping
@@ -320,7 +323,34 @@ namespace eastengine
 					};
 					Apply(pDeviceContext, shader::eAdaptLuminance, ppAdaptation, 2, m_pAdaptedLuminances[m_nCurLumTarget].get());
 
-					pDeviceContext->GenerateMips(m_pAdaptedLuminances[m_nCurLumTarget]->GetShaderResourceView());
+					if (hdrConfig.LumMapMipLevel == 0)
+					{
+						pAdaptedLuminance_downScale = m_pAdaptedLuminances[m_nCurLumTarget].get();
+					}
+					else
+					{
+						RenderTarget* pAdaptedLuminances_Source = m_pAdaptedLuminances[m_nCurLumTarget].get();
+
+						D3D11_TEXTURE2D_DESC desc{};
+						pAdaptedLuminances_Source->GetDesc2D(&desc);
+
+						for (int nMipLevel = 0; nMipLevel < hdrConfig.LumMapMipLevel; ++nMipLevel)
+						{
+							desc.Width = std::max(desc.Width >> 1u, 1u);
+							desc.Height = std::max(desc.Height >> 1u, 1u);
+
+							pAdaptedLuminance_downScale = pDeviceInstance->GetRenderTarget(&desc, false);
+
+							Apply(pDeviceContext, shader::eScale, &pAdaptedLuminances_Source, 1, pAdaptedLuminance_downScale);
+
+							if (0 < nMipLevel && nMipLevel < hdrConfig.LumMapMipLevel)
+							{
+								pDeviceInstance->ReleaseRenderTargets(&pAdaptedLuminances_Source, 1, false);
+							}
+
+							pAdaptedLuminances_Source = pAdaptedLuminance_downScale;
+						}
+					}
 				}
 
 				// Bloom
@@ -338,7 +368,7 @@ namespace eastengine
 					const RenderTarget* ppBloomThreshold[] =
 					{
 						pSource,
-						m_pAdaptedLuminances[m_nCurLumTarget].get(),
+						pAdaptedLuminance_downScale,
 					};
 					Apply(pDeviceContext, shader::eThreshold, ppBloomThreshold, 2, pBloom);
 
@@ -381,11 +411,16 @@ namespace eastengine
 					const RenderTarget* ppComposite[] =
 					{
 						pSource,
-						m_pAdaptedLuminances[m_nCurLumTarget].get(),
+						pAdaptedLuminance_downScale,
 						pBloom,
 					};
 					Apply(pDeviceContext, shader::eComposite, ppComposite, 3, pResult);
 					pDeviceInstance->ReleaseRenderTargets(&pBloom);
+				}
+
+				if (hdrConfig.LumMapMipLevel != 0)
+				{
+					pDeviceInstance->ReleaseRenderTargets(&pAdaptedLuminance_downScale);
 				}
 
 				m_nCurLumTarget = !m_nCurLumTarget;

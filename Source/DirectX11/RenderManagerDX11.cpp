@@ -109,16 +109,17 @@ namespace eastengine
 				pDeviceInstance->GetSwapChainRenderTarget()->GetDesc2D(&swapchainDesc);
 				swapchainDesc.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
 
-				if (options.OnHDR == true)
-				{
-					swapchainDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				}
-
 				// PostProcessing
 				{
 					if (options.OnSSS == true)
 					{
-						RenderTarget* pSSS = pDeviceInstance->GetRenderTarget(&swapchainDesc, false);
+						D3D11_TEXTURE2D_DESC swapchainDesc_forSSS = swapchainDesc;
+						if (options.OnHDR == true)
+						{
+							swapchainDesc_forSSS.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+						}
+
+						RenderTarget* pSSS = pDeviceInstance->GetRenderTarget(&swapchainDesc_forSSS, false);
 						pImmediateContext->ClearRenderTargetView(pSSS->GetRenderTargetView(), math::Color::Transparent);
 
 						const RenderTarget* pSource = pDeviceInstance->GetLastUsedRenderTarget();

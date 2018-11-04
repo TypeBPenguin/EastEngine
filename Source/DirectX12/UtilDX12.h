@@ -18,6 +18,7 @@ namespace eastengine
 				const char GS_CompileVersion[]{ "gs_5_1" };
 				const char HS_CompileVersion[]{ "hs_5_1" };
 				const char DS_CompileVersion[]{ "ds_5_1" };
+				const char CS_CompileVersion[]{ "cs_5_1" };
 			}
 
 			namespace util
@@ -25,6 +26,10 @@ namespace eastengine
 				inline uint64_t Align(uint64_t nNum, uint64_t nAlignment) { return ((nNum + nAlignment - 1) / nAlignment) * nAlignment; }
 
 				void ReleaseResource(ID3D12DeviceChild* pResource);
+				void ReleaseResourceRTV(uint32_t& nDescriptorIndex);
+				void ReleaseResourceSRV(uint32_t& nDescriptorIndex);
+				void ReleaseResourceDSV(uint32_t& nDescriptorIndex);
+				void ReleaseResourceUAV(uint32_t& nDescriptorIndex);
 
 				void WaitForFence(ID3D12Fence* pFence, uint64_t nCompletionValue, HANDLE hWaitEvent);
 
@@ -90,6 +95,7 @@ namespace eastengine
 				ID3DBlob* pGSBlob{ nullptr };
 				ID3DBlob* pHSBlob{ nullptr };
 				ID3DBlob* pDSBlob{ nullptr };
+				ID3DBlob* pCSBlob{ nullptr };
 
 				ID3D12PipelineState* pPipelineState{ nullptr };
 				ID3D12RootSignature* pRootSignature{ nullptr };

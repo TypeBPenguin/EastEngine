@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "DepthStencilDX12.h"
 
+#include "UtilDX12.h"
 #include "DeviceDX12.h"
 #include "DescriptorHeapDX12.h"
 
@@ -18,8 +19,7 @@ namespace eastengine
 
 			DepthStencil::~DepthStencil()
 			{
-				DescriptorHeap* pDescriptorHeap = Device::GetInstance()->GetDSVDescriptorHeap();
-				pDescriptorHeap->FreePersistent(m_nDescriptorIndex);
+				util::ReleaseResourceDSV(m_nDescriptorIndex);
 			}
 
 			std::unique_ptr<DepthStencil> DepthStencil::Create(const D3D12_RESOURCE_DESC* pResourceDesc, D3D12_RESOURCE_STATES resourceState, uint32_t nMipSlice, uint32_t nFirstArraySlice, uint32_t nArraySize)

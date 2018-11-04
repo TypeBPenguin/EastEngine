@@ -12,6 +12,11 @@ namespace eastengine
 			{
 				eFrameBufferCount = 3,
 
+				eDescriptorHeap_Capacity_RTV = 256,
+				eDescriptorHeap_Capacity_SRV = 1024,
+				eDescriptorHeap_Capacity_DSV = 32,
+				eDescriptorHeap_Capacity_UAV = 256,
+
 				eStandardDescriptorRangesCount_SRV = 9,
 			};
 

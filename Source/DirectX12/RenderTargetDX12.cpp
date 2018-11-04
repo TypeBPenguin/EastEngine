@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "RenderTargetDX12.h"
 
+#include "UtilDX12.h"
 #include "DeviceDX12.h"
 #include "DescriptorHeapDX12.h"
 
@@ -17,8 +18,7 @@ namespace eastengine
 
 			RenderTarget::~RenderTarget()
 			{
-				DescriptorHeap* pDescriptorHeap = Device::GetInstance()->GetRTVDescriptorHeap();
-				pDescriptorHeap->FreePersistent(m_nDescriptorIndex);
+				util::ReleaseResourceRTV(m_nDescriptorIndex);
 			}
 
 			std::unique_ptr<RenderTarget> RenderTarget::Create(ID3D12Resource* pResource, const math::Color& clearColor)

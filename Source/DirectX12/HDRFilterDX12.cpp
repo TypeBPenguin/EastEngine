@@ -80,6 +80,7 @@ namespace eastengine
 					eLuminanceMap,
 					eComposite,
 					//eCompositeWithExposure,
+					eScale_AdaptLuminance,
 					eScale,
 					eAdaptLuminance,
 
@@ -102,6 +103,7 @@ namespace eastengine
 						return "CompositePS";
 					//case eCompositeWithExposure:
 					//	return "CompositeWithExposurePS";
+					case eScale_AdaptLuminance:
 					case eScale:
 						return "ScalePS";
 					case eAdaptLuminance:
@@ -215,7 +217,7 @@ namespace eastengine
 
 				enum
 				{
-					eMaxPSContentsBuffercount = 11,
+					eMaxPSContentsBuffercount = 27,
 					eMaxHDRContentsBufferCount = 1,
 				};
 
@@ -308,22 +310,19 @@ namespace eastengine
 				ID3D12GraphicsCommandList2* pCommandList = pDeviceInstance->GetCommandList(0);
 				pDeviceInstance->ResetCommandList(0, nullptr);
 
+				ResetHDRPSContents(nFrameIndex);
+
 				const Options& options = GetOptions();
 				const Options::HDRConfig& hdrConfig = options.hdrConfig;
 				shader::HDRConstants* pHDRConstants = m_hdrContents.Cast(nFrameIndex);
 				shader::SetHDRContents(pHDRConstants, hdrConfig, Timer::GetInstance()->GetElapsedTime());
 
+				RenderTarget* pAdaptedLuminance_downScale = nullptr;
+
 				// CalcAvgLuminance
 				{
-					util::ChangeResourceState(pCommandList, pSource, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-					util::ChangeResourceState(pCommandList, m_pInitialLuminances.get(), D3D12_RESOURCE_STATE_RENDER_TARGET);
-
 					// Luminance mapping
 					Apply(pCommandList, pSRVDescriptorHeap, nFrameIndex, shader::eLuminanceMap, &pSource, 1, m_pInitialLuminances.get());
-
-					util::ChangeResourceState(pCommandList, m_pAdaptedLuminances[!m_nCurLumTarget].get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-					util::ChangeResourceState(pCommandList, m_pInitialLuminances.get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-					util::ChangeResourceState(pCommandList, m_pAdaptedLuminances[m_nCurLumTarget].get(), D3D12_RESOURCE_STATE_RENDER_TARGET);
 
 					// Adaptation
 					RenderTarget* ppAdaptation[] =
@@ -332,10 +331,34 @@ namespace eastengine
 						m_pInitialLuminances.get(),
 					};
 					Apply(pCommandList, pSRVDescriptorHeap, nFrameIndex, shader::eAdaptLuminance, ppAdaptation, 2, m_pAdaptedLuminances[m_nCurLumTarget].get());
-					
-					assert(false);
-					util::ChangeResourceState(pCommandList, m_pAdaptedLuminances[m_nCurLumTarget].get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-					//pCommandList->GenerateMips(m_pAdaptedLuminances[m_nCurLumTarget]->GetShaderResourceView());
+
+					if (hdrConfig.LumMapMipLevel == 0)
+					{
+						pAdaptedLuminance_downScale = m_pAdaptedLuminances[m_nCurLumTarget].get();
+					}
+					else
+					{
+						RenderTarget* pAdaptedLuminances_Source = m_pAdaptedLuminances[m_nCurLumTarget].get();
+
+						D3D12_RESOURCE_DESC desc = pAdaptedLuminances_Source->GetDesc();
+
+						for (int nMipLevel = 0; nMipLevel < hdrConfig.LumMapMipLevel; ++nMipLevel)
+						{
+							desc.Width = std::max(desc.Width >> 1llu, 1llu);
+							desc.Height = std::max(desc.Height >> 1u, 1u);
+
+							pAdaptedLuminance_downScale = pDeviceInstance->GetRenderTarget(&desc, math::Color::Transparent, false);
+
+							Apply(pCommandList, pSRVDescriptorHeap, nFrameIndex, shader::eScale_AdaptLuminance, &pAdaptedLuminances_Source, 1, pAdaptedLuminance_downScale);
+
+							if (0 < nMipLevel && nMipLevel < hdrConfig.LumMapMipLevel)
+							{
+								pDeviceInstance->ReleaseRenderTargets(&pAdaptedLuminances_Source, 1, false);
+							}
+
+							pAdaptedLuminances_Source = pAdaptedLuminance_downScale;
+						}
+					}
 				}
 
 				// Bloom
@@ -349,14 +372,10 @@ namespace eastengine
 					desc.Height = resultDesc.Height / 1;
 					pBloom = pDeviceInstance->GetRenderTarget(&desc, math::Color::Transparent, false);
 
-					util::ChangeResourceState(pCommandList, pSource, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-					util::ChangeResourceState(pCommandList, m_pAdaptedLuminances[m_nCurLumTarget].get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-					util::ChangeResourceState(pCommandList, pBloom, D3D12_RESOURCE_STATE_RENDER_TARGET);
-
 					RenderTarget* ppBloomThreshold[] =
 					{
 						pSource,
-						m_pAdaptedLuminances[m_nCurLumTarget].get(),
+						pAdaptedLuminance_downScale,
 					};
 					Apply(pCommandList, pSRVDescriptorHeap, nFrameIndex, shader::eThreshold, ppBloomThreshold, 2, pBloom);
 
@@ -364,75 +383,39 @@ namespace eastengine
 					desc.Width = resultDesc.Width / 2;
 					desc.Height = resultDesc.Height / 2;
 					RenderTarget* pDownScale1 = pDeviceInstance->GetRenderTarget(&desc, math::Color::Transparent, false);
-
-					util::ChangeResourceState(pCommandList, pBloom, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-					util::ChangeResourceState(pCommandList, pDownScale1, D3D12_RESOURCE_STATE_RENDER_TARGET);
-
 					Apply(pCommandList, pSRVDescriptorHeap, nFrameIndex, shader::eScale, &pBloom, 1, pDownScale1);
-
-					util::ChangeResourceState(pCommandList, pBloom, D3D12_RESOURCE_STATE_RENDER_TARGET);
-					util::ChangeResourceState(pCommandList, pDownScale1, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-
 					pDeviceInstance->ReleaseRenderTargets(&pBloom);
 
 					// DownScale 1 / 4
 					desc.Width = resultDesc.Width / 4;
 					desc.Height = resultDesc.Height / 4;
 					RenderTarget* pDownScale2 = pDeviceInstance->GetRenderTarget(&desc, math::Color::Transparent, false);
-
-					util::ChangeResourceState(pCommandList, pDownScale2, D3D12_RESOURCE_STATE_RENDER_TARGET);
-
 					Apply(pCommandList, pSRVDescriptorHeap, nFrameIndex, shader::eScale, &pDownScale1, 1, pDownScale2);
-
-					util::ChangeResourceState(pCommandList, pDownScale2, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
 					// DownScale 1 / 8
 					desc.Width = resultDesc.Width / 8;
 					desc.Height = resultDesc.Height / 8;
 					RenderTarget* pDownScale3 = pDeviceInstance->GetRenderTarget(&desc, math::Color::Transparent, false);
-
-					util::ChangeResourceState(pCommandList, pDownScale3, D3D12_RESOURCE_STATE_RENDER_TARGET);
-
 					Apply(pCommandList, pSRVDescriptorHeap, nFrameIndex, shader::eScale, &pDownScale2, 1, pDownScale3);
-
-					util::ChangeResourceState(pCommandList, pDownScale3, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
 					// Blur it
 					for (size_t i = 0; i < 4; ++i)
 					{
 						RenderTarget* pBlur = pDeviceInstance->GetRenderTarget(&desc, math::Color::Transparent, true);
 
-						util::ChangeResourceState(pCommandList, pBlur, D3D12_RESOURCE_STATE_RENDER_TARGET);
-
 						Apply(pCommandList, pSRVDescriptorHeap, nFrameIndex, shader::eBloomBlurH, &pDownScale3, 1, pBlur);
-
-						util::ChangeResourceState(pCommandList, pBlur, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-						util::ChangeResourceState(pCommandList, pDownScale3, D3D12_RESOURCE_STATE_RENDER_TARGET);
-
 						Apply(pCommandList, pSRVDescriptorHeap, nFrameIndex, shader::eBloomBlurV, &pBlur, 1, pDownScale3);
-
-						util::ChangeResourceState(pCommandList, pBlur, D3D12_RESOURCE_STATE_RENDER_TARGET);
-						util::ChangeResourceState(pCommandList, pDownScale3, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
 						pDeviceInstance->ReleaseRenderTargets(&pBlur);
 					}
 
 					// UpScale 1 / 4
-					util::ChangeResourceState(pCommandList, pDownScale2, D3D12_RESOURCE_STATE_RENDER_TARGET);
-
 					Apply(pCommandList, pSRVDescriptorHeap, nFrameIndex, shader::eScale, &pDownScale3, 1, pDownScale2);
-
-					util::ChangeResourceState(pCommandList, pDownScale3, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
 					pDeviceInstance->ReleaseRenderTargets(&pDownScale3);
 
 					// UpScale 1 / 2
-					util::ChangeResourceState(pCommandList, pDownScale2, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-					util::ChangeResourceState(pCommandList, pDownScale1, D3D12_RESOURCE_STATE_RENDER_TARGET);
-
 					Apply(pCommandList, pSRVDescriptorHeap, nFrameIndex, shader::eScale, &pDownScale2, 1, pDownScale1);
-
-					util::ChangeResourceState(pCommandList, pDownScale2, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
 					pDeviceInstance->ReleaseRenderTargets(&pDownScale2);
 
@@ -441,23 +424,20 @@ namespace eastengine
 
 				// Final composite
 				{
-					util::ChangeResourceState(pCommandList, pSource, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-					util::ChangeResourceState(pCommandList, m_pAdaptedLuminances[m_nCurLumTarget].get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-					util::ChangeResourceState(pCommandList, pBloom, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-					util::ChangeResourceState(pCommandList, pResult, D3D12_RESOURCE_STATE_RENDER_TARGET);
-
 					RenderTarget* ppComposite[] =
 					{
 						pSource,
-						m_pAdaptedLuminances[m_nCurLumTarget].get(),
+						pAdaptedLuminance_downScale,
 						pBloom,
 					};
 					Apply(pCommandList, pSRVDescriptorHeap, nFrameIndex, shader::eComposite, ppComposite, 3, pResult);
 
-					util::ChangeResourceState(pCommandList, pSource, D3D12_RESOURCE_STATE_RENDER_TARGET);
-					util::ChangeResourceState(pCommandList, pBloom, D3D12_RESOURCE_STATE_RENDER_TARGET);
-
 					pDeviceInstance->ReleaseRenderTargets(&pBloom);
+				}
+
+				if (hdrConfig.LumMapMipLevel != 0)
+				{
+					pDeviceInstance->ReleaseRenderTargets(&pAdaptedLuminance_downScale);
 				}
 
 				HRESULT hr = pCommandList->Close();
@@ -500,9 +480,12 @@ namespace eastengine
 				for (size_t i = 0; i < nSourceCount; ++i)
 				{
 					InputSize[i] = GetSize(ppSource[i]);
+
+					util::ChangeResourceState(pCommandList, ppSource[i], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 					TexInputIndex[i] = ppSource[i]->GetTexture()->GetDescriptorIndex();
 				}
 
+				util::ChangeResourceState(pCommandList, pResult, D3D12_RESOURCE_STATE_RENDER_TARGET);
 				OutputSize = GetSize(pResult);
 
 				shader::HDR_PSConstants* pPSConstants = AllocateHDRPSContents(nFrameIndex);
@@ -634,7 +617,34 @@ namespace eastengine
 				psoDesc.BlendState = util::GetBlendDesc(EmBlendState::eOff);
 
 				psoDesc.NumRenderTargets = 1;
-				psoDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+
+				switch (emPSType)
+				{
+				case shader::eThreshold:
+				case shader::eBloomBlurH:
+				case shader::eBloomBlurV:
+				case shader::eScale:
+				{
+					psoDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				}
+				break;
+				case shader::eLuminanceMap:
+				case shader::eScale_AdaptLuminance:
+				case shader::eAdaptLuminance:
+				{
+					psoDesc.RTVFormats[0] = DXGI_FORMAT_R32_FLOAT;
+				}
+				break;
+				case shader::eComposite:
+				{
+					D3D12_RESOURCE_DESC desc = Device::GetInstance()->GetSwapChainRenderTarget(0)->GetDesc();
+					psoDesc.RTVFormats[0] = desc.Format;
+				}
+				break;
+				default:
+					throw_line("unknown ps type");
+					break;
+				}
 
 				psoDesc.DSVFormat = DXGI_FORMAT_UNKNOWN;
 				psoDesc.DepthStencilState = util::GetDepthStencilDesc(EmDepthStencilState::eRead_Write_Off);

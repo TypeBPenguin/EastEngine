@@ -87,18 +87,10 @@ namespace eastengine
 
 			Texture::Impl::~Impl()
 			{
-				if (m_pResource != nullptr)
-				{
-					const ULONG ref = m_pResource->Release();
-					if (ref > 0)
-					{
-						LOG_WARNING("RefCount is not zero : %s, %u", GetName().c_str(), ref);
-					}
-					m_pResource = nullptr;
-				}
+				util::ReleaseResource(m_pResource);
+				m_pResource = nullptr;
 
-				DescriptorHeap* pDescriptorHeap = Device::GetInstance()->GetSRVDescriptorHeap();
-				pDescriptorHeap->FreePersistent(m_nDescriptorIndex);
+				util::ReleaseResourceSRV(m_nDescriptorIndex);
 			}
 
 			bool Texture::Impl::Initialize(const D3D12_RESOURCE_DESC* pDesc)

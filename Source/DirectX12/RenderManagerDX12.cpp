@@ -125,16 +125,18 @@ namespace eastengine
 				GetDeferredRenderer()->Render(pCamera);
 
 				D3D12_RESOURCE_DESC swapchainDesc = pDeviceInstance->GetSwapChainRenderTarget(nFrameIndex)->GetDesc();
-				if (options.OnHDR == true)
-				{
-					swapchainDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				}
-
+				
 				// PostProcessing
 				{
 					if (options.OnSSS == true)
 					{
-						RenderTarget* pSSS = pDeviceInstance->GetRenderTarget(&swapchainDesc, math::Color::Transparent, false);
+						D3D12_RESOURCE_DESC swapchainDesc_forSSS = swapchainDesc;
+						if (options.OnHDR == true)
+						{
+							swapchainDesc_forSSS.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+						}
+
+						RenderTarget* pSSS = pDeviceInstance->GetRenderTarget(&swapchainDesc_forSSS, math::Color::Transparent, false);
 
 						RenderTarget* pSource = pDeviceInstance->GetLastUsedRenderTarget();
 						DepthStencil* pDepth = pGBuffer->GetDepthStencil();
