@@ -67,14 +67,14 @@ namespace eastengine
 			void SetNearSector(EmSector::Dir emSectorDir, Sector* pSector) { if (pSector == nullptr) return; m_vecNearSector[emSectorDir] = pSector; }
 
 		public:
-			const math::Int2& GetCoordinate() { return m_n2Coordinate; }
+			const math::int2& GetCoordinate() { return m_n2Coordinate; }
 
 		private:
 			SectorMgr* m_pSectorMgr;
 			IActor* m_pActor;
 
 			float m_fRadius;
-			math::Int2 m_n2Coordinate;
+			math::int2 m_n2Coordinate;
 
 			std::vector<Sector*> m_vecNearSector;
 			std::unordered_map<IGameObject::Handle, IActor*> m_umapActor;

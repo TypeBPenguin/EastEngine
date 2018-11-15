@@ -23,9 +23,9 @@ namespace eastengine
 			void UpdateBoundingBox(const math::Matrix& matWorld);
 
 			bool IsCollision(RigidBody* pRigidBody);
-			bool RayTest(const math::Vector3& f3From, const math::Vector3& f3To, math::Vector3* pHitPoint_out = nullptr, math::Vector3* pHitNormal_out = nullptr) const;
+			bool RayTest(const math::float3& f3From, const math::float3& f3To, math::float3* pHitPoint_out = nullptr, math::float3* pHitNormal_out = nullptr) const;
 
-			void AddCollisionResult(const RigidBody* pRigidBody, const math::Vector3& f3OpponentPoint, const math::Vector3& f3MyPoint);
+			void AddCollisionResult(const RigidBody* pRigidBody, const math::float3& f3OpponentPoint, const math::float3& f3MyPoint);
 
 			void ClearCollisionResults();
 
@@ -41,9 +41,9 @@ namespace eastengine
 			math::Matrix GetWorldMatrix() const;
 
 			math::Quaternion GetOrientation() const;
-			math::Vector3 GetCenterOfMassPosition() const;
+			math::float3 GetCenterOfMassPosition() const;
 
-			void SetLinearVelocity(const math::Vector3& f3Velocity);
+			void SetLinearVelocity(const math::float3& f3Velocity);
 
 			void SetDamping(float fLinearDamping, float fAngularDamping);
 			void SetDeactivationTime(float fTime);
@@ -52,7 +52,7 @@ namespace eastengine
 
 			void SetActiveState(EmActiveState::Type emActiveState);
 			void SetGravity(bool isEnable);
-			void SetGravity(const math::Vector3& f3Gravity);
+			void SetGravity(const math::float3& f3Gravity);
 
 			const Collision::AABB& GetAABB() const { return m_boundingBox; }
 			const Collision::Sphere& GetBoundingSphere() const { return m_boundingSphere; }
@@ -194,7 +194,7 @@ namespace eastengine
 					btVector3 aabbMin(btScalar(-1e30), btScalar(-1e30), btScalar(-1e30));
 					btVector3 aabbMax(btScalar(1e30), btScalar(1e30), btScalar(1e30));
 
-					std::vector<math::Vector3> triangles;
+					std::vector<math::float3> triangles;
 					if (m_rigidBodyProperty.shapeInfo.emPhysicsShapeType == EmPhysicsShape::Type::eTriangleMesh)
 					{
 					}
@@ -220,11 +220,11 @@ namespace eastengine
 			btVector3 vMin, vMax;
 			m_pRigidBody->getAabb(vMin, vMax);
 
-			math::Vector3 f3Min = math::Convert(vMin);
-			math::Vector3 f3Max = math::Convert(vMax);
+			math::float3 f3Min = math::Convert(vMin);
+			math::float3 f3Max = math::Convert(vMax);
 
 			Collision::AABB::CreateFromPoints(m_boundingBox, f3Min, f3Max);
-			m_boundingBox.Extents = math::Vector3::Max(m_boundingBox.Extents, math::Vector3(0.01f));
+			m_boundingBox.Extents = math::float3::Max(m_boundingBox.Extents, math::float3(0.01f));
 			Collision::Sphere::CreateFromAABB(m_boundingSphere, m_boundingBox);
 			Collision::OBB::CreateFromAABB(m_boundingOrientedBox, m_boundingBox);
 		}
@@ -258,7 +258,7 @@ namespace eastengine
 			return result.isCollision;
 		}
 
-		bool RigidBody::Impl::RayTest(const math::Vector3& f3From, const math::Vector3& f3To, math::Vector3* pHitPoint_out, math::Vector3* pHitNormal_out) const
+		bool RigidBody::Impl::RayTest(const math::float3& f3From, const math::float3& f3To, math::float3* pHitPoint_out, math::float3* pHitNormal_out) const
 		{
 			btVector3 rayFromWorld = math::ConvertToBt(f3From);
 			btVector3 rayToWorld = math::ConvertToBt(f3To);
@@ -297,19 +297,19 @@ namespace eastengine
 			{
 				if (pHitPoint_out != nullptr)
 				{
-					*pHitPoint_out = math::Vector3::Zero;
+					*pHitPoint_out = math::float3::Zero;
 				}
 
 				if (pHitNormal_out != nullptr)
 				{
-					*pHitNormal_out = math::Vector3::Zero;
+					*pHitNormal_out = math::float3::Zero;
 				}
 
 				return false;
 			}
 		}
 
-		void RigidBody::Impl::AddCollisionResult(const RigidBody* pRigidBody, const math::Vector3& f3OpponentPoint, const math::Vector3& f3MyPoint)
+		void RigidBody::Impl::AddCollisionResult(const RigidBody* pRigidBody, const math::float3& f3OpponentPoint, const math::float3& f3MyPoint)
 		{
 			if (m_rigidBodyProperty.funcCollisionCallback != nullptr)
 			{
@@ -344,7 +344,7 @@ namespace eastengine
 
 		void RigidBody::Impl::SetWorldMatrix(const math::Matrix& mat)
 		{
-			math::Vector3 f3Pos, vScale;
+			math::float3 f3Pos, vScale;
 			math::Quaternion quat;
 
 			mat.Decompose(vScale, quat, f3Pos);
@@ -364,12 +364,12 @@ namespace eastengine
 			return math::Convert(m_pRigidBody->getOrientation());
 		}
 
-		math::Vector3 RigidBody::Impl::GetCenterOfMassPosition() const
+		math::float3 RigidBody::Impl::GetCenterOfMassPosition() const
 		{
 			return math::Convert(m_pRigidBody->getCenterOfMassPosition());
 		}
 
-		void RigidBody::Impl::SetLinearVelocity(const math::Vector3& f3Velocity)
+		void RigidBody::Impl::SetLinearVelocity(const math::float3& f3Velocity)
 		{
 			if (math::IsZero(f3Velocity.LengthSquared()) == true)
 				return;
@@ -428,7 +428,7 @@ namespace eastengine
 			m_pRigidBody->applyGravity();
 		}
 
-		void RigidBody::Impl::SetGravity(const math::Vector3& f3Gravity)
+		void RigidBody::Impl::SetGravity(const math::float3& f3Gravity)
 		{
 			m_pRigidBody->setGravity(math::ConvertToBt(f3Gravity));
 			m_pRigidBody->applyGravity();
@@ -476,12 +476,12 @@ namespace eastengine
 			return m_pImpl->IsCollision(pRigidBody);
 		}
 
-		bool RigidBody::RayTest(const math::Vector3& f3From, const math::Vector3& f3To, math::Vector3* pHitPoint_out, math::Vector3* pHitNormal_out) const
+		bool RigidBody::RayTest(const math::float3& f3From, const math::float3& f3To, math::float3* pHitPoint_out, math::float3* pHitNormal_out) const
 		{
 			return m_pImpl->RayTest(f3From, f3To, pHitPoint_out, pHitNormal_out);
 		}
 
-		void RigidBody::AddCollisionResult(const RigidBody* pRigidBody, const math::Vector3& f3OpponentPoint, const math::Vector3& f3MyPoint)
+		void RigidBody::AddCollisionResult(const RigidBody* pRigidBody, const math::float3& f3OpponentPoint, const math::float3& f3MyPoint)
 		{
 			m_pImpl->AddCollisionResult(pRigidBody, f3OpponentPoint, f3MyPoint);
 		}
@@ -526,12 +526,12 @@ namespace eastengine
 			return m_pImpl->GetOrientation();
 		}
 
-		math::Vector3 RigidBody::GetCenterOfMassPosition() const
+		math::float3 RigidBody::GetCenterOfMassPosition() const
 		{
 			return m_pImpl->GetCenterOfMassPosition();
 		}
 
-		void RigidBody::SetLinearVelocity(const math::Vector3& f3Velocity)
+		void RigidBody::SetLinearVelocity(const math::float3& f3Velocity)
 		{
 			m_pImpl->SetLinearVelocity(f3Velocity);
 		}
@@ -566,7 +566,7 @@ namespace eastengine
 			m_pImpl->SetGravity(isEnable);
 		}
 
-		void RigidBody::SetGravity(const math::Vector3& f3Gravity)
+		void RigidBody::SetGravity(const math::float3& f3Gravity)
 		{
 			m_pImpl->SetGravity(f3Gravity);
 		}

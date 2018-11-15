@@ -368,9 +368,9 @@ namespace eastengine
 			colorAlbedo = math::Color(1.f, 1.f, 1.f, 1.f);
 			colorEmissive = math::Color(0.f, 0.f, 0.f, 1.f);
 
-			f4PaddingRoughMetEmi = math::Vector4::Zero;
-			f4SurSpecTintAniso = math::Vector4::Zero;
-			f4SheenTintClearcoatGloss = math::Vector4::Zero;
+			f4PaddingRoughMetEmi = math::float4::Zero;
+			f4SurSpecTintAniso = math::float4::Zero;
+			f4SheenTintClearcoatGloss = math::float4::Zero;
 
 			fStippleTransparencyFactor = 0.f;
 			fTessellationFactor = 256.f;

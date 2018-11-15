@@ -131,7 +131,7 @@ namespace eastengine
 
 		public:
 			virtual HWND GetHWND() = 0;
-			virtual const math::UInt2& GetScreenSize() const = 0;
+			virtual const math::uint2& GetScreenSize() const = 0;
 			virtual bool IsFullScreen() const = 0;
 			virtual bool IsVSync() const = 0;
 			virtual void SetVSync(bool isVSync) = 0;
@@ -153,7 +153,7 @@ namespace eastengine
 
 			virtual void ClearRenderTargetView(IRenderTarget* pRenderTarget, const math::Color& color) = 0;
 			virtual void ClearDepthStencilView(IDepthStencil* pDepthStencil, uint32_t clearFlag = D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL) = 0;
-			virtual void ClearUnorderedAccessViewUint(ID3D11UnorderedAccessView* pUnorderedAccessView, const math::UInt4& n4Uint) = 0;
+			virtual void ClearUnorderedAccessViewUint(ID3D11UnorderedAccessView* pUnorderedAccessView, const math::uint4& n4Uint) = 0;
 
 		public:
 			virtual void DrawAuto() = 0;
@@ -167,8 +167,8 @@ namespace eastengine
 			virtual bool SetInputLayout(EmVertexFormat::Type emVertexFormat) = 0;
 			virtual bool SetInputLayout(ID3D11InputLayout* pInputLayout) = 0;
 
-			virtual void SetBlendState(EmBlendState::Type emBlendState, const math::Vector4& f4BlendFactor = math::Vector4::Zero, uint32_t nSimpleMask = 0xffffffff) = 0;
-			virtual void SetBlendState(const IBlendState* pBlendState, const math::Vector4& f4BlendFactor = math::Vector4::Zero, uint32_t nSimpleMask = 0xffffffff) = 0;
+			virtual void SetBlendState(EmBlendState::Type emBlendState, const math::float4& f4BlendFactor = math::float4::Zero, uint32_t nSimpleMask = 0xffffffff) = 0;
+			virtual void SetBlendState(const IBlendState* pBlendState, const math::float4& f4BlendFactor = math::float4::Zero, uint32_t nSimpleMask = 0xffffffff) = 0;
 
 			virtual void SetDepthStencilState(EmDepthStencilState::Type emDepthStencil, uint32_t nStencilRef = 1) = 0;
 			virtual void SetDepthStencilState(const IDepthStencilState* pDepthStencilState, uint32_t nStencilRef = 1) = 0;
@@ -290,7 +290,7 @@ namespace eastengine
 			virtual ID3D11ShaderResourceView* GetShaderResourceView() = 0;
 			virtual ID3D11ShaderResourceView** GetShaderResourceViewPtr() = 0;
 
-			virtual const math::UInt2& GetSize() = 0;
+			virtual const math::uint2& GetSize() = 0;
 			virtual const string::StringID& GetName() = 0;
 		};
 
@@ -395,7 +395,7 @@ namespace eastengine
 			virtual const RenderTargetDesc2D& GetDesc2D() = 0;
 			virtual const RenderTargetKey& GetKey() = 0;
 
-			virtual const math::UInt2& GetSize() = 0;
+			virtual const math::uint2& GetSize() = 0;
 		};
 
 		class IDepthStencil
@@ -479,9 +479,9 @@ namespace eastengine
 			math::Color colorAlbedo;
 			math::Color colorEmissive;
 
-			math::Vector4 f4PaddingRoughMetEmi;
-			math::Vector4 f4SurSpecTintAniso;
-			math::Vector4 f4SheenTintClearcoatGloss;
+			math::float4 f4PaddingRoughMetEmi;
+			math::float4 f4SurSpecTintAniso;
+			math::float4 f4SheenTintClearcoatGloss;
 
 			float fStippleTransparencyFactor;
 			float fTessellationFactor;
@@ -548,12 +548,12 @@ namespace eastengine
 			virtual EmDepthStencilState::Type GetDepthStencilState() const = 0;
 			virtual void SetDepthStencilState(EmDepthStencilState::Type pDepthStencilState) = 0;
 
-			virtual const math::Vector4& GetPaddingRoughMetEmi() const = 0;
-			virtual void SetPaddingRoughMetEmi(const math::Vector4& f4PaddingRoughMetEmi) = 0;
-			virtual const math::Vector4& GetSurSpecTintAniso() const = 0;
-			virtual void SetSurSpecTintAniso(const math::Vector4& f4SurSpecTintAniso) = 0;
-			virtual const math::Vector4& GetSheenTintClearcoatGloss() const = 0;
-			virtual void SetSheenTintClearcoatGloss(const math::Vector4& f4SheenTintClearcoatGloss) = 0;
+			virtual const math::float4& GetPaddingRoughMetEmi() const = 0;
+			virtual void SetPaddingRoughMetEmi(const math::float4& f4PaddingRoughMetEmi) = 0;
+			virtual const math::float4& GetSurSpecTintAniso() const = 0;
+			virtual void SetSurSpecTintAniso(const math::float4& f4SurSpecTintAniso) = 0;
+			virtual const math::float4& GetSheenTintClearcoatGloss() const = 0;
+			virtual void SetSheenTintClearcoatGloss(const math::float4& f4SheenTintClearcoatGloss) = 0;
 
 			virtual float GetDisplacement() const = 0;
 			virtual void SetDisplacement(float fDisplacement) = 0;

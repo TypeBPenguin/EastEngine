@@ -63,9 +63,9 @@ namespace eastengine
 						{
 							float lerpPercent = (fPlayTime - keyframe1.fTime) / (keyframe2.fTime - keyframe1.fTime);
 
-							math::Vector3::Lerp(keyframe1.transform.scale, keyframe2.transform.scale, lerpPercent, transform.scale);
+							math::float3::Lerp(keyframe1.transform.scale, keyframe2.transform.scale, lerpPercent, transform.scale);
 							math::Quaternion::Lerp(keyframe1.transform.rotation, keyframe2.transform.rotation, lerpPercent, transform.rotation);
-							math::Vector3::Lerp(keyframe1.transform.position, keyframe2.transform.position, lerpPercent, transform.position);
+							math::float3::Lerp(keyframe1.transform.position, keyframe2.transform.position, lerpPercent, transform.position);
 
 							isSuccess = true;
 
@@ -98,9 +98,9 @@ namespace eastengine
 							{
 								float lerpPercent = (fPlayTime - keyframe1.fTime) / (keyframe2.fTime - keyframe1.fTime);
 
-								math::Vector3::Lerp(keyframe1.transform.scale, keyframe2.transform.scale, lerpPercent, transform.scale);
+								math::float3::Lerp(keyframe1.transform.scale, keyframe2.transform.scale, lerpPercent, transform.scale);
 								math::Quaternion::Lerp(keyframe1.transform.rotation, keyframe2.transform.rotation, lerpPercent, transform.rotation);
-								math::Vector3::Lerp(keyframe1.transform.position, keyframe2.transform.position, lerpPercent, transform.position);
+								math::float3::Lerp(keyframe1.transform.position, keyframe2.transform.position, lerpPercent, transform.position);
 
 								break;
 							}
@@ -119,9 +119,9 @@ namespace eastengine
 						{
 							float lerpPercent = (fPlayTime - keyframe1.fTime) / (keyframe2.fTime - keyframe1.fTime);
 
-							math::Vector3::Lerp(keyframe1.transform.scale, keyframe2.transform.scale, lerpPercent, transform.scale);
+							math::float3::Lerp(keyframe1.transform.scale, keyframe2.transform.scale, lerpPercent, transform.scale);
 							math::Quaternion::Lerp(keyframe1.transform.rotation, keyframe2.transform.rotation, lerpPercent, transform.rotation);
-							math::Vector3::Lerp(keyframe1.transform.position, keyframe2.transform.position, lerpPercent, transform.position);
+							math::float3::Lerp(keyframe1.transform.position, keyframe2.transform.position, lerpPercent, transform.position);
 
 							isSuccess = true;
 
@@ -154,9 +154,9 @@ namespace eastengine
 							{
 								float lerpPercent = (fPlayTime - keyframe1.fTime) / (keyframe2.fTime - keyframe1.fTime);
 
-								math::Vector3::Lerp(keyframe1.transform.scale, keyframe2.transform.scale, lerpPercent, transform.scale);
+								math::float3::Lerp(keyframe1.transform.scale, keyframe2.transform.scale, lerpPercent, transform.scale);
 								math::Quaternion::Lerp(keyframe1.transform.rotation, keyframe2.transform.rotation, lerpPercent, transform.rotation);
-								math::Vector3::Lerp(keyframe1.transform.position, keyframe2.transform.position, lerpPercent, transform.position);
+								math::float3::Lerp(keyframe1.transform.position, keyframe2.transform.position, lerpPercent, transform.position);
 
 								break;
 							}

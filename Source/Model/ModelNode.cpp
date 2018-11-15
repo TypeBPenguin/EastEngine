@@ -9,16 +9,9 @@ namespace eastengine
 {
 	namespace graphics
 	{
-		ModelNode::ModelNode(EmModelNode::Type emModelNodeType)
-			: m_emModelNodeType(emModelNodeType)
-			, m_isVisible(true)
-			, m_pParentNode(nullptr)
-			, m_nLod(0)
-			, m_nLodMax(0)
-			, m_fDistanceFromCamera(0.f)
+		ModelNode::ModelNode(LOD emMaxLod)
+			: m_emMaxLod(emMaxLod)
 		{
-			m_pVertexBuffer.fill(nullptr);
-			m_pIndexBuffer.fill(nullptr);
 		}
 
 		ModelNode::~ModelNode()
@@ -27,11 +20,13 @@ namespace eastengine
 			{
 				ReleaseResource(&pVertexBuffer);
 			}
+			m_pVertexBuffer.fill(nullptr);
 
 			for (auto& pIndexBuffer : m_pIndexBuffer)
 			{
 				ReleaseResource(&pIndexBuffer);
 			}
+			m_pIndexBuffer.fill(nullptr);
 
 			std::for_each(m_vecMaterial.begin(), m_vecMaterial.end(), [](IMaterial* pMaterial)
 			{
@@ -51,30 +46,52 @@ namespace eastengine
 			m_vecChildModelNode.clear();
 		}
 
-		IVertexBuffer* ModelNode::GetVertexBuffer(uint32_t nLod) const
+		IVertexBuffer* ModelNode::GetVertexBuffer(LOD emLod) const
 		{
-			return m_pVertexBuffer[std::min(nLod, m_nLodMax)];
+			assert(emLod <= m_emMaxLod);
+			return m_pVertexBuffer[emLod];
 		}
 
-		void ModelNode::SetVertexBuffer(IVertexBuffer* pVertexBuffer, uint32_t nLod)
+		void ModelNode::SetVertexBuffer(IVertexBuffer* pVertexBuffer, LOD emLod)
 		{
-			ReleaseResource(&m_pVertexBuffer[std::min(nLod, m_nLodMax)]);
+			assert(emLod <= m_emMaxLod);
+			ReleaseResource(&m_pVertexBuffer[emLod]);
 
 			pVertexBuffer->IncreaseReference();
-			m_pVertexBuffer[std::min(nLod, m_nLodMax)] = pVertexBuffer;
+			m_pVertexBuffer[emLod] = pVertexBuffer;
 		}
 
-		IIndexBuffer* ModelNode::GetIndexBuffer(uint32_t nLod) const
+		IIndexBuffer* ModelNode::GetIndexBuffer(LOD emLod) const
 		{
-			return m_pIndexBuffer[std::min(nLod, m_nLodMax)];
+			assert(emLod <= m_emMaxLod);
+			return m_pIndexBuffer[emLod];
 		}
 
-		void ModelNode::SetIndexBuffer(IIndexBuffer* pIndexBuffer, uint32_t nLod)
+		void ModelNode::GetRawVertices(const VertexPos** ppVertices, size_t& vertexCount) const
 		{
-			ReleaseResource(&m_pIndexBuffer[std::min(nLod, m_nLodMax)]);
+			if (ppVertices == nullptr)
+				return;
+
+			*ppVertices = m_rawVertices.data();
+			vertexCount = m_rawVertices.size();
+		}
+
+		void ModelNode::GetRawIndices(const uint32_t** ppIndices, size_t& indexCount) const
+		{
+			if (ppIndices == nullptr)
+				return;
+
+			*ppIndices = m_rawIndices.data();
+			indexCount = m_rawIndices.size();
+		}
+
+		void ModelNode::SetIndexBuffer(IIndexBuffer* pIndexBuffer, LOD emLod)
+		{
+			assert(emLod <= m_emMaxLod);
+			ReleaseResource(&m_pIndexBuffer[emLod]);
 
 			pIndexBuffer->IncreaseReference();
-			m_pIndexBuffer[std::min(nLod, m_nLodMax)] = pIndexBuffer;
+			m_pIndexBuffer[emLod] = pIndexBuffer;
 		}
 
 		void ModelNode::AddMaterial(IMaterial* pMaterial)
@@ -94,14 +111,16 @@ namespace eastengine
 			}
 		}
 
-		void ModelNode::AddModelSubset(ModelSubset& modelPiece, uint32_t nLod)
+		void ModelNode::AddModelSubset(ModelSubset& modelPiece, LOD emLod)
 		{
-			m_vecModelSubsets[std::min(nLod, m_nLodMax)].push_back(modelPiece);
+			assert(emLod <= m_emMaxLod);
+			m_vecModelSubsets[emLod].push_back(modelPiece);
 		}
 
-		void ModelNode::AddModelSubsets(const std::vector<ModelSubset>& vecModelPiece, uint32_t nLod)
+		void ModelNode::AddModelSubsets(const std::vector<ModelSubset>& vecModelPiece, LOD emLod)
 		{
-			std::copy(vecModelPiece.begin(), vecModelPiece.end(), std::back_inserter(m_vecModelSubsets[std::min(nLod, m_nLodMax)]));
+			assert(emLod <= m_emMaxLod);
+			std::copy(vecModelPiece.begin(), vecModelPiece.end(), std::back_inserter(m_vecModelSubsets[emLod]));
 		}
 
 		IMaterial* ModelNode::GetMaterial(const string::StringID& strMaterialName, uint32_t& nMaterialID_out) const
@@ -123,7 +142,7 @@ namespace eastengine
 		void ModelNode::SetOriginAABB(const Collision::AABB& aabb)
 		{
 			m_originAABB = aabb;
-			m_originAABB.Extents = math::Vector3::Max(m_originAABB.Extents, math::Vector3(0.01f));
+			m_originAABB.Extents = math::float3::Max(m_originAABB.Extents, math::float3(0.01f));
 		}
 	}
 }

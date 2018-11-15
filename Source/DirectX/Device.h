@@ -100,7 +100,7 @@ namespace eastengine
 
 		public:
 			virtual HWND GetHWND() override { return m_hWnd; }
-			virtual const math::UInt2& GetScreenSize() const override { return m_n2ScreenSize; }
+			virtual const math::uint2& GetScreenSize() const override { return m_n2ScreenSize; }
 			virtual bool IsFullScreen() const override { return m_isFullScreen; }
 			virtual bool IsVSync() const override { return m_isVsync; }
 			virtual void SetVSync(bool isVSync) override { m_isVsync = isVSync; }
@@ -125,7 +125,7 @@ namespace eastengine
 		private:
 			HWND m_hWnd;
 
-			math::UInt2 m_n2ScreenSize;
+			math::uint2 m_n2ScreenSize;
 
 			bool m_isInit;
 			bool m_isVsync;

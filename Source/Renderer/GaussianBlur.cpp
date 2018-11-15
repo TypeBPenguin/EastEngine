@@ -89,7 +89,7 @@ namespace eastengine
 			pDeviceContext->SetViewport(viewport);
 			pDeviceContext->SetRenderTargets(&pResult, 1);
 
-			math::Vector2 f2Size;
+			math::float2 f2Size;
 			f2Size.x = static_cast<float>(pSource->GetSize().x);
 			f2Size.y = static_cast<float>(pSource->GetSize().y);
 

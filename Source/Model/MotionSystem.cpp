@@ -130,9 +130,9 @@ namespace eastengine
 					MotionTransform& destKeyframe = m_vecMotionTransforms[i];
 					math::Transform& motionTransform = destKeyframe.motionTransform;
 
-					math::Vector3::Lerp(motionTransform.scale, pSourceTransform->scale, fWeight, motionTransform.scale);
+					math::float3::Lerp(motionTransform.scale, pSourceTransform->scale, fWeight, motionTransform.scale);
 					math::Quaternion::Lerp(motionTransform.rotation, pSourceTransform->rotation, fWeight, motionTransform.rotation);
-					math::Vector3::Lerp(motionTransform.position, pSourceTransform->position, fWeight, motionTransform.position);
+					math::float3::Lerp(motionTransform.position, pSourceTransform->position, fWeight, motionTransform.position);
 				}
 			}
 		}

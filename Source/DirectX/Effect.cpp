@@ -499,7 +499,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::SetVector(const string::StringID& strName, const math::Int2& n2Value)
+		void Effect::SetVector(const string::StringID& strName, const math::int2& n2Value)
 		{
 			EffectVectorHandle* pHandle = GetVectorHandle(strName);
 			if (pHandle != nullptr)
@@ -508,7 +508,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::SetVector(const string::StringID& strName, const math::Int3& n3Value)
+		void Effect::SetVector(const string::StringID& strName, const math::int3& n3Value)
 		{
 			EffectVectorHandle* pHandle = GetVectorHandle(strName);
 			if (pHandle != nullptr)
@@ -517,7 +517,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::SetVector(const string::StringID& strName, const math::Int4& n4Value)
+		void Effect::SetVector(const string::StringID& strName, const math::int4& n4Value)
 		{
 			EffectVectorHandle* pHandle = GetVectorHandle(strName);
 			if (pHandle != nullptr)
@@ -526,7 +526,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::SetVector(const string::StringID& strName, const math::Vector2& f2Value)
+		void Effect::SetVector(const string::StringID& strName, const math::float2& f2Value)
 		{
 			EffectVectorHandle* pHandle = GetVectorHandle(strName);
 			if (pHandle != nullptr)
@@ -535,7 +535,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::SetVector(const string::StringID& strName, const math::Vector3& f3Value)
+		void Effect::SetVector(const string::StringID& strName, const math::float3& f3Value)
 		{
 			EffectVectorHandle* pHandle = GetVectorHandle(strName);
 			if (pHandle != nullptr)
@@ -544,7 +544,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::SetVector(const string::StringID& strName, const math::Vector4& f4Value)
+		void Effect::SetVector(const string::StringID& strName, const math::float4& f4Value)
 		{
 			EffectVectorHandle* pHandle = GetVectorHandle(strName);
 			if (pHandle != nullptr)
@@ -553,7 +553,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::SetVectorArray(const string::StringID& strName, const math::Int2* pn2Value, uint32_t nOffset, uint32_t nCount)
+		void Effect::SetVectorArray(const string::StringID& strName, const math::int2* pn2Value, uint32_t nOffset, uint32_t nCount)
 		{
 			EffectVectorHandle* pHandle = GetVectorHandle(strName);
 			if (pHandle != nullptr)
@@ -562,7 +562,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::SetVectorArray(const string::StringID& strName, const math::Int3* pn3Value, uint32_t nOffset, uint32_t nCount)
+		void Effect::SetVectorArray(const string::StringID& strName, const math::int3* pn3Value, uint32_t nOffset, uint32_t nCount)
 		{
 			EffectVectorHandle* pHandle = GetVectorHandle(strName);
 			if (pHandle != nullptr)
@@ -571,7 +571,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::SetVectorArray(const string::StringID& strName, const math::Int4* pn4Value, uint32_t nOffset, uint32_t nCount)
+		void Effect::SetVectorArray(const string::StringID& strName, const math::int4* pn4Value, uint32_t nOffset, uint32_t nCount)
 		{
 			EffectVectorHandle* pHandle = GetVectorHandle(strName);
 			if (pHandle != nullptr)
@@ -580,7 +580,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::SetVectorArray(const string::StringID& strName, const math::Vector2* pf2Value, uint32_t nOffset, uint32_t nCount)
+		void Effect::SetVectorArray(const string::StringID& strName, const math::float2* pf2Value, uint32_t nOffset, uint32_t nCount)
 		{
 			EffectVectorHandle* pHandle = GetVectorHandle(strName);
 			if (pHandle != nullptr)
@@ -589,7 +589,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::SetVectorArray(const string::StringID& strName, const math::Vector3* pf3Value, uint32_t nOffset, uint32_t nCount)
+		void Effect::SetVectorArray(const string::StringID& strName, const math::float3* pf3Value, uint32_t nOffset, uint32_t nCount)
 		{
 			EffectVectorHandle* pHandle = GetVectorHandle(strName);
 			if (pHandle != nullptr)
@@ -598,7 +598,7 @@ namespace eastengine
 			}
 		}
 
-		void Effect::SetVectorArray(const string::StringID& strName, const math::Vector4* pf4Value, uint32_t nOffset, uint32_t nCount)
+		void Effect::SetVectorArray(const string::StringID& strName, const math::float4* pf4Value, uint32_t nOffset, uint32_t nCount)
 		{
 			EffectVectorHandle* pHandle = GetVectorHandle(strName);
 			if (pHandle != nullptr)
@@ -865,7 +865,7 @@ namespace eastengine
 			SafeRelease(pVector);
 		}
 
-		void EffectVectorVariable::SetVector(const math::Int2& n2Value)
+		void EffectVectorVariable::SetVector(const math::int2& n2Value)
 		{
 			if (IsValid() == false)
 				return;
@@ -873,7 +873,7 @@ namespace eastengine
 			pVector->SetIntVector(&n2Value.x);
 		}
 
-		void EffectVectorVariable::SetVector(const math::Int3& n3Value)
+		void EffectVectorVariable::SetVector(const math::int3& n3Value)
 		{
 			if (IsValid() == false)
 				return;
@@ -881,7 +881,7 @@ namespace eastengine
 			pVector->SetIntVector(&n3Value.x);
 		}
 
-		void EffectVectorVariable::SetVector(const math::Int4& n4Value)
+		void EffectVectorVariable::SetVector(const math::int4& n4Value)
 		{
 			if (IsValid() == false)
 				return;
@@ -889,7 +889,7 @@ namespace eastengine
 			pVector->SetIntVector(&n4Value.x);
 		}
 
-		void EffectVectorVariable::SetVector(const math::Vector2& f2Value)
+		void EffectVectorVariable::SetVector(const math::float2& f2Value)
 		{
 			if (IsValid() == false)
 				return;
@@ -897,7 +897,7 @@ namespace eastengine
 			pVector->SetFloatVector(&f2Value.x);
 		}
 
-		void EffectVectorVariable::SetVector(const math::Vector3& f3Value)
+		void EffectVectorVariable::SetVector(const math::float3& f3Value)
 		{
 			if (IsValid() == false)
 				return;
@@ -905,7 +905,7 @@ namespace eastengine
 			pVector->SetFloatVector(&f3Value.x);
 		}
 
-		void EffectVectorVariable::SetVector(const math::Vector4& f4Value)
+		void EffectVectorVariable::SetVector(const math::float4& f4Value)
 		{
 			if (IsValid() == false)
 				return;
@@ -913,7 +913,7 @@ namespace eastengine
 			pVector->SetFloatVector(&f4Value.x);
 		}
 
-		void EffectVectorVariable::SetVectorArray(const math::Int2* pData, uint32_t nOffset, uint32_t nCount)
+		void EffectVectorVariable::SetVectorArray(const math::int2* pData, uint32_t nOffset, uint32_t nCount)
 		{
 			if (IsValid() == false)
 				return;
@@ -921,7 +921,7 @@ namespace eastengine
 			pVector->SetIntVectorArray(&pData->x, nOffset, nCount);
 		}
 
-		void EffectVectorVariable::SetVectorArray(const math::Int3* pData, uint32_t nOffset, uint32_t nCount)
+		void EffectVectorVariable::SetVectorArray(const math::int3* pData, uint32_t nOffset, uint32_t nCount)
 		{
 			if (IsValid() == false)
 				return;
@@ -929,7 +929,7 @@ namespace eastengine
 			pVector->SetIntVectorArray(&pData->x, nOffset, nCount);
 		}
 
-		void EffectVectorVariable::SetVectorArray(const math::Int4* pData, uint32_t nOffset, uint32_t nCount)
+		void EffectVectorVariable::SetVectorArray(const math::int4* pData, uint32_t nOffset, uint32_t nCount)
 		{
 			if (IsValid() == false)
 				return;
@@ -937,7 +937,7 @@ namespace eastengine
 			pVector->SetIntVectorArray(&pData->x, nOffset, nCount);
 		}
 
-		void EffectVectorVariable::SetVectorArray(const math::Vector2* pData, uint32_t nOffset, uint32_t nCount)
+		void EffectVectorVariable::SetVectorArray(const math::float2* pData, uint32_t nOffset, uint32_t nCount)
 		{
 			if (IsValid() == false)
 				return;
@@ -945,7 +945,7 @@ namespace eastengine
 			pVector->SetFloatVectorArray(&pData->x, nOffset, nCount);
 		}
 
-		void EffectVectorVariable::SetVectorArray(const math::Vector3* pData, uint32_t nOffset, uint32_t nCount)
+		void EffectVectorVariable::SetVectorArray(const math::float3* pData, uint32_t nOffset, uint32_t nCount)
 		{
 			if (IsValid() == false)
 				return;
@@ -953,7 +953,7 @@ namespace eastengine
 			pVector->SetFloatVectorArray(&pData->x, nOffset, nCount);
 		}
 
-		void EffectVectorVariable::SetVectorArray(const math::Vector4* pData, uint32_t nOffset, uint32_t nCount)
+		void EffectVectorVariable::SetVectorArray(const math::float4* pData, uint32_t nOffset, uint32_t nCount)
 		{
 			if (IsValid() == false)
 				return;

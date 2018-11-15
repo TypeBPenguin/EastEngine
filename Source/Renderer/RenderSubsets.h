@@ -29,7 +29,7 @@ namespace EastEngine
 			VertexPosCol vertexLineSegment[2];
 			bool isIgnoreDepth = false;
 
-			RenderSubsetLineSegment(const Math::Vector3& f3StartPoint, const Math::Color& colorStartPoint, const Math::Vector3& f3EndPoint, const Math::Color& colorEndPoint, bool isIgnoreDepth);
+			RenderSubsetLineSegment(const Math::float3& f3StartPoint, const Math::Color& colorStartPoint, const Math::float3& f3EndPoint, const Math::Color& colorEndPoint, bool isIgnoreDepth);
 		};
 
 		struct RenderSubsetVertex
@@ -153,13 +153,13 @@ namespace EastEngine
 		struct RenderSubsetParticleEmitter
 		{
 			IBlendState* pBlendState = nullptr;
-			Math::Vector3 f3Pos;
+			Math::float3 f3Pos;
 			VertexPosTexCol* pVertices = nullptr;
 			uint32_t nVertexCount = 0;
 			std::shared_ptr<ITexture> pTexture;
 
 			RenderSubsetParticleEmitter();
-			RenderSubsetParticleEmitter(IBlendState* pBlendState, const Math::Vector3& f3Pos, VertexPosTexCol* pVertices, uint32_t nVertexCount, const std::shared_ptr<ITexture>& pTexture);
+			RenderSubsetParticleEmitter(IBlendState* pBlendState, const Math::float3& f3Pos, VertexPosTexCol* pVertices, uint32_t nVertexCount, const std::shared_ptr<ITexture>& pTexture);
 		};
 
 		struct RenderSubsetParticleDecal

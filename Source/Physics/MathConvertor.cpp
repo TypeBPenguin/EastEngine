@@ -5,12 +5,12 @@ namespace eastengine
 {
 	namespace math
 	{
-		Vector3 Convert(const btVector3& v)
+		float3 Convert(const btVector3& v)
 		{
 			return { v.x(), v.y(), v.z() };
 		}
 
-		Vector4 Convert(const btVector4& v)
+		float4 Convert(const btVector4& v)
 		{
 			return { v.x(), v.y(), v.z(), v.w() };
 		}
@@ -44,14 +44,14 @@ namespace eastengine
 			return matWorld;
 		}
 
-		btVector3 ConvertToBt(const Vector3& v)
+		btVector3 ConvertToBt(const float3& v)
 		{
 			btVector3 ret;
 			ret.setValue(v.x, v.y, v.z);
 			return ret;
 		}
 
-		btVector4 ConvertToBt(const Vector4& v)
+		btVector4 ConvertToBt(const float4& v)
 		{
 			btVector4 ret;
 			ret.setValue(v.x, v.y, v.z, v.w);
@@ -67,7 +67,7 @@ namespace eastengine
 
 		btTransform ConvertToBt(const Matrix& matrix)
 		{
-			Vector3 vPos, vScale;
+			float3 vPos, vScale;
 			Quaternion quat;
 
 			matrix.Decompose(vScale, quat, vPos);
@@ -83,7 +83,7 @@ namespace eastengine
 			return tm;
 		}
 
-		btTransform ConvertToBt(const Vector3& v, const Quaternion& quat)
+		btTransform ConvertToBt(const float3& v, const Quaternion& quat)
 		{
 			btVector3 btOrigin = ConvertToBt(v);
 			btQuaternion btQuat = ConvertToBt(quat);

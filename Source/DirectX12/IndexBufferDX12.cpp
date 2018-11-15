@@ -14,11 +14,11 @@ namespace eastengine
 			class IndexBuffer::Impl
 			{
 			public:
-				Impl(const uint8_t* pData, size_t nBufferSize, uint32_t nIndexCount);
+				Impl(const uint8_t* pData, uint32_t indexCount, size_t formatSize);
 				~Impl();
 
 			public:
-				uint32_t GetIndexCount() const { return m_nIndexCount; }
+				uint32_t GetIndexCount() const { return m_indexCount; }
 
 				bool Map(void** ppData);
 				void Unmap();
@@ -30,16 +30,16 @@ namespace eastengine
 			public:
 				ID3D12Resource* m_pBuffer{ nullptr };
 				D3D12_INDEX_BUFFER_VIEW m_view;
-				uint32_t m_nIndexCount{ 0 };
+				uint32_t m_indexCount{ 0 };
 			};
 
-			IndexBuffer::Impl::Impl(const uint8_t* pData, size_t nBufferSize, uint32_t nIndexCount)
-				: m_nIndexCount(nIndexCount)
+			IndexBuffer::Impl::Impl(const uint8_t* pData, uint32_t indexCount, size_t formatSize)
+				: m_indexCount(indexCount)
 			{
 				TRACER_EVENT("IndexBuffer_Init");
 				ID3D12Device* pDevice = Device::GetInstance()->GetInterface();
 
-				size_t nSize = util::Align(nBufferSize, nBufferSize / nIndexCount);
+				const size_t nSize = util::Align(indexCount * formatSize, formatSize);
 
 				CD3DX12_HEAP_PROPERTIES heapProperties(D3D12_HEAP_TYPE_DEFAULT);
 				CD3DX12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(nSize);
@@ -72,8 +72,8 @@ namespace eastengine
 
 				D3D12_SUBRESOURCE_DATA indexData{};
 				indexData.pData = pData;
-				indexData.RowPitch = nBufferSize;
-				indexData.SlicePitch = nBufferSize;
+				indexData.RowPitch = indexCount * formatSize;
+				indexData.SlicePitch = indexCount * formatSize;
 
 				ID3D12Fence* pFence{ nullptr };
 				if (FAILED(pDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&pFence))))
@@ -131,8 +131,19 @@ namespace eastengine
 				SafeRelease(pFence);
 
 				m_view.BufferLocation = m_pBuffer->GetGPUVirtualAddress();
-				m_view.Format = DXGI_FORMAT_R32_UINT;
-				m_view.SizeInBytes = static_cast<uint32_t>(nBufferSize);
+				switch (formatSize)
+				{
+				case sizeof(uint16_t) :
+					m_view.Format = DXGI_FORMAT_R16_UINT;
+					break;
+				case sizeof(uint32_t) :
+					m_view.Format = DXGI_FORMAT_R32_UINT;
+					break;
+				default:
+					throw_line("unsupport index format");
+					break;
+				}
+				m_view.SizeInBytes = static_cast<uint32_t>(indexCount * formatSize);
 			}
 
 			IndexBuffer::Impl::~Impl()
@@ -162,8 +173,8 @@ namespace eastengine
 				m_pBuffer->Unmap(0, &readRange);
 			}
 
-			IndexBuffer::IndexBuffer(const uint8_t* pData, size_t nBufferSize, uint32_t nIndexCount)
-				: m_pImpl{ std::make_unique<Impl>(pData, nBufferSize, nIndexCount) }
+			IndexBuffer::IndexBuffer(const uint8_t* pData, uint32_t indexCount, size_t formatSize)
+				: m_pImpl{ std::make_unique<Impl>(pData, indexCount, formatSize) }
 			{
 			}
 

@@ -22,7 +22,7 @@
 
 template<class T> CullingThreadpool::StateData<T>::StateData(unsigned int maxJobs) :
 	mMaxJobs(maxJobs),
-	mCurrentIdx(std::numeric_limits<unsigned int>::max())
+	mCurrentIdx(~0u)
 {
 	mData = new T[mMaxJobs];
 }
@@ -112,8 +112,7 @@ inline void CullingThreadpool::RenderJobQueue::AdvanceRenderJob(int binIdx)
 inline unsigned int CullingThreadpool::RenderJobQueue::GetBestGlobalQueue() const
 {
 	// Find least advanced queue
-	unsigned int bestBin = std::numeric_limits<unsigned int>::max();
-	unsigned int bestPtr = mWritePtr;
+	unsigned int bestBin = ~0u, bestPtr = mWritePtr;
 	for (unsigned int i = 0; i < mNumBins; ++i)
 	{
 		if (mRenderPtrs[i] < bestPtr && mBinMutexes[i] == 0)
@@ -273,14 +272,14 @@ void CullingThreadpool::ThreadMain(unsigned int threadIdx)
 			if (mRenderQueue->CanBin())
 			{
 				// If no more rasterization jobs, get next binning job
-				RenderJobQueue::Job *binningJob = mRenderQueue->GetBinningJob();
-				if (binningJob != nullptr)
+				RenderJobQueue::Job *nextJob = mRenderQueue->GetBinningJob();
+				if (nextJob != nullptr)
 				{
-					RenderJobQueue::BinningJob &sjob = binningJob->mBinningJob;
+					RenderJobQueue::BinningJob &sjob = nextJob->mBinningJob;
 					for (unsigned int i = 0; i < mNumBins; ++i)
-						binningJob->mRenderJobs[i].mTriIdx = 0;
-					mMOC->BinTriangles(sjob.mVerts, sjob.mTris, sjob.nTris, binningJob->mRenderJobs, mBinsW, mBinsH, sjob.mMatrix, sjob.mBfWinding, sjob.mClipPlanes, *sjob.mVtxLayout);
-					mRenderQueue->FinishedBinningJob(binningJob);
+						nextJob->mRenderJobs[i].mTriIdx = 0;
+					mMOC->BinTriangles(sjob.mVerts, sjob.mTris, sjob.nTris, nextJob->mRenderJobs, mBinsW, mBinsH, sjob.mMatrix, sjob.mBfWinding, sjob.mClipPlanes, *sjob.mVtxLayout);
+					mRenderQueue->FinishedBinningJob(nextJob);
 				}
 				continue;
 			}
@@ -291,11 +290,11 @@ void CullingThreadpool::ThreadMain(unsigned int threadIdx)
 				binIdx = mRenderQueue->GetBestGlobalQueue();
 				if (binIdx < mRenderQueue->mNumBins)
 				{
-					RenderJobQueue::Job *renderJob = mRenderQueue->GetRenderJob(binIdx);
-					if (renderJob != nullptr)
+					RenderJobQueue::Job *nextJob = mRenderQueue->GetRenderJob(binIdx);
+					if (nextJob != nullptr)
 					{
-						if (renderJob->mRenderJobs[binIdx].mTriIdx > 0)
-							mMOC->RenderTrilist(renderJob->mRenderJobs[binIdx], &mRects[binIdx]);
+						if (nextJob->mRenderJobs[binIdx].mTriIdx > 0)
+							mMOC->RenderTrilist(nextJob->mRenderJobs[binIdx], &mRects[binIdx]);
 
 						mRenderQueue->AdvanceRenderJob(binIdx);
 					}

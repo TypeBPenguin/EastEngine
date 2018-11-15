@@ -10,8 +10,8 @@ namespace eastengine
 		~Impl() = default;
 
 	public:
-		void Start() { m_timeStart = std::chrono::system_clock::now(); }
-		void Stop() { m_timeEnd = std::chrono::system_clock::now(); }
+		void Start() { m_timeStart = std::chrono::high_resolution_clock::now(); }
+		void Stop() { m_timeEnd = std::chrono::high_resolution_clock::now(); }
 
 		double Elapsed() const { return std::chrono::duration<double>(m_timeEnd - m_timeStart).count(); }
 		int64_t MilliSec() const { return std::chrono::duration_cast<std::chrono::milliseconds>(m_timeEnd - m_timeStart).count(); }
@@ -19,8 +19,8 @@ namespace eastengine
 		int64_t NanoSec() const { return std::chrono::duration_cast<std::chrono::nanoseconds>(m_timeEnd - m_timeStart).count(); }
 
 	private:
-		std::chrono::system_clock::time_point m_timeStart;
-		std::chrono::system_clock::time_point m_timeEnd;
+		std::chrono::high_resolution_clock::time_point m_timeStart;
+		std::chrono::high_resolution_clock::time_point m_timeEnd;
 	};
 
 	Stopwatch::Stopwatch()
@@ -85,10 +85,10 @@ namespace eastengine
 		bool m_isStopped{ false };
 		double m_dDeltaTime{ 0.0 };
 
-		std::chrono::system_clock::time_point m_baseTime;
-		std::chrono::system_clock::time_point m_stopTime;
-		std::chrono::system_clock::time_point m_prevTime;
-		std::chrono::system_clock::time_point m_curTime;
+		std::chrono::high_resolution_clock::time_point m_baseTime;
+		std::chrono::high_resolution_clock::time_point m_stopTime;
+		std::chrono::high_resolution_clock::time_point m_prevTime;
+		std::chrono::high_resolution_clock::time_point m_curTime;
 
 		std::chrono::milliseconds m_pausedTime;
 
@@ -106,7 +106,7 @@ namespace eastengine
 
 	void Timer::Impl::Reset()
 	{
-		std::chrono::system_clock::time_point curTime = std::chrono::system_clock::now();
+		std::chrono::high_resolution_clock::time_point curTime = std::chrono::high_resolution_clock::now();
 		m_baseTime = curTime;
 		m_prevTime = curTime;
 		m_curTime = curTime;
@@ -122,7 +122,7 @@ namespace eastengine
 		if (m_isStopped == false)
 			return;
 
-		std::chrono::system_clock::time_point curTime = std::chrono::system_clock::now();
+		std::chrono::high_resolution_clock::time_point curTime = std::chrono::high_resolution_clock::now();
 
 		std::chrono::duration<double> diffTime = std::chrono::duration_cast<std::chrono::duration<double>>(curTime - m_stopTime);
 
@@ -138,7 +138,7 @@ namespace eastengine
 		if (m_isStopped == true)
 			return;
 
-		std::chrono::system_clock::time_point curTime = std::chrono::system_clock::now();
+		std::chrono::high_resolution_clock::time_point curTime = std::chrono::high_resolution_clock::now();
 
 		m_stopTime = curTime;
 		m_isStopped = true;
@@ -146,7 +146,7 @@ namespace eastengine
 
 	void Timer::Impl::Tick()
 	{
-		std::chrono::system_clock::time_point curTime = std::chrono::system_clock::now();
+		std::chrono::high_resolution_clock::time_point curTime = std::chrono::high_resolution_clock::now();
 
 		std::chrono::duration<double> diffTime = std::chrono::duration_cast<std::chrono::duration<double>>(m_stopTime - curTime);
 		if (std::abs(diffTime.count()) <= std::numeric_limits<double>::epsilon())

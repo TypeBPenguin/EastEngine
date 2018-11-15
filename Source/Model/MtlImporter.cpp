@@ -413,8 +413,8 @@ namespace eastengine
 
 			for (auto& iter : m_umapNewMtrl)
 			{
-				iter.second->SetSurSpecTintAniso(math::Vector4(0.f, 0.f, 0.f, 0.f));
-				iter.second->SetSheenTintClearcoatGloss(math::Vector4(0.f, 0.f, 0.f, 0.f));
+				iter.second->SetSurSpecTintAniso(math::float4(0.f, 0.f, 0.f, 0.f));
+				iter.second->SetSheenTintClearcoatGloss(math::float4(0.f, 0.f, 0.f, 0.f));
 
 				iter.second->LoadTexture();
 			}

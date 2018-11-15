@@ -19,10 +19,10 @@ namespace eastengine
 			{
 				struct FxaaContents
 				{
-					math::Vector4 f4RcpFrame;
+					math::float4 f4RcpFrame;
 
 					uint32_t nTexInputIndex{ 0 };
-					math::Vector3 padding;
+					math::float3 padding;
 				};
 
 				enum CBSlot
@@ -30,9 +30,9 @@ namespace eastengine
 					eCB_FxaaContents = 0,
 				};
 
-				void SetFxaaContents(FxaaContents* pFxaaContents, const math::UInt2& n2ScreenSize, uint32_t nTexInputIndex)
+				void SetFxaaContents(FxaaContents* pFxaaContents, const math::uint2& n2ScreenSize, uint32_t nTexInputIndex)
 				{
-					const math::Vector4 vRcpFrame(1.f / static_cast<float>(n2ScreenSize.x), 1.f / static_cast<float>(n2ScreenSize.y), 0.f, 0.f);
+					const math::float4 vRcpFrame(1.f / static_cast<float>(n2ScreenSize.x), 1.f / static_cast<float>(n2ScreenSize.y), 0.f, 0.f);
 					pFxaaContents->f4RcpFrame = vRcpFrame;
 					pFxaaContents->nTexInputIndex = nTexInputIndex;
 				}
@@ -120,7 +120,7 @@ namespace eastengine
 
 				Device* pDeviceInstance = Device::GetInstance();
 
-				const math::UInt2& n2ScreenSize = pDeviceInstance->GetScreenSize();
+				const math::uint2& n2ScreenSize = pDeviceInstance->GetScreenSize();
 				const uint32_t nFrameIndex = pDeviceInstance->GetFrameIndex();
 				DescriptorHeap* pSRVDescriptorHeap = pDeviceInstance->GetSRVDescriptorHeap();
 

@@ -19,7 +19,7 @@ namespace eastengine
 				struct GaussianBlurContents
 				{
 					float fSigma{ 0.5f };
-					math::Vector2 f2SourceDimensions;
+					math::float2 f2SourceDimensions;
 					float padding{ 0.f };
 				};
 
@@ -49,7 +49,7 @@ namespace eastengine
 					ePS_Count,
 				};
 
-				void SetGaussianBlurContents(ID3D11DeviceContext* pDeviceContext, ConstantBuffer<GaussianBlurContents>* pCB_GaussianBlurContents, float fSigma, const math::Vector2& f2SourceDimensions)
+				void SetGaussianBlurContents(ID3D11DeviceContext* pDeviceContext, ConstantBuffer<GaussianBlurContents>* pCB_GaussianBlurContents, float fSigma, const math::float2& f2SourceDimensions)
 				{
 					GaussianBlurContents* pGaussianBlurContents = pCB_GaussianBlurContents->Map(pDeviceContext);
 
@@ -199,7 +199,7 @@ namespace eastengine
 				pDeviceContext->RSSetState(pRasterizerState);
 
 				ID3D11BlendState* pBlendState = pDeviceInstance->GetBlendState(EmBlendState::eOff);
-				pDeviceContext->OMSetBlendState(pBlendState, &math::Vector4::Zero.x, 0xffffffff);
+				pDeviceContext->OMSetBlendState(pBlendState, &math::float4::Zero.x, 0xffffffff);
 
 				ID3D11DepthStencilState* pDepthStencilState = pDeviceInstance->GetDepthStencilState(EmDepthStencilState::eRead_Write_Off);
 				pDeviceContext->OMSetDepthStencilState(pDepthStencilState, 0);
@@ -220,7 +220,7 @@ namespace eastengine
 				D3D11_TEXTURE2D_DESC desc_source{};
 				pSource->GetDesc2D(&desc_source);
 
-				shader::SetGaussianBlurContents(pDeviceContext, &m_gaussianBlurContents, fSigma, math::Vector2(static_cast<float>(desc_source.Width), static_cast<float>(desc_source.Height)));
+				shader::SetGaussianBlurContents(pDeviceContext, &m_gaussianBlurContents, fSigma, math::float2(static_cast<float>(desc_source.Width), static_cast<float>(desc_source.Height)));
 				pDeviceContext->PSSetConstantBuffers(shader::eCB_GaussianBlurContents, 1, &m_gaussianBlurContents.pBuffer);
 
 				D3D11_TEXTURE2D_DESC desc{};

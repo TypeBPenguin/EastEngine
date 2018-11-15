@@ -23,7 +23,7 @@ namespace eastengine
 			{
 				struct CommonContents
 				{
-					math::Vector3 f3CameraPos;
+					math::float3 f3CameraPos;
 					int nEnableShadowCount{ 0 };
 
 					uint32_t nTexDiffuseHDRIndex{ 0 };

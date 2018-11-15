@@ -66,7 +66,7 @@ namespace eastengine
 				void Cleanup(float fElapsedTime);
 
 			public:
-				const math::UInt2& GetScreenSize() const;
+				const math::uint2& GetScreenSize() const;
 
 				VkDevice GetInterface() const;
 				VkCommandPool GetCommandPool() const;

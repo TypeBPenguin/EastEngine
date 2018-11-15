@@ -194,7 +194,7 @@ namespace eastengine
 			return nullptr;
 		}
 
-		void SkeletonInstance::GetSkinnedData(const string::StringID& strSkinnedName, const math::Matrix*** pppMatrixList_out, uint32_t& nElementCount_out)
+		void SkeletonInstance::GetSkinnedData(const string::StringID& strSkinnedName, const math::Matrix* const** pppMatrixList_out, uint32_t& nElementCount_out)
 		{
 			auto iter = m_umapSkinnendData.find(strSkinnedName);
 			if (iter == m_umapSkinnendData.end())
@@ -204,7 +204,7 @@ namespace eastengine
 				return;
 			}
 
-			*pppMatrixList_out = &iter->second.front();
+			*pppMatrixList_out = iter->second.data();
 			nElementCount_out = static_cast<uint32_t>(iter->second.size());
 		}
 

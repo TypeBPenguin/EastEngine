@@ -115,11 +115,11 @@ namespace eastengine
 			pDeviceContext->SetDepthStencilState(EmDepthStencilState::eRead_Write_Off);
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-			const math::UInt2& n2Size = pSource->GetSize();
-			const math::UInt2 n2TargetSize(n2Size.x / 2, n2Size.y / 2);
+			const math::uint2& n2Size = pSource->GetSize();
+			const math::uint2 n2TargetSize(n2Size.x / 2, n2Size.y / 2);
 			m_fRadiusMultiplier = static_cast<float>(n2Size.x) / n2TargetSize.x;
 
-			auto Sampling = [&](bool isResult, uint32_t nWidth, uint32_t nHeight, int nPass, const math::Vector2& f2InverseResolution, IRenderTarget* pSource, const string::StringID& strTechName, IRenderTarget* pResult = nullptr) -> IRenderTarget*
+			auto Sampling = [&](bool isResult, uint32_t nWidth, uint32_t nHeight, int nPass, const math::float2& f2InverseResolution, IRenderTarget* pSource, const string::StringID& strTechName, IRenderTarget* pResult = nullptr) -> IRenderTarget*
 			{
 				if (m_nDownsamplePasses > nPass)
 				{
@@ -161,7 +161,7 @@ namespace eastengine
 
 			pDeviceContext->SetBlendState(EmBlendState::eOpacity);
 
-			math::Vector2 f2InverseResolution(1.f / n2TargetSize.x, 1.f / n2TargetSize.y);
+			math::float2 f2InverseResolution(1.f / n2TargetSize.x, 1.f / n2TargetSize.y);
 			IRenderTarget* pMip0 = Sampling(true, n2TargetSize.x, n2TargetSize.y, 0, f2InverseResolution, pSource, m_settings.isEnableLuminance ? StrID::ExtractLuminance : StrID::Extract);
 
 			IRenderTarget* pMip1 = Sampling(false, n2TargetSize.x, n2TargetSize.y, 0, f2InverseResolution, pMip0, StrID::Downsample);

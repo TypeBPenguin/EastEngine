@@ -33,11 +33,11 @@ namespace eastengine
 
 			struct XPS_Vertex
 			{
-				math::Vector3 vertex;
-				math::Vector3 normal;
+				math::float3 vertex;
+				math::float3 normal;
 				uint8_t color[4] = {};
-				std::vector<math::Vector2> texCoord;	// [numUVLayers]
-				std::vector<math::Vector4> tangent;		// [numUVLayers]
+				std::vector<math::float2> texCoord;	// [numUVLayers]
+				std::vector<math::float4> tangent;		// [numUVLayers]
 				uint16_t boneIndex[4] = {};				// Only if the model has bones
 				float boneWeight[4] = {};				// Only if the model has bones
 			};
@@ -482,12 +482,11 @@ namespace eastengine
 						}
 					}
 
-
-					IVertexBuffer* pVertexBuffer = CreateVertexBuffer(reinterpret_cast<uint8_t*>(vecVertices.data()), static_cast<uint32_t>(sizeof(VertexPosTexNorWeiIdx) * vecVertices.size()), static_cast<uint32_t>(vecVertices.size()));
+					IVertexBuffer* pVertexBuffer = CreateVertexBuffer(reinterpret_cast<uint8_t*>(vecVertices.data()), static_cast<uint32_t>(vecVertices.size()), sizeof(VertexPosTexNorWeiIdx));
 					pSkinnedNode->SetVertexBuffer(pVertexBuffer);
 					ReleaseResource(&pVertexBuffer);
 
-					IIndexBuffer* pIndexBuffer = CreateIndexBuffer(reinterpret_cast<uint8_t*>(vecIndices.data()), static_cast<uint32_t>(sizeof(VertexPosTexNorWeiIdx) * vecIndices.size()), static_cast<uint32_t>(vecIndices.size()));
+					IIndexBuffer* pIndexBuffer = CreateIndexBuffer(reinterpret_cast<uint8_t*>(vecIndices.data()), static_cast<uint32_t>(vecIndices.size()), sizeof(uint32_t));
 					pSkinnedNode->SetIndexBuffer(pIndexBuffer);
 					ReleaseResource(&pIndexBuffer);
 
@@ -559,7 +558,7 @@ namespace eastengine
 					if (pModelNode == nullptr)
 						continue;
 
-					if (pModelNode->GetType() != EmModelNode::eSkinned)
+					if (pModelNode->GetType() != IModelNode::eSkinned)
 						continue;
 
 					ModelNodeSkinned* pSkinnedNode = static_cast<ModelNodeSkinned*>(pModelNode);
@@ -600,7 +599,7 @@ namespace eastengine
 						std::vector<Motion::Keyframe> vecKeyframes;
 
 						string::StringID strName;
-						math::Vector3 f3Rotation;
+						math::float3 f3Rotation;
 
 						Motion::Keyframe keyframe;
 

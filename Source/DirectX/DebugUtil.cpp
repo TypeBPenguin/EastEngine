@@ -28,8 +28,8 @@ namespace eastengine
 					std::vector<uint32_t> vecIndices;
 					vecIndices.reserve(nIndexCount);
 
-					math::Vector3 f3MinSize(-1.f, -1.f, -1.f);
-					math::Vector3 f3MaxSize(1.f, 1.f, 1.f);
+					math::float3 f3MinSize(-1.f, -1.f, -1.f);
+					math::float3 f3MaxSize(1.f, 1.f, 1.f);
 
 					uint32_t nIdx = 0;
 					// 8 Horizontal lines.
@@ -37,96 +37,96 @@ namespace eastengine
 					vecIndices.push_back(nIdx);
 					++nIdx;
 
-					vecVertices.push_back(VertexPosCol(math::Vector3(f3MaxSize.x, f3MinSize.y, f3MinSize.z), color));
+					vecVertices.push_back(VertexPosCol(math::float3(f3MaxSize.x, f3MinSize.y, f3MinSize.z), color));
 					vecIndices.push_back(nIdx);
 					++nIdx;
 
-					vecVertices.push_back(VertexPosCol(math::Vector3(f3MinSize.x, f3MinSize.y, f3MaxSize.z), color));
+					vecVertices.push_back(VertexPosCol(math::float3(f3MinSize.x, f3MinSize.y, f3MaxSize.z), color));
 					vecIndices.push_back(nIdx);
 					++nIdx;
 
-					vecVertices.push_back(VertexPosCol(math::Vector3(f3MaxSize.x, f3MinSize.y, f3MaxSize.z), color));
+					vecVertices.push_back(VertexPosCol(math::float3(f3MaxSize.x, f3MinSize.y, f3MaxSize.z), color));
 					vecIndices.push_back(nIdx);
 					++nIdx;
 
-					vecVertices.push_back(VertexPosCol(math::Vector3(f3MinSize.x, f3MinSize.y, f3MinSize.z), color));
+					vecVertices.push_back(VertexPosCol(math::float3(f3MinSize.x, f3MinSize.y, f3MinSize.z), color));
 					vecIndices.push_back(nIdx);
 					++nIdx;
 
-					vecVertices.push_back(VertexPosCol(math::Vector3(f3MinSize.x, f3MinSize.y, f3MaxSize.z), color));
+					vecVertices.push_back(VertexPosCol(math::float3(f3MinSize.x, f3MinSize.y, f3MaxSize.z), color));
 					vecIndices.push_back(nIdx);
 					++nIdx;
 
-					vecVertices.push_back(VertexPosCol(math::Vector3(f3MaxSize.x, f3MinSize.y, f3MinSize.z), color));
+					vecVertices.push_back(VertexPosCol(math::float3(f3MaxSize.x, f3MinSize.y, f3MinSize.z), color));
 					vecIndices.push_back(nIdx);
 					++nIdx;
 
-					vecVertices.push_back(VertexPosCol(math::Vector3(f3MaxSize.x, f3MinSize.y, f3MaxSize.z), color));
+					vecVertices.push_back(VertexPosCol(math::float3(f3MaxSize.x, f3MinSize.y, f3MaxSize.z), color));
 					vecIndices.push_back(nIdx);
 					++nIdx;
 
-					vecVertices.push_back(VertexPosCol(math::Vector3(f3MinSize.x, f3MaxSize.y, f3MinSize.z), color));
+					vecVertices.push_back(VertexPosCol(math::float3(f3MinSize.x, f3MaxSize.y, f3MinSize.z), color));
 					vecIndices.push_back(nIdx);
 					++nIdx;
 
-					vecVertices.push_back(VertexPosCol(math::Vector3(f3MaxSize.x, f3MaxSize.y, f3MinSize.z), color));
+					vecVertices.push_back(VertexPosCol(math::float3(f3MaxSize.x, f3MaxSize.y, f3MinSize.z), color));
 					vecIndices.push_back(nIdx);
 					++nIdx;
 
-					vecVertices.push_back(VertexPosCol(math::Vector3(f3MinSize.x, f3MaxSize.y, f3MaxSize.z), color));
+					vecVertices.push_back(VertexPosCol(math::float3(f3MinSize.x, f3MaxSize.y, f3MaxSize.z), color));
 					vecIndices.push_back(nIdx);
 					++nIdx;
 
-					vecVertices.push_back(VertexPosCol(math::Vector3(f3MaxSize.x, f3MaxSize.y, f3MaxSize.z), color));
+					vecVertices.push_back(VertexPosCol(math::float3(f3MaxSize.x, f3MaxSize.y, f3MaxSize.z), color));
 					vecIndices.push_back(nIdx);
 					++nIdx;
 
-					vecVertices.push_back(VertexPosCol(math::Vector3(f3MinSize.x, f3MaxSize.y, f3MinSize.z), color));
+					vecVertices.push_back(VertexPosCol(math::float3(f3MinSize.x, f3MaxSize.y, f3MinSize.z), color));
 					vecIndices.push_back(nIdx);
 					++nIdx;
 
-					vecVertices.push_back(VertexPosCol(math::Vector3(f3MinSize.x, f3MaxSize.y, f3MaxSize.z), color));
+					vecVertices.push_back(VertexPosCol(math::float3(f3MinSize.x, f3MaxSize.y, f3MaxSize.z), color));
 					vecIndices.push_back(nIdx);
 					++nIdx;
 
-					vecVertices.push_back(VertexPosCol(math::Vector3(f3MaxSize.x, f3MaxSize.y, f3MinSize.z), color));
+					vecVertices.push_back(VertexPosCol(math::float3(f3MaxSize.x, f3MaxSize.y, f3MinSize.z), color));
 					vecIndices.push_back(nIdx);
 					++nIdx;
 
-					vecVertices.push_back(VertexPosCol(math::Vector3(f3MaxSize.x, f3MaxSize.y, f3MaxSize.z), color));
+					vecVertices.push_back(VertexPosCol(math::float3(f3MaxSize.x, f3MaxSize.y, f3MaxSize.z), color));
 					vecIndices.push_back(nIdx);
 					++nIdx;
 
 					// 4 Verticle lines.
-					vecVertices.push_back(VertexPosCol(math::Vector3(f3MaxSize.x, f3MaxSize.y, f3MaxSize.z), color));
+					vecVertices.push_back(VertexPosCol(math::float3(f3MaxSize.x, f3MaxSize.y, f3MaxSize.z), color));
 					vecIndices.push_back(nIdx);
 					++nIdx;
 
-					vecVertices.push_back(VertexPosCol(math::Vector3(f3MaxSize.x, f3MinSize.y, f3MaxSize.z), color));
+					vecVertices.push_back(VertexPosCol(math::float3(f3MaxSize.x, f3MinSize.y, f3MaxSize.z), color));
 					vecIndices.push_back(nIdx);
 					++nIdx;
 
-					vecVertices.push_back(VertexPosCol(math::Vector3(f3MinSize.x, f3MaxSize.y, f3MaxSize.z), color));
+					vecVertices.push_back(VertexPosCol(math::float3(f3MinSize.x, f3MaxSize.y, f3MaxSize.z), color));
 					vecIndices.push_back(nIdx);
 					++nIdx;
 
-					vecVertices.push_back(VertexPosCol(math::Vector3(f3MinSize.x, f3MinSize.y, f3MaxSize.z), color));
+					vecVertices.push_back(VertexPosCol(math::float3(f3MinSize.x, f3MinSize.y, f3MaxSize.z), color));
 					vecIndices.push_back(nIdx);
 					++nIdx;
 
-					vecVertices.push_back(VertexPosCol(math::Vector3(f3MaxSize.x, f3MaxSize.y, f3MinSize.z), color));
+					vecVertices.push_back(VertexPosCol(math::float3(f3MaxSize.x, f3MaxSize.y, f3MinSize.z), color));
 					vecIndices.push_back(nIdx);
 					++nIdx;
 
-					vecVertices.push_back(VertexPosCol(math::Vector3(f3MaxSize.x, f3MinSize.y, f3MinSize.z), color));
+					vecVertices.push_back(VertexPosCol(math::float3(f3MaxSize.x, f3MinSize.y, f3MinSize.z), color));
 					vecIndices.push_back(nIdx);
 					++nIdx;
 
-					vecVertices.push_back(VertexPosCol(math::Vector3(f3MinSize.x, f3MaxSize.y, f3MinSize.z), color));
+					vecVertices.push_back(VertexPosCol(math::float3(f3MinSize.x, f3MaxSize.y, f3MinSize.z), color));
 					vecIndices.push_back(nIdx);
 					++nIdx;
 
-					vecVertices.push_back(VertexPosCol(math::Vector3(f3MinSize.x, f3MinSize.y, f3MinSize.z), color));
+					vecVertices.push_back(VertexPosCol(math::float3(f3MinSize.x, f3MinSize.y, f3MinSize.z), color));
 					vecIndices.push_back(nIdx);
 					++nIdx;
 

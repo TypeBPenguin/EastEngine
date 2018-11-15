@@ -55,7 +55,7 @@ static MaskedOcclusionCulling::Implementation DetectCPUFeatures(MaskedOcclusionC
 
     //cpuIdEx.resize(regs[0] - 0x80000000);
     size_t cpuIdExCount = regs[0] - 0x80000000;
-    CpuInfo * cpuIdEx = (CpuInfo*)alignedAlloc( 64, sizeof( CpuInfo ) * cpuIdCount );
+    CpuInfo * cpuIdEx = (CpuInfo*)alignedAlloc( 64, sizeof( CpuInfo ) * cpuIdExCount );
 
     for (size_t i = 0; i < cpuIdExCount; ++i)
 		__cpuidex(cpuIdEx[i].regs, 0x80000000 + (int)i, 0);
@@ -417,16 +417,19 @@ namespace MaskedOcclusionCullingAVX2
 	extern MaskedOcclusionCulling *CreateMaskedOcclusionCulling(pfnAlignedAlloc alignedAlloc, pfnAlignedFree alignedFree);
 }
 
-MaskedOcclusionCulling *MaskedOcclusionCulling::Create()
+MaskedOcclusionCulling *MaskedOcclusionCulling::Create(Implementation RequestedSIMD)
 {
-	return Create(aligned_alloc, aligned_free);
+	return Create(RequestedSIMD, aligned_alloc, aligned_free);
 }
 
-MaskedOcclusionCulling *MaskedOcclusionCulling::Create(pfnAlignedAlloc alignedAlloc, pfnAlignedFree alignedFree)
+MaskedOcclusionCulling *MaskedOcclusionCulling::Create(Implementation RequestedSIMD, pfnAlignedAlloc alignedAlloc, pfnAlignedFree alignedFree)
 {
 	MaskedOcclusionCulling *object = nullptr;
 
 	MaskedOcclusionCulling::Implementation impl = DetectCPUFeatures(alignedAlloc, alignedFree);
+
+	if (RequestedSIMD < impl)
+		impl = RequestedSIMD;
 
 	// Return best supported version
 	if (object == nullptr && impl >= AVX512)

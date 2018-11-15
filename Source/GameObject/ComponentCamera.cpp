@@ -41,9 +41,9 @@ namespace eastengine
 			if (m_pMainCamera == nullptr)
 				return;
 
-			math::Vector3 f3Eye = m_pMainCamera->GetPosition();
-			math::Vector3 f3Lookat = m_pMainCamera->GetLookat();
-			math::Vector3 f3Dir = f3Lookat - f3Eye;
+			math::float3 f3Eye = m_pMainCamera->GetPosition();
+			math::float3 f3Lookat = m_pMainCamera->GetLookat();
+			math::float3 f3Dir = f3Lookat - f3Eye;
 
 			f3Eye = m_pOwner->GetPosition();
 			f3Eye.y += m_fHeight;

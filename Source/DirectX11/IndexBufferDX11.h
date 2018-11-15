@@ -13,11 +13,11 @@ namespace eastengine
 			class IndexBuffer : public IIndexBuffer
 			{
 			public:
-				IndexBuffer(const uint8_t* pData, size_t nBufferSize, uint32_t nIndexCount);
+				IndexBuffer(const uint8_t* pData, uint32_t indexCount, size_t formatSize);
 				virtual ~IndexBuffer();
 
 			public:
-				virtual uint32_t GetIndexCount() const override { return m_nIndexCount; }
+				virtual uint32_t GetIndexCount() const override { return m_indexCount; }
 
 				virtual bool Map(void** ppData) override;
 				virtual void Unmap() override;
@@ -27,7 +27,7 @@ namespace eastengine
 
 			private:
 				ID3D11Buffer* m_pBuffer{ nullptr };
-				uint32_t m_nIndexCount{ 0 };
+				uint32_t m_indexCount{ 0 };
 			};
 		}
 	}

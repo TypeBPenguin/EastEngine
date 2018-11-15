@@ -60,33 +60,33 @@ namespace eastengine
 			m_vecBodyParts.clear();
 		}
 
-		bool RagDoll::BuildBipadRagDoll(graphics::ISkeletonInstance* pSkeletonInst, const math::Vector3& f3Pos, const math::Quaternion& quatRotation, float fScale)
+		bool RagDoll::BuildBipadRagDoll(graphics::ISkeletonInstance* pSkeletonInst, const math::float3& f3Pos, const math::Quaternion& quatRotation, float fScale)
 		{
 			if (pSkeletonInst == nullptr)
 				return false;
 
 			m_pSkeletonInst = pSkeletonInst;
 
-			//math::Matrix matTranslation = math::Matrix::Compose(math::Vector3::One, math::Quaternion::CreateFromYawPitchRoll(math::ToRadians(180.f), 0.f, 0.f), f3Pos);
-			math::Matrix matTranslation = math::Matrix::Compose(math::Vector3::One, quatRotation, f3Pos);
+			//math::Matrix matTranslation = math::Matrix::Compose(math::float3::One, math::Quaternion::CreateFromYawPitchRoll(math::ToRadians(180.f), 0.f, 0.f), f3Pos);
+			math::Matrix matTranslation = math::Matrix::Compose(math::float3::One, quatRotation, f3Pos);
 
-			auto CreateBodyPart = [&](bool isChildBone, const string::StringID& strBoneName, const string::StringID& strName, float fRadius, float fHeight, const math::Vector3& f3Pos, const math::Quaternion& quat = math::Quaternion::Identity)
+			auto CreateBodyPart = [&](bool isChildBone, const string::StringID& strBoneName, const string::StringID& strName, float fRadius, float fHeight, const math::float3& f3Pos, const math::Quaternion& quat = math::Quaternion::Identity)
 			{
 				float fNewHeight = fHeight;
-				math::Vector3 f3NewPos = f3Pos;
-				math::Vector3 f3Offset;
+				math::float3 f3NewPos = f3Pos;
+				math::float3 f3Offset;
 				math::Quaternion newQuat = quat;
 
 				graphics::ISkeletonInstance::IBone* pBone = pSkeletonInst->GetBone(strBoneName);
 				//if (isChildBone == true)
 				//{
-				//	math::Vector3 f3ScaleChild;
-				//	math::Vector3 f3PosChild;
+				//	math::float3 f3ScaleChild;
+				//	math::float3 f3PosChild;
 				//	math::Quaternion quatChild;
 				//	pBone->GetGlobalMatrix().Decompose(f3ScaleChild, quatChild, f3PosChild);
 				//
-				//	math::Vector3 f3ScaleParent;
-				//	math::Vector3 f3PosParent;
+				//	math::float3 f3ScaleParent;
+				//	math::float3 f3PosParent;
 				//	math::Quaternion quatParent;
 				//	pBone->GetParent()->GetGlobalMatrix().Decompose(f3ScaleParent, quatParent, f3PosParent);
 				//
@@ -119,7 +119,7 @@ namespace eastengine
 				prop.matOffset = matTranslation;
 				prop.shapeInfo.SetCapsule(fRadius, fHeight);
 
-				//math::Vector3 f3Scale;
+				//math::float3 f3Scale;
 				//math::Quaternion quat2;
 				//pBone->GetGlobalMatrix().Decompose(f3Scale, quat2, prop.f3OriginPos);
 
@@ -133,40 +133,40 @@ namespace eastengine
 				return pBodyPart;
 			};
 
-			//physics::RigidBody* pPelvis = CreateBodyPart("Pelvis", StrID::Pelvis, fScale * 0.15f, fScale * 0.2f, math::Vector3(0.f, fScale * 1.f, 0.f));
-			//physics::RigidBody* pSpine = CreateBodyPart("Spine", StrID::Spine, fScale * 0.15f, fScale * 0.28f, math::Vector3(0.f, fScale * 1.2f, 0.f));
-			//physics::RigidBody* pHead = CreateBodyPart("Head", StrID::Head, fScale * 0.1f, fScale * 0.05f, math::Vector3(0.f, fScale * 1.6f, 0.f));
-			//physics::RigidBody* pLeftUpperLeg = CreateBodyPart("L_Thigh1", StrID::LeftUpperLeg, fScale * 0.07f, fScale * 0.45f, math::Vector3(fScale * -0.18f, fScale * 0.65f, 0.f));
-			//physics::RigidBody* pLeftLowerLeg = CreateBodyPart("L_Knee2", StrID::LeftLowerLeg, fScale * 0.05f, fScale * 0.37f, math::Vector3(fScale * -0.18f, fScale * 0.2f, 0.f));
-			//physics::RigidBody* pRightUpperLeg = CreateBodyPart("R_Thigh", StrID::RightUpperLeg, fScale * 0.07f, fScale * 0.45f, math::Vector3(fScale * 0.18f, fScale * 0.65f, 0.f));
-			//physics::RigidBody* pRightLowerLeg = CreateBodyPart("R_Knee", StrID::RightLowerLeg, fScale * 0.05f, fScale * 0.37f, math::Vector3(fScale * 0.18f, fScale * 0.2f, 0.f));
-			//physics::RigidBody* pLeftUpperArm = CreateBodyPart("L_UpperArm", StrID::LeftUpperArm, fScale * 0.05f, fScale * 0.33f, math::Vector3(fScale * -0.35f, fScale * 1.45f, 0.f), math::Quaternion::CreateFromYawPitchRoll(0.f, 0.f, math::PIDIV2));
-			//physics::RigidBody* pLeftLowerArm = CreateBodyPart("L_Forearm", StrID::LeftLowerArm, fScale * 0.04f, fScale * 0.25f, math::Vector3(fScale * -0.7f, fScale * 1.45f, 0.f), math::Quaternion::CreateFromYawPitchRoll(0.f, 0.f, math::PIDIV2));
-			//physics::RigidBody* pRightUpperArm = CreateBodyPart("R_UpperArm", StrID::RightUpperArm, fScale * 0.05f, fScale * 0.33f, math::Vector3(fScale * 0.35f, fScale * 1.45f, 0.f), math::Quaternion::CreateFromYawPitchRoll(0.f, 0.f, -math::PIDIV2));
-			//physics::RigidBody* pRightLowerArm = CreateBodyPart("R_Forearm", StrID::RightLowerArm, fScale * 0.04f, fScale * 0.25f, math::Vector3(fScale * 0.7f, fScale * 1.45f, 0.f), math::Quaternion::CreateFromYawPitchRoll(0.f, 0.f, -math::PIDIV2));
+			//physics::RigidBody* pPelvis = CreateBodyPart("Pelvis", StrID::Pelvis, fScale * 0.15f, fScale * 0.2f, math::float3(0.f, fScale * 1.f, 0.f));
+			//physics::RigidBody* pSpine = CreateBodyPart("Spine", StrID::Spine, fScale * 0.15f, fScale * 0.28f, math::float3(0.f, fScale * 1.2f, 0.f));
+			//physics::RigidBody* pHead = CreateBodyPart("Head", StrID::Head, fScale * 0.1f, fScale * 0.05f, math::float3(0.f, fScale * 1.6f, 0.f));
+			//physics::RigidBody* pLeftUpperLeg = CreateBodyPart("L_Thigh1", StrID::LeftUpperLeg, fScale * 0.07f, fScale * 0.45f, math::float3(fScale * -0.18f, fScale * 0.65f, 0.f));
+			//physics::RigidBody* pLeftLowerLeg = CreateBodyPart("L_Knee2", StrID::LeftLowerLeg, fScale * 0.05f, fScale * 0.37f, math::float3(fScale * -0.18f, fScale * 0.2f, 0.f));
+			//physics::RigidBody* pRightUpperLeg = CreateBodyPart("R_Thigh", StrID::RightUpperLeg, fScale * 0.07f, fScale * 0.45f, math::float3(fScale * 0.18f, fScale * 0.65f, 0.f));
+			//physics::RigidBody* pRightLowerLeg = CreateBodyPart("R_Knee", StrID::RightLowerLeg, fScale * 0.05f, fScale * 0.37f, math::float3(fScale * 0.18f, fScale * 0.2f, 0.f));
+			//physics::RigidBody* pLeftUpperArm = CreateBodyPart("L_UpperArm", StrID::LeftUpperArm, fScale * 0.05f, fScale * 0.33f, math::float3(fScale * -0.35f, fScale * 1.45f, 0.f), math::Quaternion::CreateFromYawPitchRoll(0.f, 0.f, math::PIDIV2));
+			//physics::RigidBody* pLeftLowerArm = CreateBodyPart("L_Forearm", StrID::LeftLowerArm, fScale * 0.04f, fScale * 0.25f, math::float3(fScale * -0.7f, fScale * 1.45f, 0.f), math::Quaternion::CreateFromYawPitchRoll(0.f, 0.f, math::PIDIV2));
+			//physics::RigidBody* pRightUpperArm = CreateBodyPart("R_UpperArm", StrID::RightUpperArm, fScale * 0.05f, fScale * 0.33f, math::float3(fScale * 0.35f, fScale * 1.45f, 0.f), math::Quaternion::CreateFromYawPitchRoll(0.f, 0.f, -math::PIDIV2));
+			//physics::RigidBody* pRightLowerArm = CreateBodyPart("R_Forearm", StrID::RightLowerArm, fScale * 0.04f, fScale * 0.25f, math::float3(fScale * 0.7f, fScale * 1.45f, 0.f), math::Quaternion::CreateFromYawPitchRoll(0.f, 0.f, -math::PIDIV2));
 
-			BodyPart* pPelvis = CreateBodyPart(false, "Character1_Hips", StrID::Pelvis, fScale * 0.15f, fScale * 0.05f, math::Vector3(0.f, fScale * 1.1f, 0.f));
+			BodyPart* pPelvis = CreateBodyPart(false, "Character1_Hips", StrID::Pelvis, fScale * 0.15f, fScale * 0.05f, math::float3(0.f, fScale * 1.1f, 0.f));
 			pPelvis->isRootNode = true;
 
-			BodyPart* pSpine = CreateBodyPart(false, "Character1_Spine", StrID::Spine, fScale * 0.15f, fScale * 0.20f, math::Vector3(0.f, fScale * 1.35f, 0.f));
-			BodyPart* pHead = CreateBodyPart(false, "Character1_Head", StrID::Head, fScale * 0.1f, fScale * 0.05f, math::Vector3(0.f, fScale * 1.7f, 0.f));
-			/*BodyPart* pLeftUpperLeg = CreateBodyPart(true, "Character1_LeftLeg", StrID::LeftUpperLeg, fScale * 0.07f, fScale * 0.4f, math::Vector3(fScale * -0.1f, fScale * 0.8f, 0.f));
-			BodyPart* pLeftLowerLeg = CreateBodyPart(true, "Character1_LeftFoot", StrID::LeftLowerLeg, fScale * 0.05f, fScale * 0.42f, math::Vector3(fScale * -0.1f, fScale * 0.35f, 0.f));
-			BodyPart* pRightUpperLeg = CreateBodyPart(true, "Character1_RightLeg", StrID::RightUpperLeg, fScale * 0.07f, fScale * 0.4f, math::Vector3(fScale * 0.1f, fScale * 0.8f, 0.f));
-			BodyPart* pRightLowerLeg = CreateBodyPart(true, "Character1_RightFoot", StrID::RightLowerLeg, fScale * 0.05f, fScale * 0.42f, math::Vector3(fScale * 0.1f, fScale * 0.35f, 0.f));
-			BodyPart* pLeftUpperArm = CreateBodyPart(true, "Character1_LeftForeArm", StrID::LeftUpperArm, fScale * 0.05f, fScale * 0.25f, math::Vector3(fScale * -0.25f, fScale * 1.475f, 0.f), math::Quaternion::CreateFromYawPitchRoll(0.f, 0.f, math::PIDIV2));
-			BodyPart* pLeftLowerArm = CreateBodyPart(true, "Character1_LeftHand", StrID::LeftLowerArm, fScale * 0.04f, fScale * 0.2f, math::Vector3(fScale * -0.525f, fScale * 1.475f, 0.f), math::Quaternion::CreateFromYawPitchRoll(0.f, 0.f, math::PIDIV2));
-			BodyPart* pRightUpperArm = CreateBodyPart(true, "Character1_RightForeArm", StrID::RightUpperArm, fScale * 0.05f, fScale * 0.25f, math::Vector3(fScale * 0.25f, fScale * 1.475f, 0.f), math::Quaternion::CreateFromYawPitchRoll(0.f, 0.f, -math::PIDIV2));
-			BodyPart* pRightLowerArm = CreateBodyPart(true, "Character1_RightHand", StrID::RightLowerArm, fScale * 0.04f, fScale * 0.2f, math::Vector3(fScale * 0.525f, fScale * 1.475f, 0.f), math::Quaternion::CreateFromYawPitchRoll(0.f, 0.f, -math::PIDIV2));*/
+			BodyPart* pSpine = CreateBodyPart(false, "Character1_Spine", StrID::Spine, fScale * 0.15f, fScale * 0.20f, math::float3(0.f, fScale * 1.35f, 0.f));
+			BodyPart* pHead = CreateBodyPart(false, "Character1_Head", StrID::Head, fScale * 0.1f, fScale * 0.05f, math::float3(0.f, fScale * 1.7f, 0.f));
+			/*BodyPart* pLeftUpperLeg = CreateBodyPart(true, "Character1_LeftLeg", StrID::LeftUpperLeg, fScale * 0.07f, fScale * 0.4f, math::float3(fScale * -0.1f, fScale * 0.8f, 0.f));
+			BodyPart* pLeftLowerLeg = CreateBodyPart(true, "Character1_LeftFoot", StrID::LeftLowerLeg, fScale * 0.05f, fScale * 0.42f, math::float3(fScale * -0.1f, fScale * 0.35f, 0.f));
+			BodyPart* pRightUpperLeg = CreateBodyPart(true, "Character1_RightLeg", StrID::RightUpperLeg, fScale * 0.07f, fScale * 0.4f, math::float3(fScale * 0.1f, fScale * 0.8f, 0.f));
+			BodyPart* pRightLowerLeg = CreateBodyPart(true, "Character1_RightFoot", StrID::RightLowerLeg, fScale * 0.05f, fScale * 0.42f, math::float3(fScale * 0.1f, fScale * 0.35f, 0.f));
+			BodyPart* pLeftUpperArm = CreateBodyPart(true, "Character1_LeftForeArm", StrID::LeftUpperArm, fScale * 0.05f, fScale * 0.25f, math::float3(fScale * -0.25f, fScale * 1.475f, 0.f), math::Quaternion::CreateFromYawPitchRoll(0.f, 0.f, math::PIDIV2));
+			BodyPart* pLeftLowerArm = CreateBodyPart(true, "Character1_LeftHand", StrID::LeftLowerArm, fScale * 0.04f, fScale * 0.2f, math::float3(fScale * -0.525f, fScale * 1.475f, 0.f), math::Quaternion::CreateFromYawPitchRoll(0.f, 0.f, math::PIDIV2));
+			BodyPart* pRightUpperArm = CreateBodyPart(true, "Character1_RightForeArm", StrID::RightUpperArm, fScale * 0.05f, fScale * 0.25f, math::float3(fScale * 0.25f, fScale * 1.475f, 0.f), math::Quaternion::CreateFromYawPitchRoll(0.f, 0.f, -math::PIDIV2));
+			BodyPart* pRightLowerArm = CreateBodyPart(true, "Character1_RightHand", StrID::RightLowerArm, fScale * 0.04f, fScale * 0.2f, math::float3(fScale * 0.525f, fScale * 1.475f, 0.f), math::Quaternion::CreateFromYawPitchRoll(0.f, 0.f, -math::PIDIV2));*/
 
-			BodyPart* pLeftUpperLeg = CreateBodyPart(true, "Character1_LeftUpLeg", StrID::LeftUpperLeg, fScale * 0.07f, fScale * 0.4f, math::Vector3(fScale * -0.1f, fScale * 0.8f, 0.f));
-			BodyPart* pLeftLowerLeg = CreateBodyPart(true, "Character1_LeftLeg", StrID::LeftLowerLeg, fScale * 0.05f, fScale * 0.42f, math::Vector3(fScale * -0.1f, fScale * 0.35f, 0.f));
-			BodyPart* pRightUpperLeg = CreateBodyPart(true, "Character1_RightUpLeg", StrID::RightUpperLeg, fScale * 0.07f, fScale * 0.4f, math::Vector3(fScale * 0.1f, fScale * 0.8f, 0.f));
-			BodyPart* pRightLowerLeg = CreateBodyPart(true, "Character1_RightLeg", StrID::RightLowerLeg, fScale * 0.05f, fScale * 0.42f, math::Vector3(fScale * 0.1f, fScale * 0.35f, 0.f));
-			BodyPart* pLeftUpperArm = CreateBodyPart(true, "Character1_LeftArm", StrID::LeftUpperArm, fScale * 0.05f, fScale * 0.25f, math::Vector3(fScale * -0.25f, fScale * 1.475f, 0.f), math::Quaternion::CreateFromYawPitchRoll(0.f, 0.f, math::PIDIV2));
-			BodyPart* pLeftLowerArm = CreateBodyPart(true, "Character1_LeftForeArm", StrID::LeftLowerArm, fScale * 0.04f, fScale * 0.2f, math::Vector3(fScale * -0.525f, fScale * 1.475f, 0.f), math::Quaternion::CreateFromYawPitchRoll(0.f, 0.f, math::PIDIV2));
-			BodyPart* pRightUpperArm = CreateBodyPart(true, "Character1_RightArm", StrID::RightUpperArm, fScale * 0.05f, fScale * 0.25f, math::Vector3(fScale * 0.25f, fScale * 1.475f, 0.f), math::Quaternion::CreateFromYawPitchRoll(0.f, 0.f, -math::PIDIV2));
-			BodyPart* pRightLowerArm = CreateBodyPart(true, "Character1_RightForeArm", StrID::RightLowerArm, fScale * 0.04f, fScale * 0.2f, math::Vector3(fScale * 0.525f, fScale * 1.475f, 0.f), math::Quaternion::CreateFromYawPitchRoll(0.f, 0.f, -math::PIDIV2));
+			BodyPart* pLeftUpperLeg = CreateBodyPart(true, "Character1_LeftUpLeg", StrID::LeftUpperLeg, fScale * 0.07f, fScale * 0.4f, math::float3(fScale * -0.1f, fScale * 0.8f, 0.f));
+			BodyPart* pLeftLowerLeg = CreateBodyPart(true, "Character1_LeftLeg", StrID::LeftLowerLeg, fScale * 0.05f, fScale * 0.42f, math::float3(fScale * -0.1f, fScale * 0.35f, 0.f));
+			BodyPart* pRightUpperLeg = CreateBodyPart(true, "Character1_RightUpLeg", StrID::RightUpperLeg, fScale * 0.07f, fScale * 0.4f, math::float3(fScale * 0.1f, fScale * 0.8f, 0.f));
+			BodyPart* pRightLowerLeg = CreateBodyPart(true, "Character1_RightLeg", StrID::RightLowerLeg, fScale * 0.05f, fScale * 0.42f, math::float3(fScale * 0.1f, fScale * 0.35f, 0.f));
+			BodyPart* pLeftUpperArm = CreateBodyPart(true, "Character1_LeftArm", StrID::LeftUpperArm, fScale * 0.05f, fScale * 0.25f, math::float3(fScale * -0.25f, fScale * 1.475f, 0.f), math::Quaternion::CreateFromYawPitchRoll(0.f, 0.f, math::PIDIV2));
+			BodyPart* pLeftLowerArm = CreateBodyPart(true, "Character1_LeftForeArm", StrID::LeftLowerArm, fScale * 0.04f, fScale * 0.2f, math::float3(fScale * -0.525f, fScale * 1.475f, 0.f), math::Quaternion::CreateFromYawPitchRoll(0.f, 0.f, math::PIDIV2));
+			BodyPart* pRightUpperArm = CreateBodyPart(true, "Character1_RightArm", StrID::RightUpperArm, fScale * 0.05f, fScale * 0.25f, math::float3(fScale * 0.25f, fScale * 1.475f, 0.f), math::Quaternion::CreateFromYawPitchRoll(0.f, 0.f, -math::PIDIV2));
+			BodyPart* pRightLowerArm = CreateBodyPart(true, "Character1_RightForeArm", StrID::RightLowerArm, fScale * 0.04f, fScale * 0.2f, math::float3(fScale * 0.525f, fScale * 1.475f, 0.f), math::Quaternion::CreateFromYawPitchRoll(0.f, 0.f, -math::PIDIV2));
 
 			size_t nBodyCount = m_vecBodyParts.size();
 			for (size_t i = 0; i < nBodyCount; ++i)
@@ -176,9 +176,9 @@ namespace eastengine
 			}
 
 			auto CreateJoint = [&](const string::StringID& strJointName, BodyPart* pBodyPartA, BodyPart* pBodyPartB,
-				const math::Vector3& f3PosA, const math::Vector3& f3PosB,
+				const math::float3& f3PosA, const math::float3& f3PosB,
 				const math::Quaternion& quatA, const math::Quaternion& quatB,
-				const math::Vector3& f3AngularLowerLimit, const math::Vector3& f3AngularUpperLimit)
+				const math::float3& f3AngularLowerLimit, const math::float3& f3AngularUpperLimit)
 			{
 				/*graphics::MaterialInfo materialInfo;
 				materialInfo.strName = strJointName;
@@ -206,111 +206,111 @@ namespace eastengine
 			math::Quaternion quatA = math::Quaternion::Identity;
 			math::Quaternion quatB = math::Quaternion::Identity;
 			CreateJoint(StrID::Spine_Head, pSpine, pHead,
-				math::Vector3(0.f, fScale * 0.3f, 0.f),
-				math::Vector3(0.f, fScale * -0.14f, 0.f),
+				math::float3(0.f, fScale * 0.3f, 0.f),
+				math::float3(0.f, fScale * -0.14f, 0.f),
 				quatA, quatB,
-				math::Vector3(math::PI * -0.3f, -FLT_EPSILON, math::PI * -0.3f),
-				math::Vector3(math::PI * 0.5f, FLT_EPSILON, math::PI * 0.3f));
+				math::float3(math::PI * -0.3f, -FLT_EPSILON, math::PI * -0.3f),
+				math::float3(math::PI * 0.5f, FLT_EPSILON, math::PI * 0.3f));
 
 			// LEFT SHOULDER
 			quatA = math::Quaternion::Identity;
 			quatB = math::Quaternion::CreateFromYawPitchRoll(0.f, -math::PIDIV2, math::PIDIV2);
 			CreateJoint(StrID::LeftShoulder, pSpine, pLeftUpperArm, 
-				math::Vector3(fScale * -0.2f, fScale * 0.15f, 0.f), 
-				math::Vector3(0.f, fScale * -0.18f, 0.f),
+				math::float3(fScale * -0.2f, fScale * 0.15f, 0.f), 
+				math::float3(0.f, fScale * -0.18f, 0.f),
 				quatA, quatB,
-				math::Vector3(math::PI * -0.8f, -FLT_EPSILON, math::PI * -0.5f), 
-				math::Vector3(math::PI * 0.8f, FLT_EPSILON, math::PI * 0.5f));
+				math::float3(math::PI * -0.8f, -FLT_EPSILON, math::PI * -0.5f), 
+				math::float3(math::PI * 0.8f, FLT_EPSILON, math::PI * 0.5f));
 
 			// RIGHT SHOULDER
 			quatA = math::Quaternion::Identity;
 			quatB = math::Quaternion::CreateFromYawPitchRoll(0.f, math::PIDIV2, 0.f);
 			CreateJoint(StrID::RightShoulder, pSpine, pRightUpperArm, 
-				math::Vector3(fScale * 0.2f, fScale * 0.15f, 0.f), 
-				math::Vector3(0.f, fScale * -0.18f, 0.f),
+				math::float3(fScale * 0.2f, fScale * 0.15f, 0.f), 
+				math::float3(0.f, fScale * -0.18f, 0.f),
 				quatA, quatB,
-				math::Vector3(math::PI * -0.8f, -FLT_EPSILON, math::PI * -0.5f),
-				math::Vector3(math::PI * 0.8f, FLT_EPSILON, math::PI * 0.5f));
+				math::float3(math::PI * -0.8f, -FLT_EPSILON, math::PI * -0.5f),
+				math::float3(math::PI * 0.8f, FLT_EPSILON, math::PI * 0.5f));
 
 			// LEFT ELBOW
 			quatA = math::Quaternion::Identity;
 			quatB = math::Quaternion::Identity;
 			CreateJoint(StrID::LeftElbow, pLeftUpperArm, pLeftLowerArm,
-				math::Vector3(0.f, pLeftUpperArm->fHeight * 0.5f, 0.f),
-				math::Vector3(0.f, -pLeftLowerArm->fHeight * 0.5f, 0.f),
-				//math::Vector3(0.f, fScale * 0.18f, 0.f), 
-				//math::Vector3(0.f, fScale * -0.14f, 0.f),
+				math::float3(0.f, pLeftUpperArm->fHeight * 0.5f, 0.f),
+				math::float3(0.f, -pLeftLowerArm->fHeight * 0.5f, 0.f),
+				//math::float3(0.f, fScale * 0.18f, 0.f), 
+				//math::float3(0.f, fScale * -0.14f, 0.f),
 				quatA, quatB,
-				math::Vector3(-FLT_EPSILON, -FLT_EPSILON, -FLT_EPSILON),
-				math::Vector3(math::PI * 0.7f, FLT_EPSILON, FLT_EPSILON));
+				math::float3(-FLT_EPSILON, -FLT_EPSILON, -FLT_EPSILON),
+				math::float3(math::PI * 0.7f, FLT_EPSILON, FLT_EPSILON));
 
 			// RIGHT ELBOW
 			quatA = math::Quaternion::Identity;
 			quatB = math::Quaternion::Identity;
 			CreateJoint(StrID::RightElbow, pRightUpperArm, pRightLowerArm,
-				math::Vector3(0.f, pRightUpperArm->fHeight * 0.5f, 0.f),
-				math::Vector3(0.f, -pRightLowerArm->fHeight * 0.5f, 0.f),
-				//math::Vector3(0.f, fScale * 0.18f, 0.f),
-				//math::Vector3(0.f, fScale * -0.14f, 0.f),
+				math::float3(0.f, pRightUpperArm->fHeight * 0.5f, 0.f),
+				math::float3(0.f, -pRightLowerArm->fHeight * 0.5f, 0.f),
+				//math::float3(0.f, fScale * 0.18f, 0.f),
+				//math::float3(0.f, fScale * -0.14f, 0.f),
 				quatA, quatB,
-				math::Vector3(-FLT_EPSILON, -FLT_EPSILON, -FLT_EPSILON),
-				math::Vector3(math::PI * 0.7f, FLT_EPSILON, FLT_EPSILON));
+				math::float3(-FLT_EPSILON, -FLT_EPSILON, -FLT_EPSILON),
+				math::float3(math::PI * 0.7f, FLT_EPSILON, FLT_EPSILON));
 
 			// PELVIS
 			quatA = math::Quaternion::CreateFromYawPitchRoll(math::PIDIV2, 0.f, 0.f);
 			quatB = math::Quaternion::CreateFromYawPitchRoll(math::PIDIV2, 0.f, 0.f);
 			CreateJoint(StrID::Pelvis, pPelvis, pSpine,
-				math::Vector3(0.f, fScale * 0.15f, 0.f),
-				math::Vector3(0.f, fScale * -0.15f, 0.f),
+				math::float3(0.f, fScale * 0.15f, 0.f),
+				math::float3(0.f, fScale * -0.15f, 0.f),
 				quatA, quatB,
-				math::Vector3(math::PI * -0.2f, -FLT_EPSILON, math::PI * -0.3f),
-				math::Vector3(math::PI * 0.2f, FLT_EPSILON, math::PI * 0.3f));
-				//math::Vector3(math::PI * -0.2f, -FLT_EPSILON, math::PI * -0.3f),
-				//math::Vector3(math::PI * 0.2f, FLT_EPSILON, math::PI * 0.6f));
+				math::float3(math::PI * -0.2f, -FLT_EPSILON, math::PI * -0.3f),
+				math::float3(math::PI * 0.2f, FLT_EPSILON, math::PI * 0.3f));
+				//math::float3(math::PI * -0.2f, -FLT_EPSILON, math::PI * -0.3f),
+				//math::float3(math::PI * 0.2f, FLT_EPSILON, math::PI * 0.6f));
 
 			// LEFT HIP
 			quatA = math::Quaternion::Identity;
 			quatB = math::Quaternion::Identity;
 			CreateJoint(StrID::LeftHip, pPelvis, pLeftUpperLeg,
-				math::Vector3(fScale * -0.18f, fScale * -0.1f, 0.f),
-				math::Vector3(0.f, fScale * 0.225f, 0.f),
+				math::float3(fScale * -0.18f, fScale * -0.1f, 0.f),
+				math::float3(0.f, fScale * 0.225f, 0.f),
 				quatA, quatB,
-				math::Vector3(math::PIDIV2 * -0.5f, -FLT_EPSILON, -FLT_EPSILON),
-				math::Vector3(math::PIDIV2 * 0.8f, FLT_EPSILON, math::PIDIV2 * 0.6f));
+				math::float3(math::PIDIV2 * -0.5f, -FLT_EPSILON, -FLT_EPSILON),
+				math::float3(math::PIDIV2 * 0.8f, FLT_EPSILON, math::PIDIV2 * 0.6f));
 
 			// RIGHT HIP
 			quatA = math::Quaternion::Identity;
 			quatB = math::Quaternion::Identity;
 			CreateJoint(StrID::RightHip, pPelvis, pRightUpperLeg,
-				math::Vector3(fScale * 0.18f, fScale * -0.1f, 0.f),
-				math::Vector3(0.f, fScale * 0.225f, 0.f),
+				math::float3(fScale * 0.18f, fScale * -0.1f, 0.f),
+				math::float3(0.f, fScale * 0.225f, 0.f),
 				quatA, quatB,
-				math::Vector3(math::PIDIV2 * -0.5f, -FLT_EPSILON, math::PIDIV2 * -0.6f),
-				math::Vector3(math::PIDIV2 * 0.8f, FLT_EPSILON, FLT_EPSILON));
+				math::float3(math::PIDIV2 * -0.5f, -FLT_EPSILON, math::PIDIV2 * -0.6f),
+				math::float3(math::PIDIV2 * 0.8f, FLT_EPSILON, FLT_EPSILON));
 
 			// LEFT KNEE
 			quatA = math::Quaternion::Identity;
 			quatB = math::Quaternion::Identity;
 			CreateJoint(StrID::LeftKnee, pLeftUpperLeg, pLeftLowerLeg,
-				math::Vector3(0.f, -pLeftUpperLeg->fHeight * 0.5f, 0.f),
-				math::Vector3(0.f, pLeftLowerLeg->fHeight * 0.5f, 0.f),
-				//math::Vector3(0.f, fScale * -0.25f, 0.f),
-				//math::Vector3(0.f, fScale * 0.25f, 0.f),
+				math::float3(0.f, -pLeftUpperLeg->fHeight * 0.5f, 0.f),
+				math::float3(0.f, pLeftLowerLeg->fHeight * 0.5f, 0.f),
+				//math::float3(0.f, fScale * -0.25f, 0.f),
+				//math::float3(0.f, fScale * 0.25f, 0.f),
 				quatA, quatB,
-				math::Vector3(-FLT_EPSILON, -FLT_EPSILON, -FLT_EPSILON),
-				math::Vector3(math::PI * 0.7f, FLT_EPSILON, FLT_EPSILON));
+				math::float3(-FLT_EPSILON, -FLT_EPSILON, -FLT_EPSILON),
+				math::float3(math::PI * 0.7f, FLT_EPSILON, FLT_EPSILON));
 
 			// RIGHT KNEE
 			quatA = math::Quaternion::Identity;
 			quatB = math::Quaternion::Identity;
 			CreateJoint(StrID::RightKnee, pRightUpperLeg, pRightLowerLeg,
-				math::Vector3(0.f, -pRightUpperLeg->fHeight * 0.5f, 0.f),
-				math::Vector3(0.f, pRightLowerLeg->fHeight * 0.5f, 0.f),
-				//math::Vector3(0.f, fScale * -0.25f, 0.f),
-				//math::Vector3(0.f, fScale * 0.25f, 0.f),
+				math::float3(0.f, -pRightUpperLeg->fHeight * 0.5f, 0.f),
+				math::float3(0.f, pRightLowerLeg->fHeight * 0.5f, 0.f),
+				//math::float3(0.f, fScale * -0.25f, 0.f),
+				//math::float3(0.f, fScale * 0.25f, 0.f),
 				quatA, quatB,
-				math::Vector3(-FLT_EPSILON, -FLT_EPSILON, -FLT_EPSILON),
-				math::Vector3(math::PI * 0.7f, FLT_EPSILON, FLT_EPSILON));
+				math::float3(-FLT_EPSILON, -FLT_EPSILON, -FLT_EPSILON),
+				math::float3(math::PI * 0.7f, FLT_EPSILON, FLT_EPSILON));
 
 			//copyModelStateToRagDoll();
 
@@ -367,7 +367,7 @@ namespace eastengine
 				m_vecBodyParts.emplace_back(new BodyPart(strPartName, pRigidBody, pPhysicsModelInstance, pBone));
 				pBodyPart = m_vecBodyParts.back();
 				pBodyPart->matOrigin = pBone->GetGlobalMatrix();
-				pBodyPart->matBodyOrigin = math::Matrix::Compose(math::Vector3::One, rigidBodyProperty.originQuat, rigidBodyProperty.f3OriginPos);
+				pBodyPart->matBodyOrigin = math::Matrix::Compose(math::float3::One, rigidBodyProperty.originQuat, rigidBodyProperty.f3OriginPos);
 			}
 
 			return pBodyPart;
@@ -469,13 +469,13 @@ namespace eastengine
 
 				const math::Matrix& matWorld = pBodyPart->pRigidBody->GetWorldMatrix();
 
-				math::Vector3 f3ScaleWorld;
-				math::Vector3 f3PosWorld;
+				math::float3 f3ScaleWorld;
+				math::float3 f3PosWorld;
 				math::Quaternion quatWorld;
 				matWorld.Decompose(f3ScaleWorld, quatWorld, f3PosWorld);
 
-				math::Vector3 f3ScaleBodyOrigin;
-				math::Vector3 f3PosBodyOrigin;
+				math::float3 f3ScaleBodyOrigin;
+				math::float3 f3PosBodyOrigin;
 				math::Quaternion quatBodyOrigin;
 				pBodyPart->matBodyOrigin.Decompose(f3ScaleBodyOrigin, quatBodyOrigin, f3PosBodyOrigin);
 
@@ -483,8 +483,8 @@ namespace eastengine
 				//{
 				//	math::Matrix mmm = pBodyPart->pBone->GetMotionOffsetTransform() * pBodyPart->pBone->GetDefaultMotionData();
 
-				//	math::Vector3 f3ScaleOrigin;
-				//	math::Vector3 f3PosOrigin;
+				//	math::float3 f3ScaleOrigin;
+				//	math::float3 f3PosOrigin;
 				//	math::Quaternion quatOrigin;
 				//	pBodyPart->pBone->GetDefaultMotionData().Decompose(f3ScaleOrigin, quatOrigin, f3PosOrigin);
 				//	//mmm.Decompose(f3ScaleOrigin, quatOrigin, f3PosOrigin);
@@ -502,13 +502,13 @@ namespace eastengine
 				//{
 				//	if (pBodyPart->isChildBone == true)
 				//	{
-				//		math::Vector3 f3ScaleOrigin;
-				//		math::Vector3 f3PosOrigin;
+				//		math::float3 f3ScaleOrigin;
+				//		math::float3 f3PosOrigin;
 				//		math::Quaternion quatOrigin;
 				//		pBodyPart->pBone->GetParent()->GetDefaultMotionData().Decompose(f3ScaleOrigin, quatOrigin, f3PosOrigin);
 
-				//		math::Vector3 f3ScaleOrigin2;
-				//		math::Vector3 f3PosOrigin2;
+				//		math::float3 f3ScaleOrigin2;
+				//		math::float3 f3PosOrigin2;
 				//		math::Quaternion quatOrigin2;
 				//		pBodyPart->pBone->GetDefaultMotionData().Decompose(f3ScaleOrigin2, quatOrigin2, f3PosOrigin2);
 
@@ -573,20 +573,20 @@ namespace eastengine
 				//		math::Quaternion quatRoot;
 				//		if (pParent->isRootNode == true)
 				//		{
-				//			math::Vector3 f3ScaleOrigin;
-				//			math::Vector3 f3PosOrigin;
+				//			math::float3 f3ScaleOrigin;
+				//			math::float3 f3PosOrigin;
 				//			pBodyPart->pBone->GetDefaultMotionData().Decompose(f3ScaleOrigin, quatRoot, f3PosOrigin);
 				//		}
 
-				//		math::Vector3 f3ScaleOrigin;
-				//		math::Vector3 f3PosOrigin;
+				//		math::float3 f3ScaleOrigin;
+				//		math::float3 f3PosOrigin;
 				//		math::Quaternion quatOrigin;
 				//		pBodyPart->pBone->GetDefaultMotionData().Decompose(f3ScaleOrigin, quatOrigin, f3PosOrigin);
 
 				//		math::Matrix matTransform = pParent->pRigidBody->GetWorldMatrix().Invert() * pBodyPart->pRigidBody->GetWorldMatrix();
 
-				//		math::Vector3 f3ScaleOrigin2;
-				//		math::Vector3 f3PosOrigin2;
+				//		math::float3 f3ScaleOrigin2;
+				//		math::float3 f3PosOrigin2;
 				//		math::Quaternion quatOrigin2;
 				//		//pBodyPart->pBone->GetDefaultMotionData().Decompose(f3ScaleOrigin, quatOrigin, f3PosOrigin);
 				//		matTransform.Decompose(f3ScaleOrigin2, quatOrigin2, f3PosOrigin2);
@@ -600,8 +600,8 @@ namespace eastengine
 
 				//		pBodyPart->pBone->SetMotionTransform(mat);
 
-				//		//math::Vector3 f3ScaleOrigin;
-				//		//math::Vector3 f3PosOrigin;
+				//		//math::float3 f3ScaleOrigin;
+				//		//math::float3 f3PosOrigin;
 				//		//math::Quaternion quatOrigin;
 				//		//pBodyPart->pBone->GetDefaultMotionData().Decompose(f3ScaleOrigin, quatOrigin, f3PosOrigin);
 
@@ -613,8 +613,8 @@ namespace eastengine
 
 				//		//if (pParent != nullptr)
 				//		//{
-				//		//	math::Vector3 f3ScaleOrigin2;
-				//		//	math::Vector3 f3PosOrigin2;
+				//		//	math::float3 f3ScaleOrigin2;
+				//		//	math::float3 f3PosOrigin2;
 				//		//	math::Quaternion quatOrigin2; 
 				//		//	pParent->pBone->GetDefaultMotionData().Decompose(f3ScaleOrigin2, quatOrigin2, f3PosOrigin2);
 				//		//	//pParent->pRigidBody->GetWorldMatrix().Invert().Decompose(f3ScaleOrigin2, quatOrigin2, f3PosOrigin2);
@@ -658,41 +658,41 @@ namespace eastengine
 		{
 			for (auto& pBodyPart : m_vecBodyParts)
 			{
-				math::Vector3 f3ScaleOrigin;
-				math::Vector3 f3PosOrigin;
+				math::float3 f3ScaleOrigin;
+				math::float3 f3PosOrigin;
 				math::Quaternion quatOrigin;
 				pBodyPart->matBodyOrigin.Decompose(f3ScaleOrigin, quatOrigin, f3PosOrigin);
 
-				math::Vector3 f3Pos;
+				math::float3 f3Pos;
 				math::Quaternion quat;
 				if (pBodyPart->isChildBone == true)
 				{
 					auto pChildBone = pBodyPart->pBone;
 					auto pParentBone = pBodyPart->pBone->GetParent();
 
-					math::Vector3 f3ScaleChild;
-					math::Vector3 f3PosChild;
+					math::float3 f3ScaleChild;
+					math::float3 f3PosChild;
 					math::Quaternion quatChild;
 					pChildBone->GetGlobalMatrix().Decompose(f3ScaleChild, quatChild, f3PosChild);
 
-					math::Vector3 f3ScaleParent;
-					math::Vector3 f3PosParent;
+					math::float3 f3ScaleParent;
+					math::float3 f3PosParent;
 					math::Quaternion quatParent;
 					pParentBone->GetGlobalMatrix().Decompose(f3ScaleParent, quatParent, f3PosParent);
 
-					math::Vector3 f3Offset = (f3PosChild - f3PosParent) * 0.5f;
+					math::float3 f3Offset = (f3PosChild - f3PosParent) * 0.5f;
 					f3Pos = f3PosParent + f3Offset;
 					quat = quatOrigin.Inverse() * quatParent;
 				}
 				else
 				{
 					// 여기 문제없는지 확인 필요
-					math::Vector3 f3ScaleBone;
+					math::float3 f3ScaleBone;
 					math::Quaternion quatBone;
 					pBodyPart->pBone->GetGlobalMatrix().Decompose(f3ScaleBone, quatBone, f3Pos);
 				}
 
-				math::Matrix matWorld = math::Matrix::Compose(math::Vector3::One, quat, f3Pos);
+				math::Matrix matWorld = math::Matrix::Compose(math::float3::One, quat, f3Pos);
 				pBodyPart->pRigidBody->SetWorldMatrix(matWorld);
 			}
 		}

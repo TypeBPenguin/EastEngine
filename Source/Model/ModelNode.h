@@ -14,15 +14,13 @@ namespace eastengine
 		class ModelNode : public IModelNode
 		{
 		public:
-			ModelNode(EmModelNode::Type emModelNodeType);
+			ModelNode(LOD emMaxLod = LOD::eLv0);
 			virtual ~ModelNode() = 0;
 
 		public:
 			virtual void Update(float fElapsedTime, const math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance, bool isModelVisible) const = 0;
 
 		public:
-			virtual EmModelNode::Type GetType() const override { return m_emModelNodeType; }
-
 			virtual bool IsVisible() const override { return m_isVisible; }
 			virtual void SetVisible(bool isVisible) override { m_isVisible = isVisible; }
 
@@ -34,62 +32,69 @@ namespace eastengine
 
 			virtual IModelNode* GetParentNode() const override { return m_pParentNode; }
 
-			virtual IVertexBuffer* GetVertexBuffer(uint32_t nLod = 0) const override;
-			virtual IIndexBuffer* GetIndexBuffer(uint32_t nLod = 0) const override;
+			virtual IVertexBuffer* GetVertexBuffer(LOD emLod = eLv0) const override;
+			virtual IIndexBuffer* GetIndexBuffer(LOD emLod = eLv0) const override;
+
+			virtual void GetRawVertices(const VertexPos** ppVertices, size_t& vertexCount) const override;
+			virtual void GetRawIndices(const uint32_t** ppIndices, size_t& indexCount) const override;
 
 			virtual uint32_t GetChildNodeCount() const override { return static_cast<uint32_t>(m_vecChildModelNode.size()); }
-			virtual IModelNode* GetChildNode(uint32_t nIndex) const override { return m_vecChildModelNode[nIndex]; }
+			virtual IModelNode* GetChildNode(uint32_t index) const override { return m_vecChildModelNode[index]; }
 
 			virtual uint32_t GetMaterialCount() const override { return static_cast<uint32_t>(m_vecMaterial.size()); }
-			virtual IMaterial* GetMaterial(uint32_t nIndex) const override { return m_vecMaterial[nIndex]; }
+			virtual IMaterial* GetMaterial(uint32_t index) const override { return m_vecMaterial[index]; }
 			virtual IMaterial* GetMaterial(const string::StringID& strMaterialName, uint32_t& nMaterialID_out) const override;
 
-			virtual uint32_t GetModelSubsetCount(uint32_t nLod = 0) const override { return static_cast<uint32_t>(m_vecModelSubsets[nLod].size()); }
-			virtual const ModelSubset* GetModelSubset(uint32_t nIndex, uint32_t nLod = 0) const override { return &m_vecModelSubsets[nLod][nIndex]; }
+			virtual uint32_t GetModelSubsetCount(LOD emLod = eLv0) const override { assert(emLod <= m_emMaxLod); return static_cast<uint32_t>(m_vecModelSubsets[emLod].size()); }
+			virtual const ModelSubset* GetModelSubset(uint32_t index, LOD emLod = eLv0) const override { assert(emLod <= m_emMaxLod); return &m_vecModelSubsets[emLod][index]; }
 
 			virtual void SetOriginAABB(const Collision::AABB& aabb) override;
 			virtual const Collision::AABB& GetOriginAABB() const override { return m_originAABB; }
 
-			virtual uint32_t GetLOD() const override { return m_nLod; }
-			virtual void SetLOD(uint32_t nLod) override { m_nLod = nLod; }
+			virtual LOD GetLOD() const override { return m_emLod; }
+			virtual void SetLOD(LOD emLod = eLv0) override { m_emLod = std::min(emLod, m_emMaxLod); }
 
+		public:
 			void SetNodeName(const string::StringID& strNodeName) { m_strNodeName = strNodeName; }
 			void SetAttachedBoneName(const string::StringID& strNodeName) { m_strAttachedBoneName = strNodeName; }
 
 			void SetParentNode(IModelNode* pModelNode) { m_pParentNode = pModelNode; }
 			void AddChildNode(IModelNode* pChildNode) { m_vecChildModelNode.push_back(pChildNode); }
 
-			void SetVertexBuffer(IVertexBuffer* pVertexBuffer, uint32_t nLod = 0);
-			void SetIndexBuffer(IIndexBuffer* pIndexBuffer, uint32_t nLod = 0);
+			void SetVertexBuffer(IVertexBuffer* pVertexBuffer, LOD emLod = eLv0);
+			void SetIndexBuffer(IIndexBuffer* pIndexBuffer, LOD emLod = eLv0);
 
 			void AddMaterial(IMaterial* pMaterial);
-			void AddMaterialArray(IMaterial** ppMaterials, size_t nCount);
-			void AddModelSubset(ModelSubset& modelSubset, uint32_t nLod = 0);
-			void AddModelSubsets(const std::vector<ModelSubset>& vecModelSubsets, uint32_t nLod = 0);
+			void AddMaterialArray(IMaterial** ppMaterials, size_t count);
+			void AddModelSubset(ModelSubset& modelSubset, LOD emLod = eLv0);
+			void AddModelSubsets(const std::vector<ModelSubset>& vecModelSubsets, LOD emLod = eLv0);
+
+			void SetRawVertices(const VertexPos* pVertices, size_t vertexCount) { m_rawVertices.clear(); m_rawVertices.assign(pVertices, pVertices + vertexCount); }
+			void SetRawIndices(const uint32_t* pIndices, size_t indexCount) { m_rawIndices.clear(); m_rawIndices.assign(pIndices, pIndices + indexCount); }
 
 		protected:
-			bool m_isVisible;
+			bool m_isVisible{ true };
 			string::StringID m_strNodeName;
 			string::StringID m_strAttachedBoneName;
 
-			IModelNode* m_pParentNode;
+			IModelNode* m_pParentNode{ nullptr };
 			std::vector<IModelNode*> m_vecChildModelNode;
 
 			std::vector<IMaterial*> m_vecMaterial;
 			std::vector<ModelSubset> m_vecModelSubsets[eMaxLod];
 
-			std::array<IVertexBuffer*, eMaxLod> m_pVertexBuffer;
-			std::array<IIndexBuffer*, eMaxLod> m_pIndexBuffer;
+			std::array<IVertexBuffer*, eMaxLod> m_pVertexBuffer{ nullptr };
+			std::array<IIndexBuffer*, eMaxLod> m_pIndexBuffer{ nullptr };
 
-			uint32_t m_nLod;
-			uint32_t m_nLodMax;
+			std::vector<VertexPos> m_rawVertices;
+			std::vector<uint32_t> m_rawIndices;
 
-			float m_fDistanceFromCamera;
+			LOD m_emLod{ LOD::eLv0 };
+			LOD m_emMaxLod{ LOD::eLv0 };
+
+			float m_fDistanceFromCamera{ 0.f };
 
 			Collision::AABB m_originAABB;
-
-		private:
-			EmModelNode::Type m_emModelNodeType;
 		};
 	}
 }

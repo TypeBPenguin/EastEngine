@@ -24,7 +24,7 @@ namespace eastengine
 			// Amplitude for transverse wave. Around 1.0
 			float wave_amplitude;
 			// Wind direction. Normalization not required.
-			math::Vector2 wind_dir;
+			math::float2 wind_dir;
 			// Around 100 ~ 1000
 			float wind_speed;
 			// This value damps out the waves against the wind direction.
@@ -85,7 +85,7 @@ namespace eastengine
 
 		private:
 			// Initialize the vector field.
-			void InitHeightMap(OceanParameter& params, math::Vector2* out_h0, float* out_omega);
+			void InitHeightMap(OceanParameter& params, math::float2* out_h0, float* out_omega);
 
 			void ClearEffect(IDeviceContext* pd3dDeviceContext, IEffectTech* pEffectTech);
 			void ClearEffect_FFT(IDeviceContext* pd3dDeviceContext, IEffectTech* pEffectTech);

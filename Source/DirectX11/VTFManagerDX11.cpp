@@ -33,7 +33,7 @@ namespace eastengine
 
 				D3D11_SUBRESOURCE_DATA initialData;
 				initialData.pSysMem = m_vtfInstance.buffer.data();
-				initialData.SysMemPitch = eTextureWidth * sizeof(math::Vector4);
+				initialData.SysMemPitch = eTextureWidth * sizeof(math::float4);
 				initialData.SysMemSlicePitch = 1;
 
 				ITexture::Key key(StrID::EastEngine_VTF);

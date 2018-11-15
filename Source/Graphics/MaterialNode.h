@@ -154,11 +154,11 @@ namespace eastengine
 
 				virtual EmMaterialNode::NodeType GetType() { return EmMaterialNode::NodeType::eVector2; };
 
-				const math::Vector2& GetValue() const { return m_f2Value; }
-				void SetValue(const math::Vector2& f2Value) { m_f2Value = f2Value; }
+				const math::float2& GetValue() const { return m_f2Value; }
+				void SetValue(const math::float2& f2Value) { m_f2Value = f2Value; }
 
 			private:
-				math::Vector2 m_f2Value;
+				math::float2 m_f2Value;
 			};
 
 			class Vector3 : public Value
@@ -169,11 +169,11 @@ namespace eastengine
 
 				virtual EmMaterialNode::NodeType GetType() { return EmMaterialNode::NodeType::eVector3; };
 
-				const math::Vector3& GetValue() const { return m_f3Value; }
-				void SetValue(const math::Vector3& f3Value) { m_f3Value = f3Value; }
+				const math::float3& GetValue() const { return m_f3Value; }
+				void SetValue(const math::float3& f3Value) { m_f3Value = f3Value; }
 
 			private:
-				math::Vector3 m_f3Value;
+				math::float3 m_f3Value;
 			};
 
 			class Vector4 : public Value
@@ -184,11 +184,11 @@ namespace eastengine
 
 				virtual EmMaterialNode::NodeType GetType() { return EmMaterialNode::NodeType::eVector4; };
 
-				const math::Vector4& GetValue() const { return m_f4Value; }
-				void SetValue(const math::Vector4& f4Value) { m_f4Value = f4Value; }
+				const math::float4& GetValue() const { return m_f4Value; }
+				void SetValue(const math::float4& f4Value) { m_f4Value = f4Value; }
 
 			private:
-				math::Vector4 m_f4Value;
+				math::float4 m_f4Value;
 			};
 
 			class Matrix : public Value

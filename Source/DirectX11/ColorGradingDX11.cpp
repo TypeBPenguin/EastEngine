@@ -19,7 +19,7 @@ namespace eastengine
 			{
 				struct ColorGradingContents
 				{
-					math::Vector3 colorGuide{ 1.f, 0.5f, 0.f };
+					math::float3 colorGuide{ 1.f, 0.5f, 0.f };
 					float padding{ 0.f };
 				};
 
@@ -38,7 +38,7 @@ namespace eastengine
 					eSRV_Source = 0,
 				};
 
-				void SetColorGradingContents(ID3D11DeviceContext* pDeviceContext, ConstantBuffer<ColorGradingContents>* pCB_ColorGradingContents, const math::Vector3& colorGuide)
+				void SetColorGradingContents(ID3D11DeviceContext* pDeviceContext, ConstantBuffer<ColorGradingContents>* pCB_ColorGradingContents, const math::float3& colorGuide)
 				{
 					ColorGradingContents* pColorGradingContents = pCB_ColorGradingContents->Map(pDeviceContext);
 					
@@ -125,7 +125,7 @@ namespace eastengine
 				pDeviceContext->RSSetState(pRasterizerState);
 
 				ID3D11BlendState* pBlendState = pDeviceInstance->GetBlendState(EmBlendState::eOff);
-				pDeviceContext->OMSetBlendState(pBlendState, &math::Vector4::Zero.x, 0xffffffff);
+				pDeviceContext->OMSetBlendState(pBlendState, &math::float4::Zero.x, 0xffffffff);
 
 				ID3D11DepthStencilState* pDepthStencilState = pDeviceInstance->GetDepthStencilState(EmDepthStencilState::eRead_Write_Off);
 				pDeviceContext->OMSetDepthStencilState(pDepthStencilState, 0);

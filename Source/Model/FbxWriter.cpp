@@ -30,18 +30,20 @@ namespace eastengine
 	{
 		// 언젠가는 고정된 포맷이 아닌, D3DDECLUSAGE 에 대응해서 다양한 포맷에 대응할 수 있는 기능을 만들어야한다.
 		template <typename T>
-		IVertexBuffer* WriteVertexBuffer(ExportVB* pVB, const D3DVERTEXELEMENT9* pVertexElements, size_t nVertexElementCount)
+		IVertexBuffer* WriteVertexBuffer(ExportVB* pVB, const D3DVERTEXELEMENT9* pVertexElements, size_t nVertexElementCount, std::vector<VertexPos>& rawVertices_out)
 		{
-			const size_t nVertexCount = pVB->GetVertexCount();
-			if (nVertexCount == 0)
+			const size_t vertexCount = pVB->GetVertexCount();
+			if (vertexCount == 0)
 				return nullptr;
 
 			std::vector<T> vecVertices;
-			vecVertices.resize(nVertexCount);
+			vecVertices.resize(vertexCount);
+
+			rawVertices_out.resize(vertexCount);
 
 			const size_t stride = sizeof(T);
 
-			for (size_t i = 0; i < nVertexCount; ++i)
+			for (size_t i = 0; i < vertexCount; ++i)
 			{
 				uint8_t* pVertex = pVB->GetVertex(i);
 
@@ -57,39 +59,41 @@ namespace eastengine
 					case D3DDECLUSAGE::D3DDECLUSAGE_POSITION:
 					{
 						assert(pVertexElements[j].Type == D3DDECLTYPE::D3DDECLTYPE_FLOAT3);
-						math::Vector3* pPos = reinterpret_cast<math::Vector3*>(pData);
-						*pPos = *reinterpret_cast<const math::Vector3*>(pVertexData);
+						math::float3* pPos = reinterpret_cast<math::float3*>(pData);
+						*pPos = *reinterpret_cast<const math::float3*>(pVertexData);
+
+						rawVertices_out.emplace_back(*pPos);
 					}
 					break;
 					case D3DDECLUSAGE::D3DDECLUSAGE_TEXCOORD:
 					{
 						assert(pVertexElements[j].Type == D3DDECLTYPE::D3DDECLTYPE_FLOAT2);
-						const size_t nOffset = sizeof(math::Vector3);
-						math::Vector2* pUV = reinterpret_cast<math::Vector2*>(pData + nOffset);
-						*pUV = *reinterpret_cast<const math::Vector2*>(pVertexData);
+						const size_t nOffset = sizeof(math::float3);
+						math::float2* pUV = reinterpret_cast<math::float2*>(pData + nOffset);
+						*pUV = *reinterpret_cast<const math::float2*>(pVertexData);
 					}
 					break;
 					case D3DDECLUSAGE::D3DDECLUSAGE_NORMAL:
 					{
 						assert(pVertexElements[j].Type == D3DDECLTYPE::D3DDECLTYPE_FLOAT3);
-						const size_t nOffset = sizeof(math::Vector3) + sizeof(math::Vector2);
-						math::Vector3* pNormal = reinterpret_cast<math::Vector3*>(pData + nOffset);
-						*pNormal = *reinterpret_cast<const math::Vector3*>(pVertexData);
+						const size_t nOffset = sizeof(math::float3) + sizeof(math::float2);
+						math::float3* pNormal = reinterpret_cast<math::float3*>(pData + nOffset);
+						*pNormal = *reinterpret_cast<const math::float3*>(pVertexData);
 					}
 					break;
 					case D3DDECLUSAGE::D3DDECLUSAGE_BLENDWEIGHT:
 					{
 						assert(pVertexElements[j].Type == D3DDECLTYPE::D3DDECLTYPE_UBYTE4N);
-						const size_t nOffset = sizeof(math::Vector3) + sizeof(math::Vector2) + sizeof(math::Vector3);
+						const size_t nOffset = sizeof(math::float3) + sizeof(math::float2) + sizeof(math::float3);
 						const math::UByte4* pBlendData = reinterpret_cast<const math::UByte4*>(pVertexData);
-						math::Vector3* pBlend = reinterpret_cast<math::Vector3*>(pData + nOffset);
-						*pBlend = math::Vector3(static_cast<float>(pBlendData->x) / 255.f, static_cast<float>(pBlendData->y) / 255.f, static_cast<float>(pBlendData->z) / 255.f);
+						math::float3* pBlend = reinterpret_cast<math::float3*>(pData + nOffset);
+						*pBlend = math::float3(static_cast<float>(pBlendData->x) / 255.f, static_cast<float>(pBlendData->y) / 255.f, static_cast<float>(pBlendData->z) / 255.f);
 					}
 					break;
 					case D3DDECLUSAGE::D3DDECLUSAGE_BLENDINDICES:
 					{
 						assert(pVertexElements[j].Type == D3DDECLTYPE::D3DDECLTYPE_UBYTE4);
-						const size_t nOffset = sizeof(math::Vector3) + sizeof(math::Vector2) + sizeof(math::Vector3) + sizeof(math::Vector3);
+						const size_t nOffset = sizeof(math::float3) + sizeof(math::float2) + sizeof(math::float3) + sizeof(math::float3);
 						const math::UByte4* pIndexData = reinterpret_cast<const math::UByte4*>(pVertexData);
 						uint16_t* pIndex = reinterpret_cast<uint16_t*>(pData + nOffset);
 						pIndex[0] = static_cast<uint16_t>(pIndexData->x);
@@ -104,13 +108,13 @@ namespace eastengine
 				}
 			}
 
-			return CreateVertexBuffer(reinterpret_cast<uint8_t*>(vecVertices.data()), static_cast<uint32_t>(sizeof(T) * vecVertices.size()), static_cast<uint32_t>(vecVertices.size()));
+			return CreateVertexBuffer(reinterpret_cast<uint8_t*>(vecVertices.data()), static_cast<uint32_t>(vecVertices.size()), sizeof(T));
 		}
 
-		IIndexBuffer* WriteIndexBuffer(ExportIB* pIB)
+		IIndexBuffer* WriteIndexBuffer(ExportIB* pIB, std::vector<uint32_t>& rawIndices_out)
 		{
-			const size_t nIndexCount = pIB->GetIndexCount();
-			if (nIndexCount == 0)
+			const size_t indexCount = pIB->GetIndexCount();
+			if (indexCount == 0)
 				return nullptr;
 
 			if (pIB->GetIndexSize() == 2)
@@ -121,7 +125,14 @@ namespace eastengine
 			else
 			{
 				const uint8_t* pIndices = reinterpret_cast<const uint8_t*>(pIB->GetIndexData());
-				return CreateIndexBuffer(pIndices, static_cast<uint32_t>(sizeof(uint32_t) * nIndexCount), static_cast<uint32_t>(nIndexCount));
+
+				const uint32_t* pRawIndicex = reinterpret_cast<const uint32_t*>(pIndices);
+				for (uint32_t i = 0; i < indexCount; ++i)
+				{
+					rawIndices_out.emplace_back(pRawIndicex[i]);
+				}
+
+				return CreateIndexBuffer(pIndices, static_cast<uint32_t>(indexCount), sizeof(uint32_t));
 			}
 
 			return nullptr;
@@ -207,12 +218,12 @@ namespace eastengine
 			switch (pMesh->GetSmallestBound())
 			{
 			case ExportMeshBase::SphereBound:
-				aabb.Center = *reinterpret_cast<math::Vector3*>(&pMesh->GetBoundingSphere().Center);
-				aabb.Extents = math::Vector3(pMesh->GetBoundingSphere().Radius);
+				aabb.Center = *reinterpret_cast<math::float3*>(&pMesh->GetBoundingSphere().Center);
+				aabb.Extents = math::float3(pMesh->GetBoundingSphere().Radius);
 				break;
 			case ExportMeshBase::AxisAlignedBoxBound:
-				aabb.Center = *reinterpret_cast<math::Vector3*>(&pMesh->GetBoundingAABB().Center);
-				aabb.Extents = *reinterpret_cast<math::Vector3*>(&pMesh->GetBoundingAABB().Extents);
+				aabb.Center = *reinterpret_cast<math::float3*>(&pMesh->GetBoundingAABB().Center);
+				aabb.Extents = *reinterpret_cast<math::float3*>(&pMesh->GetBoundingAABB().Extents);
 				break;
 			}
 
@@ -242,8 +253,11 @@ namespace eastengine
 						ModelNodeSkinned* pSkinnedNode = new ModelNodeSkinned;
 						pModelNode = pSkinnedNode;
 
-						pVertexBuffer = WriteVertexBuffer<VertexPosTexNorWeiIdx>(pMesh->GetVB(), &pMesh->GetVertexDeclElement(0), pMesh->GetVertexDeclElementCount());
-						pIndexBuffer = WriteIndexBuffer(pMesh->GetIB());
+						std::vector<VertexPos> rawVertices;
+						pVertexBuffer = WriteVertexBuffer<VertexPosTexNorWeiIdx>(pMesh->GetVB(), &pMesh->GetVertexDeclElement(0), pMesh->GetVertexDeclElementCount(), rawVertices);
+
+						std::vector<uint32_t> rawIndices;
+						pIndexBuffer = WriteIndexBuffer(pMesh->GetIB(), rawIndices);
 
 						const size_t nInfluenceCount = pMesh->GetInfluenceCount();
 						std::vector<string::StringID> vecBoneNames;
@@ -261,8 +275,12 @@ namespace eastengine
 					{
 						pModelNode = new ModelNodeStatic;
 
-						pVertexBuffer = WriteVertexBuffer<VertexPosTexNor>(pMesh->GetVB(), &pMesh->GetVertexDeclElement(0), pMesh->GetVertexDeclElementCount());
-						pIndexBuffer = WriteIndexBuffer(pMesh->GetIB());
+						std::vector<VertexPos> rawVertices;
+						pVertexBuffer = WriteVertexBuffer<VertexPosTexNor>(pMesh->GetVB(), &pMesh->GetVertexDeclElement(0), pMesh->GetVertexDeclElementCount(), rawVertices);
+						pModelNode->SetRawVertices(rawVertices.data(), rawVertices.size());
+
+						std::vector<uint32_t> rawIndices;
+						pIndexBuffer = WriteIndexBuffer(pMesh->GetIB(), rawIndices);
 					}
 
 					pModelNode->SetNodeName(pMesh->GetName().SafeString());
@@ -426,7 +444,7 @@ namespace eastengine
 					if (pModelNode == nullptr)
 						continue;
 
-					if (pModelNode->GetType() != EmModelNode::eSkinned)
+					if (pModelNode->GetType() != IModelNode::eSkinned)
 						continue;
 
 					ModelNodeSkinned* pSkinnedNode = static_cast<ModelNodeSkinned*>(pModelNode);
@@ -482,7 +500,7 @@ namespace eastengine
 
 				if (isEndKey == false)
 				{
-					pDestKeys[i].transform.position = *reinterpret_cast<math::Vector3*>(&StartKey.Position);
+					pDestKeys[i].transform.position = *reinterpret_cast<math::float3*>(&StartKey.Position);
 				}
 				else
 				{
@@ -594,7 +612,7 @@ namespace eastengine
 
 				if (isEndKey == false)
 				{
-					pDestKeys[i].transform.scale = *reinterpret_cast<math::Vector3*>(&StartKey.Scale);
+					pDestKeys[i].transform.scale = *reinterpret_cast<math::float3*>(&StartKey.Scale);
 				}
 				else
 				{

@@ -177,24 +177,24 @@ namespace eastengine
 			return distribution(s_rand);
 		}
 
-		Vector2 CompressNormal(const Vector3& f3Normal)
+		float2 CompressNormal(const float3& f3Normal)
 		{
-			Vector2 ret = Vector2(f3Normal.x, f3Normal.y) / Vector2(f3Normal.z + 1.f);
+			float2 ret = float2(f3Normal.x, f3Normal.y) / float2(f3Normal.z + 1.f);
 			ret *= INVSTEREOSCALE;
 
 			return ret;
 		}
 
-		Vector3 DeCompressNormal(const Vector2& f2Normal)
+		float3 DeCompressNormal(const float2& f2Normal)
 		{
-			Vector3 nn;
+			float3 nn;
 			nn.x = f2Normal.x * STEREOSCALE;
 			nn.y = f2Normal.y * STEREOSCALE;
 			nn.z = 1.f;
 
 			float g = 2.f / nn.Dot(nn);
 
-			Vector3 n;
+			float3 n;
 			n.x = g * nn.x;
 			n.y = g * nn.y;
 			n.z = g - 1.f;
@@ -204,10 +204,10 @@ namespace eastengine
 			return n;
 		}
 
-		Vector3 CalcTangent(const Vector3& f3Normal)
+		float3 CalcTangent(const float3& f3Normal)
 		{
-			Vector3 c1 = f3Normal.Cross(Vector3(0.f, 0.f, 1.f));
-			Vector3 c2 = f3Normal.Cross(Vector3(0.f, 1.f, 0.f));
+			float3 c1 = f3Normal.Cross(float3(0.f, 0.f, 1.f));
+			float3 c2 = f3Normal.Cross(float3(0.f, 1.f, 0.f));
 
 			if (c1.LengthSquared() > c2.LengthSquared())
 			{
@@ -221,9 +221,9 @@ namespace eastengine
 			}
 		}
 
-		Vector3 CalcBinormal(const Vector3& f3Normal, const Vector3& f3Tangent)
+		float3 CalcBinormal(const float3& f3Normal, const float3& f3Tangent)
 		{
-			Vector3 binormal = f3Normal.Cross(f3Tangent);
+			float3 binormal = f3Normal.Cross(f3Tangent);
 			binormal.Normalize();
 
 			return binormal;
@@ -240,86 +240,86 @@ namespace eastengine
 			PackedVector::XMStoreUByte4(reinterpret_cast<PackedVector::XMUBYTE4*>(this), XMLoadFloat4(reinterpret_cast<const XMFLOAT4*>(pArray)));
 		}
 
-		Int2::Int2() : x(0), y(0) {}
-		Int2::Int2(int x) : x(x), y(x) {}
-		Int2::Int2(int x, int y) : x(x), y(y) {}
-		Int2::Int2(const Int2& V) { this->x = V.x; this->y = V.y; }
+		int2::int2() : x(0), y(0) {}
+		int2::int2(int x) : x(x), y(x) {}
+		int2::int2(int x, int y) : x(x), y(y) {}
+		int2::int2(const int2& V) { this->x = V.x; this->y = V.y; }
 
-		const Int2 Int2::Zero = { 0, 0 };
-		const Int2 Int2::One = { 1, 1 };
-		const Int2 Int2::UnitX = { 1, 0 };
-		const Int2 Int2::UnitY = { 1, 0 };
+		const int2 int2::Zero = { 0, 0 };
+		const int2 int2::One = { 1, 1 };
+		const int2 int2::UnitX = { 1, 0 };
+		const int2 int2::UnitY = { 1, 0 };
 
-		Int3::Int3() : x(0), y(0), z(0) {}
-		Int3::Int3(int x) : x(x), y(x), z(x) {}
-		Int3::Int3(int x, int y, int z) : x(x), y(y), z(z) {}
-		Int3::Int3(const Int3& V) { this->x = V.x; this->y = V.y; this->z = V.z; }
+		int3::int3() : x(0), y(0), z(0) {}
+		int3::int3(int x) : x(x), y(x), z(x) {}
+		int3::int3(int x, int y, int z) : x(x), y(y), z(z) {}
+		int3::int3(const int3& V) { this->x = V.x; this->y = V.y; this->z = V.z; }
 
-		const Int3 Int3::Zero = { 0, 0, 0 };
-		const Int3 Int3::One = { 1, 1, 1 };
-		const Int3 Int3::UnitX = { 1, 0, 0 };
-		const Int3 Int3::UnitY = { 0, 1, 0 };
-		const Int3 Int3::UnitZ = { 0, 0, 1 };
+		const int3 int3::Zero = { 0, 0, 0 };
+		const int3 int3::One = { 1, 1, 1 };
+		const int3 int3::UnitX = { 1, 0, 0 };
+		const int3 int3::UnitY = { 0, 1, 0 };
+		const int3 int3::UnitZ = { 0, 0, 1 };
 
-		Int4::Int4() : x(0), y(0), z(0), w(0) {}
-		Int4::Int4(int x) : x(x), y(x), z(x), w(x) {}
-		Int4::Int4(int x, int y, int z, int w) : x(x), y(y), z(z), w(w) {}
-		Int4::Int4(const Int4& V) { this->x = V.x; this->y = V.y; this->z = V.z; this->w = V.w; }
+		int4::int4() : x(0), y(0), z(0), w(0) {}
+		int4::int4(int x) : x(x), y(x), z(x), w(x) {}
+		int4::int4(int x, int y, int z, int w) : x(x), y(y), z(z), w(w) {}
+		int4::int4(const int4& V) { this->x = V.x; this->y = V.y; this->z = V.z; this->w = V.w; }
 
-		const Int4 Int4::Zero = { 0, 0, 0, 0 };
-		const Int4 Int4::One = { 1, 1, 1, 1 };
-		const Int4 Int4::UnitX = { 1, 0, 0, 0 };
-		const Int4 Int4::UnitY = { 0, 1, 0, 0 };
-		const Int4 Int4::UnitZ = { 0, 0, 1, 0 };
-		const Int4 Int4::UnitW = { 0, 0, 0, 1 };
+		const int4 int4::Zero = { 0, 0, 0, 0 };
+		const int4 int4::One = { 1, 1, 1, 1 };
+		const int4 int4::UnitX = { 1, 0, 0, 0 };
+		const int4 int4::UnitY = { 0, 1, 0, 0 };
+		const int4 int4::UnitZ = { 0, 0, 1, 0 };
+		const int4 int4::UnitW = { 0, 0, 0, 1 };
 
-		UInt2::UInt2() : x(0), y(0) {}
-		UInt2::UInt2(uint32_t x) : x(x), y(x) {}
-		UInt2::UInt2(uint32_t x, uint32_t y) : x(x), y(y) {}
-		UInt2::UInt2(const UInt2& V) { this->x = V.x; this->y = V.y; }
+		uint2::uint2() : x(0), y(0) {}
+		uint2::uint2(uint32_t x) : x(x), y(x) {}
+		uint2::uint2(uint32_t x, uint32_t y) : x(x), y(y) {}
+		uint2::uint2(const uint2& V) { this->x = V.x; this->y = V.y; }
 
-		const UInt2 UInt2::Zero = { 0, 0 };
-		const UInt2 UInt2::One = { 1, 1 };
-		const UInt2 UInt2::UnitX = { 1, 0 };
-		const UInt2 UInt2::UnitY = { 1, 0 };
+		const uint2 uint2::Zero = { 0, 0 };
+		const uint2 uint2::One = { 1, 1 };
+		const uint2 uint2::UnitX = { 1, 0 };
+		const uint2 uint2::UnitY = { 1, 0 };
 
-		UInt3::UInt3() : x(0), y(0), z(0) {}
-		UInt3::UInt3(uint32_t x) : x(x), y(x), z(x) {}
-		UInt3::UInt3(uint32_t x, uint32_t y, uint32_t z) : x(x), y(y), z(z) {}
-		UInt3::UInt3(const UInt3& V) { this->x = V.x; this->y = V.y; this->z = V.z; }
+		uint3::uint3() : x(0), y(0), z(0) {}
+		uint3::uint3(uint32_t x) : x(x), y(x), z(x) {}
+		uint3::uint3(uint32_t x, uint32_t y, uint32_t z) : x(x), y(y), z(z) {}
+		uint3::uint3(const uint3& V) { this->x = V.x; this->y = V.y; this->z = V.z; }
 
-		const UInt3 UInt3::Zero = { 0, 0, 0 };
-		const UInt3 UInt3::One = { 1, 1, 1 };
-		const UInt3 UInt3::UnitX = { 1, 0, 0 };
-		const UInt3 UInt3::UnitY = { 0, 1, 0 };
-		const UInt3 UInt3::UnitZ = { 0, 0, 1 };
+		const uint3 uint3::Zero = { 0, 0, 0 };
+		const uint3 uint3::One = { 1, 1, 1 };
+		const uint3 uint3::UnitX = { 1, 0, 0 };
+		const uint3 uint3::UnitY = { 0, 1, 0 };
+		const uint3 uint3::UnitZ = { 0, 0, 1 };
 
-		UInt4::UInt4() : x(0), y(0), z(0), w(0) {}
-		UInt4::UInt4(uint32_t x) : x(x), y(x), z(x), w(x) {}
-		UInt4::UInt4(uint32_t x, uint32_t y, uint32_t z, uint32_t w) : x(x), y(y), z(z), w(w) {}
-		UInt4::UInt4(const UInt4& V) { this->x = V.x; this->y = V.y; this->z = V.z; this->w = V.w; }
+		uint4::uint4() : x(0), y(0), z(0), w(0) {}
+		uint4::uint4(uint32_t x) : x(x), y(x), z(x), w(x) {}
+		uint4::uint4(uint32_t x, uint32_t y, uint32_t z, uint32_t w) : x(x), y(y), z(z), w(w) {}
+		uint4::uint4(const uint4& V) { this->x = V.x; this->y = V.y; this->z = V.z; this->w = V.w; }
 
-		const UInt4 UInt4::Zero = { 0, 0, 0, 0 };
-		const UInt4 UInt4::One = { 1, 1, 1, 1 };
-		const UInt4 UInt4::UnitX = { 1, 0, 0, 0 };
-		const UInt4 UInt4::UnitY = { 0, 1, 0, 0 };
-		const UInt4 UInt4::UnitZ = { 0, 0, 1, 0 };
-		const UInt4 UInt4::UnitW = { 0, 0, 0, 1 };
+		const uint4 uint4::Zero = { 0, 0, 0, 0 };
+		const uint4 uint4::One = { 1, 1, 1, 1 };
+		const uint4 uint4::UnitX = { 1, 0, 0, 0 };
+		const uint4 uint4::UnitY = { 0, 1, 0, 0 };
+		const uint4 uint4::UnitZ = { 0, 0, 1, 0 };
+		const uint4 uint4::UnitW = { 0, 0, 0, 1 };
 
 		/****************************************************************************
 		*
-		* Vector2
+		* float2
 		*
 		****************************************************************************/
 
-		Vector2::Vector2() : x(0.f), y(0.f) {}
-		Vector2::Vector2(float x) : x(x), y(x) {}
-		Vector2::Vector2(float x, float y) : x(x), y(y) {}
-		Vector2::Vector2(_In_reads_(2) const float *pArray) : x(pArray[0]), y(pArray[1]) {}
-		Vector2::Vector2(const __m128& V) { using namespace DirectX; XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(this), V); }
-		Vector2::Vector2(const Vector2& V) { this->x = V.x; this->y = V.y; }
+		float2::float2() : x(0.f), y(0.f) {}
+		float2::float2(float x) : x(x), y(x) {}
+		float2::float2(float x, float y) : x(x), y(y) {}
+		float2::float2(_In_reads_(2) const float *pArray) : x(pArray[0]), y(pArray[1]) {}
+		float2::float2(const __m128& V) { using namespace DirectX; XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(this), V); }
+		float2::float2(const float2& V) { this->x = V.x; this->y = V.y; }
 
-		Vector2::operator __m128() const
+		float2::operator __m128() const
 		{
 			using namespace DirectX;
 
@@ -330,7 +330,7 @@ namespace eastengine
 		// Comparision operators
 		//------------------------------------------------------------------------------
 
-		bool Vector2::operator == (const Vector2& V) const
+		bool float2::operator == (const float2& V) const
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -338,7 +338,7 @@ namespace eastengine
 			return XMVector2Equal(v1, v2);
 		}
 
-		bool Vector2::operator != (const Vector2& V) const
+		bool float2::operator != (const float2& V) const
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -350,7 +350,7 @@ namespace eastengine
 		// Assignment operators
 		//------------------------------------------------------------------------------
 
-		Vector2& Vector2::operator+= (const Vector2& V)
+		float2& float2::operator+= (const float2& V)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -360,7 +360,7 @@ namespace eastengine
 			return *this;
 		}
 
-		Vector2& Vector2::operator-= (const Vector2& V)
+		float2& float2::operator-= (const float2& V)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -370,7 +370,7 @@ namespace eastengine
 			return *this;
 		}
 
-		Vector2& Vector2::operator*= (const Vector2& V)
+		float2& float2::operator*= (const float2& V)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -380,7 +380,7 @@ namespace eastengine
 			return *this;
 		}
 
-		Vector2& Vector2::operator*= (float S)
+		float2& float2::operator*= (float S)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -389,7 +389,7 @@ namespace eastengine
 			return *this;
 		}
 
-		Vector2& Vector2::operator/= (float S)
+		float2& float2::operator/= (float S)
 		{
 			using namespace DirectX;
 			assert(S != 0.0f);
@@ -403,76 +403,76 @@ namespace eastengine
 		// Binary operators
 		//------------------------------------------------------------------------------
 
-		Vector2 operator+ (const Vector2& V1, const Vector2& V2)
+		float2 operator+ (const float2& V1, const float2& V2)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = V1;
 			XMVECTOR v2 = V2;
 			XMVECTOR X = XMVectorAdd(v1, v2);
-			Vector2 R;
+			float2 R;
 			XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(&R), X);
 			return R;
 		}
 
-		Vector2 operator- (const Vector2& V1, const Vector2& V2)
+		float2 operator- (const float2& V1, const float2& V2)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = V1;
 			XMVECTOR v2 = V2;
 			XMVECTOR X = XMVectorSubtract(v1, v2);
-			Vector2 R;
+			float2 R;
 			XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(&R), X);
 			return R;
 		}
 
-		Vector2 operator* (const Vector2& V1, const Vector2& V2)
+		float2 operator* (const float2& V1, const float2& V2)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = V1;
 			XMVECTOR v2 = V2;
 			XMVECTOR X = XMVectorMultiply(v1, v2);
-			Vector2 R;
+			float2 R;
 			XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(&R), X);
 			return R;
 		}
 
-		Vector2 operator* (const Vector2& V, float S)
+		float2 operator* (const float2& V, float S)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = V;
 			XMVECTOR X = XMVectorScale(v1, S);
-			Vector2 R;
+			float2 R;
 			XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(&R), X);
 			return R;
 		}
 
-		Vector2 operator/ (const Vector2& V1, const Vector2& V2)
+		float2 operator/ (const float2& V1, const float2& V2)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = V1;
 			XMVECTOR v2 = V2;
 			XMVECTOR X = XMVectorDivide(v1, v2);
-			Vector2 R;
+			float2 R;
 			XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(&R), X);
 			return R;
 		}
 
-		Vector2 operator/ (const Vector2& V1, float S)
+		float2 operator/ (const float2& V1, float S)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = V1;
 			XMVECTOR X = XMVectorScale(v1, 1.f / S);
-			Vector2 R;
+			float2 R;
 			XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(&R), X);
 			return R;
 		}
 
-		Vector2 operator* (float S, const Vector2& V)
+		float2 operator* (float S, const float2& V)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = V;
 			XMVECTOR X = XMVectorScale(v1, S);
-			Vector2 R;
+			float2 R;
 			XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(&R), X);
 			return R;
 		}
@@ -481,7 +481,7 @@ namespace eastengine
 		// Vector operations
 		//------------------------------------------------------------------------------
 
-		bool Vector2::InBounds(const Vector2& Bounds) const
+		bool float2::InBounds(const float2& Bounds) const
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -489,7 +489,7 @@ namespace eastengine
 			return XMVector2InBounds(v1, v2);
 		}
 
-		float Vector2::Length() const
+		float float2::Length() const
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -497,7 +497,7 @@ namespace eastengine
 			return XMVectorGetX(X);
 		}
 
-		float Vector2::LengthSquared() const
+		float float2::LengthSquared() const
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -505,7 +505,7 @@ namespace eastengine
 			return XMVectorGetX(X);
 		}
 
-		float Vector2::Dot(const Vector2& V) const
+		float float2::Dot(const float2& V) const
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -514,7 +514,7 @@ namespace eastengine
 			return XMVectorGetX(X);
 		}
 
-		void Vector2::Cross(const Vector2& V, Vector2& result) const
+		void float2::Cross(const float2& V, float2& result) const
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -523,19 +523,19 @@ namespace eastengine
 			XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(&result), R);
 		}
 
-		Vector2 Vector2::Cross(const Vector2& V) const
+		float2 float2::Cross(const float2& V) const
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
 			XMVECTOR v2 = V;
 			XMVECTOR R = XMVector2Cross(v1, v2);
 
-			Vector2 result;
+			float2 result;
 			XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(&result), R);
 			return result;
 		}
 
-		void Vector2::Normalize()
+		void float2::Normalize()
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -543,7 +543,7 @@ namespace eastengine
 			XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(this), X);
 		}
 
-		void Vector2::Normalize(Vector2& result) const
+		void float2::Normalize(float2& result) const
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -551,7 +551,7 @@ namespace eastengine
 			XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(&result), X);
 		}
 
-		void Vector2::Clamp(const Vector2& vmin, const Vector2& vmax)
+		void float2::Clamp(const float2& vmin, const float2& vmax)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -561,7 +561,7 @@ namespace eastengine
 			XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(this), X);
 		}
 
-		void Vector2::Clamp(const Vector2& vmin, const Vector2& vmax, Vector2& result) const
+		void float2::Clamp(const float2& vmin, const float2& vmax, float2& result) const
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -575,7 +575,7 @@ namespace eastengine
 		// Static functions
 		//------------------------------------------------------------------------------
 
-		float Vector2::Distance(const Vector2& v1, const Vector2& v2)
+		float float2::Distance(const float2& v1, const float2& v2)
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = v1;
@@ -585,7 +585,7 @@ namespace eastengine
 			return XMVectorGetX(X);
 		}
 
-		float Vector2::DistanceSquared(const Vector2& v1, const Vector2& v2)
+		float float2::DistanceSquared(const float2& v1, const float2& v2)
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = v1;
@@ -595,7 +595,7 @@ namespace eastengine
 			return XMVectorGetX(X);
 		}
 
-		void Vector2::Min(const Vector2& v1, const Vector2& v2, Vector2& result)
+		void float2::Min(const float2& v1, const float2& v2, float2& result)
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = v1;
@@ -604,19 +604,19 @@ namespace eastengine
 			XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(&result), X);
 		}
 
-		Vector2 Vector2::Min(const Vector2& v1, const Vector2& v2)
+		float2 float2::Min(const float2& v1, const float2& v2)
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = v1;
 			XMVECTOR x2 = v2;
 			XMVECTOR X = XMVectorMin(x1, x2);
 
-			Vector2 result;
+			float2 result;
 			XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(&result), X);
 			return result;
 		}
 
-		void Vector2::Max(const Vector2& v1, const Vector2& v2, Vector2& result)
+		void float2::Max(const float2& v1, const float2& v2, float2& result)
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = v1;
@@ -625,19 +625,19 @@ namespace eastengine
 			XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(&result), X);
 		}
 
-		Vector2 Vector2::Max(const Vector2& v1, const Vector2& v2)
+		float2 float2::Max(const float2& v1, const float2& v2)
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = v1;
 			XMVECTOR x2 = v2;
 			XMVECTOR X = XMVectorMax(x1, x2);
 
-			Vector2 result;
+			float2 result;
 			XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(&result), X);
 			return result;
 		}
 
-		void Vector2::Lerp(const Vector2& v1, const Vector2& v2, float t, Vector2& result)
+		void float2::Lerp(const float2& v1, const float2& v2, float t, float2& result)
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = v1;
@@ -646,19 +646,19 @@ namespace eastengine
 			XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(&result), X);
 		}
 
-		Vector2 Vector2::Lerp(const Vector2& v1, const Vector2& v2, float t)
+		float2 float2::Lerp(const float2& v1, const float2& v2, float t)
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = v1;
 			XMVECTOR x2 = v2;
 			XMVECTOR X = XMVectorLerp(x1, x2, t);
 
-			Vector2 result;
+			float2 result;
 			XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(&result), X);
 			return result;
 		}
 
-		void Vector2::SmoothStep(const Vector2& v1, const Vector2& v2, float t, Vector2& result)
+		void float2::SmoothStep(const float2& v1, const float2& v2, float t, float2& result)
 		{
 			using namespace DirectX;
 			t = (t > 1.0f) ? 1.0f : ((t < 0.0f) ? 0.0f : t);  // Clamp value to 0 to 1
@@ -669,7 +669,7 @@ namespace eastengine
 			XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(&result), X);
 		}
 
-		Vector2 Vector2::SmoothStep(const Vector2& v1, const Vector2& v2, float t)
+		float2 float2::SmoothStep(const float2& v1, const float2& v2, float t)
 		{
 			using namespace DirectX;
 			t = (t > 1.0f) ? 1.0f : ((t < 0.0f) ? 0.0f : t);  // Clamp value to 0 to 1
@@ -678,12 +678,12 @@ namespace eastengine
 			XMVECTOR x2 = v2;
 			XMVECTOR X = XMVectorLerp(x1, x2, t);
 
-			Vector2 result;
+			float2 result;
 			XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(&result), X);
 			return result;
 		}
 
-		void Vector2::Barycentric(const Vector2& v1, const Vector2& v2, const Vector2& v3, float f, float g, Vector2& result)
+		void float2::Barycentric(const float2& v1, const float2& v2, const float2& v3, float f, float g, float2& result)
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = v1;
@@ -693,7 +693,7 @@ namespace eastengine
 			XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(&result), X);
 		}
 
-		Vector2 Vector2::Barycentric(const Vector2& v1, const Vector2& v2, const Vector2& v3, float f, float g)
+		float2 float2::Barycentric(const float2& v1, const float2& v2, const float2& v3, float f, float g)
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = v1;
@@ -701,12 +701,12 @@ namespace eastengine
 			XMVECTOR x3 = v3;
 			XMVECTOR X = XMVectorBaryCentric(x1, x2, x3, f, g);
 
-			Vector2 result;
+			float2 result;
 			XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(&result), X);
 			return result;
 		}
 
-		void Vector2::CatmullRom(const Vector2& v1, const Vector2& v2, const Vector2& v3, const Vector2& v4, float t, Vector2& result)
+		void float2::CatmullRom(const float2& v1, const float2& v2, const float2& v3, const float2& v4, float t, float2& result)
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = v1;
@@ -717,7 +717,7 @@ namespace eastengine
 			XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(&result), X);
 		}
 
-		Vector2 Vector2::CatmullRom(const Vector2& v1, const Vector2& v2, const Vector2& v3, const Vector2& v4, float t)
+		float2 float2::CatmullRom(const float2& v1, const float2& v2, const float2& v3, const float2& v4, float t)
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = v1;
@@ -726,12 +726,12 @@ namespace eastengine
 			XMVECTOR x4 = v4;
 			XMVECTOR X = XMVectorCatmullRom(x1, x2, x3, x4, t);
 
-			Vector2 result;
+			float2 result;
 			XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(&result), X);
 			return result;
 		}
 
-		void Vector2::Hermite(const Vector2& v1, const Vector2& t1, const Vector2& v2, const Vector2& t2, float t, Vector2& result)
+		void float2::Hermite(const float2& v1, const float2& t1, const float2& v2, const float2& t2, float t, float2& result)
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = v1;
@@ -742,7 +742,7 @@ namespace eastengine
 			XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(&result), X);
 		}
 
-		Vector2 Vector2::Hermite(const Vector2& v1, const Vector2& t1, const Vector2& v2, const Vector2& t2, float t)
+		float2 float2::Hermite(const float2& v1, const float2& t1, const float2& v2, const float2& t2, float t)
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = v1;
@@ -751,12 +751,12 @@ namespace eastengine
 			XMVECTOR x4 = t2;
 			XMVECTOR X = XMVectorHermite(x1, x2, x3, x4, t);
 
-			Vector2 result;
+			float2 result;
 			XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(&result), X);
 			return result;
 		}
 
-		void Vector2::Reflect(const Vector2& ivec, const Vector2& nvec, Vector2& result)
+		void float2::Reflect(const float2& ivec, const float2& nvec, float2& result)
 		{
 			using namespace DirectX;
 			XMVECTOR i = ivec;
@@ -765,19 +765,19 @@ namespace eastengine
 			XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(&result), X);
 		}
 
-		Vector2 Vector2::Reflect(const Vector2& ivec, const Vector2& nvec)
+		float2 float2::Reflect(const float2& ivec, const float2& nvec)
 		{
 			using namespace DirectX;
 			XMVECTOR i = ivec;
 			XMVECTOR n = nvec;
 			XMVECTOR X = XMVector2Reflect(i, n);
 
-			Vector2 result;
+			float2 result;
 			XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(&result), X);
 			return result;
 		}
 
-		void Vector2::Refract(const Vector2& ivec, const Vector2& nvec, float refractionIndex, Vector2& result)
+		void float2::Refract(const float2& ivec, const float2& nvec, float refractionIndex, float2& result)
 		{
 			using namespace DirectX;
 			XMVECTOR i = ivec;
@@ -786,19 +786,19 @@ namespace eastengine
 			XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(&result), X);
 		}
 
-		Vector2 Vector2::Refract(const Vector2& ivec, const Vector2& nvec, float refractionIndex)
+		float2 float2::Refract(const float2& ivec, const float2& nvec, float refractionIndex)
 		{
 			using namespace DirectX;
 			XMVECTOR i = ivec;
 			XMVECTOR n = nvec;
 			XMVECTOR X = XMVector2Refract(i, n, refractionIndex);
 
-			Vector2 result;
+			float2 result;
 			XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(&result), X);
 			return result;
 		}
 
-		void Vector2::Transform(const Vector2& v, const Quaternion& quat, Vector2& result)
+		void float2::Transform(const float2& v, const Quaternion& quat, float2& result)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = v;
@@ -807,19 +807,19 @@ namespace eastengine
 			XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(&result), X);
 		}
 
-		Vector2 Vector2::Transform(const Vector2& v, const Quaternion& quat)
+		float2 float2::Transform(const float2& v, const Quaternion& quat)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = v;
 			XMVECTOR q = quat;
 			XMVECTOR X = XMVector3Rotate(v1, q);
 
-			Vector2 result;
+			float2 result;
 			XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(&result), X);
 			return result;
 		}
 
-		void Vector2::Transform(const Vector2& v, const Matrix& m, Vector2& result)
+		void float2::Transform(const float2& v, const Matrix& m, float2& result)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = v;
@@ -828,27 +828,27 @@ namespace eastengine
 			XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(&result), X);
 		}
 
-		Vector2 Vector2::Transform(const Vector2& v, const Matrix& m)
+		float2 float2::Transform(const float2& v, const Matrix& m)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = v;
 			XMMATRIX M = XMLoadFloat4x4(reinterpret_cast<const XMFLOAT4X4*>(&m));
 			XMVECTOR X = XMVector2TransformCoord(v1, M);
 
-			Vector2 result;
+			float2 result;
 			XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(&result), X);
 			return result;
 		}
 
 		_Use_decl_annotations_
-			void Vector2::Transform(const Vector2* varray, size_t count, const Matrix& m, Vector2* resultArray)
+			void float2::Transform(const float2* varray, size_t count, const Matrix& m, float2* resultArray)
 		{
 			using namespace DirectX;
 			XMMATRIX M = XMLoadFloat4x4(reinterpret_cast<const XMFLOAT4X4*>(&m));
 			XMVector2TransformCoordStream(reinterpret_cast<XMFLOAT2*>(resultArray), sizeof(XMFLOAT2), reinterpret_cast<const XMFLOAT2*>(varray), sizeof(XMFLOAT2), count, M);
 		}
 
-		void Vector2::Transform(const Vector2& v, const Matrix& m, Vector4& result)
+		void float2::Transform(const float2& v, const Matrix& m, float4& result)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = v;
@@ -858,14 +858,14 @@ namespace eastengine
 		}
 
 		_Use_decl_annotations_
-			void Vector2::Transform(const Vector2* varray, size_t count, const Matrix& m, Vector4* resultArray)
+			void float2::Transform(const float2* varray, size_t count, const Matrix& m, float4* resultArray)
 		{
 			using namespace DirectX;
 			XMMATRIX M = XMLoadFloat4x4(reinterpret_cast<const XMFLOAT4X4*>(&m));
 			XMVector2TransformStream(reinterpret_cast<XMFLOAT4*>(resultArray), sizeof(XMFLOAT4), reinterpret_cast<const XMFLOAT2*>(varray), sizeof(XMFLOAT2), count, M);
 		}
 
-		void Vector2::TransformNormal(const Vector2& v, const Matrix& m, Vector2& result)
+		void float2::TransformNormal(const float2& v, const Matrix& m, float2& result)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = v;
@@ -874,45 +874,45 @@ namespace eastengine
 			XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(&result), X);
 		}
 
-		Vector2 Vector2::TransformNormal(const Vector2& v, const Matrix& m)
+		float2 float2::TransformNormal(const float2& v, const Matrix& m)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = v;
 			XMMATRIX M = XMLoadFloat4x4(reinterpret_cast<const XMFLOAT4X4*>(&m));
 			XMVECTOR X = XMVector2TransformNormal(v1, M);
 
-			Vector2 result;
+			float2 result;
 			XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(&result), X);
 			return result;
 		}
 
 		_Use_decl_annotations_
-			void Vector2::TransformNormal(const Vector2* varray, size_t count, const Matrix& m, Vector2* resultArray)
+			void float2::TransformNormal(const float2* varray, size_t count, const Matrix& m, float2* resultArray)
 		{
 			using namespace DirectX;
 			XMMATRIX M = XMLoadFloat4x4(reinterpret_cast<const XMFLOAT4X4*>(&m));
 			XMVector2TransformNormalStream(reinterpret_cast<XMFLOAT2*>(resultArray), sizeof(XMFLOAT2), reinterpret_cast<const XMFLOAT2*>(varray), sizeof(XMFLOAT2), count, M);
 		}
 
-		const Vector2 Vector2::Zero = { 0.f, 0.f };
-		const Vector2 Vector2::One = { 1.f, 1.f };
-		const Vector2 Vector2::UnitX = { 1.f, 0.f };
-		const Vector2 Vector2::UnitY = { 0.f, 1.f };
+		const float2 float2::Zero = { 0.f, 0.f };
+		const float2 float2::One = { 1.f, 1.f };
+		const float2 float2::UnitX = { 1.f, 0.f };
+		const float2 float2::UnitY = { 0.f, 1.f };
 
 		/****************************************************************************
 		*
-		* Vector3
+		* float3
 		*
 		****************************************************************************/
 
-		Vector3::Vector3() : x(0.f), y(0.f), z(0.f) {}
-		Vector3::Vector3(float x) : x(x), y(x), z(x) {}
-		Vector3::Vector3(float x, float y, float z) : x(x), y(y), z(z) {}
-		Vector3::Vector3(_In_reads_(3) const float *pArray) : x(pArray[0]), y(pArray[1]), z(pArray[2]) {}
-		Vector3::Vector3(const __m128& V) { using namespace DirectX; XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(this), V); }
-		Vector3::Vector3(const Vector3& V) { this->x = V.x; this->y = V.y; this->z = V.z; }
+		float3::float3() : x(0.f), y(0.f), z(0.f) {}
+		float3::float3(float x) : x(x), y(x), z(x) {}
+		float3::float3(float x, float y, float z) : x(x), y(y), z(z) {}
+		float3::float3(_In_reads_(3) const float *pArray) : x(pArray[0]), y(pArray[1]), z(pArray[2]) {}
+		float3::float3(const __m128& V) { using namespace DirectX; XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(this), V); }
+		float3::float3(const float3& V) { this->x = V.x; this->y = V.y; this->z = V.z; }
 
-		Vector3::operator __m128() const
+		float3::operator __m128() const
 		{
 			using namespace DirectX;
 
@@ -923,7 +923,7 @@ namespace eastengine
 		// Comparision operators
 		//------------------------------------------------------------------------------
 
-		bool Vector3::operator == (const Vector3& V) const
+		bool float3::operator == (const float3& V) const
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -931,7 +931,7 @@ namespace eastengine
 			return XMVector3Equal(v1, v2);
 		}
 
-		bool Vector3::operator != (const Vector3& V) const
+		bool float3::operator != (const float3& V) const
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -943,7 +943,7 @@ namespace eastengine
 		// Assignment operators
 		//------------------------------------------------------------------------------
 
-		Vector3& Vector3::operator+= (const Vector3& V)
+		float3& float3::operator+= (const float3& V)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -953,7 +953,7 @@ namespace eastengine
 			return *this;
 		}
 
-		Vector3& Vector3::operator-= (const Vector3& V)
+		float3& float3::operator-= (const float3& V)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -963,7 +963,7 @@ namespace eastengine
 			return *this;
 		}
 
-		Vector3& Vector3::operator*= (const Vector3& V)
+		float3& float3::operator*= (const float3& V)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -973,7 +973,7 @@ namespace eastengine
 			return *this;
 		}
 
-		Vector3& Vector3::operator/= (const Vector3& V)
+		float3& float3::operator/= (const float3& V)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -983,7 +983,7 @@ namespace eastengine
 			return *this;
 		}
 
-		Vector3& Vector3::operator*= (float S)
+		float3& float3::operator*= (float S)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -992,7 +992,7 @@ namespace eastengine
 			return *this;
 		}
 
-		Vector3& Vector3::operator/= (float S)
+		float3& float3::operator/= (float S)
 		{
 			using namespace DirectX;
 			assert(S != 0.0f);
@@ -1006,12 +1006,12 @@ namespace eastengine
 		// Urnary operators
 		//------------------------------------------------------------------------------
 
-		Vector3 Vector3::operator- () const
+		float3 float3::operator- () const
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
 			XMVECTOR X = XMVectorNegate(v1);
-			Vector3 R;
+			float3 R;
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&R), X);
 			return R;
 		}
@@ -1020,76 +1020,77 @@ namespace eastengine
 		// Binary operators
 		//------------------------------------------------------------------------------
 
-		Vector3 operator+ (const Vector3& V1, const Vector3& V2)
+		float3 operator+ (const float3& V1, const float3& V2)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = V1;
 			XMVECTOR v2 = V2;
 			XMVECTOR X = XMVectorAdd(v1, v2);
-			Vector3 R;
+			float3 R;
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&R), X);
 			return R;
 		}
 
-		Vector3 operator- (const Vector3& V1, const Vector3& V2)
+		float3 operator- (const float3& V1, const float3& V2)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = V1;
 			XMVECTOR v2 = V2;
 			XMVECTOR X = XMVectorSubtract(v1, v2);
-			Vector3 R;
+			float3 R;
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&R), X);
 			return R;
 		}
 
-		Vector3 operator* (const Vector3& V1, const Vector3& V2)
+		float3 operator* (const float3& V1, const float3& V2)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = V1;
 			XMVECTOR v2 = V2;
 			XMVECTOR X = XMVectorMultiply(v1, v2);
-			Vector3 R;
+			float3 R;
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&R), X);
 			return R;
 		}
 
-		Vector3 operator* (const Vector3& V, float S)
+		float3 operator* (const float3& V, float S)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = V;
 			XMVECTOR X = XMVectorScale(v1, S);
-			Vector3 R;
+			float3 R;
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&R), X);
 			return R;
 		}
 
-		Vector3 operator/ (const Vector3& V1, const Vector3& V2)
+		float3 operator/ (const float3& V1, const float3& V2)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = V1;
 			XMVECTOR v2 = V2;
 			XMVECTOR X = XMVectorDivide(v1, v2);
-			Vector3 R;
+			float3 R;
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&R), X);
 			return R;
 		}
 
-		Vector3 operator/ (const Vector3& V, float S)
+		float3 operator/ (const float3& V, float S)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = V;
-			XMVECTOR X = XMVectorScale(v1, 1.f / S);
-			Vector3 R;
+			XMVECTOR v2 = XMVectorSet(S, S, S, S);
+			XMVECTOR X = XMVectorDivide(v1, v2);
+			float3 R;
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&R), X);
 			return R;
 		}
 
-		Vector3 operator* (float S, const Vector3& V)
+		float3 operator* (float S, const float3& V)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = V;
 			XMVECTOR X = XMVectorScale(v1, S);
-			Vector3 R;
+			float3 R;
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&R), X);
 			return R;
 		}
@@ -1098,7 +1099,7 @@ namespace eastengine
 		// Vector operations
 		//------------------------------------------------------------------------------
 
-		bool Vector3::InBounds(const Vector3& Bounds) const
+		bool float3::InBounds(const float3& Bounds) const
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -1106,7 +1107,7 @@ namespace eastengine
 			return XMVector3InBounds(v1, v2);
 		}
 
-		float Vector3::Length() const
+		float float3::Length() const
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -1114,7 +1115,7 @@ namespace eastengine
 			return XMVectorGetX(X);
 		}
 
-		float Vector3::LengthSquared() const
+		float float3::LengthSquared() const
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -1122,7 +1123,7 @@ namespace eastengine
 			return XMVectorGetX(X);
 		}
 
-		float Vector3::Dot(const Vector3& V) const
+		float float3::Dot(const float3& V) const
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -1131,7 +1132,7 @@ namespace eastengine
 			return XMVectorGetX(X);
 		}
 
-		void Vector3::Cross(const Vector3& V, Vector3& result) const
+		void float3::Cross(const float3& V, float3& result) const
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -1140,19 +1141,19 @@ namespace eastengine
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&result), R);
 		}
 
-		Vector3 Vector3::Cross(const Vector3& V) const
+		float3 float3::Cross(const float3& V) const
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
 			XMVECTOR v2 = V;
 			XMVECTOR R = XMVector3Cross(v1, v2);
 
-			Vector3 result;
+			float3 result;
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&result), R);
 			return result;
 		}
 
-		void Vector3::Normalize()
+		void float3::Normalize()
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -1160,7 +1161,7 @@ namespace eastengine
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(this), X);
 		}
 
-		void Vector3::Normalize(Vector3& result) const
+		void float3::Normalize(float3& result) const
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -1168,7 +1169,7 @@ namespace eastengine
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&result), X);
 		}
 
-		void Vector3::Clamp(const Vector3& vmin, const Vector3& vmax)
+		void float3::Clamp(const float3& vmin, const float3& vmax)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -1178,7 +1179,7 @@ namespace eastengine
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(this), X);
 		}
 
-		void Vector3::Clamp(const Vector3& vmin, const Vector3& vmax, Vector3& result) const
+		void float3::Clamp(const float3& vmin, const float3& vmax, float3& result) const
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -1192,7 +1193,7 @@ namespace eastengine
 		// Static functions
 		//------------------------------------------------------------------------------
 
-		float Vector3::Distance(const Vector3& v1, const Vector3& v2)
+		float float3::Distance(const float3& v1, const float3& v2)
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = v1;
@@ -1202,7 +1203,7 @@ namespace eastengine
 			return XMVectorGetX(X);
 		}
 
-		float Vector3::DistanceSquared(const Vector3& v1, const Vector3& v2)
+		float float3::DistanceSquared(const float3& v1, const float3& v2)
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = v1;
@@ -1212,7 +1213,7 @@ namespace eastengine
 			return XMVectorGetX(X);
 		}
 
-		void Vector3::Min(const Vector3& v1, const Vector3& v2, Vector3& result)
+		void float3::Min(const float3& v1, const float3& v2, float3& result)
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = v1;
@@ -1221,19 +1222,19 @@ namespace eastengine
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&result), X);
 		}
 
-		Vector3 Vector3::Min(const Vector3& v1, const Vector3& v2)
+		float3 float3::Min(const float3& v1, const float3& v2)
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = v1;
 			XMVECTOR x2 = v2;
 			XMVECTOR X = XMVectorMin(x1, x2);
 
-			Vector3 result;
+			float3 result;
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&result), X);
 			return result;
 		}
 
-		void Vector3::Max(const Vector3& v1, const Vector3& v2, Vector3& result)
+		void float3::Max(const float3& v1, const float3& v2, float3& result)
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = v1;
@@ -1242,19 +1243,19 @@ namespace eastengine
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&result), X);
 		}
 
-		Vector3 Vector3::Max(const Vector3& v1, const Vector3& v2)
+		float3 float3::Max(const float3& v1, const float3& v2)
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = v1;
 			XMVECTOR x2 = v2;
 			XMVECTOR X = XMVectorMax(x1, x2);
 
-			Vector3 result;
+			float3 result;
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&result), X);
 			return result;
 		}
 
-		void Vector3::Lerp(const Vector3& v1, const Vector3& v2, float t, Vector3& result)
+		void float3::Lerp(const float3& v1, const float3& v2, float t, float3& result)
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = v1;
@@ -1263,19 +1264,19 @@ namespace eastengine
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&result), X);
 		}
 
-		Vector3 Vector3::Lerp(const Vector3& v1, const Vector3& v2, float t)
+		float3 float3::Lerp(const float3& v1, const float3& v2, float t)
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = v1;
 			XMVECTOR x2 = v2;
 			XMVECTOR X = XMVectorLerp(x1, x2, t);
 
-			Vector3 result;
+			float3 result;
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&result), X);
 			return result;
 		}
 
-		void Vector3::SmoothStep(const Vector3& v1, const Vector3& v2, float t, Vector3& result)
+		void float3::SmoothStep(const float3& v1, const float3& v2, float t, float3& result)
 		{
 			using namespace DirectX;
 			t = (t > 1.0f) ? 1.0f : ((t < 0.0f) ? 0.0f : t);  // Clamp value to 0 to 1
@@ -1286,7 +1287,7 @@ namespace eastengine
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&result), X);
 		}
 
-		Vector3 Vector3::SmoothStep(const Vector3& v1, const Vector3& v2, float t)
+		float3 float3::SmoothStep(const float3& v1, const float3& v2, float t)
 		{
 			using namespace DirectX;
 			t = (t > 1.0f) ? 1.0f : ((t < 0.0f) ? 0.0f : t);  // Clamp value to 0 to 1
@@ -1295,12 +1296,12 @@ namespace eastengine
 			XMVECTOR x2 = v2;
 			XMVECTOR X = XMVectorLerp(x1, x2, t);
 
-			Vector3 result;
+			float3 result;
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&result), X);
 			return result;
 		}
 
-		void Vector3::Barycentric(const Vector3& v1, const Vector3& v2, const Vector3& v3, float f, float g, Vector3& result)
+		void float3::Barycentric(const float3& v1, const float3& v2, const float3& v3, float f, float g, float3& result)
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = v1;
@@ -1310,7 +1311,7 @@ namespace eastengine
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&result), X);
 		}
 
-		Vector3 Vector3::Barycentric(const Vector3& v1, const Vector3& v2, const Vector3& v3, float f, float g)
+		float3 float3::Barycentric(const float3& v1, const float3& v2, const float3& v3, float f, float g)
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = v1;
@@ -1318,12 +1319,12 @@ namespace eastengine
 			XMVECTOR x3 = v3;;
 			XMVECTOR X = XMVectorBaryCentric(x1, x2, x3, f, g);
 
-			Vector3 result;
+			float3 result;
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&result), X);
 			return result;
 		}
 
-		void Vector3::CatmullRom(const Vector3& v1, const Vector3& v2, const Vector3& v3, const Vector3& v4, float t, Vector3& result)
+		void float3::CatmullRom(const float3& v1, const float3& v2, const float3& v3, const float3& v4, float t, float3& result)
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = v1;
@@ -1334,7 +1335,7 @@ namespace eastengine
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&result), X);
 		}
 
-		Vector3 Vector3::CatmullRom(const Vector3& v1, const Vector3& v2, const Vector3& v3, const Vector3& v4, float t)
+		float3 float3::CatmullRom(const float3& v1, const float3& v2, const float3& v3, const float3& v4, float t)
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = v1;
@@ -1343,12 +1344,12 @@ namespace eastengine
 			XMVECTOR x4 = v4;;
 			XMVECTOR X = XMVectorCatmullRom(x1, x2, x3, x4, t);
 
-			Vector3 result;
+			float3 result;
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&result), X);
 			return result;
 		}
 
-		void Vector3::Hermite(const Vector3& v1, const Vector3& t1, const Vector3& v2, const Vector3& t2, float t, Vector3& result)
+		void float3::Hermite(const float3& v1, const float3& t1, const float3& v2, const float3& t2, float t, float3& result)
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = v1;
@@ -1359,7 +1360,7 @@ namespace eastengine
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&result), X);
 		}
 
-		Vector3 Vector3::Hermite(const Vector3& v1, const Vector3& t1, const Vector3& v2, const Vector3& t2, float t)
+		float3 float3::Hermite(const float3& v1, const float3& t1, const float3& v2, const float3& t2, float t)
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = v1;
@@ -1368,12 +1369,12 @@ namespace eastengine
 			XMVECTOR x4 = t2;
 			XMVECTOR X = XMVectorHermite(x1, x2, x3, x4, t);
 
-			Vector3 result;
+			float3 result;
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&result), X);
 			return result;
 		}
 
-		void Vector3::Reflect(const Vector3& ivec, const Vector3& nvec, Vector3& result)
+		void float3::Reflect(const float3& ivec, const float3& nvec, float3& result)
 		{
 			using namespace DirectX;
 			XMVECTOR i = ivec;
@@ -1382,19 +1383,19 @@ namespace eastengine
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&result), X);
 		}
 
-		Vector3 Vector3::Reflect(const Vector3& ivec, const Vector3& nvec)
+		float3 float3::Reflect(const float3& ivec, const float3& nvec)
 		{
 			using namespace DirectX;
 			XMVECTOR i = ivec;
 			XMVECTOR n = nvec;
 			XMVECTOR X = XMVector3Reflect(i, n);
 
-			Vector3 result;
+			float3 result;
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&result), X);
 			return result;
 		}
 
-		void Vector3::Refract(const Vector3& ivec, const Vector3& nvec, float refractionIndex, Vector3& result)
+		void float3::Refract(const float3& ivec, const float3& nvec, float refractionIndex, float3& result)
 		{
 			using namespace DirectX;
 			XMVECTOR i = ivec;
@@ -1403,19 +1404,19 @@ namespace eastengine
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&result), X);
 		}
 
-		Vector3 Vector3::Refract(const Vector3& ivec, const Vector3& nvec, float refractionIndex)
+		float3 float3::Refract(const float3& ivec, const float3& nvec, float refractionIndex)
 		{
 			using namespace DirectX;
 			XMVECTOR i = ivec;
 			XMVECTOR n = nvec;
 			XMVECTOR X = XMVector3Refract(i, n, refractionIndex);
 
-			Vector3 result;
+			float3 result;
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&result), X);
 			return result;
 		}
 
-		void Vector3::Transform(const Vector3& v, const Quaternion& quat, Vector3& result)
+		void float3::Transform(const float3& v, const Quaternion& quat, float3& result)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = v;
@@ -1424,19 +1425,19 @@ namespace eastengine
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&result), X);
 		}
 
-		Vector3 Vector3::Transform(const Vector3& v, const Quaternion& quat)
+		float3 float3::Transform(const float3& v, const Quaternion& quat)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = v;
 			XMVECTOR q = quat;
 			XMVECTOR X = XMVector3Rotate(v1, q);
 
-			Vector3 result;
+			float3 result;
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&result), X);
 			return result;
 		}
 
-		void Vector3::Transform(const Vector3& v, const Matrix& m, Vector3& result)
+		void float3::Transform(const float3& v, const Matrix& m, float3& result)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = v;
@@ -1445,27 +1446,27 @@ namespace eastengine
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&result), X);
 		}
 
-		Vector3 Vector3::Transform(const Vector3& v, const Matrix& m)
+		float3 float3::Transform(const float3& v, const Matrix& m)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = v;
 			XMMATRIX M = XMLoadFloat4x4(reinterpret_cast<const XMFLOAT4X4*>(&m));
 			XMVECTOR X = XMVector3TransformCoord(v1, M);
 
-			Vector3 result;
+			float3 result;
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&result), X);
 			return result;
 		}
 
 		_Use_decl_annotations_
-			void Vector3::Transform(const Vector3* varray, size_t count, const Matrix& m, Vector3* resultArray)
+			void float3::Transform(const float3* varray, size_t count, const Matrix& m, float3* resultArray)
 		{
 			using namespace DirectX;
 			XMMATRIX M = XMLoadFloat4x4(reinterpret_cast<const XMFLOAT4X4*>(&m));
 			XMVector3TransformCoordStream(reinterpret_cast<XMFLOAT3*>(resultArray), sizeof(XMFLOAT3), reinterpret_cast<const XMFLOAT3*>(varray), sizeof(XMFLOAT3), count, M);
 		}
 
-		void Vector3::Transform(const Vector3& v, const Matrix& m, Vector4& result)
+		void float3::Transform(const float3& v, const Matrix& m, float4& result)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = v;
@@ -1475,14 +1476,14 @@ namespace eastengine
 		}
 
 		_Use_decl_annotations_
-			void Vector3::Transform(const Vector3* varray, size_t count, const Matrix& m, Vector4* resultArray)
+			void float3::Transform(const float3* varray, size_t count, const Matrix& m, float4* resultArray)
 		{
 			using namespace DirectX;
 			XMMATRIX M = XMLoadFloat4x4(reinterpret_cast<const XMFLOAT4X4*>(&m));
 			XMVector3TransformStream(reinterpret_cast<XMFLOAT4*>(resultArray), sizeof(XMFLOAT4), reinterpret_cast<const XMFLOAT3*>(varray), sizeof(XMFLOAT3), count, M);
 		}
 
-		void Vector3::TransformNormal(const Vector3& v, const Matrix& m, Vector3& result)
+		void float3::TransformNormal(const float3& v, const Matrix& m, float3& result)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = v;
@@ -1491,64 +1492,64 @@ namespace eastengine
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&result), X);
 		}
 
-		Vector3 Vector3::TransformNormal(const Vector3& v, const Matrix& m)
+		float3 float3::TransformNormal(const float3& v, const Matrix& m)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = v;
 			XMMATRIX M = XMLoadFloat4x4(reinterpret_cast<const XMFLOAT4X4*>(&m));
 			XMVECTOR X = XMVector3TransformNormal(v1, M);
 
-			Vector3 result;
+			float3 result;
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&result), X);
 			return result;
 		}
 
 		_Use_decl_annotations_
-			void Vector3::TransformNormal(const Vector3* varray, size_t count, const Matrix& m, Vector3* resultArray)
+			void float3::TransformNormal(const float3* varray, size_t count, const Matrix& m, float3* resultArray)
 		{
 			using namespace DirectX;
 			XMMATRIX M = XMLoadFloat4x4(reinterpret_cast<const XMFLOAT4X4*>(&m));
 			XMVector3TransformNormalStream(reinterpret_cast<XMFLOAT3*>(resultArray), sizeof(XMFLOAT3), reinterpret_cast<const XMFLOAT3*>(varray), sizeof(XMFLOAT3), count, M);
 		}
 
-		Vector3 FresnelTerm(const Vector3& v1, const Vector3& v2)
+		float3 FresnelTerm(const float3& v1, const float3& v2)
 		{
 			using namespace DirectX;
 			XMVECTOR V1 = v1;
 			XMVECTOR V2 = v2;
 
-			Vector3 result;
+			float3 result;
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&result), XMFresnelTerm(V1, V2));
 
 			return result;
 		}
 
-		const Vector3 Vector3::Zero = { 0.f, 0.f, 0.f };
-		const Vector3 Vector3::One = { 1.f, 1.f, 1.f };
-		const Vector3 Vector3::UnitX = { 1.f, 0.f, 0.f };
-		const Vector3 Vector3::UnitY = { 0.f, 1.f, 0.f };
-		const Vector3 Vector3::UnitZ = { 0.f, 0.f, 1.f };
-		const Vector3 Vector3::Up = { 0.f, 1.f, 0.f };
-		const Vector3 Vector3::Down = { 0.f, -1.f, 0.f };
-		const Vector3 Vector3::Right = { 1.f, 0.f, 0.f };
-		const Vector3 Vector3::Left = { -1.f, 0.f, 0.f };
-		const Vector3 Vector3::Forward = { 0.f, 0.f, 1.f };
-		const Vector3 Vector3::Backward = { 0.f, 0.f, -1.f };
+		const float3 float3::Zero = { 0.f, 0.f, 0.f };
+		const float3 float3::One = { 1.f, 1.f, 1.f };
+		const float3 float3::UnitX = { 1.f, 0.f, 0.f };
+		const float3 float3::UnitY = { 0.f, 1.f, 0.f };
+		const float3 float3::UnitZ = { 0.f, 0.f, 1.f };
+		const float3 float3::Up = { 0.f, 1.f, 0.f };
+		const float3 float3::Down = { 0.f, -1.f, 0.f };
+		const float3 float3::Right = { 1.f, 0.f, 0.f };
+		const float3 float3::Left = { -1.f, 0.f, 0.f };
+		const float3 float3::Forward = { 0.f, 0.f, 1.f };
+		const float3 float3::Backward = { 0.f, 0.f, -1.f };
 
 		/****************************************************************************
 		*
-		* Vector4
+		* float4
 		*
 		****************************************************************************/
 
-		Vector4::Vector4() : x(0.f), y(0.f), z(0.f), w(0.f) {}
-		Vector4::Vector4(float x) : x(x), y(x), z(x), w(x) {}
-		Vector4::Vector4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
-		Vector4::Vector4(_In_reads_(4) const float *pArray) : x(pArray[0]), y(pArray[1]), z(pArray[2]), w(pArray[3]) {}
-		Vector4::Vector4(const __m128& V) { using namespace DirectX; XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(this), V); }
-		Vector4::Vector4(const Vector4& V) { this->x = V.x; this->y = V.y; this->z = V.z; this->w = V.w; }
+		float4::float4() : x(0.f), y(0.f), z(0.f), w(0.f) {}
+		float4::float4(float x) : x(x), y(x), z(x), w(x) {}
+		float4::float4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
+		float4::float4(_In_reads_(4) const float *pArray) : x(pArray[0]), y(pArray[1]), z(pArray[2]), w(pArray[3]) {}
+		float4::float4(const __m128& V) { using namespace DirectX; XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(this), V); }
+		float4::float4(const float4& V) { this->x = V.x; this->y = V.y; this->z = V.z; this->w = V.w; }
 
-		Vector4::operator __m128() const
+		float4::operator __m128() const
 		{
 			using namespace DirectX;
 
@@ -1559,7 +1560,7 @@ namespace eastengine
 		// Comparision operators
 		//------------------------------------------------------------------------------
 
-		bool Vector4::operator == (const Vector4& V) const
+		bool float4::operator == (const float4& V) const
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -1567,7 +1568,7 @@ namespace eastengine
 			return XMVector4Equal(v1, v2);
 		}
 
-		bool Vector4::operator != (const Vector4& V) const
+		bool float4::operator != (const float4& V) const
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -1579,7 +1580,7 @@ namespace eastengine
 		// Assignment operators
 		//------------------------------------------------------------------------------
 
-		Vector4& Vector4::operator+= (const Vector4& V)
+		float4& float4::operator+= (const float4& V)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -1589,7 +1590,7 @@ namespace eastengine
 			return *this;
 		}
 
-		Vector4& Vector4::operator-= (const Vector4& V)
+		float4& float4::operator-= (const float4& V)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -1599,7 +1600,7 @@ namespace eastengine
 			return *this;
 		}
 
-		Vector4& Vector4::operator*= (const Vector4& V)
+		float4& float4::operator*= (const float4& V)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -1609,7 +1610,7 @@ namespace eastengine
 			return *this;
 		}
 
-		Vector4& Vector4::operator*= (float S)
+		float4& float4::operator*= (float S)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -1618,7 +1619,7 @@ namespace eastengine
 			return *this;
 		}
 
-		Vector4& Vector4::operator/= (float S)
+		float4& float4::operator/= (float S)
 		{
 			using namespace DirectX;
 			assert(S != 0.0f);
@@ -1632,12 +1633,12 @@ namespace eastengine
 		// Urnary operators
 		//------------------------------------------------------------------------------
 
-		Vector4 Vector4::operator- () const
+		float4 float4::operator- () const
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
 			XMVECTOR X = XMVectorNegate(v1);
-			Vector4 R;
+			float4 R;
 			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&R), X);
 			return R;
 		}
@@ -1646,66 +1647,78 @@ namespace eastengine
 		// Binary operators
 		//------------------------------------------------------------------------------
 
-		Vector4 operator+ (const Vector4& V1, const Vector4& V2)
+		float4 operator+ (const float4& V1, const float4& V2)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = V1;
 			XMVECTOR v2 = V2;
 			XMVECTOR X = XMVectorAdd(v1, v2);
-			Vector4 R;
+			float4 R;
 			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&R), X);
 			return R;
 		}
 
-		Vector4 operator- (const Vector4& V1, const Vector4& V2)
+		float4 operator- (const float4& V1, const float4& V2)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = V1;
 			XMVECTOR v2 = V2;
 			XMVECTOR X = XMVectorSubtract(v1, v2);
-			Vector4 R;
+			float4 R;
 			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&R), X);
 			return R;
 		}
 
-		Vector4 operator* (const Vector4& V1, const Vector4& V2)
+		float4 operator* (const float4& V1, const float4& V2)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = V1;
 			XMVECTOR v2 = V2;
 			XMVECTOR X = XMVectorMultiply(v1, v2);
-			Vector4 R;
+			float4 R;
 			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&R), X);
 			return R;
 		}
 
-		Vector4 operator* (const Vector4& V, float S)
+		float4 operator* (const float4& V, float S)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = V;
 			XMVECTOR X = XMVectorScale(v1, S);
-			Vector4 R;
+			float4 R;
 			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&R), X);
 			return R;
 		}
 
-		Vector4 operator/ (const Vector4& V1, const Vector4& V2)
+		float4 operator/ (const float4& V1, const float4& V2)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = V1;
 			XMVECTOR v2 = V2;
 			XMVECTOR X = XMVectorDivide(v1, v2);
-			Vector4 R;
+			float4 R;
 			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&R), X);
 			return R;
 		}
 
-		Vector4 operator* (float S, const Vector4& V)
+		float4 operator/ (const float4& V, float S)
+		{
+			using namespace DirectX;
+
+			XMVECTOR v1 = V;
+			XMVECTOR v2 = XMVectorSet(S, S, S, S);
+			XMVECTOR X = XMVectorDivide(v1, v2);
+			float4 R;
+			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&R), X);
+			return R;
+		}
+
+		float4 operator* (float S, const float4& V)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = V;
 			XMVECTOR X = XMVectorScale(v1, S);
-			Vector4 R;
+			float4 R;
 			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&R), X);
 			return R;
 		}
@@ -1714,7 +1727,7 @@ namespace eastengine
 		// Vector operations
 		//------------------------------------------------------------------------------
 
-		bool Vector4::InBounds(const Vector4& Bounds) const
+		bool float4::InBounds(const float4& Bounds) const
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -1722,7 +1735,7 @@ namespace eastengine
 			return XMVector4InBounds(v1, v2);
 		}
 
-		float Vector4::Length() const
+		float float4::Length() const
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -1730,7 +1743,7 @@ namespace eastengine
 			return XMVectorGetX(X);
 		}
 
-		float Vector4::LengthSquared() const
+		float float4::LengthSquared() const
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -1738,7 +1751,7 @@ namespace eastengine
 			return XMVectorGetX(X);
 		}
 
-		float Vector4::Dot(const Vector4& V) const
+		float float4::Dot(const float4& V) const
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -1747,7 +1760,7 @@ namespace eastengine
 			return XMVectorGetX(X);
 		}
 
-		void Vector4::Cross(const Vector4& v1, const Vector4& v2, Vector4& result) const
+		void float4::Cross(const float4& v1, const float4& v2, float4& result) const
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = *this;
@@ -1757,7 +1770,7 @@ namespace eastengine
 			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&result), R);
 		}
 
-		Vector4 Vector4::Cross(const Vector4& v1, const Vector4& v2) const
+		float4 float4::Cross(const float4& v1, const float4& v2) const
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = *this;
@@ -1765,12 +1778,12 @@ namespace eastengine
 			XMVECTOR x3 = v2;
 			XMVECTOR R = XMVector4Cross(x1, x2, x3);
 
-			Vector4 result;
+			float4 result;
 			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&result), R);
 			return result;
 		}
 
-		void Vector4::Normalize()
+		void float4::Normalize()
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -1778,7 +1791,7 @@ namespace eastengine
 			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(this), X);
 		}
 
-		void Vector4::Normalize(Vector4& result) const
+		void float4::Normalize(float4& result) const
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -1786,7 +1799,7 @@ namespace eastengine
 			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&result), X);
 		}
 
-		void Vector4::Clamp(const Vector4& vmin, const Vector4& vmax)
+		void float4::Clamp(const float4& vmin, const float4& vmax)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -1796,7 +1809,7 @@ namespace eastengine
 			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(this), X);
 		}
 
-		void Vector4::Clamp(const Vector4& vmin, const Vector4& vmax, Vector4& result) const
+		void float4::Clamp(const float4& vmin, const float4& vmax, float4& result) const
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = *this;
@@ -1810,7 +1823,7 @@ namespace eastengine
 		// Static functions
 		//------------------------------------------------------------------------------
 
-		float Vector4::Distance(const Vector4& v1, const Vector4& v2)
+		float float4::Distance(const float4& v1, const float4& v2)
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = v1;
@@ -1820,7 +1833,7 @@ namespace eastengine
 			return XMVectorGetX(X);
 		}
 
-		float Vector4::DistanceSquared(const Vector4& v1, const Vector4& v2)
+		float float4::DistanceSquared(const float4& v1, const float4& v2)
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = v1;
@@ -1830,7 +1843,7 @@ namespace eastengine
 			return XMVectorGetX(X);
 		}
 
-		void Vector4::Min(const Vector4& v1, const Vector4& v2, Vector4& result)
+		void float4::Min(const float4& v1, const float4& v2, float4& result)
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = v1;
@@ -1839,19 +1852,19 @@ namespace eastengine
 			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&result), X);
 		}
 
-		Vector4 Vector4::Min(const Vector4& v1, const Vector4& v2)
+		float4 float4::Min(const float4& v1, const float4& v2)
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = v1;
 			XMVECTOR x2 = v2;
 			XMVECTOR X = XMVectorMin(x1, x2);
 
-			Vector4 result;
+			float4 result;
 			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&result), X);
 			return result;
 		}
 
-		void Vector4::Max(const Vector4& v1, const Vector4& v2, Vector4& result)
+		void float4::Max(const float4& v1, const float4& v2, float4& result)
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = v1;
@@ -1860,19 +1873,19 @@ namespace eastengine
 			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&result), X);
 		}
 
-		Vector4 Vector4::Max(const Vector4& v1, const Vector4& v2)
+		float4 float4::Max(const float4& v1, const float4& v2)
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = v1;
 			XMVECTOR x2 = v2;
 			XMVECTOR X = XMVectorMax(x1, x2);
 
-			Vector4 result;
+			float4 result;
 			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&result), X);
 			return result;
 		}
 
-		void Vector4::Lerp(const Vector4& v1, const Vector4& v2, float t, Vector4& result)
+		void float4::Lerp(const float4& v1, const float4& v2, float t, float4& result)
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = v1;
@@ -1881,19 +1894,19 @@ namespace eastengine
 			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&result), X);
 		}
 
-		Vector4 Vector4::Lerp(const Vector4& v1, const Vector4& v2, float t)
+		float4 float4::Lerp(const float4& v1, const float4& v2, float t)
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = v1;
 			XMVECTOR x2 = v2;
 			XMVECTOR X = XMVectorLerp(x1, x2, t);
 
-			Vector4 result;
+			float4 result;
 			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&result), X);
 			return result;
 		}
 
-		void Vector4::SmoothStep(const Vector4& v1, const Vector4& v2, float t, Vector4& result)
+		void float4::SmoothStep(const float4& v1, const float4& v2, float t, float4& result)
 		{
 			using namespace DirectX;
 			t = (t > 1.0f) ? 1.0f : ((t < 0.0f) ? 0.0f : t);  // Clamp value to 0 to 1
@@ -1904,7 +1917,7 @@ namespace eastengine
 			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&result), X);
 		}
 
-		Vector4 Vector4::SmoothStep(const Vector4& v1, const Vector4& v2, float t)
+		float4 float4::SmoothStep(const float4& v1, const float4& v2, float t)
 		{
 			using namespace DirectX;
 			t = (t > 1.0f) ? 1.0f : ((t < 0.0f) ? 0.0f : t);  // Clamp value to 0 to 1
@@ -1913,12 +1926,12 @@ namespace eastengine
 			XMVECTOR x2 = v2;
 			XMVECTOR X = XMVectorLerp(x1, x2, t);
 
-			Vector4 result;
+			float4 result;
 			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&result), X);
 			return result;
 		}
 
-		void Vector4::Barycentric(const Vector4& v1, const Vector4& v2, const Vector4& v3, float f, float g, Vector4& result)
+		void float4::Barycentric(const float4& v1, const float4& v2, const float4& v3, float f, float g, float4& result)
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = v1;
@@ -1928,7 +1941,7 @@ namespace eastengine
 			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&result), X);
 		}
 
-		Vector4 Vector4::Barycentric(const Vector4& v1, const Vector4& v2, const Vector4& v3, float f, float g)
+		float4 float4::Barycentric(const float4& v1, const float4& v2, const float4& v3, float f, float g)
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = v1;
@@ -1936,12 +1949,12 @@ namespace eastengine
 			XMVECTOR x3 = v3;
 			XMVECTOR X = XMVectorBaryCentric(x1, x2, x3, f, g);
 
-			Vector4 result;
+			float4 result;
 			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&result), X);
 			return result;
 		}
 
-		void Vector4::CatmullRom(const Vector4& v1, const Vector4& v2, const Vector4& v3, const Vector4& v4, float t, Vector4& result)
+		void float4::CatmullRom(const float4& v1, const float4& v2, const float4& v3, const float4& v4, float t, float4& result)
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = v1;
@@ -1952,7 +1965,7 @@ namespace eastengine
 			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&result), X);
 		}
 
-		Vector4 Vector4::CatmullRom(const Vector4& v1, const Vector4& v2, const Vector4& v3, const Vector4& v4, float t)
+		float4 float4::CatmullRom(const float4& v1, const float4& v2, const float4& v3, const float4& v4, float t)
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = v1;
@@ -1961,12 +1974,12 @@ namespace eastengine
 			XMVECTOR x4 = v4;
 			XMVECTOR X = XMVectorCatmullRom(x1, x2, x3, x4, t);
 
-			Vector4 result;
+			float4 result;
 			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&result), X);
 			return result;
 		}
 
-		void Vector4::Hermite(const Vector4& v1, const Vector4& t1, const Vector4& v2, const Vector4& t2, float t, Vector4& result)
+		void float4::Hermite(const float4& v1, const float4& t1, const float4& v2, const float4& t2, float t, float4& result)
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = v1;
@@ -1977,7 +1990,7 @@ namespace eastengine
 			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&result), X);
 		}
 
-		Vector4 Vector4::Hermite(const Vector4& v1, const Vector4& t1, const Vector4& v2, const Vector4& t2, float t)
+		float4 float4::Hermite(const float4& v1, const float4& t1, const float4& v2, const float4& t2, float t)
 		{
 			using namespace DirectX;
 			XMVECTOR x1 = v1;
@@ -1986,12 +1999,12 @@ namespace eastengine
 			XMVECTOR x4 = t2;
 			XMVECTOR X = XMVectorHermite(x1, x2, x3, x4, t);
 
-			Vector4 result;
+			float4 result;
 			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&result), X);
 			return result;
 		}
 
-		void Vector4::Reflect(const Vector4& ivec, const Vector4& nvec, Vector4& result)
+		void float4::Reflect(const float4& ivec, const float4& nvec, float4& result)
 		{
 			using namespace DirectX;
 			XMVECTOR i = ivec;
@@ -2000,19 +2013,19 @@ namespace eastengine
 			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&result), X);
 		}
 
-		Vector4 Vector4::Reflect(const Vector4& ivec, const Vector4& nvec)
+		float4 float4::Reflect(const float4& ivec, const float4& nvec)
 		{
 			using namespace DirectX;
 			XMVECTOR i = ivec;
 			XMVECTOR n = nvec;
 			XMVECTOR X = XMVector4Reflect(i, n);
 
-			Vector4 result;
+			float4 result;
 			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&result), X);
 			return result;
 		}
 
-		void Vector4::Refract(const Vector4& ivec, const Vector4& nvec, float refractionIndex, Vector4& result)
+		void float4::Refract(const float4& ivec, const float4& nvec, float refractionIndex, float4& result)
 		{
 			using namespace DirectX;
 			XMVECTOR i = ivec;
@@ -2021,19 +2034,19 @@ namespace eastengine
 			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&result), X);
 		}
 
-		Vector4 Vector4::Refract(const Vector4& ivec, const Vector4& nvec, float refractionIndex)
+		float4 float4::Refract(const float4& ivec, const float4& nvec, float refractionIndex)
 		{
 			using namespace DirectX;
 			XMVECTOR i = ivec;
 			XMVECTOR n = nvec;
 			XMVECTOR X = XMVector4Refract(i, n, refractionIndex);
 
-			Vector4 result;
+			float4 result;
 			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&result), X);
 			return result;
 		}
 
-		void Vector4::Transform(const Vector2& v, const Quaternion& quat, Vector4& result)
+		void float4::Transform(const float2& v, const Quaternion& quat, float4& result)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = v;
@@ -2043,7 +2056,7 @@ namespace eastengine
 			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&result), X);
 		}
 
-		Vector4 Vector4::Transform(const Vector2& v, const Quaternion& quat)
+		float4 float4::Transform(const float2& v, const Quaternion& quat)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = v;
@@ -2051,35 +2064,35 @@ namespace eastengine
 			XMVECTOR X = XMVector3Rotate(v1, q);
 			X = XMVectorSelect(g_XMIdentityR3, X, g_XMSelect1110); // result.w = 1.f
 
-			Vector4 result;
-			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&result), X);
-			return result;
-		}
-
-		void Vector4::Transform(const Vector3& v, const Quaternion& quat, Vector4& result)
-		{
-			using namespace DirectX;
-			XMVECTOR v1 = v;
-			XMVECTOR q = quat;
-			XMVECTOR X = XMVector3Rotate(v1, q);
-			X = XMVectorSelect(g_XMIdentityR3, X, g_XMSelect1110); // result.w = 1.f
-			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&result), X);
-		}
-
-		Vector4 Vector4::Transform(const Vector3& v, const Quaternion& quat)
-		{
-			using namespace DirectX;
-			XMVECTOR v1 = v;
-			XMVECTOR q = quat;
-			XMVECTOR X = XMVector3Rotate(v1, q);
-			X = XMVectorSelect(g_XMIdentityR3, X, g_XMSelect1110); // result.w = 1.f
-
-			Vector4 result;
+			float4 result;
 			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&result), X);
 			return result;
 		}
 
-		void Vector4::Transform(const Vector4& v, const Quaternion& quat, Vector4& result)
+		void float4::Transform(const float3& v, const Quaternion& quat, float4& result)
+		{
+			using namespace DirectX;
+			XMVECTOR v1 = v;
+			XMVECTOR q = quat;
+			XMVECTOR X = XMVector3Rotate(v1, q);
+			X = XMVectorSelect(g_XMIdentityR3, X, g_XMSelect1110); // result.w = 1.f
+			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&result), X);
+		}
+
+		float4 float4::Transform(const float3& v, const Quaternion& quat)
+		{
+			using namespace DirectX;
+			XMVECTOR v1 = v;
+			XMVECTOR q = quat;
+			XMVECTOR X = XMVector3Rotate(v1, q);
+			X = XMVectorSelect(g_XMIdentityR3, X, g_XMSelect1110); // result.w = 1.f
+
+			float4 result;
+			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&result), X);
+			return result;
+		}
+
+		void float4::Transform(const float4& v, const Quaternion& quat, float4& result)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = v;
@@ -2089,7 +2102,7 @@ namespace eastengine
 			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&result), X);
 		}
 
-		Vector4 Vector4::Transform(const Vector4& v, const Quaternion& quat)
+		float4 float4::Transform(const float4& v, const Quaternion& quat)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = v;
@@ -2097,12 +2110,12 @@ namespace eastengine
 			XMVECTOR X = XMVector3Rotate(v1, q);
 			X = XMVectorSelect(v1, X, g_XMSelect1110); // result.w = v.w
 
-			Vector4 result;
+			float4 result;
 			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&result), X);
 			return result;
 		}
 
-		void Vector4::Transform(const Vector4& v, const Matrix& m, Vector4& result)
+		void float4::Transform(const float4& v, const Matrix& m, float4& result)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = v;
@@ -2111,32 +2124,32 @@ namespace eastengine
 			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&result), X);
 		}
 
-		Vector4 Vector4::Transform(const Vector4& v, const Matrix& m)
+		float4 float4::Transform(const float4& v, const Matrix& m)
 		{
 			using namespace DirectX;
 			XMVECTOR v1 = v;
 			XMMATRIX M = XMLoadFloat4x4(reinterpret_cast<const XMFLOAT4X4*>(&m));
 			XMVECTOR X = XMVector4Transform(v1, M);
 
-			Vector4 result;
+			float4 result;
 			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&result), X);
 			return result;
 		}
 
 		_Use_decl_annotations_
-			void Vector4::Transform(const Vector4* varray, size_t count, const Matrix& m, Vector4* resultArray)
+			void float4::Transform(const float4* varray, size_t count, const Matrix& m, float4* resultArray)
 		{
 			using namespace DirectX;
 			XMMATRIX M = XMLoadFloat4x4(reinterpret_cast<const XMFLOAT4X4*>(&m));
 			XMVector4TransformStream(reinterpret_cast<XMFLOAT4*>(resultArray), sizeof(XMFLOAT4), reinterpret_cast<const XMFLOAT4*>(varray), sizeof(XMFLOAT4), count, M);
 		}
 
-		const Vector4 Vector4::Zero = { 0.f, 0.f, 0.f, 0.f };
-		const Vector4 Vector4::One = { 1.f, 1.f, 1.f, 1.f };
-		const Vector4 Vector4::UnitX = { 1.f, 0.f, 0.f, 0.f };
-		const Vector4 Vector4::UnitY = { 0.f, 1.f, 0.f, 0.f };
-		const Vector4 Vector4::UnitZ = { 0.f, 0.f, 1.f, 0.f };
-		const Vector4 Vector4::UnitW = { 0.f, 0.f, 0.f, 1.f };
+		const float4 float4::Zero = { 0.f, 0.f, 0.f, 0.f };
+		const float4 float4::One = { 1.f, 1.f, 1.f, 1.f };
+		const float4 float4::UnitX = { 1.f, 0.f, 0.f, 0.f };
+		const float4 float4::UnitY = { 0.f, 1.f, 0.f, 0.f };
+		const float4 float4::UnitZ = { 0.f, 0.f, 1.f, 0.f };
+		const float4 float4::UnitW = { 0.f, 0.f, 0.f, 1.f };
 
 		/****************************************************************************
 		*
@@ -2159,13 +2172,13 @@ namespace eastengine
 			, _31(m20), _32(m21), _33(m22), _34(m23)
 			, _41(m30), _42(m31), _43(m32), _44(m33)
 		{}
-		Matrix::Matrix(const Vector3& r0, const Vector3& r1, const Vector3& r2)
+		Matrix::Matrix(const float3& r0, const float3& r1, const float3& r2)
 			: _11(r0.x), _12(r0.y), _13(r0.z), _14(0.f)
 			, _21(r1.x), _22(r1.y), _23(r1.z), _24(0.f)
 			, _31(r2.x), _32(r2.y), _33(r2.z), _34(0.f)
 			, _41(0.f), _42(0.f), _43(0.f), _44(0.f)
 		{}
-		Matrix::Matrix(const Vector4& r0, const Vector4& r1, const Vector4& r2, const Vector4& r3)
+		Matrix::Matrix(const float4& r0, const float4& r1, const float4& r2, const float4& r3)
 			: _11(r0.x), _12(r0.y), _13(r0.z), _14(r0.w)
 			, _21(r1.x), _22(r1.y), _23(r1.z), _24(r1.w)
 			, _31(r2.x), _32(r2.y), _33(r2.z), _34(r2.w)
@@ -2538,7 +2551,7 @@ namespace eastengine
 		// Matrix operations
 		//------------------------------------------------------------------------------
 
-		bool Matrix::Decompose(Vector3& scale, Quaternion& rotation, Vector3& translation) const
+		bool Matrix::Decompose(float3& scale, Quaternion& rotation, float3& translation) const
 		{
 			using namespace DirectX;
 
@@ -2555,14 +2568,14 @@ namespace eastengine
 			return true;
 		}
 
-		Matrix Matrix::Compose(const Vector3& scale, const Quaternion& rotation, const Vector3& translation)
+		Matrix Matrix::Compose(const float3& scale, const Quaternion& rotation, const float3& translation)
 		{
 			Matrix result;
 			Compose(scale, rotation, translation, result);
 			return result;
 		}
 
-		void Matrix::Compose(const Vector3& scale, const Quaternion& rotation, const Vector3& translation, Matrix& result)
+		void Matrix::Compose(const float3& scale, const Quaternion& rotation, const float3& translation, Matrix& result)
 		{
 			using namespace DirectX;
 
@@ -2621,7 +2634,7 @@ namespace eastengine
 		//------------------------------------------------------------------------------
 
 		_Use_decl_annotations_
-			Matrix Matrix::CreateBillboard(const Vector3& object, const Vector3& cameraPosition, const Vector3& cameraUp, const Vector3* cameraForward)
+			Matrix Matrix::CreateBillboard(const float3& object, const float3& cameraPosition, const float3& cameraUp, const float3* cameraForward)
 		{
 			using namespace DirectX;
 			XMVECTOR O = object;
@@ -2664,8 +2677,8 @@ namespace eastengine
 		}
 
 		_Use_decl_annotations_
-			Matrix Matrix::CreateConstrainedBillboard(const Vector3& object, const Vector3& cameraPosition, const Vector3& rotateAxis,
-				const Vector3* cameraForward, const Vector3* objectForward)
+			Matrix Matrix::CreateConstrainedBillboard(const float3& object, const float3& cameraPosition, const float3& rotateAxis,
+				const float3* cameraForward, const float3* objectForward)
 		{
 			using namespace DirectX;
 
@@ -2739,7 +2752,7 @@ namespace eastengine
 			return R;
 		}
 
-		Matrix Matrix::CreateTranslation(const Vector3& position)
+		Matrix Matrix::CreateTranslation(const float3& position)
 		{
 			using namespace DirectX;
 			Matrix R;
@@ -2755,7 +2768,7 @@ namespace eastengine
 			return R;
 		}
 
-		Matrix Matrix::CreateScale(const Vector3& scales)
+		Matrix Matrix::CreateScale(const float3& scales)
 		{
 			using namespace DirectX;
 			Matrix R;
@@ -2803,7 +2816,7 @@ namespace eastengine
 			return R;
 		}
 
-		Matrix Matrix::CreateFromAxisAngle(const Vector3& axis, float angle)
+		Matrix Matrix::CreateFromAxisAngle(const float3& axis, float angle)
 		{
 			using namespace DirectX;
 			Matrix R;
@@ -2852,7 +2865,7 @@ namespace eastengine
 			return R;
 		}
 
-		Matrix Matrix::CreateLookAt(const Vector3& eye, const Vector3& target, const Vector3& up)
+		Matrix Matrix::CreateLookAt(const float3& eye, const float3& target, const float3& up)
 		{
 			using namespace DirectX;
 			Matrix R;
@@ -2863,7 +2876,7 @@ namespace eastengine
 			return R;
 		}
 
-		Matrix Matrix::CreateWorld(const Vector3& position, const Vector3& forward, const Vector3& up)
+		Matrix Matrix::CreateWorld(const float3& position, const float3& forward, const float3& up)
 		{
 			using namespace DirectX;
 			XMVECTOR zaxis = XMVector3Normalize(XMVectorNegate(forward));
@@ -2898,7 +2911,7 @@ namespace eastengine
 			return R;
 		}
 
-		Matrix Matrix::CreateShadow(const Vector3& lightDir, const Plane& plane)
+		Matrix Matrix::CreateShadow(const float3& lightDir, const Plane& plane)
 		{
 			using namespace DirectX;
 			Matrix R;
@@ -3015,8 +3028,8 @@ namespace eastengine
 
 		Plane::Plane() : x(0.f), y(1.f), z(0.f), w(0.f) {}
 		Plane::Plane(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
-		Plane::Plane(const Vector3& normal, float d) : x(normal.x), y(normal.y), z(normal.z), w(d) {}
-		Plane::Plane(const Vector3& point1, const Vector3& point2, const Vector3& point3)
+		Plane::Plane(const float3& normal, float d) : x(normal.x), y(normal.y), z(normal.z), w(d) {}
+		Plane::Plane(const float3& point1, const float3& point2, const float3& point3)
 		{
 			using namespace DirectX;
 			XMVECTOR P0 = point1;
@@ -3024,14 +3037,14 @@ namespace eastengine
 			XMVECTOR P2 = point3;
 			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(this), XMPlaneFromPoints(P0, P1, P2));
 		}
-		Plane::Plane(const Vector3& point, const Vector3& normal)
+		Plane::Plane(const float3& point, const float3& normal)
 		{
 			using namespace DirectX;
 			XMVECTOR P = point;
 			XMVECTOR N = normal;
 			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(this), XMPlaneFromPointNormal(P, N));
 		}
-		Plane::Plane(const Vector4& v) : x(v.x), y(v.y), z(v.z), w(v.w) {}
+		Plane::Plane(const float4& v) : x(v.x), y(v.y), z(v.z), w(v.w) {}
 		Plane::Plane(_In_reads_(4) const float *pArray) : x(pArray[0]), y(pArray[1]), z(pArray[2]), w(pArray[3]) {}
 		Plane::Plane(const __m128& V) { using namespace DirectX; XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(this), V); }
 
@@ -3080,7 +3093,7 @@ namespace eastengine
 			XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&result), XMPlaneNormalize(p));
 		}
 
-		float Plane::Dot(const Vector4& v) const
+		float Plane::Dot(const float4& v) const
 		{
 			using namespace DirectX;
 			XMVECTOR p = *this;
@@ -3088,7 +3101,7 @@ namespace eastengine
 			return XMVectorGetX(XMPlaneDot(p, v0));
 		}
 
-		float Plane::DotCoordinate(const Vector3& position) const
+		float Plane::DotCoordinate(const float3& position) const
 		{
 			using namespace DirectX;
 			XMVECTOR p = *this;
@@ -3096,7 +3109,7 @@ namespace eastengine
 			return XMVectorGetX(XMPlaneDotCoord(p, v0));
 		}
 
-		float Plane::DotNormal(const Vector3& normal) const
+		float Plane::DotNormal(const float3& normal) const
 		{
 			using namespace DirectX;
 			XMVECTOR p = *this;
@@ -3158,8 +3171,8 @@ namespace eastengine
 
 		Quaternion::Quaternion() : x(0.f), y(0.f), z(0.f), w(1.f) {}
 		Quaternion::Quaternion(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
-		Quaternion::Quaternion(const Vector3& v, float scalar) : x(v.x), y(v.y), z(v.z), w(scalar) {}
-		Quaternion::Quaternion(const Vector4& v) : x(v.x), y(v.y), z(v.z), w(v.w) {}
+		Quaternion::Quaternion(const float3& v, float scalar) : x(v.x), y(v.y), z(v.z), w(scalar) {}
+		Quaternion::Quaternion(const float4& v) : x(v.x), y(v.y), z(v.z), w(v.w) {}
 		Quaternion::Quaternion(_In_reads_(4) const float *pArray) : x(pArray[0]), y(pArray[1]), z(pArray[2]), w(pArray[3]) {}
 		Quaternion::Quaternion(const __m128& V) { using namespace DirectX; XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(this), V); }
 
@@ -3404,12 +3417,12 @@ namespace eastengine
 			return XMVectorGetX(XMQuaternionDot(q1, q2));
 		}
 
-		Vector3 Quaternion::ToEularRadians() const
+		float3 Quaternion::ToEularRadians() const
 		{
 			/*float m00 = 1.f - (2.f * ((y * y) + z * z));
 			float m01 = 2.f * (x * y + w * z);
 
-			math::Vector3 result
+			math::float3 result
 			(
 				std::atan2(2.f * (y * z + w * x), 1.f - (2.f * ((x * x) + (y * y)))),
 				std::atan2(-2.f * (x * z - w * y), std::sqrt((m00 * m00) + (m01 * m01))),
@@ -3421,15 +3434,15 @@ namespace eastengine
 			double check = x * y + z * w;
 			if (check > 0.499)
 			{
-				return math::Vector3(2 * std::atan2(x, w), math::PI / 2, 0);
+				return math::float3(2 * std::atan2(x, w), math::PI / 2, 0);
 			}
 			else if (check < -0.499)
 			{
-				return math::Vector3(-2 * std::atan2(x, w), -math::PI / 2, 0);
+				return math::float3(-2 * std::atan2(x, w), -math::PI / 2, 0);
 			}
 			else
 			{
-				return math::Vector3
+				return math::float3
 				(
 					std::atan2(2 * x * w - 2 * y * z, 1 - 2 * x * x - 2 * z * z),
 					static_cast<float>(std::asin(2 * check)),
@@ -3437,7 +3450,7 @@ namespace eastengine
 				);
 			}
 
-			/*math::Vector3 v;
+			/*math::float3 v;
 
 			v.z = (float)std::atan2
 			(
@@ -3470,9 +3483,9 @@ namespace eastengine
 			return v;*/
 		}
 
-		Vector3 Quaternion::ToEularDegrees() const
+		float3 Quaternion::ToEularDegrees() const
 		{
-			Vector3 eular = ToEularRadians();
+			float3 eular = ToEularRadians();
 			eular.x = ToDegrees(eular.x);
 			eular.y = ToDegrees(eular.y);
 			eular.z = ToDegrees(eular.z);
@@ -3483,7 +3496,7 @@ namespace eastengine
 		// Static functions
 		//------------------------------------------------------------------------------
 
-		Quaternion Quaternion::CreateFromAxisAngle(const Vector3& axis, float angle)
+		Quaternion Quaternion::CreateFromAxisAngle(const float3& axis, float angle)
 		{
 			using namespace DirectX;
 			XMVECTOR a = axis;
@@ -3603,8 +3616,8 @@ namespace eastengine
 
 		const Quaternion Quaternion::Identity = { 0.f, 0.f, 0.f, 1.f };
 
-		Transform::Transform() : scale(Vector3::One) {}
-		Transform::Transform(const math::Vector3& scale, const math::Quaternion& rotation, const math::Vector3& position) : scale(scale), rotation(rotation), position(position) {}
+		Transform::Transform() : scale(float3::One) {}
+		Transform::Transform(const math::float3& scale, const math::Quaternion& rotation, const math::float3& position) : scale(scale), rotation(rotation), position(position) {}
 		Transform::Transform(const Matrix& matrix)
 		{
 			matrix.Decompose(scale, rotation, position);
@@ -3629,8 +3642,8 @@ namespace eastengine
 		Color::Color() : r(0.f), g(0.f), b(0.f), a(0.f) {}
 		Color::Color(float r, float g, float b) : r(r), g(g), b(b), a(1.f) {}
 		Color::Color(float r, float g, float b, float a) : r(r), g(g), b(b), a(a) {}
-		Color::Color(const Vector3& clr) : r(clr.x), g(clr.y), b(clr.z), a(1.f) {}
-		Color::Color(const Vector4& clr) : r(clr.x), g(clr.y), b(clr.z), a(clr.w) {}
+		Color::Color(const float3& clr) : r(clr.x), g(clr.y), b(clr.z), a(1.f) {}
+		Color::Color(const float4& clr) : r(clr.x), g(clr.y), b(clr.z), a(clr.w) {}
 		Color::Color(_In_reads_(4) const float *pArray) : r(pArray[0]), g(pArray[1]), b(pArray[2]), a(pArray[3]) {}
 		Color::Color(const __m128& V) { using namespace DirectX; XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(this), V); }
 
@@ -4118,14 +4131,14 @@ namespace eastengine
 		// Viewport operations
 		//------------------------------------------------------------------------------
 
-		Vector3 Viewport::Project(const Vector3& p, const Matrix& proj, const Matrix& view, const Matrix& world) const
+		float3 Viewport::Project(const float3& p, const Matrix& proj, const Matrix& view, const Matrix& world) const
 		{
-			Vector3 result;
+			float3 result;
 			Project(p, proj, view, world, result);
 			return result;
 		}
 
-		void Viewport::Project(const Vector3& p, const Matrix& proj, const Matrix& view, const Matrix& world, Vector3& result) const
+		void Viewport::Project(const float3& p, const Matrix& proj, const Matrix& view, const Matrix& world, float3& result) const
 		{
 			using namespace DirectX;
 			XMVECTOR v = p;
@@ -4136,14 +4149,14 @@ namespace eastengine
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&result), v);
 		}
 
-		Vector3 Viewport::Unproject(const Vector3& p, const Matrix& proj, const Matrix& view, const Matrix& world) const
+		float3 Viewport::Unproject(const float3& p, const Matrix& proj, const Matrix& view, const Matrix& world) const
 		{
-			Vector3 result;
+			float3 result;
 			Unproject(p, proj, view, world, result);
 			return result;
 		}
 
-		void Viewport::Unproject(const Vector3& p, const Matrix& proj, const Matrix& view, const Matrix& world, Vector3& result) const
+		void Viewport::Unproject(const float3& p, const Matrix& proj, const Matrix& view, const Matrix& world, float3& result) const
 		{
 			using namespace DirectX;
 			XMVECTOR v = XMLoadFloat3(reinterpret_cast<const XMFLOAT3*>(&p));

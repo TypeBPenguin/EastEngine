@@ -174,8 +174,8 @@ namespace eastengine
 
 			m_pEffect->SetMatrix(StrID::g_matWVP, *renderSubset.pMatrix * pCamera->GetViewMatrix() * pCamera->GetProjMatrix());
 
-			m_pEffect->SetVector(StrID::g_colorApex, reinterpret_cast<math::Vector4&>(*renderSubset.pColorApex));
-			m_pEffect->SetVector(StrID::g_colorCenter, reinterpret_cast<math::Vector4&>(*renderSubset.pColorCenter));
+			m_pEffect->SetVector(StrID::g_colorApex, reinterpret_cast<math::float4&>(*renderSubset.pColorApex));
+			m_pEffect->SetVector(StrID::g_colorCenter, reinterpret_cast<math::float4&>(*renderSubset.pColorCenter));
 
 			uint32_t nPassCount = pEffectTech->GetPassCount();
 			for (uint32_t p = 0; p < nPassCount; ++p)

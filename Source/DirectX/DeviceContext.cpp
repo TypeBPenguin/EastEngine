@@ -43,7 +43,7 @@ namespace eastengine
 			m_pDeviceContext->ClearDepthStencilView(pDepthStencil->GetDepthStencilView(), clearFlag, 1.f, 0);
 		}
 
-		void DeviceContext::ClearUnorderedAccessViewUint(ID3D11UnorderedAccessView* pUnorderedAccessView, const math::UInt4& n4Uint)
+		void DeviceContext::ClearUnorderedAccessViewUint(ID3D11UnorderedAccessView* pUnorderedAccessView, const math::uint4& n4Uint)
 		{
 			if (pUnorderedAccessView == nullptr)
 				return;
@@ -97,13 +97,13 @@ namespace eastengine
 			return true;
 		}
 
-		void DeviceContext::SetBlendState(EmBlendState::Type emBlendState, const math::Vector4& f4BlendFactor, uint32_t nSimpleMask)
+		void DeviceContext::SetBlendState(EmBlendState::Type emBlendState, const math::float4& f4BlendFactor, uint32_t nSimpleMask)
 		{
 			IBlendState* pBlendState = GetDevice()->GetBlendState(emBlendState);
 			SetBlendState(pBlendState, f4BlendFactor, nSimpleMask);
 		}
 
-		void DeviceContext::SetBlendState(const IBlendState* pBlendState, const math::Vector4& f4BlendFactor, uint32_t nSimpleMask)
+		void DeviceContext::SetBlendState(const IBlendState* pBlendState, const math::float4& f4BlendFactor, uint32_t nSimpleMask)
 		{
 			if (pBlendState == nullptr)
 				return;

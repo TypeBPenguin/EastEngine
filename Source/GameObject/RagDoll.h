@@ -22,7 +22,7 @@ namespace eastengine
 				graphics::IModelInstance* pPhysicsModelInstance = nullptr;
 				graphics::ISkeletonInstance::IBone* pBone = nullptr;
 
-				math::Vector3 f3Offset;
+				math::float3 f3Offset;
 				float fHeight;
 				bool isChildBone;
 				bool isRootNode = false;
@@ -60,7 +60,7 @@ namespace eastengine
 			RagDoll();
 			~RagDoll();
 
-			bool BuildBipadRagDoll(graphics::ISkeletonInstance* pSkeleton, const math::Vector3& f3Pos, const math::Quaternion& quatRotation, float fScale);
+			bool BuildBipadRagDoll(graphics::ISkeletonInstance* pSkeleton, const math::float3& f3Pos, const math::Quaternion& quatRotation, float fScale);
 			void Update(float fElapsedTime);
 
 			BodyPart* AddBodyPart(const string::StringID& strPartName, const physics::RigidBodyProperty& rigidBodyProperty, graphics::IModelInstance* pPhysicsModelInstance, graphics::ISkeletonInstance::IBone* pBone);

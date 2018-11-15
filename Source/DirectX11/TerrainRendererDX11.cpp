@@ -31,14 +31,14 @@ namespace eastengine
 					math::Matrix matModelViewProjection;
 					math::Matrix matWorld;
 
-					math::Vector3 CameraPosition;
+					math::float3 CameraPosition;
 					float padding0{ 0.f };
 
-					math::Vector3 CameraDirection;
+					math::float3 CameraDirection;
 					float padding1{ 0.f };
 
-					math::Vector2 f2PatchSize;
-					math::Vector2 f2HeightFieldSize;
+					math::float2 f2PatchSize;
+					math::float2 f2HeightFieldSize;
 				};
 
 				enum CBSlot
@@ -84,7 +84,7 @@ namespace eastengine
 				}
 
 				void SetTerrainContents(ID3D11DeviceContext* pDeviceContext, ConstantBuffer<TerrainContents>* pCB_TerrainContents,
-					const RenderJobTerrain& terrain, const math::Matrix& matViewProjection, const math::Vector3& f3CameraPosition, const math::Vector3& f3CameraDirection)
+					const RenderJobTerrain& terrain, const math::Matrix& matViewProjection, const math::float3& f3CameraPosition, const math::float3& f3CameraDirection)
 				{
 					ID3D11ShaderResourceView* pSRV = static_cast<Texture*>(terrain.pTexHeightField)->GetShaderResourceView();
 					pDeviceContext->HSSetShaderResources(shader::eSRV_HeightField, 1, &pSRV);
@@ -273,7 +273,7 @@ namespace eastengine
 				}
 
 				ID3D11BlendState* pBlendState = pDeviceInstance->GetBlendState(EmBlendState::eOff);
-				pDeviceContext->OMSetBlendState(pBlendState, &math::Vector4::Zero.x, 0xffffffff);
+				pDeviceContext->OMSetBlendState(pBlendState, &math::float4::Zero.x, 0xffffffff);
 
 				ID3D11DepthStencilState* pDepthStencilState = pDeviceInstance->GetDepthStencilState(EmDepthStencilState::eRead_Write_On);
 				pDeviceContext->OMSetDepthStencilState(pDepthStencilState, 0);

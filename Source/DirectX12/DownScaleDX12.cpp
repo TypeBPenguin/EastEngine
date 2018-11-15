@@ -19,7 +19,7 @@ namespace eastengine
 			{
 				struct DownScaleContents
 				{
-					math::Vector2 f2SourceDimensions;
+					math::float2 f2SourceDimensions;
 					uint32_t nTexColorIndex{ 0 };
 					float padding{ 0.f };
 				};
@@ -54,7 +54,7 @@ namespace eastengine
 					}
 				}
 
-				void SetDownScaleContents(DownScaleContents* pDownScaleContents, const math::Vector2& f2SourceDimensions, uint32_t nTexColorIndex)
+				void SetDownScaleContents(DownScaleContents* pDownScaleContents, const math::float2& f2SourceDimensions, uint32_t nTexColorIndex)
 				{
 					pDownScaleContents->f2SourceDimensions = f2SourceDimensions;
 					pDownScaleContents->nTexColorIndex = nTexColorIndex;

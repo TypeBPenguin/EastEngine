@@ -23,7 +23,7 @@ namespace eastengine
 			{
 				Release();
 
-				const math::UInt2 n2Size{ nWidth, nHeight };
+				const math::uint2 n2Size{ nWidth, nHeight };
 
 				m_pRenderTargets[EmGBuffer::eNormals] = std::make_unique<ImageBuffer>(n2Size, VK_FORMAT_R16G16B16A16_SFLOAT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
 				m_pRenderTargets[EmGBuffer::eColors] = std::make_unique<ImageBuffer>(n2Size, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);

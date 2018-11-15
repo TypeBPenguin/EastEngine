@@ -304,15 +304,15 @@ namespace eastengine
 
 								struct CascadedShadow
 								{
-									math::Int2 n2PCFBlurSize;
-									math::Vector2 f2TexelOffset;
+									math::int2 n2PCFBlurSize;
+									math::float2 f2TexelOffset;
 
 									int nCascadeLevel = 0;
 									float fDepthBias = 0.f;
-									math::Vector2 padding;
+									math::float2 padding;
 
 									math::Matrix matCascadeViewProj[CascadedShadowsConfig::eMaxLevel];
-									math::Vector4 f2SplitDpeths[CascadedShadowsConfig::eMaxLevel];
+									math::float4 f2SplitDpeths[CascadedShadowsConfig::eMaxLevel];
 								};
 
 								ICascadedShadows* pCascadedShadows = pDirectionalLight->GetCascadedShadow();
@@ -338,8 +338,8 @@ namespace eastengine
 
 									cascadedShadow.matCascadeViewProj[k] = matViewProj.Transpose();
 
-									const math::Vector2& f2SplitDepth = pCascadedShadows->GetSplitDepths(k);
-									cascadedShadow.f2SplitDpeths[k] = math::Vector4(f2SplitDepth.x, f2SplitDepth.y, 0.f, 0.f);
+									const math::float2& f2SplitDepth = pCascadedShadows->GetSplitDepths(k);
+									cascadedShadow.f2SplitDpeths[k] = math::float4(f2SplitDepth.x, f2SplitDepth.y, 0.f, 0.f);
 								}
 
 								if (pSamplerState == nullptr)
@@ -368,15 +368,15 @@ namespace eastengine
 
 								struct ShadowCubeMap
 								{
-									math::Int2 n2PCFBlurSize;
-									math::Vector2 f2TexelOffset;
+									math::int2 n2PCFBlurSize;
+									math::float2 f2TexelOffset;
 
 									float fDepthBias = 0.f;
-									math::Vector3 f3LightPos;
+									math::float3 f3LightPos;
 
 									float fLightIntensity;
 									float fFarPlane;
-									math::Vector2 padding;
+									math::float2 padding;
 								};
 
 								IShadowCubeMap* pShadowCubeMap = pPointLight->GetShadowCubeMap();
@@ -417,17 +417,17 @@ namespace eastengine
 
 								struct ShadowMap
 								{
-									math::Int2 n2PCFBlurSize;
-									math::Vector2 f2TexelOffset;
+									math::int2 n2PCFBlurSize;
+									math::float2 f2TexelOffset;
 
 									float fDepthBias = 0.f;
-									math::Vector3 f3LightPos;
+									math::float3 f3LightPos;
 
-									math::Vector3 f3LightDir;
+									math::float3 f3LightDir;
 									float fLightAngle = 0.f;
 
 									float fLightIntensity;
-									math::Vector3 padding;
+									math::float3 padding;
 
 									math::Matrix matViewProj;
 								};

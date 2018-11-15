@@ -50,10 +50,10 @@ namespace eastengine
 
 		struct ListenerAttributes
 		{
-			math::Vector3 f3Position{ math::Vector3::Zero };
-			math::Vector3 f3Velocity{ math::Vector3::Zero };
-			math::Vector3 f3Forward{ math::Vector3::Forward };
-			math::Vector3 f3Up{ math::Vector3::Up };
+			math::float3 f3Position{ math::float3::Zero };
+			math::float3 f3Velocity{ math::float3::Zero };
+			math::float3 f3Forward{ math::float3::Forward };
+			math::float3 f3Up{ math::float3::Up };
 		};
 
 		struct tChannelID {};

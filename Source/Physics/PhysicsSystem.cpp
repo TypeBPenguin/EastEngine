@@ -231,8 +231,8 @@ namespace eastengine
 				for (int j = 0; j < nContacts; ++j)
 				{
 					btManifoldPoint& point = pContactManifold->getContactPoint(j);
-					math::Vector3 f3PointA(math::Convert(point.getPositionWorldOnA()));
-					math::Vector3 f3PointB(math::Convert(point.getPositionWorldOnB()));
+					math::float3 f3PointA(math::Convert(point.getPositionWorldOnA()));
+					math::float3 f3PointB(math::Convert(point.getPositionWorldOnB()));
 
 					pRigidBodyA->AddCollisionResult(pRigidBodyB, f3PointB, f3PointA);
 					pRigidBodyB->AddCollisionResult(pRigidBodyA, f3PointA, f3PointB);

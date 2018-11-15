@@ -266,7 +266,7 @@ namespace eastengine
 		}
 
 		void RenderModel(uint32_t nRenderType, IDevice* pDevice, IDeviceContext* pDeviceContext,
-			const math::Matrix* pMatViews, const math::Matrix& matProj, const math::Vector3& f3CameraPos,
+			const math::Matrix* pMatViews, const math::Matrix& matProj, const math::float3& f3CameraPos,
 			const IVertexBuffer* pVertexBuffer, const IIndexBuffer* pIndexBuffer, const IMaterial* pMaterial,
 			uint32_t nIndexCount, uint32_t nStartIndex,
 			const void* pInstanceData, uint32_t nVTFID = 0)
@@ -421,41 +421,41 @@ namespace eastengine
 			{
 				pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
 
-				math::Vector4 f4FrustumNormals[4];
+				math::float4 f4FrustumNormals[4];
 				{
 					float clipNear = -matProj._43 / matProj._33;
 					float clipFar = clipNear * matProj._33 / (matProj._33 - 1.f);
 
-					math::Vector3 f3CameraFrustum[4];
+					math::float3 f3CameraFrustum[4];
 
-					math::Vector3 f3CenterFar = f3CameraPos + pMatViews->Forward() * clipFar;
-					math::Vector3 f3OffsetH = (clipFar / matProj._11) * pMatViews->Right();
-					math::Vector3 f3OffsetV = (clipFar / matProj._22) * pMatViews->Up();
+					math::float3 f3CenterFar = f3CameraPos + pMatViews->Forward() * clipFar;
+					math::float3 f3OffsetH = (clipFar / matProj._11) * pMatViews->Right();
+					math::float3 f3OffsetV = (clipFar / matProj._22) * pMatViews->Up();
 					f3CameraFrustum[0] = f3CenterFar - f3OffsetV - f3OffsetH;
 					f3CameraFrustum[1] = f3CenterFar + f3OffsetV - f3OffsetH;
 					f3CameraFrustum[2] = f3CenterFar + f3OffsetV + f3OffsetH;
 					f3CameraFrustum[3] = f3CenterFar - f3OffsetV + f3OffsetH;
 
 					// left/top planes normals
-					math::Vector3 f3Normal;
-					math::Vector3 f3Temp = f3CameraFrustum[1] - f3CameraPos;
+					math::float3 f3Normal;
+					math::float3 f3Temp = f3CameraFrustum[1] - f3CameraPos;
 					f3Normal = f3Temp.Cross(pMatViews->Up());
 					f3Normal.Normalize();
-					f4FrustumNormals[0] = math::Vector4(f3Normal.x, f3Normal.y, f3Normal.z, 0.f);
+					f4FrustumNormals[0] = math::float4(f3Normal.x, f3Normal.y, f3Normal.z, 0.f);
 
 					f3Normal = f3Temp.Cross(pMatViews->Right());
 					f3Normal.Normalize();
-					f4FrustumNormals[1] = math::Vector4(f3Normal.x, f3Normal.y, f3Normal.z, 0.f);
+					f4FrustumNormals[1] = math::float4(f3Normal.x, f3Normal.y, f3Normal.z, 0.f);
 
 					// right/bottom planes normals
 					f3Temp = f3CameraFrustum[3] - f3CameraPos;
 					f3Normal = pMatViews->Up().Cross(f3Temp);
 					f3Normal.Normalize();
-					f4FrustumNormals[2] = math::Vector4(f3Normal.x, f3Normal.y, f3Normal.z, 0.f);
+					f4FrustumNormals[2] = math::float4(f3Normal.x, f3Normal.y, f3Normal.z, 0.f);
 
 					f3Normal = pMatViews->Right().Cross(f3Temp);
 					f3Normal.Normalize();
-					f4FrustumNormals[2] = math::Vector4(f3Normal.x, f3Normal.y, f3Normal.z, 0.f);
+					f4FrustumNormals[2] = math::float4(f3Normal.x, f3Normal.y, f3Normal.z, 0.f);
 				}
 				pEffect->SetVector(StrID::g_FrustumOrigin, f3CameraPos);
 				pEffect->SetVectorArray(StrID::g_FrustumNormals, f4FrustumNormals, 0, 4);
@@ -499,8 +499,8 @@ namespace eastengine
 			{
 				if (pMaterial != nullptr)
 				{
-					pEffect->SetVector(StrID::g_f4AlbedoColor, reinterpret_cast<const math::Vector4&>(pMaterial->GetAlbedoColor()));
-					pEffect->SetVector(StrID::g_f4EmissiveColor, reinterpret_cast<const math::Vector4&>(pMaterial->GetEmissiveColor()));
+					pEffect->SetVector(StrID::g_f4AlbedoColor, reinterpret_cast<const math::float4&>(pMaterial->GetAlbedoColor()));
+					pEffect->SetVector(StrID::g_f4EmissiveColor, reinterpret_cast<const math::float4&>(pMaterial->GetEmissiveColor()));
 
 					pEffect->SetVector(StrID::g_f4PaddingRoughMetEmi, pMaterial->GetPaddingRoughMetEmi());
 					pEffect->SetVector(StrID::g_f4SurSpecTintAniso, pMaterial->GetSurSpecTintAniso());
@@ -562,12 +562,12 @@ namespace eastengine
 				}
 				else
 				{
-					pEffect->SetVector(StrID::g_f4AlbedoColor, reinterpret_cast<const math::Vector4&>(math::Color::White));
-					pEffect->SetVector(StrID::g_f4EmissiveColor, reinterpret_cast<const math::Vector4&>(math::Color::Black));
+					pEffect->SetVector(StrID::g_f4AlbedoColor, reinterpret_cast<const math::float4&>(math::Color::White));
+					pEffect->SetVector(StrID::g_f4EmissiveColor, reinterpret_cast<const math::float4&>(math::Color::Black));
 
-					pEffect->SetVector(StrID::g_f4PaddingRoughMetEmi, reinterpret_cast<const math::Vector4&>(math::Color::Transparent));
-					pEffect->SetVector(StrID::g_f4SurSpecTintAniso, reinterpret_cast<const math::Vector4&>(math::Color::Transparent));
-					pEffect->SetVector(StrID::g_f4SheenTintClearcoatGloss, reinterpret_cast<const math::Vector4&>(math::Color::Transparent));
+					pEffect->SetVector(StrID::g_f4PaddingRoughMetEmi, reinterpret_cast<const math::float4&>(math::Color::Transparent));
+					pEffect->SetVector(StrID::g_f4SurSpecTintAniso, reinterpret_cast<const math::float4&>(math::Color::Transparent));
+					pEffect->SetVector(StrID::g_f4SheenTintClearcoatGloss, reinterpret_cast<const math::float4&>(math::Color::Transparent));
 
 					pEffect->SetFloat(StrID::g_fStippleTransparencyFactor, 0.f);
 
@@ -1082,7 +1082,7 @@ namespace eastengine
 				const math::Matrix& matView = pCamera->GetViewMatrix(nThreadID);
 				const math::Matrix& matProj = pCamera->GetProjMatrix(nThreadID);
 				const Collision::Frustum& frustum = pCamera->GetFrustum(nThreadID);
-				const math::Vector3 f3Position = matView.Invert().Translation();
+				const math::float3 f3Position = matView.Invert().Translation();
 
 				std::map<std::pair<const void*, IMaterial*>, RenderSubsetStaticBatch> mapStatic;
 				{
@@ -1164,7 +1164,7 @@ namespace eastengine
 				const math::Matrix& matView = pCamera->GetViewMatrix(nThreadID);
 				const math::Matrix& matProj = pCamera->GetProjMatrix(nThreadID);
 				const Collision::Frustum& frustum = pCamera->GetFrustum(nThreadID);
-				const math::Vector3 f3Position = matView.Invert().Translation();
+				const math::float3 f3Position = matView.Invert().Translation();
 
 				std::map<std::pair<const void*, IMaterial*>, RenderSubsetSkinnedBatch> mapSkinned;
 				{

@@ -37,14 +37,14 @@ namespace eastengine
 					math::Matrix matModelViewProjection;
 					math::Matrix matWorld;
 
-					math::Vector3 CameraPosition;
+					math::float3 CameraPosition;
 					float padding0{ 0.f };
 
-					math::Vector3 CameraDirection;
+					math::float3 CameraDirection;
 					float padding1{ 0.f };
 
-					math::Vector2 f2PatchSize;
-					math::Vector2 f2HeightFieldSize;
+					math::float2 f2PatchSize;
+					math::float2 f2HeightFieldSize;
 
 					uint32_t nTexHeightFieldIndex{ 0 };
 					uint32_t nTexColor{ 0 };
@@ -87,7 +87,7 @@ namespace eastengine
 				}
 
 				void SetTerrainContents(TerrainContents* pTerrainContents,
-					const RenderJobTerrain& terrain, const math::Matrix& matViewProjection, const math::Vector3& f3CameraPosition, const math::Vector3& f3CameraDirection)
+					const RenderJobTerrain& terrain, const math::Matrix& matViewProjection, const math::float3& f3CameraPosition, const math::float3& f3CameraDirection)
 				{
 					pTerrainContents->UseDynamicLOD = terrain.isEnableDynamicLOD == true ? 1.f : 0.f;
 					pTerrainContents->FrustumCullInHS = terrain.isEnableFrustumCullInHS == true ? 1.f : 0.f;

@@ -38,7 +38,7 @@ namespace eastengine
 		{
 		}
 
-		VertexPos::VertexPos(const math::Vector3& f3Pos)
+		VertexPos::VertexPos(const math::float3& f3Pos)
 			: pos(f3Pos)
 		{
 		}
@@ -47,7 +47,7 @@ namespace eastengine
 		{
 		}
 
-		VertexPos4::VertexPos4(const math::Vector4& f4Pos)
+		VertexPos4::VertexPos4(const math::float4& f4Pos)
 			: pos(f4Pos)
 		{
 		}
@@ -56,7 +56,7 @@ namespace eastengine
 		{
 		}
 
-		VertexPosCol::VertexPosCol(const math::Vector3& f3Pos, const math::Color& color)
+		VertexPosCol::VertexPosCol(const math::float3& f3Pos, const math::Color& color)
 			: pos(f3Pos)
 			, color(color)
 		{
@@ -66,7 +66,7 @@ namespace eastengine
 		{
 		}
 
-		VertexPosTex::VertexPosTex(const math::Vector3& f3Pos, const math::Vector2& f2UV)
+		VertexPosTex::VertexPosTex(const math::float3& f3Pos, const math::float2& f2UV)
 			: pos(f3Pos)
 			, uv(f2UV)
 		{
@@ -76,7 +76,7 @@ namespace eastengine
 		{
 		}
 
-		VertexPosTexCol::VertexPosTexCol(const math::Vector3& f3Pos, const math::Vector2& f2UV)
+		VertexPosTexCol::VertexPosTexCol(const math::float3& f3Pos, const math::float2& f2UV)
 			: pos(f3Pos)
 			, uv(f2UV)
 		{
@@ -86,7 +86,7 @@ namespace eastengine
 		{
 		}
 
-		VertexPosTexNor::VertexPosTexNor(const math::Vector3& f3Pos, const math::Vector2& f2UV, const math::Vector3& f3Normal)
+		VertexPosTexNor::VertexPosTexNor(const math::float3& f3Pos, const math::float2& f2UV, const math::float3& f3Normal)
 			: pos(f3Pos)
 			, uv(f2UV)
 			, normal(f3Normal)
@@ -97,7 +97,7 @@ namespace eastengine
 		{
 		}
 
-		VertexPosTexNorCol::VertexPosTexNorCol(const math::Vector3& f3Pos, const math::Vector2& f2UV, const math::Vector3& f3Normal, const math::Color& color)
+		VertexPosTexNorCol::VertexPosTexNorCol(const math::float3& f3Pos, const math::float2& f2UV, const math::float3& f3Normal, const math::Color& color)
 			: pos(f3Pos)
 			, uv(f2UV)
 			, normal(f3Normal)
@@ -109,14 +109,14 @@ namespace eastengine
 		{
 		}
 
-		VertexPosTexNorTanBin::VertexPosTexNorTanBin(const math::Vector3& f3Pos, const math::Vector2& f2UV, const math::Vector3& f3Normal)
+		VertexPosTexNorTanBin::VertexPosTexNorTanBin(const math::float3& f3Pos, const math::float2& f2UV, const math::float3& f3Normal)
 			: pos(f3Pos)
 			, uv(f2UV)
 			, normal(f3Normal)
 		{
 		}
 
-		VertexPosTexNorTanBin::VertexPosTexNorTanBin(const math::Vector3& f3Pos, const math::Vector2& f2UV, const math::Vector3& f3Normal, const math::Vector3& f3Tangent, const math::Vector3& f3Binormal)
+		VertexPosTexNorTanBin::VertexPosTexNorTanBin(const math::float3& f3Pos, const math::float2& f2UV, const math::float3& f3Normal, const math::float3& f3Tangent, const math::float3& f3Binormal)
 			: pos(f3Pos)
 			, uv(f2UV)
 			, normal(f3Normal)
@@ -129,7 +129,7 @@ namespace eastengine
 		{
 		}
 
-		VertexPosTexNorWeiIdx::VertexPosTexNorWeiIdx(const math::Vector3& f3Pos, const math::Vector2& f2UV, const math::Vector3& f3Normal, const math::Vector3& f3Weight, const uint16_t indices[4])
+		VertexPosTexNorWeiIdx::VertexPosTexNorWeiIdx(const math::float3& f3Pos, const math::float2& f2UV, const math::float3& f3Normal, const math::float3& f3Weight, const uint16_t indices[4])
 			: pos(f3Pos)
 			, uv(f2UV)
 			, normal(f3Normal)
@@ -142,12 +142,12 @@ namespace eastengine
 		{
 		}
 
-		VertexClipSpace::VertexClipSpace(const math::Vector4& f4Pos)
+		VertexClipSpace::VertexClipSpace(const math::float4& f4Pos)
 			: pos(f4Pos)
 		{
 		}
 
-		VertexClipSpace::VertexClipSpace(const math::Vector3& f3Pos)
+		VertexClipSpace::VertexClipSpace(const math::float3& f3Pos)
 			: pos(f3Pos.x, f3Pos.y, 0.f, f3Pos.z)
 		{
 		}

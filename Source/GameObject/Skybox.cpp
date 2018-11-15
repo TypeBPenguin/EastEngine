@@ -29,7 +29,23 @@ namespace eastengine
 		{
 			m_property = property;
 
-			graphics::geometry::CreateBox(&m_pVertexBuffer, &m_pIndexBuffer, math::Vector3(property.fBoxSize, property.fBoxSize, property.fBoxSize), false, true);
+			std::vector<graphics::VertexPosTexNor> vertices;
+			std::vector<uint32_t> indices;
+
+			if (graphics::geometry::CreateBox(vertices, indices, math::float3(property.fBoxSize, property.fBoxSize, property.fBoxSize), false, true) == false)
+			{
+				assert(false);
+				return;
+			}
+
+			if (vertices.empty() == true || indices.empty() == true)
+			{
+				assert(false);
+				return;
+			}
+
+			m_pVertexBuffer = graphics::CreateVertexBuffer(reinterpret_cast<uint8_t*>(vertices.data()), static_cast<uint32_t>(vertices.size()), sizeof(graphics::VertexPosTexNor));
+			m_pIndexBuffer = graphics::CreateIndexBuffer(reinterpret_cast<uint8_t*>(indices.data()), static_cast<uint32_t>(indices.size()), sizeof(uint32_t));
 
 			m_pTexture = graphics::CreateTexture(property.strTexSky.c_str());
 		}

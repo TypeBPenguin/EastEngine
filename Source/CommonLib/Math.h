@@ -55,6 +55,12 @@ namespace eastengine
 		}
 
 		template <typename T>
+		inline bool IsSame(T value1, T value2)
+		{
+			return IsZero(value1 - value2);
+		}
+
+		template <typename T>
 		inline bool IsZero(T value)
 		{
 			if (value == 0)
@@ -66,7 +72,7 @@ namespace eastengine
 		template <>
 		inline bool IsZero(float value)
 		{
-			if (::std::abs(value) <= 1e-05f)
+			if (std::abs(value) <= 1e-05f)
 				return true;
 
 			return false;
@@ -75,7 +81,7 @@ namespace eastengine
 		template <>
 		inline bool IsZero(double value)
 		{
-			if (::std::abs(value) <= 1e-10)
+			if (std::abs(value) <= 1e-10)
 				return true;
 
 			return false;
@@ -96,17 +102,17 @@ namespace eastengine
 		template <typename T>
 		T Random(T min = -RAND_MAX, T max = RAND_MAX);
 
-		struct Vector2;
-		struct Vector3;
-		struct Vector4;
+		struct float2;
+		struct float3;
+		struct float4;
 		struct Matrix;
 		struct Quaternion;
 		struct Plane;
 
-		Vector2 CompressNormal(const Vector3& f3Normal);
-		Vector3 DeCompressNormal(const Vector2& f2Normal);
-		Vector3 CalcTangent(const Vector3& f3Normal);
-		Vector3 CalcBinormal(const Vector3& f3Normal, const Vector3& f3Tangent);
+		float2 CompressNormal(const float3& f3Normal);
+		float3 DeCompressNormal(const float2& f2Normal);
+		float3 CalcTangent(const float3& f3Normal);
+		float3 CalcBinormal(const float3& f3Normal, const float3& f3Tangent);
 
 		struct UByte4
 		{
@@ -133,552 +139,553 @@ namespace eastengine
 			UByte4& operator= (uint32_t Packed) { v = Packed; return *this; }
 		};
 
-		struct Int2
+		struct int2
 		{
 			int32_t x;
 			int32_t y;
 
-			Int2();
-			explicit Int2(int x);
-			Int2(int x, int y);
-			Int2(const Int2& V);
+			int2();
+			explicit int2(int x);
+			int2(int x, int y);
+			int2(const int2& V);
 
 			// Comparison operators
-			bool operator == (const Int2& V) const;
-			bool operator != (const Int2& V) const;
+			bool operator == (const int2& V) const;
+			bool operator != (const int2& V) const;
 
 			// Assignment operators
-			Int2& operator= (const Int2& V) { x = V.x; y = V.y; return *this; }
-			Int2& operator+= (const Int2& V);
-			Int2& operator-= (const Int2& V);
-			Int2& operator*= (const Int2& V);
-			Int2& operator*= (float S);
-			Int2& operator/= (float S);
+			int2& operator= (const int2& V) { x = V.x; y = V.y; return *this; }
+			int2& operator+= (const int2& V);
+			int2& operator-= (const int2& V);
+			int2& operator*= (const int2& V);
+			int2& operator*= (float S);
+			int2& operator/= (float S);
 
 			// Unary operators
-			Int2 operator+ () const { return *this; }
-			Int2 operator- () const { return Int2(-x, -y); }
+			int2 operator+ () const { return *this; }
+			int2 operator- () const { return int2(-x, -y); }
 
-			static const Int2 Zero;
-			static const Int2 One;
-			static const Int2 UnitX;
-			static const Int2 UnitY;
+			static const int2 Zero;
+			static const int2 One;
+			static const int2 UnitX;
+			static const int2 UnitY;
 		};
 
-		struct Int3
+		struct int3
 		{
 			int32_t x;
 			int32_t y;
 			int32_t z;
 
-			Int3();
-			explicit Int3(int x);
-			Int3(int x, int y, int z);
-			Int3(const Int3& V);
+			int3();
+			explicit int3(int x);
+			int3(int x, int y, int z);
+			int3(const int3& V);
 
 			// Comparison operators
-			bool operator == (const Int3& V) const;
-			bool operator != (const Int3& V) const;
+			bool operator == (const int3& V) const;
+			bool operator != (const int3& V) const;
 
 			// Assignment operators
-			Int3& operator= (const Int3& V) { x = V.x; y = V.y; z = V.z; return *this; }
-			Int3& operator+= (const Int3& V);
-			Int3& operator-= (const Int3& V);
-			Int3& operator*= (const Int3& V);
-			Int3& operator*= (float S);
-			Int3& operator/= (float S);
+			int3& operator= (const int3& V) { x = V.x; y = V.y; z = V.z; return *this; }
+			int3& operator+= (const int3& V);
+			int3& operator-= (const int3& V);
+			int3& operator*= (const int3& V);
+			int3& operator*= (float S);
+			int3& operator/= (float S);
 
 			// Unary operators
-			Int3 operator+ () const { return *this; }
-			Int3 operator- () const { return Int3(-x, -y, -z); }
+			int3 operator+ () const { return *this; }
+			int3 operator- () const { return int3(-x, -y, -z); }
 
-			static const Int3 Zero;
-			static const Int3 One;
-			static const Int3 UnitX;
-			static const Int3 UnitY;
-			static const Int3 UnitZ;
+			static const int3 Zero;
+			static const int3 One;
+			static const int3 UnitX;
+			static const int3 UnitY;
+			static const int3 UnitZ;
 		};
 
-		struct Int4
+		struct int4
 		{
 			int32_t x;
 			int32_t y;
 			int32_t z;
 			int32_t w;
 
-			Int4();
-			explicit Int4(int x);
-			Int4(int x, int y, int z, int w);
-			Int4(const Int4& V);
+			int4();
+			explicit int4(int x);
+			int4(int x, int y, int z, int w);
+			int4(const int4& V);
 
 			// Comparison operators
-			bool operator == (const Int4& V) const;
-			bool operator != (const Int4& V) const;
+			bool operator == (const int4& V) const;
+			bool operator != (const int4& V) const;
 
 			// Assignment operators
-			Int4& operator= (const Int4& V) { x = V.x; y = V.y; z = V.z; w = V.w; return *this; }
-			Int4& operator+= (const Int4& V);
-			Int4& operator-= (const Int4& V);
-			Int4& operator*= (const Int4& V);
-			Int4& operator*= (float S);
-			Int4& operator/= (float S);
+			int4& operator= (const int4& V) { x = V.x; y = V.y; z = V.z; w = V.w; return *this; }
+			int4& operator+= (const int4& V);
+			int4& operator-= (const int4& V);
+			int4& operator*= (const int4& V);
+			int4& operator*= (float S);
+			int4& operator/= (float S);
 
 			// Unary operators
-			Int4 operator+ () const { return *this; }
-			Int4 operator- () const { return Int4(-x, -y, -z, -w); }
+			int4 operator+ () const { return *this; }
+			int4 operator- () const { return int4(-x, -y, -z, -w); }
 
-			static const Int4 Zero;
-			static const Int4 One;
-			static const Int4 UnitX;
-			static const Int4 UnitY;
-			static const Int4 UnitZ;
-			static const Int4 UnitW;
+			static const int4 Zero;
+			static const int4 One;
+			static const int4 UnitX;
+			static const int4 UnitY;
+			static const int4 UnitZ;
+			static const int4 UnitW;
 		};
 
-		struct UInt2
+		struct uint2
 		{
 			uint32_t x;
 			uint32_t y;
 
-			UInt2();
-			explicit UInt2(uint32_t x);
-			UInt2(uint32_t x, uint32_t y);
-			UInt2(const UInt2& V);
+			uint2();
+			explicit uint2(uint32_t x);
+			uint2(uint32_t x, uint32_t y);
+			uint2(const uint2& V);
 
 			// Comparison operators
-			bool operator == (const UInt2& V) const;
-			bool operator != (const UInt2& V) const;
+			bool operator == (const uint2& V) const;
+			bool operator != (const uint2& V) const;
 
 			// Assignment operators
-			UInt2& operator= (const UInt2& V) { x = V.x; y = V.y; return *this; }
-			UInt2& operator+= (const UInt2& V);
-			UInt2& operator-= (const UInt2& V);
-			UInt2& operator*= (const UInt2& V);
-			UInt2& operator*= (float S);
-			UInt2& operator/= (float S);
+			uint2& operator= (const uint2& V) { x = V.x; y = V.y; return *this; }
+			uint2& operator+= (const uint2& V);
+			uint2& operator-= (const uint2& V);
+			uint2& operator*= (const uint2& V);
+			uint2& operator*= (float S);
+			uint2& operator/= (float S);
 
 			// Unary operators
-			UInt2 operator+ () const { return *this; }
+			uint2 operator+ () const { return *this; }
 
-			static const UInt2 Zero;
-			static const UInt2 One;
-			static const UInt2 UnitX;
-			static const UInt2 UnitY;
+			static const uint2 Zero;
+			static const uint2 One;
+			static const uint2 UnitX;
+			static const uint2 UnitY;
 		};
 
-		struct UInt3
+		struct uint3
 		{
 			uint32_t x;
 			uint32_t y;
 			uint32_t z;
 
-			UInt3();
-			explicit UInt3(uint32_t x);
-			UInt3(uint32_t x, uint32_t y, uint32_t z);
-			UInt3(const UInt3& V);
+			uint3();
+			explicit uint3(uint32_t x);
+			uint3(uint32_t x, uint32_t y, uint32_t z);
+			uint3(const uint3& V);
 
 			// Comparison operators
-			bool operator == (const UInt3& V) const;
-			bool operator != (const UInt3& V) const;
+			bool operator == (const uint3& V) const;
+			bool operator != (const uint3& V) const;
 
 			// Assignment operators
-			UInt3& operator= (const UInt3& V) { x = V.x; y = V.y; z = V.z; return *this; }
-			UInt3& operator+= (const UInt3& V);
-			UInt3& operator-= (const UInt3& V);
-			UInt3& operator*= (const UInt3& V);
-			UInt3& operator*= (float S);
-			UInt3& operator/= (float S);
+			uint3& operator= (const uint3& V) { x = V.x; y = V.y; z = V.z; return *this; }
+			uint3& operator+= (const uint3& V);
+			uint3& operator-= (const uint3& V);
+			uint3& operator*= (const uint3& V);
+			uint3& operator*= (float S);
+			uint3& operator/= (float S);
 
 			// Unary operators
-			UInt3 operator+ () const { return *this; }
+			uint3 operator+ () const { return *this; }
 
-			static const UInt3 Zero;
-			static const UInt3 One;
-			static const UInt3 UnitX;
-			static const UInt3 UnitY;
-			static const UInt3 UnitZ;
+			static const uint3 Zero;
+			static const uint3 One;
+			static const uint3 UnitX;
+			static const uint3 UnitY;
+			static const uint3 UnitZ;
 		};
 
-		struct UInt4
+		struct uint4
 		{
 			uint32_t x;
 			uint32_t y;
 			uint32_t z;
 			uint32_t w;
 
-			UInt4();
-			explicit UInt4(uint32_t x);
-			UInt4(uint32_t x, uint32_t y, uint32_t z, uint32_t w);
-			UInt4(const UInt4& V);
+			uint4();
+			explicit uint4(uint32_t x);
+			uint4(uint32_t x, uint32_t y, uint32_t z, uint32_t w);
+			uint4(const uint4& V);
 
 			// Comparison operators
-			bool operator == (const UInt4& V) const;
-			bool operator != (const UInt4& V) const;
+			bool operator == (const uint4& V) const;
+			bool operator != (const uint4& V) const;
 
 			// Assignment operators
-			UInt4& operator= (const UInt4& V) { x = V.x; y = V.y; z = V.z; w = V.w; return *this; }
-			UInt4& operator+= (const UInt4& V);
-			UInt4& operator-= (const UInt4& V);
-			UInt4& operator*= (const UInt4& V);
-			UInt4& operator*= (float S);
-			UInt4& operator/= (float S);
+			uint4& operator= (const uint4& V) { x = V.x; y = V.y; z = V.z; w = V.w; return *this; }
+			uint4& operator+= (const uint4& V);
+			uint4& operator-= (const uint4& V);
+			uint4& operator*= (const uint4& V);
+			uint4& operator*= (float S);
+			uint4& operator/= (float S);
 
 			// Unary operators
-			UInt4 operator+ () const { return *this; }
+			uint4 operator+ () const { return *this; }
 
-			static const UInt4 Zero;
-			static const UInt4 One;
-			static const UInt4 UnitX;
-			static const UInt4 UnitY;
-			static const UInt4 UnitZ;
-			static const UInt4 UnitW;
+			static const uint4 Zero;
+			static const uint4 One;
+			static const uint4 UnitX;
+			static const uint4 UnitY;
+			static const uint4 UnitZ;
+			static const uint4 UnitW;
 		};
 
 		//------------------------------------------------------------------------------
 		// 2D vector
-		struct Vector2
+		struct float2
 		{
 			float x;
 			float y;
 
-			Vector2();
-			explicit Vector2(float x);
-			Vector2(float x, float y);
-			explicit Vector2(_In_reads_(2) const float *pArray);
-			Vector2(const __m128& V);
-			Vector2(const Vector2& V);
+			float2();
+			explicit float2(float x);
+			float2(float x, float y);
+			explicit float2(_In_reads_(2) const float *pArray);
+			float2(const __m128& V);
+			float2(const float2& V);
 
 			operator __m128() const;
 
 			float operator [] (int nIndex) const { return reinterpret_cast<const float*>(this)[nIndex]; }
 
 			// Comparison operators
-			bool operator == (const Vector2& V) const;
-			bool operator != (const Vector2& V) const;
+			bool operator == (const float2& V) const;
+			bool operator != (const float2& V) const;
 
 			// Assignment operators
-			Vector2& operator= (const Vector2& V) { x = V.x; y = V.y; return *this; }
-			Vector2& operator+= (const Vector2& V);
-			Vector2& operator-= (const Vector2& V);
-			Vector2& operator*= (const Vector2& V);
-			Vector2& operator*= (float S);
-			Vector2& operator/= (float S);
+			float2& operator= (const float2& V) { x = V.x; y = V.y; return *this; }
+			float2& operator+= (const float2& V);
+			float2& operator-= (const float2& V);
+			float2& operator*= (const float2& V);
+			float2& operator*= (float S);
+			float2& operator/= (float S);
 
 			// Unary operators
-			Vector2 operator+ () const { return *this; }
-			Vector2 operator- () const { return Vector2(-x, -y); }
+			float2 operator+ () const { return *this; }
+			float2 operator- () const { return float2(-x, -y); }
 
 			// Vector operations
-			bool InBounds(const Vector2& Bounds) const;
+			bool InBounds(const float2& Bounds) const;
 
 			float Length() const;
 			float LengthSquared() const;
 
-			float Dot(const Vector2& V) const;
-			void Cross(const Vector2& V, Vector2& result) const;
-			Vector2 Cross(const Vector2& V) const;
+			float Dot(const float2& V) const;
+			void Cross(const float2& V, float2& result) const;
+			float2 Cross(const float2& V) const;
 
 			void Normalize();
-			void Normalize(Vector2& result) const;
+			void Normalize(float2& result) const;
 
-			void Clamp(const Vector2& vmin, const Vector2& vmax);
-			void Clamp(const Vector2& vmin, const Vector2& vmax, Vector2& result) const;
+			void Clamp(const float2& vmin, const float2& vmax);
+			void Clamp(const float2& vmin, const float2& vmax, float2& result) const;
 
 			// Static functions
-			static float Distance(const Vector2& v1, const Vector2& v2);
-			static float DistanceSquared(const Vector2& v1, const Vector2& v2);
+			static float Distance(const float2& v1, const float2& v2);
+			static float DistanceSquared(const float2& v1, const float2& v2);
 
-			static void Min(const Vector2& v1, const Vector2& v2, Vector2& result);
-			static Vector2 Min(const Vector2& v1, const Vector2& v2);
+			static void Min(const float2& v1, const float2& v2, float2& result);
+			static float2 Min(const float2& v1, const float2& v2);
 
-			static void Max(const Vector2& v1, const Vector2& v2, Vector2& result);
-			static Vector2 Max(const Vector2& v1, const Vector2& v2);
+			static void Max(const float2& v1, const float2& v2, float2& result);
+			static float2 Max(const float2& v1, const float2& v2);
 
-			static void Lerp(const Vector2& v1, const Vector2& v2, float t, Vector2& result);
-			static Vector2 Lerp(const Vector2& v1, const Vector2& v2, float t);
+			static void Lerp(const float2& v1, const float2& v2, float t, float2& result);
+			static float2 Lerp(const float2& v1, const float2& v2, float t);
 
-			static void SmoothStep(const Vector2& v1, const Vector2& v2, float t, Vector2& result);
-			static Vector2 SmoothStep(const Vector2& v1, const Vector2& v2, float t);
+			static void SmoothStep(const float2& v1, const float2& v2, float t, float2& result);
+			static float2 SmoothStep(const float2& v1, const float2& v2, float t);
 
-			static void Barycentric(const Vector2& v1, const Vector2& v2, const Vector2& v3, float f, float g, Vector2& result);
-			static Vector2 Barycentric(const Vector2& v1, const Vector2& v2, const Vector2& v3, float f, float g);
+			static void Barycentric(const float2& v1, const float2& v2, const float2& v3, float f, float g, float2& result);
+			static float2 Barycentric(const float2& v1, const float2& v2, const float2& v3, float f, float g);
 
-			static void CatmullRom(const Vector2& v1, const Vector2& v2, const Vector2& v3, const Vector2& v4, float t, Vector2& result);
-			static Vector2 CatmullRom(const Vector2& v1, const Vector2& v2, const Vector2& v3, const Vector2& v4, float t);
+			static void CatmullRom(const float2& v1, const float2& v2, const float2& v3, const float2& v4, float t, float2& result);
+			static float2 CatmullRom(const float2& v1, const float2& v2, const float2& v3, const float2& v4, float t);
 
-			static void Hermite(const Vector2& v1, const Vector2& t1, const Vector2& v2, const Vector2& t2, float t, Vector2& result);
-			static Vector2 Hermite(const Vector2& v1, const Vector2& t1, const Vector2& v2, const Vector2& t2, float t);
+			static void Hermite(const float2& v1, const float2& t1, const float2& v2, const float2& t2, float t, float2& result);
+			static float2 Hermite(const float2& v1, const float2& t1, const float2& v2, const float2& t2, float t);
 
-			static void Reflect(const Vector2& ivec, const Vector2& nvec, Vector2& result);
-			static Vector2 Reflect(const Vector2& ivec, const Vector2& nvec);
+			static void Reflect(const float2& ivec, const float2& nvec, float2& result);
+			static float2 Reflect(const float2& ivec, const float2& nvec);
 
-			static void Refract(const Vector2& ivec, const Vector2& nvec, float refractionIndex, Vector2& result);
-			static Vector2 Refract(const Vector2& ivec, const Vector2& nvec, float refractionIndex);
+			static void Refract(const float2& ivec, const float2& nvec, float refractionIndex, float2& result);
+			static float2 Refract(const float2& ivec, const float2& nvec, float refractionIndex);
 
-			static void Transform(const Vector2& v, const Quaternion& quat, Vector2& result);
-			static Vector2 Transform(const Vector2& v, const Quaternion& quat);
+			static void Transform(const float2& v, const Quaternion& quat, float2& result);
+			static float2 Transform(const float2& v, const Quaternion& quat);
 
-			static void Transform(const Vector2& v, const Matrix& m, Vector2& result);
-			static Vector2 Transform(const Vector2& v, const Matrix& m);
-			static void Transform(_In_reads_(count) const Vector2* varray, size_t count, const Matrix& m, _Out_writes_(count) Vector2* resultArray);
+			static void Transform(const float2& v, const Matrix& m, float2& result);
+			static float2 Transform(const float2& v, const Matrix& m);
+			static void Transform(_In_reads_(count) const float2* varray, size_t count, const Matrix& m, _Out_writes_(count) float2* resultArray);
 
-			static void Transform(const Vector2& v, const Matrix& m, Vector4& result);
-			static void Transform(_In_reads_(count) const Vector2* varray, size_t count, const Matrix& m, _Out_writes_(count) Vector4* resultArray);
+			static void Transform(const float2& v, const Matrix& m, float4& result);
+			static void Transform(_In_reads_(count) const float2* varray, size_t count, const Matrix& m, _Out_writes_(count) float4* resultArray);
 
-			static void TransformNormal(const Vector2& v, const Matrix& m, Vector2& result);
-			static Vector2 TransformNormal(const Vector2& v, const Matrix& m);
-			static void TransformNormal(_In_reads_(count) const Vector2* varray, size_t count, const Matrix& m, _Out_writes_(count) Vector2* resultArray);
+			static void TransformNormal(const float2& v, const Matrix& m, float2& result);
+			static float2 TransformNormal(const float2& v, const Matrix& m);
+			static void TransformNormal(_In_reads_(count) const float2* varray, size_t count, const Matrix& m, _Out_writes_(count) float2* resultArray);
 
 			// Constants
-			static const Vector2 Zero;
-			static const Vector2 One;
-			static const Vector2 UnitX;
-			static const Vector2 UnitY;
+			static const float2 Zero;
+			static const float2 One;
+			static const float2 UnitX;
+			static const float2 UnitY;
 		};
 
 		// Binary operators
-		Vector2 operator+ (const Vector2& V1, const Vector2& V2);
-		Vector2 operator- (const Vector2& V1, const Vector2& V2);
-		Vector2 operator* (const Vector2& V1, const Vector2& V2);
-		Vector2 operator* (const Vector2& V, float S);
-		Vector2 operator/ (const Vector2& V1, const Vector2& V2);
-		Vector2 operator/ (const Vector2& V1, float S);
-		Vector2 operator* (float S, const Vector2& V);
+		float2 operator+ (const float2& V1, const float2& V2);
+		float2 operator- (const float2& V1, const float2& V2);
+		float2 operator* (const float2& V1, const float2& V2);
+		float2 operator* (const float2& V, float S);
+		float2 operator/ (const float2& V1, const float2& V2);
+		float2 operator/ (const float2& V1, float S);
+		float2 operator* (float S, const float2& V);
 
 		//------------------------------------------------------------------------------
 		// 3D vector
-		struct Vector3
+		struct float3
 		{
 			float x;
 			float y;
 			float z;
 
-			Vector3();
-			explicit Vector3(float x);
-			Vector3(float x, float y, float z);
-			explicit Vector3(_In_reads_(3) const float *pArray);
-			Vector3(const __m128& V);
-			Vector3(const Vector3& V);
+			float3();
+			explicit float3(float x);
+			float3(float x, float y, float z);
+			explicit float3(_In_reads_(3) const float *pArray);
+			float3(const __m128& V);
+			float3(const float3& V);
 
 			operator __m128() const;
 
 			float operator [] (int nIndex) const { return reinterpret_cast<const float*>(this)[nIndex]; }
 
 			// Comparison operators
-			bool operator == (const Vector3& V) const;
-			bool operator != (const Vector3& V) const;
+			bool operator == (const float3& V) const;
+			bool operator != (const float3& V) const;
 
 			// Assignment operators
-			Vector3& operator= (const Vector3& V) { x = V.x; y = V.y; z = V.z; return *this; }
-			Vector3& operator+= (const Vector3& V);
-			Vector3& operator-= (const Vector3& V);
-			Vector3& operator*= (const Vector3& V);
-			Vector3& operator/= (const Vector3& V);
-			Vector3& operator*= (float S);
-			Vector3& operator/= (float S);
+			float3& operator= (const float3& V) { x = V.x; y = V.y; z = V.z; return *this; }
+			float3& operator+= (const float3& V);
+			float3& operator-= (const float3& V);
+			float3& operator*= (const float3& V);
+			float3& operator/= (const float3& V);
+			float3& operator*= (float S);
+			float3& operator/= (float S);
 
 			// Unary operators
-			Vector3 operator+ () const { return *this; }
-			Vector3 operator- () const;
+			float3 operator+ () const { return *this; }
+			float3 operator- () const;
 
 			// Vector operations
-			bool InBounds(const Vector3& Bounds) const;
+			bool InBounds(const float3& Bounds) const;
 
 			float Length() const;
 			float LengthSquared() const;
 
-			float Dot(const Vector3& V) const;
-			void Cross(const Vector3& V, Vector3& result) const;
-			Vector3 Cross(const Vector3& V) const;
+			float Dot(const float3& V) const;
+			void Cross(const float3& V, float3& result) const;
+			float3 Cross(const float3& V) const;
 
 			void Normalize();
-			void Normalize(Vector3& result) const;
+			void Normalize(float3& result) const;
 
-			void Clamp(const Vector3& vmin, const Vector3& vmax);
-			void Clamp(const Vector3& vmin, const Vector3& vmax, Vector3& result) const;
+			void Clamp(const float3& vmin, const float3& vmax);
+			void Clamp(const float3& vmin, const float3& vmax, float3& result) const;
 
 			// Static functions
-			static float Distance(const Vector3& v1, const Vector3& v2);
-			static float DistanceSquared(const Vector3& v1, const Vector3& v2);
+			static float Distance(const float3& v1, const float3& v2);
+			static float DistanceSquared(const float3& v1, const float3& v2);
 
-			static void Min(const Vector3& v1, const Vector3& v2, Vector3& result);
-			static Vector3 Min(const Vector3& v1, const Vector3& v2);
+			static void Min(const float3& v1, const float3& v2, float3& result);
+			static float3 Min(const float3& v1, const float3& v2);
 
-			static void Max(const Vector3& v1, const Vector3& v2, Vector3& result);
-			static Vector3 Max(const Vector3& v1, const Vector3& v2);
+			static void Max(const float3& v1, const float3& v2, float3& result);
+			static float3 Max(const float3& v1, const float3& v2);
 
-			static void Lerp(const Vector3& v1, const Vector3& v2, float t, Vector3& result);
-			static Vector3 Lerp(const Vector3& v1, const Vector3& v2, float t);
+			static void Lerp(const float3& v1, const float3& v2, float t, float3& result);
+			static float3 Lerp(const float3& v1, const float3& v2, float t);
 
-			static void SmoothStep(const Vector3& v1, const Vector3& v2, float t, Vector3& result);
-			static Vector3 SmoothStep(const Vector3& v1, const Vector3& v2, float t);
+			static void SmoothStep(const float3& v1, const float3& v2, float t, float3& result);
+			static float3 SmoothStep(const float3& v1, const float3& v2, float t);
 
-			static void Barycentric(const Vector3& v1, const Vector3& v2, const Vector3& v3, float f, float g, Vector3& result);
-			static Vector3 Barycentric(const Vector3& v1, const Vector3& v2, const Vector3& v3, float f, float g);
+			static void Barycentric(const float3& v1, const float3& v2, const float3& v3, float f, float g, float3& result);
+			static float3 Barycentric(const float3& v1, const float3& v2, const float3& v3, float f, float g);
 
-			static void CatmullRom(const Vector3& v1, const Vector3& v2, const Vector3& v3, const Vector3& v4, float t, Vector3& result);
-			static Vector3 CatmullRom(const Vector3& v1, const Vector3& v2, const Vector3& v3, const Vector3& v4, float t);
+			static void CatmullRom(const float3& v1, const float3& v2, const float3& v3, const float3& v4, float t, float3& result);
+			static float3 CatmullRom(const float3& v1, const float3& v2, const float3& v3, const float3& v4, float t);
 
-			static void Hermite(const Vector3& v1, const Vector3& t1, const Vector3& v2, const Vector3& t2, float t, Vector3& result);
-			static Vector3 Hermite(const Vector3& v1, const Vector3& t1, const Vector3& v2, const Vector3& t2, float t);
+			static void Hermite(const float3& v1, const float3& t1, const float3& v2, const float3& t2, float t, float3& result);
+			static float3 Hermite(const float3& v1, const float3& t1, const float3& v2, const float3& t2, float t);
 
-			static void Reflect(const Vector3& ivec, const Vector3& nvec, Vector3& result);
-			static Vector3 Reflect(const Vector3& ivec, const Vector3& nvec);
+			static void Reflect(const float3& ivec, const float3& nvec, float3& result);
+			static float3 Reflect(const float3& ivec, const float3& nvec);
 
-			static void Refract(const Vector3& ivec, const Vector3& nvec, float refractionIndex, Vector3& result);
-			static Vector3 Refract(const Vector3& ivec, const Vector3& nvec, float refractionIndex);
+			static void Refract(const float3& ivec, const float3& nvec, float refractionIndex, float3& result);
+			static float3 Refract(const float3& ivec, const float3& nvec, float refractionIndex);
 
-			static void Transform(const Vector3& v, const Quaternion& quat, Vector3& result);
-			static Vector3 Transform(const Vector3& v, const Quaternion& quat);
+			static void Transform(const float3& v, const Quaternion& quat, float3& result);
+			static float3 Transform(const float3& v, const Quaternion& quat);
 
-			static void Transform(const Vector3& v, const Matrix& m, Vector3& result);
-			static Vector3 Transform(const Vector3& v, const Matrix& m);
-			static void Transform(_In_reads_(count) const Vector3* varray, size_t count, const Matrix& m, _Out_writes_(count) Vector3* resultArray);
+			static void Transform(const float3& v, const Matrix& m, float3& result);
+			static float3 Transform(const float3& v, const Matrix& m);
+			static void Transform(_In_reads_(count) const float3* varray, size_t count, const Matrix& m, _Out_writes_(count) float3* resultArray);
 
-			static void Transform(const Vector3& v, const Matrix& m, Vector4& result);
-			static void Transform(_In_reads_(count) const Vector3* varray, size_t count, const Matrix& m, _Out_writes_(count) Vector4* resultArray);
+			static void Transform(const float3& v, const Matrix& m, float4& result);
+			static void Transform(_In_reads_(count) const float3* varray, size_t count, const Matrix& m, _Out_writes_(count) float4* resultArray);
 
-			static void TransformNormal(const Vector3& v, const Matrix& m, Vector3& result);
-			static Vector3 TransformNormal(const Vector3& v, const Matrix& m);
-			static void TransformNormal(_In_reads_(count) const Vector3* varray, size_t count, const Matrix& m, _Out_writes_(count) Vector3* resultArray);
+			static void TransformNormal(const float3& v, const Matrix& m, float3& result);
+			static float3 TransformNormal(const float3& v, const Matrix& m);
+			static void TransformNormal(_In_reads_(count) const float3* varray, size_t count, const Matrix& m, _Out_writes_(count) float3* resultArray);
 
-			static Vector3 FresnelTerm(const Vector3& v1, const Vector3& v2);
+			static float3 FresnelTerm(const float3& v1, const float3& v2);
 
 			// Constants
-			static const Vector3 Zero;
-			static const Vector3 One;
-			static const Vector3 UnitX;
-			static const Vector3 UnitY;
-			static const Vector3 UnitZ;
-			static const Vector3 Up;
-			static const Vector3 Down;
-			static const Vector3 Right;
-			static const Vector3 Left;
-			static const Vector3 Forward;
-			static const Vector3 Backward;
+			static const float3 Zero;
+			static const float3 One;
+			static const float3 UnitX;
+			static const float3 UnitY;
+			static const float3 UnitZ;
+			static const float3 Up;
+			static const float3 Down;
+			static const float3 Right;
+			static const float3 Left;
+			static const float3 Forward;
+			static const float3 Backward;
 		};
 
 		// Binary operators
-		Vector3 operator+ (const Vector3& V1, const Vector3& V2);
-		Vector3 operator- (const Vector3& V1, const Vector3& V2);
-		Vector3 operator* (const Vector3& V1, const Vector3& V2);
-		Vector3 operator* (const Vector3& V, float S);
-		Vector3 operator/ (const Vector3& V1, const Vector3& V2);
-		Vector3 operator/ (const Vector3& V, float S);
-		Vector3 operator* (float S, const Vector3& V);
+		float3 operator+ (const float3& V1, const float3& V2);
+		float3 operator- (const float3& V1, const float3& V2);
+		float3 operator* (const float3& V1, const float3& V2);
+		float3 operator* (const float3& V, float S);
+		float3 operator/ (const float3& V1, const float3& V2);
+		float3 operator/ (const float3& V, float S);
+		float3 operator* (float S, const float3& V);
 
 		//------------------------------------------------------------------------------
 		// 4D vector
-		struct Vector4
+		struct float4
 		{
 			float x;
 			float y;
 			float z;
 			float w;
 
-			Vector4();
-			explicit Vector4(float x);
-			Vector4(float x, float y, float z, float w);
-			explicit Vector4(_In_reads_(4) const float *pArray);
-			Vector4(const __m128& V);
-			Vector4(const Vector4& V);
+			float4();
+			explicit float4(float x);
+			float4(float x, float y, float z, float w);
+			explicit float4(_In_reads_(4) const float *pArray);
+			float4(const __m128& V);
+			float4(const float4& V);
 
 			operator __m128() const;
 
 			float operator [] (int nIndex) const { return reinterpret_cast<const float*>(this)[nIndex]; }
 
 			// Comparison operators
-			bool operator == (const Vector4& V) const;
-			bool operator != (const Vector4& V) const;
+			bool operator == (const float4& V) const;
+			bool operator != (const float4& V) const;
 
 			// Assignment operators
-			Vector4& operator= (const Vector4& V) { x = V.x; y = V.y; z = V.z; w = V.w; return *this; }
-			Vector4& operator+= (const Vector4& V);
-			Vector4& operator-= (const Vector4& V);
-			Vector4& operator*= (const Vector4& V);
-			Vector4& operator*= (float S);
-			Vector4& operator/= (float S);
+			float4& operator= (const float4& V) { x = V.x; y = V.y; z = V.z; w = V.w; return *this; }
+			float4& operator+= (const float4& V);
+			float4& operator-= (const float4& V);
+			float4& operator*= (const float4& V);
+			float4& operator*= (float S);
+			float4& operator/= (float S);
 
 			// Unary operators
-			Vector4 operator+ () const { return *this; }
-			Vector4 operator- () const;
+			float4 operator+ () const { return *this; }
+			float4 operator- () const;
 
 			// Vector operations
-			bool InBounds(const Vector4& Bounds) const;
+			bool InBounds(const float4& Bounds) const;
 
 			float Length() const;
 			float LengthSquared() const;
 
-			float Dot(const Vector4& V) const;
-			void Cross(const Vector4& v1, const Vector4& v2, Vector4& result) const;
-			Vector4 Cross(const Vector4& v1, const Vector4& v2) const;
+			float Dot(const float4& V) const;
+			void Cross(const float4& v1, const float4& v2, float4& result) const;
+			float4 Cross(const float4& v1, const float4& v2) const;
 
 			void Normalize();
-			void Normalize(Vector4& result) const;
+			void Normalize(float4& result) const;
 
-			void Clamp(const Vector4& vmin, const Vector4& vmax);
-			void Clamp(const Vector4& vmin, const Vector4& vmax, Vector4& result) const;
+			void Clamp(const float4& vmin, const float4& vmax);
+			void Clamp(const float4& vmin, const float4& vmax, float4& result) const;
 
 			// Static functions
-			static float Distance(const Vector4& v1, const Vector4& v2);
-			static float DistanceSquared(const Vector4& v1, const Vector4& v2);
+			static float Distance(const float4& v1, const float4& v2);
+			static float DistanceSquared(const float4& v1, const float4& v2);
 
-			static void Min(const Vector4& v1, const Vector4& v2, Vector4& result);
-			static Vector4 Min(const Vector4& v1, const Vector4& v2);
+			static void Min(const float4& v1, const float4& v2, float4& result);
+			static float4 Min(const float4& v1, const float4& v2);
 
-			static void Max(const Vector4& v1, const Vector4& v2, Vector4& result);
-			static Vector4 Max(const Vector4& v1, const Vector4& v2);
+			static void Max(const float4& v1, const float4& v2, float4& result);
+			static float4 Max(const float4& v1, const float4& v2);
 
-			static void Lerp(const Vector4& v1, const Vector4& v2, float t, Vector4& result);
-			static Vector4 Lerp(const Vector4& v1, const Vector4& v2, float t);
+			static void Lerp(const float4& v1, const float4& v2, float t, float4& result);
+			static float4 Lerp(const float4& v1, const float4& v2, float t);
 
-			static void SmoothStep(const Vector4& v1, const Vector4& v2, float t, Vector4& result);
-			static Vector4 SmoothStep(const Vector4& v1, const Vector4& v2, float t);
+			static void SmoothStep(const float4& v1, const float4& v2, float t, float4& result);
+			static float4 SmoothStep(const float4& v1, const float4& v2, float t);
 
-			static void Barycentric(const Vector4& v1, const Vector4& v2, const Vector4& v3, float f, float g, Vector4& result);
-			static Vector4 Barycentric(const Vector4& v1, const Vector4& v2, const Vector4& v3, float f, float g);
+			static void Barycentric(const float4& v1, const float4& v2, const float4& v3, float f, float g, float4& result);
+			static float4 Barycentric(const float4& v1, const float4& v2, const float4& v3, float f, float g);
 
-			static void CatmullRom(const Vector4& v1, const Vector4& v2, const Vector4& v3, const Vector4& v4, float t, Vector4& result);
-			static Vector4 CatmullRom(const Vector4& v1, const Vector4& v2, const Vector4& v3, const Vector4& v4, float t);
+			static void CatmullRom(const float4& v1, const float4& v2, const float4& v3, const float4& v4, float t, float4& result);
+			static float4 CatmullRom(const float4& v1, const float4& v2, const float4& v3, const float4& v4, float t);
 
-			static void Hermite(const Vector4& v1, const Vector4& t1, const Vector4& v2, const Vector4& t2, float t, Vector4& result);
-			static Vector4 Hermite(const Vector4& v1, const Vector4& t1, const Vector4& v2, const Vector4& t2, float t);
+			static void Hermite(const float4& v1, const float4& t1, const float4& v2, const float4& t2, float t, float4& result);
+			static float4 Hermite(const float4& v1, const float4& t1, const float4& v2, const float4& t2, float t);
 
-			static void Reflect(const Vector4& ivec, const Vector4& nvec, Vector4& result);
-			static Vector4 Reflect(const Vector4& ivec, const Vector4& nvec);
+			static void Reflect(const float4& ivec, const float4& nvec, float4& result);
+			static float4 Reflect(const float4& ivec, const float4& nvec);
 
-			static void Refract(const Vector4& ivec, const Vector4& nvec, float refractionIndex, Vector4& result);
-			static Vector4 Refract(const Vector4& ivec, const Vector4& nvec, float refractionIndex);
+			static void Refract(const float4& ivec, const float4& nvec, float refractionIndex, float4& result);
+			static float4 Refract(const float4& ivec, const float4& nvec, float refractionIndex);
 
-			static void Transform(const Vector2& v, const Quaternion& quat, Vector4& result);
-			static Vector4 Transform(const Vector2& v, const Quaternion& quat);
+			static void Transform(const float2& v, const Quaternion& quat, float4& result);
+			static float4 Transform(const float2& v, const Quaternion& quat);
 
-			static void Transform(const Vector3& v, const Quaternion& quat, Vector4& result);
-			static Vector4 Transform(const Vector3& v, const Quaternion& quat);
+			static void Transform(const float3& v, const Quaternion& quat, float4& result);
+			static float4 Transform(const float3& v, const Quaternion& quat);
 
-			static void Transform(const Vector4& v, const Quaternion& quat, Vector4& result);
-			static Vector4 Transform(const Vector4& v, const Quaternion& quat);
+			static void Transform(const float4& v, const Quaternion& quat, float4& result);
+			static float4 Transform(const float4& v, const Quaternion& quat);
 
-			static void Transform(const Vector4& v, const Matrix& m, Vector4& result);
-			static Vector4 Transform(const Vector4& v, const Matrix& m);
-			static void Transform(_In_reads_(count) const Vector4* varray, size_t count, const Matrix& m, _Out_writes_(count) Vector4* resultArray);
+			static void Transform(const float4& v, const Matrix& m, float4& result);
+			static float4 Transform(const float4& v, const Matrix& m);
+			static void Transform(_In_reads_(count) const float4* varray, size_t count, const Matrix& m, _Out_writes_(count) float4* resultArray);
 
 			// Constants
-			static const Vector4 Zero;
-			static const Vector4 One;
-			static const Vector4 UnitX;
-			static const Vector4 UnitY;
-			static const Vector4 UnitZ;
-			static const Vector4 UnitW;
+			static const float4 Zero;
+			static const float4 One;
+			static const float4 UnitX;
+			static const float4 UnitY;
+			static const float4 UnitZ;
+			static const float4 UnitW;
 		};
 
 		// Binary operators
-		Vector4 operator+ (const Vector4& V1, const Vector4& V2);
-		Vector4 operator- (const Vector4& V1, const Vector4& V2);
-		Vector4 operator* (const Vector4& V1, const Vector4& V2);
-		Vector4 operator* (const Vector4& V, float S);
-		Vector4 operator/ (const Vector4& V1, const Vector4& V2);
-		Vector4 operator* (float S, const Vector4& V);
+		float4 operator+ (const float4& V1, const float4& V2);
+		float4 operator- (const float4& V1, const float4& V2);
+		float4 operator* (const float4& V1, const float4& V2);
+		float4 operator* (const float4& V, float S);
+		float4 operator/ (const float4& V1, const float4& V2);
+		float4 operator/ (const float4& V, float S);
+		float4 operator* (float S, const float4& V);
 
 		//------------------------------------------------------------------------------
 		struct Matrix
@@ -692,6 +699,13 @@ namespace eastengine
 					float _31, _32, _33, _34;
 					float _41, _42, _43, _44;
 				};
+				struct
+				{
+					float4 _r0;
+					float4 _r1;
+					float4 _r2;
+					float4 _r3;
+				};
 				float m[4][4];
 			};
 
@@ -700,8 +714,8 @@ namespace eastengine
 				float m10, float m11, float m12, float m13,
 				float m20, float m21, float m22, float m23,
 				float m30, float m31, float m32, float m33);
-			explicit Matrix(const Vector3& r0, const Vector3& r1, const Vector3& r2);
-			explicit Matrix(const Vector4& r0, const Vector4& r1, const Vector4& r2, const Vector4& r3);
+			explicit Matrix(const float3& r0, const float3& r1, const float3& r2);
+			explicit Matrix(const float4& r0, const float4& r1, const float4& r2, const float4& r3);
 			Matrix(const Matrix& M);
 
 			// Comparison operators
@@ -724,29 +738,29 @@ namespace eastengine
 			Matrix operator- () const;
 
 			// Properties
-			Vector3 Up() const { return Vector3(_12, _22, _32); }
-			void Up(const Vector3& v) { _12 = v.x; _22 = v.y; _32 = v.z; }
+			float3 Up() const { return float3(_12, _22, _32); }
+			void Up(const float3& v) { _12 = v.x; _22 = v.y; _32 = v.z; }
 
-			Vector3 Down() const { return Vector3(-_12, -_22, -_32); }
-			void Down(const Vector3& v) { _12 = -v.x; _22 = -v.y; _32 = -v.z; }
+			float3 Down() const { return float3(-_12, -_22, -_32); }
+			void Down(const float3& v) { _12 = -v.x; _22 = -v.y; _32 = -v.z; }
 
-			Vector3 Right() const { return Vector3(_11, _21, _31); }
-			void Right(const Vector3& v) { _11 = v.x; _21 = v.y; _31 = v.z; }
+			float3 Right() const { return float3(_11, _21, _31); }
+			void Right(const float3& v) { _11 = v.x; _21 = v.y; _31 = v.z; }
 
-			Vector3 Left() const { return Vector3(-_11, -_21, -_31); }
-			void Left(const Vector3& v) { _11 = -v.x; _21 = -v.y; _31 = -v.z; }
+			float3 Left() const { return float3(-_11, -_21, -_31); }
+			void Left(const float3& v) { _11 = -v.x; _21 = -v.y; _31 = -v.z; }
 
-			Vector3 Forward() const { return Vector3(_13, _23, _33); }
-			void Forward(const Vector3& v) { _13 = v.x; _23 = v.y; _33 = v.z; }
+			float3 Forward() const { return float3(_13, _23, _33); }
+			void Forward(const float3& v) { _13 = v.x; _23 = v.y; _33 = v.z; }
 
-			Vector3 Backward() const { return Vector3(-_13, -_23, -_33); }
-			void Backward(const Vector3& v) { _13 = -v.x; _23 = -v.y; _33 = -v.z; }
+			float3 Backward() const { return float3(-_13, -_23, -_33); }
+			void Backward(const float3& v) { _13 = -v.x; _23 = -v.y; _33 = -v.z; }
 
-			Vector3 Translation() const { return Vector3(_41, _42, _43); }
-			void Translation(const Vector3& v) { _41 = v.x; _42 = v.y; _43 = v.z; }
+			float3 Translation() const { return float3(_41, _42, _43); }
+			void Translation(const float3& v) { _41 = v.x; _42 = v.y; _43 = v.z; }
 
 			// Matrix operations
-			bool Decompose(Vector3& scale, Quaternion& rotation, Vector3& translation) const;
+			bool Decompose(float3& scale, Quaternion& rotation, float3& translation) const;
 
 			Matrix Transpose() const;
 			void Transpose(Matrix& result) const;
@@ -757,18 +771,18 @@ namespace eastengine
 			float Determinant() const;
 
 			// Static functions
-			static Matrix Compose(const Vector3& scale, const Quaternion& rotation, const Vector3& translation);
-			static void Compose(const Vector3& scale, const Quaternion& rotation, const Vector3& translation, Matrix& result);
+			static Matrix Compose(const float3& scale, const Quaternion& rotation, const float3& translation);
+			static void Compose(const float3& scale, const Quaternion& rotation, const float3& translation, Matrix& result);
 
-			static Matrix CreateBillboard(const Vector3& object, const Vector3& cameraPosition, const Vector3& cameraUp, _In_opt_ const Vector3* cameraForward = nullptr);
+			static Matrix CreateBillboard(const float3& object, const float3& cameraPosition, const float3& cameraUp, _In_opt_ const float3* cameraForward = nullptr);
 
-			static Matrix CreateConstrainedBillboard(const Vector3& object, const Vector3& cameraPosition, const Vector3& rotateAxis,
-				_In_opt_ const Vector3* cameraForward = nullptr, _In_opt_ const Vector3* objectForward = nullptr);
+			static Matrix CreateConstrainedBillboard(const float3& object, const float3& cameraPosition, const float3& rotateAxis,
+				_In_opt_ const float3* cameraForward = nullptr, _In_opt_ const float3* objectForward = nullptr);
 
-			static Matrix CreateTranslation(const Vector3& position);
+			static Matrix CreateTranslation(const float3& position);
 			static Matrix CreateTranslation(float x, float y, float z);
 
-			static Matrix CreateScale(const Vector3& scales);
+			static Matrix CreateScale(const float3& scales);
 			static Matrix CreateScale(float xs, float ys, float zs);
 			static Matrix CreateScale(float scale);
 
@@ -776,7 +790,7 @@ namespace eastengine
 			static Matrix CreateRotationY(float radians);
 			static Matrix CreateRotationZ(float radians);
 
-			static Matrix CreateFromAxisAngle(const Vector3& axis, float angle);
+			static Matrix CreateFromAxisAngle(const float3& axis, float angle);
 
 			static Matrix CreatePerspectiveFieldOfView(float fov, float aspectRatio, float nearPlane, float farPlane);
 			static Matrix CreatePerspective(float width, float height, float nearPlane, float farPlane);
@@ -784,14 +798,14 @@ namespace eastengine
 			static Matrix CreateOrthographic(float width, float height, float zNearPlane, float zFarPlane);
 			static Matrix CreateOrthographicOffCenter(float left, float right, float bottom, float top, float zNearPlane, float zFarPlane);
 
-			static Matrix CreateLookAt(const Vector3& position, const Vector3& target, const Vector3& up);
-			static Matrix CreateWorld(const Vector3& position, const Vector3& forward, const Vector3& up);
+			static Matrix CreateLookAt(const float3& position, const float3& target, const float3& up);
+			static Matrix CreateWorld(const float3& position, const float3& forward, const float3& up);
 
 			static Matrix CreateFromQuaternion(const Quaternion& quat);
 
 			static Matrix CreateFromYawPitchRoll(float yaw, float pitch, float roll);
 
-			static Matrix CreateShadow(const Vector3& lightDir, const Plane& plane);
+			static Matrix CreateShadow(const float3& lightDir, const Plane& plane);
 
 			static Matrix CreateReflection(const Plane& plane);
 
@@ -828,10 +842,10 @@ namespace eastengine
 
 			Plane();
 			Plane(float x, float y, float z, float w);
-			Plane(const Vector3& normal, float d);
-			Plane(const Vector3& point1, const Vector3& point2, const Vector3& point3);
-			Plane(const Vector3& point, const Vector3& normal);
-			explicit Plane(const Vector4& v);
+			Plane(const float3& normal, float d);
+			Plane(const float3& point1, const float3& point2, const float3& point3);
+			Plane(const float3& point, const float3& normal);
+			explicit Plane(const float4& v);
 			explicit Plane(_In_reads_(4) const float *pArray);
 			Plane(const __m128& V);
 
@@ -845,8 +859,8 @@ namespace eastengine
 			Plane& operator= (const Plane& p) { x = p.x; y = p.y; z = p.z; w = p.w; return *this; }
 
 			// Properties
-			Vector3 Normal() const { return Vector3(x, y, z); }
-			void Normal(const Vector3& normal) { x = normal.x; y = normal.y; z = normal.z; }
+			float3 Normal() const { return float3(x, y, z); }
+			void Normal(const float3& normal) { x = normal.x; y = normal.y; z = normal.z; }
 
 			float D() const { return w; }
 			void D(float d) { w = d; }
@@ -855,9 +869,9 @@ namespace eastengine
 			void Normalize();
 			void Normalize(Plane& result) const;
 
-			float Dot(const Vector4& v) const;
-			float DotCoordinate(const Vector3& position) const;
-			float DotNormal(const Vector3& normal) const;
+			float Dot(const float4& v) const;
+			float DotCoordinate(const float3& position) const;
+			float DotNormal(const float3& normal) const;
 
 			// Static functions
 			static void Transform(const Plane& plane, const Matrix& M, Plane& result);
@@ -879,8 +893,8 @@ namespace eastengine
 
 			Quaternion();
 			Quaternion(float x, float y, float z, float w);
-			Quaternion(const Vector3& v, float scalar);
-			explicit Quaternion(const Vector4& v);
+			Quaternion(const float3& v, float scalar);
+			explicit Quaternion(const float4& v);
 			explicit Quaternion(_In_reads_(4) const float *pArray);
 			Quaternion(const __m128& V);
 
@@ -917,11 +931,11 @@ namespace eastengine
 
 			float Dot(const Quaternion& Q) const;
 
-			Vector3 ToEularRadians() const;
-			Vector3 ToEularDegrees() const;
+			float3 ToEularRadians() const;
+			float3 ToEularDegrees() const;
 
 			// Static functions
-			static Quaternion CreateFromAxisAngle(const Vector3& axis, float angle);
+			static Quaternion CreateFromAxisAngle(const float3& axis, float angle);
 			static Quaternion CreateFromYawPitchRoll(float yaw, float pitch, float roll);
 			static Quaternion CreateFromRotationMatrix(const Matrix& M);
 
@@ -949,12 +963,12 @@ namespace eastengine
 
 		struct Transform
 		{
-			math::Vector3 scale;
+			math::float3 scale;
 			math::Quaternion rotation;
-			math::Vector3 position;
+			math::float3 position;
 
 			Transform();
-			Transform(const Vector3& scale, const Quaternion& rotation, const Vector3& position);
+			Transform(const float3& scale, const Quaternion& rotation, const float3& position);
 			Transform(const Matrix& matrix);
 
 			Matrix Compose() const;
@@ -997,8 +1011,8 @@ namespace eastengine
 			Color();
 			Color(float r, float g, float b);
 			Color(float r, float g, float b, float a);
-			explicit Color(const Vector3& clr);
-			explicit Color(const Vector4& clr);
+			explicit Color(const float3& clr);
+			explicit Color(const float4& clr);
 			explicit Color(_In_reads_(4) const float *pArray);
 			Color(const __m128& V);
 
@@ -1013,7 +1027,7 @@ namespace eastengine
 
 			// Assignment operators
 			Color& operator= (const Color& c) { r = c.r; g = c.g; b = c.b; a = c.a; return *this; }
-			Color& operator= (const Vector4& c) { r = c.x; g = c.y; b = c.z; a = c.w; return *this; }
+			Color& operator= (const float4& c) { r = c.x; g = c.y; b = c.z; a = c.w; return *this; }
 			Color& operator= (const RGBA& Packed);
 			Color& operator+= (const Color& c);
 			Color& operator-= (const Color& c);
@@ -1041,8 +1055,8 @@ namespace eastengine
 			// Color operations
 			RGBA GetRGBA() const;
 
-			Vector3 ToVector3() const { return Vector3(r, g, b); }
-			Vector4 ToVector4() const { return Vector4(r, g, b, a); }
+			float3 ToVector3() const { return float3(r, g, b); }
+			float4 Tofloat4() const { return float4(r, g, b, a); }
 
 			void Negate();
 			void Negate(Color& result) const;
@@ -1294,11 +1308,11 @@ namespace eastengine
 			// Viewport operations
 			float AspectRatio() const;
 
-			Vector3 Project(const Vector3& p, const Matrix& proj, const Matrix& view, const Matrix& world) const;
-			void Project(const Vector3& p, const Matrix& proj, const Matrix& view, const Matrix& world, Vector3& result) const;
+			float3 Project(const float3& p, const Matrix& proj, const Matrix& view, const Matrix& world) const;
+			void Project(const float3& p, const Matrix& proj, const Matrix& view, const Matrix& world, float3& result) const;
 
-			Vector3 Unproject(const Vector3& p, const Matrix& proj, const Matrix& view, const Matrix& world) const;
-			void Unproject(const Vector3& p, const Matrix& proj, const Matrix& view, const Matrix& world, Vector3& result) const;
+			float3 Unproject(const float3& p, const Matrix& proj, const Matrix& view, const Matrix& world) const;
+			void Unproject(const float3& p, const Matrix& proj, const Matrix& view, const Matrix& world, float3& result) const;
 		};
 
 #include "Math.inl"
@@ -1309,17 +1323,17 @@ namespace eastengine
 // Support for SimpleMath and Standard C++ Library containers
 namespace std
 {
-	template<> struct less<eastengine::math::Vector2>
+	template<> struct less<eastengine::math::float2>
 	{
-		bool operator()(const eastengine::math::Vector2& V1, const eastengine::math::Vector2& V2) const
+		bool operator()(const eastengine::math::float2& V1, const eastengine::math::float2& V2) const
 		{
 			return ((V1.x < V2.x) || ((V1.x == V2.x) && (V1.y < V2.y)));
 		}
 	};
 
-	template<> struct less<eastengine::math::Vector3>
+	template<> struct less<eastengine::math::float3>
 	{
-		bool operator()(const eastengine::math::Vector3& V1, const eastengine::math::Vector3& V2) const
+		bool operator()(const eastengine::math::float3& V1, const eastengine::math::float3& V2) const
 		{
 			return ((V1.x < V2.x)
 				|| ((V1.x == V2.x) && (V1.y < V2.y))
@@ -1327,9 +1341,9 @@ namespace std
 		}
 	};
 
-	template<> struct less<eastengine::math::Vector4>
+	template<> struct less<eastengine::math::float4>
 	{
-		bool operator()(const eastengine::math::Vector4& V1, const eastengine::math::Vector4& V2) const
+		bool operator()(const eastengine::math::float4& V1, const eastengine::math::float4& V2) const
 		{
 			return ((V1.x < V2.x)
 				|| ((V1.x == V2.x) && (V1.y < V2.y))

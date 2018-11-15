@@ -20,7 +20,7 @@ namespace eastengine
 				struct BloomFilterContents
 				{
 					//Needed for pixel offset
-					math::Vector2 InverseResolution;
+					math::float2 InverseResolution;
 
 					//The threshold of pixels that are brighter than that.
 					float Threshold{ 0.8f };
@@ -76,7 +76,7 @@ namespace eastengine
 				}
 
 				void SetBloomFilterContents(BloomFilterContents* pBloomFilterContents,
-					const math::Vector2& InverseResolution, float Threshold, float Radius, float Strength, float StreakLength, uint32_t nTexSourceIndex)
+					const math::float2& InverseResolution, float Threshold, float Radius, float Strength, float StreakLength, uint32_t nTexSourceIndex)
 				{
 					pBloomFilterContents->InverseResolution = InverseResolution;
 					pBloomFilterContents->Threshold = Threshold;
@@ -100,7 +100,7 @@ namespace eastengine
 				void Apply(RenderTarget* pSource);
 
 			private:
-				RenderTarget * Sampling(Device* pDevice, ID3D12GraphicsCommandList2* pCommandList, uint32_t nFrameIndex, const Options::BloomFilterConfig& bloomFilterConfig, shader::PSType emPSType, bool isResult, uint32_t nWidth, uint32_t nHeight, int nPass, const math::Vector2& f2InverseResolution, RenderTarget* pSource, RenderTarget* pResult = nullptr);
+				RenderTarget * Sampling(Device* pDevice, ID3D12GraphicsCommandList2* pCommandList, uint32_t nFrameIndex, const Options::BloomFilterConfig& bloomFilterConfig, shader::PSType emPSType, bool isResult, uint32_t nWidth, uint32_t nHeight, int nPass, const math::float2& f2InverseResolution, RenderTarget* pSource, RenderTarget* pResult = nullptr);
 				void SetBloomPreset(Options::BloomFilterConfig::Presets emPreset);
 
 				shader::BloomFilterContents* AllocateBloomFilterContents(uint32_t nFrameIndex)
@@ -221,7 +221,7 @@ namespace eastengine
 
 				const D3D12_RESOURCE_DESC sourceDesc = pSource->GetDesc();
 
-				const math::UInt2 n2TargetSize(static_cast<uint32_t>(sourceDesc.Width) / 2, static_cast<uint32_t>(sourceDesc.Height) / 2);
+				const math::uint2 n2TargetSize(static_cast<uint32_t>(sourceDesc.Width) / 2, static_cast<uint32_t>(sourceDesc.Height) / 2);
 				m_fRadiusMultiplier = static_cast<float>(sourceDesc.Width) / static_cast<float>(sourceDesc.Height);
 
 				Device* pDeviceInstance = Device::GetInstance();
@@ -232,7 +232,7 @@ namespace eastengine
 				ResetBloomFilterContents(nFrameIndex);
 				SetBloomPreset(bloomFilterConfig.emPreset);
 
-				const math::Vector2 f2InverseResolution(1.f / n2TargetSize.x, 1.f / n2TargetSize.y);
+				const math::float2 f2InverseResolution(1.f / n2TargetSize.x, 1.f / n2TargetSize.y);
 
 				shader::PSType emPSType = bloomFilterConfig.isEnableLuminance == true ? shader::eExtractLuminance : shader::eExtract;
 				RenderTarget* pMip0 = Sampling(pDeviceInstance, pCommandList, nFrameIndex, bloomFilterConfig, emPSType, true, n2TargetSize.x, n2TargetSize.y, 0, f2InverseResolution, pSource);
@@ -268,7 +268,7 @@ namespace eastengine
 				pDeviceInstance->ExecuteCommandList(pCommandList);
 			}
 
-			RenderTarget* BloomFilter::Impl::Sampling(Device* pDevice, ID3D12GraphicsCommandList2* pCommandList, uint32_t nFrameIndex, const Options::BloomFilterConfig& bloomFilterConfig, shader::PSType emPSType, bool isResult, uint32_t nWidth, uint32_t nHeight, int nPass, const math::Vector2& f2InverseResolution, RenderTarget* pSource, RenderTarget* pResult)
+			RenderTarget* BloomFilter::Impl::Sampling(Device* pDevice, ID3D12GraphicsCommandList2* pCommandList, uint32_t nFrameIndex, const Options::BloomFilterConfig& bloomFilterConfig, shader::PSType emPSType, bool isResult, uint32_t nWidth, uint32_t nHeight, int nPass, const math::float2& f2InverseResolution, RenderTarget* pSource, RenderTarget* pResult)
 			{
 				if (m_nDownsamplePasses > nPass)
 				{

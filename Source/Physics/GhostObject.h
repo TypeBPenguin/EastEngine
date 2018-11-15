@@ -12,7 +12,7 @@ namespace eastengine
 		{
 			int nCollisionFlag = EmCollision::eCharacterObject;
 
-			math::Vector3 f3OriginPos;
+			math::float3 f3OriginPos;
 			math::Quaternion originQuat;
 
 			Shape shapeInfo;

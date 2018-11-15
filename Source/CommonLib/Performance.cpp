@@ -81,7 +81,7 @@ namespace eastengine
 					uint32_t nProcessID{ 0 };
 					uint32_t nThreadID{ 0 };
 
-					std::chrono::system_clock::time_point time;
+					std::chrono::high_resolution_clock::time_point time;
 
 					struct Args
 					{
@@ -105,7 +105,7 @@ namespace eastengine
 			private:
 				thread::SRWLock m_srwLock;
 
-				std::optional<std::chrono::system_clock::time_point> m_startTime;
+				std::optional<std::chrono::high_resolution_clock::time_point> m_startTime;
 				std::unordered_map<uint32_t, std::vector<Event>> m_umapEvents;
 				std::unordered_map<uint32_t, std::stack<size_t>> m_umapEventLinkers;
 
@@ -137,7 +137,7 @@ namespace eastengine
 				{
 				case eRequestStart:
 				{
-					m_startTime.emplace<std::chrono::system_clock::time_point>(std::chrono::system_clock::now());
+					m_startTime.emplace<std::chrono::high_resolution_clock::time_point>(std::chrono::high_resolution_clock::now());
 					m_emState = eStart;
 				}
 				break;
@@ -179,7 +179,7 @@ namespace eastengine
 				event.strCategory = strCategory;
 				event.nProcessID = GetCurrentProcessId();
 				event.nThreadID = nThreadID;
-				event.time = std::chrono::system_clock::now();
+				event.time = std::chrono::high_resolution_clock::now();
 
 				const size_t nIndex = m_umapEvents[nThreadID].size();
 				m_umapEventLinkers[nThreadID].emplace(nIndex);
@@ -204,7 +204,7 @@ namespace eastengine
 
 				const Event& beginEvent = m_umapEvents[nThreadID][nIndex];
 
-				std::chrono::system_clock::time_point nowTime = std::chrono::system_clock::now();
+				std::chrono::high_resolution_clock::time_point nowTime = std::chrono::high_resolution_clock::now();
 
 				std::chrono::microseconds time = std::chrono::duration_cast<std::chrono::microseconds>(nowTime - beginEvent.time);
 				if (time.count() > 0)
@@ -232,7 +232,7 @@ namespace eastengine
 				if (IsTracing() == false)
 					return 0.f;
 
-				return std::chrono::duration_cast<std::chrono::duration<float>>(std::chrono::system_clock::now() - m_startTime.value()).count();
+				return std::chrono::duration_cast<std::chrono::duration<float>>(std::chrono::high_resolution_clock::now() - m_startTime.value()).count();
 			}
 
 			constexpr bool TracerImpl::IsTracing() const noexcept

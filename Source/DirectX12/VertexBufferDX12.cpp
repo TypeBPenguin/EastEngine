@@ -14,11 +14,11 @@ namespace eastengine
 			class VertexBuffer::Impl
 			{
 			public:
-				Impl(const uint8_t* pData, size_t nBufferSize, uint32_t nVertexCount);
+				Impl(const uint8_t* pData, uint32_t vertexCount, size_t formatSize);
 				~Impl();
 
 			public:
-				uint32_t GetVertexCount() const { return m_nVertexCount; }
+				uint32_t GetVertexCount() const { return m_vertexCount; }
 				uint32_t GetFormatSize() const { return m_view.StrideInBytes; }
 
 				bool Map(void** ppData);
@@ -32,17 +32,17 @@ namespace eastengine
 				ID3D12Resource* m_pBuffer{ nullptr };
 				D3D12_VERTEX_BUFFER_VIEW m_view;
 
-				uint32_t m_nVertexCount{ 0 };
+				uint32_t m_vertexCount{ 0 };
 			};
 
-			VertexBuffer::Impl::Impl(const uint8_t* pData, size_t nBufferSize, uint32_t nVertexCount)
-				: m_nVertexCount(nVertexCount)
+			VertexBuffer::Impl::Impl(const uint8_t* pData, uint32_t vertexCount, size_t formatSize)
+				: m_vertexCount(vertexCount)
 			{
 				TRACER_EVENT("VertexBuffer_Init");
 				ID3D12Device* pDevice = Device::GetInstance()->GetInterface();
 
 				CD3DX12_HEAP_PROPERTIES heapProperties(D3D12_HEAP_TYPE_DEFAULT);
-				CD3DX12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(nBufferSize);
+				CD3DX12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(vertexCount * formatSize);
 				HRESULT hr = pDevice->CreateCommittedResource(&heapProperties,
 					D3D12_HEAP_FLAG_NONE,
 					&resourceDesc,
@@ -72,8 +72,8 @@ namespace eastengine
 
 				D3D12_SUBRESOURCE_DATA vertexData{};
 				vertexData.pData = pData;
-				vertexData.RowPitch = nBufferSize;
-				vertexData.SlicePitch = nBufferSize;
+				vertexData.RowPitch = vertexCount * formatSize;
+				vertexData.SlicePitch = vertexCount * formatSize;
 
 				ID3D12Fence* pFence{ nullptr };
 				if (FAILED(pDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&pFence))))
@@ -131,8 +131,8 @@ namespace eastengine
 				SafeRelease(pFence);
 
 				m_view.BufferLocation = m_pBuffer->GetGPUVirtualAddress();
-				m_view.StrideInBytes = static_cast<uint32_t>(nBufferSize / nVertexCount);
-				m_view.SizeInBytes = static_cast<uint32_t>(nBufferSize);
+				m_view.StrideInBytes = static_cast<uint32_t>(formatSize);
+				m_view.SizeInBytes = static_cast<uint32_t>(vertexCount * formatSize);
 			}
 
 			VertexBuffer::Impl::~Impl()
@@ -163,8 +163,8 @@ namespace eastengine
 				m_pBuffer->Unmap(0, &readRange);
 			}
 
-			VertexBuffer::VertexBuffer(const uint8_t* pData, size_t nBufferSize, uint32_t nVertexCount)
-				: m_pImpl{ std::make_unique<Impl>(pData, nBufferSize, nVertexCount) }
+			VertexBuffer::VertexBuffer(const uint8_t* pData, uint32_t vertexCount, size_t formatSize)
+				: m_pImpl{ std::make_unique<Impl>(pData, vertexCount, formatSize) }
 			{
 			}
 

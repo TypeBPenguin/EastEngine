@@ -24,7 +24,7 @@ namespace eastengine
 			, m_n2Coordinate(nCoordinateX, nCoordinateY)
 			, m_isVisibleTile(true)
 		{
-			math::Vector3 f3Pos((float)(nCoordinateX)* fRadius * 1.5f * 1.05f, 1.f, ((float)(nCoordinateY)+(float)(nCoordinateX) * -0.5f) * fRadius * 2.f * 1.05f);
+			math::float3 f3Pos((float)(nCoordinateX)* fRadius * 1.5f * 1.05f, 1.f, ((float)(nCoordinateY)+(float)(nCoordinateX) * -0.5f) * fRadius * 2.f * 1.05f);
 
 			string::StringID strName;
 			strName.Format("%s_%d/%d", StrID::Sector.c_str(), nCoordinateX, nCoordinateY);

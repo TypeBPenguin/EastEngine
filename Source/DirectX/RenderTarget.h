@@ -32,7 +32,7 @@ namespace eastengine
 			virtual const RenderTargetDesc2D& GetDesc2D() { return m_renderTargetDesc2D; }
 			virtual const RenderTargetKey& GetKey() { return m_keyRenderTarget; }
 			
-			virtual const math::UInt2& GetSize() { return m_vecSize[std::min(m_nMipLevel, m_nMaxMipLevel)]; }
+			virtual const math::uint2& GetSize() { return m_vecSize[std::min(m_nMipLevel, m_nMaxMipLevel)]; }
 
 		protected:
 			uint32_t m_nMipLevel;
@@ -45,7 +45,7 @@ namespace eastengine
 			std::shared_ptr<ITexture> m_pTexture;
 			std::vector<ID3D11RenderTargetView*> m_vecRenderTargetView;
 			std::vector<ID3D11UnorderedAccessView*> m_vecUav;
-			std::vector<math::UInt2> m_vecSize;
+			std::vector<math::uint2> m_vecSize;
 
 			bool m_isNeedClear;
 			math::Color m_colorClear;

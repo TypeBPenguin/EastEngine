@@ -84,7 +84,7 @@ namespace eastengine
 				void Render();
 
 			public:
-				const math::UInt2& GetScreenSize() const { return m_n2ScreenSize; }
+				const math::uint2& GetScreenSize() const { return m_n2ScreenSize; }
 
 				VkDevice GetInterface() const { return m_device; }
 				VkCommandPool GetCommandPool() const { return m_commandPool; }
@@ -169,7 +169,7 @@ namespace eastengine
 				static void OnWindowResized(GLFWwindow* pWindow, int nWidth, int nHeight);
 
 			private:
-				math::UInt2 m_n2ScreenSize{ 800, 600 };
+				math::uint2 m_n2ScreenSize{ 800, 600 };
 
 				string::StringID m_strApplicationTitle;
 				string::StringID m_strApplicationName;
@@ -663,7 +663,7 @@ namespace eastengine
 				m_vecSwapChainImages.resize(m_nFrameCount);
 				for (uint32_t i = 0; i < m_nFrameCount; ++i)
 				{
-					m_vecSwapChainImages[i] = std::make_unique<SwapChainBuffer>(math::UInt2(extent.width, extent.height), vecImages[i], surfaceFormat.format);
+					m_vecSwapChainImages[i] = std::make_unique<SwapChainBuffer>(math::uint2(extent.width, extent.height), vecImages[i], surfaceFormat.format);
 				}
 
 				m_swapChainImageFormat = surfaceFormat.format;
@@ -1335,7 +1335,7 @@ namespace eastengine
 				m_pImpl->Cleanup(fElapsedTime);
 			}
 
-			const math::UInt2& Device::GetScreenSize() const
+			const math::uint2& Device::GetScreenSize() const
 			{
 				return m_pImpl->GetScreenSize();
 			}

@@ -21,11 +21,11 @@ namespace eastengine
 			bool Initialize(GhostObject* pGhostObject, float fStepHeight);
 
 		public:
-			void SetWalkDirection(const math::Vector3& f3WalkVelocity);
-			void SetVelocityForTimeInterval(const math::Vector3& f3Velocity, float fTimeInterval);
+			void SetWalkDirection(const math::float3& f3WalkVelocity);
+			void SetVelocityForTimeInterval(const math::float3& f3Velocity, float fTimeInterval);
 
 			void Reset();
-			void Warp(const math::Vector3& f3Pos);
+			void Warp(const math::float3& f3Pos);
 
 			void SetFallSpeed(float fFallSpeed);
 			void SetJumpSpeed(float fJumpSpeed);
@@ -74,12 +74,12 @@ namespace eastengine
 			return true;
 		}
 
-		void KinematicCharacterController::Impl::SetWalkDirection(const math::Vector3& f3WalkVelocity)
+		void KinematicCharacterController::Impl::SetWalkDirection(const math::float3& f3WalkVelocity)
 		{
 			m_pController->setWalkDirection(math::ConvertToBt(f3WalkVelocity));
 		}
 
-		void KinematicCharacterController::Impl::SetVelocityForTimeInterval(const math::Vector3& f3Velocity, float fTimeInterval)
+		void KinematicCharacterController::Impl::SetVelocityForTimeInterval(const math::float3& f3Velocity, float fTimeInterval)
 		{
 			m_pController->setVelocityForTimeInterval(math::ConvertToBt(f3Velocity), fTimeInterval);
 		}
@@ -89,7 +89,7 @@ namespace eastengine
 			m_pController->reset(m_pDynamicsWorld);
 		}
 
-		void KinematicCharacterController::Impl::Warp(const math::Vector3& f3Pos)
+		void KinematicCharacterController::Impl::Warp(const math::float3& f3Pos)
 		{
 			m_pController->warp(math::ConvertToBt(f3Pos));
 		}
@@ -170,12 +170,12 @@ namespace eastengine
 			return pController;
 		}
 
-		void KinematicCharacterController::SetWalkDirection(const math::Vector3& f3WalkVelocity)
+		void KinematicCharacterController::SetWalkDirection(const math::float3& f3WalkVelocity)
 		{
 			m_pImpl->SetWalkDirection(f3WalkVelocity);
 		}
 
-		void KinematicCharacterController::SetVelocityForTimeInterval(const math::Vector3& f3Velocity, float fTimeInterval)
+		void KinematicCharacterController::SetVelocityForTimeInterval(const math::float3& f3Velocity, float fTimeInterval)
 		{
 			m_pImpl->SetVelocityForTimeInterval(f3Velocity, fTimeInterval);
 		}
@@ -185,7 +185,7 @@ namespace eastengine
 			m_pImpl->Reset();
 		}
 
-		void KinematicCharacterController::Warp(const math::Vector3& f3Pos)
+		void KinematicCharacterController::Warp(const math::float3& f3Pos)
 		{
 			m_pImpl->Warp(f3Pos);
 		}

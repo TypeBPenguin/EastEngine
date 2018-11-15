@@ -39,7 +39,7 @@ namespace eastengine
 				const string::StringID& GetName() const { return m_key.Value(); }
 
 			public:
-				const math::UInt2& GetSize() const { return m_n2Size; }
+				const math::uint2& GetSize() const { return m_n2Size; }
 				const std::string& GetPath() const { return m_strPath; }
 
 			public:
@@ -60,7 +60,7 @@ namespace eastengine
 			private:
 				const ITexture::Key m_key;
 
-				math::UInt2 m_n2Size;
+				math::uint2 m_n2Size;
 				std::string m_strPath;
 
 				uint32_t m_nDescriptorIndex;
@@ -507,7 +507,7 @@ namespace eastengine
 				return m_pImpl->GetName();
 			}
 
-			const math::UInt2& Texture::GetSize() const
+			const math::uint2& Texture::GetSize() const
 			{
 				return m_pImpl->GetSize();
 			}

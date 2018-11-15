@@ -23,26 +23,26 @@ namespace eastengine
 
 			void GetDebugModel(EmDebugModel emDebugModel, IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer);
 
-			void CalculateTangentBinormal(const VertexPosTex& vertex1, const VertexPosTex& vertex2, const VertexPosTex& vertex3, math::Vector3& tangent, math::Vector3& binormal);
-			void CalculateTangentBinormal(const math::Vector3& normal, math::Vector3& tangent, math::Vector3& binormal);
-			void CalculateNormal(const math::Vector3& vPos0, const math::Vector3& vPos1, const math::Vector3& vPos2, math::Vector3& vNormal);
+			void CalculateTangentBinormal(const VertexPosTex& vertex1, const VertexPosTex& vertex2, const VertexPosTex& vertex3, math::float3& tangent, math::float3& binormal);
+			void CalculateTangentBinormal(const math::float3& normal, math::float3& tangent, math::float3& binormal);
+			void CalculateNormal(const math::float3& vPos0, const math::float3& vPos1, const math::float3& vPos2, math::float3& vNormal);
 
-			bool CreateCube(IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer, float size = 1.f, bool rhcoords = false);
-			bool CreateBox(IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer, const math::Vector3& size = math::Vector3(1.f, 1.f, 1.f), bool rhcoords = false, bool invertn = false);
-			bool CreateSphere(IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer, float diameter = 1.f, uint32_t tessellation = 16, bool rhcoords = false, bool invertn = false);
-			bool CreateGeoSphere(IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer, float diameter = 1.f, uint32_t tessellation = 3, bool rhcoords = false);
-			bool CreateCylinder(IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer, float height = 1.f, float diameter = 1.f, uint32_t tessellation = 32, bool rhcoords = false);
-			bool CreateCone(IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer, float diameter = 1.f, float height = 1.f, uint32_t tessellation = 32, bool rhcoords = false);
-			bool CreateTorus(IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer, float diameter = 1.f, float thickness = 0.333f, uint32_t tessellation = 32, bool rhcoords = false);
-			bool CreateTetrahedron(IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer, float size = 1.f, bool rhcoords = false);
-			bool CreateOctahedron(IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer, float size = 1.f, bool rhcoords = false);
-			bool CreateDodecahedron(IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer, float size = 1.f, bool rhcoords = false);
-			bool CreateIcosahedron(IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer, float size = 1.f, bool rhcoords = false);
-			bool CreateTeapot(IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer, float size = 1.f, uint32_t tessellation = 8, bool rhcoords = false);
-			bool CreateHexagon(IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer, float radius, bool rhcoords = false);
-			bool CreateCapsule(IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer, float fRadius, float fHeight, int nSubdivisionHeight, int nSegments);
-			bool CreateGrid(IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer, float fGridSizeX, float fGridSizeZ, uint32_t nBlockCountWidth, uint32_t nBlockCountLength);
-			bool CreatePlane(IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer, float fEachLengthX, float fEachLengthZ, int nTotalCountX, int nTotalCountZ);
+			bool CreateCube(std::vector<VertexPosTexNor>& vertices, std::vector<uint32_t>& indices, float size = 1.f, bool rhcoords = false);
+			bool CreateBox(std::vector<VertexPosTexNor>& vertices, std::vector<uint32_t>& indices, const math::float3& size = math::float3(1.f, 1.f, 1.f), bool rhcoords = false, bool invertn = false);
+			bool CreateSphere(std::vector<VertexPosTexNor>& vertices, std::vector<uint32_t>& indices, float diameter = 1.f, uint32_t tessellation = 16, bool rhcoords = false, bool invertn = false);
+			bool CreateGeoSphere(std::vector<VertexPosTexNor>& vertices, std::vector<uint32_t>& indices, float diameter = 1.f, uint32_t tessellation = 3, bool rhcoords = false);
+			bool CreateCylinder(std::vector<VertexPosTexNor>& vertices, std::vector<uint32_t>& indices, float height = 1.f, float diameter = 1.f, uint32_t tessellation = 32, bool rhcoords = false);
+			bool CreateCone(std::vector<VertexPosTexNor>& vertices, std::vector<uint32_t>& indices, float diameter = 1.f, float height = 1.f, uint32_t tessellation = 32, bool rhcoords = false);
+			bool CreateTorus(std::vector<VertexPosTexNor>& vertices, std::vector<uint32_t>& indices, float diameter = 1.f, float thickness = 0.333f, uint32_t tessellation = 32, bool rhcoords = false);
+			bool CreateTetrahedron(std::vector<VertexPosTexNor>& vertices, std::vector<uint32_t>& indices, float size = 1.f, bool rhcoords = false);
+			bool CreateOctahedron(std::vector<VertexPosTexNor>& vertices, std::vector<uint32_t>& indices, float size = 1.f, bool rhcoords = false);
+			bool CreateDodecahedron(std::vector<VertexPosTexNor>& vertices, std::vector<uint32_t>& indices, float size = 1.f, bool rhcoords = false);
+			bool CreateIcosahedron(std::vector<VertexPosTexNor>& vertices, std::vector<uint32_t>& indices, float size = 1.f, bool rhcoords = false);
+			bool CreateTeapot(std::vector<VertexPosTexNor>& vertices, std::vector<uint32_t>& indices, float size = 1.f, uint32_t tessellation = 8, bool rhcoords = false);
+			bool CreateHexagon(std::vector<VertexPosTexNor>& vertices, std::vector<uint32_t>& indices, float radius, bool rhcoords = false);
+			bool CreateCapsule(std::vector<VertexPosTexNor>& vertices, std::vector<uint32_t>& indices, float fRadius, float fHeight, int nSubdivisionHeight, int nSegments);
+			bool CreateGrid(std::vector<VertexPosTexNor>& vertices, std::vector<uint32_t>& indices, float fGridSizeX, float fGridSizeZ, uint32_t nBlockCountWidth, uint32_t nBlockCountLength);
+			bool CreatePlane(std::vector<VertexPosTexNor>& vertices, std::vector<uint32_t>& indices, float fEachLengthX, float fEachLengthZ, int nTotalCountX, int nTotalCountZ);
 
 			namespace Simplify
 			{

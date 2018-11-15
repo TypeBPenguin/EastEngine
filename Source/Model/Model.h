@@ -35,10 +35,10 @@ namespace eastengine
 			void LoadCompleteCallback(bool isSuccess);
 
 		public:
-			virtual const math::Vector3& GetLocalPosition() const override { return m_f3Pos; }
-			virtual void SetLocalPosition(const math::Vector3& f3Pos) override { m_f3Pos = f3Pos; m_isDirtyLocalMatrix = true; }
-			virtual const math::Vector3& GetLocalScale() const override { return m_f3Scale; }
-			virtual void SetLocalScale(const math::Vector3& f3Scale) override { m_f3Scale = f3Scale; m_isDirtyLocalMatrix = true; }
+			virtual const math::float3& GetLocalPosition() const override { return m_f3Pos; }
+			virtual void SetLocalPosition(const math::float3& f3Pos) override { m_f3Pos = f3Pos; m_isDirtyLocalMatrix = true; }
+			virtual const math::float3& GetLocalScale() const override { return m_f3Scale; }
+			virtual void SetLocalScale(const math::float3& f3Scale) override { m_f3Scale = f3Scale; m_isDirtyLocalMatrix = true; }
 			virtual const math::Quaternion& GetLocalRotation() const override { return m_quat; }
 			virtual void SetLocalRotation(const math::Quaternion& quat) override { m_quat = quat; m_isDirtyLocalMatrix = true; }
 
@@ -72,8 +72,8 @@ namespace eastengine
 
 			Skeleton m_skeleton;
 
-			math::Vector3 m_f3Pos;
-			math::Vector3 m_f3Scale;
+			math::float3 m_f3Pos;
+			math::float3 m_f3Scale;
 			math::Quaternion m_quat;
 
 			math::Matrix m_matLocal;

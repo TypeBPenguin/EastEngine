@@ -9,6 +9,7 @@
 #include "GraphicsInterface/Instancing.h"
 #include "GraphicsInterface/Camera.h"
 #include "GraphicsInterface/LightManager.h"
+#include "GraphicsInterface/OcclusionCulling.h"
 
 #include "UtilDX12.h"
 #include "DeviceDX12.h"
@@ -51,14 +52,14 @@ namespace eastengine
 					math::Color f4AlbedoColor;
 					math::Color f4EmissiveColor;
 
-					math::Vector4 f4PaddingRoughMetEmi;
-					math::Vector4 f4SurSpecTintAniso;
-					math::Vector4 f4SheenTintClearcoatGloss;
+					math::float4 f4PaddingRoughMetEmi;
+					math::float4 f4SurSpecTintAniso;
+					math::float4 f4SheenTintClearcoatGloss;
 
 					float fStippleTransparencyFactor{ 0.f };
 					uint32_t nVTFID{ 0 };
 
-					math::Vector2 f2Padding;
+					math::float2 f2Padding;
 				};
 
 				struct VSConstantsBuffer
@@ -66,7 +67,7 @@ namespace eastengine
 					math::Matrix matViewProj;
 
 					uint32_t nTexVTFIndex;
-					math::Vector3 padding;
+					math::float3 padding;
 				};
 
 				struct SRVIndexConstants
@@ -91,7 +92,7 @@ namespace eastengine
 
 				struct CommonContents
 				{
-					math::Vector3 f3CameraPos;
+					math::float3 f3CameraPos;
 					int nEnableShadowCount{ 0 };
 
 					uint32_t nTexDiffuseHDRIndex{ 0 };
@@ -293,9 +294,9 @@ namespace eastengine
 						pObjectDataBuffer->f4AlbedoColor = math::Color::White;
 						pObjectDataBuffer->f4EmissiveColor = math::Color::Black;
 
-						pObjectDataBuffer->f4PaddingRoughMetEmi = math::Vector4::Zero;
-						pObjectDataBuffer->f4SurSpecTintAniso = math::Vector4::Zero;
-						pObjectDataBuffer->f4SheenTintClearcoatGloss = math::Vector4::Zero;
+						pObjectDataBuffer->f4PaddingRoughMetEmi = math::float4::Zero;
+						pObjectDataBuffer->f4SurSpecTintAniso = math::float4::Zero;
+						pObjectDataBuffer->f4SheenTintClearcoatGloss = math::float4::Zero;
 
 						pObjectDataBuffer->fStippleTransparencyFactor = 0.f;
 						pObjectDataBuffer->nVTFID = nVTFID;
@@ -346,7 +347,7 @@ namespace eastengine
 				}
 
 				void SetCommonContents_ForAlpha(CommonContents* pCommonContents,
-					const IImageBasedLight* pImageBasedLight, const LightManager* pLightManager, const math::Vector3& f3CameraPos, int nEnableShadowCount)
+					const IImageBasedLight* pImageBasedLight, const LightManager* pLightManager, const math::float3& f3CameraPos, int nEnableShadowCount)
 				{
 					pCommonContents->f3CameraPos = f3CameraPos;
 					pCommonContents->nEnableShadowCount = nEnableShadowCount;
@@ -448,15 +449,13 @@ namespace eastengine
 
 				struct JobStatic
 				{
-					std::pair<const void*, const IMaterial*> pairKey;
 					RenderJobStatic data;
-					bool isCulling{ false };
+					bool isCulled{ false };
 
 					void Set(const RenderJobStatic& source)
 					{
-						pairKey = std::make_pair(source.pKey, source.pMaterial);
 						data = source;
-						isCulling = false;
+						isCulled = false;
 					}
 				};
 
@@ -481,15 +480,13 @@ namespace eastengine
 
 				struct JobSkinned
 				{
-					std::pair<const void*, const IMaterial*> pairKey;
 					RenderJobSkinned data;
-					bool isCulling{ false };
+					bool isCulled{ false };
 
 					void Set(const RenderJobSkinned& source)
 					{
-						pairKey = std::make_pair(source.pKey, source.pMaterial);
 						data = source;
-						isCulling = false;
+						isCulled = false;
 					}
 				};
 
@@ -580,9 +577,49 @@ namespace eastengine
 			void ModelRenderer::Impl::Render(Camera* pCamera, Group emGroup)
 			{
 				const bool isAlphaBlend = emGroup == Group::eAlphaBlend;
-
 				if (isAlphaBlend == true && m_nJobStaticCount[emGroup] == 0 && m_nJobSkinnedCount[emGroup] == 0)
 					return;
+
+				const OcclusionCulling* pOcclusionCulling = OcclusionCulling::GetInstance();
+				if (emGroup == Group::eDeferred)
+				{
+					TRACER_EVENT("Culling");
+
+					const Collision::Frustum& frustum = pCamera->GetFrustum();
+					concurrency::parallel_for(0llu, m_nJobStaticCount[emGroup], [&](size_t i)
+					{
+						JobStatic& job = m_vecJobStatics[emGroup][i];
+						const OcclusionCullingData& occlusionCullingData = job.data.occlusionCullingData;
+						if (frustum.Contains(occlusionCullingData.aabb) == Collision::EmContainment::eDisjoint)
+						{
+							job.isCulled = true;
+							return;
+						}
+
+						if (pOcclusionCulling->TestRect(occlusionCullingData.aabb) != OcclusionCulling::eVisible)
+						{
+							job.isCulled = true;
+							return;
+						}
+					});
+
+					concurrency::parallel_for(0llu, m_nJobSkinnedCount[emGroup], [&](size_t i)
+					{
+						JobSkinned& job = m_vecJobSkinneds[emGroup][i];
+						const OcclusionCullingData& occlusionCullingData = job.data.occlusionCullingData;
+						if (frustum.Contains(occlusionCullingData.aabb) == Collision::EmContainment::eDisjoint)
+						{
+							job.isCulled = true;
+							return;
+						}
+
+						if (pOcclusionCulling->TestRect(occlusionCullingData.aabb) != OcclusionCulling::eVisible)
+						{
+							job.isCulled = true;
+							return;
+						}
+					});
+				}
 
 				Device* pDeviceInstance = Device::GetInstance();
 				ID3D12Device* pDevice = pDeviceInstance->GetInterface();
@@ -839,12 +876,8 @@ namespace eastengine
 					for (size_t i = 0; i < m_nJobStaticCount[emGroup]; ++i)
 					{
 						const JobStatic& job = m_vecJobStatics[emGroup][i];
-
-						if (job.isCulling == true)
+						if (job.isCulled == true)
 							continue;
-
-						//if (frustum.Contains(job.data.boundingSphere) == Collision::EmContainment::eDisjoint)
-						//	continue;
 
 						UMapJobStaticBatch& umapJobStaticBatch = m_umapJobStaticMasterBatchs[job.data.pMaterial];
 
@@ -961,7 +994,7 @@ namespace eastengine
 
 							if (pPSOKey->emBlendState != EmBlendState::eOff)
 							{
-								pCommandList->OMSetBlendFactor(&math::Vector4::Zero.x);
+								pCommandList->OMSetBlendFactor(&math::float4::Zero.x);
 							}
 
 							if (pRenderPipeline->nRootParameterIndex[eRP_StandardDescriptor] != eRP_InvalidIndex)
@@ -1169,12 +1202,8 @@ namespace eastengine
 					for (size_t i = 0; i < m_nJobSkinnedCount[emGroup]; ++i)
 					{
 						const JobSkinned& job = m_vecJobSkinneds[emGroup][i];
-
-						if (job.isCulling == true)
+						if (job.isCulled == true)
 							continue;
-
-						//if (frustum.Contains(job.data.boundingSphere) == Collision::EmContainment::eDisjoint)
-						//	continue;
 
 						UMapJobSkinnedBatch& umapJobSkinnedBatch = m_umapJobSkinnedMasterBatchs[job.data.pMaterial];
 
@@ -1293,7 +1322,7 @@ namespace eastengine
 
 							if (pPSOKey->emBlendState != EmBlendState::eOff)
 							{
-								pCommandList->OMSetBlendFactor(&math::Vector4::Zero.x);
+								pCommandList->OMSetBlendFactor(&math::float4::Zero.x);
 							}
 
 							if (pRenderPipeline->nRootParameterIndex[eRP_StandardDescriptor] != eRP_InvalidIndex)

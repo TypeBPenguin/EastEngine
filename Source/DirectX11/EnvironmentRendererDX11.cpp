@@ -26,7 +26,7 @@ namespace eastengine
 					math::Matrix matInvView;
 					math::Matrix matProjection;
 					float fTextureGamma{ 1.f };
-					math::Vector3 padding;
+					math::float3 padding;
 				};
 
 				enum CBSlot
@@ -176,7 +176,7 @@ namespace eastengine
 				pDeviceContext->RSSetState(pRasterizerState);
 
 				ID3D11BlendState* pBlendState = pDeviceInstance->GetBlendState(EmBlendState::eOff);
-				pDeviceContext->OMSetBlendState(pBlendState, &math::Vector4::Zero.x, 0xffffffff);
+				pDeviceContext->OMSetBlendState(pBlendState, &math::float4::Zero.x, 0xffffffff);
 
 				ID3D11DepthStencilState* pDepthStencilState = pDeviceInstance->GetDepthStencilState(EmDepthStencilState::eRead_Write_Off);
 				pDeviceContext->OMSetDepthStencilState(pDepthStencilState, 0);

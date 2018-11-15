@@ -22,9 +22,9 @@ SceneWorld::~SceneWorld()
 
 void SceneWorld::Enter()
 {
-	graphics::Camera::GetInstance()->SetView(math::Vector3(0.f, 0.f, -10.f), math::Vector3(0.f, 0.f, 0.f), math::Vector3(0.f, 1.f, 0.f));
+	graphics::Camera::GetInstance()->SetView(math::float3(0.f, 0.f, -10.f), math::float3(0.f, 0.f, 0.f), math::float3(0.f, 1.f, 0.f));
 
-	math::Vector3 f3LightDirection(math::Vector3::Zero - math::Vector3(0.f, 500.f, -500.f));
+	math::float3 f3LightDirection(math::float3::Zero - math::float3(0.f, 500.f, -500.f));
 	f3LightDirection.Normalize();
 
 	graphics::CascadedShadowsConfig config;

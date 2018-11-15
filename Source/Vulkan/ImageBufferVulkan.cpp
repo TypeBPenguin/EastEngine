@@ -13,7 +13,7 @@ namespace eastengine
 			{
 			}
 
-			ImageBuffer::ImageBuffer(const math::UInt2& n2Size, VkFormat format, VkImageUsageFlags usage)
+			ImageBuffer::ImageBuffer(const math::uint2& n2Size, VkFormat format, VkImageUsageFlags usage)
 				: m_n2Size(n2Size)
 				, m_format(format)
 			{

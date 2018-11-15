@@ -77,20 +77,20 @@ namespace eastengine
 			virtual const math::Matrix& GetWorldMatrix() const = 0;
 			virtual const math::Matrix& CalcWorldMatrix() = 0;
 
-			virtual const math::Vector3& GetPosition() const = 0;
-			virtual void SetPosition(const math::Vector3& f3Pos) = 0;
-			virtual const math::Vector3& GetPrevPosition() const = 0;
+			virtual const math::float3& GetPosition() const = 0;
+			virtual void SetPosition(const math::float3& f3Pos) = 0;
+			virtual const math::float3& GetPrevPosition() const = 0;
 
-			virtual const math::Vector3& GetScale() const = 0;
-			virtual void SetScale(const math::Vector3& f3Scale) = 0;
-			virtual const math::Vector3& GetPrevScale() const = 0;
+			virtual const math::float3& GetScale() const = 0;
+			virtual void SetScale(const math::float3& f3Scale) = 0;
+			virtual const math::float3& GetPrevScale() const = 0;
 
 			virtual const math::Quaternion& GetRotation() const = 0;
 			virtual void SetRotation(const math::Quaternion& quat) = 0;
 			virtual const math::Quaternion& GetPrevRotation() const = 0;
 
-			virtual const math::Vector3& GetVelocity() const = 0;
-			virtual void SetVelocity(const math::Vector3& f3Velocity) = 0;
+			virtual const math::float3& GetVelocity() const = 0;
+			virtual void SetVelocity(const math::float3& f3Velocity) = 0;
 
 			virtual void SetVisible(bool bVisible) = 0;
 			virtual bool IsVisible() const = 0;
@@ -98,9 +98,9 @@ namespace eastengine
 
 		struct TerrainProperty
 		{
-			math::Int2 n2Size{ 1024, 1024 };
+			math::int2 n2Size{ 1024, 1024 };
 
-			math::Int2 n2Patches{ 64, 64 };
+			math::int2 n2Patches{ 64, 64 };
 
 			float fHeightScale{ 300.f };
 

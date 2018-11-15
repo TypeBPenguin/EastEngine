@@ -18,12 +18,12 @@ namespace eastengine
 			{
 				struct HDR_PSConstants
 				{
-					math::Vector2 InputSize0;
-					math::Vector2 InputSize1;
-					math::Vector2 InputSize2;
-					math::Vector2 InputSize3;
-					math::Vector2 OutputSize;
-					math::Vector2 padding;
+					math::float2 InputSize0;
+					math::float2 InputSize1;
+					math::float2 InputSize2;
+					math::float2 InputSize3;
+					math::float2 OutputSize;
+					math::float2 padding;
 				};
 
 				struct HDRConstants
@@ -114,8 +114,8 @@ namespace eastengine
 				}
 
 				void SetHDR_PSConstants(ID3D11DeviceContext* pDeviceContext, ConstantBuffer<HDR_PSConstants>* pCB_PSConstants,
-					const math::Vector2 InputSize[4],
-					const math::Vector2& OutputSize)
+					const math::float2 InputSize[4],
+					const math::float2& OutputSize)
 				{
 					HDR_PSConstants* pPSConstants = pCB_PSConstants->Map(pDeviceContext);
 					{
@@ -291,7 +291,7 @@ namespace eastengine
 				pDeviceContext->RSSetState(pRasterizerState);
 
 				ID3D11BlendState* pBlendState = pDeviceInstance->GetBlendState(EmBlendState::eOff);
-				pDeviceContext->OMSetBlendState(pBlendState, &math::Vector4::Zero.x, 0xffffffff);
+				pDeviceContext->OMSetBlendState(pBlendState, &math::float4::Zero.x, 0xffffffff);
 
 				ID3D11DepthStencilState* pDepthStencilState = pDeviceInstance->GetDepthStencilState(EmDepthStencilState::eRead_Write_Off);
 				pDeviceContext->OMSetDepthStencilState(pDepthStencilState, 0);
@@ -428,7 +428,7 @@ namespace eastengine
 
 			void HDRFilter::Impl::Apply(ID3D11DeviceContext* pDeviceContext, shader::PSType emPSType, const RenderTarget* const* ppSource, size_t nSourceCount, RenderTarget* pResult)
 			{
-				auto GetSize = [](const RenderTarget* pSource) -> math::Vector2
+				auto GetSize = [](const RenderTarget* pSource) -> math::float2
 				{
 					D3D11_TEXTURE2D_DESC desc{};
 					pSource->GetDesc2D(&desc);
@@ -444,7 +444,7 @@ namespace eastengine
 					//
 					//const uint32_t nMipLevel = srvDesc.Texture2D.MostDetailedMip;
 					//
-					//const math::Vector2 f2Result
+					//const math::float2 f2Result
 					//{
 					//	static_cast<float>(std::max(desc.Width / (1u << nMipLevel), 1u)),
 					//	static_cast<float>(std::max(desc.Height / (1u << nMipLevel), 1u))
@@ -452,8 +452,8 @@ namespace eastengine
 					//return f2Result;
 				};
 
-				math::Vector2 InputSize[4];
-				math::Vector2 OutputSize;
+				math::float2 InputSize[4];
+				math::float2 OutputSize;
 
 				for (size_t i = 0; i < nSourceCount; ++i)
 				{

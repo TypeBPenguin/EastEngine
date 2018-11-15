@@ -106,34 +106,34 @@ namespace eastengine
 			const float fInvAttenuation = 1.f / fAttenuation;
 			m_fFarPlane = std::sqrtf(fInvAttenuation * m_pLight->GetIntensity() * math::PI);
 
-			const math::Vector3 f3Direction[DirectionCount] =
+			const math::float3 f3Direction[DirectionCount] =
 			{
-				math::Vector3::Right,
-				math::Vector3::Left,
-				math::Vector3::Down,
-				math::Vector3::Up,
-				math::Vector3::Forward,
-				math::Vector3::Backward
+				math::float3::Right,
+				math::float3::Left,
+				math::float3::Down,
+				math::float3::Up,
+				math::float3::Forward,
+				math::float3::Backward
 			};
 
-			const math::Vector3 f3Up[DirectionCount] =
+			const math::float3 f3Up[DirectionCount] =
 			{
-				math::Vector3::Up,
-				math::Vector3::Up,
-				math::Vector3::Forward,
-				math::Vector3::Backward,
-				math::Vector3::Up,
-				math::Vector3::Up,
+				math::float3::Up,
+				math::float3::Up,
+				math::float3::Forward,
+				math::float3::Backward,
+				math::float3::Up,
+				math::float3::Up,
 			};
 
 			m_matProjection = math::Matrix::CreatePerspectiveFieldOfView(math::PIDIV2, 1.f, 0.01f, m_fFarPlane);
 
 			for (int i = 0; i < DirectionCount; ++i)
 			{
-				const math::Vector3& f3Pos = m_pLight->GetPosition();
-				math::Vector3 f3Target = m_pLight->GetPosition() + f3Direction[i] * 0.1f;
-				//math::Vector3 f3Pos = m_pLight->GetPosition() - (f3Direction[i] * m_fFarPlane * 0.1f);
-				//const math::Vector3& f3Target = m_pLight->GetPosition();
+				const math::float3& f3Pos = m_pLight->GetPosition();
+				math::float3 f3Target = m_pLight->GetPosition() + f3Direction[i] * 0.1f;
+				//math::float3 f3Pos = m_pLight->GetPosition() - (f3Direction[i] * m_fFarPlane * 0.1f);
+				//const math::float3& f3Target = m_pLight->GetPosition();
 				m_matViews[i] = math::Matrix::CreateLookAt(f3Pos, f3Target, f3Up[i]);
 
 				Collision::Frustum::CreateFromMatrix(m_frustums[i], m_matProjection);

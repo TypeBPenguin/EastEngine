@@ -318,7 +318,7 @@ namespace eastengine
 				// A box has six faces, each one pointing in a different direction.
 				const int FaceCount = 6;
 
-				const math::Vector3 faceNormals[FaceCount] =
+				const math::float3 faceNormals[FaceCount] =
 				{
 					{ 0, 0, 1 },
 				{ 0, 0, -1 },
@@ -328,18 +328,18 @@ namespace eastengine
 				{ 0, -1, 0 },
 				};
 
-				math::Vector3 tsize = math::Vector3(0.5f, 0.5f, 0.5f);
+				math::float3 tsize = math::float3(0.5f, 0.5f, 0.5f);
 
 				// Create each face in turn.
 				for (int i = 0; i < FaceCount; ++i)
 				{
-					math::Vector3 normal = faceNormals[i];
+					math::float3 normal = faceNormals[i];
 
 					// Get two vectors perpendicular both to the face normal and to each other.
-					math::Vector3 basis = (i >= 4) ? math::Vector3(0.f, 0.f, 1.f) : math::Vector3(0.f, 1.f, 0.f);
+					math::float3 basis = (i >= 4) ? math::float3(0.f, 0.f, 1.f) : math::float3(0.f, 1.f, 0.f);
 
-					math::Vector3 side1 = normal.Cross(basis);
-					math::Vector3 side2 = normal.Cross(side1);
+					math::float3 side1 = normal.Cross(basis);
+					math::float3 side2 = normal.Cross(side1);
 
 					// Six indices (two triangles) per face.
 					size_t vbase = vecVertices.size();
@@ -584,8 +584,8 @@ namespace eastengine
 				pDeviceContext->SetVertexBuffers(m_pDecalVB, m_pDecalVB->GetFormatSize(), 0);
 				pDeviceContext->SetIndexBuffer(m_pDecalIB, 0);
 
-				math::Vector4 f4CornersTopRight(math::Vector4::One);
-				f4CornersTopRight = math::Vector4::Transform(f4CornersTopRight, matProj.Invert());
+				math::float4 f4CornersTopRight(math::float4::One);
+				f4CornersTopRight = math::float4::Transform(f4CornersTopRight, matProj.Invert());
 				f4CornersTopRight /= f4CornersTopRight.w;
 
 				for (auto& iter : mapClassifyDecal)
@@ -642,7 +642,7 @@ namespace eastengine
 
 					pEffect->SetSamplerState(StrID::g_sampler, pDevice->GetSamplerState(EmSamplerState::eMinMagMipLinearWrap), 0);
 
-					pEffect->SetVector(StrID::g_f3CameraTopRight, math::Vector3(f4CornersTopRight.x, -f4CornersTopRight.y, f4CornersTopRight.z));
+					pEffect->SetVector(StrID::g_f3CameraTopRight, math::float3(f4CornersTopRight.x, -f4CornersTopRight.y, f4CornersTopRight.z));
 					pEffect->SetVector(StrID::g_f3CameraPos, pCamera->GetPosition());
 
 					pEffect->SetMatrix(StrID::g_matView, matView);
@@ -652,8 +652,8 @@ namespace eastengine
 
 					if (pMaterial != nullptr)
 					{
-						pEffect->SetVector(StrID::g_f4AlbedoColor, reinterpret_cast<const math::Vector4&>(pMaterial->GetAlbedoColor()));
-						pEffect->SetVector(StrID::g_f4EmissiveColor, reinterpret_cast<const math::Vector4&>(pMaterial->GetEmissiveColor()));
+						pEffect->SetVector(StrID::g_f4AlbedoColor, reinterpret_cast<const math::float4&>(pMaterial->GetAlbedoColor()));
+						pEffect->SetVector(StrID::g_f4EmissiveColor, reinterpret_cast<const math::float4&>(pMaterial->GetEmissiveColor()));
 
 						pEffect->SetVector(StrID::g_f4PaddingRoughMetEmi, pMaterial->GetPaddingRoughMetEmi());
 						pEffect->SetVector(StrID::g_f4SurSpecTintAniso, pMaterial->GetSurSpecTintAniso());
@@ -683,12 +683,12 @@ namespace eastengine
 					}
 					else
 					{
-						pEffect->SetVector(StrID::g_f4AlbedoColor, reinterpret_cast<const math::Vector4&>(math::Color::White));
-						pEffect->SetVector(StrID::g_f4EmissiveColor, reinterpret_cast<const math::Vector4&>(math::Color::Black));
+						pEffect->SetVector(StrID::g_f4AlbedoColor, reinterpret_cast<const math::float4&>(math::Color::White));
+						pEffect->SetVector(StrID::g_f4EmissiveColor, reinterpret_cast<const math::float4&>(math::Color::Black));
 
-						pEffect->SetVector(StrID::g_f4PaddingRoughMetEmi, reinterpret_cast<const math::Vector4&>(math::Color::Transparent));
-						pEffect->SetVector(StrID::g_f4SurSpecTintAniso, reinterpret_cast<const math::Vector4&>(math::Color::Transparent));
-						pEffect->SetVector(StrID::g_f4SheenTintClearcoatGloss, reinterpret_cast<const math::Vector4&>(math::Color::Transparent));
+						pEffect->SetVector(StrID::g_f4PaddingRoughMetEmi, reinterpret_cast<const math::float4&>(math::Color::Transparent));
+						pEffect->SetVector(StrID::g_f4SurSpecTintAniso, reinterpret_cast<const math::float4&>(math::Color::Transparent));
+						pEffect->SetVector(StrID::g_f4SheenTintClearcoatGloss, reinterpret_cast<const math::float4&>(math::Color::Transparent));
 
 						ClearEffect(pDeviceContext, pEffect, pEffectTech);
 

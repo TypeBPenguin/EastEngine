@@ -63,7 +63,7 @@ namespace eastengine
 				void AddMessageHandler(const string::StringID& strName, std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler);
 				void RemoveMessageHandler(const string::StringID& strName);
 
-				const math::UInt2& GetScreenSize() const;
+				const math::uint2& GetScreenSize() const;
 				const D3D12_VIEWPORT* GetViewport() const;
 				const math::Rect* GetScissorRect() const;
 

@@ -9,9 +9,9 @@ namespace eastengine
 	{
 		namespace dx11
 		{
-			VertexBuffer::VertexBuffer(const uint8_t* pData, size_t nBufferSize, uint32_t nVertexCount)
-				: m_nVertexCount(nVertexCount)
-				, m_nFormatSize(static_cast<uint32_t>(nBufferSize / nVertexCount))
+			VertexBuffer::VertexBuffer(const uint8_t* pData, uint32_t vertexCount, size_t formatSize)
+				: m_vertexCount(vertexCount)
+				, m_formatSize(static_cast<uint32_t>(formatSize))
 			{
 				TRACER_EVENT("VertexBuffer_Init");
 				SetState(IResource::eReady);
@@ -21,7 +21,7 @@ namespace eastengine
 				HRESULT hr = S_OK;
 
 				D3D11_BUFFER_DESC bufferDesc{};
-				bufferDesc.ByteWidth = static_cast<uint32_t>(nBufferSize);
+				bufferDesc.ByteWidth = static_cast<uint32_t>(vertexCount * formatSize);
 				bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 				bufferDesc.Usage = D3D11_USAGE_DEFAULT;
 				bufferDesc.CPUAccessFlags = 0;

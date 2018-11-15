@@ -369,7 +369,7 @@ namespace eastengine
 			//{
 			//	const VkExtent2D& swapchainExtent = Device::GetInstance()->GetSwapChainExtent2D();
 
-			//	m_pRenderTarget = std::make_unique<ImageBuffer>(*reinterpret_cast<const math::UInt2*>(&swapchainExtent),
+			//	m_pRenderTarget = std::make_unique<ImageBuffer>(*reinterpret_cast<const math::uint2*>(&swapchainExtent),
 			//		VK_FORMAT_B8G8R8A8_UNORM, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
 			//}
 
@@ -788,7 +788,7 @@ namespace eastengine
 			//void RenderManager::Impl::Resize()
 			//{
 			//	const VkExtent2D& swapchainExtent = Device::GetInstance()->GetSwapChainExtent2D();
-			//	const math::UInt2& n2Size = m_pRenderTarget->GetSize();
+			//	const math::uint2& n2Size = m_pRenderTarget->GetSize();
 
 			//	if (swapchainExtent.width == n2Size.x && swapchainExtent.height == n2Size.y)
 			//		return;

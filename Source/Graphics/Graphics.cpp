@@ -7,6 +7,7 @@
 #include "GraphicsInterface/Camera.h"
 #include "GraphicsInterface/LightManager.h"
 #include "GraphicsInterface/imguiHelper.h"
+#include "GraphicsInterface/OcclusionCulling.h"
 
 #include "DirectX12/DeviceDX12.h"
 #include "DirectX12/VertexBufferDX12.h"
@@ -47,6 +48,7 @@ namespace eastengine
 			virtual void Release() = 0;
 			virtual void Run(std::function<void()> funcUpdate) = 0;
 			virtual void Cleanup(float fElapsedTime) = 0;
+			virtual void Update(float fElapsedTime) = 0;
 
 		public:
 			virtual APIs GetType() const = 0;
@@ -55,12 +57,12 @@ namespace eastengine
 			virtual void AddMessageHandler(const string::StringID& strName, std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler) = 0;
 			virtual void RemoveMessageHandler(const string::StringID& strName) = 0;
 
-			virtual const math::UInt2& GetScreenSize() const = 0;
+			virtual const math::uint2& GetScreenSize() const = 0;
 			virtual IImageBasedLight* GetImageBasedLight() const = 0;
 			virtual IVTFManager* GetVTFManager() const = 0;
 
-			virtual IVertexBuffer* CreateVertexBuffer(const uint8_t* pData, size_t nBufferSize, uint32_t nVertexCount) = 0;
-			virtual IIndexBuffer* CreateIndexBuffer(const uint8_t* pData, size_t nBufferSize, uint32_t nVertexCount) = 0;
+			virtual IVertexBuffer* CreateVertexBuffer(const uint8_t* pData, uint32_t vertexCount, size_t formatSize) = 0;
+			virtual IIndexBuffer* CreateIndexBuffer(const uint8_t* pData, uint32_t indexCount, size_t formatSize) = 0;
 			virtual ITexture* CreateTexture(const char* strFilePath) = 0;
 			virtual ITexture* CreateTextureAsync(const char* strFilePath) = 0;
 			virtual ITexture* CreateTexture(const TextureDesc& desc) = 0;
@@ -98,10 +100,25 @@ namespace eastengine
 
 				m_pImageBasedLight = std::make_unique<ImageBasedLight>();
 				Device::GetInstance()->SetImageBasedLight(m_pImageBasedLight.get());
+
+				s_pCamera = Camera::GetInstance();
+				s_pLightManager = LightManager::GetInstance();
+
+				s_pOcclusionCulling = OcclusionCulling::GetInstance();
+				s_pOcclusionCulling->Initialize(nWidth, nHeight);
 			}
 
 			virtual void Release() override
 			{
+				OcclusionCulling::DestroyInstance();
+				s_pOcclusionCulling = nullptr;
+
+				Camera::DestroyInstance();
+				s_pCamera = nullptr;
+
+				LightManager::DestroyInstance();
+				s_pLightManager = nullptr;
+
 				m_pImageBasedLight.reset();
 
 				CleanupGarbageCollection();
@@ -133,6 +150,19 @@ namespace eastengine
 				CleanupGarbageCollection();
 				m_pTextureManager->Cleanup(fElapsedTime);
 				Device::GetInstance()->Cleanup(fElapsedTime);
+			}
+
+			virtual void Update(float fElapsedTime) override
+			{
+				s_pCamera->Update(fElapsedTime);
+
+				s_pOcclusionCulling->Enable(GetOptions().OnOcclusionCulling);
+				s_pOcclusionCulling->Update(s_pCamera);
+
+				s_pOcclusionCulling->WakeThreads();
+				s_pOcclusionCulling->ClearBuffer();
+
+				s_pLightManager->Update(fElapsedTime);
 			}
 
 		public:
@@ -181,7 +211,7 @@ namespace eastengine
 				}
 			}
 
-			virtual const math::UInt2& GetScreenSize() const override
+			virtual const math::uint2& GetScreenSize() const override
 			{
 				return Device::GetInstance()->GetScreenSize();
 			}
@@ -203,11 +233,11 @@ namespace eastengine
 				}
 			}
 
-			virtual IVertexBuffer* CreateVertexBuffer(const uint8_t* pData, size_t nBufferSize, uint32_t nVertexCount) override
+			virtual IVertexBuffer* CreateVertexBuffer(const uint8_t* pData, uint32_t vertexCount, size_t formatSize) override
 			{
 				thread::SRWWriteLock writeLock(&m_srwLock);
 
-				std::unique_ptr<VertexBuffer> pVertexBuffer = std::make_unique<VertexBuffer>(pData, nBufferSize, nVertexCount);
+				std::unique_ptr<VertexBuffer> pVertexBuffer = std::make_unique<VertexBuffer>(pData, vertexCount, formatSize);
 				auto iter = m_umapVertexBuffers.emplace(pVertexBuffer.get(), std::move(pVertexBuffer));
 				if (iter.second == false)
 				{
@@ -219,11 +249,11 @@ namespace eastengine
 				return iter.first->second.get();
 			}
 
-			virtual IIndexBuffer* CreateIndexBuffer(const uint8_t* pData, size_t nBufferSize, uint32_t nVertexCount) override
+			virtual IIndexBuffer* CreateIndexBuffer(const uint8_t* pData, uint32_t indexCount, size_t formatSize) override
 			{
 				thread::SRWWriteLock writeLock(&m_srwLock);
 
-				std::unique_ptr<IndexBuffer> pIndexBuffer = std::make_unique<IndexBuffer>(pData, nBufferSize, nVertexCount);
+				std::unique_ptr<IndexBuffer> pIndexBuffer = std::make_unique<IndexBuffer>(pData, indexCount, formatSize);
 				auto iter = m_umapIndexBuffers.emplace(pIndexBuffer.get(), std::move(pIndexBuffer));
 				if (iter.second == false)
 				{
@@ -338,6 +368,19 @@ namespace eastengine
 
 			virtual void PushRenderJob(const RenderJobStatic& renderJob) override
 			{
+				if (s_pOcclusionCulling->IsEnable() == true)
+				{
+					const IMaterial* pMaterial = renderJob.pMaterial;
+					if (pMaterial == nullptr || pMaterial->GetBlendState() == EmBlendState::eOff)
+					{
+						const Collision::Frustum& cameraFrustum = s_pOcclusionCulling->GetCameraFrustum();
+						if (cameraFrustum.Contains(renderJob.occlusionCullingData.aabb) != Collision::EmContainment::eDisjoint)
+						{
+							s_pOcclusionCulling->RenderTriangles(renderJob.matWorld, renderJob.occlusionCullingData.pVertices, renderJob.occlusionCullingData.pIndices, renderJob.occlusionCullingData.indexCount);
+						}
+					}
+				}
+
 				RenderManager* pRenderManager = Device::GetInstance()->GetRenderManager();
 				pRenderManager->PushJob(renderJob);
 			}
@@ -410,6 +453,10 @@ namespace eastengine
 			std::unordered_map<IResource*, std::unique_ptr<VertexBuffer>> m_umapVertexBuffers;
 			std::unordered_map<IResource*, std::unique_ptr<IndexBuffer>> m_umapIndexBuffers;
 			std::unordered_map<IResource*, std::unique_ptr<Material>> m_umapMaterials;
+			
+			Camera* s_pCamera{ nullptr };
+			LightManager* s_pLightManager{ nullptr };
+			OcclusionCulling* s_pOcclusionCulling{ nullptr };
 		};
 
 #define DeclGraphicsAPI(APIType) using GraphicsAPI = TGraphicsAPI<APIType, Device, RenderManager, VertexBuffer, IndexBuffer, Texture>
@@ -468,8 +515,6 @@ namespace eastengine
 
 		void Release()
 		{
-			Camera::DestroyInstance();
-			LightManager::DestroyInstance();
 			SafeRelease(s_pGraphicsAPI);
 		}
 
@@ -485,8 +530,14 @@ namespace eastengine
 
 		void Update(float fElapsedTime)
 		{
-			Camera::GetInstance()->Update(fElapsedTime);
-			LightManager::GetInstance()->Update(fElapsedTime);
+			s_pGraphicsAPI->Update(fElapsedTime);
+		}
+
+		void PostUpdate()
+		{
+			OcclusionCulling* pOcclusionCulling = OcclusionCulling::GetInstance();
+			pOcclusionCulling->Flush();
+			pOcclusionCulling->SuspendThreads();
 		}
 
 		APIs GetAPI()
@@ -514,7 +565,7 @@ namespace eastengine
 			s_pGraphicsAPI->RemoveMessageHandler(strName);
 		}
 
-		const math::UInt2& GetScreenSize()
+		const math::uint2& GetScreenSize()
 		{
 			return s_pGraphicsAPI->GetScreenSize();
 		}
@@ -529,14 +580,14 @@ namespace eastengine
 			return s_pGraphicsAPI->GetVTFManager();
 		}
 
-		IVertexBuffer* CreateVertexBuffer(const uint8_t* pData, size_t nBufferSize, uint32_t nVertexCount)
+		IVertexBuffer* CreateVertexBuffer(const uint8_t* pData, uint32_t vertexCount, size_t formatSize)
 		{
-			return s_pGraphicsAPI->CreateVertexBuffer(pData, nBufferSize, nVertexCount);
+			return s_pGraphicsAPI->CreateVertexBuffer(pData, vertexCount, formatSize);
 		}
 
-		IIndexBuffer* CreateIndexBuffer(const uint8_t* pData, size_t nBufferSize, uint32_t nIndexCount)
+		IIndexBuffer* CreateIndexBuffer(const uint8_t* pData, uint32_t indexCount, size_t formatSize)
 		{
-			return s_pGraphicsAPI->CreateIndexBuffer(pData, nBufferSize, nIndexCount);
+			return s_pGraphicsAPI->CreateIndexBuffer(pData, indexCount, formatSize);
 		}
 
 		ITexture* CreateTexture(const char* strFilePath)
@@ -635,6 +686,11 @@ namespace eastengine
 				return;
 
 			s_pGraphicsAPI->PushRenderJob(renderJob);
+		}
+
+		void OcclusionCullingWriteBMP(const char* strPath)
+		{
+			OcclusionCulling::GetInstance()->Write(strPath);
 		}
 	}
 

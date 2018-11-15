@@ -5,6 +5,7 @@
 
 #include "CommonLib/ThreadPool.h"
 #include "CommonLib/plf_colony.h"
+#include "CommonLib/Timer.h"
 
 #include "Model.h"
 #include "ModelInstance.h"

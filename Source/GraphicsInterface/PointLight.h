@@ -14,7 +14,7 @@ namespace eastengine
 		public:
 			virtual ~PointLight();
 
-			static PointLight* Create(const string::StringID& strName, const math::Vector3& f3Position, const math::Color& color, float fIntensity, float fAmbientIntensity = 0.f, float fReflectionIntensity = 0.f);
+			static PointLight* Create(const string::StringID& strName, const math::float3& f3Position, const math::Color& color, float fIntensity, float fAmbientIntensity = 0.f, float fReflectionIntensity = 0.f);
 
 		public:
 			virtual void Update(float fElapsedTime) override;
@@ -38,14 +38,14 @@ namespace eastengine
 			virtual void SetEnableShadow(bool isEnableShadow) override { m_isEnableShadow = isEnableShadow; }
 
 		public:
-			virtual const math::Vector3& GetPosition() const override { return m_f3Pos; }
-			virtual void SetPosition(const math::Vector3& vPos) override { m_f3Pos = vPos; }
+			virtual const math::float3& GetPosition() const override { return m_f3Pos; }
+			virtual void SetPosition(const math::float3& vPos) override { m_f3Pos = vPos; }
 
 		protected:
 			string::StringID m_strName;
 			bool m_isEnableShadow;
 
-			math::Vector3 m_f3Pos;
+			math::float3 m_f3Pos;
 
 			float m_fIntensity;
 			float m_fAmbientIntensity;

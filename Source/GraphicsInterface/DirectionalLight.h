@@ -14,7 +14,7 @@ namespace eastengine
 		public:
 			virtual ~DirectionalLight();
 
-			static DirectionalLight* Create(const string::StringID& strName, const math::Vector3& f3Direction, const math::Color& color, float fIntensity, float fAmbientIntensity = 0.f, float fReflectionIntensity = 0.f);
+			static DirectionalLight* Create(const string::StringID& strName, const math::float3& f3Direction, const math::Color& color, float fIntensity, float fAmbientIntensity = 0.f, float fReflectionIntensity = 0.f);
 
 		public:
 			virtual void Update(float fElapsedTime) override;
@@ -38,14 +38,14 @@ namespace eastengine
 			virtual void SetEnableShadow(bool isEnableShadow) override { m_isEnableShadow = isEnableShadow; }
 
 		public:
-			virtual const math::Vector3& GetDirection() const override { return m_f3Direction; }
-			virtual void SetDirection(const math::Vector3& f3Direction) override { m_f3Direction = f3Direction; }
+			virtual const math::float3& GetDirection() const override { return m_f3Direction; }
+			virtual void SetDirection(const math::float3& f3Direction) override { m_f3Direction = f3Direction; }
 
 		protected:
 			string::StringID m_strName;
 			bool m_isEnableShadow;
 
-			math::Vector3 m_f3Direction;
+			math::float3 m_f3Direction;
 
 			float m_fIntensity;
 			float m_fAmbientIntensity;

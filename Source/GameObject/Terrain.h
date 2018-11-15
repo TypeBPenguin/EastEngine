@@ -43,7 +43,7 @@ namespace eastengine
 			bool loadRawHeightmap(const char* strFilePath);
 			bool initTerrain();
 
-			std::optional<float> CheckHeightOfTriangle(float x, float z, const math::Vector3& v0, const math::Vector3& v1, const math::Vector3& v2) const;
+			std::optional<float> CheckHeightOfTriangle(float x, float z, const math::float3& v0, const math::float3& v1, const math::float3& v2) const;
 
 		private:
 			string::StringID m_strName;
@@ -58,8 +58,8 @@ namespace eastengine
 
 			struct HeightMapVertex
 			{
-				math::Vector3 pos;
-				math::Vector3 normal;
+				math::float3 pos;
+				math::float3 normal;
 			};
 			std::vector<HeightMapVertex> m_vecHeightMap;
 
@@ -76,7 +76,7 @@ namespace eastengine
 			// 여러 RigidBody를 만들어 사용하는 경우가 있기 때문에
 			struct RigidBodyData
 			{
-				std::vector<math::Vector3> vecVertices;
+				std::vector<math::float3> vecVertices;
 				std::vector<uint32_t> vecIndices;
 			};
 			RigidBodyData m_rigidBodyData;

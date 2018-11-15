@@ -31,12 +31,12 @@ namespace eastengine
 			static constexpr EmVertexFormat::Type Format() { return EmVertexFormat::ePos; }
 			static constexpr size_t Size() { return sizeof(VertexPos); }
 
-			math::Vector3 pos;
+			math::float3 pos;
 
 			VertexPos();
-			VertexPos(const math::Vector3& f3Pos);
+			VertexPos(const math::float3& f3Pos);
 
-			void SetVertex(const math::Vector3& f3Pos) { pos = f3Pos; }
+			void SetVertex(const math::float3& f3Pos) { pos = f3Pos; }
 		};
 
 		struct VertexPos4
@@ -44,12 +44,12 @@ namespace eastengine
 			static constexpr EmVertexFormat::Type Format() { return EmVertexFormat::ePos4; }
 			static constexpr size_t Size() { return sizeof(VertexPos4); }
 
-			math::Vector4 pos;
+			math::float4 pos;
 
 			VertexPos4();
-			VertexPos4(const math::Vector4& f4Pos);
+			VertexPos4(const math::float4& f4Pos);
 
-			void SetVertex(const math::Vector4& f4Pos) { pos = f4Pos; }
+			void SetVertex(const math::float4& f4Pos) { pos = f4Pos; }
 		};
 
 		struct VertexPosCol
@@ -57,13 +57,13 @@ namespace eastengine
 			static constexpr EmVertexFormat::Type Format() { return EmVertexFormat::ePosCol; }
 			static constexpr size_t Size() { return sizeof(VertexPosCol); }
 
-			math::Vector3 pos;
+			math::float3 pos;
 			math::Color color;
 
 			VertexPosCol();
-			VertexPosCol(const math::Vector3& f3Pos, const math::Color& color);
+			VertexPosCol(const math::float3& f3Pos, const math::Color& color);
 
-			void SetVertex(const math::Vector3& f3Pos) { pos = f3Pos; }
+			void SetVertex(const math::float3& f3Pos) { pos = f3Pos; }
 			void SetColor(const math::Color& setColor) { color = setColor; }
 		};
 
@@ -72,13 +72,13 @@ namespace eastengine
 			static constexpr EmVertexFormat::Type Format() { return EmVertexFormat::ePosTex; }
 			static constexpr size_t Size() { return sizeof(VertexPosTex); }
 
-			math::Vector3 pos;
-			math::Vector2 uv;
+			math::float3 pos;
+			math::float2 uv;
 
 			VertexPosTex();
-			VertexPosTex(const math::Vector3& f3Pos, const math::Vector2& f2UV);
+			VertexPosTex(const math::float3& f3Pos, const math::float2& f2UV);
 
-			void SetVertex(const math::Vector3& f3Pos, const math::Vector2& f2UV) { pos = f3Pos;	uv = f2UV; }
+			void SetVertex(const math::float3& f3Pos, const math::float2& f2UV) { pos = f3Pos;	uv = f2UV; }
 		};
 
 		struct VertexPosTexCol
@@ -86,14 +86,14 @@ namespace eastengine
 			static constexpr EmVertexFormat::Type Format() { return EmVertexFormat::ePosTexCol; }
 			static constexpr size_t Size() { return sizeof(VertexPosTexCol); }
 
-			math::Vector3 pos;
-			math::Vector2 uv;
+			math::float3 pos;
+			math::float2 uv;
 			math::Color color;
 
 			VertexPosTexCol();
-			VertexPosTexCol(const math::Vector3& f3Pos, const math::Vector2& f2UV);
+			VertexPosTexCol(const math::float3& f3Pos, const math::float2& f2UV);
 
-			void SetVertex(const math::Vector3& f3Pos, const math::Vector2& f2UV) { pos = f3Pos;	uv = f2UV; }
+			void SetVertex(const math::float3& f3Pos, const math::float2& f2UV) { pos = f3Pos;	uv = f2UV; }
 		};
 
 		struct VertexPosTexNor
@@ -101,14 +101,14 @@ namespace eastengine
 			static constexpr EmVertexFormat::Type Format() { return EmVertexFormat::ePosTexNor; }
 			static constexpr size_t Size() { return sizeof(VertexPosTexNor); }
 
-			math::Vector3 pos;
-			math::Vector2 uv;
-			math::Vector3 normal;
+			math::float3 pos;
+			math::float2 uv;
+			math::float3 normal;
 
 			VertexPosTexNor();
-			VertexPosTexNor(const math::Vector3& f3Pos, const math::Vector2& f2UV, const math::Vector3& f3Normal);
+			VertexPosTexNor(const math::float3& f3Pos, const math::float2& f2UV, const math::float3& f3Normal);
 
-			void SetVertex(const math::Vector3& f3Pos, const math::Vector2& f2UV, const math::Vector3& f3Normal) { pos = f3Pos; uv = f2UV; normal = f3Normal; }
+			void SetVertex(const math::float3& f3Pos, const math::float2& f2UV, const math::float3& f3Normal) { pos = f3Pos; uv = f2UV; normal = f3Normal; }
 		};
 
 		struct VertexPosTexNorCol
@@ -116,15 +116,15 @@ namespace eastengine
 			static constexpr EmVertexFormat::Type Format() { return EmVertexFormat::ePosTexNorCol; }
 			static constexpr size_t Size() { return sizeof(VertexPosTexNorCol); }
 
-			math::Vector3 pos;
-			math::Vector2 uv;
-			math::Vector3 normal;
+			math::float3 pos;
+			math::float2 uv;
+			math::float3 normal;
 			math::Color color;
 
 			VertexPosTexNorCol();
-			VertexPosTexNorCol(const math::Vector3& f3Pos, const math::Vector2& f2UV, const math::Vector3& f3Normal, const math::Color& color);
+			VertexPosTexNorCol(const math::float3& f3Pos, const math::float2& f2UV, const math::float3& f3Normal, const math::Color& color);
 
-			void SetVertex(const math::Vector3& f3Pos, const math::Vector2& f2UV, const math::Vector3& f3Normal) { pos = f3Pos; uv = f2UV; normal = f3Normal; }
+			void SetVertex(const math::float3& f3Pos, const math::float2& f2UV, const math::float3& f3Normal) { pos = f3Pos; uv = f2UV; normal = f3Normal; }
 			void SetColor(const math::Color& setColor) { color = setColor; }
 		};
 
@@ -133,18 +133,18 @@ namespace eastengine
 			static constexpr EmVertexFormat::Type Format() { return EmVertexFormat::ePosTexNorTanBin; }
 			static constexpr size_t Size() noexcept { return sizeof(VertexPosTexNorTanBin); }
 
-			math::Vector3 pos;
-			math::Vector2 uv;
-			math::Vector3 normal;
-			math::Vector3 tangent;
-			math::Vector3 binormal;
+			math::float3 pos;
+			math::float2 uv;
+			math::float3 normal;
+			math::float3 tangent;
+			math::float3 binormal;
 
 			VertexPosTexNorTanBin();
-			VertexPosTexNorTanBin(const math::Vector3& f3Pos, const math::Vector2& f2UV, const math::Vector3& f3Normal);
-			VertexPosTexNorTanBin(const math::Vector3& f3Pos, const math::Vector2& f2UV, const math::Vector3& f3Normal, const math::Vector3& f3Tangent, const math::Vector3& f3Binormal);
+			VertexPosTexNorTanBin(const math::float3& f3Pos, const math::float2& f2UV, const math::float3& f3Normal);
+			VertexPosTexNorTanBin(const math::float3& f3Pos, const math::float2& f2UV, const math::float3& f3Normal, const math::float3& f3Tangent, const math::float3& f3Binormal);
 
-			void SetVertex(const math::Vector3& f3Pos, const math::Vector2& f2UV, const math::Vector3& f3Normal) { pos = f3Pos; uv = f2UV; normal = f3Normal; }
-			void SetVertex(const math::Vector3& f3Pos, const math::Vector2& f2UV, const math::Vector3& f3Normal, const math::Vector3& f3Tangent, const math::Vector3& f3Binormal) { pos = f3Pos; uv = f2UV; normal = f3Normal; tangent = f3Tangent; binormal = f3Binormal; }
+			void SetVertex(const math::float3& f3Pos, const math::float2& f2UV, const math::float3& f3Normal) { pos = f3Pos; uv = f2UV; normal = f3Normal; }
+			void SetVertex(const math::float3& f3Pos, const math::float2& f2UV, const math::float3& f3Normal, const math::float3& f3Tangent, const math::float3& f3Binormal) { pos = f3Pos; uv = f2UV; normal = f3Normal; tangent = f3Tangent; binormal = f3Binormal; }
 		};
 
 		struct VertexPosTexNorWeiIdx
@@ -152,14 +152,14 @@ namespace eastengine
 			static constexpr EmVertexFormat::Type Format() { return EmVertexFormat::ePosTexNorWeiIdx; }
 			static constexpr size_t Size() { return sizeof(VertexPosTexNorWeiIdx); }
 
-			math::Vector3 pos;
-			math::Vector2 uv;
-			math::Vector3 normal;
-			math::Vector3 boneWeight;
+			math::float3 pos;
+			math::float2 uv;
+			math::float3 normal;
+			math::float3 boneWeight;
 			uint16_t boneIndices[4]{};
 
 			VertexPosTexNorWeiIdx();
-			VertexPosTexNorWeiIdx(const math::Vector3& f3Pos, const math::Vector2& f2UV, const math::Vector3& f3Normal, const math::Vector3& f3Weight, const uint16_t boneIndices[4]);
+			VertexPosTexNorWeiIdx(const math::float3& f3Pos, const math::float2& f2UV, const math::float3& f3Normal, const math::float3& f3Weight, const uint16_t boneIndices[4]);
 
 			void operator = (const VertexPosTexNor& vertex)
 			{
@@ -168,27 +168,27 @@ namespace eastengine
 				normal = vertex.normal;
 			}
 
-			void SetVertex(const math::Vector3& f3Pos, const math::Vector2& f2UV, const math::Vector3& f3Normal, const math::Vector3& f3Weight, const uint16_t _boneIndices[4]) { pos = f3Pos; uv = f2UV; normal = f3Normal; boneWeight = f3Weight; Memory::Copy(boneIndices, _boneIndices); }
+			void SetVertex(const math::float3& f3Pos, const math::float2& f2UV, const math::float3& f3Normal, const math::float3& f3Weight, const uint16_t _boneIndices[4]) { pos = f3Pos; uv = f2UV; normal = f3Normal; boneWeight = f3Weight; Memory::Copy(boneIndices, _boneIndices); }
 		};
 
 		// For OcclusionCulling
 		struct VertexClipSpace
 		{
-			math::Vector4 pos;
+			math::float4 pos;
 
 			VertexClipSpace();
-			VertexClipSpace(const math::Vector4& f4Pos);
-			VertexClipSpace(const math::Vector3& f3Pos);
+			VertexClipSpace(const math::float4& f4Pos);
+			VertexClipSpace(const math::float3& f3Pos);
 
-			VertexClipSpace& operator = (const math::Vector3& f3Pos)
+			VertexClipSpace& operator = (const math::float3& f3Pos)
 			{
-				pos = math::Vector4(f3Pos.x, f3Pos.y, 0.f, f3Pos.z);
+				pos = math::float4(f3Pos.x, f3Pos.y, 0.f, f3Pos.z);
 				return *this;
 			}
 
 			VertexClipSpace& operator = (const VertexPos& vertexPos)
 			{
-				pos = math::Vector4(vertexPos.pos.x, vertexPos.pos.y, 0.f, vertexPos.pos.z);
+				pos = math::float4(vertexPos.pos.x, vertexPos.pos.y, 0.f, vertexPos.pos.z);
 				return *this;
 			}
 		};

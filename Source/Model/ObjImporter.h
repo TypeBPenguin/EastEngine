@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CommonLib/Singleton.h"
+#include "ModelInterface.h"
 
 namespace eastengine
 {
@@ -17,9 +18,9 @@ namespace eastengine
 
 		struct FaceType
 		{
-			math::UInt3 vIdx;
-			math::UInt3 tIdx;
-			math::UInt3 nIdx;
+			math::uint3 vIdx;
+			math::uint3 tIdx;
+			math::uint3 nIdx;
 		};
 
 		namespace EmObjVertex
@@ -66,9 +67,9 @@ namespace eastengine
 		{
 			string::StringID strObjName;
 
-			std::vector<math::Vector3> vecVertex;
-			std::vector<math::Vector2> vecTexcoord;
-			std::vector<math::Vector3> vecNormal;
+			std::vector<math::float3> vecVertex;
+			std::vector<math::float2> vecTexcoord;
+			std::vector<math::float3> vecNormal;
 
 			std::vector<ObjGroupData> vecGroupData;
 
@@ -108,7 +109,7 @@ namespace eastengine
 			ObjImporter();
 			~ObjImporter();
 
-			bool LoadModel(IModel* pModel, const char* strFileName, const float fScaleFactor, uint32_t nLodMax = 0, const LODReductionRate* pLodReductionRate = nullptr);
+			bool LoadModel(IModel* pModel, const char* strFileName, const float fScaleFactor, LOD emMaxLOD = eLv0, const LODReductionRate* pLodReductionRate = nullptr);
 			void ClearData();
 
 		public:
@@ -118,7 +119,7 @@ namespace eastengine
 		private:
 			bool loadModelData(file::Stream& file, const float fScaleFactor);
 
-			bool buildModel(IModel* pIModel, uint32_t nLodMax, const LODReductionRate* pLodReductionRate = nullptr);
+			bool buildModel(IModel* pIModel, LOD emMaxLOD, const LODReductionRate* pLodReductionRate = nullptr);
 			
 		private:
 			ObjectData m_objData;

@@ -683,7 +683,7 @@ namespace eastengine
 
 			pFrame->Transform().Initialize(*reinterpret_cast<DirectX::XMFLOAT4X4*>(&matLocal));
 
-			const math::Vector3& Scale = *reinterpret_cast<const math::Vector3*>(&pFrame->Transform().Scale());
+			const math::float3& Scale = *reinterpret_cast<const math::float3*>(&pFrame->Transform().Scale());
 			if (isWarnings == true &&
 				(math::IsEqual(Scale.x, Scale.y) == false ||
 					math::IsEqual(Scale.y, Scale.z) == false ||
@@ -903,9 +903,9 @@ namespace eastengine
 			math::Matrix matLocalFinal = matLocal;
 			g_pScene->GetDCCTransformer()->TransformMatrix(reinterpret_cast<DirectX::XMFLOAT4X4*>(&matLocalFinal), reinterpret_cast<const DirectX::XMFLOAT4X4*>(&matLocal));
 
-			math::Vector3 f3Scale;
+			math::float3 f3Scale;
 			math::Quaternion quatRotation;
-			math::Vector3 f3Translation;
+			math::float3 f3Translation;
 			matLocalFinal.Decompose(f3Scale, quatRotation, f3Translation);
 
 			asn.pTrack->TransformTrack.AddKey(fTime,

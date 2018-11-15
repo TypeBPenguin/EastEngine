@@ -12,6 +12,7 @@ namespace eastengine
 		void Run(std::function<void()> funcUpdate);
 		void Cleanup(float fElapsedTime);
 		void Update(float fElapsedTime);
+		void PostUpdate();
 
 		APIs GetAPI();
 		HWND GetHwnd();
@@ -19,13 +20,13 @@ namespace eastengine
 		void AddMessageHandler(const string::StringID& strName, std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler);
 		void RemoveMessageHandler(const string::StringID& strName);
 
-		const math::UInt2& GetScreenSize();
+		const math::uint2& GetScreenSize();
 
 		IImageBasedLight* GetImageBasedLight();
 		IVTFManager* GetVTFManager();
 
-		IVertexBuffer* CreateVertexBuffer(const uint8_t* pData, size_t nBufferSize, uint32_t nVertexCount);
-		IIndexBuffer* CreateIndexBuffer(const uint8_t* pData, size_t nBufferSize, uint32_t nIndexCount);
+		IVertexBuffer* CreateVertexBuffer(const uint8_t* pData, uint32_t vertexCount, size_t formatSize);
+		IIndexBuffer* CreateIndexBuffer(const uint8_t* pData, uint32_t indexCount, size_t formatSize);
 		ITexture* CreateTexture(const char* strFilePath);
 		ITexture* CreateTextureAsync(const char* strFilePath);
 		ITexture* CreateTexture(const TextureDesc& desc);
@@ -40,5 +41,7 @@ namespace eastengine
 		void PushRenderJob(const RenderJobStatic& renderJob);
 		void PushRenderJob(const RenderJobSkinned& renderJob);
 		void PushRenderJob(const RenderJobTerrain& renderJob);
+
+		void OcclusionCullingWriteBMP(const char* strPath);
 	}
 }

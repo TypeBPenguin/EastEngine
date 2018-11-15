@@ -6,6 +6,14 @@ namespace eastengine
 {
 	namespace graphics
 	{
+		struct OcclusionCullingData
+		{
+			Collision::AABB aabb;
+			const VertexPos* pVertices{ nullptr };
+			const uint32_t* pIndices{ nullptr };
+			size_t indexCount{ 0 };
+		};
+
 		struct RenderJobStatic
 		{
 			const void* pKey{ nullptr };
@@ -16,28 +24,18 @@ namespace eastengine
 			uint32_t nStartIndex{ 0 };
 			uint32_t nIndexCount{ 0 };
 			float fDepth{ 0.f };
-			Collision::Sphere boundingSphere;
+			OcclusionCullingData occlusionCullingData;
 
 			RenderJobStatic() = default;
 			RenderJobStatic(const void* pKey, const IVertexBuffer* pVertexBuffer, const IIndexBuffer* pIndexBuffer, const IMaterial* pMaterial,
 				const math::Matrix& matWorld, uint32_t nStartIndex, uint32_t nIndexCount,
-				float fDepth, const Collision::Sphere& boundingSphere);
+				float fDepth, const OcclusionCullingData& occlusionCullingData);
 
-			RenderJobStatic(const RenderJobStatic& source) = default;
+			RenderJobStatic(const RenderJobStatic& source);
 			RenderJobStatic(RenderJobStatic&& source) noexcept;
 
-			void operator = (const RenderJobStatic& source)
-			{
-				pKey = source.pKey;
-				pVertexBuffer = source.pVertexBuffer;
-				pIndexBuffer = source.pIndexBuffer;
-				pMaterial = source.pMaterial;
-				matWorld = source.matWorld;
-				nStartIndex = source.nStartIndex;
-				nIndexCount = source.nIndexCount;
-				fDepth = source.fDepth;
-				boundingSphere = source.boundingSphere;
-			}
+			RenderJobStatic& operator = (const RenderJobStatic& source);
+			RenderJobStatic& operator = (RenderJobStatic&& source) noexcept;
 		};
 
 		struct RenderJobSkinned
@@ -51,35 +49,26 @@ namespace eastengine
 			uint32_t nIndexCount{ 0 };
 			uint32_t nVTFID{ 0 };
 			float fDepth{ 0.f };
+			OcclusionCullingData occlusionCullingData;
 
 			RenderJobSkinned() = default;
 			RenderJobSkinned(const void* pKey, const IVertexBuffer* pVertexBuffer, const IIndexBuffer* pIndexBuffer, const IMaterial* pMaterial,
 				const math::Matrix& matWorld, uint32_t nStartIndex, uint32_t nIndexCount, uint32_t nVTFID,
-				float fDepth);
+				float fDepth, const OcclusionCullingData& occlusionCullingData);
 
-			RenderJobSkinned(const RenderJobSkinned& source) = default;
+			RenderJobSkinned(const RenderJobSkinned& source);
 			RenderJobSkinned(RenderJobSkinned&& source) noexcept;
 
-			void operator = (const RenderJobSkinned& source)
-			{
-				pKey = source.pKey;
-				pVertexBuffer = source.pVertexBuffer;
-				pIndexBuffer = source.pIndexBuffer;
-				pMaterial = source.pMaterial;
-				matWorld = source.matWorld;
-				nStartIndex = source.nStartIndex;
-				nIndexCount = source.nIndexCount;
-				nVTFID = source.nVTFID;
-				fDepth = source.fDepth;
-			}
+			RenderJobSkinned& operator = (const RenderJobSkinned& source);
+			RenderJobSkinned& operator = (RenderJobSkinned&& source) noexcept;
 		};
 
 		struct RenderJobTerrain
 		{
 			IVertexBuffer* pVertexBuffer{ nullptr };
 
-			math::Vector2 f2PatchSize;
-			math::Vector2 f2HeightFieldSize;
+			math::float2 f2PatchSize;
+			math::float2 f2HeightFieldSize;
 
 			bool isEnableDynamicLOD{ true };
 			bool isEnableFrustumCullInHS{ true };

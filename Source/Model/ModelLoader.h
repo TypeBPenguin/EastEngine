@@ -21,7 +21,7 @@ namespace eastengine
 
 		struct LoadInfoBox
 		{
-			math::Vector3 f3Size;
+			math::float3 f3Size;
 		};
 
 		struct LoadInfoSphere
@@ -169,7 +169,7 @@ namespace eastengine
 			void InitEast(const string::StringID& strModelName, const char* strFilePath);
 
 			void InitCube(const string::StringID& strModelName, MaterialInfo* pMaterialInfo = nullptr, float fSize = 1.f, bool rhcoords = false);
-			void InitBox(const string::StringID& strModelName, MaterialInfo* pMaterialInfo = nullptr, const math::Vector3& size = math::Vector3(1.f, 1.f, 1.f), bool rhcoords = false, bool invertn = false);
+			void InitBox(const string::StringID& strModelName, MaterialInfo* pMaterialInfo = nullptr, const math::float3& size = math::float3(1.f, 1.f, 1.f), bool rhcoords = false, bool invertn = false);
 			void InitSphere(const string::StringID& strModelName, MaterialInfo* pMaterialInfo = nullptr, float diameter = 1.f, uint32_t nTessellation = 16, bool rhcoords = false, bool invertn = false);
 			void InitGeoSphere(const string::StringID& strModelName, MaterialInfo* pMaterialInfo = nullptr, float diameter = 1.f, uint32_t nTessellation = 3, bool rhcoords = false);
 			void InitCylinder(const string::StringID& strModelName, MaterialInfo* pMaterialInfo = nullptr, float height = 1.f, float diameter = 1.f, uint32_t nTessellation = 32, bool rhcoords = false);
@@ -200,10 +200,10 @@ namespace eastengine
 			bool IsEnableThreadLoad() const { return m_isEnableThreadLoad; }
 			void SetEnableThreadLoad(bool isEnableThreadLoad) { m_isEnableThreadLoad = isEnableThreadLoad; }
 
-			const math::Vector3& GetLocalPosition() const { return m_f3Pos; }
-			void SetLocalPosition(const math::Vector3& f3Pos) { m_f3Pos = f3Pos; }
-			const math::Vector3& GetLocalScale() const { return m_f3Scale; }
-			void SetLocalScale(const math::Vector3& f3Scale) { m_f3Scale = f3Scale; }
+			const math::float3& GetLocalPosition() const { return m_f3Pos; }
+			void SetLocalPosition(const math::float3& f3Pos) { m_f3Pos = f3Pos; }
+			const math::float3& GetLocalScale() const { return m_f3Scale; }
+			void SetLocalScale(const math::float3& f3Scale) { m_f3Scale = f3Scale; }
 			const math::Quaternion& GetLocalRotation() const { return m_quatRotation; }
 			void SetLocalRotation(const math::Quaternion& quatRotation) { m_quatRotation = quatRotation; }
 
@@ -245,8 +245,8 @@ namespace eastengine
 		private:
 			bool m_isEnableThreadLoad;
 
-			math::Vector3 m_f3Pos;
-			math::Vector3 m_f3Scale;
+			math::float3 m_f3Pos;
+			math::float3 m_f3Scale;
 			math::Quaternion m_quatRotation;
 
 			std::function<void(bool)> m_funcCallback;

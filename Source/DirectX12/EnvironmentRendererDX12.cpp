@@ -29,7 +29,7 @@ namespace eastengine
 					math::Matrix matProjection;
 					float fTextureGamma{ 1.f };
 					uint32_t nTexEnvironmentMapIndex{ 0 };
-					math::Vector2 padding;
+					math::float2 padding;
 				};
 
 				enum CBSlot

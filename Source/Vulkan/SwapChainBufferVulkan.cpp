@@ -9,7 +9,7 @@ namespace eastengine
 	{
 		namespace vulkan
 		{
-			SwapChainBuffer::SwapChainBuffer(const math::UInt2& n2Size, VkImage image, VkFormat format)
+			SwapChainBuffer::SwapChainBuffer(const math::uint2& n2Size, VkImage image, VkFormat format)
 			{
 				m_n2Size = n2Size;
 

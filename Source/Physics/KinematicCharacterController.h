@@ -20,11 +20,11 @@ namespace eastengine
 			static KinematicCharacterController* Create(GhostObject* pGhostObject, float fStepHeight);
 
 		public:
-			void SetWalkDirection(const math::Vector3& f3WalkVelocity);
-			void SetVelocityForTimeInterval(const math::Vector3& f3Velocity, float fTimeInterval);
+			void SetWalkDirection(const math::float3& f3WalkVelocity);
+			void SetVelocityForTimeInterval(const math::float3& f3Velocity, float fTimeInterval);
 
 			void Reset();
-			void Warp(const math::Vector3& f3Pos);
+			void Warp(const math::float3& f3Pos);
 
 			void SetFallSpeed(float fFallSpeed);
 			void SetJumpSpeed(float fJumpSpeed);

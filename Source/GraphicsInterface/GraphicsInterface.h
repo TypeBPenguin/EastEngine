@@ -164,7 +164,7 @@ namespace eastengine
 		struct Options
 		{
 			bool OnVSync{ false };
-			bool OnOcclusionCulling{ false };
+			bool OnOcclusionCulling{ true };
 
 			bool OnShadow{ false };
 			bool OnTessellation{ false };
@@ -257,7 +257,7 @@ namespace eastengine
 
 			struct ColorGradingConfig
 			{
-				math::Vector3 colorGuide{ 1.f, 0.588f, 0.529f };
+				math::float3 colorGuide{ 1.f, 0.588f, 0.529f };
 			};
 			ColorGradingConfig colorGradingConfig;
 
@@ -345,7 +345,7 @@ namespace eastengine
 			virtual const string::StringID& GetName() const = 0;
 
 		public:
-			virtual const math::UInt2& GetSize() const = 0;
+			virtual const math::uint2& GetSize() const = 0;
 			virtual const std::string& GetPath() const = 0;
 		};
 
@@ -394,12 +394,12 @@ namespace eastengine
 			virtual EmDepthStencilState::Type GetDepthStencilState() const = 0;
 			virtual void SetDepthStencilState(EmDepthStencilState::Type emDepthStencilState) = 0;
 
-			virtual const math::Vector4& GetPaddingRoughMetEmi() const = 0;
-			virtual void SetPaddingRoughMetEmi(const math::Vector4& f4PaddingRoughMetEmi) = 0;
-			virtual const math::Vector4& GetSurSpecTintAniso() const = 0;
-			virtual void SetSurSpecTintAniso(const math::Vector4& f4SurSpecTintAniso) = 0;
-			virtual const math::Vector4& GetSheenTintClearcoatGloss() const = 0;
-			virtual void SetSheenTintClearcoatGloss(const math::Vector4& f4SheenTintClearcoatGloss) = 0;
+			virtual const math::float4& GetPaddingRoughMetEmi() const = 0;
+			virtual void SetPaddingRoughMetEmi(const math::float4& f4PaddingRoughMetEmi) = 0;
+			virtual const math::float4& GetSurSpecTintAniso() const = 0;
+			virtual void SetSurSpecTintAniso(const math::float4& f4SurSpecTintAniso) = 0;
+			virtual const math::float4& GetSheenTintClearcoatGloss() const = 0;
+			virtual void SetSheenTintClearcoatGloss(const math::float4& f4SheenTintClearcoatGloss) = 0;
 
 			virtual float GetDisplacement() const = 0;
 			virtual void SetDisplacement(float fDisplacement) = 0;

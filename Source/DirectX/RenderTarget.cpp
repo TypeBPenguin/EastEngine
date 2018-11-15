@@ -85,7 +85,7 @@ namespace eastengine
 						return false;
 				}
 
-				math::UInt2 n2Size(m_renderTargetDesc2D.Width, m_renderTargetDesc2D.Height);
+				math::uint2 n2Size(m_renderTargetDesc2D.Width, m_renderTargetDesc2D.Height);
 				for (uint32_t i = 0; i < nIdx; ++i)
 				{
 					n2Size.x = (n2Size.x + 1) / 2;
@@ -163,7 +163,7 @@ namespace eastengine
 						return false;
 				}
 
-				math::UInt2 n2Size(m_renderTargetDesc2D.Width, m_renderTargetDesc2D.Height);
+				math::uint2 n2Size(m_renderTargetDesc2D.Width, m_renderTargetDesc2D.Height);
 				for (uint32_t i = 0; i < nIdx; ++i)
 				{
 					n2Size.x = (n2Size.x + 1) / 2;
@@ -240,7 +240,7 @@ namespace eastengine
 						return false;
 				}
 
-				math::UInt2 n2Size(m_renderTargetDesc2D.Width, m_renderTargetDesc2D.Height);
+				math::uint2 n2Size(m_renderTargetDesc2D.Width, m_renderTargetDesc2D.Height);
 				for (uint32_t i = 0; i < nIdx; ++i)
 				{
 					n2Size.x = (n2Size.x + 1) / 2;

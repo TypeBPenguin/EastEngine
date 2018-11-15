@@ -121,12 +121,12 @@ namespace eastengine
 			Collision::Frustum frustum;
 			Collision::Frustum::CreateFromMatrix(frustum, pCamera->GetProjMatrix(nThreadID));
 
-			math::Vector3 f3Corners[Collision::CornerCount];
+			math::float3 f3Corners[Collision::CornerCount];
 			frustum.GetCorners(f3Corners);
 
 			const float fZOffset = (pCamera->GetLookat() - pCamera->GetPosition()).Length();
 
-			const math::Vector3 f3Target = m_pLight->GetDirection();
+			const math::float3 f3Target = m_pLight->GetDirection();
 
 			const float fIncreaseRate = 2.f;
 			float fTotalRate = 0.f;
@@ -148,7 +148,7 @@ namespace eastengine
 				m_f2SplitDepths[i].x = fPrevDistance;
 				m_f2SplitDepths[i].y = fDistance;
 
-				math::Vector3 f3SplitFrustumCorners[Collision::CornerCount];
+				math::float3 f3SplitFrustumCorners[Collision::CornerCount];
 
 				for (int j = 0; j < 4; ++j)
 				{
@@ -162,28 +162,28 @@ namespace eastengine
 					f3SplitFrustumCorners[j].z += std::max(f3SplitFrustumCorners[j].z * 0.1f, fZOffset);
 				}
 
-				math::Vector3 f3FrustumCornersWS[Collision::CornerCount];
-				math::Vector3::Transform(f3SplitFrustumCorners, Collision::CornerCount, matInvCameraView, f3FrustumCornersWS);
+				math::float3 f3FrustumCornersWS[Collision::CornerCount];
+				math::float3::Transform(f3SplitFrustumCorners, Collision::CornerCount, matInvCameraView, f3FrustumCornersWS);
 
-				math::Vector3 f3FrustumCentroid;
+				math::float3 f3FrustumCentroid;
 				for (int j = 0; j < Collision::CornerCount; ++j)
 				{
 					f3FrustumCentroid += f3FrustumCornersWS[j];
 				}
 				f3FrustumCentroid /= Collision::CornerCount;
 
-				float fDistFromCenteroid = 50.f + std::max((fDistance - fPrevDistance), math::Vector3::Distance(f3SplitFrustumCorners[Collision::eNearLeftBottom], f3SplitFrustumCorners[Collision::eFarRightTop]));
-				m_matViews[i] = math::Matrix::CreateLookAt(f3FrustumCentroid - (m_pLight->GetDirection() * fDistFromCenteroid), f3FrustumCentroid, math::Vector3::Up);
+				float fDistFromCenteroid = 50.f + std::max((fDistance - fPrevDistance), math::float3::Distance(f3SplitFrustumCorners[Collision::eNearLeftBottom], f3SplitFrustumCorners[Collision::eFarRightTop]));
+				m_matViews[i] = math::Matrix::CreateLookAt(f3FrustumCentroid - (m_pLight->GetDirection() * fDistFromCenteroid), f3FrustumCentroid, math::float3::Up);
 
-				math::Vector3 f3FrustumCornersLS[Collision::CornerCount];
-				math::Vector3::Transform(f3FrustumCornersWS, Collision::CornerCount, m_matViews[i], f3FrustumCornersLS);
+				math::float3 f3FrustumCornersLS[Collision::CornerCount];
+				math::float3::Transform(f3FrustumCornersWS, Collision::CornerCount, m_matViews[i], f3FrustumCornersLS);
 
-				math::Vector3 f3Min(f3FrustumCornersLS[0]);
-				math::Vector3 f3Max(f3FrustumCornersLS[0]);
+				math::float3 f3Min(f3FrustumCornersLS[0]);
+				math::float3 f3Max(f3FrustumCornersLS[0]);
 				for (int j = 1; j < Collision::CornerCount; ++j)
 				{
-					f3Min = math::Vector3::Min(f3Min, f3FrustumCornersLS[j]);
-					f3Max = math::Vector3::Max(f3Max, f3FrustumCornersLS[j]);
+					f3Min = math::float3::Min(f3Min, f3FrustumCornersLS[j]);
+					f3Max = math::float3::Max(f3Max, f3FrustumCornersLS[j]);
 				}
 
 				m_matProjections[i] = math::Matrix::CreateOrthographicOffCenter(f3Min.x, f3Max.x, f3Min.y, f3Max.y, f3Min.z, f3Max.z);

@@ -41,7 +41,7 @@ namespace eastengine
 
 				D3D11_SUBRESOURCE_DATA srd;
 				srd.pSysMem = m_vtfInstances[i].buffer.data();
-				srd.SysMemPitch = eTextureWidth * (sizeof(math::Vector4));
+				srd.SysMemPitch = eTextureWidth * (sizeof(math::float4));
 				srd.SysMemSlicePitch = 1;
 
 				string::StringID strName;

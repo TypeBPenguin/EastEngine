@@ -27,7 +27,7 @@ namespace eastengine
 			HWND m_hWnd{ nullptr };
 			HINSTANCE m_hInstance{ nullptr };
 
-			math::UInt2 m_n2ScreenSize{ 800, 600 };
+			math::uint2 m_n2ScreenSize{ 800, 600 };
 			bool m_isFullScreen{ false };
 
 			string::StringID m_strApplicationTitle;

@@ -176,8 +176,8 @@ namespace eastengine
 				std::vector<VertexPosCol> vecVertices;
 				vecVertices.reserve(nVertexCount);
 
-				vecVertices.push_back(VertexPosCol(math::Vector3::Zero, color));
-				vecVertices.push_back(VertexPosCol(math::Vector3(0.f, 0.f, 1.f), color));
+				vecVertices.push_back(VertexPosCol(math::float3::Zero, color));
+				vecVertices.push_back(VertexPosCol(math::float3(0.f, 0.f, 1.f), color));
 
 				m_pLineSegmentVertexBuffer = IVertexBuffer::Create(VertexPosCol::Format(), vecVertices.size(), &vecVertices.front(), D3D11_USAGE_DYNAMIC);
 
@@ -269,7 +269,7 @@ namespace eastengine
 							continue;
 
 						m_pEffect->SetMatrix(StrID::g_matWVP, pRenderSubset->matWorld * pCamera->GetViewMatrix(nThreadID) * pCamera->GetProjMatrix(nThreadID));
-						m_pEffect->SetVector(StrID::g_color, *reinterpret_cast<const math::Vector4*>(&pRenderSubset->color));
+						m_pEffect->SetVector(StrID::g_color, *reinterpret_cast<const math::float4*>(&pRenderSubset->color));
 
 						uint32_t nPassCount = pEffectTech->GetPassCount();
 						for (uint32_t p = 0; p < nPassCount; ++p)

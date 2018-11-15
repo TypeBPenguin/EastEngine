@@ -26,20 +26,20 @@ namespace eastengine
 				// ** WARNING ** if changing anything here, update the corresponding shader code! ** WARNING **
 				struct ASSAOConstants
 				{
-					math::Vector2 ViewportPixelSize; // .zw == 1.0 / ViewportSize.xy
-					math::Vector2 HalfViewportPixelSize; // .zw == 1.0 / ViewportHalfSize.xy
+					math::float2 ViewportPixelSize; // .zw == 1.0 / ViewportSize.xy
+					math::float2 HalfViewportPixelSize; // .zw == 1.0 / ViewportHalfSize.xy
 
-					math::Vector2 DepthUnpackConsts;
-					math::Vector2 CameraTanHalfFOV;
+					math::float2 DepthUnpackConsts;
+					math::float2 CameraTanHalfFOV;
 
-					math::Vector2 NDCToViewMul;
-					math::Vector2 NDCToViewAdd;
+					math::float2 NDCToViewMul;
+					math::float2 NDCToViewAdd;
 
-					math::Int2 PerPassFullResCoordOffset;
-					math::Vector2 PerPassFullResUVOffset;
+					math::int2 PerPassFullResCoordOffset;
+					math::float2 PerPassFullResUVOffset;
 
-					math::Vector2 Viewport2xPixelSize;
-					math::Vector2 Viewport2xPixelSize_x_025; // Viewport2xPixelSize* 0.25 (for fusing add+mul into mad)
+					math::float2 Viewport2xPixelSize;
+					math::float2 Viewport2xPixelSize_x_025; // Viewport2xPixelSize* 0.25 (for fusing add+mul into mad)
 
 					float EffectRadius; // world (viewspace) maximum size of the shadow
 					float EffectShadowStrength; // global strength of the effect (0 - 5)
@@ -58,9 +58,9 @@ namespace eastengine
 
 					float InvSharpness;
 					int PassIndex;
-					math::Vector2 QuarterResPixelSize; // used for importance map only
+					math::float2 QuarterResPixelSize; // used for importance map only
 
-					math::Vector4 PatternRotScaleMatrices[5];
+					math::float4 PatternRotScaleMatrices[5];
 
 					float NormalsUnpackMul;
 					float NormalsUnpackAdd;
@@ -195,7 +195,7 @@ namespace eastengine
 				uint32_t SRVIndex{ eInvalidDescriptorIndex };
 				uint32_t RTVIndex{ eInvalidDescriptorIndex };
 				uint32_t UAVIndex{ eInvalidDescriptorIndex };
-				math::UInt2 Size;
+				math::uint2 Size;
 
 				math::Color ClearColor{ math::Color::Transparent };
 
@@ -206,7 +206,7 @@ namespace eastengine
 				~D3D12Texture2D() { Reset(); }
 
 				void Reset();
-				bool ReCreateIfNeeded(ID3D12Device* pDevice, const math::UInt2& size, DXGI_FORMAT format, float& inoutTotalSizeSum, uint16_t mipLevels, uint16_t arraySize, const math::Color& clearColor, bool supportUAVs, const char* debugName);
+				bool ReCreateIfNeeded(ID3D12Device* pDevice, const math::uint2& size, DXGI_FORMAT format, float& inoutTotalSizeSum, uint16_t mipLevels, uint16_t arraySize, const math::Color& clearColor, bool supportUAVs, const char* debugName);
 				bool ReCreateMIPViewIfNeeded(ID3D12Device* pDevice, D3D12Texture2D& original, int mipViewSlice);
 				bool ReCreateArrayViewIfNeeded(ID3D12Device* pDevice, D3D12Texture2D& original, int arraySlice);
 
@@ -220,10 +220,10 @@ namespace eastengine
 				util::ReleaseResourceUAV(UAVIndex);
 				util::ReleaseResource(Resource);
 				Resource = nullptr;
-				Size = math::UInt2::Zero;
+				Size = math::uint2::Zero;
 			}
 
-			bool D3D12Texture2D::ReCreateIfNeeded(ID3D12Device* pDevice, const math::UInt2& size, DXGI_FORMAT format, float& inoutTotalSizeSum, uint16_t mipLevels, uint16_t arraySize, const math::Color& clearColor, bool supportUAVs, const char* debugName)
+			bool D3D12Texture2D::ReCreateIfNeeded(ID3D12Device* pDevice, const math::uint2& size, DXGI_FORMAT format, float& inoutTotalSizeSum, uint16_t mipLevels, uint16_t arraySize, const math::Color& clearColor, bool supportUAVs, const char* debugName)
 			{
 				int approxSize = size.x * size.y * util::GetPixelSizeInBytes(format);
 				if (mipLevels != 1)
@@ -612,11 +612,11 @@ namespace eastengine
 				};
 				BufferFormats m_formats;
 
-				math::UInt2 m_size;
-				math::UInt2 m_halfSize;
-				math::UInt2 m_quarterSize;
-				math::UInt4 m_fullResOutScissorRect;
-				math::UInt4 m_halfResOutScissorRect;
+				math::uint2 m_size;
+				math::uint2 m_halfSize;
+				math::uint2 m_quarterSize;
+				math::uint4 m_fullResOutScissorRect;
+				math::uint4 m_halfResOutScissorRect;
 
 				uint32_t m_allocatedVRAM{ 0 };
 
@@ -1099,24 +1099,24 @@ namespace eastengine
 				m_quarterSize.x = (m_halfSize.x + 1) / 2;
 				m_quarterSize.y = (m_halfSize.y + 1) / 2;
 
-				math::UInt4 prevScissorRect = m_fullResOutScissorRect;
+				math::uint4 prevScissorRect = m_fullResOutScissorRect;
 
 				if ((inputs->ScissorRight == 0) || (inputs->ScissorBottom == 0))
 				{
-					m_fullResOutScissorRect = math::UInt4(0, 0, width, height);
+					m_fullResOutScissorRect = math::uint4(0, 0, width, height);
 				}
 				else
 				{
-					m_fullResOutScissorRect = math::UInt4(std::max(0u, inputs->ScissorLeft), std::max(0u, inputs->ScissorTop), std::min(width, inputs->ScissorRight), std::min(height, inputs->ScissorBottom));
+					m_fullResOutScissorRect = math::uint4(std::max(0u, inputs->ScissorLeft), std::max(0u, inputs->ScissorTop), std::min(width, inputs->ScissorRight), std::min(height, inputs->ScissorBottom));
 				}
 
 				needsUpdate |= prevScissorRect != m_fullResOutScissorRect;
 				if (needsUpdate == false)
 					return;
 
-				m_halfResOutScissorRect = math::UInt4(m_fullResOutScissorRect.x / 2, m_fullResOutScissorRect.y / 2, (m_fullResOutScissorRect.z + 1) / 2, (m_fullResOutScissorRect.w + 1) / 2);
+				m_halfResOutScissorRect = math::uint4(m_fullResOutScissorRect.x / 2, m_fullResOutScissorRect.y / 2, (m_fullResOutScissorRect.z + 1) / 2, (m_fullResOutScissorRect.w + 1) / 2);
 				const int blurEnlarge = cMaxBlurPassCount + std::max(0, cMaxBlurPassCount - 2); // +1 for max normal blurs, +2 for wide blurs
-				m_halfResOutScissorRect = math::UInt4(std::max(0u, m_halfResOutScissorRect.x - blurEnlarge), std::max(0u, m_halfResOutScissorRect.y - blurEnlarge), std::min(m_halfSize.x, m_halfResOutScissorRect.z + blurEnlarge), std::min(m_halfSize.y, m_halfResOutScissorRect.w + blurEnlarge));
+				m_halfResOutScissorRect = math::uint4(std::max(0u, m_halfResOutScissorRect.x - blurEnlarge), std::max(0u, m_halfResOutScissorRect.y - blurEnlarge), std::min(m_halfSize.x, m_halfResOutScissorRect.z + blurEnlarge), std::min(m_halfSize.y, m_halfResOutScissorRect.w + blurEnlarge));
 
 				float totalSizeInMB = 0.f;
 
@@ -1177,25 +1177,25 @@ namespace eastengine
 				{
 					const math::Matrix& proj = inputs->ProjectionMatrix;
 
-					consts.ViewportPixelSize = math::Vector2(1.0f / (float)m_size.x, 1.0f / (float)m_size.y);
-					consts.HalfViewportPixelSize = math::Vector2(1.0f / (float)m_halfSize.x, 1.0f / (float)m_halfSize.y);
+					consts.ViewportPixelSize = math::float2(1.0f / (float)m_size.x, 1.0f / (float)m_size.y);
+					consts.HalfViewportPixelSize = math::float2(1.0f / (float)m_halfSize.x, 1.0f / (float)m_halfSize.y);
 
-					consts.Viewport2xPixelSize = math::Vector2(consts.ViewportPixelSize.x* 2.0f, consts.ViewportPixelSize.y* 2.0f);
-					consts.Viewport2xPixelSize_x_025 = math::Vector2(consts.Viewport2xPixelSize.x* 0.25f, consts.Viewport2xPixelSize.y* 0.25f);
+					consts.Viewport2xPixelSize = math::float2(consts.ViewportPixelSize.x* 2.0f, consts.ViewportPixelSize.y* 2.0f);
+					consts.Viewport2xPixelSize_x_025 = math::float2(consts.Viewport2xPixelSize.x* 0.25f, consts.Viewport2xPixelSize.y* 0.25f);
 
 					float depthLinearizeMul = (inputs->MatricesRowMajorOrder) ? (-proj.m[3][2]) : (-proj.m[2][3]); // float depthLinearizeMul = ( clipFar* clipNear ) / ( clipFar - clipNear );
 					float depthLinearizeAdd = (inputs->MatricesRowMajorOrder) ? (proj.m[2][2]) : (proj.m[2][2]); // float depthLinearizeAdd = clipFar / ( clipFar - clipNear );
 																												 // correct the handedness issue. need to make sure this below is correct, but I think it is.
 					if (depthLinearizeMul* depthLinearizeAdd < 0)
 						depthLinearizeAdd = -depthLinearizeAdd;
-					consts.DepthUnpackConsts = math::Vector2(depthLinearizeMul, depthLinearizeAdd);
+					consts.DepthUnpackConsts = math::float2(depthLinearizeMul, depthLinearizeAdd);
 
 					float tanHalfFOVY = 1.0f / proj.m[1][1]; // = tanf( drawContext.Camera.GetYFOV( )* 0.5f );
 					float tanHalfFOVX = 1.0F / proj.m[0][0]; // = tanHalfFOVY* drawContext.Camera.GetAspect( );
-					consts.CameraTanHalfFOV = math::Vector2(tanHalfFOVX, tanHalfFOVY);
+					consts.CameraTanHalfFOV = math::float2(tanHalfFOVX, tanHalfFOVY);
 
-					consts.NDCToViewMul = math::Vector2(consts.CameraTanHalfFOV.x* 2.0f, consts.CameraTanHalfFOV.y* -2.0f);
-					consts.NDCToViewAdd = math::Vector2(consts.CameraTanHalfFOV.x* -1.0f, consts.CameraTanHalfFOV.y* 1.0f);
+					consts.NDCToViewMul = math::float2(consts.CameraTanHalfFOV.x* 2.0f, consts.CameraTanHalfFOV.y* -2.0f);
+					consts.NDCToViewAdd = math::float2(consts.CameraTanHalfFOV.x* -1.0f, consts.CameraTanHalfFOV.y* 1.0f);
 
 					consts.EffectRadius = std::clamp(config.Radius, 0.0f, 100000.0f);
 					consts.EffectShadowStrength = std::clamp(config.ShadowMultiplier* 4.3f, 0.0f, 10.0f);
@@ -1236,12 +1236,12 @@ namespace eastengine
 
 					consts.NegRecEffectRadius = -1.0f / consts.EffectRadius;
 
-					consts.PerPassFullResCoordOffset = math::Int2(pass % 2, pass / 2);
-					consts.PerPassFullResUVOffset = math::Vector2(((pass % 2) - 0.0f) / m_size.x, ((pass / 2) - 0.0f) / m_size.y);
+					consts.PerPassFullResCoordOffset = math::int2(pass % 2, pass / 2);
+					consts.PerPassFullResUVOffset = math::float2(((pass % 2) - 0.0f) / m_size.x, ((pass / 2) - 0.0f) / m_size.y);
 
 					consts.InvSharpness = std::clamp(1.0f - config.Sharpness, 0.0f, 1.0f);
 					consts.PassIndex = pass;
-					consts.QuarterResPixelSize = math::Vector2(1.0f / (float)m_quarterSize.x, 1.0f / (float)m_quarterSize.y);
+					consts.QuarterResPixelSize = math::float2(1.0f / (float)m_quarterSize.x, 1.0f / (float)m_quarterSize.y);
 
 					float additionalAngleOffset = config.TemporalSupersamplingAngleOffset; // if using temporal supersampling approach (like "Progressive Rendering Using Multi-frame Sampling" from GPU Pro 7, etc.)
 					float additionalRadiusScale = config.TemporalSupersamplingRadiusOffset; // if using temporal supersampling approach (like "Progressive Rendering Using Multi-frame Sampling" from GPU Pro 7, etc.)
@@ -1264,7 +1264,7 @@ namespace eastengine
 						float scale = 1.0f + (a - 1.5f + (b - (subPassCount - 1.0f)* 0.5f) / (float)subPassCount)* 0.07f;
 						scale *= additionalRadiusScale;
 
-						consts.PatternRotScaleMatrices[subPass] = math::Vector4(scale* ca, scale* -sa, -scale * sa, -scale * ca);
+						consts.PatternRotScaleMatrices[subPass] = math::float4(scale* ca, scale* -sa, -scale * sa, -scale * ca);
 					}
 
 					if (generateNormals == false)

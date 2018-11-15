@@ -19,7 +19,7 @@ namespace eastengine
 			{
 				struct ColorGradingContents
 				{
-					math::Vector3 colorGuide{ 1.f, 0.5f, 0.f };
+					math::float3 colorGuide{ 1.f, 0.5f, 0.f };
 					uint32_t nTexSourceIndex{ 0 };
 				};
 
@@ -33,7 +33,7 @@ namespace eastengine
 					eSRV_Source = 0,
 				};
 
-				void SetColorGradingContents(ColorGradingContents* pColorGradingContents, const math::Vector3& colorGuide, uint32_t nTexSourceIndex)
+				void SetColorGradingContents(ColorGradingContents* pColorGradingContents, const math::float3& colorGuide, uint32_t nTexSourceIndex)
 				{
 					pColorGradingContents->colorGuide = colorGuide;
 					pColorGradingContents->nTexSourceIndex = nTexSourceIndex;

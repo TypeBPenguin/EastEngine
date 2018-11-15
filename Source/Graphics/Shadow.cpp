@@ -107,9 +107,9 @@ namespace eastengine
 
 			float fFov = math::ToRadians(m_pLight->GetAngle());
 
-			math::Vector3 f3Pos = m_pLight->GetPosition() - (m_pLight->GetDirection() * fDepth * 0.1f);
-			const math::Vector3& f3Target = m_pLight->GetPosition();
-			m_matView = math::Matrix::CreateLookAt(f3Pos, f3Target, math::Vector3::Up);
+			math::float3 f3Pos = m_pLight->GetPosition() - (m_pLight->GetDirection() * fDepth * 0.1f);
+			const math::float3& f3Target = m_pLight->GetPosition();
+			m_matView = math::Matrix::CreateLookAt(f3Pos, f3Target, math::float3::Up);
 
 			m_matProjection = math::Matrix::CreatePerspectiveFieldOfView(fFov, 1.f, 0.01f, fDepth);
 

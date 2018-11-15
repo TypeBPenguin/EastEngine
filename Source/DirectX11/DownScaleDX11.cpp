@@ -17,8 +17,8 @@ namespace eastengine
 			{
 				struct DownScaleContents
 				{
-					math::Vector2 f2SourceDimensions;
-					math::Vector2 padding;
+					math::float2 f2SourceDimensions;
+					math::float2 padding;
 				};
 
 				enum CBSlot
@@ -63,7 +63,7 @@ namespace eastengine
 					}
 				}
 
-				void SetDownScaleContents(ID3D11DeviceContext* pDeviceContext, ConstantBuffer<DownScaleContents>* pCB_DownScaleContents, const math::Vector2& f2SourceDimensions)
+				void SetDownScaleContents(ID3D11DeviceContext* pDeviceContext, ConstantBuffer<DownScaleContents>* pCB_DownScaleContents, const math::float2& f2SourceDimensions)
 				{
 					DownScaleContents* pDownScaleContents = pCB_DownScaleContents->Map(pDeviceContext);
 
@@ -274,7 +274,7 @@ namespace eastengine
 				pDeviceContext->RSSetState(pRasterizerState);
 
 				ID3D11BlendState* pBlendState = pDeviceInstance->GetBlendState(EmBlendState::eOff);
-				pDeviceContext->OMSetBlendState(pBlendState, &math::Vector4::Zero.x, 0xffffffff);
+				pDeviceContext->OMSetBlendState(pBlendState, &math::float4::Zero.x, 0xffffffff);
 
 				ID3D11DepthStencilState* pDepthStencilState = pDeviceInstance->GetDepthStencilState(EmDepthStencilState::eRead_Write_Off);
 				pDeviceContext->OMSetDepthStencilState(pDepthStencilState, 0);
@@ -298,7 +298,7 @@ namespace eastengine
 				D3D11_TEXTURE2D_DESC desc_source{};
 				pSource->GetDesc2D(&desc_source);
 
-				shader::SetDownScaleContents(pDeviceContext, &m_downScaleContents, math::Vector2(static_cast<float>(desc_source.Width), static_cast<float>(desc_source.Height)));
+				shader::SetDownScaleContents(pDeviceContext, &m_downScaleContents, math::float2(static_cast<float>(desc_source.Width), static_cast<float>(desc_source.Height)));
 				pDeviceContext->PSSetConstantBuffers(shader::eCB_DownScaleContents, 1, &m_downScaleContents.pBuffer);
 
 				D3D11_TEXTURE2D_DESC desc{};

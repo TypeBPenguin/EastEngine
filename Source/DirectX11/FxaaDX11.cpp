@@ -17,7 +17,7 @@ namespace eastengine
 			{
 				struct FxaaContents
 				{
-					math::Vector4 f4RcpFrame;
+					math::float4 f4RcpFrame;
 				};
 
 				enum CBSlot
@@ -35,11 +35,11 @@ namespace eastengine
 					eSRV_Source = 0,
 				};
 
-				void SetFxaaContents(ID3D11DeviceContext* pDeviceContext, ConstantBuffer<FxaaContents>* pCB_FxaaContents, const math::UInt2& n2ScreenSize)
+				void SetFxaaContents(ID3D11DeviceContext* pDeviceContext, ConstantBuffer<FxaaContents>* pCB_FxaaContents, const math::uint2& n2ScreenSize)
 				{
 					FxaaContents* pFxaaContents = pCB_FxaaContents->Map(pDeviceContext);
 
-					const math::Vector4 vRcpFrame(1.f / static_cast<float>(n2ScreenSize.x), 1.f / static_cast<float>(n2ScreenSize.y), 0.f, 0.f);
+					const math::float4 vRcpFrame(1.f / static_cast<float>(n2ScreenSize.x), 1.f / static_cast<float>(n2ScreenSize.y), 0.f, 0.f);
 					pFxaaContents->f4RcpFrame = vRcpFrame;
 
 					pCB_FxaaContents->Unmap(pDeviceContext);
@@ -113,7 +113,7 @@ namespace eastengine
 
 				Device* pDeviceInstance = Device::GetInstance();
 				ID3D11DeviceContext* pDeviceContext = pDeviceInstance->GetImmediateContext();
-				const math::UInt2& n2ScreenSize = pDeviceInstance->GetScreenSize();
+				const math::uint2& n2ScreenSize = pDeviceInstance->GetScreenSize();
 
 				pDeviceContext->ClearState();
 
@@ -132,7 +132,7 @@ namespace eastengine
 				pDeviceContext->RSSetState(pRasterizerState);
 
 				ID3D11BlendState* pBlendState = pDeviceInstance->GetBlendState(EmBlendState::eOff);
-				pDeviceContext->OMSetBlendState(pBlendState, &math::Vector4::Zero.x, 0xffffffff);
+				pDeviceContext->OMSetBlendState(pBlendState, &math::float4::Zero.x, 0xffffffff);
 
 				ID3D11DepthStencilState* pDepthStencilState = pDeviceInstance->GetDepthStencilState(EmDepthStencilState::eRead_Write_Off);
 				pDeviceContext->OMSetDepthStencilState(pDepthStencilState, 0);

@@ -54,12 +54,12 @@ namespace eastengine
 			virtual EmDepthStencilState::Type GetDepthStencilState() const override { return m_info.emDepthStencilState; }
 			virtual void SetDepthStencilState(EmDepthStencilState::Type emDepthStencilState) override { m_info.emDepthStencilState = emDepthStencilState; }
 
-			virtual const math::Vector4& GetPaddingRoughMetEmi() const override { return m_info.f4PaddingRoughMetEmi; }
-			virtual void SetPaddingRoughMetEmi(const math::Vector4& f4PaddingRoughMetEmi) override { m_info.f4PaddingRoughMetEmi = f4PaddingRoughMetEmi; }
-			virtual const math::Vector4& GetSurSpecTintAniso() const override { return m_info.f4SurSpecTintAniso; }
-			virtual void SetSurSpecTintAniso(const math::Vector4& f4SurSpecTintAniso) override { m_info.f4SurSpecTintAniso = f4SurSpecTintAniso; }
-			virtual const math::Vector4& GetSheenTintClearcoatGloss() const override { return m_info.f4SheenTintClearcoatGloss; }
-			virtual void SetSheenTintClearcoatGloss(const math::Vector4& f4SheenTintClearcoatGloss) override { m_info.f4SheenTintClearcoatGloss = f4SheenTintClearcoatGloss; }
+			virtual const math::float4& GetPaddingRoughMetEmi() const override { return m_info.f4PaddingRoughMetEmi; }
+			virtual void SetPaddingRoughMetEmi(const math::float4& f4PaddingRoughMetEmi) override { m_info.f4PaddingRoughMetEmi = f4PaddingRoughMetEmi; }
+			virtual const math::float4& GetSurSpecTintAniso() const override { return m_info.f4SurSpecTintAniso; }
+			virtual void SetSurSpecTintAniso(const math::float4& f4SurSpecTintAniso) override { m_info.f4SurSpecTintAniso = f4SurSpecTintAniso; }
+			virtual const math::float4& GetSheenTintClearcoatGloss() const override { return m_info.f4SheenTintClearcoatGloss; }
+			virtual void SetSheenTintClearcoatGloss(const math::float4& f4SheenTintClearcoatGloss) override { m_info.f4SheenTintClearcoatGloss = f4SheenTintClearcoatGloss; }
 
 			virtual float GetDisplacement() const override { return m_info.f4PaddingRoughMetEmi.x; }
 			virtual void SetDisplacement(float fDisplacement) override { m_info.f4PaddingRoughMetEmi.x = fDisplacement; }

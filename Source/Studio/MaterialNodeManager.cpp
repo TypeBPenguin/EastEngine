@@ -7,12 +7,12 @@
 using namespace eastengine;
 
 const float NODE_SLOT_RADIUS = 4.f;
-const math::Vector2 NODE_WINDOW_PADDING(8.f, 8.f);
+const math::float2 NODE_WINDOW_PADDING(8.f, 8.f);
 
 static inline ImVec2 operator+(const ImVec2& lhs, const ImVec2& rhs) { return ImVec2(lhs.x + rhs.x, lhs.y + rhs.y); }
 static inline ImVec2 operator-(const ImVec2& lhs, const ImVec2& rhs) { return ImVec2(lhs.x - rhs.x, lhs.y - rhs.y); }
 
-void MaterialNode::InOutSlot::Render(ImDrawList* pDrawList, const eastengine::math::Vector2& f2Offset)
+void MaterialNode::InOutSlot::Render(ImDrawList* pDrawList, const eastengine::math::float2& f2Offset)
 {
 	isActive = false;
 	isHovered = false;
@@ -55,9 +55,9 @@ void MaterialNode::InOutSlot::Render(ImDrawList* pDrawList, const eastengine::ma
 		}
 	}
 
-	math::Vector2 f2CursorPos(math::Convert(ImGui::GetCursorPos()));
+	math::float2 f2CursorPos(math::Convert(ImGui::GetCursorPos()));
 	
-	if (f2Size == math::Vector2::Zero)
+	if (f2Size == math::float2::Zero)
 	{
 		f2Size = math::Convert(ImGui::GetItemRectSize());
 	}
@@ -75,12 +75,12 @@ void MaterialNode::InOutSlot::Render(ImDrawList* pDrawList, const eastengine::ma
 	}
 }
 
-void MaterialNode::InOutSlot::RenderBackground(ImDrawList* pDrawList, const eastengine::math::Vector2& f2Offset)
+void MaterialNode::InOutSlot::RenderBackground(ImDrawList* pDrawList, const eastengine::math::float2& f2Offset)
 {
-	math::Vector2 f2RectMin(f2Offset + f2Pos);
+	math::float2 f2RectMin(f2Offset + f2Pos);
 	f2RectMin.y -= f2Size.y;
 
-	math::Vector2 f2RectMax(f2RectMin + f2Size);
+	math::float2 f2RectMax(f2RectMin + f2Size);
 
 	ImColor color;
 	switch (emValueType)
@@ -141,7 +141,7 @@ void MaterialNode::InOutSlot::RenderBackground(ImDrawList* pDrawList, const east
 	pDrawList->AddCircleFilled(math::Convert(f2Offset + f2LinkerPos), NODE_SLOT_RADIUS, ImColor(150, 150, 150, 150));
 }
 
-void MaterialNode::RenderNode(ImDrawList* pDrawList, const eastengine::math::Vector2& f2Offset)
+void MaterialNode::RenderNode(ImDrawList* pDrawList, const eastengine::math::float2& f2Offset)
 {
 	ImGui::Text("%s", m_strName.c_str());
 
@@ -168,7 +168,7 @@ void MaterialNode::RenderNode(ImDrawList* pDrawList, const eastengine::math::Vec
 	}
 }
 
-void MaterialNode::RenderNodeBackground(ImDrawList* pDrawList, const eastengine::math::Vector2& f2Offset)
+void MaterialNode::RenderNodeBackground(ImDrawList* pDrawList, const eastengine::math::float2& f2Offset)
 {
 	if (m_vecInputSlot.empty() == false)
 	{
@@ -187,10 +187,10 @@ void MaterialNode::RenderNodeBackground(ImDrawList* pDrawList, const eastengine:
 	}
 }
 
-void MaterialNode::Update(ImDrawList* pDrawList, const eastengine::math::Vector2& f2Offset)
+void MaterialNode::Update(ImDrawList* pDrawList, const eastengine::math::float2& f2Offset)
 {
 	ImGui::PushID(m_nID);
-	eastengine::math::Vector2 f2NodeRectMin(f2Offset + m_f2Pos);
+	eastengine::math::float2 f2NodeRectMin(f2Offset + m_f2Pos);
 
 	// Display node contents first
 	pDrawList->ChannelsSetCurrent(1); // Foreground
@@ -208,7 +208,7 @@ void MaterialNode::Update(ImDrawList* pDrawList, const eastengine::math::Vector2
 	bool isNodeActive = (!isOldAnyActive && ImGui::IsAnyItemActive());
 	m_f2Size = math::Convert(ImGui::GetItemRectSize()) + NODE_WINDOW_PADDING + NODE_WINDOW_PADDING;
 
-	math::Vector2 f2NodeRectMax(f2NodeRectMin + m_f2Size);
+	math::float2 f2NodeRectMax(f2NodeRectMin + m_f2Size);
 
 	// Display node box
 	pDrawList->ChannelsSetCurrent(0); // Background
@@ -247,7 +247,7 @@ void MaterialNode::Update(ImDrawList* pDrawList, const eastengine::math::Vector2
 	ImGui::PopID();
 }
 
-void MaterialNodeManager::ValueFloatNode::RenderNode(ImDrawList* pDrawList, const eastengine::math::Vector2& f2Offset)
+void MaterialNodeManager::ValueFloatNode::RenderNode(ImDrawList* pDrawList, const eastengine::math::float2& f2Offset)
 {
 	ImGui::Text("%s", m_strName.c_str());
 
@@ -280,13 +280,13 @@ void MaterialNodeManager::ValueFloatNode::RenderNode(ImDrawList* pDrawList, cons
 	}
 }
 
-void MaterialNodeManager::ValueFloatNode::RenderNodeBackground(ImDrawList* pDrawList, const eastengine::math::Vector2& f2Offset)
+void MaterialNodeManager::ValueFloatNode::RenderNodeBackground(ImDrawList* pDrawList, const eastengine::math::float2& f2Offset)
 {
-	math::Vector2 f2NodeRectMin(f2Offset + m_f2Pos);
+	math::float2 f2NodeRectMin(f2Offset + m_f2Pos);
 	f2NodeRectMin.x += m_f2Size.x * 0.1f;
 	f2NodeRectMin.y += m_f2Size.y * 0.25f;
 
-	math::Vector2 f2NodeRectMax(f2NodeRectMin);
+	math::float2 f2NodeRectMax(f2NodeRectMin);
 	f2NodeRectMax.x += m_f2Size.x * 0.7f;
 	f2NodeRectMax.y += m_f2Size.y * 0.25f;
 
@@ -298,7 +298,7 @@ void MaterialNodeManager::ValueFloatNode::RenderNodeBackground(ImDrawList* pDraw
 	MaterialNode::RenderNodeBackground(pDrawList, f2Offset);
 }
 
-void MaterialNodeManager::ValueFloat2Node::RenderNode(ImDrawList* pDrawList, const eastengine::math::Vector2& f2Offset)
+void MaterialNodeManager::ValueFloat2Node::RenderNode(ImDrawList* pDrawList, const eastengine::math::float2& f2Offset)
 {
 	ImGui::Text("%s", m_strName.c_str());
 
@@ -333,13 +333,13 @@ void MaterialNodeManager::ValueFloat2Node::RenderNode(ImDrawList* pDrawList, con
 	}
 }
 
-void MaterialNodeManager::ValueFloat2Node::RenderNodeBackground(ImDrawList* pDrawList, const eastengine::math::Vector2& f2Offset)
+void MaterialNodeManager::ValueFloat2Node::RenderNodeBackground(ImDrawList* pDrawList, const eastengine::math::float2& f2Offset)
 {
-	math::Vector2 f2NodeRectMin(f2Offset + m_f2Pos);
+	math::float2 f2NodeRectMin(f2Offset + m_f2Pos);
 	f2NodeRectMin.x += m_f2Size.x * 0.075f;
 	f2NodeRectMin.y += m_f2Size.y * 0.175f;
 
-	math::Vector2 f2NodeRectMax(f2NodeRectMin);
+	math::float2 f2NodeRectMax(f2NodeRectMin);
 	f2NodeRectMax.x += m_f2Size.x * 0.85f;
 	f2NodeRectMax.y += m_f2Size.y * 0.15f;
 
@@ -363,8 +363,8 @@ MaterialNodeManager::MaterialNodeManager()
 	, m_nHoveredNodeSlotIndex(-1)
 	, m_emSelectedSlotType(MaterialNode::InOutSlot::eNone)
 {
-	m_vecNodes.emplace_back(new InputNode(this, AllocateID(), math::Vector2(50.f, 50.f)));
-	m_vecNodes.emplace_back(new OutputNode(this, AllocateID(), math::Vector2(350.f, 50.f)));
+	m_vecNodes.emplace_back(new InputNode(this, AllocateID(), math::float2(50.f, 50.f)));
+	m_vecNodes.emplace_back(new OutputNode(this, AllocateID(), math::float2(350.f, 50.f)));
 }
 
 MaterialNodeManager::~MaterialNodeManager()
@@ -438,7 +438,7 @@ void MaterialNodeManager::Update(bool& isOpend)
 	ImGui::BeginChild("scrolling_region", ImVec2(0, 0), true, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove);
 	ImGui::PushItemWidth(120.0f);
 
-	math::Vector2 f2Offset = math::Convert(ImGui::GetCursorScreenPos()) - m_f2Scrolling;
+	math::float2 f2Offset = math::Convert(ImGui::GetCursorScreenPos()) - m_f2Scrolling;
 	ImDrawList* pDrawList = ImGui::GetWindowDrawList();
 	pDrawList->ChannelsSplit(2);
 
@@ -533,7 +533,7 @@ void MaterialNodeManager::Update(bool& isOpend)
 						p1 = ImVec2(ImGui::GetMousePos());
 						p2 = ImVec2(math::Convert(f2Offset + pSlot->GetLinkerPos()));
 
-						fDistance = math::Vector2::Distance(math::Convert(p1), math::Convert(p2)) * 0.5f;
+						fDistance = math::float2::Distance(math::Convert(p1), math::Convert(p2)) * 0.5f;
 					}
 				}
 				else if (m_emSelectedSlotType == MaterialNode::InOutSlot::eOut)
@@ -544,7 +544,7 @@ void MaterialNodeManager::Update(bool& isOpend)
 						p1 = ImVec2(math::Convert(f2Offset + pSlot->GetLinkerPos()));
 						p2 = ImVec2(ImGui::GetMousePos());
 
-						fDistance = math::Vector2::Distance(math::Convert(p1), math::Convert(p2)) * 0.5f;
+						fDistance = math::float2::Distance(math::Convert(p1), math::Convert(p2)) * 0.5f;
 					}
 				}
 
@@ -619,7 +619,7 @@ void MaterialNodeManager::Update(bool& isOpend)
 					ImVec2 p1(math::Convert(f2Offset + pOutputSlot->GetLinkerPos()));
 					ImVec2 p2(math::Convert(f2Offset + pInputSlot->GetLinkerPos()));
 
-					float fDistance = math::Vector2::Distance(math::Convert(p1), math::Convert(p2)) * 0.5f;
+					float fDistance = math::float2::Distance(math::Convert(p1), math::Convert(p2)) * 0.5f;
 
 					switch (pOutputSlot->GetValueType())
 					{
@@ -717,7 +717,7 @@ void MaterialNodeManager::Update(bool& isOpend)
 	{
 		MaterialNode* pNode = GetMaterialNode(m_nSelectedNodeID);
 
-		math::Vector2 f2ScenePos(math::Convert(ImGui::GetMousePosOnOpeningCurrentPopup()));
+		math::float2 f2ScenePos(math::Convert(ImGui::GetMousePosOnOpeningCurrentPopup()));
 		f2ScenePos -= f2Offset;
 
 		if (pNode != nullptr)

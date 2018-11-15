@@ -20,7 +20,7 @@ namespace eastengine
 
 			virtual void ClearRenderTargetView(IRenderTarget* pRenderTarget, const math::Color& color) override;
 			virtual void ClearDepthStencilView(IDepthStencil* pDepthStencil, uint32_t clearFlag = D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL) override;
-			virtual void ClearUnorderedAccessViewUint(ID3D11UnorderedAccessView* pUnorderedAccessView, const math::UInt4& n4Uint) override;
+			virtual void ClearUnorderedAccessViewUint(ID3D11UnorderedAccessView* pUnorderedAccessView, const math::uint4& n4Uint) override;
 
 		public:
 			virtual void DrawAuto() override;
@@ -34,8 +34,8 @@ namespace eastengine
 			virtual bool SetInputLayout(EmVertexFormat::Type emVertexFormat) override;
 			virtual bool SetInputLayout(ID3D11InputLayout* pInputLayout) override;
 
-			virtual void SetBlendState(EmBlendState::Type emBlendState, const math::Vector4& f4BlendFactor = math::Vector4::Zero, uint32_t nSimpleMask = 0xffffffff) override;
-			virtual void SetBlendState(const IBlendState* pBlendState, const math::Vector4& f4BlendFactor = math::Vector4::Zero, uint32_t nSimpleMask = 0xffffffff) override;
+			virtual void SetBlendState(EmBlendState::Type emBlendState, const math::float4& f4BlendFactor = math::float4::Zero, uint32_t nSimpleMask = 0xffffffff) override;
+			virtual void SetBlendState(const IBlendState* pBlendState, const math::float4& f4BlendFactor = math::float4::Zero, uint32_t nSimpleMask = 0xffffffff) override;
 
 			virtual void SetDepthStencilState(EmDepthStencilState::Type emDepthStencil, uint32_t nStencilRef = 1) override;
 			virtual void SetDepthStencilState(const IDepthStencilState* pDepthStencilState, uint32_t nStencilRef = 1) override;

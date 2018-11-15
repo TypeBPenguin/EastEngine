@@ -17,7 +17,7 @@ namespace eastengine
 			return System::GetInstance()->Play2D(strSoundFilePath, fVolume, mode);
 		}
 
-		ChannelID Play3D(const std::string& strSoundFilePath, const math::Vector3& f3Position, const math::Vector3& f3Velocity, float fVolume, int mode)
+		ChannelID Play3D(const std::string& strSoundFilePath, const math::float3& f3Position, const math::float3& f3Velocity, float fVolume, int mode)
 		{
 			return System::GetInstance()->Play3D(strSoundFilePath, f3Position, f3Velocity, fVolume, mode);
 		}

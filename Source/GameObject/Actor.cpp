@@ -13,8 +13,8 @@ namespace eastengine
 	{
 		Actor::Actor(const Handle& handle)
 			: IActor(handle)
-			, m_f3Scale(math::Vector3::One)
-			, m_f3PrevScale(math::Vector3::One)
+			, m_f3Scale(math::float3::One)
+			, m_f3PrevScale(math::float3::One)
 			, m_isDestroy(false)
 			, m_isVisible(true)
 			, m_isDirtyWorldMatrix(true)
@@ -51,7 +51,7 @@ namespace eastengine
 				pComponent->Update(fElapsedTime);
 			}
 
-			m_f3Velocity = math::Vector3::Zero;
+			m_f3Velocity = math::float3::Zero;
 		}
 		
 		IComponent* Actor::CreateComponent(EmComponent::Type emComponentType)

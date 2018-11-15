@@ -7,10 +7,9 @@ namespace eastengine
 {
 	namespace graphics
 	{
-		ModelNodeStatic::ModelNodeStatic(uint32_t nLodMax)
-			: ModelNode(EmModelNode::eStatic)
+		ModelNodeStatic::ModelNodeStatic(LOD emLOD)
+			: ModelNode(emLOD)
 		{
-			m_nLodMax = nLodMax;
 		}
 
 		ModelNodeStatic::~ModelNodeStatic()
@@ -32,18 +31,20 @@ namespace eastengine
 
 			if (m_isVisible == true && isModelVisible == true)
 			{
-				uint32_t nLevel = std::min(m_nLod, m_nLodMax);
-				if (m_pVertexBuffer[nLevel] == nullptr || m_pIndexBuffer[nLevel] == nullptr)
+				const LOD level = std::min(m_emLod, m_emMaxLod);
+				if (m_pVertexBuffer[level] == nullptr || m_pIndexBuffer[level] == nullptr)
 				{
-					LOG_WARNING("Model Data is nullptr, LOD : %d, %d", nLevel, m_nLodMax);
+					LOG_WARNING("Model Data is nullptr, LOD : %d, %d", level, m_emMaxLod);
 				}
 				else
 				{
-					Collision::Sphere boundingSphere;
-					Collision::Sphere::CreateFromAABB(boundingSphere, m_originAABB);
-					boundingSphere.Transform(boundingSphere, matTransformation);
+					OcclusionCullingData occlusionCullingData;
+					occlusionCullingData.pVertices = m_rawVertices.data();
+					occlusionCullingData.pIndices = m_rawIndices.data();
+					occlusionCullingData.indexCount = m_rawIndices.size();
+					m_originAABB.Transform(occlusionCullingData.aabb, matTransformation);
 
-					for (auto& modelSubset : m_vecModelSubsets[nLevel])
+					for (auto& modelSubset : m_vecModelSubsets[level])
 					{
 						IMaterial* pMaterial = nullptr;
 
@@ -63,7 +64,7 @@ namespace eastengine
 						if (pMaterial != nullptr && pMaterial->IsVisible() == false)
 							continue;
 
-						RenderJobStatic subset(&modelSubset, m_pVertexBuffer[nLevel], m_pIndexBuffer[nLevel], pMaterial, matTransformation, modelSubset.nStartIndex, modelSubset.nIndexCount, m_fDistanceFromCamera, boundingSphere);
+						RenderJobStatic subset(&modelSubset, m_pVertexBuffer[level], m_pIndexBuffer[level], pMaterial, matTransformation, modelSubset.nStartIndex, modelSubset.nIndexCount, m_fDistanceFromCamera, occlusionCullingData);
 						PushRenderJob(subset);
 					}
 				}

@@ -26,12 +26,12 @@ namespace eastengine
 					return false;
 			}
 
-			math::Int2 startPoint(-sectorInitInfo.nLeftDown, -sectorInitInfo.nDown);
-			math::Int2 endPoint(sectorInitInfo.nRightUp, sectorInitInfo.nRightUp);
+			math::int2 startPoint(-sectorInitInfo.nLeftDown, -sectorInitInfo.nDown);
+			math::int2 endPoint(sectorInitInfo.nRightUp, sectorInitInfo.nRightUp);
 
 			float fSqrt3 = sqrtf(3.f);
 
-			math::Vector3 f3SectorAreas[7] =
+			math::float3 f3SectorAreas[7] =
 			{
 				{ 0.f, 0.f, (float)(sectorInitInfo.nSectorsCount[0]) * 2.f },
 				{ fSqrt3 * 0.5f * (float)(sectorInitInfo.nSectorsCount[1]) * 2.f, 0.f, (float)(sectorInitInfo.nSectorsCount[1]) },
@@ -47,7 +47,7 @@ namespace eastengine
 				area *= sectorInitInfo.fRadius;
 			}
 
-			math::Int2 n2Around[6] =
+			math::int2 n2Around[6] =
 			{
 				{ 0, 1 },
 				{ 1, 1 },
@@ -86,12 +86,12 @@ namespace eastengine
 					float fPosX = (float)(x)* sectorInitInfo.fRadius * 1.5f;
 					float fPosY = ((float)(y)+(float)(x)* -0.5f) * sectorInitInfo.fRadius * 2.f;
 
-					Collision::Ray ray(math::Vector3(fPosX, -1.f, fPosY), math::Vector3(0.f, 1.f, 0.f));
+					Collision::Ray ray(math::float3(fPosX, -1.f, fPosY), math::float3(0.f, 1.f, 0.f));
 
 					for (int i = 0; i < 6; ++i)
 					{
 						float fDist = 0.f;
-						if (ray.Intersects(math::Vector3::Zero,
+						if (ray.Intersects(math::float3::Zero,
 							f3SectorAreas[i],
 							f3SectorAreas[i + 1],
 							fDist))

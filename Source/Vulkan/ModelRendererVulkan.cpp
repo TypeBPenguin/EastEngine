@@ -44,7 +44,7 @@ namespace eastengine
 					math::Matrix matWorld;
 
 					uint32_t nVTFID{ 0 };
-					math::Vector3 f3Padding;
+					math::float3 f3Padding;
 				};
 
 				struct VSConstantsBuffer
@@ -57,12 +57,12 @@ namespace eastengine
 					math::Color f4AlbedoColor;
 					math::Color f4EmissiveColor;
 
-					math::Vector4 f4PaddingRoughMetEmi;
-					math::Vector4 f4SurSpecTintAniso;
-					math::Vector4 f4SheenTintClearcoatGloss;
+					math::float4 f4PaddingRoughMetEmi;
+					math::float4 f4SurSpecTintAniso;
+					math::float4 f4SheenTintClearcoatGloss;
 
 					float fStippleTransparencyFactor{ 0.f };
-					math::Vector3 f3Padding;
+					math::float3 f3Padding;
 				};
 
 				enum TextureBindingSlot

@@ -123,7 +123,7 @@ namespace eastengine
 			virtual IBone* GetBone(size_t nIndex) override { return &m_vecBones[nIndex]; }
 			virtual IBone* GetBone(const string::StringID& strBoneName) override;
 
-			virtual void GetSkinnedData(const string::StringID& strSkinnedName, const math::Matrix*** pppMatrixList_out, uint32_t& nElementCount_out) override;
+			virtual void GetSkinnedData(const string::StringID& strSkinnedName, const math::Matrix* const** pppMatrixList_out, uint32_t& nElementCount_out) override;
 			virtual void SetIdentity() override;
 			virtual void SetDirty() override { m_isDirty = true; }
 			virtual bool IsDirty() const override { return m_isDirty; }

@@ -58,7 +58,7 @@ namespace eastengine
 
 	// Phillips Spectrum
 	// K: normalized wave vector, W: wind direction, v: wind velocity, a: amplitude constant
-	float Phillips(const math::Vector2& K, const math::Vector2& W, float v, float a, float dir_depend)
+	float Phillips(const math::float2& K, const math::float2& W, float v, float a, float dir_depend)
 	{
 		// largest possible wave from constant wind of velocity v
 		float l = v * v / GRAV_ACCEL;
@@ -157,7 +157,7 @@ namespace eastengine
 
 			// Quad vertex buffer
 			D3D11_BUFFER_DESC vb_desc;
-			vb_desc.ByteWidth = 4 * sizeof(math::Vector4);
+			vb_desc.ByteWidth = 4 * sizeof(math::float4);
 			vb_desc.Usage = D3D11_USAGE_IMMUTABLE;
 			vb_desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 			vb_desc.CPUAccessFlags = 0;
@@ -184,7 +184,7 @@ namespace eastengine
 
 			// Height map H(0)
 			int height_map_size = (params.dmap_dim + 4) * (params.dmap_dim + 1);
-			math::Vector2* h0_data = new math::Vector2[height_map_size * sizeof(math::Vector2)];
+			math::float2* h0_data = new math::float2[height_map_size * sizeof(math::float2)];
 			float* omega_data = new float[height_map_size * sizeof(float)];
 			InitHeightMap(params, h0_data, omega_data);
 
@@ -385,7 +385,7 @@ namespace eastengine
 			if (pDeviceContext->SetInputLayout(pEffectTech->GetLayoutFormat()) == false)
 				return;
 
-			UINT strides[1] = { sizeof(math::Vector4) };
+			UINT strides[1] = { sizeof(math::float4) };
 			UINT offsets[1] = { 0 };
 			pDeviceContext->GetInterface()->IASetVertexBuffers(0, 1, &m_pQuadVB, &strides[0], &offsets[0]);
 
@@ -469,11 +469,11 @@ namespace eastengine
 			return m_pGradientMap->GetTexture();
 		}
 
-		void WaterSimulator::InitHeightMap(OceanParameter& params, math::Vector2* out_h0, float* out_omega)
+		void WaterSimulator::InitHeightMap(OceanParameter& params, math::float2* out_h0, float* out_omega)
 		{
-			math::Vector2 K, Kn;
+			math::float2 K, Kn;
 
-			math::Vector2 wind_dir;
+			math::float2 wind_dir;
 			params.wind_dir.Normalize(wind_dir);
 
 			float a = params.wave_amplitude * 1e-7f;	// It is too small. We must scale it for editing.

@@ -9,13 +9,13 @@ namespace eastengine
 	{
 		namespace vulkan
 		{
-			VertexBuffer::VertexBuffer(const uint8_t* pData, size_t nBufferSize, uint32_t nVertexCount)
-				: m_nVertexCount(nVertexCount)
-				, m_nFormatSize(static_cast<uint32_t>(nBufferSize / nVertexCount))
+			VertexBuffer::VertexBuffer(const uint8_t* pData, uint32_t vertexCount, size_t formatSize)
+				: m_vertexCount(vertexCount)
+				, m_formatSize(static_cast<uint32_t>(formatSize))
 			{
 				VkDevice device = Device::GetInstance()->GetInterface();
 
-				m_bufferSize = nBufferSize;
+				m_bufferSize = vertexCount * formatSize;
 
 				VkBuffer stagingBuffer{ nullptr };
 				VkDeviceMemory stagingBufferMemory{ nullptr };
@@ -23,7 +23,7 @@ namespace eastengine
 
 				void* pBuffer = nullptr;
 				vkMapMemory(device, stagingBufferMemory, 0, m_bufferSize, 0, &pBuffer);
-				memcpy(pBuffer, pData, nBufferSize);
+				memcpy(pBuffer, pData, m_bufferSize);
 				vkUnmapMemory(device, stagingBufferMemory);
 
 				Device::GetInstance()->CreateBuffer(m_bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &m_buffer, &m_bufferMemory, nullptr);

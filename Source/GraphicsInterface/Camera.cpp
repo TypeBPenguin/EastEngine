@@ -12,7 +12,7 @@ namespace eastengine
 			~Impl();
 
 		public:
-			void SetView(const math::Vector3& vEye, const math::Vector3& vLookat, const math::Vector3& vUp);
+			void SetView(const math::float3& vEye, const math::float3& vLookat, const math::float3& vUp);
 			void SetProjection(uint32_t nWidth, uint32_t nHeight, float fFov, float fNear, float fFar, bool isUpsideDown);
 
 			void Update(float fElapsedTime);
@@ -34,27 +34,28 @@ namespace eastengine
 			void RotateAxisZ(float fAngle);
 
 		public:
-			void SetThirdView(const math::Vector3& vLookat) { m_isThirdPerson = true; m_f3Eye += (vLookat - m_f3Lookat); m_f3Lookat = vLookat; }
+			void SetThirdView(const math::float3& vLookat) { m_isThirdPerson = true; m_f3Eye += (vLookat - m_f3Lookat); m_f3Lookat = vLookat; }
 			bool IsThirdPersonCamera() { return m_isThirdPerson; }
 
 			void SetDistance(float fDistance) { m_f3Eye = m_f3Lookat - GetDir() * fDistance; m_fDistance = fDistance; }
 			void AddDistance(float fOffset) { m_fAddDistance += fOffset; }
 
-			void SetPosition(const math::Vector3& vEye) { m_f3Eye = vEye; }
-			const math::Vector3& GetPosition() { return m_f3Eye; }
+			void SetPosition(const math::float3& vEye) { m_f3Eye = vEye; }
+			const math::float3& GetPosition() { return m_f3Eye; }
 
-			void SetLookat(const math::Vector3& vLookat) { m_f3Lookat = vLookat; }
-			const math::Vector3& GetLookat() { return m_f3Lookat; }
+			void SetLookat(const math::float3& vLookat) { m_f3Lookat = vLookat; }
+			const math::float3& GetLookat() { return m_f3Lookat; }
 
-			void SetUp(const math::Vector3& vUp) { m_f3Up = vUp; }
-			const math::Vector3& GetUp() { return m_f3Up; }
+			void SetUp(const math::float3& vUp) { m_f3Up = vUp; }
+			const math::float3& GetUp() { return m_f3Up; }
 
-			math::Vector3 GetDir() { math::Vector3 v(m_f3Lookat - m_f3Eye); v.Normalize(); return v; }
+			math::float3 GetDir() { math::float3 v(m_f3Lookat - m_f3Eye); v.Normalize(); return v; }
 
 			const math::Matrix& GetViewMatrix() { return m_matView; }
 			const math::Matrix& GetProjMatrix() { return m_matProj; }
 			const math::Matrix& GetOrthoMatrix() { return m_matOrtho; }
 
+			float GetFOV() const { return m_fFov; }
 			float GetFarClip() const { return m_frustum.Far; }
 			float GetNearClip() const { return m_frustum.Near; }
 
@@ -65,9 +66,9 @@ namespace eastengine
 			bool m_isThirdPerson{ false };
 
 			// View
-			math::Vector3 m_f3Eye;
-			math::Vector3 m_f3Lookat{ 0.f, 0.f, -1.f };
-			math::Vector3 m_f3Up{ 0.f, 1.f, 0.f };
+			math::float3 m_f3Eye;
+			math::float3 m_f3Lookat{ 0.f, 0.f, -1.f };
+			math::float3 m_f3Up{ 0.f, 1.f, 0.f };
 
 			math::Matrix m_matView;
 
@@ -93,8 +94,8 @@ namespace eastengine
 			float m_fMoveUpward{ 0.f };
 
 			// Rotate
-			math::Vector3 m_f3RotationOffset;
-			math::Vector3 m_f3Rotation;
+			math::float3 m_f3RotationOffset;
+			math::float3 m_f3Rotation;
 
 			Collision::Frustum m_frustum;
 
@@ -112,13 +113,13 @@ namespace eastengine
 		{
 		}
 
-		void Camera::Impl::SetView(const math::Vector3& vEye, const math::Vector3& vLookat, const math::Vector3& vUp)
+		void Camera::Impl::SetView(const math::float3& vEye, const math::float3& vLookat, const math::float3& vUp)
 		{
 			m_f3Eye = vEye;
 			m_f3Lookat = vLookat;
 			m_f3Up = vUp;
 
-			m_fDistance = math::Vector3::Distance(m_f3Eye, m_f3Lookat);
+			m_fDistance = math::float3::Distance(m_f3Eye, m_f3Lookat);
 
 			UpdateView();
 		}
@@ -167,7 +168,7 @@ namespace eastengine
 				float fOffset = m_fMoveFront * fValue;
 				m_fMoveFront *= fDeValue;
 
-				math::Vector3 vForward(m_matView.Forward());
+				math::float3 vForward(m_matView.Forward());
 				vForward.Normalize();
 
 				vForward.y = 0.f;
@@ -185,7 +186,7 @@ namespace eastengine
 				float fOffset = m_fMoveForward * fValue;
 				m_fMoveForward *= fDeValue;
 
-				math::Vector3 vForward(m_matView.Forward());
+				math::float3 vForward(m_matView.Forward());
 				vForward.Normalize();
 
 				m_f3Eye = m_f3Eye + vForward * fOffset;
@@ -201,7 +202,7 @@ namespace eastengine
 				float fOffset = m_fMoveSideward * fValue;
 				m_fMoveSideward *= fDeValue;
 
-				math::Vector3 vRight(m_matView.Right());
+				math::float3 vRight(m_matView.Right());
 				vRight.Normalize();
 
 				m_f3Eye = m_f3Eye + vRight * fOffset;
@@ -217,7 +218,7 @@ namespace eastengine
 				float fOffset = m_fMoveUpward * fValue;
 				m_fMoveUpward *= fDeValue;
 
-				math::Vector3 vUp(m_matView.Up());
+				math::float3 vUp(m_matView.Up());
 				vUp.Normalize();
 
 				m_f3Eye = m_f3Eye + vUp * fOffset;
@@ -291,11 +292,11 @@ namespace eastengine
 				m_f3RotationOffset.z = 0.f;
 			}
 
-			float fDist = math::Vector3::Distance(m_f3Lookat, m_f3Eye);
+			float fDist = math::float3::Distance(m_f3Lookat, m_f3Eye);
 			math::Matrix matRot = math::Matrix::CreateFromYawPitchRoll(math::ToRadians(m_f3Rotation.y), math::ToRadians(m_f3Rotation.x), math::ToRadians(m_f3Rotation.z));
 
-			m_f3Lookat = (math::Vector3::Transform(math::Vector3::Forward, matRot) * fDist) + m_f3Eye;
-			m_f3Up = math::Vector3::Transform(math::Vector3::Up, matRot);
+			m_f3Lookat = (math::float3::Transform(math::float3::Forward, matRot) * fDist) + m_f3Eye;
+			m_f3Up = math::float3::Transform(math::float3::Up, matRot);
 
 			UpdateView();
 
@@ -374,7 +375,7 @@ namespace eastengine
 		{
 		}
 
-		void Camera::SetView(const math::Vector3& vEye, const math::Vector3& vLookat, const math::Vector3& vUp)
+		void Camera::SetView(const math::float3& vEye, const math::float3& vLookat, const math::float3& vUp)
 		{
 			m_pImpl->SetView(vEye, vLookat, vUp);
 		}
@@ -424,7 +425,7 @@ namespace eastengine
 			m_pImpl->RotateAxisZ(fAngle);
 		}
 
-		void Camera::SetThirdView(const math::Vector3& vLookat)
+		void Camera::SetThirdView(const math::float3& vLookat)
 		{
 			m_pImpl->SetThirdView(vLookat);
 		}
@@ -444,37 +445,37 @@ namespace eastengine
 			m_pImpl->AddDistance(fOffset);
 		}
 
-		void Camera::SetPosition(const math::Vector3& vEye)
+		void Camera::SetPosition(const math::float3& vEye)
 		{
 			m_pImpl->SetPosition(vEye);
 		}
 
-		const math::Vector3& Camera::GetPosition() const
+		const math::float3& Camera::GetPosition() const
 		{
 			return m_pImpl->GetPosition();
 		}
 
-		void Camera::SetLookat(const math::Vector3& vLookat)
+		void Camera::SetLookat(const math::float3& vLookat)
 		{
 			m_pImpl->SetLookat(vLookat);
 		}
 
-		const math::Vector3& Camera::GetLookat() const
+		const math::float3& Camera::GetLookat() const
 		{
 			return m_pImpl->GetLookat();
 		}
 		
-		void Camera::SetUp(const math::Vector3& vUp)
+		void Camera::SetUp(const math::float3& vUp)
 		{
 			m_pImpl->SetUp(vUp);
 		}
 
-		const math::Vector3& Camera::GetUp() const
+		const math::float3& Camera::GetUp() const
 		{
 			return m_pImpl->GetUp();
 		}
 
-		math::Vector3 Camera::GetDir() const
+		math::float3 Camera::GetDir() const
 		{
 			return m_pImpl->GetDir();
 		}
@@ -492,6 +493,11 @@ namespace eastengine
 		const math::Matrix& Camera::GetOrthoMatrix() const
 		{
 			return m_pImpl->GetOrthoMatrix();
+		}
+
+		float Camera::GetFOV() const
+		{
+			return m_pImpl->GetFOV();
 		}
 
 		float Camera::GetFarClip() const

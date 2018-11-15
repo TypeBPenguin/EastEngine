@@ -10,16 +10,16 @@ namespace eastengine
 
 		struct DirectionalLightData
 		{
-			math::Vector3 f3Color;
+			math::float3 f3Color;
 			float fLightIntensity = 0.f;
 
-			math::Vector3 f3Dir;
+			math::float3 f3Dir;
 			float fAmbientIntensity = 0.f;
 
-			math::Vector3 padding;
+			math::float3 padding;
 			float fReflectionIntensity = 0.f;
 
-			void Set(const math::Color& color, const math::Vector3& direction, float lightIntensity, float ambientIntensity, float reflectionIntensity)
+			void Set(const math::Color& color, const math::float3& direction, float lightIntensity, float ambientIntensity, float reflectionIntensity)
 			{
 				f3Color.x = color.r;
 				f3Color.y = color.g;
@@ -34,16 +34,16 @@ namespace eastengine
 
 		struct PointLightData
 		{
-			math::Vector3 f3Color;
+			math::float3 f3Color;
 			float fLightIntensity = 0.f;
 
-			math::Vector3 f3Pos;
+			math::float3 f3Pos;
 			float fAmbientIntensity = 0.f;
 
-			math::Vector3 padding;
+			math::float3 padding;
 			float fReflectionIntensity = 0.f;
 
-			void Set(const math::Color& color, const math::Vector3& pos, float lightIntensity, float ambientIntensity, float reflectionIntensity)
+			void Set(const math::Color& color, const math::float3& pos, float lightIntensity, float ambientIntensity, float reflectionIntensity)
 			{
 				f3Color.x = color.r;
 				f3Color.y = color.g;
@@ -58,19 +58,19 @@ namespace eastengine
 
 		struct SpotLightData
 		{
-			math::Vector3 f3Color;
+			math::float3 f3Color;
 			float fLightIntensity = 0.f;
 
-			math::Vector3 f3Pos;
+			math::float3 f3Pos;
 			float fAmbientIntensity = 0.f;
 
-			math::Vector3 f3Dir;
+			math::float3 f3Dir;
 			float fReflectionIntensity = 0.f;
 
-			math::Vector3 padding;
+			math::float3 padding;
 			float fAngle = 0.f;
 
-			void Set(const math::Color& color, const math::Vector3& position, const math::Vector3& direction, float lightIntensity, float ambientIntensity, float reflectionIntensity, float angle)
+			void Set(const math::Color& color, const math::float3& position, const math::float3& direction, float lightIntensity, float ambientIntensity, float reflectionIntensity, float angle)
 			{
 				f3Color.x = color.r;
 				f3Color.y = color.g;
@@ -108,9 +108,9 @@ namespace eastengine
 			ILight();
 			virtual ~ILight() = 0;
 
-			static IDirectionalLight* CreateDirectionalLight(const string::StringID& strName, const math::Vector3& f3Direction, const math::Color& color, float fIntensity, float fAmbientIntensity = 0.f, float fReflectionIntensity = 0.f);
-			static IPointLight* CreatePointLight(const string::StringID& strName, const math::Vector3& f3Position, const math::Color& color, float fIntensity, float fAmbientIntensity = 0.f, float fReflectionIntensity = 0.f);
-			static ISpotLight* CreateSpotLight(const string::StringID& strName, const math::Vector3& f3Position, const math::Vector3& f3Direction, float fAngle, const math::Color& color, float fIntensity, float fAmbientIntensity = 0.f, float fReflectionIntensity = 0.f);
+			static IDirectionalLight* CreateDirectionalLight(const string::StringID& strName, const math::float3& f3Direction, const math::Color& color, float fIntensity, float fAmbientIntensity = 0.f, float fReflectionIntensity = 0.f);
+			static IPointLight* CreatePointLight(const string::StringID& strName, const math::float3& f3Position, const math::Color& color, float fIntensity, float fAmbientIntensity = 0.f, float fReflectionIntensity = 0.f);
+			static ISpotLight* CreateSpotLight(const string::StringID& strName, const math::float3& f3Position, const math::float3& f3Direction, float fAngle, const math::Color& color, float fIntensity, float fAmbientIntensity = 0.f, float fReflectionIntensity = 0.f);
 
 		public:
 			virtual void Update(float fElapsedTime) = 0;
@@ -146,8 +146,8 @@ namespace eastengine
 			virtual Type GetType() const override { return Type::eDirectional; }
 
 		public:
-			virtual const math::Vector3& GetDirection() const = 0;
-			virtual void SetDirection(const math::Vector3& f3Direction) = 0;
+			virtual const math::float3& GetDirection() const = 0;
+			virtual void SetDirection(const math::float3& f3Direction) = 0;
 		};
 
 		class IPointLight : public ILight
@@ -160,8 +160,8 @@ namespace eastengine
 			virtual Type GetType() const override { return Type::ePoint; }
 
 		public:
-			virtual const math::Vector3& GetPosition() const = 0;
-			virtual void SetPosition(const math::Vector3& vPos) = 0;
+			virtual const math::float3& GetPosition() const = 0;
+			virtual void SetPosition(const math::float3& vPos) = 0;
 		};
 
 		class ISpotLight : public ILight
@@ -174,11 +174,11 @@ namespace eastengine
 			virtual Type GetType() const override { return Type::eSpot; }
 
 		public:
-			virtual const math::Vector3& GetPosition() const = 0;
-			virtual void SetPosition(const math::Vector3& vPos) = 0;
+			virtual const math::float3& GetPosition() const = 0;
+			virtual void SetPosition(const math::float3& vPos) = 0;
 
-			virtual const math::Vector3& GetDirection() const = 0;
-			virtual void SetDirection(const math::Vector3& f3Direction) = 0;
+			virtual const math::float3& GetDirection() const = 0;
+			virtual void SetDirection(const math::float3& f3Direction) = 0;
 
 			virtual float GetAngle() const = 0;
 			virtual void SetAngle(float fAngle) = 0;

@@ -23,7 +23,7 @@ namespace eastengine
 			void SetListenerAttributes(const ListenerAttributes& listenerAttributes) { m_listenerAttributes = listenerAttributes; }
 
 			ChannelID Play2D(const std::string& strSoundFilePath, float fVolume = 1.f, int mode = eLoopOff | eHardware);
-			ChannelID Play3D(const std::string& strSoundFilePath, const math::Vector3& f3Position, const math::Vector3& f3Velocity, float fVolume = 1.f, int mode = eLoopOff | eHardware);
+			ChannelID Play3D(const std::string& strSoundFilePath, const math::float3& f3Position, const math::float3& f3Velocity, float fVolume = 1.f, int mode = eLoopOff | eHardware);
 			void Stop(const ChannelID& channelID, float fFadeOutTime);
 			void Resume(const ChannelID& channelID);
 			void Pause(const ChannelID& channelID);
@@ -224,7 +224,7 @@ namespace eastengine
 			return pChannel->GetID();
 		}
 
-		ChannelID System::Impl::Play3D(const std::string& strSoundFilePath, const math::Vector3& f3Position, const math::Vector3& f3Velocity, float fVolume, int mode)
+		ChannelID System::Impl::Play3D(const std::string& strSoundFilePath, const math::float3& f3Position, const math::float3& f3Velocity, float fVolume, int mode)
 		{
 			if (m_pFmodSystem == nullptr)
 				return { eInvalidChannelID };
@@ -380,7 +380,7 @@ namespace eastengine
 			return m_pImpl->Play2D(strSoundFilePath, fVolume, mode);
 		}
 
-		ChannelID System::Play3D(const std::string& strSoundFilePath, const math::Vector3& f3Position, const math::Vector3& f3Velocity, float fVolume, int mode)
+		ChannelID System::Play3D(const std::string& strSoundFilePath, const math::float3& f3Position, const math::float3& f3Velocity, float fVolume, int mode)
 		{
 			return m_pImpl->Play3D(strSoundFilePath, f3Position, f3Velocity, fVolume, mode);
 		}

@@ -156,14 +156,17 @@ namespace eastengine
 	void MainSystem::Impl::Update(float fElapsedTime)
 	{
 		m_pFpsChecker->Update(fElapsedTime);
-
 		s_pInputDevice->Update(fElapsedTime);
+
+		graphics::Update(fElapsedTime);
+
 		s_pSceneManager->Update(fElapsedTime);
 		s_pPhysicsSystem->Update(fElapsedTime);
 		s_pGameObjectManager->Update(fElapsedTime);
 		s_pModelManager->Update();
 		s_pSoundSystem->Update(fElapsedTime);
-		graphics::Update(fElapsedTime);
+
+		graphics::PostUpdate();
 	}
 
 	MainSystem::MainSystem()

@@ -30,17 +30,17 @@ namespace eastengine
 			virtual float GetDepthBias() const override { return m_fDepthBias; }
 			virtual void SetDepthBias(float fDepthBias) override { m_fDepthBias = fDepthBias; }
 
-			virtual math::Int2 GetPCFBlurSize() const override { return math::Int2(m_nPCFBlurSize / -2, m_nPCFBlurSize / 2 + 1); }
+			virtual math::int2 GetPCFBlurSize() const override { return math::int2(m_nPCFBlurSize / -2, m_nPCFBlurSize / 2 + 1); }
 			virtual void SetPCFBlurSize(int nPCFBlurSize) override { m_nPCFBlurSize = nPCFBlurSize; }
 
-			virtual math::Vector2 GetTexelOffset() override { return { 1.f / static_cast<float>((m_copyConfig.nBufferSize * m_copyConfig.nLevel)), 1.f / static_cast<float>(m_copyConfig.nBufferSize) }; }
+			virtual math::float2 GetTexelOffset() override { return { 1.f / static_cast<float>((m_copyConfig.nBufferSize * m_copyConfig.nLevel)), 1.f / static_cast<float>(m_copyConfig.nBufferSize) }; }
 
 			virtual const math::Matrix& GetViewMatrix(uint32_t nIndex) override { return m_matViews[GetSafeIndex(nIndex)]; }
 			virtual const math::Matrix& GetProjectionMatrix(uint32_t nIndex) override { return m_matProjections[GetSafeIndex(nIndex)]; }
 			virtual const math::Viewport& GetViewport(uint32_t nIndex) override { return m_viewportCascade[GetSafeIndex(nIndex)]; }
 			virtual const Collision::Frustum& GetFrustum(uint32_t nIndex) override { return m_frustums[GetSafeIndex(nIndex)]; }
 
-			virtual const math::Vector2& GetSplitDepths(uint32_t nIndex) override { return m_f2SplitDepths[GetSafeIndex(nIndex)]; }
+			virtual const math::float2& GetSplitDepths(uint32_t nIndex) override { return m_f2SplitDepths[GetSafeIndex(nIndex)]; }
 
 			virtual IDepthStencil* GetDepthStencil() const override { return m_pCascadedShadowMap; }
 			virtual const std::shared_ptr<ITexture>& GetShadowMap() const override;
@@ -67,7 +67,7 @@ namespace eastengine
 
 			std::array<Collision::Frustum, CascadedShadowsConfig::eMaxLevel> m_frustums;
 
-			std::array<math::Vector2, CascadedShadowsConfig::eMaxLevel> m_f2SplitDepths;
+			std::array<math::float2, CascadedShadowsConfig::eMaxLevel> m_f2SplitDepths;
 
 			int m_nPCFBlurSize;
 			float m_fDepthBias;

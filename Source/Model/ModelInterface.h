@@ -24,21 +24,6 @@ namespace eastengine
 		class IMotionRecorder;
 		class MotionLoader;
 
-		namespace EmModelNode
-		{
-			enum Type
-			{
-				eStatic = 0,
-
-				// 나중에 Skinning을 Static과 Dynamic로 바꾸자
-				// 지금 구현된 Skinning 은 Dynamic
-				// Static 은 예전에 만든 방식인, 애니메이션의 모든 프레임을 텍스쳐로 구워서 본업데이트 안하는 것
-				eSkinned,
-
-				eCount,
-			};
-		}
-
 		struct ModelSubset
 		{
 			enum : uint32_t
@@ -48,16 +33,21 @@ namespace eastengine
 
 			string::StringID strName;
 
-			uint32_t nMaterialID = eInvalidMaterialID;
-			uint32_t nStartIndex = 0;
-			uint32_t nIndexCount = 0;
+			uint32_t nMaterialID{ eInvalidMaterialID };
+			uint32_t nStartIndex{ 0 };
+			uint32_t nIndexCount{ 0 };
 
-			EmPrimitive::Type emPrimitiveType = EmPrimitive::eTriangleList;
+			EmPrimitive::Type emPrimitiveType{ EmPrimitive::eTriangleList };
 		};
 
-		enum
+		enum LOD
 		{
-			eMaxLod = 5,
+			eLv0 = 0,
+			eLv1,
+			eLv2,
+			eLv3,
+			eLv4,
+			eMaxLod,
 		};
 
 		struct LODReductionRate
@@ -66,17 +56,17 @@ namespace eastengine
 			{
 				struct
 				{
-					float fLv0;
-					float fLv1;
-					float fLv2;
-					float fLv3;
-					float fLv4;
+					float lv0;
+					float lv1;
+					float lv2;
+					float lv3;
+					float lv4;
 				};
-				float fLv[5];
+				float levels[eMaxLod];
 			};
 
 			LODReductionRate();
-			LODReductionRate(float fLv0, float fLv1, float fLv2, float fLv3, float fLv4);
+			LODReductionRate(float lv0, float lv1, float lv2, float lv3, float lv4);
 		};
 
 		struct IMotionEvent
@@ -84,14 +74,8 @@ namespace eastengine
 			const int nID{ 0 };
 			const float fTime{ 0.f };
 
-			IMotionEvent(int nID)
-				: nID(nID)
-			{
-			}
-
-			virtual ~IMotionEvent() = 0
-			{
-			}
+			IMotionEvent(int nID);
+			virtual ~IMotionEvent() = 0;
 		};
 
 		class IMotion : public IResource
@@ -106,7 +90,7 @@ namespace eastengine
 		public:
 			struct Keyframe
 			{
-				float fTime = 0.f;
+				float fTime{ 0.f };
 				math::Transform transform;
 			};
 
@@ -272,10 +256,23 @@ namespace eastengine
 			virtual ~IModelNode() = default;
 
 		public:
+			enum Type
+			{
+				eStatic = 0,
+
+				// 나중에 Skinning을 Static과 Dynamic로 나누자
+				// 지금 구현된 Skinning 은 Dynamic
+				// Static 은 예전에 만든 방식인, 애니메이션의 모든 프레임을 텍스쳐로 구워서 본업데이트 안하는 것
+				eSkinned,
+
+				eCount,
+			};
+
+		public:
 			virtual void Update(float fElapsedTime, const math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance, bool isModelVisible) const = 0;
 
 		public:
-			virtual EmModelNode::Type GetType() const = 0;
+			virtual IModelNode::Type GetType() const = 0;
 
 			virtual bool IsVisible() const = 0;
 			virtual void SetVisible(bool isVisible) = 0;
@@ -288,8 +285,11 @@ namespace eastengine
 
 			virtual IModelNode* GetParentNode() const = 0;
 
-			virtual IVertexBuffer* GetVertexBuffer(uint32_t nLOD = 0) const = 0;
-			virtual IIndexBuffer* GetIndexBuffer(uint32_t nLOD = 0) const = 0;
+			virtual IVertexBuffer* GetVertexBuffer(LOD emLod = eLv0) const = 0;
+			virtual IIndexBuffer* GetIndexBuffer(LOD emLod = eLv0) const = 0;
+
+			virtual void GetRawVertices(const VertexPos** ppVertices, size_t& vertexCount) const = 0;
+			virtual void GetRawIndices(const uint32_t** ppIndices, size_t& indexCount) const = 0;
 
 			virtual uint32_t GetChildNodeCount() const = 0;
 			virtual IModelNode* GetChildNode(uint32_t nIndex) const = 0;
@@ -298,14 +298,14 @@ namespace eastengine
 			virtual IMaterial* GetMaterial(uint32_t nIndex) const = 0;
 			virtual IMaterial* GetMaterial(const string::StringID& strMaterialName, uint32_t& nMaterialID_out) const = 0;
 
-			virtual uint32_t GetModelSubsetCount(uint32_t nLOD = 0) const = 0;
-			virtual const ModelSubset* GetModelSubset(uint32_t nIndex, uint32_t nLOD = 0) const = 0;
+			virtual uint32_t GetModelSubsetCount(LOD emLod = eLv0) const = 0;
+			virtual const ModelSubset* GetModelSubset(uint32_t nIndex, LOD emLod = eLv0) const = 0;
 
 			virtual void SetOriginAABB(const Collision::AABB& aabb) = 0;
 			virtual const Collision::AABB& GetOriginAABB() const = 0;
 
-			virtual uint32_t GetLOD() const = 0;
-			virtual void SetLOD(uint32_t nLOD) = 0;
+			virtual LOD GetLOD() const = 0;
+			virtual void SetLOD(LOD emLod) = 0;
 		};
 
 		class IModel : public IResource
@@ -338,10 +338,10 @@ namespace eastengine
 			virtual void ChangeName(const string::StringID& strName) = 0;
 
 		public:
-			virtual const math::Vector3& GetLocalPosition() const = 0;
-			virtual void SetLocalPosition(const math::Vector3& f3Pos) = 0;
-			virtual const math::Vector3& GetLocalScale() const = 0;
-			virtual void SetLocalScale(const math::Vector3& f3Scale) = 0;
+			virtual const math::float3& GetLocalPosition() const = 0;
+			virtual void SetLocalPosition(const math::float3& f3Pos) = 0;
+			virtual const math::float3& GetLocalScale() const = 0;
+			virtual void SetLocalScale(const math::float3& f3Scale) = 0;
 			virtual const math::Quaternion& GetLocalRotation() const = 0;
 			virtual void SetLocalRotation(const math::Quaternion& quat) = 0;
 
@@ -468,7 +468,7 @@ namespace eastengine
 			virtual IBone* GetBone(size_t nIndex) = 0;
 			virtual IBone* GetBone(const string::StringID& strBoneName) = 0;
 
-			virtual void GetSkinnedData(const string::StringID& strSkinnedName, const math::Matrix*** pppMatrixList_out, uint32_t& nElementCount_out) = 0;
+			virtual void GetSkinnedData(const string::StringID& strSkinnedName, const math::Matrix* const** pppMatrixList_out, uint32_t& nElementCount_out) = 0;
 			virtual void SetIdentity() = 0;
 			virtual void SetDirty() = 0;
 			virtual bool IsDirty() const = 0;

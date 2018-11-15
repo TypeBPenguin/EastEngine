@@ -21,7 +21,7 @@ namespace eastengine
 		{
 		}
 
-		SpotLight* SpotLight::Create(const string::StringID& strName, const math::Vector3& f3Position, const math::Vector3& f3Direction, float fAngle, const math::Color& color, float fIntensity, float fAmbientIntensity, float fReflectionIntensity)
+		SpotLight* SpotLight::Create(const string::StringID& strName, const math::float3& f3Position, const math::float3& f3Direction, float fAngle, const math::Color& color, float fIntensity, float fAmbientIntensity, float fReflectionIntensity)
 		{
 			SpotLight* pLight = new SpotLight;
 			pLight->m_strName = strName;

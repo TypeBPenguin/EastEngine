@@ -57,7 +57,7 @@ namespace eastengine
 
 				struct CommonContents
 				{
-					math::Vector3 f3CameraPos;
+					math::float3 f3CameraPos;
 					int nEnableShadowCount{ 0 };
 
 					uint32_t nDirectionalLightCount{ 0 };
@@ -82,7 +82,7 @@ namespace eastengine
 
 				void SetCommonContents(ID3D11DeviceContext* pDeviceContext,
 					ConstantBuffer<CommonContents>* pCB_CommonContents,
-					const LightManager* pLightManager, const math::Vector3& f3CameraPos, int nEnableShadowCount)
+					const LightManager* pLightManager, const math::float3& f3CameraPos, int nEnableShadowCount)
 				{
 					CommonContents* pCommonContents = pCB_CommonContents->Map(pDeviceContext);
 
@@ -216,7 +216,7 @@ namespace eastengine
 				pDeviceContext->RSSetState(pRasterizerState);
 
 				ID3D11BlendState* pBlendState = pDeviceInstance->GetBlendState(EmBlendState::eOff);
-				pDeviceContext->OMSetBlendState(pBlendState, &math::Vector4::Zero.x, 0xffffffff);
+				pDeviceContext->OMSetBlendState(pBlendState, &math::float4::Zero.x, 0xffffffff);
 
 				ID3D11DepthStencilState* pDepthStencilState = pDeviceInstance->GetDepthStencilState(EmDepthStencilState::eRead_Write_Off);
 				pDeviceContext->OMSetDepthStencilState(pDepthStencilState, 0);

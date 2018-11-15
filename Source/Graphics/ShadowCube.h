@@ -31,10 +31,10 @@ namespace eastengine
 			virtual const std::shared_ptr<ITexture>& GetShadowMap() const override;
 
 		public:
-			virtual math::Int2 GetPCFBlurSize() const override { return math::Int2(m_nPCFBlurSize / -2, m_nPCFBlurSize / 2 + 1); }
+			virtual math::int2 GetPCFBlurSize() const override { return math::int2(m_nPCFBlurSize / -2, m_nPCFBlurSize / 2 + 1); }
 			virtual void SetPCFBlurSize(int nPCFBlurSize) override { m_nPCFBlurSize = nPCFBlurSize; }
 
-			virtual math::Vector2 GetTexelOffset() override { return { 1.f / static_cast<float>(m_copyConfig.nBufferSize), 1.f / static_cast<float>(m_copyConfig.nBufferSize) }; }
+			virtual math::float2 GetTexelOffset() override { return { 1.f / static_cast<float>(m_copyConfig.nBufferSize), 1.f / static_cast<float>(m_copyConfig.nBufferSize) }; }
 
 			virtual ISamplerState* GetSamplerPCF() const override { return m_pSamplerShadowPCF; }
 			virtual ISamplerState* GetSamplerPoint() const override { return m_pSamplerShadowPoint; }

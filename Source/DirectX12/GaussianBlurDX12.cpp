@@ -21,12 +21,12 @@ namespace eastengine
 				struct GaussianBlurContents
 				{
 					float fSigma{ 0.5f };
-					math::Vector2 f2SourceDimensions;
+					math::float2 f2SourceDimensions;
 					float padding{ 0.f };
 
 					uint32_t nTexColorIndex{ 0 };
 					uint32_t nTexDepthIndex{ 0 };
-					math::Vector2 padding2;
+					math::float2 padding2;
 				};
 
 				enum CBSlot
@@ -63,7 +63,7 @@ namespace eastengine
 				}
 
 				void SetGaussianBlurContents(GaussianBlurContents* pGaussianBlurContents,
-					float fSigma, const math::Vector2& f2SourceDimensions,
+					float fSigma, const math::float2& f2SourceDimensions,
 					uint32_t nTexColorIndex, uint32_t nTexDepthIndex)
 				{
 					pGaussianBlurContents->fSigma = fSigma;

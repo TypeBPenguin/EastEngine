@@ -15,228 +15,11 @@ namespace eastengine
 			const float SQRT3 = 1.73205080756887729352f;
 			const float SQRT6 = 2.44948974278317809820f;
 
-			class DebugModel
-			{
-			public:
-				DebugModel()
-				{
-					m_pVertexBuffer.fill(nullptr);
-					m_pIndexBuffer.fill(nullptr);
-				}
-
-				~DebugModel()
-				{
-					Release();
-				}
-
-			public:
-				bool Initialize()
-				{
-					bool isSuccess = false;
-
-					isSuccess = CreateBox();
-					assert(isSuccess);
-
-					isSuccess = CreateSphere(6);
-					assert(isSuccess);
-
-					if (isSuccess == false)
-					{
-						Release();
-						return false;
-					}
-
-					return true;
-				}
-
-				void Release()
-				{
-					for (auto& pVertexBuffer : m_pVertexBuffer)
-					{
-						ReleaseResource(&pVertexBuffer);
-					}
-					m_pVertexBuffer.fill(nullptr);
-
-					for (auto& pIndexBuffer : m_pIndexBuffer)
-					{
-						ReleaseResource(&pIndexBuffer);
-					}
-					m_pIndexBuffer.fill(nullptr);
-				}
-
-				void Get(EmDebugModel emDebugModel, IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer)
-				{
-					*ppVertexBuffer = m_pVertexBuffer[emDebugModel];
-					*ppIndexBuffer = m_pIndexBuffer[emDebugModel];
-				}
-
-			private:
-				bool CreateBox()
-				{
-					// A box has six faces, each one pointing in a different direction.
-					const int FaceCount = 6;
-
-					static const math::Vector3 faceNormals[FaceCount] =
-					{
-						{ 0, 0, 1 },
-						{ 0, 0, -1 },
-						{ 1, 0, 0 },
-						{ -1, 0, 0 },
-						{ 0, 1, 0 },
-						{ 0, -1, 0 },
-					};
-
-					std::vector<VertexPos> vecVertices;
-					std::vector<uint32_t> vecIndices;
-
-					// Create each face in turn.
-					for (int i = 0; i < FaceCount; ++i)
-					{
-						math::Vector3 normal = faceNormals[i];
-
-						// Get two vectors perpendicular both to the face normal and to each other.
-						math::Vector3 basis = (i >= 4) ? math::Vector3(0.f, 0.f, 1.f) : math::Vector3(0.f, 1.f, 0.f);
-
-						math::Vector3 side1 = normal.Cross(basis);
-						math::Vector3 side2 = normal.Cross(side1);
-
-						// Six indices (two triangles) per face.
-						uint32_t vbase = static_cast<uint32_t>(vecVertices.size());
-						vecIndices.emplace_back(vbase + 0);
-						vecIndices.emplace_back(vbase + 1);
-						vecIndices.emplace_back(vbase + 2);
-
-						vecIndices.emplace_back(vbase + 0);
-						vecIndices.emplace_back(vbase + 2);
-						vecIndices.emplace_back(vbase + 3);
-
-						// Four vertices per face.
-						vecVertices.emplace_back((normal - side1 - side2) * 0.5f);
-						vecVertices.emplace_back((normal - side1 + side2) * 0.5f);
-						vecVertices.emplace_back((normal + side1 + side2) * 0.5f);
-						vecVertices.emplace_back((normal + side1 - side2) * 0.5f);
-					}
-
-					for (auto it = vecIndices.begin(); it != vecIndices.end(); it += 3)
-					{
-						std::swap(*it, *(it + 2));
-					}
-
-					m_pVertexBuffer[EmDebugModel::eBox] = CreateVertexBuffer(reinterpret_cast<uint8_t*>(vecVertices.data()), static_cast<uint32_t>(sizeof(VertexPos) * vecVertices.size()), static_cast<uint32_t>(vecVertices.size()));
-					m_pIndexBuffer[EmDebugModel::eBox] = CreateIndexBuffer(reinterpret_cast<uint8_t*>(vecIndices.data()), static_cast<uint32_t>(sizeof(uint32_t) * vecIndices.size()), static_cast<uint32_t>(vecIndices.size()));
-
-					return true;
-				}
-
-				bool CreateSphere(uint32_t tessellation = 16)
-				{
-					std::vector<VertexPos> vecVertices;
-					std::vector<uint32_t> vecIndices;
-
-					if (tessellation < 3)
-						return false;
-
-					uint32_t verticalSegments = tessellation;
-					uint32_t horizontalSegments = tessellation * 2;
-
-					float radius = 0.5f;
-
-					// Create rings of vertices at progressively higher latitudes.
-					for (uint32_t i = 0; i <= verticalSegments; ++i)
-					{
-						float latitude = (i * math::PI / verticalSegments) - math::PIDIV2;
-						float dy, dxz;
-
-						math::SinCos(&dy, &dxz, latitude);
-
-						// Create a single ring of vertices at this latitude.
-						for (uint32_t j = 0; j <= horizontalSegments; ++j)
-						{
-							float longitude = j * math::PI2 / horizontalSegments;
-							float dx, dz;
-
-							math::SinCos(&dx, &dz, longitude);
-
-							dx *= dxz;
-							dz *= dxz;
-
-							math::Vector3 normal(dx, dy, dz);
-
-							vecVertices.emplace_back(normal * radius);
-						}
-					}
-
-					// Fill the index buffer with triangles joining each pair of latitude rings.
-					uint32_t stride = horizontalSegments + 1;
-
-					for (uint32_t i = 0; i < verticalSegments; ++i)
-					{
-						for (uint32_t j = 0; j <= horizontalSegments; ++j)
-						{
-							uint32_t nextI = i + 1;
-							uint32_t nextJ = (j + 1) % stride;
-
-							vecIndices.push_back(i * stride + j);
-							vecIndices.push_back(nextI * stride + j);
-							vecIndices.push_back(i * stride + nextJ);
-
-							vecIndices.push_back(i * stride + nextJ);
-							vecIndices.push_back(nextI * stride + j);
-							vecIndices.push_back(nextI * stride + nextJ);
-						}
-					}
-
-					for (auto it = vecIndices.begin(); it != vecIndices.end(); it += 3)
-					{
-						std::swap(*it, *(it + 2));
-					}
-
-					m_pVertexBuffer[EmDebugModel::eSphere] = CreateVertexBuffer(reinterpret_cast<uint8_t*>(vecVertices.data()), static_cast<uint32_t>(sizeof(VertexPos) * vecVertices.size()), static_cast<uint32_t>(vecVertices.size()));
-					m_pIndexBuffer[EmDebugModel::eSphere] = CreateIndexBuffer(reinterpret_cast<uint8_t*>(vecIndices.data()), static_cast<uint32_t>(sizeof(uint32_t) * vecIndices.size()), static_cast<uint32_t>(vecIndices.size()));
-
-					return true;
-				}
-
-			private:
-				std::array<IVertexBuffer*, EmDebugModel::eCount> m_pVertexBuffer;
-				std::array<IIndexBuffer*, EmDebugModel::eCount> m_pIndexBuffer;
-			};
-
-			DebugModel* s_pDebugModel = nullptr;
-
-			bool Initialize()
-			{
-				if (s_pDebugModel != nullptr)
-					return true;
-
-				s_pDebugModel = new DebugModel;
-				if (s_pDebugModel->Initialize() == false)
-				{
-					Release();
-					return false;
-				}
-
-				return true;
-			}
-
-			void Release()
-			{
-				if (s_pDebugModel == nullptr)
-					return;
-
-				SafeDelete(s_pDebugModel);
-			}
-
-			void GetDebugModel(EmDebugModel emDebugModel, IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer)
-			{
-				s_pDebugModel->Get(emDebugModel, ppVertexBuffer, ppIndexBuffer);
-			}
-
 			void CalculateTangentBinormal(const VertexPosTex& vertex1, const VertexPosTex& vertex2, const VertexPosTex& vertex3,
-				math::Vector3& tangent, math::Vector3& binormal)
+				math::float3& tangent, math::float3& binormal)
 			{
-				math::Vector3 vector1, vector2;
-				math::Vector2 tuvVector1, tuvVector2;
+				math::float3 vector1, vector2;
+				math::float2 tuvVector1, tuvVector2;
 
 				// Calculate the two vectors for this face
 				vector1.x = vertex2.pos.x - vertex1.pos.x;
@@ -273,10 +56,10 @@ namespace eastengine
 				binormal.Normalize();
 			}
 
-			void CalculateTangentBinormal(const math::Vector3& normal, math::Vector3& tangent, math::Vector3& binormal)
+			void CalculateTangentBinormal(const math::float3& normal, math::float3& tangent, math::float3& binormal)
 			{
-				math::Vector3 c1 = normal.Cross(math::Vector3(0.f, 0.f, 1.f));
-				math::Vector3 c2 = normal.Cross(math::Vector3(0.f, 1.f, 0.f));
+				math::float3 c1 = normal.Cross(math::float3(0.f, 0.f, 1.f));
+				math::float3 c2 = normal.Cross(math::float3(0.f, 1.f, 0.f));
 
 				if (c1.LengthSquared() > c2.LengthSquared())
 				{
@@ -293,15 +76,15 @@ namespace eastengine
 				binormal.Normalize();
 			}
 
-			void CalculateNormal(const math::Vector3& vPos0, const math::Vector3& vPos1, const math::Vector3& vPos2, math::Vector3& vNormal)
+			void CalculateNormal(const math::float3& vPos0, const math::float3& vPos1, const math::float3& vPos2, math::float3& vNormal)
 			{
 				// Calculate the two vectors for this face.
-				math::Vector3 v0(vPos0);
-				math::Vector3 v1(vPos1.x - vPos2.x, vPos1.y - vPos2.y, vPos1.z - vPos2.z);
-				math::Vector3 v2(vPos2.x - vPos1.x, vPos2.y - vPos1.y, vPos2.z - vPos1.z);
+				math::float3 v0(vPos0);
+				math::float3 v1(vPos1.x - vPos2.x, vPos1.y - vPos2.y, vPos1.z - vPos2.z);
+				math::float3 v2(vPos2.x - vPos1.x, vPos2.y - vPos1.y, vPos2.z - vPos1.z);
 
 				// Calculate the cross product of those two vectors to get the un-normalized value for this face normal.
-				vNormal = math::Vector3((v0.y * v1.z) - (v0.z * v1.y),
+				vNormal = math::float3((v0.y * v1.z) - (v0.z * v1.y),
 					(v0.z * v1.x) - (v0.x * v1.z),
 					(v0.x * v1.y) - (v0.y * v1.x));
 
@@ -309,18 +92,16 @@ namespace eastengine
 				vNormal.Normalize();
 			}
 
-			bool InitBuffer(IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer, 
-				std::vector<VertexPosTexNor>& vecVertices, std::vector<uint32_t>& vecIndices,
-				bool rhcoords, bool invertn)
+			void SortBuffer(std::vector<VertexPosTexNor>& vertices, std::vector<uint32_t>& indices, bool rhcoords, bool invertn)
 			{
 				if (rhcoords == false)
 				{
-					for (auto it = vecIndices.begin(); it != vecIndices.end(); it += 3)
+					for (auto it = indices.begin(); it != indices.end(); it += 3)
 					{
 						std::swap(*it, *(it + 2));
 					}
 
-					for (auto it = vecVertices.begin(); it != vecVertices.end(); ++it)
+					for (auto it = vertices.begin(); it != vertices.end(); ++it)
 					{
 						it->uv.x = (1.f - it->uv.x);
 					}
@@ -328,51 +109,30 @@ namespace eastengine
 
 				if (invertn == true)
 				{
-					size_t nSize = vecVertices.size();
+					const size_t nSize = vertices.size();
 					for (size_t i = 0; i < nSize; ++i)
 					{
-						vecVertices[i].normal.x = -vecVertices[i].normal.x;
-						vecVertices[i].normal.y = -vecVertices[i].normal.y;
-						vecVertices[i].normal.z = -vecVertices[i].normal.z;
+						vertices[i].normal.x = -vertices[i].normal.x;
+						vertices[i].normal.y = -vertices[i].normal.y;
+						vertices[i].normal.z = -vertices[i].normal.z;
 					}
 				}
-
-				ReleaseResource(ppVertexBuffer);
-				*ppVertexBuffer = CreateVertexBuffer(reinterpret_cast<uint8_t*>(vecVertices.data()), static_cast<uint32_t>(sizeof(VertexPosTexNor) * vecVertices.size()), static_cast<uint32_t>(vecVertices.size()));
-
-				ReleaseResource(ppIndexBuffer);
-				*ppIndexBuffer = CreateIndexBuffer(reinterpret_cast<uint8_t*>(vecIndices.data()), static_cast<uint32_t>(sizeof(uint32_t) * vecIndices.size()), static_cast<uint32_t>(vecIndices.size()));
-		
-				vecVertices.clear();
-				vecIndices.clear();
-
-				if (*ppVertexBuffer == nullptr || *ppIndexBuffer == nullptr)
-				{
-					ReleaseResource(ppVertexBuffer);
-					ReleaseResource(ppIndexBuffer);
-					return false;
-				}
-
-				return true;
 			}
 
-			bool CreateCube(IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer, float size, bool rhcoords)
+			bool CreateCube(std::vector<VertexPosTexNor>& vertices, std::vector<uint32_t>& indices, float size, bool rhcoords)
 			{
-				return CreateBox(ppVertexBuffer, ppIndexBuffer, math::Vector3(size, size, size), rhcoords);
+				return CreateBox(vertices, indices, math::float3(size, size, size), rhcoords);
 			}
 
-			bool CreateBox(IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer, const math::Vector3& size, bool rhcoords, bool invertn)
+			bool CreateBox(std::vector<VertexPosTexNor>& vertices, std::vector<uint32_t>& indices, const math::float3& size, bool rhcoords, bool invertn)
 			{
-				if (*ppVertexBuffer != nullptr)
-					return false;
-
-				if (*ppIndexBuffer != nullptr)
-					return false;
+				vertices.clear();
+				indices.clear();
 
 				// A box has six faces, each one pointing in a different direction.
 				const int FaceCount = 6;
 
-				static const math::Vector3 faceNormals[FaceCount] =
+				static const math::float3 faceNormals[FaceCount] =
 				{
 					{ 0, 0, 1 },
 					{ 0, 0, -1 },
@@ -382,7 +142,7 @@ namespace eastengine
 					{ 0, -1, 0 },
 				};
 
-				static const math::Vector2 textureCoordinates[4] =
+				static const math::float2 textureCoordinates[4] =
 				{
 					{ 1, 0 },
 					{ 1, 1 },
@@ -390,114 +150,121 @@ namespace eastengine
 					{ 0, 0 },
 				};
 
-				std::vector<VertexPosTexNor> vecVertices;
-				std::vector<uint32_t> vecIndices;
+				vertices.reserve(FaceCount * 4);
+				indices.reserve(FaceCount * 6);
 
 				// Create each face in turn.
 				for (int i = 0; i < FaceCount; ++i)
 				{
-					math::Vector3 normal = faceNormals[i];
+					const math::float3& normal = faceNormals[i];
 
 					// Get two vectors perpendicular both to the face normal and to each other.
-					math::Vector3 basis = (i >= 4) ? math::Vector3(0.f, 0.f, 1.f) : math::Vector3(0.f, 1.f, 0.f);
+					const math::float3 basis = (i >= 4) ? math::float3(0.f, 0.f, 1.f) : math::float3(0.f, 1.f, 0.f);
 
-					math::Vector3 side1 = normal.Cross(basis);
-					math::Vector3 side2 = normal.Cross(side1);
+					const math::float3 side1 = normal.Cross(basis);
+					const math::float3 side2 = normal.Cross(side1);
 
 					// Six indices (two triangles) per face.
-					uint32_t vbase = static_cast<uint32_t>(vecVertices.size());
-					vecIndices.push_back(vbase + 0);
-					vecIndices.push_back(vbase + 1);
-					vecIndices.push_back(vbase + 2);
+					const uint32_t vbase = static_cast<uint32_t>(vertices.size());
+					indices.emplace_back(vbase + 0);
+					indices.emplace_back(vbase + 1);
+					indices.emplace_back(vbase + 2);
 
-					vecIndices.push_back(vbase + 0);
-					vecIndices.push_back(vbase + 2);
-					vecIndices.push_back(vbase + 3);
+					indices.emplace_back(vbase + 0);
+					indices.emplace_back(vbase + 2);
+					indices.emplace_back(vbase + 3);
 
 					// Four vertices per face.
-					vecVertices.push_back(VertexPosTexNor((normal - side1 - side2) * size, textureCoordinates[0], normal));
-					vecVertices.push_back(VertexPosTexNor((normal - side1 + side2) * size, textureCoordinates[1], normal));
-					vecVertices.push_back(VertexPosTexNor((normal + side1 + side2) * size, textureCoordinates[2], normal));
-					vecVertices.push_back(VertexPosTexNor((normal + side1 - side2) * size, textureCoordinates[3], normal));
+					vertices.emplace_back((normal - side1 - side2) * size, textureCoordinates[0], normal);
+					vertices.emplace_back((normal - side1 + side2) * size, textureCoordinates[1], normal);
+					vertices.emplace_back((normal + side1 + side2) * size, textureCoordinates[2], normal);
+					vertices.emplace_back((normal + side1 - side2) * size, textureCoordinates[3], normal);
 				}
 
-				return InitBuffer(ppVertexBuffer, ppIndexBuffer, vecVertices, vecIndices, rhcoords, invertn);
+				SortBuffer(vertices, indices, rhcoords, invertn);
+
+				return true;
 			}
 
-			bool CreateSphere(IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer, float diameter, uint32_t tessellation, bool rhcoords, bool invertn)
+			bool CreateSphere(std::vector<VertexPosTexNor>& vertices, std::vector<uint32_t>& indices, float diameter, uint32_t tessellation, bool rhcoords, bool invertn)
 			{
-				if (*ppVertexBuffer != nullptr)
-					return false;
-
-				if (*ppIndexBuffer != nullptr)
-					return false;
-
-				std::vector<VertexPosTexNor> vecVertices;
-				std::vector<uint32_t> vecIndices;
-
 				if (tessellation < 3)
 					return false;
 
-				uint32_t verticalSegments = tessellation;
-				uint32_t horizontalSegments = tessellation * 2;
+				vertices.clear();
+				indices.clear();
 
-				float radius = diameter * 0.5f;
+				const uint32_t verticalSegments = tessellation;
+				const uint32_t horizontalSegments = tessellation * 2;
+
+				vertices.reserve((verticalSegments + 1) * (horizontalSegments + 1));
+				indices.reserve(verticalSegments * (horizontalSegments + 1) * 6);
+
+				const float radius = diameter * 0.5f;
 
 				// Create rings of vertices at progressively higher latitudes.
 				for (uint32_t i = 0; i <= verticalSegments; ++i)
 				{
-					float v = 1 - (float)i / verticalSegments;
+					const float v = 1.f - static_cast<float>(i) / verticalSegments;
 
-					float latitude = (i * math::PI / verticalSegments) - math::PIDIV2;
-					float dy, dxz;
+					const float latitude = (i * math::PI / verticalSegments) - math::PIDIV2;
+
+					float dy = 0.f;
+					float dxz = 0.f;
 
 					math::SinCos(&dy, &dxz, latitude);
 
 					// Create a single ring of vertices at this latitude.
 					for (uint32_t j = 0; j <= horizontalSegments; ++j)
 					{
-						float u = (float)j / horizontalSegments;
+						const float u = static_cast<float>(j) / horizontalSegments;
 
-						float longitude = j * math::PI2 / horizontalSegments;
-						float dx, dz;
+						const float longitude = j * math::PI2 / horizontalSegments;
+
+						float dx = 0.f;
+						float dz = 0.f;;
 
 						math::SinCos(&dx, &dz, longitude);
 
 						dx *= dxz;
 						dz *= dxz;
 
-						math::Vector3 normal(dx, dy, dz);
-						math::Vector2 textureCoordinate(u, v);
-
-						vecVertices.push_back(VertexPosTexNor(normal * radius, textureCoordinate, normal));
+						const math::float3 normal(dx, dy, dz);
+						const math::float2 textureCoordinate(u, v);
+						vertices.emplace_back(normal * radius, textureCoordinate, normal);
 					}
 				}
 
 				// Fill the index buffer with triangles joining each pair of latitude rings.
-				uint32_t stride = horizontalSegments + 1;
+				const uint32_t stride = horizontalSegments + 1;
 
 				for (uint32_t i = 0; i < verticalSegments; ++i)
 				{
 					for (uint32_t j = 0; j <= horizontalSegments; ++j)
 					{
-						uint32_t nextI = i + 1;
-						uint32_t nextJ = (j + 1) % stride;
+						const uint32_t nextI = i + 1;
+						const uint32_t nextJ = (j + 1) % stride;
 
-						vecIndices.push_back(i * stride + j);
-						vecIndices.push_back(nextI * stride + j);
-						vecIndices.push_back(i * stride + nextJ);
+						indices.push_back(i * stride + j);
+						indices.push_back(nextI * stride + j);
+						indices.push_back(i * stride + nextJ);
 
-						vecIndices.push_back(i * stride + nextJ);
-						vecIndices.push_back(nextI * stride + j);
-						vecIndices.push_back(nextI * stride + nextJ);
+						indices.push_back(i * stride + nextJ);
+						indices.push_back(nextI * stride + j);
+						indices.push_back(nextI * stride + nextJ);
 					}
 				}
 
-				return InitBuffer(ppVertexBuffer, ppIndexBuffer, vecVertices, vecIndices, rhcoords, invertn);
+				SortBuffer(vertices, indices, rhcoords, invertn);
+
+				return true;
 			}
 
-			bool CreateGeoSphere(IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer, float diameter, uint32_t tessellation, bool rhcoords)
+			bool CreateGeoSphere(std::vector<VertexPosTexNor>& vertices, std::vector<uint32_t>& indices, float diameter, uint32_t tessellation, bool rhcoords)
 			{
+				vertices.clear();
+				indices.clear();
+
 				// An undirected edge between two vertices, represented by a pair of indexes into a vertex array.
 				// Becuse this edge is undirected, (a,b) is the same as (b,a).
 				using UndirectedEdge = std::pair<uint32_t, uint32_t>;
@@ -514,16 +281,15 @@ namespace eastengine
 				// This map is used to avoid duplicating vertices when subdividing triangles along edges.
 				typedef std::map<UndirectedEdge, uint32_t> EdgeSubdivisionMap;
 
-
-				const math::Vector3 OctahedronVertices[] =
+				const math::float3 OctahedronVertices[] =
 				{
 					// when looking down the negative z-axis (into the screen)
-					math::Vector3(0, 1, 0), // 0 top
-					math::Vector3(0, 0, -1), // 1 front
-					math::Vector3(1, 0, 0), // 2 right
-					math::Vector3(0, 0, 1), // 3 back
-					math::Vector3(-1, 0, 0), // 4 left
-					math::Vector3(0, -1, 0), // 5 bottom
+					{ 0.f, 1.f, 0.f }, // 0 top
+					{ 0.f, 0.f, -1.f }, // 1 front
+					{ 1.f, 0.f, 0.f }, // 2 right
+					{ 0.f, 0.f, 1.f }, // 3 back
+					{ -1.f, 0.f, 0.f }, // 4 left
+					{ 0.f, -1.f, 0.f }, // 5 bottom
 				};
 
 				const uint32_t OctahedronIndices[] =
@@ -542,10 +308,9 @@ namespace eastengine
 
 				// Start with an octahedron; copy the data into the vertex/index collection.
 
-				std::vector<math::Vector3> vertexPositions(std::begin(OctahedronVertices), std::end(OctahedronVertices));
+				std::vector<math::float3> vertexPositions(std::begin(OctahedronVertices), std::end(OctahedronVertices));
 
-				std::vector<uint32_t> vecIndices;
-				vecIndices.insert(vecIndices.begin(), std::begin(OctahedronIndices), std::end(OctahedronIndices));
+				indices.assign(std::begin(OctahedronIndices), std::end(OctahedronIndices));
 
 				// We know these values by looking at the above index list for the octahedron. Despite the subdivisions that are
 				// about to go on, these values aren't ever going to change because the vertices don't move around in the array.
@@ -555,7 +320,7 @@ namespace eastengine
 
 				for (uint32_t iSubdivision = 0; iSubdivision < tessellation; ++iSubdivision)
 				{
-					assert(vecIndices.size() % 3 == 0); // sanity
+					assert(indices.size() % 3 == 0); // sanity
 
 					// We use this to keep track of which edges have already been subdivided.
 					EdgeSubdivisionMap subdividedEdges;
@@ -563,27 +328,27 @@ namespace eastengine
 					// The new index collection after subdivision.
 					std::vector<uint32_t> newIndices;
 
-					const size_t triangleCount = vecIndices.size()  / 3;
+					const size_t triangleCount = indices.size()  / 3;
 					for (size_t nTriangle = 0; nTriangle < triangleCount; ++nTriangle)
 					{
 						// For each edge on this triangle, create a new vertex in the middle of that edge.
 						// The winding order of the triangles we output are the same as the winding order of the inputs.
 
 						// Indices of the vertices making up this triangle
-						uint32_t iv0 = vecIndices[nTriangle * 3 + 0];
-						uint32_t iv1 = vecIndices[nTriangle * 3 + 1];
-						uint32_t iv2 = vecIndices[nTriangle * 3 + 2];
+						const uint32_t iv0 = indices[nTriangle * 3 + 0];
+						const uint32_t iv1 = indices[nTriangle * 3 + 1];
+						const uint32_t iv2 = indices[nTriangle * 3 + 2];
 
 						// Get the new vertices
-						math::Vector3 v01; // vertex on the midpoint of v0 and v1
-						math::Vector3 v12; // ditto v1 and v2
-						math::Vector3 v20; // ditto v2 and v0
+						math::float3 v01; // vertex on the midpoint of v0 and v1
+						math::float3 v12; // ditto v1 and v2
+						math::float3 v20; // ditto v2 and v0
 						uint32_t iv01; // index of v01
 						uint32_t iv12; // index of v12
 						uint32_t iv20; // index of v20
 
 						// Function that, when given the index of two vertices, creates a new vertex at the midpoint of those vertices.
-						auto divideEdge = [&](uint32_t i0, uint32_t i1, math::Vector3& outVertex, uint32_t& outIndex)
+						auto divideEdge = [&](uint32_t i0, uint32_t i1, math::float3& outVertex, uint32_t& outIndex)
 						{
 							const UndirectedEdge edge = makeUndirectedEdge(i0, i1);
 
@@ -632,31 +397,31 @@ namespace eastengine
 						newIndices.insert(newIndices.end(), std::begin(indicesToAdd), std::end(indicesToAdd));
 					}
 
-					vecIndices = std::move(newIndices);
+					indices = std::move(newIndices);
 				}
 
 				// Now that we've completed subdivision, fill in the final vertex collection
-				std::vector<VertexPosTexNor> vecVertices;
-				vecVertices.reserve(vertexPositions.size());
+				vertices.reserve(vertexPositions.size());
 				for (auto it = vertexPositions.begin(); it != vertexPositions.end(); ++it)
 				{
-					math::Vector3 vertexValue = *it;
+					const math::float3& vertexValue = *it;
 
-					vertexValue.Normalize();
-					math::Vector3 normal = vertexValue;
-					math::Vector3 pos = normal * radius;
+					math::float3 normal;
+					vertexValue.Normalize(normal);
 
-					math::Vector3 normalFloat3 = normal;
+					const math::float3 pos = normal * radius;
+
+					math::float3 normalFloat3 = normal;
 
 					// calculate texture coordinates for this vertex
-					float longitude = atan2(normalFloat3.x, -normalFloat3.z);
-					float latitude = acos(normalFloat3.y);
+					const float longitude = atan2(normalFloat3.x, -normalFloat3.z);
+					const float latitude = acos(normalFloat3.y);
 
-					float u = longitude / math::PI2 + 0.5f;
-					float v = latitude / math::PI;
+					const float u = longitude / math::PI2 + 0.5f;
+					const float v = latitude / math::PI;
 
-					math::Vector2 texcoord(1.0f - u, v);
-					vecVertices.push_back(VertexPosTexNor(pos, texcoord, normal));
+					const math::float2 texcoord(1.0f - u, v);
+					vertices.emplace_back(pos, texcoord, normal);
 				}
 
 				// There are a couple of fixes to do. One is a texture coordinate wraparound fixup. At some point, there will be
@@ -669,28 +434,27 @@ namespace eastengine
 				// completed sphere. If you imagine the vertices along that edge, they circumscribe a semicircular arc starting at
 				// y=1 and ending at y=-1, and sweeping across the range of z=0 to z=1. x stays zero. It's along this edge that we
 				// need to duplicate our vertices - and provide the correct texture coordinates.
-				size_t preFixupVertexCount = vecVertices.size();
+				const size_t preFixupVertexCount = vertices.size();
 				for (size_t i = 0; i < preFixupVertexCount; ++i)
 				{
 					// This vertex is on the prime meridian if position.x and texcoord.u are both zero (allowing for small epsilon).
-					bool isOnPrimeMeridian = math::IsZero(vecVertices[i].pos.x) && math::IsZero(vecVertices[i].uv.x);
-
-					if (isOnPrimeMeridian)
+					const bool isOnPrimeMeridian = math::IsZero(vertices[i].pos.x) && math::IsZero(vertices[i].uv.x);
+					if (isOnPrimeMeridian == true)
 					{
-						size_t newIndex = vecVertices.size(); // the index of this vertex that we're about to add
+						const size_t newIndex = vertices.size(); // the index of this vertex that we're about to add
 
 						// copy this vertex, correct the texture coordinate, and add the vertex
-						VertexPosTexNor v = vecVertices[i];
+						VertexPosTexNor v = vertices[i];
 						v.uv.x = 1.0f;
-						vecVertices.push_back(v);
+						vertices.push_back(v);
 
 						// Now find all the triangles which contain this vertex and update them if necessary
-						size_t nIndexCount = vecIndices.size();
+						const size_t nIndexCount = indices.size();
 						for (size_t j = 0; j < nIndexCount; j += 3)
 						{
-							uint32_t* triIndex0 = &vecIndices[j + 0];
-							uint32_t* triIndex1 = &vecIndices[j + 1];
-							uint32_t* triIndex2 = &vecIndices[j + 2];
+							uint32_t* triIndex0 = &indices[j + 0];
+							uint32_t* triIndex1 = &indices[j + 1];
+							uint32_t* triIndex2 = &indices[j + 2];
 
 							if (*triIndex0 == i)
 							{
@@ -714,9 +478,9 @@ namespace eastengine
 							assert(*triIndex0 == i);
 							assert(*triIndex1 != i && *triIndex2 != i); // assume no degenerate triangles
 
-							const VertexPosTexNor& v0 = vecVertices[*triIndex0];
-							const VertexPosTexNor& v1 = vecVertices[*triIndex1];
-							const VertexPosTexNor& v2 = vecVertices[*triIndex2];
+							const VertexPosTexNor& v0 = vertices[*triIndex0];
+							const VertexPosTexNor& v1 = vertices[*triIndex1];
+							const VertexPosTexNor& v2 = vertices[*triIndex2];
 
 							// check the other two vertices to see if we might need to fix this triangle
 
@@ -737,10 +501,10 @@ namespace eastengine
 				// poles, but reduce stretching.
 				auto fixPole = [&](uint32_t poleIndex)
 				{
-					auto poleVertex = vecVertices[poleIndex];
+					auto poleVertex = vertices[poleIndex];
 					bool overwrittenPoleVertex = false; // overwriting the original pole vertex saves us one vertex
 
-					size_t nIndexCount = vecIndices.size();
+					const size_t nIndexCount = indices.size();
 					for (size_t i = 0; i < nIndexCount; i += 3)
 					{
 						// These pointers point to the three indices which make up this triangle. pPoleIndex is the pointer to the
@@ -749,31 +513,31 @@ namespace eastengine
 						uint32_t* pPoleIndex = nullptr;
 						uint32_t* pOtherIndex0 = nullptr;
 						uint32_t* pOtherIndex1 = nullptr;
-						if (vecIndices[i + 0] == poleIndex)
+						if (indices[i + 0] == poleIndex)
 						{
-							pPoleIndex = &vecIndices[i + 0];
-							pOtherIndex0 = &vecIndices[i + 1];
-							pOtherIndex1 = &vecIndices[i + 2];
+							pPoleIndex = &indices[i + 0];
+							pOtherIndex0 = &indices[i + 1];
+							pOtherIndex1 = &indices[i + 2];
 						}
-						else if (vecIndices[i + 1] == poleIndex)
+						else if (indices[i + 1] == poleIndex)
 						{
-							pPoleIndex = &vecIndices[i + 1];
-							pOtherIndex0 = &vecIndices[i + 2];
-							pOtherIndex1 = &vecIndices[i + 0];
+							pPoleIndex = &indices[i + 1];
+							pOtherIndex0 = &indices[i + 2];
+							pOtherIndex1 = &indices[i + 0];
 						}
-						else if (vecIndices[i + 2] == poleIndex)
+						else if (indices[i + 2] == poleIndex)
 						{
-							pPoleIndex = &vecIndices[i + 2];
-							pOtherIndex0 = &vecIndices[i + 0];
-							pOtherIndex1 = &vecIndices[i + 1];
+							pPoleIndex = &indices[i + 2];
+							pOtherIndex0 = &indices[i + 0];
+							pOtherIndex1 = &indices[i + 1];
 						}
 						else
 						{
 							continue;
 						}
 
-						const auto& otherVertex0 = vecVertices[*pOtherIndex0];
-						const auto& otherVertex1 = vecVertices[*pOtherIndex1];
+						const auto& otherVertex0 = vertices[*pOtherIndex0];
+						const auto& otherVertex1 = vertices[*pOtherIndex1];
 
 						// Calculate the texcoords for the new pole vertex, add it to the vertices and update the index
 						VertexPosTexNor newPoleVertex = poleVertex;
@@ -782,13 +546,13 @@ namespace eastengine
 
 						if (overwrittenPoleVertex == false)
 						{
-							vecVertices[poleIndex] = newPoleVertex;
+							vertices[poleIndex] = newPoleVertex;
 							overwrittenPoleVertex = true;
 						}
 						else
 						{
-							*pPoleIndex = static_cast<uint32_t>(vecVertices.size());
-							vecVertices.push_back(newPoleVertex);
+							*pPoleIndex = static_cast<uint32_t>(vertices.size());
+							vertices.push_back(newPoleVertex);
 						}
 					}
 				};
@@ -796,19 +560,24 @@ namespace eastengine
 				fixPole(northPoleIndex);
 				fixPole(southPoleIndex);
 
-				return InitBuffer(ppVertexBuffer, ppIndexBuffer, vecVertices, vecIndices, rhcoords, false);
+				SortBuffer(vertices, indices, rhcoords, false);
+
+				return true;
 			}
 
-			bool CreateCylinder(IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer, float height, float diameter, uint32_t tessellation, bool rhcoords)
+			bool CreateCylinder(std::vector<VertexPosTexNor>& vertices, std::vector<uint32_t>& indices, float height, float diameter, uint32_t tessellation, bool rhcoords)
 			{
+				if (tessellation < 3)
+					return false;
+
 				auto GetCircleVector = [](uint32_t i, uint32_t tessellation)
 				{
-					float angle = i * math::PI2 / tessellation;
-					float dx, dz;
+					const float angle = i * math::PI2 / tessellation;
 
-					math::SinCos(&dx, &dz, angle);
+					math::float3 dxz;
+					math::SinCos(&dxz.x, &dxz.z, angle);
 
-					return math::Vector3(dx, 0, dz);
+					return dxz;
 				};
 
 				auto CreateCylinderCap = [&GetCircleVector](std::vector<VertexPosTexNor>& vertices, std::vector<uint32_t>& indices, uint32_t tessellation, float height, float radius, bool isTop)
@@ -824,98 +593,102 @@ namespace eastengine
 							std::swap(i1, i2);
 						}
 
-						uint32_t vbase = static_cast<uint32_t>(vertices.size());
-						indices.push_back(vbase);
-						indices.push_back(vbase + i1);
-						indices.push_back(vbase + i2);
+						const uint32_t vbase = static_cast<uint32_t>(vertices.size());
+						indices.emplace_back(vbase);
+						indices.emplace_back(vbase + i1);
+						indices.emplace_back(vbase + i2);
 					}
 
 					// Which end of the cylinder is this?
-					math::Vector3 normal(0.f, 1.f, 0.f);
-					math::Vector3 textureScale(-0.5f, -0.5f, -0.5f);
+					math::float3 normal(0.f, 1.f, 0.f);
+					math::float3 textureScale(-0.5f, -0.5f, -0.5f);
 
 					if (!isTop)
 					{
 						normal = -normal;
-						textureScale *= math::Vector3(-1.0f, 1.0f, 1.0f);
+						textureScale *= math::float3(-1.0f, 1.0f, 1.0f);
 					}
 
 					// Create cap vertices.
 					for (uint32_t i = 0; i < tessellation; ++i)
 					{
-						math::Vector3 circleVector = GetCircleVector(i, tessellation);
+						const math::float3 circleVector = GetCircleVector(i, tessellation);
 
-						math::Vector3 position = (circleVector * radius) + (normal * height);
+						const math::float3 position = (circleVector * radius) + (normal * height);
 
-						math::Vector2 textureCoordinate = XMVectorMultiplyAdd(XMVectorSwizzle<0, 2, 3, 3>(circleVector), textureScale, g_XMOneHalf);
+						const math::float2 textureCoordinate = XMVectorMultiplyAdd(XMVectorSwizzle<0, 2, 3, 3>(circleVector), textureScale, g_XMOneHalf);
 
-						vertices.push_back(VertexPosTexNor(position, textureCoordinate, normal));
+						vertices.emplace_back(position, textureCoordinate, normal);
 					}
 				};
 
-				std::vector<VertexPosTexNor> vecVertices;
-				std::vector<uint32_t> vecIndices;
-
-				if (tessellation < 3)
-					return false;
+				vertices.clear();
+				indices.clear();
 
 				height *= 0.5f;
 
-				math::Vector3 topOffset = g_XMIdentityR1 * height;
+				const math::float3 topOffset = g_XMIdentityR1 * height;
 
-				float radius = diameter * 0.5f;
-				uint32_t stride = tessellation + 1;
+				const float radius = diameter * 0.5f;
+				const uint32_t stride = tessellation + 1;
+
+				vertices.reserve((tessellation + 1) * 2);
+				indices.reserve((tessellation + 1) * 6);
 
 				// Create a ring of triangles around the outside of the cylinder.
 				for (uint32_t i = 0; i <= tessellation; ++i)
 				{
-					math::Vector3 normal = GetCircleVector(i, tessellation);
+					const math::float3 normal = GetCircleVector(i, tessellation);
+					const math::float3 sideOffset = normal * radius;
 
-					math::Vector3 sideOffset = normal * radius;
+					const float u = static_cast<float>(i) / tessellation;
 
-					float u = (float)i / tessellation;
+					const math::float2 textureCoordinate(u, u);
 
-					math::Vector2 textureCoordinate = XMLoadFloat(&u);
+					vertices.emplace_back(sideOffset + topOffset, textureCoordinate, normal);
+					vertices.emplace_back(sideOffset - topOffset, textureCoordinate + g_XMIdentityR1, normal);
 
-					vecVertices.push_back(VertexPosTexNor(sideOffset + topOffset, textureCoordinate, normal));
-					vecVertices.push_back(VertexPosTexNor(sideOffset - topOffset, textureCoordinate + g_XMIdentityR1, normal));
+					indices.emplace_back(i * 2);
+					indices.emplace_back((i * 2 + 2) % (stride * 2));
+					indices.emplace_back(i * 2 + 1);
 
-					vecIndices.push_back(i * 2);
-					vecIndices.push_back((i * 2 + 2) % (stride * 2));
-					vecIndices.push_back(i * 2 + 1);
-
-					vecIndices.push_back(i * 2 + 1);
-					vecIndices.push_back((i * 2 + 2) % (stride * 2));
-					vecIndices.push_back((i * 2 + 3) % (stride * 2));
+					indices.emplace_back(i * 2 + 1);
+					indices.emplace_back((i * 2 + 2) % (stride * 2));
+					indices.emplace_back((i * 2 + 3) % (stride * 2));
 				}
 
 				// Create flat triangle fan caps to seal the top and bottom.
-				CreateCylinderCap(vecVertices, vecIndices, tessellation, height, radius, true);
-				CreateCylinderCap(vecVertices, vecIndices, tessellation, height, radius, false);
+				CreateCylinderCap(vertices, indices, tessellation, height, radius, true);
+				CreateCylinderCap(vertices, indices, tessellation, height, radius, false);
 
-				return InitBuffer(ppVertexBuffer, ppIndexBuffer, vecVertices, vecIndices, rhcoords, false);
+				SortBuffer(vertices, indices, rhcoords, false);
+
+				return true;
 			}
 
-			bool CreateCone(IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer, float diameter, float height, uint32_t tessellation, bool rhcoords)
+			bool CreateCone(std::vector<VertexPosTexNor>& vertices, std::vector<uint32_t>& indices, float diameter, float height, uint32_t tessellation, bool rhcoords)
 			{
+				if (tessellation < 3)
+					return false;
+
 				auto GetCircleVector = [](uint32_t i, uint32_t tessellation)
 				{
 					float angle = i * math::PI2 / tessellation;
-					float dx, dz;
 
-					XMScalarSinCos(&dx, &dz, angle);
+					math::float3 dxz;
+					math::SinCos(&dxz.x, &dxz.z, angle);
 
-					return math::Vector3(dx, 0, dz);
+					return dxz;
 				};
 
 				auto GetCircleTangent = [](uint32_t i, uint32_t tessellation)
 				{
-					float angle = (i * math::PI2 / tessellation) + XM_PIDIV2;
-					float dx, dz;
+					const float angle = (i * math::PI2 / tessellation) + XM_PIDIV2;
 
-					XMScalarSinCos(&dx, &dz, angle);
+					math::float3 dxz;
+					math::SinCos(&dxz.x, &dxz.z, angle);
 
-					return math::Vector3(dx, 0, dz);
+					return dxz;
 				};
 
 				auto CreateCylinderCap = [&GetCircleVector](std::vector<VertexPosTexNor>& vertices, std::vector<uint32_t>& indices, uint32_t tessellation, float height, float radius, bool isTop)
@@ -931,144 +704,149 @@ namespace eastengine
 							std::swap(i1, i2);
 						}
 
-						uint32_t vbase = static_cast<uint32_t>(vertices.size());
-						indices.push_back(vbase);
-						indices.push_back(vbase + i1);
-						indices.push_back(vbase + i2);
+						const uint32_t vbase = static_cast<uint32_t>(vertices.size());
+						indices.emplace_back(vbase);
+						indices.emplace_back(vbase + i1);
+						indices.emplace_back(vbase + i2);
 					}
 
 					// Which end of the cylinder is this?
-					math::Vector3 normal = g_XMIdentityR1;
-					math::Vector3 textureScale = g_XMNegativeOneHalf;
+					math::float3 normal = g_XMIdentityR1;
+					math::float3 textureScale = g_XMNegativeOneHalf;
 
 					if (!isTop)
 					{
 						normal = -normal;
-						math::Vector3 vNegateX = g_XMNegateX;
+						math::float3 vNegateX = g_XMNegateX;
 						textureScale *= vNegateX;
 					}
 
 					// Create cap vertices.
 					for (uint32_t i = 0; i < tessellation; ++i)
 					{
-						math::Vector3 circleVector = GetCircleVector(i, tessellation);
+						const math::float3 circleVector = GetCircleVector(i, tessellation);
 
-						math::Vector3 position = (circleVector * radius) + (normal * height);
+						const math::float3 position = (circleVector * radius) + (normal * height);
 
-						math::Vector2 textureCoordinate = XMVectorMultiplyAdd(XMVectorSwizzle<0, 2, 3, 3>(circleVector), textureScale, g_XMOneHalf);
+						const math::float2 textureCoordinate = XMVectorMultiplyAdd(XMVectorSwizzle<0, 2, 3, 3>(circleVector), textureScale, g_XMOneHalf);
 
-						vertices.push_back(VertexPosTexNor(position, textureCoordinate, normal));
+						vertices.emplace_back(position, textureCoordinate, normal);
 					}
 				};
 
-				std::vector<VertexPosTexNor> vecVertices;
-				std::vector<uint32_t> vecIndices;
-
-				if (tessellation < 3)
-					return false;
+				vertices.clear();
+				indices.clear();
 
 				height /= 2;
 
-				math::Vector3 topOffset = g_XMIdentityR1 * height;
+				const math::float3 topOffset = g_XMIdentityR1 * height;
 
-				float radius = diameter * 0.5f;;
-				uint32_t stride = tessellation + 1;
+				const float radius = diameter * 0.5f;;
+				const uint32_t stride = tessellation + 1;
+
+				vertices.reserve((tessellation + 1) * 2);
+				indices.reserve((tessellation + 1) * 3);
 
 				// Create a ring of triangles around the outside of the cone.
 				for (uint32_t i = 0; i <= tessellation; ++i)
 				{
-					math::Vector3 circlevec = GetCircleVector(i, tessellation);
+					const math::float3 circlevec = GetCircleVector(i, tessellation);
+					const math::float3 sideOffset = circlevec * radius;
 
-					math::Vector3 sideOffset = circlevec * radius;
+					const float u = static_cast<float>(i) / tessellation;
 
-					float u = (float)i / tessellation;
+					const math::float2 textureCoordinate(u, u);
 
-					math::Vector2 textureCoordinate(u, u);
+					const math::float3 pt = sideOffset - topOffset;
 
-					math::Vector3 pt = sideOffset - topOffset;
-
-					math::Vector3 normal = GetCircleTangent(i, tessellation).Cross(topOffset - pt);
+					math::float3 normal = GetCircleTangent(i, tessellation).Cross(topOffset - pt);
 					normal.Normalize();
 
 					// Duplicate the top vertex for distinct normals
-					vecVertices.push_back(VertexPosTexNor(topOffset, math::Vector2(0.f, 0.f), normal));
-					vecVertices.push_back(VertexPosTexNor(pt, textureCoordinate + g_XMIdentityR1, normal));
+					vertices.emplace_back(topOffset, math::float2::Zero, normal);
+					vertices.emplace_back(pt, textureCoordinate + g_XMIdentityR1, normal);
 
-					vecIndices.push_back(i * 2);
-					vecIndices.push_back((i * 2 + 3) % (stride * 2));
-					vecIndices.push_back((i * 2 + 1) % (stride * 2));
+					indices.emplace_back(i * 2);
+					indices.emplace_back((i * 2 + 3) % (stride * 2));
+					indices.emplace_back((i * 2 + 1) % (stride * 2));
 				}
 
 				// Create flat triangle fan caps to seal the bottom.
-				CreateCylinderCap(vecVertices, vecIndices, tessellation, height, radius, false);
+				CreateCylinderCap(vertices, indices, tessellation, height, radius, false);
 
-				return InitBuffer(ppVertexBuffer, ppIndexBuffer, vecVertices, vecIndices, rhcoords, false);
+				SortBuffer(vertices, indices, rhcoords, false);
+
+				return true;
 			}
 
-			bool CreateTorus(IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer, float diameter, float thickness, uint32_t tessellation, bool rhcoords)
+			bool CreateTorus(std::vector<VertexPosTexNor>& vertices, std::vector<uint32_t>& indices, float diameter, float thickness, uint32_t tessellation, bool rhcoords)
 			{
-				std::vector<VertexPosTexNor> vecVertices;
-				std::vector<uint32_t> vecIndices;
-
 				if (tessellation < 3)
 					return false;
 
-				uint32_t stride = tessellation + 1;
+				vertices.clear();
+				indices.clear();
+
+				const uint32_t stride = tessellation + 1;
+
+				vertices.reserve(stride * stride);
+				indices.reserve(stride * stride * 6);
 
 				// First we loop around the main ring of the torus.
 				for (uint32_t i = 0; i <= tessellation; ++i)
 				{
-					float u = (float)i / tessellation;
+					const float u = static_cast<float>(i) / tessellation;
 
-					float outerAngle = i * math::PI2 / tessellation - XM_PIDIV2;
+					const float outerAngle = i * math::PI2 / tessellation - XM_PIDIV2;
 
 					// Create a transform matrix that will align geometry to
 					// slice perpendicularly though the current ring position.
-					math::Matrix transform = math::Matrix::CreateTranslation(diameter * 0.5f, 0.f, 0.f) * math::Matrix::CreateRotationY(outerAngle);
+					const math::Matrix transform = math::Matrix::CreateTranslation(diameter * 0.5f, 0.f, 0.f) * math::Matrix::CreateRotationY(outerAngle);
 
 					// Now we loop along the other axis, around the side of the tube.
 					for (uint32_t j = 0; j <= tessellation; ++j)
 					{
-						float v = 1 - (float)j / tessellation;
+						const float v = 1.f - static_cast<float>(j) / tessellation;
 
-						float innerAngle = j * math::PI2 / tessellation + XM_PI;
-						float dx, dy;
+						const float innerAngle = j * math::PI2 / tessellation + XM_PI;
 
-						XMScalarSinCos(&dy, &dx, innerAngle);
+						math::float3 normal;
+						math::SinCos(&normal.y, &normal.x, innerAngle);
 
 						// Create a vertex.
-						math::Vector3 normal(dx, dy, 0);
-						math::Vector3 position = normal * thickness * 0.5f;;
-						math::Vector2 textureCoordinate(u, v);
+						math::float3 position = normal * thickness * 0.5f;;
+						math::float2 textureCoordinate(u, v);
 
-						position = math::Vector3::Transform(position, transform);
-						normal = math::Vector3::Transform(normal, transform);
+						position = math::float3::Transform(position, transform);
+						normal = math::float3::Transform(normal, transform);
 
-						vecVertices.push_back(VertexPosTexNor(position, textureCoordinate, normal));
+						vertices.emplace_back(position, textureCoordinate, normal);
 
 						// And create indices for two triangles.
-						uint32_t nextI = (i + 1) % stride;
-						uint32_t nextJ = (j + 1) % stride;
+						const uint32_t nextI = (i + 1) % stride;
+						const uint32_t nextJ = (j + 1) % stride;
 
-						vecIndices.push_back(i * stride + j);
-						vecIndices.push_back(i * stride + nextJ);
-						vecIndices.push_back(nextI * stride + j);
+						indices.emplace_back(i * stride + j);
+						indices.emplace_back(i * stride + nextJ);
+						indices.emplace_back(nextI * stride + j);
 
-						vecIndices.push_back(i * stride + nextJ);
-						vecIndices.push_back(nextI * stride + nextJ);
-						vecIndices.push_back(nextI * stride + j);
+						indices.emplace_back(i * stride + nextJ);
+						indices.emplace_back(nextI * stride + nextJ);
+						indices.emplace_back(nextI * stride + j);
 					}
 				}
 
-				return InitBuffer(ppVertexBuffer, ppIndexBuffer, vecVertices, vecIndices, rhcoords, false);
+				SortBuffer(vertices, indices, rhcoords, false);
+
+				return true;
 			}
 
-			bool CreateTetrahedron(IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer, float size, bool rhcoords)
+			bool CreateTetrahedron(std::vector<VertexPosTexNor>& vertices, std::vector<uint32_t>& indices, float size, bool rhcoords)
 			{
-				std::vector<VertexPosTexNor> vecVertices;
-				std::vector<uint32_t> vecIndices;
+				vertices.clear();
+				indices.clear();
 
-				static const math::Vector3 verts[4] =
+				static const math::float3 verts[4] =
 				{
 					{ 0.f, 0.f, 1.f },
 					{ 2.f*SQRT2 / 3.f, 0.f, -1.f / 3.f },
@@ -1084,43 +862,50 @@ namespace eastengine
 					1, 3, 2,
 				};
 
-				for (size_t j = 0; j < _countof(faces); j += 3)
-				{
-					uint32_t v0 = faces[j];
-					uint32_t v1 = faces[j + 1];
-					uint32_t v2 = faces[j + 2];
+				const size_t faceCount = _countof(faces);
 
-					math::Vector3 normal = (verts[v1] - verts[v0]).Cross(verts[v2] - verts[v0]);
+				vertices.reserve(faceCount);
+				indices.reserve(faceCount);
+
+				for (size_t i = 0; i < faceCount; i += 3)
+				{
+					const uint32_t& v0 = faces[i];
+					const uint32_t& v1 = faces[i + 1];
+					const uint32_t& v2 = faces[i + 2];
+
+					math::float3 normal = (verts[v1] - verts[v0]).Cross(verts[v2] - verts[v0]);
 					normal.Normalize();
 
-					uint32_t base = static_cast<uint32_t>(vecVertices.size());
-					vecIndices.push_back(base);
-					vecIndices.push_back(base + 1);
-					vecIndices.push_back(base + 2);
+					const uint32_t base = static_cast<uint32_t>(vertices.size());
+					indices.emplace_back(base);
+					indices.emplace_back(base + 1);
+					indices.emplace_back(base + 2);
 
 					// Duplicate vertices to use face normals
-					math::Vector3 position = verts[v0] * size;
-					vecVertices.push_back(VertexPosTexNor(position, math::Vector2(0.f, 0.f), normal));
+					math::float3 position = verts[v0] * size;
+					vertices.emplace_back(position, math::float2::Zero, normal);
 
 					position = verts[v1] * size;
-					vecVertices.push_back(VertexPosTexNor(position, math::Vector2(1.f, 0.f), normal));
+					vertices.emplace_back(position, math::float2(1.f, 0.f), normal);
 
 					position = verts[v2] * size;
-					vecVertices.push_back(VertexPosTexNor(position, math::Vector2(0.f, 1.f), normal));
+					vertices.emplace_back(position, math::float2(0.f, 1.f), normal);
 				}
 
-				assert(vecVertices.size() == 4 * 3);
-				assert(vecIndices.size() == 4 * 3);
+				assert(vertices.size() == faceCount);
+				assert(indices.size() == faceCount);
 
-				return InitBuffer(ppVertexBuffer, ppIndexBuffer, vecVertices, vecIndices, rhcoords, false);
+				SortBuffer(vertices, indices, rhcoords, false);
+
+				return true;
 			}
 
-			bool CreateOctahedron(IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer, float size, bool rhcoords)
+			bool CreateOctahedron(std::vector<VertexPosTexNor>& vertices, std::vector<uint32_t>& indices, float size, bool rhcoords)
 			{
-				std::vector<VertexPosTexNor> vecVertices;
-				std::vector<uint32_t> vecIndices;
+				vertices.clear();
+				indices.clear();
 
-				static const math::Vector3 verts[6] =
+				static const math::float3 verts[6] =
 				{
 					{ 1, 0, 0 },
 					{ -1, 0, 0 },
@@ -1142,47 +927,50 @@ namespace eastengine
 					5, 0, 3
 				};
 
-				for (size_t j = 0; j < _countof(faces); j += 3)
+				const size_t faceCount = _countof(faces);
+				for (size_t i = 0; i < faceCount; i += 3)
 				{
-					uint32_t v0 = faces[j];
-					uint32_t v1 = faces[j + 1];
-					uint32_t v2 = faces[j + 2];
+					const uint32_t& v0 = faces[i];
+					const uint32_t& v1 = faces[i + 1];
+					const uint32_t& v2 = faces[i + 2];
 
-					math::Vector3 normal = (verts[v1] - verts[v0]).Cross(verts[v2] - verts[v0]);
+					math::float3 normal = (verts[v1] - verts[v0]).Cross(verts[v2] - verts[v0]);
 					normal.Normalize();
 
-					uint32_t base = static_cast<uint32_t>(vecVertices.size());
-					vecIndices.push_back(base);
-					vecIndices.push_back(base + 1);
-					vecIndices.push_back(base + 2);
+					const uint32_t base = static_cast<uint32_t>(vertices.size());
+					indices.emplace_back(base);
+					indices.emplace_back(base + 1);
+					indices.emplace_back(base + 2);
 
 					// Duplicate vertices to use face normals
-					math::Vector3 position = verts[v0] * size;
-					vecVertices.push_back(VertexPosTexNor(position, math::Vector2(0.f, 0.f), normal));
+					math::float3 position = verts[v0] * size;
+					vertices.emplace_back(position, math::float2::Zero, normal);
 
 					position = verts[v1] * size;
-					vecVertices.push_back(VertexPosTexNor(position, math::Vector2(1.f, 0.f), normal));
+					vertices.emplace_back(position, math::float2(1.f, 0.f), normal);
 
 					position = verts[v2] * size;
-					vecVertices.push_back(VertexPosTexNor(position, math::Vector2(0.f, 1.f), normal));
+					vertices.emplace_back(position, math::float2(0.f, 1.f), normal);
 				}
 
-				assert(vecVertices.size() == 8 * 3);
-				assert(vecIndices.size() == 8 * 3);
+				assert(vertices.size() == faceCount);
+				assert(indices.size() == faceCount);
 
-				return InitBuffer(ppVertexBuffer, ppIndexBuffer, vecVertices, vecIndices, rhcoords, false);
+				SortBuffer(vertices, indices, rhcoords, false);
+
+				return true;
 			}
 
-			bool CreateDodecahedron(IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer, float size, bool rhcoords)
+			bool CreateDodecahedron(std::vector<VertexPosTexNor>& vertices, std::vector<uint32_t>& indices, float size, bool rhcoords)
 			{
-				std::vector<VertexPosTexNor> vecVertices;
-				std::vector<uint32_t> vecIndices;
+				vertices.clear();
+				indices.clear();
 
 				static const float a = 1.f / SQRT3;
 				static const float b = 0.356822089773089931942f; // sqrt( ( 3 - sqrt(5) ) / 6 )
 				static const float c = 0.934172358962715696451f; // sqrt( ( 3 + sqrt(5) ) / 6 );
 
-				static const math::Vector3 verts[20] =
+				static const math::float3 verts[20] =
 				{
 					{ a, a, a },
 					{ a, a, -a },
@@ -1222,7 +1010,7 @@ namespace eastengine
 					7, 19, 3, 10, 11,
 				};
 
-				static const math::Vector2 textureCoordinates[5] =
+				static const math::float2 textureCoordinates[5] =
 				{
 					{ 0.654508f, 0.0244717f },
 					{ 0.0954915f, 0.206107f },
@@ -1247,65 +1035,71 @@ namespace eastengine
 					{ 2, 3, 4, 0, 1 },
 				};
 
-				size_t t = 0;
-				uint32_t nCount = _countof(faces);
-				for (size_t j = 0; j < nCount; j += 5, ++t)
-				{
-					uint32_t v0 = faces[j];
-					uint32_t v1 = faces[j + 1];
-					uint32_t v2 = faces[j + 2];
-					uint32_t v3 = faces[j + 3];
-					uint32_t v4 = faces[j + 4];
+				const size_t faceCount = _countof(faces);
 
-					math::Vector3 normal = (verts[v1] - verts[v0]).Cross(verts[v2] - verts[v0]);
+				vertices.reserve(faceCount);
+				indices.reserve(12 * 3 * 3);
+
+				size_t t = 0;
+				for (size_t j = 0; j < faceCount; j += 5, ++t)
+				{
+					const uint32_t& v0 = faces[j];
+					const uint32_t& v1 = faces[j + 1];
+					const uint32_t& v2 = faces[j + 2];
+					const uint32_t& v3 = faces[j + 3];
+					const uint32_t& v4 = faces[j + 4];
+
+					math::float3 normal = (verts[v1] - verts[v0]).Cross(verts[v2] - verts[v0]);
 					normal.Normalize();
 
-					uint32_t base = static_cast<uint32_t>(vecVertices.size());
+					const uint32_t base = static_cast<uint32_t>(vertices.size());
 
-					vecIndices.push_back(base);
-					vecIndices.push_back(base + 2);
-					vecIndices.push_back(base + 1);
+					indices.emplace_back(base);
+					indices.emplace_back(base + 2);
+					indices.emplace_back(base + 1);
 
-					vecIndices.push_back(base);
-					vecIndices.push_back(base + 3);
-					vecIndices.push_back(base + 2);
+					indices.emplace_back(base);
+					indices.emplace_back(base + 3);
+					indices.emplace_back(base + 2);
 
-					vecIndices.push_back(base);
-					vecIndices.push_back(base + 4);
-					vecIndices.push_back(base + 3);
+					indices.emplace_back(base);
+					indices.emplace_back(base + 4);
+					indices.emplace_back(base + 3);
 
 					// Duplicate vertices to use face normals
-					math::Vector3 position = verts[v0] * size;
-					vecVertices.push_back(VertexPosTexNor(position, textureCoordinates[textureIndex[t][0]], normal));
+					math::float3 position = verts[v0] * size;
+					vertices.emplace_back(position, textureCoordinates[textureIndex[t][0]], normal);
 
 					position = verts[v1] * size;
-					vecVertices.push_back(VertexPosTexNor(position, textureCoordinates[textureIndex[t][1]], normal));
+					vertices.emplace_back(position, textureCoordinates[textureIndex[t][1]], normal);
 
 					position = verts[v2] * size;
-					vecVertices.push_back(VertexPosTexNor(position, textureCoordinates[textureIndex[t][2]], normal));
+					vertices.emplace_back(position, textureCoordinates[textureIndex[t][2]], normal);
 
 					position = verts[v3] * size;
-					vecVertices.push_back(VertexPosTexNor(position, textureCoordinates[textureIndex[t][3]], normal));
+					vertices.emplace_back(position, textureCoordinates[textureIndex[t][3]], normal);
 
 					position = verts[v4] * size;
-					vecVertices.push_back(VertexPosTexNor(position, textureCoordinates[textureIndex[t][4]], normal));
+					vertices.emplace_back(position, textureCoordinates[textureIndex[t][4]], normal);
 				}
 
-				assert(vecVertices.size() == 12 * 5);
-				assert(vecIndices.size() == 12 * 3 * 3);
+				assert(vertices.size() == 12 * 5);
+				assert(indices.size() == 12 * 3 * 3);
 
-				return InitBuffer(ppVertexBuffer, ppIndexBuffer, vecVertices, vecIndices, rhcoords, false);
+				SortBuffer(vertices, indices, rhcoords, false);
+
+				return true;
 			}
 
-			bool CreateIcosahedron(IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer, float size, bool rhcoords)
+			bool CreateIcosahedron(std::vector<VertexPosTexNor>& vertices, std::vector<uint32_t>& indices, float size, bool rhcoords)
 			{
-				std::vector<VertexPosTexNor> vecVertices;
-				std::vector<uint32_t> vecIndices;
+				vertices.clear();
+				indices.clear();
 
 				static const float  t = 1.618033988749894848205f; // (1 + sqrt(5)) / 2
 				static const float t2 = 1.519544995837552493271f; // sqrt( 1 + sqr( (1 + sqrt(5)) / 2 ) )
 
-				static const math::Vector3 verts[12] =
+				static const math::float3 verts[12] =
 				{
 					{ t / t2, 1.f / t2, 0 },
 					{ -t / t2, 1.f / t2, 0 },
@@ -1344,37 +1138,43 @@ namespace eastengine
 					10, 5, 7,
 					11, 7, 5
 				};
+				
+				const size_t faceCount = _countof(faces);
 
-				uint32_t nCount = _countof(faces);
-				for (size_t j = 0; j < nCount; j += 3)
+				assert(vertices.size() == faceCount);
+				assert(indices.size() == faceCount);
+
+				for (size_t i = 0; i < faceCount; i += 3)
 				{
-					uint32_t v0 = faces[j];
-					uint32_t v1 = faces[j + 1];
-					uint32_t v2 = faces[j + 2];
+					const uint32_t& v0 = faces[i];
+					const uint32_t& v1 = faces[i + 1];
+					const uint32_t& v2 = faces[i + 2];
 
-					math::Vector3 normal = (verts[v1] - verts[v0]).Cross(verts[v2] - verts[v0]);
+					math::float3 normal = (verts[v1] - verts[v0]).Cross(verts[v2] - verts[v0]);
 					normal.Normalize();
 
-					uint32_t base = static_cast<uint32_t>(vecVertices.size());
-					vecIndices.push_back(base);
-					vecIndices.push_back(base + 2);
-					vecIndices.push_back(base + 1);
+					const uint32_t base = static_cast<uint32_t>(vertices.size());
+					indices.emplace_back(base);
+					indices.emplace_back(base + 2);
+					indices.emplace_back(base + 1);
 
 					// Duplicate vertices to use face normals
-					math::Vector3 position = verts[v0] * size;
-					vecVertices.push_back(VertexPosTexNor(position, math::Vector2(0.f, 0.f), normal));
+					math::float3 position = verts[v0] * size;
+					vertices.emplace_back(position, math::float2::Zero, normal);
 
 					position = verts[v1] * size;
-					vecVertices.push_back(VertexPosTexNor(position, math::Vector2(1.f, 0.f), normal));
+					vertices.emplace_back(position, math::float2(1.f, 0.f), normal);
 
 					position = verts[v2] * size;
-					vecVertices.push_back(VertexPosTexNor(position, math::Vector2(0.f, 1.f), normal));
+					vertices.emplace_back(position, math::float2(0.f, 1.f), normal);
 				}
 
-				assert(vecVertices.size() == 20 * 3);
-				assert(vecIndices.size() == 20 * 3);
+				assert(vertices.size() == 20 * 3);
+				assert(indices.size() == 20 * 3);
 
-				return InitBuffer(ppVertexBuffer, ppIndexBuffer, vecVertices, vecIndices, rhcoords, false);
+				SortBuffer(vertices, indices, rhcoords, false);
+
+				return true;
 			}
 
 			// Include the teapot control point data.
@@ -1384,7 +1184,7 @@ namespace eastengine
 		#include "ExternLib/DirectXTK/Src/Bezier.h"
 			}
 
-			bool CreateTeapot(IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer, float size, uint32_t tessellation, bool rhcoords)
+			bool CreateTeapot(std::vector<VertexPosTexNor>& vertices, std::vector<uint32_t>& indices, float size, uint32_t tessellation, bool rhcoords)
 			{
 				auto TessellatePatch = [](std::vector<VertexPosTexNor>& vertices, std::vector<uint32_t>& indices, TeapotPatch const& patch, size_t tessellation, FXMVECTOR scale, bool isMirrored)
 				{
@@ -1410,11 +1210,11 @@ namespace eastengine
 					});
 				};
 
-				std::vector<VertexPosTexNor> vecVertices;
-				std::vector<uint32_t> vecIndices;
-
 				if (tessellation < 1)
-					throw std::out_of_range("tesselation parameter out of range");
+					return false;
+
+				vertices.clear();
+				indices.clear();
 
 				XMVECTOR scaleVector = XMVectorReplicate(size);
 
@@ -1428,71 +1228,75 @@ namespace eastengine
 
 					// Because the teapot is symmetrical from left to right, we only store
 					// data for one side, then tessellate each patch twice, mirroring in X.
-					TessellatePatch(vecVertices, vecIndices, patch, tessellation, scaleVector, false);
-					TessellatePatch(vecVertices, vecIndices, patch, tessellation, scaleNegateX, true);
+					TessellatePatch(vertices, indices, patch, tessellation, scaleVector, false);
+					TessellatePatch(vertices, indices, patch, tessellation, scaleNegateX, true);
 
 					if (patch.mirrorZ)
 					{
 						// Some parts of the teapot (the body, lid, and rim, but not the
 						// handle or spout) are also symmetrical from front to back, so
 						// we tessellate them four times, mirroring in Z as well as X.
-						TessellatePatch(vecVertices, vecIndices, patch, tessellation, scaleNegateZ, true);
-						TessellatePatch(vecVertices, vecIndices, patch, tessellation, scaleNegateXZ, false);
+						TessellatePatch(vertices, indices, patch, tessellation, scaleNegateZ, true);
+						TessellatePatch(vertices, indices, patch, tessellation, scaleNegateXZ, false);
 					}
 				}
 
-				return InitBuffer(ppVertexBuffer, ppIndexBuffer, vecVertices, vecIndices, rhcoords, false);
+				SortBuffer(vertices, indices, rhcoords, false);
+
+				return true;
 			}
 
-			bool CreateHexagon(IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer, float radius, bool rhcoords)
+			bool CreateHexagon(std::vector<VertexPosTexNor>& vertices, std::vector<uint32_t>& indices, float radius, bool rhcoords)
 			{
-				std::vector<VertexPosTexNor> vecVertices;
-				std::vector<uint32_t> vecIndices;
+				vertices.clear();
+				indices.clear();
 
-				vecVertices.resize(7);
-				vecIndices.resize(18);
+				vertices.resize(7);
+				indices.resize(18);
 
-				float fHalf = radius * 0.5f;
+				const float fHalf = radius * 0.5f;
 
-				vecVertices[0].pos = math::Vector3(0.f, 0.f, 0.f);
-				vecVertices[0].normal = math::Vector3(0.f, 1.f, 0.f);
-				vecVertices[0].uv = math::Vector2(0.5f, 0.5f);
+				vertices[0].pos = math::float3(0.f, 0.f, 0.f);
+				vertices[0].normal = math::float3(0.f, 1.f, 0.f);
+				vertices[0].uv = math::float2(0.5f, 0.5f);
 
-				vecVertices[1].pos = math::Vector3(fHalf, 0.f, radius);
-				vecVertices[1].normal = math::Vector3(0.f, 1.f, 0.f);
-				vecVertices[1].uv = math::Vector2(0.75f, 0.f);
+				vertices[1].pos = math::float3(fHalf, 0.f, radius);
+				vertices[1].normal = math::float3(0.f, 1.f, 0.f);
+				vertices[1].uv = math::float2(0.75f, 0.f);
 
-				vecVertices[2].pos = math::Vector3(radius, 0.f, 0.f);
-				vecVertices[2].normal = math::Vector3(0.f, 1.f, 0.f);
-				vecVertices[2].uv = math::Vector2(1.f, 0.5f);
+				vertices[2].pos = math::float3(radius, 0.f, 0.f);
+				vertices[2].normal = math::float3(0.f, 1.f, 0.f);
+				vertices[2].uv = math::float2(1.f, 0.5f);
 
-				vecVertices[3].pos = math::Vector3(fHalf, 0.f, -radius);
-				vecVertices[3].normal = math::Vector3(0.f, 1.f, 0.f);
-				vecVertices[3].uv = math::Vector2(0.75f, 1.f);
+				vertices[3].pos = math::float3(fHalf, 0.f, -radius);
+				vertices[3].normal = math::float3(0.f, 1.f, 0.f);
+				vertices[3].uv = math::float2(0.75f, 1.f);
 
-				vecVertices[4].pos = math::Vector3(-fHalf, 0.f, -radius);
-				vecVertices[4].normal = math::Vector3(0.f, 1.f, 0.f);
-				vecVertices[4].uv = math::Vector2(0.25f, 1.f);
+				vertices[4].pos = math::float3(-fHalf, 0.f, -radius);
+				vertices[4].normal = math::float3(0.f, 1.f, 0.f);
+				vertices[4].uv = math::float2(0.25f, 1.f);
 
-				vecVertices[5].pos = math::Vector3(-radius, 0.f, 0.f);
-				vecVertices[5].normal = math::Vector3(0.f, 1.f, 0.f);
-				vecVertices[5].uv = math::Vector2(0.f, 0.5f);
+				vertices[5].pos = math::float3(-radius, 0.f, 0.f);
+				vertices[5].normal = math::float3(0.f, 1.f, 0.f);
+				vertices[5].uv = math::float2(0.f, 0.5f);
 
-				vecVertices[6].pos = math::Vector3(-fHalf, 0.f, radius);
-				vecVertices[6].normal = math::Vector3(0.f, 1.f, 0.f);
-				vecVertices[6].uv = math::Vector2(0.25f, 0.f);
+				vertices[6].pos = math::float3(-fHalf, 0.f, radius);
+				vertices[6].normal = math::float3(0.f, 1.f, 0.f);
+				vertices[6].uv = math::float2(0.25f, 0.f);
 
-				vecIndices[0] = 2;		vecIndices[1] = 1;		vecIndices[2] = 0;
-				vecIndices[3] = 3;		vecIndices[4] = 2;		vecIndices[5] = 0;
-				vecIndices[6] = 4;		vecIndices[7] = 3;		vecIndices[8] = 0;
-				vecIndices[9] = 5;		vecIndices[10] = 4;		vecIndices[11] = 0;
-				vecIndices[12] = 6;		vecIndices[13] = 5;		vecIndices[14] = 0;
-				vecIndices[15] = 1;		vecIndices[16] = 6;		vecIndices[17] = 0;
+				indices[0] = 2;		indices[1] = 1;		indices[2] = 0;
+				indices[3] = 3;		indices[4] = 2;		indices[5] = 0;
+				indices[6] = 4;		indices[7] = 3;		indices[8] = 0;
+				indices[9] = 5;		indices[10] = 4;		indices[11] = 0;
+				indices[12] = 6;		indices[13] = 5;		indices[14] = 0;
+				indices[15] = 1;		indices[16] = 6;		indices[17] = 0;
 
-				return InitBuffer(ppVertexBuffer, ppIndexBuffer, vecVertices, vecIndices, rhcoords, false);
+				SortBuffer(vertices, indices, rhcoords, false);
+
+				return true;
 			}
 
-			bool CreateCapsule(IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer, float fRadius, float fHeight, int nSubdivisionHeight, int nSegments)
+			bool CreateCapsule(std::vector<VertexPosTexNor>& vertices, std::vector<uint32_t>& indices, float fRadius, float fHeight, int nSubdivisionHeight, int nSegments)
 			{
 				if (fRadius <= 0.f)
 				{
@@ -1514,8 +1318,8 @@ namespace eastengine
 					nSegments = 12;
 				}
 
-				std::vector<VertexPosTexNor> vecVertices;
-				std::vector<uint32_t> vecIndices;
+				vertices.clear();
+				indices.clear();
 
 				auto CalculateRing = [&](int segments, float r, float y, float dy)
 				{
@@ -1527,18 +1331,18 @@ namespace eastengine
 						float z = sin((math::PI * 2.f) * i * segIncr) * r;
 
 						VertexPosTexNor vertex;
-						vertex.pos = math::Vector3(fRadius * x, fRadius * y + fHeight * dy, fRadius * z);
-						vertex.normal = math::Vector3(x, y, z);
-						vertex.uv = math::Vector2(i * segIncr, 0.5f - ((fRadius * y + fHeight * dy) / (2.f * fRadius + fHeight)));
+						vertex.pos = math::float3(fRadius * x, fRadius * y + fHeight * dy, fRadius * z);
+						vertex.normal = math::float3(x, y, z);
+						vertex.uv = math::float2(i * segIncr, 0.5f - ((fRadius * y + fHeight * dy) / (2.f * fRadius + fHeight)));
 
-						vecVertices.push_back(vertex);
+						vertices.emplace_back(vertex);
 					}
 				};
 
-				int nRingsBody = nSubdivisionHeight + 1;
-				int nRingsTotal = nSubdivisionHeight + nRingsBody;
+				const int nRingsBody = nSubdivisionHeight + 1;
+				const int nRingsTotal = nSubdivisionHeight + nRingsBody;
 
-				float fBodyIncr = 1.f / static_cast<float>(nRingsBody - 1);
+				const float fBodyIncr = 1.f / static_cast<float>(nRingsBody - 1);
 				float fRingIncr = 1.f / static_cast<float>(nSubdivisionHeight - 1);
 				for (int i = 0; i < nSubdivisionHeight / 2; ++i)
 				{
@@ -1559,119 +1363,117 @@ namespace eastengine
 				{
 					for (int j = 0; j < nSegments - 1; ++j)
 					{
-						vecIndices.push_back(i * nSegments + (j + 1));
-						vecIndices.push_back(i * nSegments + (j + 0));
-						vecIndices.push_back((i + 1) * nSegments + (j + 1));
+						indices.push_back(i * nSegments + (j + 1));
+						indices.push_back(i * nSegments + (j + 0));
+						indices.push_back((i + 1) * nSegments + (j + 1));
 						
-						vecIndices.push_back((i + 1) * nSegments + (j + 0));
-						vecIndices.push_back((i + 1) * nSegments + (j + 1));
-						vecIndices.push_back(i * nSegments + j);
+						indices.push_back((i + 1) * nSegments + (j + 0));
+						indices.push_back((i + 1) * nSegments + (j + 1));
+						indices.push_back(i * nSegments + j);
 					}
 				}
 
-				return InitBuffer(ppVertexBuffer, ppIndexBuffer, vecVertices, vecIndices, false, false);
+				SortBuffer(vertices, indices, false, false);
+
+				return true;
 			}
 
-			bool CreateGrid(IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer, float fGridSizeX, float fGridSizeZ, uint32_t nBlockCountWidth, uint32_t nBlockCountLength)
+			bool CreateGrid(std::vector<VertexPosTexNor>& vertices, std::vector<uint32_t>& indices, float fGridSizeX, float fGridSizeZ, uint32_t nBlockCountWidth, uint32_t nBlockCountLength)
 			{
-				std::vector<VertexPosTexNor> vecVertices;
-				std::vector<uint32_t> vecIndices;
+				vertices.clear();
+				indices.clear();
 
-				vecVertices.reserve((nBlockCountWidth + 1) * (nBlockCountLength + 1));
-				vecIndices.reserve(3 * 2 * nBlockCountWidth * nBlockCountLength);
+				vertices.reserve((nBlockCountWidth + 1) * (nBlockCountLength + 1));
+				indices.reserve(3 * 2 * nBlockCountWidth * nBlockCountLength);
 
-				float fStartX = fGridSizeX * -0.5f;
-				float fStartZ = fGridSizeZ * -0.5f;
-				float fEachSizeX = fGridSizeX / nBlockCountWidth;
-				float fEachSizeZ = fGridSizeZ / nBlockCountLength;
+				const float fStartX = fGridSizeX * -0.5f;
+				const float fStartZ = fGridSizeZ * -0.5f;
+				const float fEachSizeX = fGridSizeX / nBlockCountWidth;
+				const float fEachSizeZ = fGridSizeZ / nBlockCountLength;
 
 				for (uint32_t i = 0; i <= nBlockCountLength; ++i)
 				{
 					for (uint32_t j = 0; j <= nBlockCountWidth; ++j)
 					{
 						VertexPosTexNor vertex;
-						vertex.pos = math::Vector3(fStartX + j * fEachSizeX, 0.f, fStartZ + i * fEachSizeZ);
-						vertex.normal = math::Vector3(0.f, 1.f, 0.f);
-						vertex.uv = math::Vector2((float)j / nBlockCountWidth, (float)i / nBlockCountLength);
+						vertex.pos = math::float3(fStartX + j * fEachSizeX, 0.f, fStartZ + i * fEachSizeZ);
+						vertex.normal = math::float3(0.f, 1.f, 0.f);
+						vertex.uv = math::float2((float)j / nBlockCountWidth, (float)i / nBlockCountLength);
 
-						vecVertices.push_back(vertex);
+						vertices.emplace_back(vertex);
 					}
 				}
 
-				uint32_t dwWidth = nBlockCountWidth + 1;
+				const uint32_t dwWidth = nBlockCountWidth + 1;
 				for (uint32_t i = 0; i < nBlockCountLength; ++i)
 				{
 					for (uint32_t j = 0; j < nBlockCountWidth; ++j)
 					{
-						vecIndices.push_back((dwWidth * i) + 0 + j);
-						vecIndices.push_back((dwWidth * i) + dwWidth + j);
-						vecIndices.push_back((dwWidth * i) + (dwWidth + 1) + j);
+						indices.emplace_back((dwWidth * i) + 0 + j);
+						indices.emplace_back((dwWidth * i) + dwWidth + j);
+						indices.emplace_back((dwWidth * i) + (dwWidth + 1) + j);
 
-						vecIndices.push_back((dwWidth * i) + 0 + j);
-						vecIndices.push_back((dwWidth * i) + (dwWidth + 1) + j);
-						vecIndices.push_back((dwWidth * i) + 1 + j);
+						indices.emplace_back((dwWidth * i) + 0 + j);
+						indices.emplace_back((dwWidth * i) + (dwWidth + 1) + j);
+						indices.emplace_back((dwWidth * i) + 1 + j);
 					}
 				}
 
-				return InitBuffer(ppVertexBuffer, ppIndexBuffer, vecVertices, vecIndices, false, false);
+				SortBuffer(vertices, indices, false, false);
+
+				return true;
 			}
 
-			bool CreatePlane(IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer, float fEachLengthX, float fEachLengthZ, int nTotalCountX, int nTotalCountZ)
+			bool CreatePlane(std::vector<VertexPosTexNor>& vertices, std::vector<uint32_t>& indices, float fEachLengthX, float fEachLengthZ, int nTotalCountX, int nTotalCountZ)
 			{
-				std::vector<VertexPosTexNor> vecVertices;
-				std::vector<uint32_t> vecIndices;
+				vertices.clear();
+				indices.clear();
 
-				vecVertices.reserve(4 * nTotalCountX * nTotalCountZ);
-				vecIndices.reserve(6 * nTotalCountX * nTotalCountZ);
+				vertices.reserve(4 * nTotalCountX * nTotalCountZ);
+				indices.reserve(6 * nTotalCountX * nTotalCountZ);
 
 				int nCnt = 0;
-				float fStartX = nTotalCountX * fEachLengthX * -0.5f;
-				float fStartZ = nTotalCountZ * fEachLengthZ * -0.5f;
+				const float fStartX = nTotalCountX * fEachLengthX * -0.5f;
+				const float fStartZ = nTotalCountZ * fEachLengthZ * -0.5f;
 				for (int i = 0; i < nTotalCountX; ++i)
 				{
 					for (int j = 0; j < nTotalCountZ; ++j)
 					{
-						vecVertices.push_back(VertexPosTexNor(math::Vector3(fStartX + i * fEachLengthX, 0.f, fStartZ + j * fEachLengthZ),
-							math::Vector2(0.f, 1.f), math::Vector3(0.f, 1.f, 0.f)));
-						vecVertices.push_back(VertexPosTexNor(math::Vector3(fStartX + i * fEachLengthX, 0.f, fStartZ + j * fEachLengthZ + fEachLengthZ),
-							math::Vector2(0.f, 0.f), math::Vector3(0.f, 1.f, 0.f)));
-						vecVertices.push_back(VertexPosTexNor(math::Vector3(fStartX + i * fEachLengthX + fEachLengthX, 0.f, fStartZ + j * fEachLengthZ),
-							math::Vector2(1.f, 1.f), math::Vector3(0.f, 1.f, 0.f)));
-						vecVertices.push_back(VertexPosTexNor(math::Vector3(fStartX + i * fEachLengthX + fEachLengthX, 0.f, fStartZ + j * fEachLengthZ + fEachLengthZ),
-							math::Vector2(1.f, 0.f), math::Vector3(0.f, 1.f, 0.f)));
+						vertices.emplace_back(math::float3(fStartX + i * fEachLengthX, 0.f, fStartZ + j * fEachLengthZ),
+							math::float2(0.f, 1.f), math::float3(0.f, 1.f, 0.f));
+						vertices.emplace_back(math::float3(fStartX + i * fEachLengthX, 0.f, fStartZ + j * fEachLengthZ + fEachLengthZ),
+							math::float2(0.f, 0.f), math::float3(0.f, 1.f, 0.f));
+						vertices.emplace_back(math::float3(fStartX + i * fEachLengthX + fEachLengthX, 0.f, fStartZ + j * fEachLengthZ),
+							math::float2(1.f, 1.f), math::float3(0.f, 1.f, 0.f));
+						vertices.emplace_back(math::float3(fStartX + i * fEachLengthX + fEachLengthX, 0.f, fStartZ + j * fEachLengthZ + fEachLengthZ),
+							math::float2(1.f, 0.f), math::float3(0.f, 1.f, 0.f));
 						nCnt += 4;
 
-						vecIndices.push_back(nCnt - 1);
-						vecIndices.push_back(nCnt - 3);
-						vecIndices.push_back(nCnt - 4);
-						vecIndices.push_back(nCnt - 2);
-						vecIndices.push_back(nCnt - 1);
-						vecIndices.push_back(nCnt - 4);
+						indices.emplace_back(nCnt - 1);
+						indices.emplace_back(nCnt - 3);
+						indices.emplace_back(nCnt - 4);
+						indices.emplace_back(nCnt - 2);
+						indices.emplace_back(nCnt - 1);
+						indices.emplace_back(nCnt - 4);
 					}
 				}
 
-				return InitBuffer(ppVertexBuffer, ppIndexBuffer, vecVertices, vecIndices, false, false);
+				SortBuffer(vertices, indices, false, false);
+
+				return true;
 			}
 
 			// Mesh Simplification
 			// code by https://github.com/sp4cerat/Fast-Quadric-Mesh-Simplification
 			namespace Simplify
 			{
-				struct Vector3
-				{
-					float x, y, z;
-				};
-
 				struct vec3f
 				{
 					float x, y, z;
 
-					inline vec3f(void) {}
+					vec3f(void) {}
 
-					//inline vec3f operator =( math::Vector3 a )
-					// { vec3f b ; b.x = a.x; b.y = a.y; b.z = a.z; return b;}
-
-					inline vec3f(math::Vector3 a)
+					vec3f(const math::float3& a)
 					{
 						x = a.x; y = a.y; z = a.z;
 					}
@@ -1701,7 +1503,7 @@ namespace eastengine
 						return vec3f(x * a.x, y * a.y, z * a.z);
 					}
 
-					inline vec3f operator = (const math::Vector3 a)
+					inline vec3f operator = (const math::float3 a)
 					{
 						x = a.x; y = a.y; z = a.z; return *this;
 					}
@@ -1916,7 +1718,7 @@ namespace eastengine
 				// Helper functions
 
 				float vertex_error(SymetricMatrix q, float x, float y, float z);
-				float calculate_error(int id_v1, int id_v2, vec3f& p_result, math::Vector2* pOut_f2UV, math::Vector3* pOut_f3Normal);
+				float calculate_error(int id_v1, int id_v2, vec3f& p_result, math::float2* pOut_f2UV, math::float3* pOut_f3Normal);
 				bool flipped(vec3f p, int i0, int i1, Vertex& v0, Vertex& v1, std::vector<int>& deleted);
 				void update_triangles(int i0, Vertex& v, std::vector<int>& deleted, int& deleted_triangles);
 				void update_mesh(int iteration);
@@ -2042,8 +1844,8 @@ namespace eastengine
 
 									// Compute vertex to collapse to
 									vec3f p;
-									math::Vector2 uv;
-									math::Vector3 normal;
+									math::float2 uv;
+									math::float3 normal;
 									calculate_error(i0, i1, p, &uv, &normal);
 
 									deleted0.resize(v0.tcount); // normals temporarily
@@ -2058,7 +1860,7 @@ namespace eastengine
 
 									// not flipped, so remove edge												
 									v0.p = p;
-									v0.vertex.pos = math::Vector3(p.x, p.y, p.z);
+									v0.vertex.pos = math::float3(p.x, p.y, p.z);
 									v0.vertex.uv = uv;
 									v0.vertex.normal = normal;
 									v0.q = v1.q + v0.q;
@@ -2094,7 +1896,7 @@ namespace eastengine
 
 					for (size_t i = 0; i < vertices.size(); ++i)
 					{
-						out_vecVertices.emplace_back(math::Vector3(vertices[i].p.x, vertices[i].p.y, vertices[i].p.z),
+						out_vecVertices.emplace_back(math::float3(vertices[i].p.x, vertices[i].p.y, vertices[i].p.z),
 							vertices[i].vertex.uv, vertices[i].vertex.normal);
 					}
 
@@ -2102,9 +1904,9 @@ namespace eastengine
 					{
 						if (triangles[i].deleted == false)
 						{
-							out_vecVertices[triangles[i].v[0]].normal = math::Vector3(triangles[i].n.x, triangles[i].n.y, triangles[i].n.z);
-							out_vecVertices[triangles[i].v[1]].normal = math::Vector3(triangles[i].n.x, triangles[i].n.y, triangles[i].n.z);
-							out_vecVertices[triangles[i].v[2]].normal = math::Vector3(triangles[i].n.x, triangles[i].n.y, triangles[i].n.z);
+							out_vecVertices[triangles[i].v[0]].normal = math::float3(triangles[i].n.x, triangles[i].n.y, triangles[i].n.z);
+							out_vecVertices[triangles[i].v[1]].normal = math::float3(triangles[i].n.x, triangles[i].n.y, triangles[i].n.z);
+							out_vecVertices[triangles[i].v[2]].normal = math::float3(triangles[i].n.x, triangles[i].n.y, triangles[i].n.z);
 
 							out_vecIndices.emplace_back(triangles[i].v[0]);
 							out_vecIndices.emplace_back(triangles[i].v[1]);
@@ -2401,7 +2203,7 @@ namespace eastengine
 
 				// Error for one edge
 
-				float calculate_error(int id_v1, int id_v2, vec3f& p_result, math::Vector2* pOut_f2UV, math::Vector3* pOut_f3Normal)
+				float calculate_error(int id_v1, int id_v2, vec3f& p_result, math::float2* pOut_f2UV, math::float3* pOut_f3Normal)
 				{
 					// compute interpolated vertex 
 					SymetricMatrix q = vertices[id_v1].q + vertices[id_v2].q;
@@ -2458,6 +2260,137 @@ namespace eastengine
 					return error;
 				}
 			};
+
+			class DebugModel
+			{
+			public:
+				DebugModel()
+				{
+					m_pVertexBuffer.fill(nullptr);
+					m_pIndexBuffer.fill(nullptr);
+				}
+
+				~DebugModel()
+				{
+					Release();
+				}
+
+			public:
+				bool Initialize()
+				{
+					bool isSuccess = false;
+
+					isSuccess = CreateBox();
+					assert(isSuccess);
+
+					isSuccess = CreateSphere();
+					assert(isSuccess);
+
+					if (isSuccess == false)
+					{
+						Release();
+						return false;
+					}
+
+					return true;
+				}
+
+				void Release()
+				{
+					for (auto& pVertexBuffer : m_pVertexBuffer)
+					{
+						ReleaseResource(&pVertexBuffer);
+					}
+					m_pVertexBuffer.fill(nullptr);
+
+					for (auto& pIndexBuffer : m_pIndexBuffer)
+					{
+						ReleaseResource(&pIndexBuffer);
+					}
+					m_pIndexBuffer.fill(nullptr);
+				}
+
+				void Get(EmDebugModel emDebugModel, IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer)
+				{
+					*ppVertexBuffer = m_pVertexBuffer[emDebugModel];
+					*ppIndexBuffer = m_pIndexBuffer[emDebugModel];
+				}
+
+			private:
+				bool CreateBox()
+				{
+					std::vector<VertexPosTexNor> vertices;
+					std::vector<uint32_t> indices;
+					
+					geometry::CreateCube(vertices, indices, 0.5f, false);
+
+					std::vector<VertexPos> posVertices;
+					posVertices.reserve(vertices.size());
+					for (auto& vertex : vertices)
+					{
+						posVertices.emplace_back(vertex.pos);
+					}
+
+					m_pVertexBuffer[EmDebugModel::eBox] = CreateVertexBuffer(reinterpret_cast<uint8_t*>(posVertices.data()), static_cast<uint32_t>(posVertices.size()), sizeof(VertexPos));
+					m_pIndexBuffer[EmDebugModel::eBox] = CreateIndexBuffer(reinterpret_cast<uint8_t*>(indices.data()), static_cast<uint32_t>(indices.size()), sizeof(uint32_t));
+
+					return true;
+				}
+
+				bool CreateSphere()
+				{
+					std::vector<VertexPosTexNor> vertices;
+					std::vector<uint32_t> indices;
+
+					geometry::CreateSphere(vertices, indices, 1.f, 6);
+
+					std::vector<VertexPos> posVertices;
+					posVertices.reserve(vertices.size());
+					for (auto& vertex : vertices)
+					{
+						posVertices.emplace_back(vertex.pos);
+					}
+
+					m_pVertexBuffer[EmDebugModel::eSphere] = CreateVertexBuffer(reinterpret_cast<uint8_t*>(posVertices.data()), static_cast<uint32_t>(posVertices.size()), sizeof(VertexPos));
+					m_pIndexBuffer[EmDebugModel::eSphere] = CreateIndexBuffer(reinterpret_cast<uint8_t*>(indices.data()), static_cast<uint32_t>(indices.size()), sizeof(uint32_t));
+
+					return true;
+				}
+
+			private:
+				std::array<IVertexBuffer*, EmDebugModel::eCount> m_pVertexBuffer;
+				std::array<IIndexBuffer*, EmDebugModel::eCount> m_pIndexBuffer;
+			};
+
+			std::unique_ptr<DebugModel> s_pDebugModel;
+
+			bool Initialize()
+			{
+				if (s_pDebugModel != nullptr)
+					return true;
+
+				s_pDebugModel = std::make_unique<DebugModel>();
+				if (s_pDebugModel->Initialize() == false)
+				{
+					Release();
+					return false;
+				}
+
+				return true;
+			}
+
+			void Release()
+			{
+				if (s_pDebugModel == nullptr)
+					return;
+
+				s_pDebugModel.reset();
+			}
+
+			void GetDebugModel(EmDebugModel emDebugModel, IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer)
+			{
+				s_pDebugModel->Get(emDebugModel, ppVertexBuffer, ppIndexBuffer);
+			}
 		}
 	}
 }

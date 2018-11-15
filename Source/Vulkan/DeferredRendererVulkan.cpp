@@ -54,7 +54,7 @@ namespace eastengine
 					math::Matrix matInvView;
 					math::Matrix matInvProj;
 
-					math::Vector3 f3CameraPos;
+					math::float3 f3CameraPos;
 					int nEnableShadowCount{ 0 };
 				};
 
@@ -368,7 +368,7 @@ namespace eastengine
 			{
 				const VkExtent2D& swapchainExtent = Device::GetInstance()->GetSwapChainExtent2D();
 
-				math::UInt2 n2Size(swapchainExtent.width, swapchainExtent.height);
+				math::uint2 n2Size(swapchainExtent.width, swapchainExtent.height);
 				m_pRenderTarget = std::make_unique<ImageBuffer>(n2Size, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
 
 				const VkImageView attachments[] =

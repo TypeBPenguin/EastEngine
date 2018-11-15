@@ -66,7 +66,7 @@ namespace eastengine
 			public:
 				HWND GetHwnd() const { return m_hWnd; }
 				HINSTANCE GetHInstance() const { return m_hInstance; }
-				const math::UInt2& GetScreenSize() const { return m_n2ScreenSize; }
+				const math::uint2& GetScreenSize() const { return m_n2ScreenSize; }
 				const D3D12_VIEWPORT* GetViewport() const { return &m_viewport; }
 				const math::Rect* GetScissorRect() const { return &m_scissorRect; }
 
@@ -1135,7 +1135,7 @@ namespace eastengine
 				m_pImpl->RemoveMessageHandler(strName);
 			}
 
-			const math::UInt2& Device::GetScreenSize() const
+			const math::uint2& Device::GetScreenSize() const
 			{
 				return m_pImpl->GetScreenSize();
 			}

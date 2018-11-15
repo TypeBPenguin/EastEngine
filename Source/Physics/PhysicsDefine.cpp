@@ -124,7 +124,7 @@ namespace eastengine
 				if (pShapeInfo == nullptr)
 					return nullptr;
 
-				const math::Vector3* pVertices = pShapeInfo->pVertices;
+				const math::float3* pVertices = pShapeInfo->pVertices;
 				uint32_t nVertexCount = pShapeInfo->nVertexCount;
 				const uint32_t* pIndices = pShapeInfo->pIndices;
 				uint32_t nIndexCount = pShapeInfo->nIndexCount;
@@ -174,7 +174,7 @@ namespace eastengine
 				if (pShapeInfo == nullptr)
 					return nullptr;
 
-				const math::Vector3* pVertices = pShapeInfo->pVertices;
+				const math::float3* pVertices = pShapeInfo->pVertices;
 				uint32_t nVertexCount = pShapeInfo->nVertexCount;
 
 				const uint32_t* pIndices = pShapeInfo->pIndices;
@@ -211,9 +211,9 @@ namespace eastengine
 					btTriangleMesh* pTriangle = new btTriangleMesh;
 					for (uint32_t i = 0; i < nVertexCount; i += 3)
 					{
-						const math::Vector3& v1 = pVertices[i];
-						const math::Vector3& v2 = pVertices[i + 1];
-						const math::Vector3& v3 = pVertices[i + 2];
+						const math::float3& v1 = pVertices[i];
+						const math::float3& v2 = pVertices[i + 1];
+						const math::float3& v3 = pVertices[i + 2];
 
 						pTriangle->addTriangle(math::ConvertToBt(v1), math::ConvertToBt(v2), math::ConvertToBt(v3));
 					}

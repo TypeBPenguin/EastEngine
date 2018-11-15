@@ -73,7 +73,7 @@ namespace eastengine
 				// 고치시오
 				assert(false);
 
-				//const math::Vector3* pVertexPos = reinterpret_cast<const math::Vector3*>(pVertexBuffer->GetVertexPosPtr());
+				//const math::float3* pVertexPos = reinterpret_cast<const math::float3*>(pVertexBuffer->GetVertexPosPtr());
 				//uint32_t nVertexCount = pVertexBuffer->GetVertexNum();
 				//
 				//const uint32_t* pIndices = static_cast<const uint32_t*>(pIndexBuffer->GetRawValuePtr());
@@ -117,7 +117,7 @@ namespace eastengine
 							//graphics::IModelNode* pModelNode = pModel->GetNode(i);
 							//
 							//modelRigidBody.rigidBodyProperty.shapeInfo.SetTriangleMesh(
-							//	reinterpret_cast<const math::Vector3*>(pModelNode->GetVertexBuffer()->GetVertexPosPtr()), pModelNode->GetVertexBuffer()->GetVertexNum(),
+							//	reinterpret_cast<const math::float3*>(pModelNode->GetVertexBuffer()->GetVertexPosPtr()), pModelNode->GetVertexBuffer()->GetVertexNum(),
 							//	pModelNode->GetIndexBuffer()->GetRawValuePtr(), pModelNode->GetIndexBuffer()->GetIndexNum());
 							//
 							//string::StringID strName;
@@ -160,7 +160,7 @@ namespace eastengine
 
 				math::Matrix matWorld = iter->second.pRigidBody->GetWorldMatrix();
 
-				math::Vector3 f3Pos, f3Scale;
+				math::float3 f3Pos, f3Scale;
 				math::Quaternion quat;
 				matWorld.Decompose(f3Scale, quat, f3Pos);
 
@@ -170,7 +170,7 @@ namespace eastengine
 					m_pOwner->SetRotation(quat);
 					m_pOwner->CalcWorldMatrix();
 
-					math::Vector3 f3Velocity = m_pOwner->GetVelocity();
+					math::float3 f3Velocity = m_pOwner->GetVelocity();
 					iter->second.pRigidBody->SetLinearVelocity(f3Velocity);
 				}
 

@@ -18,7 +18,7 @@ namespace eastengine
 				struct BloomFilterContents
 				{
 					//Needed for pixel offset
-					math::Vector2 InverseResolution;
+					math::float2 InverseResolution;
 
 					//The threshold of pixels that are brighter than that.
 					float Threshold{ 0.8f };
@@ -30,7 +30,7 @@ namespace eastengine
 					//How far we stretch the pixels
 					float StreakLength{ 1.f };
 
-					math::Vector2 padding;
+					math::float2 padding;
 				};
 
 				enum CBSlot
@@ -83,7 +83,7 @@ namespace eastengine
 				}
 
 				void SetBloomFilterContents(ID3D11DeviceContext* pDeviceContext, ConstantBuffer<BloomFilterContents>* pCB_BloomFilterContents, 
-					const math::Vector2& InverseResolution, float Threshold, float Radius, float Strength, float StreakLength)
+					const math::float2& InverseResolution, float Threshold, float Radius, float Strength, float StreakLength)
 				{
 					BloomFilterContents* pBloomFilterContents = pCB_BloomFilterContents->Map(pDeviceContext);
 
@@ -109,7 +109,7 @@ namespace eastengine
 				void Apply(RenderTarget* pSourceAndResult);
 
 			private:
-				RenderTarget* Sampling(Device* pDevice, ID3D11DeviceContext* pDeviceContext, const Options::BloomFilterConfig& bloomFilterConfig, shader::PSType emPSType, bool isResult, uint32_t nWidth, uint32_t nHeight, int nPass, const math::Vector2& f2InverseResolution, RenderTarget* pSource, RenderTarget* pResult = nullptr);
+				RenderTarget* Sampling(Device* pDevice, ID3D11DeviceContext* pDeviceContext, const Options::BloomFilterConfig& bloomFilterConfig, shader::PSType emPSType, bool isResult, uint32_t nWidth, uint32_t nHeight, int nPass, const math::float2& f2InverseResolution, RenderTarget* pSource, RenderTarget* pResult = nullptr);
 				void SetBloomPreset(Options::BloomFilterConfig::Presets emPreset);
 
 			private:
@@ -192,7 +192,7 @@ namespace eastengine
 				D3D11_TEXTURE2D_DESC sourceDesc{};
 				pSourceAndResult->GetDesc2D(&sourceDesc);
 
-				const math::UInt2 n2TargetSize(sourceDesc.Width / 2, sourceDesc.Height / 2);
+				const math::uint2 n2TargetSize(sourceDesc.Width / 2, sourceDesc.Height / 2);
 				m_fRadiusMultiplier = static_cast<float>(sourceDesc.Width) / static_cast<float>(sourceDesc.Height);
 
 				Device* pDeviceInstance = Device::GetInstance();
@@ -216,9 +216,9 @@ namespace eastengine
 				pDeviceContext->VSSetShader(m_pVertexShader, nullptr, 0);
 
 				ID3D11BlendState* pBlendState = pDeviceInstance->GetBlendState(EmBlendState::eOpacity);
-				pDeviceContext->OMSetBlendState(pBlendState, &math::Vector4::Zero.x, 0xffffffff);
+				pDeviceContext->OMSetBlendState(pBlendState, &math::float4::Zero.x, 0xffffffff);
 
-				const math::Vector2 f2InverseResolution(1.f / n2TargetSize.x, 1.f / n2TargetSize.y);
+				const math::float2 f2InverseResolution(1.f / n2TargetSize.x, 1.f / n2TargetSize.y);
 
 				shader::PSType emPSType = bloomFilterConfig.isEnableLuminance == true ? shader::eExtractLuminance : shader::eExtract;
 				RenderTarget* pMip0 = Sampling(pDeviceInstance, pDeviceContext, bloomFilterConfig, emPSType, true, n2TargetSize.x, n2TargetSize.y, 0, f2InverseResolution, pSourceAndResult);
@@ -230,7 +230,7 @@ namespace eastengine
 				RenderTarget* pMip5 = Sampling(pDeviceInstance, pDeviceContext, bloomFilterConfig, shader::eDownsample, false, n2TargetSize.x, n2TargetSize.y, 4, f2InverseResolution, pMip4, nullptr);
 
 				pBlendState = pDeviceInstance->GetBlendState(EmBlendState::eAlphaBlend);
-				pDeviceContext->OMSetBlendState(pBlendState, &math::Vector4::Zero.x, 0xffffffff);
+				pDeviceContext->OMSetBlendState(pBlendState, &math::float4::Zero.x, 0xffffffff);
 
 				emPSType = bloomFilterConfig.isEnableLuminance == true ? shader::eUpsampleLuminance : shader::eUpsample;
 				pMip4 = Sampling(pDeviceInstance, pDeviceContext, bloomFilterConfig, emPSType, false, n2TargetSize.x, n2TargetSize.y, 4, f2InverseResolution, pMip5, pMip4);
@@ -240,7 +240,7 @@ namespace eastengine
 				pMip0 = Sampling(pDeviceInstance, pDeviceContext, bloomFilterConfig, emPSType, false, n2TargetSize.x, n2TargetSize.y, 0, f2InverseResolution, pMip1, pMip0);
 
 				pBlendState = pDeviceInstance->GetBlendState(EmBlendState::eAdditive);
-				pDeviceContext->OMSetBlendState(pBlendState, &math::Vector4::Zero.x, 0xffffffff);
+				pDeviceContext->OMSetBlendState(pBlendState, &math::float4::Zero.x, 0xffffffff);
 
 				Sampling(pDeviceInstance, pDeviceContext, bloomFilterConfig, shader::eApply, true, n2TargetSize.x, n2TargetSize.y, 0, f2InverseResolution, pMip0, pSourceAndResult);
 
@@ -252,7 +252,7 @@ namespace eastengine
 				pDeviceInstance->ReleaseRenderTargets(&pMip5, 1, false);
 			}
 
-			RenderTarget* BloomFilter::Impl::Sampling(Device* pDevice, ID3D11DeviceContext* pDeviceContext, const Options::BloomFilterConfig& bloomFilterConfig, shader::PSType emPSType, bool isResult, uint32_t nWidth, uint32_t nHeight, int nPass, const math::Vector2& f2InverseResolution, RenderTarget* pSource, RenderTarget* pResult)
+			RenderTarget* BloomFilter::Impl::Sampling(Device* pDevice, ID3D11DeviceContext* pDeviceContext, const Options::BloomFilterConfig& bloomFilterConfig, shader::PSType emPSType, bool isResult, uint32_t nWidth, uint32_t nHeight, int nPass, const math::float2& f2InverseResolution, RenderTarget* pSource, RenderTarget* pResult)
 			{
 				const std::wstring wstrDebugName = string::MultiToWide(shader::GetBloomFilterPSTypeToString(emPSType));
 				eastengine::graphics::dx11::util::DXProfiler profiler(wstrDebugName.c_str());

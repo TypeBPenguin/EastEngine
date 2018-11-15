@@ -160,9 +160,9 @@ namespace eastengine
 			math::Color colorAlbedo{ math::Color::White };
 			math::Color colorEmissive{ math::Color::Transparent };
 
-			math::Vector4 f4PaddingRoughMetEmi;
-			math::Vector4 f4SurSpecTintAniso;
-			math::Vector4 f4SheenTintClearcoatGloss;
+			math::float4 f4PaddingRoughMetEmi;
+			math::float4 f4SurSpecTintAniso;
+			math::float4 f4SheenTintClearcoatGloss;
 
 			float fStippleTransparencyFactor{ 0.f };
 			float fTessellationFactor{ 256.f };

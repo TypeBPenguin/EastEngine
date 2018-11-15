@@ -188,11 +188,11 @@ void SceneStudio::Enter()
 	ImGuiIO& io = ImGui::GetIO();
 	io.Fonts->AddFontFromFileTTF(strFontPath.c_str(), 16.f, nullptr, io.Fonts->GetGlyphRangesKorean());
 
-	graphics::Camera::GetInstance()->SetView(math::Vector3(0.f, 1.f, -10.f), math::Vector3(0.f, 50.f, 0.f), math::Vector3(0.f, 1.f, 0.f));
+	graphics::Camera::GetInstance()->SetView(math::float3(0.f, 1.f, -10.f), math::float3(0.f, 50.f, 0.f), math::float3(0.f, 1.f, 0.f));
 
 	{
-		math::Vector3 f3LightPosition(0.f, 500.f, -500.f);
-		math::Vector3 f3LightDirection(math::Vector3::Zero - f3LightPosition);
+		math::float3 f3LightPosition(0.f, 500.f, -500.f);
+		math::float3 f3LightDirection(math::float3::Zero - f3LightPosition);
 		f3LightDirection.Normalize();
 
 		graphics::CascadedShadowsConfig config;
@@ -204,8 +204,8 @@ void SceneStudio::Enter()
 		pLight->SetEnableShadow(false);
 	}
 	//{
-	//	math::Vector3 f3LightPosition(500.f, 500.f, 0.f);
-	//	math::Vector3 f3LightDirection(math::Vector3::Zero - f3LightPosition);
+	//	math::float3 f3LightPosition(500.f, 500.f, 0.f);
+	//	math::float3 f3LightDirection(math::float3::Zero - f3LightPosition);
 	//	f3LightDirection.Normalize();
 	//
 	//	graphics::CascadedShadowsConfig config;
@@ -300,7 +300,7 @@ void SceneStudio::Enter()
 
 		graphics::ParticleDecalAttributes attributes;
 		attributes.strDecalName = "TestDecal";
-		attributes.f3Scale = math::Vector3(2.f, 1.f, 2.f);
+		attributes.f3Scale = math::float3(2.f, 1.f, 2.f);
 		attributes.pMaterialInfo = &materialInfo;
 
 		graphics::IParticleDecal::Create(attributes);;
@@ -338,7 +338,7 @@ void SceneStudio::Enter()
 
 	//		gameobject::IActor* pActor = gameobject::ActorManager::GetInstance()->CreateActor("TestBox");
 
-	//		math::Vector3 f3Pos;
+	//		math::float3 f3Pos;
 	//		f3Pos.x = -4.f + (i % 5) * 3.f;
 	//		f3Pos.y = 100.5f + (j * 3.f);
 	//		f3Pos.z = -4.f + (i / 5) * 3.f;
@@ -376,7 +376,7 @@ void SceneStudio::Enter()
 	//		prop.fRestitution = 0.5f;
 	//		prop.strName.Format("TestBox_RigidBody%d", i).c_str();
 
-	//		prop.shapeInfo.SetBox(math::Vector3(1.f));
+	//		prop.shapeInfo.SetBox(math::float3(1.f));
 	//		//prop.shapeInfo.SetCapsule(math::Random(0.5f, 1.f), math::Random(1.f, 2.f));
 	//		prop.nCollisionFlag = physics::EmCollision::eCharacterObject;
 	//		prop.f3OriginPos = f3Pos;
@@ -393,10 +393,10 @@ void SceneStudio::Enter()
 	
 			math::Color lightColor(math::Random(0.f, 1.f), math::Random(0.f, 1.f), math::Random(0.f, 1.f), 1.f);
 	
-			math::Vector3 f3Position(-50.f + 10.f * i, 5.f, 0.f);
-			//math::Vector3 f3Position(0.f, 5.f, 0.f);
-			math::Vector3 f3Direction = math::Vector3(0.f, 0.f, 0.f) - math::Vector3(0.f, 1.f, math::Random(-2.f, 2.f));
-			//math::Vector3 f3Direction = math::Vector3(0.f, 0.f, 0.f) - math::Vector3(0.f, 1.f, -2.f);
+			math::float3 f3Position(-50.f + 10.f * i, 5.f, 0.f);
+			//math::float3 f3Position(0.f, 5.f, 0.f);
+			math::float3 f3Direction = math::float3(0.f, 0.f, 0.f) - math::float3(0.f, 1.f, math::Random(-2.f, 2.f));
+			//math::float3 f3Direction = math::float3(0.f, 0.f, 0.f) - math::float3(0.f, 1.f, -2.f);
 			f3Direction.Normalize();
 	
 			Contents::Sun* pSun = new Contents::Sun;
@@ -410,7 +410,7 @@ void SceneStudio::Enter()
 
 			//graphics::ILight* pPointLight = graphics::ILight::CreatePointLight(strName, f3Position, lightColor, 100.f * (i + 1), 0.1f, 0.2f, &shadowConfig);
 
-			if (pSun->Init(StrID::EastEngine_Sun, pSpotLight, 1.f, math::Vector3::Zero, math::Vector3(0.f, 0.f, 0.f), math::Vector3(0.f, 9500.f, 0.f)) == true)
+			if (pSun->Init(StrID::EastEngine_Sun, pSpotLight, 1.f, math::float3::Zero, math::float3(0.f, 0.f, 0.f), math::float3(0.f, 9500.f, 0.f)) == true)
 			{
 				pSun->GetActor()->SetPosition(f3Position);
 				m_vecSuns.push_back(pSun);
@@ -454,7 +454,7 @@ void SceneStudio::Enter()
 	}
 
 	auto CreateActor = [](const string::StringID& strActorName, const char* strModelFilePath, 
-		const math::Vector3& f3Position,
+		const math::float3& f3Position,
 		graphics::EmModelLoader::LoadType emModelType = graphics::EmModelLoader::eEast)
 	{
 		gameobject::IActor* pActor = gameobject::IActor::Create(strActorName);
@@ -493,7 +493,7 @@ void SceneStudio::Enter()
 		strPath = file::GetDataPath();
 		strPath.append("Actor\\UnityChan\\unitychan.emod");
 
-		math::Vector3 pos;
+		math::float3 pos;
 		pos.x = -10.f + (2.f * (i % 10));
 		pos.z = 0.f + (2.f * (i / 10));
 
@@ -563,7 +563,7 @@ void SceneStudio::Enter()
 
 		//gameobject::ComponentPhysics* pCompPhysics = static_cast<gameobject::ComponentPhysics*>(pActor->CreateComponent(gameobject::EmComponent::ePhysics));
 		
-		//math::Vector3 ragdollPos = pActor->GetPosition();
+		//math::float3 ragdollPos = pActor->GetPosition();
 		//pCompPhysics->m_pRagDoll->BuildBipadRagDoll(pModelInstance->GetSkeleton(), ragdollPos, math::Quaternion::Identity, 0.8f);
 		//pCompPhysics->m_pRagDoll->Start();
 
@@ -578,10 +578,10 @@ void SceneStudio::Enter()
 
 			pModelInstance_Attach = graphics::IModel::CreateInstance(loader, false);
 
-			math::Vector3 f3Pos = { 0.08f, 0.225f, -0.02f };
+			math::float3 f3Pos = { 0.08f, 0.225f, -0.02f };
 			math::Quaternion quat = math::Quaternion::CreateFromYawPitchRoll(math::ToRadians(90.f), math::ToRadians(180.f), 0.f);
 
-			pModelInstance->Attachment(pModelInstance_Attach, "Character1_LeftHand", math::Matrix::Compose(math::Vector3::One, quat, f3Pos));
+			pModelInstance->Attachment(pModelInstance_Attach, "Character1_LeftHand", math::Matrix::Compose(math::float3::One, quat, f3Pos));
 		}
 	}
 
@@ -589,7 +589,7 @@ void SceneStudio::Enter()
 		string::StringID name;
 		name.Format("KimJiYoon");
 
-		math::Vector3 pos;
+		math::float3 pos;
 		pos.x = 2.f;
 
 		strPath = file::GetDataPath();
@@ -622,7 +622,7 @@ void SceneStudio::Enter()
 		string::StringID name;
 		name.Format("2B_NierAutomata_%d", i);
 
-		math::Vector3 pos;
+		math::float3 pos;
 		pos.x = -2.f + (i * -2.f);
 
 		strPath = file::GetDataPath();
@@ -658,7 +658,7 @@ void SceneStudio::Enter()
 		string::StringID name;
 		name.Format("Delia");
 
-		math::Vector3 pos;
+		math::float3 pos;
 		pos.x = 4.f;
 
 		strPath = file::GetDataPath();
@@ -672,7 +672,7 @@ void SceneStudio::Enter()
 		string::StringID name;
 		name.Format("Misaki");
 
-		math::Vector3 pos;
+		math::float3 pos;
 		pos.x = 6.f;
 
 		strPath = file::GetDataPath();
@@ -686,7 +686,7 @@ void SceneStudio::Enter()
 		string::StringID name;
 		name.Format("Naotora");
 
-		math::Vector3 pos;
+		math::float3 pos;
 		pos.x = 8.f;
 
 		strPath = file::GetDataPath();
@@ -700,7 +700,7 @@ void SceneStudio::Enter()
 		string::StringID name;
 		name.Format("Naotora_ShirtDress");
 
-		math::Vector3 pos;
+		math::float3 pos;
 		pos.x = 10.f;
 
 		strPath = file::GetDataPath();
@@ -714,7 +714,7 @@ void SceneStudio::Enter()
 		string::StringID name;
 		name.Format("Bugeikloth");
 
-		math::Vector3 pos;
+		math::float3 pos;
 		pos.z = 10.f;
 
 		strPath = file::GetDataPath();
@@ -728,7 +728,7 @@ void SceneStudio::Enter()
 		string::StringID name;
 		name.Format("DarkKnight_Female");
 
-		math::Vector3 pos;
+		math::float3 pos;
 		pos.x = -4.f;
 		pos.z = 2.f;
 
@@ -744,7 +744,7 @@ void SceneStudio::Enter()
 		string::StringID name;
 		name.Format("DarkKnight_Transformed_Female");
 
-		math::Vector3 pos;
+		math::float3 pos;
 		pos.x = -2.f;
 		pos.z = 2.f;
 
@@ -760,7 +760,7 @@ void SceneStudio::Enter()
 		string::StringID name;
 		name.Format("Paladin_Female");
 
-		math::Vector3 pos;
+		math::float3 pos;
 		pos.x = 0.f;
 		pos.z = 2.f;
 
@@ -775,7 +775,7 @@ void SceneStudio::Enter()
 		string::StringID name;
 		name.Format("Paladin_Transformed_Female");
 
-		math::Vector3 pos;
+		math::float3 pos;
 		pos.x = 2.f;
 		pos.z = 2.f;
 
@@ -791,7 +791,7 @@ void SceneStudio::Enter()
 		string::StringID name;
 		name.Format("Evie_Temptress");
 
-		math::Vector3 pos;
+		math::float3 pos;
 		pos.x = 4.f;
 		pos.z = 2.f;
 
@@ -806,7 +806,7 @@ void SceneStudio::Enter()
 		string::StringID name;
 		name.Format("Lynn_DancingBlade");
 
-		math::Vector3 pos;
+		math::float3 pos;
 		pos.x = 6.f;
 		pos.z = 2.f;
 
@@ -820,7 +820,7 @@ void SceneStudio::Enter()
 		string::StringID name;
 		name.Format("ElementalSwordIce");
 
-		math::Vector3 pos;
+		math::float3 pos;
 		pos.y = 1.f;
 		pos.z -= 2.f;
 
@@ -1340,7 +1340,7 @@ void SceneStudio::ShowConfig()
 				Config::SetEnable("ColorGrading"_s, isApplyColorGrading);
 			}
 
-			math::Vector3 color = graphics::ColorGrading::GetInstance()->GetColorGuide();
+			math::float3 color = graphics::ColorGrading::GetInstance()->GetColorGuide();
 			if (ImGui::ColorEdit3("Guide", &color.x) == true)
 			{
 				graphics::ColorGrading::GetInstance()->SetColorGuide(color);
@@ -1637,7 +1637,7 @@ void SceneStudio::ShowConfig()
 			}
 		}
 
-		math::Vector3 f3LightPos = pActor->GetPosition();
+		math::float3 f3LightPos = pActor->GetPosition();
 		if (ImGui::DragFloat3("Light Position", reinterpret_cast<float*>(&f3LightPos.x), 0.01f, -1000000.f, 1000000.f) == true)
 		{
 			pActor->SetPosition(f3LightPos);
@@ -1648,19 +1648,19 @@ void SceneStudio::ShowConfig()
 	{
 		graphics::Camera* pCamera = graphics::Camera::GetInstance();
 
-		math::Vector3 f3CameraPos = pCamera->GetPosition();
+		math::float3 f3CameraPos = pCamera->GetPosition();
 		if (ImGui::DragFloat3("Camera Position", reinterpret_cast<float*>(&f3CameraPos.x), 0.01f, -1000000.f, 1000000.f) == true)
 		{
 			pCamera->SetPosition(f3CameraPos);
 		}
 
-		math::Vector3 f3CameraLookat = pCamera->GetLookat();
+		math::float3 f3CameraLookat = pCamera->GetLookat();
 		if (ImGui::DragFloat3("Camera Lookat", reinterpret_cast<float*>(&f3CameraLookat.x), 0.01f, -1000000.f, 1000000.f) == true)
 		{
 			pCamera->SetLookat(f3CameraLookat);
 		}
 
-		math::Vector3 f3Up = pCamera->GetUp();
+		math::float3 f3Up = pCamera->GetUp();
 		if (ImGui::DragFloat3("Camera Up", reinterpret_cast<float*>(&f3Up.x), 0.01f, -1.f, 1.f) == true)
 		{
 			pCamera->SetUp(f3Up);
@@ -2442,20 +2442,20 @@ void SceneStudio::RenderUI()
 					pActor->SetName(buf);
 				}
 
-				math::Vector3 f3Scale = pActor->GetScale();
+				math::float3 f3Scale = pActor->GetScale();
 				if (ImGui::DragFloat3("Scale", reinterpret_cast<float*>(&f3Scale.x), 0.01f, 0.01f, 100.f) == true)
 				{
 					pActor->SetScale(f3Scale);
 				}
 
-				math::Vector3 f3Pos = pActor->GetPosition();
+				math::float3 f3Pos = pActor->GetPosition();
 				if (ImGui::DragFloat3("Position", reinterpret_cast<float*>(&f3Pos.x), 0.01f, -1000000.f, 1000000.f) == true)
 				{
 					pActor->SetPosition(f3Pos);
 				}
 
-				static std::unordered_map<gameobject::IActor*, math::Vector3> umapActorRotation;
-				math::Vector3& f3Rotation = umapActorRotation[pActor];
+				static std::unordered_map<gameobject::IActor*, math::float3> umapActorRotation;
+				math::float3& f3Rotation = umapActorRotation[pActor];
 
 				if (ImGui::DragFloat3("Rotation", reinterpret_cast<float*>(&f3Rotation.x), 0.1f, -360.f, 360.f) == true)
 				{
@@ -2585,20 +2585,20 @@ void SceneStudio::RenderUI()
 									pModel->SetVisible(isVisibleModel);
 								}
 
-								math::Vector3 f3Scale = pModel->GetLocalScale();
+								math::float3 f3Scale = pModel->GetLocalScale();
 								if (ImGui::DragFloat3("Local Scale", reinterpret_cast<float*>(&f3Scale), 0.01f, 0.01f, 100.f) == true)
 								{
 									pModel->SetLocalScale(f3Scale);
 								}
 
-								math::Vector3 f3Pos = pModel->GetLocalPosition();
+								math::float3 f3Pos = pModel->GetLocalPosition();
 								if (ImGui::DragFloat3("Local Position", reinterpret_cast<float*>(&f3Pos), 0.01f, -1000000.f, 1000000.f) == true)
 								{
 									pModel->SetLocalPosition(f3Pos);
 								}
 
-								static std::unordered_map<graphics::IModel*, math::Vector3> umapMotionRotation;
-								math::Vector3& f3Rotation = umapMotionRotation[pModel];
+								static std::unordered_map<graphics::IModel*, math::float3> umapMotionRotation;
+								math::float3& f3Rotation = umapMotionRotation[pModel];
 								if (ImGui::DragFloat3("Local Rotation", reinterpret_cast<float*>(&f3Rotation), 0.1f, -360.f, 360.f) == true)
 								{
 									auto ResetRot = [](float& fRot)
@@ -2866,7 +2866,7 @@ void SceneStudio::RenderUI()
 									static char buf[128] = "Box";
 									ImGui::InputText("Name", buf, sizeof(buf));
 
-									static math::Vector3 f3Size(math::Vector3::One);
+									static math::float3 f3Size(math::float3::One);
 									ImGui::DragFloat3("Box Size", reinterpret_cast<float*>(&f3Size.x), 0.01f, 0.01f, 1000000.f);
 
 									if (ImGui::Button("Confirm") == true)

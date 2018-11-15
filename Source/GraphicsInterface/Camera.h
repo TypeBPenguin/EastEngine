@@ -14,7 +14,7 @@ namespace eastengine
 			virtual ~Camera();
 
 		public:
-			void SetView(const math::Vector3& vEye, const math::Vector3& vLookat, const math::Vector3& vUp);
+			void SetView(const math::float3& vEye, const math::float3& vLookat, const math::float3& vUp);
 			void SetProjection(uint32_t nWidth, uint32_t nHeight, float fFov, float fNear, float fFar, bool isUpsideDown = false);
 
 			void Update(float fElapsedTime);
@@ -30,27 +30,28 @@ namespace eastengine
 			void RotateAxisZ(float fAngle);
 
 		public:
-			void SetThirdView(const math::Vector3& vLookat);
+			void SetThirdView(const math::float3& vLookat);
 			bool IsThirdPersonCamera();
 
 			void SetDistance(float fDistance);
 			void AddDistance(float fOffset);
 
-			void SetPosition(const math::Vector3& vEye);
-			const math::Vector3& GetPosition() const;
+			void SetPosition(const math::float3& vEye);
+			const math::float3& GetPosition() const;
 
-			void SetLookat(const math::Vector3& vLookat);
-			const math::Vector3& GetLookat() const;
+			void SetLookat(const math::float3& vLookat);
+			const math::float3& GetLookat() const;
 
-			void SetUp(const math::Vector3& vUp);
-			const math::Vector3& GetUp() const;
+			void SetUp(const math::float3& vUp);
+			const math::float3& GetUp() const;
 
-			math::Vector3 GetDir() const;
+			math::float3 GetDir() const;
 
 			const math::Matrix& GetViewMatrix() const;
 			const math::Matrix& GetProjMatrix() const;
 			const math::Matrix& GetOrthoMatrix() const;
 
+			float GetFOV() const;
 			float GetFarClip() const;
 			float GetNearClip() const;
 

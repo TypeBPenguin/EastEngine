@@ -197,20 +197,20 @@ namespace eastengine
 
 					uint32_t nMipLevel = srDesc.Texture2D.MostDetailedMip;
 
-					math::Vector2 f2Result;
+					math::float2 f2Result;
 					f2Result.x = static_cast<float>(std::max(desc.Width / (1 << nMipLevel), 1u));
 					f2Result.y = static_cast<float>(std::max(desc.Height / (1 << nMipLevel), 1u));
 
 					return f2Result;
 				};
 
-				math::Vector2 OutputSize;
+				math::float2 OutputSize;
 
 				for (size_t i = 0; i < nSourceCount; ++i)
 				{
 					string::StringID strSizeName;
 					strSizeName.Format("InputSize%d", i);
-					math::Vector2 InputSize = GetSize(ppSource[i]);
+					math::float2 InputSize = GetSize(ppSource[i]);
 					m_pEffect->SetVector(strSizeName, InputSize);
 
 					string::StringID strTextureName;
@@ -261,7 +261,7 @@ namespace eastengine
 			// Bloom
 			IRenderTarget* pBloom = nullptr;
 			{
-				const math::UInt2& n2Size = pResult->GetSize();
+				const math::uint2& n2Size = pResult->GetSize();
 				RenderTargetDesc2D desc = pResult->GetDesc2D();
 				desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 				desc.Width = n2Size.x / 1;

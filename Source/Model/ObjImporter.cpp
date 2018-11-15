@@ -28,7 +28,7 @@ namespace eastengine
 			SafeRelease(m_pMtlImporter);
 		}
 
-		bool ObjImporter::LoadModel(IModel* pModel, const char* strFileName, const float fScaleFactor, uint32_t nLodMax, const LODReductionRate* pLodReductionRate)
+		bool ObjImporter::LoadModel(IModel* pModel, const char* strFileName, const float fScaleFactor, LOD emMaxLOD, const LODReductionRate* pLodReductionRate)
 		{
 			if (pModel == nullptr)
 				return false;
@@ -50,7 +50,7 @@ namespace eastengine
 
 			file.Close();
 
-			return buildModel(pModel, nLodMax, pLodReductionRate);
+			return buildModel(pModel, emMaxLOD, pLodReductionRate);
 		}
 
 		void ObjImporter::ClearData()
@@ -148,7 +148,7 @@ namespace eastengine
 				}
 				else if (temp == "v")
 				{
-					math::Vector3 f3Vertex;
+					math::float3 f3Vertex;
 					file.Read(&f3Vertex.x, 3);
 
 					// Invert the Z vertex to change to left hand system.
@@ -159,7 +159,7 @@ namespace eastengine
 				}
 				else if (temp == "vt")
 				{
-					math::Vector2 f2Texcoord;
+					math::float2 f2Texcoord;
 					file.Read(&f2Texcoord.x, 2);
 
 					f2Texcoord.y = 1.f - f2Texcoord.y;
@@ -168,7 +168,7 @@ namespace eastengine
 				}
 				else if (temp == "vn")
 				{
-					math::Vector3 f3Normal;
+					math::float3 f3Normal;
 					file.Read(&f3Normal.x, 3);
 
 					f3Normal.z = f3Normal.z * -1.f;
@@ -298,7 +298,7 @@ namespace eastengine
 			return true;
 		}
 
-		bool ObjImporter::buildModel(IModel* pIModel, uint32_t nLodMax, const LODReductionRate* pLodReductionRate)
+		bool ObjImporter::buildModel(IModel* pIModel, LOD emMaxLOD, const LODReductionRate* pLodReductionRate)
 		{
 			Model* pModel = static_cast<Model*>(pIModel);
 
@@ -419,20 +419,20 @@ namespace eastengine
 						vecIndexIn.emplace_back(func(vIdx, tIdx, nIdx));
 					}
 
-					uint32_t nLod = nLodMax;
+					LOD emLOD = emMaxLOD;
 					if (vecIndexIn.size() < 50)
 					{
-						nLod = 0;
+						emLOD = eLv0;
 					}
 
-					nSize = nLod + 1;
+					nSize = emLOD + 1;
 					for (size_t i = 0; i < nSize; ++i)
 					{
 						std::vector<VertexPosTexNor> vecVertexOut;
 						std::vector<uint32_t> vecIndexOut;
 
 						if (geometry::Simplify::GenerateSimplificationMesh(vecVertexIn, vecIndexIn,
-							vecVertexOut, vecIndexOut, lodReductionRate.fLv[i]) == false)
+							vecVertexOut, vecIndexOut, lodReductionRate.levels[i]) == false)
 							continue;
 
 						std::copy(vecVertexOut.begin(), vecVertexOut.end(), std::back_inserter(vecVertices[i]));
@@ -470,15 +470,15 @@ namespace eastengine
 					}
 				};
 
-				uint32_t nLodMax_Calc = 0;
-				uint32_t nSize = nLodMax + 1;
+				LOD emMaxLod = eLv0;
+				uint32_t nSize = emMaxLOD + 1;
 				for (uint32_t i = 0; i < nSize; ++i)
 				{
 					if (vecVertices[i].empty() || vecIndices[i].empty())
 						break;
 
 					ReleaseResource(&pVertexBuffer[i]);
-					pVertexBuffer[i] = CreateVertexBuffer(reinterpret_cast<uint8_t*>(vecVertices[i].data()), static_cast<uint32_t>(sizeof(VertexPosTexNor) * vecVertices[i].size()), static_cast<uint32_t>(vecVertices[i].size()));
+					pVertexBuffer[i] = CreateVertexBuffer(reinterpret_cast<uint8_t*>(vecVertices[i].data()), static_cast<uint32_t>(vecVertices[i].size()), sizeof(VertexPosTexNor));
 					if (pVertexBuffer[i] == nullptr)
 					{
 						FailFunc();
@@ -486,25 +486,26 @@ namespace eastengine
 					}
 
 					ReleaseResource(&pIndexBuffer[i]);
-					pIndexBuffer[i] = CreateIndexBuffer(reinterpret_cast<uint8_t*>(vecIndices[i].data()), static_cast<uint32_t>(sizeof(VertexPosTexNor) * vecIndices[i].size()), static_cast<uint32_t>(vecIndices[i].size()));
+					pIndexBuffer[i] = CreateIndexBuffer(reinterpret_cast<uint8_t*>(vecIndices[i].data()), static_cast<uint32_t>(vecIndices[i].size()), sizeof(VertexPosTexNor));
 					if (pIndexBuffer[i] == nullptr)
 					{
 						FailFunc();
 						return false;
 					}
 
-					nLodMax_Calc = i;
+					emMaxLod = static_cast<LOD>(i);
 				}
 
-				ModelNodeStatic* pModelStatic = new ModelNodeStatic(nLodMax_Calc);
+				ModelNodeStatic* pModelStatic = new ModelNodeStatic(emMaxLod);
 				pModelStatic->SetNodeName(iter.strGroupName.c_str());
 
-				nSize = nLodMax_Calc + 1;
+				nSize = emMaxLod + 1;
 				for (uint32_t i = 0; i < nSize; ++i)
 				{
-					pModelStatic->SetVertexBuffer(pVertexBuffer[i], i);
-					pModelStatic->SetIndexBuffer(pIndexBuffer[i], i);
-					pModelStatic->AddModelSubsets(vecModelSubsets[i], i);
+					const LOD emLOD = static_cast<LOD>(i);
+					pModelStatic->SetVertexBuffer(pVertexBuffer[i], emLOD);
+					pModelStatic->SetIndexBuffer(pIndexBuffer[i], emLOD);
+					pModelStatic->AddModelSubsets(vecModelSubsets[i], emLOD);
 				}
 
 				pModelStatic->AddMaterialArray(&vecMaterial.front(), vecMaterial.size());

@@ -146,10 +146,10 @@ namespace eastengine
 			if (m_pPhysics != nullptr)
 			{
 				const float fOffset = 100.f;
-				const math::Vector3 f3From(fPosX, m_property.transform.position.y + m_fHeightMax + fOffset, fPosZ);
-				const math::Vector3 f3To(fPosX, m_property.transform.position.y + m_fHeightMin - fOffset, fPosZ);
+				const math::float3 f3From(fPosX, m_property.transform.position.y + m_fHeightMax + fOffset, fPosZ);
+				const math::float3 f3To(fPosX, m_property.transform.position.y + m_fHeightMin - fOffset, fPosZ);
 
-				math::Vector3 f3HitPoint;
+				math::float3 f3HitPoint;
 				if (m_pPhysics->RayTest(f3From, f3To, &f3HitPoint) == true)
 					return f3HitPoint.y;
 
@@ -159,8 +159,8 @@ namespace eastengine
 			{
 				const math::Matrix matInvWorld = m_matWorld.Invert();
 
-				math::Vector3 f3Pos(fPosX, 0.f, fPosZ);
-				f3Pos = math::Vector3::Transform(f3Pos, matInvWorld);
+				math::float3 f3Pos(fPosX, 0.f, fPosZ);
+				f3Pos = math::float3::Transform(f3Pos, matInvWorld);
 
 				int i = static_cast<int>(f3Pos.x);
 				int j = static_cast<int>(f3Pos.z);
@@ -176,16 +176,16 @@ namespace eastengine
 				uint32_t nIdx4 = (m_property.n2Size.x * (i + 1)) + (j + 1);	// Bottom right.
 
 				// Triangle 1 - Upper left.
-				const math::Vector3& p0 = m_vecHeightMap[nIdx1].pos;
+				const math::float3& p0 = m_vecHeightMap[nIdx1].pos;
 
 				// Triangle 1 - Upper right.
-				const math::Vector3& p1 = m_vecHeightMap[nIdx2].pos;
+				const math::float3& p1 = m_vecHeightMap[nIdx2].pos;
 
 				// Triangle 1 - Bottom left.
-				const math::Vector3& p2 = m_vecHeightMap[nIdx3].pos;
+				const math::float3& p2 = m_vecHeightMap[nIdx3].pos;
 
 				// Triangle 2 - Bottom right.
-				const math::Vector3& p3 = m_vecHeightMap[nIdx4].pos;
+				const math::float3& p3 = m_vecHeightMap[nIdx4].pos;
 
 				std::optional<float> optHeight = CheckHeightOfTriangle(fPosX, fPosZ, p0, p1, p2);
 				if (optHeight.has_value())
@@ -318,7 +318,7 @@ namespace eastengine
 			m_rigidBodyData.vecVertices.reserve(nVertexCount);
 			m_rigidBodyData.vecIndices.reserve(nIndexCount);
 
-			std::vector<math::Vector3> vecNormal;
+			std::vector<math::float3> vecNormal;
 			vecNormal.reserve((m_property.n2Size.y - 1) * (m_property.n2Size.x - 1));
 
 			int nIndex = 0;
@@ -335,9 +335,9 @@ namespace eastengine
 						int nIdx3 = (j * m_property.n2Size.x) + i;				// Upper left vertex.
 
 						// Get three vertices from the face.
-						math::Vector3 v1 = m_vecHeightMap[nIdx1].pos;
-						math::Vector3 v2 = m_vecHeightMap[nIdx2].pos;
-						math::Vector3 v3 = m_vecHeightMap[nIdx3].pos;
+						math::float3 v1 = m_vecHeightMap[nIdx1].pos;
+						math::float3 v2 = m_vecHeightMap[nIdx2].pos;
+						math::float3 v3 = m_vecHeightMap[nIdx3].pos;
 
 						// Calculate the two vectors for this face.
 						v1.x = v1.x - v3.x;
@@ -348,7 +348,7 @@ namespace eastengine
 						v2.z = v3.z - v2.z;
 
 						// Calculate the cross product of those two vectors to get the un-normalized value for this face normal.
-						math::Vector3 vNormal(
+						math::float3 vNormal(
 							(v1.y * v2.z) - (v1.z * v2.y),
 							(v1.z * v2.x) - (v1.x * v2.z),
 							(v1.x * v2.y) - (v1.y * v2.x)
@@ -399,7 +399,7 @@ namespace eastengine
 				for (int i = 0; i < nWidth; ++i)
 				{
 					// Initialize the sum.
-					math::Vector3 sum;
+					math::float3 sum;
 					int nIdx = 0;
 
 					// Bottom left face.
@@ -447,7 +447,7 @@ namespace eastengine
 
 			vecNormal.clear();
 
-			std::vector<math::Vector4> vecHeightLinear(m_property.n2Size.x * m_property.n2Size.y);
+			std::vector<math::float4> vecHeightLinear(m_property.n2Size.x * m_property.n2Size.y);
 
 			m_fHeightMax = std::numeric_limits<float>::min();
 			m_fHeightMin = std::numeric_limits<float>::max();
@@ -457,7 +457,7 @@ namespace eastengine
 				for (int j = 0; j < m_property.n2Size.y; ++j)
 				{
 					const HeightMapVertex& vertex = m_vecHeightMap[i + j * m_property.n2Size.y];
-					vecHeightLinear[i + j * m_property.n2Size.y] = math::Vector4(vertex.normal.x, vertex.normal.y, vertex.normal.z, vertex.pos.y);
+					vecHeightLinear[i + j * m_property.n2Size.y] = math::float4(vertex.normal.x, vertex.normal.y, vertex.normal.z, vertex.pos.y);
 
 					m_fHeightMax = std::max(m_fHeightMax, vertex.pos.y);
 					m_fHeightMin = std::min(m_fHeightMin, vertex.pos.y);
@@ -473,16 +473,16 @@ namespace eastengine
 			desc.isDynamic = false;
 
 			desc.subResourceData.pSysMem = vecHeightLinear.data();
-			desc.subResourceData.SysMemPitch = m_property.n2Size.x * sizeof(math::Vector4);
+			desc.subResourceData.SysMemPitch = m_property.n2Size.x * sizeof(math::float4);
 			desc.subResourceData.SysMemSlicePitch = 0;
 
-			desc.subResourceData.MemSize = vecHeightLinear.size() * sizeof(math::Vector4);
+			desc.subResourceData.MemSize = vecHeightLinear.size() * sizeof(math::float4);
 
 			m_pTexHeightMap = graphics::CreateTexture(desc);
 
 			/*D3D11_SUBRESOURCE_DATA subresource_data;
 			subresource_data.pSysMem = vecHeightLinear.data();
-			subresource_data.SysMemPitch = m_property.n2Size.x * sizeof(math::Vector4);
+			subresource_data.SysMemPitch = m_property.n2Size.x * sizeof(math::float4);
 			subresource_data.SysMemSlicePitch = 0;
 
 			graphics::TextureDesc2D tex_desc;
@@ -518,26 +518,26 @@ namespace eastengine
 				}
 			}
 
-			m_pHeightField = graphics::CreateVertexBuffer(reinterpret_cast<const uint8_t*>(vecPatches_rawdata.data()), sizeof(vecPatches_rawdata[0]) * vecPatches_rawdata.size(), static_cast<uint32_t>(vecPatches_rawdata.size()));
+			m_pHeightField = graphics::CreateVertexBuffer(reinterpret_cast<const uint8_t*>(vecPatches_rawdata.data()), static_cast<uint32_t>(vecPatches_rawdata.size()), sizeof(vecPatches_rawdata[0]));
 
 			return true;
 		}
 
-		std::optional<float> Terrain::CheckHeightOfTriangle(float x, float z, const math::Vector3& v0, const math::Vector3& v1, const math::Vector3& v2) const
+		std::optional<float> Terrain::CheckHeightOfTriangle(float x, float z, const math::float3& v0, const math::float3& v1, const math::float3& v2) const
 		{
 			// Starting position of the ray that is being cast.
-			math::Vector3 f3StartVector(x, 0.f, z);
+			math::float3 f3StartVector(x, 0.f, z);
 
 			// The direction the ray is being cast.
-			const math::Vector3 f3DrectionVector(0.f, -1.f, 0.f);
+			const math::float3 f3DrectionVector(0.f, -1.f, 0.f);
 
 			// Calculate the two edges from the three points given.
-			const math::Vector3 vEdge1(v1.x - v0.x, v1.y - v0.y, v1.z - v0.z);
+			const math::float3 vEdge1(v1.x - v0.x, v1.y - v0.y, v1.z - v0.z);
 
-			const math::Vector3 vEdge2(v2.x - v0.x, v2.y - v0.y, v2.z - v0.z);
+			const math::float3 vEdge2(v2.x - v0.x, v2.y - v0.y, v2.z - v0.z);
 
 			// Calculate the normal of the triangle from the two edges.
-			math::Vector3 vNormal((vEdge1.y * vEdge2.z) - (vEdge1.z * vEdge2.y),
+			math::float3 vNormal((vEdge1.y * vEdge2.z) - (vEdge1.z * vEdge2.y),
 				(vEdge1.z * vEdge2.x) - (vEdge1.x * vEdge2.z),
 				(vEdge1.x * vEdge2.y) - (vEdge1.y * vEdge2.x));
 
@@ -563,22 +563,22 @@ namespace eastengine
 			float t = fNumerator / fDenominator;
 
 			// Find the intersection vector.
-			math::Vector3 Q(f3StartVector.x + (f3DrectionVector.x * t),
+			math::float3 Q(f3StartVector.x + (f3DrectionVector.x * t),
 				f3StartVector.y + (f3DrectionVector.y * t),
 				f3StartVector.z + (f3DrectionVector.z * t));
 
 			// Find the three edges of the triangle.
-			math::Vector3 e1(v1.x - v0.x, v1.y - v0.y, v1.z - v0.z);
-			math::Vector3 e2(v2.x - v1.x, v2.y - v1.y, v2.z - v1.z);
-			math::Vector3 e3(v0.x - v2.x, v0.y - v2.y, v0.z - v2.z);
+			math::float3 e1(v1.x - v0.x, v1.y - v0.y, v1.z - v0.z);
+			math::float3 e2(v2.x - v1.x, v2.y - v1.y, v2.z - v1.z);
+			math::float3 e3(v0.x - v2.x, v0.y - v2.y, v0.z - v2.z);
 
 			// Calculate the normal for the first edge.
-			math::Vector3 edgeNormal((e1.y * vNormal.z) - (e1.z * vNormal.y),
+			math::float3 edgeNormal((e1.y * vNormal.z) - (e1.z * vNormal.y),
 				(e1.z * vNormal.x) - (e1.x * vNormal.z),
 				(e1.x * vNormal.y) - (e1.y * vNormal.x));
 
 			// Calculate the determinant to see if it is on the inside, outside, or directly on the edge.
-			math::Vector3 temp(Q.x - v0.x, Q.y - v0.y, Q.z - v0.z);
+			math::float3 temp(Q.x - v0.x, Q.y - v0.y, Q.z - v0.z);
 
 			float fDeterminant = ((edgeNormal.x * temp.x) + (edgeNormal.y * temp.y) + (edgeNormal.z * temp.z));
 

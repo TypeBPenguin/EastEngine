@@ -34,10 +34,10 @@ namespace eastengine
 			struct Generic6Dof
 			{
 				RigidBody* pRigidBodyA;
-				math::Vector3 f3OriginPosA;
+				math::float3 f3OriginPosA;
 				math::Quaternion originQuatA;
 				RigidBody* pRigidBodyB;
-				math::Vector3 f3OriginPosB;
+				math::float3 f3OriginPosB;
 				math::Quaternion originQuatB;
 				bool isEnableLinearRefrenceFrameA;
 				bool isEnableCollisionBetweenLinkedBodies;
@@ -52,7 +52,7 @@ namespace eastengine
 			{
 			}
 
-			void SetGeneric6Dof(RigidBody* pRigidBodyA, const math::Vector3& f3OriginPosA, const math::Quaternion& originQuatA, RigidBody* pRigidBodyB, const math::Vector3& f3OriginPosB, const math::Quaternion& originQuatB, bool isEnableLinearRefrenceFrameA, bool isEnableCollisionBetweenLinkedBodies = true)
+			void SetGeneric6Dof(RigidBody* pRigidBodyA, const math::float3& f3OriginPosA, const math::Quaternion& originQuatA, RigidBody* pRigidBodyB, const math::float3& f3OriginPosB, const math::Quaternion& originQuatB, bool isEnableLinearRefrenceFrameA, bool isEnableCollisionBetweenLinkedBodies = true)
 			{
 				generic6Dof.pRigidBodyA = pRigidBodyA;
 				generic6Dof.f3OriginPosA = f3OriginPosA;
@@ -65,10 +65,10 @@ namespace eastengine
 				emType = EmConstraint::eGeneric6Dof;
 			}
 
-			void SetGeneric6Dof(RigidBody* pRigidBodyB, const math::Vector3& f3OriginPosB, const math::Quaternion& originQuatB, bool isEnableLinearRefrenceFrameA, bool isEnableCollisionBetweenLinkedBodies = true)
+			void SetGeneric6Dof(RigidBody* pRigidBodyB, const math::float3& f3OriginPosB, const math::Quaternion& originQuatB, bool isEnableLinearRefrenceFrameA, bool isEnableCollisionBetweenLinkedBodies = true)
 			{
 				generic6Dof.pRigidBodyA = nullptr;
-				generic6Dof.f3OriginPosA = math::Vector3::Zero;
+				generic6Dof.f3OriginPosA = math::float3::Zero;
 				generic6Dof.originQuatA = math::Quaternion::Identity;
 				generic6Dof.pRigidBodyB = pRigidBodyB;
 				generic6Dof.f3OriginPosB = f3OriginPosB;
@@ -124,7 +124,7 @@ namespace eastengine
 			void UpdateRHS(float fTimeStep);
 
 			// BuildJacobian must be called previously.
-			math::Vector3 GetAxis(int nAxis_index) const;
+			math::float3 GetAxis(int nAxis_index) const;
 
 			// CalculateTransforms() must be called previously.
 			float GetAngle(int nAxis_index) const;
@@ -140,17 +140,17 @@ namespace eastengine
 			*/
 			bool TestAngularLimitMotor(int nAxis_index);
 
-			void SetLinearLowerLimit(const math::Vector3& f3LinearLower);
-			void GetLinearLowerLimit(math::Vector3& f3LinearLower) const;
+			void SetLinearLowerLimit(const math::float3& f3LinearLower);
+			void GetLinearLowerLimit(math::float3& f3LinearLower) const;
 
-			void SetLinearUpperLimit(const math::Vector3& f3LinearUpper);
-			void GetLinearUpperLimit(math::Vector3& f3LinearUpper) const;
+			void SetLinearUpperLimit(const math::float3& f3LinearUpper);
+			void GetLinearUpperLimit(math::float3& f3LinearUpper) const;
 
-			void SetAngularLowerLimit(const math::Vector3& f3AngularLower);
-			void GetAngularLowerLimit(math::Vector3& f3AngularLower) const;
+			void SetAngularLowerLimit(const math::float3& f3AngularLower);
+			void GetAngularLowerLimit(math::float3& f3AngularLower) const;
 
-			void SetAngularUpperLimit(const math::Vector3& f3AngularUpper);
-			void GetAngularUpperLimit(math::Vector3& f3AngularUpper) const;
+			void SetAngularUpperLimit(const math::float3& f3AngularUpper);
+			void GetAngularUpperLimit(math::float3& f3AngularUpper) const;
 
 			//first 3 are linear, next 3 are angular
 			void SetLimit(int nAxis, float lo, float hi);
@@ -180,7 +180,7 @@ namespace eastengine
 			///return the local value of parameter
 			float GetParam(int nNum, int nAxis = -1) const;
 
-			void SetAxis(const math::Vector3& f3Axis1, const math::Vector3& f3Axis2);
+			void SetAxis(const math::float3& f3Axis1, const math::float3& f3Axis2);
 
 			int GetFlags() const;
 

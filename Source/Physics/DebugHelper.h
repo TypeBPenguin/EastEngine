@@ -7,13 +7,13 @@ namespace eastengine
 		class DebugTriangleDrawCallback : public btTriangleCallback
 		{
 		public:
-			DebugTriangleDrawCallback(std::vector<math::Vector3>* pTriangles);
+			DebugTriangleDrawCallback(std::vector<math::float3>* pTriangles);
 			virtual ~DebugTriangleDrawCallback() = default;
 
 			void processTriangle(btVector3* triangle, int partId, int triangleIndex);
 
 		private:
-			std::vector<math::Vector3>* m_pTriangles;
+			std::vector<math::float3>* m_pTriangles;
 		};
 	}
 }

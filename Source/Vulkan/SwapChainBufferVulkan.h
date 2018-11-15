@@ -11,7 +11,7 @@ namespace eastengine
 			class SwapChainBuffer : public ImageBuffer
 			{
 			public:
-				SwapChainBuffer(const math::UInt2& n2Size, VkImage image, VkFormat format);
+				SwapChainBuffer(const math::uint2& n2Size, VkImage image, VkFormat format);
 				virtual ~SwapChainBuffer();
 			};
 		}

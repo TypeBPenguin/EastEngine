@@ -12,10 +12,10 @@ namespace eastengine
 		struct CollisionResult
 		{
 			const RigidBody* pOpponentObject = nullptr;
-			const math::Vector3 f3OpponentPoint;
-			const math::Vector3 f3MyPoint;
+			const math::float3 f3OpponentPoint;
+			const math::float3 f3MyPoint;
 
-			CollisionResult(const RigidBody* pOpponentObject, const math::Vector3& f3OpponentPoint, const math::Vector3& f3MyPoint)
+			CollisionResult(const RigidBody* pOpponentObject, const math::float3& f3OpponentPoint, const math::float3& f3MyPoint)
 				: pOpponentObject(pOpponentObject)
 				, f3OpponentPoint(f3OpponentPoint)
 				, f3MyPoint(f3MyPoint)
@@ -24,7 +24,7 @@ namespace eastengine
 		};
 		using FuncCollisionCallback = void(*)(const std::vector<CollisionResult>&);
 
-		using FuncTriangleDrawCallback = std::function<void(const math::Vector3* pTriangles, const size_t nCount)>;
+		using FuncTriangleDrawCallback = std::function<void(const math::float3* pTriangles, const size_t nCount)>;
 
 		struct RigidBodyProperty
 		{
@@ -45,7 +45,7 @@ namespace eastengine
 
 			string::StringID strName;
 
-			math::Vector3 f3OriginPos;
+			math::float3 f3OriginPos;
 			math::Quaternion originQuat;
 			math::Matrix matOffset;
 
@@ -68,9 +68,9 @@ namespace eastengine
 			void UpdateBoundingBox(const math::Matrix& matWorld);
 
 			bool IsCollision(RigidBody* pRigidBody);
-			bool RayTest(const math::Vector3& f3From, const math::Vector3& f3To, math::Vector3* pHitPoint_out = nullptr, math::Vector3* pHitNormal_out = nullptr) const;
+			bool RayTest(const math::float3& f3From, const math::float3& f3To, math::float3* pHitPoint_out = nullptr, math::float3* pHitNormal_out = nullptr) const;
 
-			void AddCollisionResult(const RigidBody* pRigidBody, const math::Vector3& f3OpponentPoint, const math::Vector3& f3MyPoint);
+			void AddCollisionResult(const RigidBody* pRigidBody, const math::float3& f3OpponentPoint, const math::float3& f3MyPoint);
 			void ClearCollisionResults();
 			void SetEnableTriangleDrawCallback(bool isEnableTriangleDrawCallback);
 
@@ -84,9 +84,9 @@ namespace eastengine
 			math::Matrix GetWorldMatrix() const;
 
 			math::Quaternion GetOrientation() const;
-			math::Vector3 GetCenterOfMassPosition() const;
+			math::float3 GetCenterOfMassPosition() const;
 
-			void SetLinearVelocity(const math::Vector3& f3Velocity);
+			void SetLinearVelocity(const math::float3& f3Velocity);
 
 			void SetDamping(float fLinearDamping, float fAngularDamping);
 			void SetDeactivationTime(float fTime);
@@ -95,7 +95,7 @@ namespace eastengine
 
 			void SetActiveState(EmActiveState::Type emActiveState);
 			void SetGravity(bool isEnable);
-			void SetGravity(const math::Vector3& f3Gravity);
+			void SetGravity(const math::float3& f3Gravity);
 
 			const Collision::AABB& GetAABB() const;
 			const Collision::Sphere& GetBoundingSphere() const;

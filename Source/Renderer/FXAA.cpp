@@ -103,9 +103,9 @@ namespace eastengine
 
 			pDeviceContext->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-			const math::UInt2& nScreenSize = pDevice->GetScreenSize();
+			const math::uint2& nScreenSize = pDevice->GetScreenSize();
 
-			math::Vector4 vRcpFrame(1.f / nScreenSize.x, 1.f / nScreenSize.y, 0.f, 0.f);
+			math::float4 vRcpFrame(1.f / nScreenSize.x, 1.f / nScreenSize.y, 0.f, 0.f);
 			m_pEffect->SetVector(StrID::g_f4RcpFrame, vRcpFrame);
 
 			m_pEffect->SetTexture(StrID::g_texInput, pSource->GetTexture());

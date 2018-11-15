@@ -55,15 +55,15 @@ SceneNewStudio::~SceneNewStudio()
 
 void SceneNewStudio::Enter()
 {
-	const math::UInt2& n2ScreenSize = graphics::GetScreenSize();
+	const math::uint2& n2ScreenSize = graphics::GetScreenSize();
 
 	const float fAspect = static_cast<float>(n2ScreenSize.x) / static_cast<float>(n2ScreenSize.y);
 	graphics::Camera::GetInstance()->SetProjection(n2ScreenSize.x, n2ScreenSize.y, math::PIDIV4, 0.1f, 1000.f, graphics::GetAPI() == graphics::eVulkan);
 	graphics::Camera::GetInstance()->SetView({ 0.f, 2.f, -10.f }, { 0.f, 0.f, 0.f }, { 0.f, 1.f, 0.f });
 
 	{
-		math::Vector3 f3LightPosition(0.f, 500.f, -500.f);
-		math::Vector3 f3LightDirection(math::Vector3::Zero - f3LightPosition);
+		math::float3 f3LightPosition(0.f, 500.f, -500.f);
+		math::float3 f3LightDirection(math::float3::Zero - f3LightPosition);
 		f3LightDirection.Normalize();
 
 		graphics::ILight* pLight = graphics::ILight::CreateDirectionalLight("MainLight", f3LightDirection, math::Color::White, 1.f, 0.5f, 0.25f);
@@ -100,10 +100,16 @@ void SceneNewStudio::Enter()
 		pImageBasedLight->SetEnvironmentHDR(pEnvironmentHDR);
 		graphics::ReleaseResource(&pEnvironmentHDR);
 
-		graphics::IVertexBuffer* pVertexBuffer = nullptr;
-		graphics::IIndexBuffer* pIndexBuffer = nullptr;
-		graphics::geometry::CreateSphere(&pVertexBuffer, &pIndexBuffer, 1.f, 32u);
+		std::vector<graphics::VertexPosTexNor> vertices;
+		std::vector<uint32_t> indices;
+
+		graphics::geometry::CreateSphere(vertices, indices, 1.f, 32u);
+
+		graphics::IVertexBuffer* pVertexBuffer = graphics::CreateVertexBuffer(reinterpret_cast<const uint8_t*>(vertices.data()), static_cast<uint32_t>(vertices.size()), sizeof(graphics::VertexPosTexNor));
+		graphics::IIndexBuffer* pIndexBuffer = graphics::CreateIndexBuffer(reinterpret_cast<const uint8_t*>(indices.data()), static_cast<uint32_t>(indices.size()), sizeof(uint32_t));
+
 		pImageBasedLight->SetEnvironmentSphere(pVertexBuffer, pIndexBuffer);
+
 		graphics::ReleaseResource(&pVertexBuffer);
 		graphics::ReleaseResource(&pIndexBuffer);
 	}
@@ -143,82 +149,84 @@ void SceneNewStudio::Enter()
 	}
 
 	graphics::IMaterial* pMaterial_override = nullptr;
-	//for (int j = 0; j < 5; ++j)
-	//{
-	//	for (int i = 0; i < 50; ++i)
-	//	{
-	//		/*graphics::MaterialInfo materialInfo;
-	//		materialInfo.strName.Format("TestBox%d", (i % 10) + 1);
-	//		materialInfo.strPath = file::GetPath(file::eTexture);
+	for (int j = 0; j < 5; ++j)
+	{
+		for (int i = 0; i < 50; ++i)
+		{
+			/*graphics::MaterialInfo materialInfo;
+			materialInfo.strName.Format("TestBox%d", (i % 10) + 1);
+			materialInfo.strPath = file::GetPath(file::eTexture);
 
-	//		materialInfo.strTextureNameArray[graphics::EmMaterial::eAlbedo].Format("Pattern\\pattern_%02d\\%s", (i % 10) + 1, "diffus.tga");
-	//		materialInfo.strTextureNameArray[graphics::EmMaterial::eNormal].Format("Pattern\\pattern_%02d\\%s", (i % 10) + 1, "Normal.tga");
-	//		materialInfo.strTextureNameArray[graphics::EmMaterial::eSpecularColor].Format("Pattern\\pattern_%02d\\%s", (i % 10) + 1, "specular.tga");
-	//		*/
-	//		graphics::MaterialInfo materialInfo;
-	//		materialInfo.strName = "TestBox";
-	//		materialInfo.strPath = file::GetPath(file::eTexture);
+			materialInfo.strTextureNameArray[graphics::EmMaterial::eAlbedo].Format("Pattern\\pattern_%02d\\%s", (i % 10) + 1, "diffus.tga");
+			materialInfo.strTextureNameArray[graphics::EmMaterial::eNormal].Format("Pattern\\pattern_%02d\\%s", (i % 10) + 1, "Normal.tga");
+			materialInfo.strTextureNameArray[graphics::EmMaterial::eSpecularColor].Format("Pattern\\pattern_%02d\\%s", (i % 10) + 1, "specular.tga");
+			*/
+			graphics::MaterialInfo materialInfo;
+			materialInfo.strName = "TestBox";
+			materialInfo.strPath = file::GetPath(file::eTexture);
 
-	//		materialInfo.strTextureNameArray[graphics::EmMaterial::eAlbedo].Format("Pattern\\pattern_01\\%s", "diffus.tga");
-	//		materialInfo.strTextureNameArray[graphics::EmMaterial::eNormal].Format("Pattern\\pattern_01\\%s", "Normal.tga");
-	//		materialInfo.strTextureNameArray[graphics::EmMaterial::eSpecular].Format("Pattern\\pattern_01\\%s", "specular.tga");
+			materialInfo.strTextureNameArray[graphics::EmMaterial::eAlbedo].Format("Pattern\\pattern_01\\%s", "diffus.tga");
+			materialInfo.strTextureNameArray[graphics::EmMaterial::eNormal].Format("Pattern\\pattern_01\\%s", "Normal.tga");
+			materialInfo.strTextureNameArray[graphics::EmMaterial::eSpecular].Format("Pattern\\pattern_01\\%s", "specular.tga");
 
-	//		//materialInfo.f4PaddingRoughMetEmi.y = 0.1f * ((i % 10) + 1);
-	//		//materialInfo.f4PaddingRoughMetEmi.z = 1.f - 0.1f * ((i % 10) + 1);
+			//materialInfo.f4PaddingRoughMetEmi.y = 0.1f * ((i % 10) + 1);
+			//materialInfo.f4PaddingRoughMetEmi.z = 1.f - 0.1f * ((i % 10) + 1);
 
-	//		materialInfo.f4PaddingRoughMetEmi.y = 0.5f;
-	//		materialInfo.f4PaddingRoughMetEmi.z = 0.5f;
+			materialInfo.f4PaddingRoughMetEmi.y = 0.5f;
+			materialInfo.f4PaddingRoughMetEmi.z = 0.5f;
 
-	//		//materialInfo.rasterizerStateDesc = graphics::GetDevice()->GetRasterizerStateDesc(graphics::EmRasterizerState::eNone);
-	//		//materialInfo.colorAlbedo = math::Color(math::Random(0.f, 1.f), math::Random(0.f, 1.f), math::Random(0.f, 1.f), 1.f);
+			//materialInfo.rasterizerStateDesc = graphics::GetDevice()->GetRasterizerStateDesc(graphics::EmRasterizerState::eNone);
+			//materialInfo.colorAlbedo = math::Color(math::Random(0.f, 1.f), math::Random(0.f, 1.f), math::Random(0.f, 1.f), 1.f);
 
-	//		gameobject::IActor* pActor = gameobject::GameObjectManager::GetInstance()->CreateActor("TestBox");
+			gameobject::IActor* pActor = gameobject::GameObjectManager::GetInstance()->CreateActor("TestBox");
 
-	//		math::Vector3 f3Pos;
-	//		f3Pos.x = -4.f + (i % 5) * 3.f;
-	//		f3Pos.y = 100.5f + (j * 3.f);
-	//		f3Pos.z = -4.f + (i / 5) * 3.f;
+			math::float3 f3Pos;
+			f3Pos.x = -4.f + (i % 5) * 3.f;
+			//f3Pos.y = 100.5f + (j * 3.f);
+			f3Pos.y = 0.5f + (j * 3.f);
+			f3Pos.z = -4.f + (i / 5) * 3.f;
 
-	//		pActor->SetPosition(f3Pos);
+			pActor->SetPosition(f3Pos);
 
-	//		gameobject::ComponentModel* pCompModel = static_cast<gameobject::ComponentModel*>(pActor->CreateComponent(gameobject::EmComponent::eModel));
+			gameobject::ComponentModel* pCompModel = static_cast<gameobject::ComponentModel*>(pActor->CreateComponent(gameobject::EmComponent::eModel));
 
-	//		graphics::ModelLoader loader;
-	//		//loader.InitBox(string::Format("TestBox%d", (i % 10) + 1).c_str(), &materialInfo);
-	//		loader.InitBox("TestBox", &materialInfo);
-	//		pCompModel->Init(&loader);
-	//		auto pModelInst = pCompModel->GetModelInstance();
+			graphics::ModelLoader loader;
+			//loader.InitBox(string::Format("TestBox%d", (i % 10) + 1).c_str(), &materialInfo);
+			loader.InitBox("TestBox", &materialInfo);
+			pCompModel->Init(&loader);
+			auto pModelInst = pCompModel->GetModelInstance();
 
-	//		if (i % 2 == 0)
-	//		{
-	//			if (pMaterial_override == nullptr)
-	//			{
-	//				graphics::MaterialInfo materialInfo2;
-	//				materialInfo2.strName = "TestBox";
-	//				materialInfo2.strPath = file::GetPath(file::eTexture);
+			if (i % 2 == 0)
+			{
+				if (pMaterial_override == nullptr)
+				{
+					graphics::MaterialInfo materialInfo2;
+					materialInfo2.strName = "TestBox";
+					materialInfo2.strPath = file::GetPath(file::eTexture);
 
-	//				materialInfo2.strTextureNameArray[graphics::EmMaterial::eAlbedo].Format("Pattern\\pattern_02\\%s", "diffus.tga");
-	//				materialInfo2.strTextureNameArray[graphics::EmMaterial::eNormal].Format("Pattern\\pattern_02\\%s", "Normal.tga");
-	//				materialInfo2.strTextureNameArray[graphics::EmMaterial::eSpecular].Format("Pattern\\pattern_02\\%s", "specular.tga");
+					materialInfo2.strTextureNameArray[graphics::EmMaterial::eAlbedo].Format("Pattern\\pattern_02\\%s", "diffus.tga");
+					materialInfo2.strTextureNameArray[graphics::EmMaterial::eNormal].Format("Pattern\\pattern_02\\%s", "Normal.tga");
+					materialInfo2.strTextureNameArray[graphics::EmMaterial::eSpecular].Format("Pattern\\pattern_02\\%s", "specular.tga");
 
-	//				pMaterial_override = graphics::CreateMaterial(&materialInfo2);
-	//			}
-	//			pModelInst->ChangeMaterial("EastEngine_Box", 0, pMaterial_override);
-	//		}
+					pMaterial_override = graphics::CreateMaterial(&materialInfo2);
+					pMaterial_override->DecreaseReference();
+				}
+				pModelInst->ChangeMaterial("EastEngine_Box", 0, pMaterial_override);
+			}
 
-	//		gameobject::ComponentPhysics* pCompPhysics = static_cast<gameobject::ComponentPhysics*>(pActor->CreateComponent(gameobject::EmComponent::ePhysics));
-
-	//		physics::RigidBodyProperty prop;
-	//		prop.fRestitution = 0.5f;
-	//		prop.strName.Format("TestBox_RigidBody%d", i).c_str();
-
-	//		prop.shapeInfo.SetBox(math::Vector3(1.f));
-	//		//prop.shapeInfo.SetCapsule(math::Random(0.5f, 1.f), math::Random(1.f, 2.f));
-	//		prop.nCollisionFlag = physics::EmCollision::eCharacterObject;
-	//		prop.f3OriginPos = f3Pos;
-	//		pCompPhysics->Init(prop);
-	//	}
-	//}
+			//gameobject::ComponentPhysics* pCompPhysics = static_cast<gameobject::ComponentPhysics*>(pActor->CreateComponent(gameobject::EmComponent::ePhysics));
+			//
+			//physics::RigidBodyProperty prop;
+			//prop.fRestitution = 0.5f;
+			//prop.strName.Format("TestBox_RigidBody%d", i).c_str();
+			//
+			//prop.shapeInfo.SetBox(math::float3(1.f));
+			////prop.shapeInfo.SetCapsule(math::Random(0.5f, 1.f), math::Random(1.f, 2.f));
+			//prop.nCollisionFlag = physics::EmCollision::eCharacterObject;
+			//prop.f3OriginPos = f3Pos;
+			//pCompPhysics->Init(prop);
+		}
+	}
 
 	if (false)
 	{
@@ -253,7 +261,7 @@ void SceneNewStudio::Enter()
 	}
 
 	auto CreateActor = [](const string::StringID& strActorName, const char* strModelFilePath,
-		const math::Vector3& f3Position,
+		const math::float3& f3Position,
 		graphics::ModelLoader::LoadType emModelType = graphics::ModelLoader::eEast)
 	{
 		gameobject::IActor* pActor = gameobject::IActor::Create(strActorName);
@@ -292,7 +300,7 @@ void SceneNewStudio::Enter()
 		strPath = file::GetDataPath();
 		strPath.append("Actor\\UnityChan\\unitychan.emod");
 
-		math::Vector3 pos;
+		math::float3 pos;
 		pos.x = -10.f + (2.f * (i % 10));
 		pos.z = 0.f + (2.f * (i / 10));
 
@@ -361,7 +369,7 @@ void SceneNewStudio::Enter()
 
 		//gameobject::ComponentPhysics* pCompPhysics = static_cast<gameobject::ComponentPhysics*>(pActor->CreateComponent(gameobject::EmComponent::ePhysics));
 
-		//math::Vector3 ragdollPos = pActor->GetPosition();
+		//math::float3 ragdollPos = pActor->GetPosition();
 		//pCompPhysics->m_pRagDoll->BuildBipadRagDoll(pModelInstance->GetSkeleton(), ragdollPos, math::Quaternion::Identity, 0.8f);
 		//pCompPhysics->m_pRagDoll->Start();
 
@@ -376,10 +384,10 @@ void SceneNewStudio::Enter()
 
 			pModelInstance_Attach = graphics::IModel::CreateInstance(loader, false);
 
-			math::Vector3 f3Pos = { 0.08f, 0.225f, -0.02f };
+			math::float3 f3Pos = { 0.08f, 0.225f, -0.02f };
 			math::Quaternion quat = math::Quaternion::CreateFromYawPitchRoll(math::ToRadians(90.f), math::ToRadians(180.f), 0.f);
 
-			pModelInstance->Attachment(pModelInstance_Attach, "Character1_LeftHand", math::Matrix::Compose(math::Vector3::One, quat, f3Pos));
+			pModelInstance->Attachment(pModelInstance_Attach, "Character1_LeftHand", math::Matrix::Compose(math::float3::One, quat, f3Pos));
 		}
 	}
 
@@ -387,7 +395,7 @@ void SceneNewStudio::Enter()
 		string::StringID name;
 		name.Format("KimJiYoon");
 
-		math::Vector3 pos;
+		math::float3 pos;
 		pos.x = 2.f;
 
 		strPath = file::GetDataPath();
@@ -420,7 +428,7 @@ void SceneNewStudio::Enter()
 		string::StringID name;
 		name.Format("2B_NierAutomata_%d", i);
 
-		math::Vector3 pos;
+		math::float3 pos;
 		pos.x = -2.f + (i * -2.f);
 
 		strPath = file::GetDataPath();
@@ -457,7 +465,7 @@ void SceneNewStudio::Enter()
 		string::StringID name;
 		name.Format("Delia");
 
-		math::Vector3 pos;
+		math::float3 pos;
 		pos.x = 4.f;
 
 		strPath = file::GetDataPath();
@@ -471,7 +479,7 @@ void SceneNewStudio::Enter()
 		string::StringID name;
 		name.Format("Misaki");
 
-		math::Vector3 pos;
+		math::float3 pos;
 		pos.x = 6.f;
 
 		strPath = file::GetDataPath();
@@ -485,7 +493,7 @@ void SceneNewStudio::Enter()
 		string::StringID name;
 		name.Format("Naotora");
 
-		math::Vector3 pos;
+		math::float3 pos;
 		pos.x = 8.f;
 
 		strPath = file::GetDataPath();
@@ -499,7 +507,7 @@ void SceneNewStudio::Enter()
 		string::StringID name;
 		name.Format("Naotora_ShirtDress");
 
-		math::Vector3 pos;
+		math::float3 pos;
 		pos.x = 10.f;
 
 		strPath = file::GetDataPath();
@@ -513,7 +521,7 @@ void SceneNewStudio::Enter()
 		string::StringID name;
 		name.Format("Bugeikloth");
 
-		math::Vector3 pos;
+		math::float3 pos;
 		pos.z = 10.f;
 
 		strPath = file::GetDataPath();
@@ -527,7 +535,7 @@ void SceneNewStudio::Enter()
 		string::StringID name;
 		name.Format("DarkKnight_Female");
 
-		math::Vector3 pos;
+		math::float3 pos;
 		pos.x = -4.f;
 		pos.z = 2.f;
 
@@ -543,7 +551,7 @@ void SceneNewStudio::Enter()
 		string::StringID name;
 		name.Format("DarkKnight_Transformed_Female");
 
-		math::Vector3 pos;
+		math::float3 pos;
 		pos.x = -2.f;
 		pos.z = 2.f;
 
@@ -559,7 +567,7 @@ void SceneNewStudio::Enter()
 		string::StringID name;
 		name.Format("Paladin_Female");
 
-		math::Vector3 pos;
+		math::float3 pos;
 		pos.x = 0.f;
 		pos.z = 2.f;
 
@@ -574,7 +582,7 @@ void SceneNewStudio::Enter()
 		string::StringID name;
 		name.Format("Paladin_Transformed_Female");
 
-		math::Vector3 pos;
+		math::float3 pos;
 		pos.x = 2.f;
 		pos.z = 2.f;
 
@@ -590,7 +598,7 @@ void SceneNewStudio::Enter()
 		string::StringID name;
 		name.Format("Evie_Temptress");
 
-		math::Vector3 pos;
+		math::float3 pos;
 		pos.x = 4.f;
 		pos.z = 2.f;
 
@@ -605,7 +613,7 @@ void SceneNewStudio::Enter()
 		string::StringID name;
 		name.Format("Lynn_DancingBlade");
 
-		math::Vector3 pos;
+		math::float3 pos;
 		pos.x = 6.f;
 		pos.z = 2.f;
 
@@ -619,7 +627,7 @@ void SceneNewStudio::Enter()
 		string::StringID name;
 		name.Format("ElementalSwordIce");
 
-		math::Vector3 pos;
+		math::float3 pos;
 		pos.y = 1.f;
 		pos.z -= 2.f;
 
@@ -877,10 +885,21 @@ void ShowConfig()
 
 			ImGui::Checkbox("Apply", &graphicsOptions.OnOcclusionCulling);
 
-			if (ImGui::Button("SaveImageFile") == true)
+			if (ImGui::Button("SaveBuffer") == true)
 			{
-				assert(false);
-				//graphics::OcclusionCulling::GetInstance()->Write("image.bmp");
+				char path[512]{};
+				OPENFILENAME ofn;
+				Memory::Clear(&ofn, sizeof(ofn));
+
+				ofn.lStructSize = sizeof(OPENFILENAME);
+				ofn.hwndOwner = graphics::GetHwnd();
+				ofn.lpstrFilter = "Bmp(*.bmp)\0*.bmp\0";
+				ofn.lpstrFile = path;
+				ofn.nMaxFile = 255;
+				if (GetSaveFileName(&ofn) != 0)
+				{
+					graphics::OcclusionCullingWriteBMP(path);
+				}
 			}
 
 			ImGui::PopID();
@@ -1185,7 +1204,7 @@ void ShowConfig()
 		}
 		}
 
-		math::Vector3 f3LightPos = pActor->GetPosition();
+		math::float3 f3LightPos = pActor->GetPosition();
 		if (ImGui::DragFloat3("Light Position", reinterpret_cast<float*>(&f3LightPos.x), 0.01f, -1000000.f, 1000000.f) == true)
 		{
 		pActor->SetPosition(f3LightPos);
@@ -1196,19 +1215,19 @@ void ShowConfig()
 	{
 		graphics::Camera* pCamera = graphics::Camera::GetInstance();
 
-		math::Vector3 f3CameraPos = pCamera->GetPosition();
+		math::float3 f3CameraPos = pCamera->GetPosition();
 		if (ImGui::DragFloat3("Camera Position", reinterpret_cast<float*>(&f3CameraPos.x), 0.01f, -1000000.f, 1000000.f) == true)
 		{
 			pCamera->SetPosition(f3CameraPos);
 		}
 
-		math::Vector3 f3CameraLookat = pCamera->GetLookat();
+		math::float3 f3CameraLookat = pCamera->GetLookat();
 		if (ImGui::DragFloat3("Camera Lookat", reinterpret_cast<float*>(&f3CameraLookat.x), 0.01f, -1000000.f, 1000000.f) == true)
 		{
 			pCamera->SetLookat(f3CameraLookat);
 		}
 
-		math::Vector3 f3Up = pCamera->GetUp();
+		math::float3 f3Up = pCamera->GetUp();
 		if (ImGui::DragFloat3("Camera Up", reinterpret_cast<float*>(&f3Up.x), 0.01f, -1.f, 1.f) == true)
 		{
 			pCamera->SetUp(f3Up);
@@ -2027,20 +2046,20 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 					pActor->SetName(buf);
 				}
 
-				math::Vector3 f3Scale = pActor->GetScale();
+				math::float3 f3Scale = pActor->GetScale();
 				if (ImGui::DragFloat3("Scale", reinterpret_cast<float*>(&f3Scale.x), 0.01f, 0.01f, 100.f) == true)
 				{
 					pActor->SetScale(f3Scale);
 				}
 
-				math::Vector3 f3Pos = pActor->GetPosition();
+				math::float3 f3Pos = pActor->GetPosition();
 				if (ImGui::DragFloat3("Position", reinterpret_cast<float*>(&f3Pos.x), 0.01f, -1000000.f, 1000000.f) == true)
 				{
 					pActor->SetPosition(f3Pos);
 				}
 
-				static std::unordered_map<gameobject::IActor*, math::Vector3> umapActorRotation;
-				math::Vector3& f3Rotation = umapActorRotation[pActor];
+				static std::unordered_map<gameobject::IActor*, math::float3> umapActorRotation;
+				math::float3& f3Rotation = umapActorRotation[pActor];
 
 				if (ImGui::DragFloat3("Rotation", reinterpret_cast<float*>(&f3Rotation.x), 0.1f, -360.f, 360.f) == true)
 				{
@@ -2170,20 +2189,20 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 									pModel->SetVisible(isVisibleModel);
 								}
 
-								math::Vector3 f3Scale = pModel->GetLocalScale();
+								math::float3 f3Scale = pModel->GetLocalScale();
 								if (ImGui::DragFloat3("Local Scale", reinterpret_cast<float*>(&f3Scale), 0.01f, 0.01f, 100.f) == true)
 								{
 									pModel->SetLocalScale(f3Scale);
 								}
 
-								math::Vector3 f3Pos = pModel->GetLocalPosition();
+								math::float3 f3Pos = pModel->GetLocalPosition();
 								if (ImGui::DragFloat3("Local Position", reinterpret_cast<float*>(&f3Pos), 0.01f, -1000000.f, 1000000.f) == true)
 								{
 									pModel->SetLocalPosition(f3Pos);
 								}
 
-								static std::unordered_map<graphics::IModel*, math::Vector3> umapMotionRotation;
-								math::Vector3& f3Rotation = umapMotionRotation[pModel];
+								static std::unordered_map<graphics::IModel*, math::float3> umapMotionRotation;
+								math::float3& f3Rotation = umapMotionRotation[pModel];
 								if (ImGui::DragFloat3("Local Rotation", reinterpret_cast<float*>(&f3Rotation), 0.1f, -360.f, 360.f) == true)
 								{
 									auto ResetRot = [](float& fRot)
@@ -2451,7 +2470,7 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 									static char buf[128] = "Box";
 									ImGui::InputText("Name", buf, sizeof(buf));
 
-									static math::Vector3 f3Size(math::Vector3::One);
+									static math::float3 f3Size(math::float3::One);
 									ImGui::DragFloat3("Box Size", reinterpret_cast<float*>(&f3Size.x), 0.01f, 0.01f, 1000000.f);
 
 									if (ImGui::Button("Confirm") == true)

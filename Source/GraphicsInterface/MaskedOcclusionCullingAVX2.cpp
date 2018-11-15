@@ -29,7 +29,7 @@
 	#error Older versions than visual studio 2015 not supported due to compiler bug(s)
 #endif
 
-#if !defined(__MICROSOFT_COMPILER) || _MSC_VER >= 1900
+#if USE_AVX2 != 0 && (!defined(__MICROSOFT_COMPILER) || _MSC_VER >= 1900)
 
 // For performance reasons, the MaskedOcclusionCullingAVX2.cpp file should be compiled with VEX encoding for SSE instructions (to avoid 
 // AVX-SSE transition penalties, see https://software.intel.com/en-us/articles/avoiding-avx-sse-transition-penalties). However, the SSE

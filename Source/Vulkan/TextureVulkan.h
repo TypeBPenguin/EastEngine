@@ -21,7 +21,7 @@ namespace eastengine
 				virtual const string::StringID& GetName() const override { return m_key.Value(); }
 
 			public:
-				virtual const math::UInt2& GetSize() const override { return m_n2Size; }
+				virtual const math::uint2& GetSize() const override { return m_n2Size; }
 				virtual const std::string& GetPath() const override { return m_strPath; }
 
 			public:
@@ -35,7 +35,7 @@ namespace eastengine
 			private:
 				const ITexture::Key m_key;
 
-				math::UInt2 m_n2Size;
+				math::uint2 m_n2Size;
 				std::string m_strPath;
 
 				VkImage m_textureImage{ nullptr };

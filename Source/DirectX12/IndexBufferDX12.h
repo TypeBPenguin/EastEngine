@@ -14,7 +14,7 @@ namespace eastengine
 			class IndexBuffer : public IIndexBuffer
 			{
 			public:
-				IndexBuffer(const uint8_t* pData, size_t nBufferSize, uint32_t nIndexCount);
+				IndexBuffer(const uint8_t* pData, uint32_t indexCount, size_t formatSize);
 				virtual ~IndexBuffer();
 
 			public:

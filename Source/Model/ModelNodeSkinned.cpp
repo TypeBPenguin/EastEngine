@@ -1,16 +1,13 @@
 #include "stdafx.h"
 #include "ModelNodeSkinned.h"
 
-
-
 namespace eastengine
 {
 	namespace graphics
 	{
-		ModelNodeSkinned::ModelNodeSkinned(uint32_t nLodMax)
-			: ModelNode(EmModelNode::eSkinned)
+		ModelNodeSkinned::ModelNodeSkinned(LOD emLOD)
+			: ModelNode(emLOD)
 		{
-			m_nLodMax = nLodMax;
 		}
 
 		ModelNodeSkinned::~ModelNodeSkinned()
@@ -40,7 +37,7 @@ namespace eastengine
 				{
 					if (nVTFID != IVTFManager::eInvalidVTFID)
 					{
-						const math::Matrix** ppSkinnedMatrix = nullptr;
+						const math::Matrix* const* ppSkinnedMatrix = nullptr;
 						uint32_t nElementCount = 0;
 						pSkeletonInstance->GetSkinnedData(GetName(), &ppSkinnedMatrix, nElementCount);
 
@@ -78,10 +75,10 @@ namespace eastengine
 
 				if (nVTFID != IVTFManager::eInvalidVTFID)
 				{
-					uint32_t nLevel = std::min(m_nLod, m_nLodMax);
-					if (m_pVertexBuffer[nLevel] == nullptr || m_pIndexBuffer[nLevel] == nullptr)
+					const LOD emLod = std::min(m_emLod, m_emMaxLod);
+					if (m_pVertexBuffer[emLod] == nullptr || m_pIndexBuffer[emLod] == nullptr)
 					{
-						LOG_WARNING("Model Data is nullptr, LOD : %d", nLevel);
+						LOG_WARNING("Model Data is nullptr, LOD : %d", emLod);
 					}
 					else
 					{
@@ -96,11 +93,13 @@ namespace eastengine
 							}
 						}
 
-						Collision::Sphere boundingSphere;
-						Collision::Sphere::CreateFromAABB(boundingSphere, m_originAABB);
-						boundingSphere.Transform(boundingSphere, matBoneTransformation * matTransformation);
+						OcclusionCullingData occlusionCullingData;
+						occlusionCullingData.pVertices = m_rawVertices.data();
+						occlusionCullingData.pIndices = m_rawIndices.data();
+						occlusionCullingData.indexCount = m_rawIndices.size();
+						m_originAABB.Transform(occlusionCullingData.aabb, matTransformation);
 
-						for (auto& modelSubset : m_vecModelSubsets[nLevel])
+						for (auto& modelSubset : m_vecModelSubsets[emLod])
 						{
 							IMaterial* pMaterial = nullptr;
 
@@ -120,7 +119,7 @@ namespace eastengine
 							if (pMaterial != nullptr && pMaterial->IsVisible() == false)
 								continue;
 
-							RenderJobSkinned subset(&modelSubset, m_pVertexBuffer[nLevel], m_pIndexBuffer[nLevel], pMaterial, matTransformation, modelSubset.nStartIndex, modelSubset.nIndexCount, nVTFID, m_fDistanceFromCamera);
+							RenderJobSkinned subset(&modelSubset, m_pVertexBuffer[emLod], m_pIndexBuffer[emLod], pMaterial, matTransformation, modelSubset.nStartIndex, modelSubset.nIndexCount, nVTFID, m_fDistanceFromCamera, occlusionCullingData);
 							PushRenderJob(subset);
 						}
 					}

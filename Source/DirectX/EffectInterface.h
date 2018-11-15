@@ -159,18 +159,18 @@ namespace eastengine
 			virtual void SetIntArray(const string::StringID& strName, const int* pValue, uint32_t nOffset, uint32_t nCount) = 0;
 			virtual void SetFloat(const string::StringID& strName, float fValue) = 0;
 			virtual void SetFloatArray(const string::StringID& strName, const float* pValue, uint32_t nOffset, uint32_t nCount) = 0;
-			virtual void SetVector(const string::StringID& strName, const math::Int2& n2Value) = 0;
-			virtual void SetVector(const string::StringID& strName, const math::Int3& n3Value) = 0;
-			virtual void SetVector(const string::StringID& strName, const math::Int4& n4Value) = 0;
-			virtual void SetVector(const string::StringID& strName, const math::Vector2& f2Value) = 0;
-			virtual void SetVector(const string::StringID& strName, const math::Vector3& f3Value) = 0;
-			virtual void SetVector(const string::StringID& strName, const math::Vector4& f4Value) = 0;
-			virtual void SetVectorArray(const string::StringID& strName, const math::Int2* pn2Value, uint32_t nOffset, uint32_t nCount) = 0;
-			virtual void SetVectorArray(const string::StringID& strName, const math::Int3* pn3Value, uint32_t nOffset, uint32_t nCount) = 0;
-			virtual void SetVectorArray(const string::StringID& strName, const math::Int4* pn4Value, uint32_t nOffset, uint32_t nCount) = 0;
-			virtual void SetVectorArray(const string::StringID& strName, const math::Vector2* pf2Value, uint32_t nOffset, uint32_t nCount) = 0;
-			virtual void SetVectorArray(const string::StringID& strName, const math::Vector3* pf3Value, uint32_t nOffset, uint32_t nCount) = 0;
-			virtual void SetVectorArray(const string::StringID& strName, const math::Vector4* pf4Value, uint32_t nOffset, uint32_t nCount) = 0;
+			virtual void SetVector(const string::StringID& strName, const math::int2& n2Value) = 0;
+			virtual void SetVector(const string::StringID& strName, const math::int3& n3Value) = 0;
+			virtual void SetVector(const string::StringID& strName, const math::int4& n4Value) = 0;
+			virtual void SetVector(const string::StringID& strName, const math::float2& f2Value) = 0;
+			virtual void SetVector(const string::StringID& strName, const math::float3& f3Value) = 0;
+			virtual void SetVector(const string::StringID& strName, const math::float4& f4Value) = 0;
+			virtual void SetVectorArray(const string::StringID& strName, const math::int2* pn2Value, uint32_t nOffset, uint32_t nCount) = 0;
+			virtual void SetVectorArray(const string::StringID& strName, const math::int3* pn3Value, uint32_t nOffset, uint32_t nCount) = 0;
+			virtual void SetVectorArray(const string::StringID& strName, const math::int4* pn4Value, uint32_t nOffset, uint32_t nCount) = 0;
+			virtual void SetVectorArray(const string::StringID& strName, const math::float2* pf2Value, uint32_t nOffset, uint32_t nCount) = 0;
+			virtual void SetVectorArray(const string::StringID& strName, const math::float3* pf3Value, uint32_t nOffset, uint32_t nCount) = 0;
+			virtual void SetVectorArray(const string::StringID& strName, const math::float4* pf4Value, uint32_t nOffset, uint32_t nCount) = 0;
 			virtual void SetMatrix(const string::StringID& strName, const math::Matrix& matrix) = 0;
 			virtual void SetMatrixArray(const string::StringID& strName, const math::Matrix* pMatrix, uint32_t nOffset, uint32_t nCount) = 0;
 			virtual void SetString(const string::StringID& strName, const char* str, uint32_t nCount) = 0;
@@ -221,18 +221,18 @@ namespace eastengine
 			virtual ~EffectVectorHandle() = default;
 			virtual EmEffectHandle::Type GetType() override { return EmEffectHandle::eVector; }
 
-			virtual void SetVector(const math::Int2& n2Value) = 0;
-			virtual void SetVector(const math::Int3& n3Value) = 0;
-			virtual void SetVector(const math::Int4& n4Value) = 0;
-			virtual void SetVector(const math::Vector2& f2Value) = 0;
-			virtual void SetVector(const math::Vector3& f3Value) = 0;
-			virtual void SetVector(const math::Vector4& f4Value) = 0;
-			virtual void SetVectorArray(const math::Int2* pn2Value, uint32_t nOffset, uint32_t nCount) = 0;
-			virtual void SetVectorArray(const math::Int3* pn3Value, uint32_t nOffset, uint32_t nCount) = 0;
-			virtual void SetVectorArray(const math::Int4* pn4Value, uint32_t nOffset, uint32_t nCount) = 0;
-			virtual void SetVectorArray(const math::Vector2* pf2Value, uint32_t nOffset, uint32_t nCount) = 0;
-			virtual void SetVectorArray(const math::Vector3* pf3Value, uint32_t nOffset, uint32_t nCount) = 0;
-			virtual void SetVectorArray(const math::Vector4* pf4Value, uint32_t nOffset, uint32_t nCount) = 0;
+			virtual void SetVector(const math::int2& n2Value) = 0;
+			virtual void SetVector(const math::int3& n3Value) = 0;
+			virtual void SetVector(const math::int4& n4Value) = 0;
+			virtual void SetVector(const math::float2& f2Value) = 0;
+			virtual void SetVector(const math::float3& f3Value) = 0;
+			virtual void SetVector(const math::float4& f4Value) = 0;
+			virtual void SetVectorArray(const math::int2* pn2Value, uint32_t nOffset, uint32_t nCount) = 0;
+			virtual void SetVectorArray(const math::int3* pn3Value, uint32_t nOffset, uint32_t nCount) = 0;
+			virtual void SetVectorArray(const math::int4* pn4Value, uint32_t nOffset, uint32_t nCount) = 0;
+			virtual void SetVectorArray(const math::float2* pf2Value, uint32_t nOffset, uint32_t nCount) = 0;
+			virtual void SetVectorArray(const math::float3* pf3Value, uint32_t nOffset, uint32_t nCount) = 0;
+			virtual void SetVectorArray(const math::float4* pf4Value, uint32_t nOffset, uint32_t nCount) = 0;
 		};
 
 		struct EffectMatrixHandle : public EffectHandle

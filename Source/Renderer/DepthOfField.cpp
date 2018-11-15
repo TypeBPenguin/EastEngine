@@ -128,19 +128,19 @@ namespace eastengine
 			float dy = 0.5f / static_cast<float>(pSource->GetSize().y);
 
 			// Generate the texture coordinate offsets for our disc
-			math::Vector2 discOffsets[12];
-			discOffsets[0] = math::Vector2(-0.326212f * dx, -0.40581f * dy);
-			discOffsets[1] = math::Vector2(-0.840144f * dx, -0.07358f * dy);
-			discOffsets[2] = math::Vector2(-0.840144f * dx, 0.457137f * dy);
-			discOffsets[3] = math::Vector2(-0.203345f * dx, 0.620716f * dy);
-			discOffsets[4] = math::Vector2(0.96234f * dx, -0.194983f * dy);
-			discOffsets[5] = math::Vector2(0.473434f * dx, -0.480026f * dy);
-			discOffsets[6] = math::Vector2(0.519456f * dx, 0.767022f * dy);
-			discOffsets[7] = math::Vector2(0.185461f * dx, -0.893124f * dy);
-			discOffsets[8] = math::Vector2(0.507431f * dx, 0.064425f * dy);
-			discOffsets[9] = math::Vector2(0.89642f * dx, 0.412458f * dy);
-			discOffsets[10] = math::Vector2(-0.32194f * dx, -0.932615f * dy);
-			discOffsets[11] = math::Vector2(-0.791559f * dx, -0.59771f * dy);
+			math::float2 discOffsets[12];
+			discOffsets[0] = math::float2(-0.326212f * dx, -0.40581f * dy);
+			discOffsets[1] = math::float2(-0.840144f * dx, -0.07358f * dy);
+			discOffsets[2] = math::float2(-0.840144f * dx, 0.457137f * dy);
+			discOffsets[3] = math::float2(-0.203345f * dx, 0.620716f * dy);
+			discOffsets[4] = math::float2(0.96234f * dx, -0.194983f * dy);
+			discOffsets[5] = math::float2(0.473434f * dx, -0.480026f * dy);
+			discOffsets[6] = math::float2(0.519456f * dx, 0.767022f * dy);
+			discOffsets[7] = math::float2(0.185461f * dx, -0.893124f * dy);
+			discOffsets[8] = math::float2(0.507431f * dx, 0.064425f * dy);
+			discOffsets[9] = math::float2(0.89642f * dx, 0.412458f * dy);
+			discOffsets[10] = math::float2(-0.32194f * dx, -0.932615f * dy);
+			discOffsets[11] = math::float2(-0.791559f * dx, -0.59771f * dy);
 
 			m_pEffect->SetVectorArray(StrID::g_f2FilterTaps, discOffsets, 0, 12);
 

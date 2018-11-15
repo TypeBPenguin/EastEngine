@@ -94,7 +94,7 @@ namespace eastengine
 
 		ModelLoader::ModelLoader(std::function<void(bool)> funcCallback)
 			: m_isEnableThreadLoad(false)
-			, m_f3Scale(math::Vector3::One)
+			, m_f3Scale(math::float3::One)
 			, m_funcCallback(funcCallback)
 			, m_fScaleFactor(0.f)
 			, m_isFlipZ(true)
@@ -167,7 +167,7 @@ namespace eastengine
 		}
 
 		void ModelLoader::InitBox(const string::StringID& strModelName, MaterialInfo* pMaterialInfo,
-			const math::Vector3& size, bool rhcoords, bool invertn)
+			const math::float3& size, bool rhcoords, bool invertn)
 		{
 			m_strModelName = strModelName;
 			m_materialInfo = pMaterialInfo != nullptr ? *pMaterialInfo : MaterialInfo();

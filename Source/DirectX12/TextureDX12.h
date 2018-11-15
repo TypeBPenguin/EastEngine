@@ -32,7 +32,7 @@ namespace eastengine
 				virtual const string::StringID& GetName() const override;
 
 			public:
-				virtual const math::UInt2& GetSize() const override;
+				virtual const math::uint2& GetSize() const override;
 				virtual const std::string& GetPath() const override;
 
 			public:

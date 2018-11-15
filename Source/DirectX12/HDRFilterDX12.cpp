@@ -20,12 +20,12 @@ namespace eastengine
 			{
 				struct HDR_PSConstants
 				{
-					math::Vector2 InputSize0;
-					math::Vector2 InputSize1;
-					math::Vector2 InputSize2;
-					math::Vector2 InputSize3;
-					math::Vector2 OutputSize;
-					math::Vector2 padding;
+					math::float2 InputSize0;
+					math::float2 InputSize1;
+					math::float2 InputSize2;
+					math::float2 InputSize3;
+					math::float2 OutputSize;
+					math::float2 padding;
 
 					uint32_t nTexInputIndex0{ 0 };
 					uint32_t nTexInputIndex1{ 0 };
@@ -115,8 +115,8 @@ namespace eastengine
 				}
 
 				void SetHDR_PSConstants(HDR_PSConstants* pPSConstants,
-					const math::Vector2 InputSize[4],
-					const math::Vector2& OutputSize,
+					const math::float2 InputSize[4],
+					const math::float2& OutputSize,
 					const uint32_t nTexInputIndex[4])
 				{
 					pPSConstants->InputSize0 = InputSize[0];
@@ -453,7 +453,7 @@ namespace eastengine
 
 			void HDRFilter::Impl::Apply(ID3D12GraphicsCommandList2* pCommandList, DescriptorHeap* pSRVDescriptorHeap, uint32_t nFrameIndex, shader::PSType emPSType, RenderTarget* const* ppSource, size_t nSourceCount, RenderTarget* pResult)
 			{
-				auto GetSize = [](RenderTarget* pSource) -> math::Vector2
+				auto GetSize = [](RenderTarget* pSource) -> math::float2
 				{
 					const D3D12_RESOURCE_DESC desc = pSource->GetDesc();
 					return
@@ -464,7 +464,7 @@ namespace eastengine
 
 					//const uint32_t nMipLevel = srvDesc.Texture2D.MostDetailedMip;
 					//
-					//const math::Vector2 f2Result
+					//const math::float2 f2Result
 					//{
 					//	static_cast<float>(std::max(desc.Width / (1u << nMipLevel), 1u)),
 					//	static_cast<float>(std::max(desc.Height / (1u << nMipLevel), 1u))
@@ -472,8 +472,8 @@ namespace eastengine
 					//return f2Result;
 				};
 
-				math::Vector2 InputSize[4];
-				math::Vector2 OutputSize;
+				math::float2 InputSize[4];
+				math::float2 OutputSize;
 
 				uint32_t TexInputIndex[4]{};
 

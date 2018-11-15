@@ -33,7 +33,7 @@ namespace eastengine
 					uint32_t nTexColorIndex{ 0 };
 					uint32_t nTexDepthIndex{ 0 };
 
-					std::array<math::Vector4, NUM_DOF_TAPS> f4FilterTaps;
+					std::array<math::float4, NUM_DOF_TAPS> f4FilterTaps;
 
 					math::Matrix matInvProj;
 				};

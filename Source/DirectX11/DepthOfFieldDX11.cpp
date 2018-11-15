@@ -27,9 +27,9 @@ namespace eastengine
 
 					float fFocalDistance{ 0.f };
 					float fFocalWidth{ 0.f };
-					math::Vector2 padding;
+					math::float2 padding;
 
-					std::array<math::Vector4, NUM_DOF_TAPS> f4FilterTaps;
+					std::array<math::float4, NUM_DOF_TAPS> f4FilterTaps;
 
 					math::Matrix matInvProj;
 				};
@@ -162,7 +162,7 @@ namespace eastengine
 				pDeviceContext->RSSetState(pRasterizerState);
 
 				ID3D11BlendState* pBlendState = pDeviceInstance->GetBlendState(EmBlendState::eOff);
-				pDeviceContext->OMSetBlendState(pBlendState, &math::Vector4::Zero.x, 0xffffffff);
+				pDeviceContext->OMSetBlendState(pBlendState, &math::float4::Zero.x, 0xffffffff);
 
 				ID3D11DepthStencilState* pDepthStencilState = pDeviceInstance->GetDepthStencilState(EmDepthStencilState::eRead_Write_Off);
 				pDeviceContext->OMSetDepthStencilState(pDepthStencilState, 0);

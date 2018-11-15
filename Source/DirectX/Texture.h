@@ -28,7 +28,7 @@ namespace eastengine
 			virtual ID3D11ShaderResourceView* GetShaderResourceView() override { return m_pShaderResourceView; }
 			virtual ID3D11ShaderResourceView** GetShaderResourceViewPtr() override { return &m_pShaderResourceView; }
 
-			virtual const math::UInt2& GetSize() override { return m_n2Size; }
+			virtual const math::uint2& GetSize() override { return m_n2Size; }
 			virtual const string::StringID& GetName() override { return m_strName; }
 
 		public:
@@ -49,7 +49,7 @@ namespace eastengine
 			ID3D11Texture3D* m_pTexture3D;
 			ID3D11ShaderResourceView* m_pShaderResourceView;
 
-			math::UInt2 m_n2Size;
+			math::uint2 m_n2Size;
 
 			string::StringID m_strName;
 		};

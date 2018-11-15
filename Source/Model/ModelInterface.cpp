@@ -24,20 +24,29 @@ namespace eastengine
 	{
 		LODReductionRate::LODReductionRate()
 		{
-			fLv[0] = 1.f;
-			fLv[1] = 0.775f;
-			fLv[2] = 0.55f;
-			fLv[3] = 0.325f;
-			fLv[4] = 0.1f;
+			levels[0] = 1.f;
+			levels[1] = 0.775f;
+			levels[2] = 0.55f;
+			levels[3] = 0.325f;
+			levels[4] = 0.1f;
 		}
 
-		LODReductionRate::LODReductionRate(float fLv0, float fLv1, float fLv2, float fLv3, float fLv4)
+		LODReductionRate::LODReductionRate(float lv0, float lv1, float lv2, float lv3, float lv4)
 		{
-			fLv[0] = fLv0;
-			fLv[1] = fLv1;
-			fLv[2] = fLv2;
-			fLv[3] = fLv3;
-			fLv[4] = fLv4;
+			levels[0] = lv0;
+			levels[1] = lv1;
+			levels[2] = lv2;
+			levels[3] = lv3;
+			levels[4] = lv4;
+		}
+
+		IMotionEvent::IMotionEvent(int nID)
+			: nID(nID)
+		{
+		}
+
+		IMotionEvent::~IMotionEvent()
+		{
 		}
 
 		IMotion* IMotion::Create(const MotionLoader& loader)
@@ -347,7 +356,7 @@ namespace eastengine
 				uint32_t nVertexCount = pVertexBuffer->GetVertexCount();
 				file << nVertexCount;
 
-				if (pNode->GetType() == EmModelNode::eStatic)
+				if (pNode->GetType() == IModelNode::eStatic)
 				{
 					const VertexPosTexNor* pVertices = reinterpret_cast<const VertexPosTexNor*>(pData);
 					for (uint32_t j = 0; j < nVertexCount; ++j)
@@ -357,7 +366,7 @@ namespace eastengine
 						file.Write(&pVertices[j].normal.x, 3);
 					}
 				}
-				else if (pNode->GetType() == EmModelNode::eSkinned)
+				else if (pNode->GetType() == IModelNode::eSkinned)
 				{
 					const VertexPosTexNorWeiIdx* pVertices = reinterpret_cast<const VertexPosTexNorWeiIdx*>(pData);
 					for (uint32_t j = 0; j < nVertexCount; ++j)
@@ -404,7 +413,7 @@ namespace eastengine
 					pMaterial->SaveToFile(strPath.c_str());
 				}
 
-				if (pNode->GetType() == EmModelNode::eSkinned)
+				if (pNode->GetType() == IModelNode::eSkinned)
 				{
 					ModelNodeSkinned* pSkinned = static_cast<ModelNodeSkinned*>(pNode);
 					uint32_t nBoneCount = pSkinned->GetBoneCount();
