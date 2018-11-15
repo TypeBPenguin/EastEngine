@@ -1842,12 +1842,12 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 
 		if (ImGui::CollapsingHeader("Tracer") == true)
 		{
-			const bool isTracing = Performance::Tracer::IsTracing();
+			const bool isTracing = performance::tracer::IsTracing();
 			ImGui::Text("State : %s", isTracing == true ? "Tracing" : "Idle");
 
 			if (isTracing == true)
 			{
-				ImGui::Text("Time : %.2f", Performance::Tracer::TracingTime());
+				ImGui::Text("Time : %.2f", performance::tracer::TracingTime());
 
 				if (ImGui::Button("End") == true)
 				{

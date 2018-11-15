@@ -69,6 +69,7 @@ namespace eastengine
 
 			bool VTFManager::Bake()
 			{
+				TRACER_EVENT(__FUNCTION__);
 				thread::SRWWriteLock writeLock(&m_srwLock);
 
 				if (m_vtfInstance.nAllocatedCount == 0)

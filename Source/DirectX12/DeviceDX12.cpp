@@ -246,14 +246,18 @@ namespace eastengine
 
 			void Device::Impl::Render()
 			{
+				TRACER_EVENT(__FUNCTION__);
 				WaitForPreviousFrame();
 
-				for (auto pCommandAllocator : m_pCommandAllocators[m_nFrameIndex])
 				{
-					HRESULT hr = pCommandAllocator->Reset();
-					if (FAILED(hr))
+					TRACER_EVENT("CommandAllocatorReset");
+					for (auto pCommandAllocator : m_pCommandAllocators[m_nFrameIndex])
 					{
-						throw_line("failed to command allocator reset");
+						HRESULT hr = pCommandAllocator->Reset();
+						if (FAILED(hr))
+						{
+							throw_line("failed to command allocator reset");
+						}
 					}
 				}
 
@@ -1049,6 +1053,7 @@ namespace eastengine
 
 			void Device::Impl::WaitForPreviousFrame()
 			{
+				TRACER_EVENT(__FUNCTION__);
 				m_nFrameIndex = m_pSwapChain->GetCurrentBackBufferIndex();
 
 				util::WaitForFence(m_pFences[m_nFrameIndex], m_nFenceValues[m_nFrameIndex], m_hFenceEvent);

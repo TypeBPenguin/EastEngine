@@ -16,7 +16,11 @@ namespace eastengine
 			StringID();
 			StringID(const char* str);
 			StringID(const StringID& source);
+			StringID(StringID&& source) noexcept;
 			~StringID();
+
+			StringID& operator = (const StringID& source);
+			StringID& operator = (StringID&& source) noexcept;
 
 			bool operator == (const StringID& rValue) const { return m_pStringData == rValue.m_pStringData; }
 			bool operator == (const char* rValue) const;

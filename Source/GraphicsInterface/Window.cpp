@@ -70,25 +70,41 @@ namespace eastengine
 				}
 				else
 				{
-					while (s_queueMsg.empty() == false)
+					TRACER_EVENT("MainLoop");
 					{
-						WndMsg wndMsg{};
-						if (s_queueMsg.try_pop(wndMsg) == true)
+						TRACER_EVENT("ProcessWindowMessage");
+						while (s_queueMsg.empty() == false)
 						{
-							for (auto& iter : m_umapHandlers)
+							WndMsg wndMsg{};
+							if (s_queueMsg.try_pop(wndMsg) == true)
 							{
-								iter.second(wndMsg.hWnd, wndMsg.msg, wndMsg.wParam, wndMsg.lParam);
+								for (auto& iter : m_umapHandlers)
+								{
+									iter.second(wndMsg.hWnd, wndMsg.msg, wndMsg.wParam, wndMsg.lParam);
+								}
 							}
 						}
 					}
 
-					Update();
+					{
+						TRACER_EVENT("GraphicsUpdate");
+						Update();
+					}
 
-					funcUpdate();
+					{
+						TRACER_EVENT("SystemUpdate");
+						funcUpdate();
+					}
 
-					Render();
+					{
+						TRACER_EVENT("GraphicsRender");
+						Render();
+					}
 
-					Present();
+					{
+						TRACER_EVENT("GraphicsPresent");
+						Present();
+					}
 				}
 			}
 		}

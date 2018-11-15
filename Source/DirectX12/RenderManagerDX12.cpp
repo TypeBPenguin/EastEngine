@@ -89,11 +89,13 @@ namespace eastengine
 
 			void RenderManager::Impl::Render()
 			{
+				TRACER_EVENT(__FUNCTION__);
 				Device* pDeviceInstance = Device::GetInstance();
 				const uint32_t nFrameIndex = pDeviceInstance->GetFrameIndex();
 
 				GBuffer* pGBuffer = pDeviceInstance->GetGBuffer(nFrameIndex);
 				{
+					TRACER_EVENT("ClearBuffer");
 					RenderTarget* pNormalsRT = pGBuffer->GetRenderTarget(EmGBuffer::eNormals);
 					RenderTarget* pColorsRT = pGBuffer->GetRenderTarget(EmGBuffer::eColors);
 					RenderTarget* pDisneyBRDFRT = pGBuffer->GetRenderTarget(EmGBuffer::eDisneyBRDF);
@@ -130,6 +132,7 @@ namespace eastengine
 				{
 					if (options.OnSSS == true)
 					{
+						TRACER_EVENT("SSS");
 						D3D12_RESOURCE_DESC swapchainDesc_forSSS = swapchainDesc;
 						if (options.OnHDR == true)
 						{
@@ -148,6 +151,7 @@ namespace eastengine
 
 					if (options.OnASSAO == true)
 					{
+						TRACER_EVENT("ASSAO");
 						RenderTarget* pLastUseRenderTarget = pDeviceInstance->GetLastUsedRenderTarget();
 						const RenderTarget* pNormalMap = pGBuffer->GetRenderTarget(EmGBuffer::eNormals);
 						const DepthStencil* pDepth = pGBuffer->GetDepthStencil();
@@ -161,6 +165,7 @@ namespace eastengine
 				{
 					if (options.OnHDR == true)
 					{
+						TRACER_EVENT("HDR");
 						RenderTarget* pHDR = pDeviceInstance->GetRenderTarget(&swapchainDesc, math::Color::Transparent, false);
 						RenderTarget* pSource = pDeviceInstance->GetLastUsedRenderTarget();
 						GetHDRFilter()->Apply(pSource, pHDR);
@@ -170,12 +175,14 @@ namespace eastengine
 
 					if (options.OnBloomFilter == true)
 					{
+						TRACER_EVENT("BloomFilter");
 						RenderTarget* pSource = pDeviceInstance->GetLastUsedRenderTarget();
 						GetBloomFilter()->Apply(pSource);
 					}
 
 					if (options.OnColorGrading == true)
 					{
+						TRACER_EVENT("ColorGrading");
 						RenderTarget* pColorGrading = pDeviceInstance->GetRenderTarget(&swapchainDesc, math::Color::Transparent, false);
 						RenderTarget* pSource = pDeviceInstance->GetLastUsedRenderTarget();
 
@@ -186,6 +193,7 @@ namespace eastengine
 
 					if (options.OnDOF == true)
 					{
+						TRACER_EVENT("DOF");
 						RenderTarget* pDepthOfField = pDeviceInstance->GetRenderTarget(&swapchainDesc, math::Color::Transparent, false);
 						RenderTarget* pSource = pDeviceInstance->GetLastUsedRenderTarget();
 						DepthStencil* pDepth = pGBuffer->GetDepthStencil();
@@ -197,6 +205,7 @@ namespace eastengine
 
 					if (options.OnFXAA == true)
 					{
+						TRACER_EVENT("FXAA");
 						RenderTarget* pFxaa = pDeviceInstance->GetRenderTarget(&swapchainDesc, math::Color::Transparent, false);
 						RenderTarget* pSource = pDeviceInstance->GetLastUsedRenderTarget();
 
@@ -208,6 +217,7 @@ namespace eastengine
 
 				// copy to swapchain
 				{
+					TRACER_EVENT("CopyToSwapchain");
 					RenderTarget* pSwapChainRenderTarget = pDeviceInstance->GetSwapChainRenderTarget(nFrameIndex);
 					RenderTarget* pLastUseRenderTarget = pDeviceInstance->GetLastUsedRenderTarget();
 

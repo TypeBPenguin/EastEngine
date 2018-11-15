@@ -185,8 +185,25 @@ namespace eastengine
 		{
 		}
 
+		StringID::StringID(StringID&& source) noexcept
+			: m_pStringData(std::move(source.m_pStringData))
+		{
+		}
+
 		StringID::~StringID()
 		{
+		}
+
+		StringID& StringID::operator = (const StringID& source)
+		{
+			m_pStringData = source.m_pStringData;
+			return *this;
+		}
+
+		StringID& StringID::operator = (StringID&& source) noexcept
+		{
+			m_pStringData = std::move(source.m_pStringData);
+			return *this;
 		}
 
 		bool StringID::operator == (const char* rValue) const

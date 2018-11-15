@@ -217,6 +217,7 @@ namespace eastengine
 				if (m_vecTerrains.empty() == true)
 					return;
 
+				TRACER_EVENT(__FUNCTION__);
 				Device* pDeviceInstance = Device::GetInstance();
 
 				DescriptorHeap* pSRVDescriptorHeap = pDeviceInstance->GetSRVDescriptorHeap();

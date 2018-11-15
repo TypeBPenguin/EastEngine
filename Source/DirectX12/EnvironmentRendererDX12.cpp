@@ -123,6 +123,7 @@ namespace eastengine
 
 			void EnvironmentRenderer::Impl::Render(Camera* pCamera)
 			{
+				TRACER_EVENT(__FUNCTION__);
 				Device* pDeviceInstance = Device::GetInstance();
 
 				const IImageBasedLight* pImageBasedLight = pDeviceInstance->GetImageBasedLight();

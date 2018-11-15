@@ -155,6 +155,8 @@ namespace eastengine
 
 	void MainSystem::Impl::Update(float fElapsedTime)
 	{
+		performance::tracer::RefreshState();
+
 		m_pFpsChecker->Update(fElapsedTime);
 		s_pInputDevice->Update(fElapsedTime);
 

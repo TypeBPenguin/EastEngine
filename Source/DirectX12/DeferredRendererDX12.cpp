@@ -141,6 +141,7 @@ namespace eastengine
 
 			void DeferredRenderer::Impl::Render(Camera* pCamera)
 			{
+				TRACER_EVENT(__FUNCTION__);
 				Device* pDeviceInstance = Device::GetInstance();
 				LightManager* pLightManager = LightManager::GetInstance();
 

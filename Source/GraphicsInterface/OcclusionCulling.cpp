@@ -194,6 +194,7 @@ namespace eastengine
 		{
 			if (m_emState != ePause)
 			{
+				TRACER_EVENT(__FUNCTION__);
 				{
 					std::unique_lock<std::mutex> lock(m_mutex);
 					m_condition_suspend.wait(lock, [&]()
@@ -209,6 +210,7 @@ namespace eastengine
 		{
 			if (m_emState != ePause)
 			{
+				TRACER_EVENT(__FUNCTION__);
 				{
 					std::unique_lock<std::mutex> lock(m_mutex);
 					m_condition_suspend.wait(lock, [&]()
@@ -224,6 +226,7 @@ namespace eastengine
 		{
 			if (m_emState != ePause)
 			{
+				TRACER_EVENT(__FUNCTION__);
 				{
 					std::lock_guard<std::mutex> lock(m_mutex);
 					m_emState = State::eRunning;
@@ -236,6 +239,7 @@ namespace eastengine
 		{
 			if (m_emState != ePause)
 			{
+				TRACER_EVENT(__FUNCTION__);
 				{
 					std::unique_lock<std::mutex> lock(m_mutex);
 					m_emState = State::eSuspend;

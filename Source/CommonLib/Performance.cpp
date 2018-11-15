@@ -1,15 +1,16 @@
 #include "stdafx.h"
 #include "Performance.h"
 
+#include "StringTable.h"
 #include "Lock.h"
 #include "FileUtil.h"
 #include "json.hpp"
 
 namespace eastengine
 {
-	namespace Performance
+	namespace performance
 	{
-		namespace Tracer
+		namespace tracer
 		{
 			class TracerImpl
 			{
@@ -38,7 +39,7 @@ namespace eastengine
 					Event* pEvent = GetLastEvent();
 					if (pEvent != nullptr)
 					{
-						pEvent->vecArgs.push_back({ strKey, value });
+						pEvent->args.push_back({ strKey, value });
 					}
 				}
 
@@ -53,7 +54,7 @@ namespace eastengine
 					Event* pEvent = GetLastEvent();
 					if (pEvent != nullptr)
 					{
-						pEvent->vecArgs.push_back({ strKey, std::string{ value } });
+						pEvent->args.push_back({ strKey, std::string{ value } });
 					}
 				}
 
@@ -75,13 +76,43 @@ namespace eastengine
 
 					Type emType{ eBegin };
 
-					std::string strTitle;
-					std::string strCategory;
+					string::StringID title;
+					string::StringID category;
 
-					uint32_t nProcessID{ 0 };
-					uint32_t nThreadID{ 0 };
+					uint32_t processID{ 0 };
+					uint32_t threadID{ 0 };
 
 					std::chrono::high_resolution_clock::time_point time;
+
+					Event() = default;
+					Event(Type emType, const string::StringID& title, const string::StringID& category, uint32_t processID, uint32_t threadID, const std::chrono::high_resolution_clock::time_point& time = std::chrono::high_resolution_clock::now())
+						: emType(emType)
+						, title(title)
+						, category(category)
+						, processID(processID)
+						, threadID(threadID)
+						, time(time)
+					{
+					}
+
+					Event(Event&& source) noexcept
+					{
+						*this = std::move(source);
+					}
+
+					Event& operator = (Event&& source) noexcept
+					{
+						emType = std::move(source.emType);
+						title = std::move(source.title);
+						category = std::move(source.category);
+						processID = std::move(source.processID);
+						threadID = std::move(source.threadID);
+						time = std::move(source.time);
+
+						args = std::move(source.args);
+
+						return *this;
+					}
 
 					struct Args
 					{
@@ -97,7 +128,7 @@ namespace eastengine
 							double,
 							std::string> variantValue;
 					};
-					std::vector<Args> vecArgs;
+					std::vector<Args> args;
 				};
 
 				Event* GetLastEvent();
@@ -164,27 +195,20 @@ namespace eastengine
 				m_emState = eRequestEnd;
 			}
 
-			void TracerImpl::BeginEvent(const char* strTitle, const char* strCategory)
+			void TracerImpl::BeginEvent(const char* title, const char* category)
 			{
 				if (IsTracing() == false)
 					return;
 
 				thread::SRWWriteLock lock(&m_srwLock);
 
-				const uint32_t nThreadID = GetCurrentThreadId();
+				const uint32_t threadID = GetCurrentThreadId();
+				const uint32_t processID = GetCurrentProcessId();
 
-				Event event;
-				event.emType = Event::eBegin;
-				event.strTitle = strTitle;
-				event.strCategory = strCategory;
-				event.nProcessID = GetCurrentProcessId();
-				event.nThreadID = nThreadID;
-				event.time = std::chrono::high_resolution_clock::now();
+				const size_t nIndex = m_umapEvents[threadID].size();
+				m_umapEventLinkers[threadID].emplace(nIndex);
 
-				const size_t nIndex = m_umapEvents[nThreadID].size();
-				m_umapEventLinkers[nThreadID].emplace(nIndex);
-
-				m_umapEvents[nThreadID].emplace_back(event);
+				m_umapEvents[threadID].emplace_back(Event::eBegin, title, category, processID, threadID);
 			}
 
 			void TracerImpl::EndEvent()
@@ -194,36 +218,28 @@ namespace eastengine
 
 				thread::SRWWriteLock lock(&m_srwLock);
 
-				const uint32_t nThreadID = GetCurrentThreadId();
-				if (m_umapEventLinkers[nThreadID].empty() == true)
+				const uint32_t threadID = GetCurrentThreadId();
+				if (m_umapEventLinkers[threadID].empty() == true)
 					return;
 
-				const size_t nIndex = m_umapEventLinkers[nThreadID].top();
-				m_umapEventLinkers[nThreadID].pop();
-				assert(nIndex < m_umapEvents[nThreadID].size());
+				const size_t nIndex = m_umapEventLinkers[threadID].top();
+				m_umapEventLinkers[threadID].pop();
+				assert(nIndex < m_umapEvents[threadID].size());
 
-				const Event& beginEvent = m_umapEvents[nThreadID][nIndex];
+				const Event& beginEvent = m_umapEvents[threadID][nIndex];
 
-				std::chrono::high_resolution_clock::time_point nowTime = std::chrono::high_resolution_clock::now();
-
-				std::chrono::microseconds time = std::chrono::duration_cast<std::chrono::microseconds>(nowTime - beginEvent.time);
+				const std::chrono::high_resolution_clock::time_point nowTime = std::chrono::high_resolution_clock::now();
+				const std::chrono::microseconds time = std::chrono::duration_cast<std::chrono::microseconds>(nowTime - beginEvent.time);
 				if (time.count() > 0)
 				{
-					Event event;
-					event.emType = Event::eEnd;
-					event.strTitle = beginEvent.strTitle;
-					event.strCategory = beginEvent.strCategory;
-					event.nProcessID = GetCurrentProcessId();
-					event.nThreadID = nThreadID;
-					event.time = nowTime;
-
-					m_umapEvents[nThreadID].emplace_back(event);
+					const uint32_t processID = GetCurrentProcessId();
+					m_umapEvents[threadID].emplace_back(Event::eEnd, StrID::EmptyString, StrID::EmptyString, processID, threadID, nowTime);
 				}
 				else
 				{
-					auto iter = m_umapEvents[nThreadID].begin();
+					auto iter = m_umapEvents[threadID].begin();
 					std::advance(iter, nIndex);
-					m_umapEvents[nThreadID].erase(iter);
+					m_umapEvents[threadID].erase(iter);
 				}
 			}
 
@@ -243,7 +259,7 @@ namespace eastengine
 			void TracerImpl::Save()
 			{
 				Json root;
-				Json traceEvents;
+				Json& traceEvents = root["traceEvents"];
 
 				for (auto iter = m_umapEvents.begin(); iter != m_umapEvents.end(); ++iter)
 				{
@@ -251,30 +267,31 @@ namespace eastengine
 					std::for_each(vecEvents.begin(), vecEvents.end(), [&](Event& event)
 					{
 						Json data;
-						data["name"] = event.strTitle;
-						data["cat"] = event.strCategory;
-
+						
 						switch (event.emType)
 						{
 						case Event::eBegin:
 							data["ph"] = "B";
+							data["name"] = event.title.c_str();
+							data["cat"] = event.category.c_str();
+
 							break;
 						case Event::eEnd:
 							data["ph"] = "E";
 							break;
 						}
 
-						data["pid"] = event.nProcessID;
-						data["tid"] = event.nThreadID;
+						data["pid"] = event.processID;
+						data["tid"] = event.threadID;
 
-						std::chrono::microseconds time = std::chrono::duration_cast<std::chrono::microseconds>(event.time - m_startTime.value());
+						const std::chrono::microseconds time = std::chrono::duration_cast<std::chrono::microseconds>(event.time - m_startTime.value());
 						data["ts"] = time.count();
 
-						if (event.vecArgs.empty() == false)
+						if (event.args.empty() == false)
 						{
-							Json argsList;
+							Json& argsList = data["args"];
 
-							std::for_each(event.vecArgs.begin(), event.vecArgs.end(), [&](const Event::Args& args)
+							std::for_each(event.args.begin(), event.args.end(), [&](const Event::Args& args)
 							{
 								Json argsData;
 
@@ -303,15 +320,12 @@ namespace eastengine
 
 								argsList.push_back(argsData);
 							});
-
-							data["args"] = argsList;
 						}
 
 						traceEvents.push_back(data);
 					});
 				}
 
-				root["traceEvents"] = traceEvents;
 				root["displayTimeUnit"] = "ms";
 
 				const std::string strFileExtension = file::GetFileExtension(m_strSaveFilePath);

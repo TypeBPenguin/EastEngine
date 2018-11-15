@@ -580,6 +580,7 @@ namespace eastengine
 				if (isAlphaBlend == true && m_nJobStaticCount[emGroup] == 0 && m_nJobSkinnedCount[emGroup] == 0)
 					return;
 
+				TRACER_EVENT(__FUNCTION__);
 				const OcclusionCulling* pOcclusionCulling = OcclusionCulling::GetInstance();
 				if (emGroup == Group::eDeferred)
 				{
@@ -634,7 +635,6 @@ namespace eastengine
 				if (isAlphaBlend == true)
 				{
 					D3D12_RESOURCE_DESC desc = pDeviceInstance->GetSwapChainRenderTarget(nFrameIndex)->GetDesc();
-
 					if (GetOptions().OnHDR == true)
 					{
 						desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
