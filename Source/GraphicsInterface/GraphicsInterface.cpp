@@ -129,15 +129,28 @@ namespace eastengine
 		static_assert(eRF_FORCE_UINT == DXGI_FORMAT_FORCE_UINT, "not equil dxgi format");
 
 		static Options s_options;
+		static Options s_prevOptions;
+		static DebugInfo s_debugInfo;
+		static DebugInfo s_prevDebugInfo;
 
 		Options& GetOptions()
 		{
 			return s_options;
 		}
 
-		void SetOptions(const Options& options)
+		Options& GetPrevOptions()
 		{
-			s_options = options;
+			return s_prevOptions;
+		}
+
+		DebugInfo& GetDebugInfo()
+		{
+			return s_debugInfo;
+		}
+
+		DebugInfo& GetPrevDebugInfo()
+		{
+			return s_prevDebugInfo;
 		}
 	}
 }

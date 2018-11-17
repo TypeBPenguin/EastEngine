@@ -169,6 +169,7 @@ namespace eastengine
 
 			void DeferredRenderer::Impl::Render(ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext, Camera* pCamera)
 			{
+				TRACER_EVENT(__FUNCTION__);
 				DX_PROFILING(DeferredRenderer);
 
 				Device* pDeviceInstance = Device::GetInstance();

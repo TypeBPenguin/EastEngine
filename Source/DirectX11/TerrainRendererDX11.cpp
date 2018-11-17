@@ -231,6 +231,7 @@ namespace eastengine
 				if (m_vecTerrains.empty())
 					return;
 
+				TRACER_EVENT(__FUNCTION__);
 				DX_PROFILING(TerrainRenderer);
 
 				const graphics::Options& graphicsOptions = graphics::GetOptions();

@@ -172,6 +172,10 @@ namespace eastengine
 					m_pCullingThreadPool->SetVertexLayout({ sizeof(VertexPos), 4, 8 });
 					m_pCullingThreadPool->RenderTriangles(reinterpret_cast<const float*>(renderWaitData.pVertices), renderWaitData.pIndices, renderWaitData.indexCount / 3, MaskedOcclusionCulling::BACKFACE_CCW, MaskedOcclusionCulling::CLIP_PLANE_ALL);
 
+					if (GetDebugInfo().isEnableCollection == true)
+					{
+						++GetDebugInfo().occlusionCulling.renderCompleteCount;
+					}
 					m_condition_suspend.notify_all();
 				}
 			});
@@ -291,6 +295,10 @@ namespace eastengine
 
 			{
 				std::lock_guard<std::mutex> lock(m_mutex);
+				if (GetDebugInfo().isEnableCollection == true)
+				{
+					++GetDebugInfo().occlusionCulling.renderTryCount;
+				}
 				m_renderWaitDatas.emplace(matWVP, pVertices, pIndices, indexCount);
 			}
 			m_condition.notify_all();
@@ -308,7 +316,25 @@ namespace eastengine
 
 			m_pCullingThreadPool->SetMatrix(&matWorld._11);
 			m_pCullingThreadPool->SetVertexLayout({ sizeof(VertexPos), 4, 8 });
-			return static_cast<Result>(m_pCullingThreadPool->TestTriangles(reinterpret_cast<const float*>(pVertices), pIndices, indexCount / 3, MaskedOcclusionCulling::BACKFACE_CCW, MaskedOcclusionCulling::CLIP_PLANE_ALL));
+			const Result emResult = static_cast<Result>(m_pCullingThreadPool->TestTriangles(reinterpret_cast<const float*>(pVertices), pIndices, indexCount / 3, MaskedOcclusionCulling::BACKFACE_CCW, MaskedOcclusionCulling::CLIP_PLANE_ALL));
+			if (GetDebugInfo().isEnableCollection == true)
+			{
+				switch (emResult)
+				{
+				case eVisible:
+					++GetDebugInfo().occlusionCulling.visibleCount;
+					break;
+				case eOccluded:
+					++GetDebugInfo().occlusionCulling.occludedCount;
+					break;
+				case eViewCulled:
+					++GetDebugInfo().occlusionCulling.viewCulledCount;
+					break;
+				default:
+					return eViewCulled;
+				}
+			}
+			return emResult;
 		}
 
 		OcclusionCulling::Result OcclusionCulling::Impl::TestRect(float xmin, float ymin, float xmax, float ymax, float wmin) const
@@ -316,7 +342,25 @@ namespace eastengine
 			if (m_emState == ePause)
 				return OcclusionCulling::eVisible;
 
-			return static_cast<Result>(m_pCullingThreadPool->TestRect(xmin, ymin, xmax, ymax, wmin));
+			const Result emResult = static_cast<Result>(m_pCullingThreadPool->TestRect(xmin, ymin, xmax, ymax, wmin));
+			if (GetDebugInfo().isEnableCollection == true)
+			{
+				switch (emResult)
+				{
+				case eVisible:
+					++GetDebugInfo().occlusionCulling.visibleCount;
+					break;
+				case eOccluded:
+					++GetDebugInfo().occlusionCulling.occludedCount;
+					break;
+				case eViewCulled:
+					++GetDebugInfo().occlusionCulling.viewCulledCount;
+					break;
+				default:
+					return eViewCulled;
+				}
+			}
+			return emResult;
 		}
 
 		OcclusionCulling::Result OcclusionCulling::Impl::TestRect(const Collision::AABB& aabb) const
@@ -325,9 +369,9 @@ namespace eastengine
 				return OcclusionCulling::eVisible;
 
 			// 0 = use min corner, 1 = use max corner
-			static const uint32_t sBBxInd[AABB_VERTICES]{ 1, 0, 0, 1, 1, 1, 0, 0 };
-			static const uint32_t sBByInd[AABB_VERTICES]{ 1, 1, 1, 1, 0, 0, 0, 0 };
-			static const uint32_t sBBzInd[AABB_VERTICES]{ 1, 1, 0, 0, 0, 1, 1, 0 };
+			static const uint32_t sBBxInd[Collision::AABB::CORNER_COUNT]{ 1, 0, 0, 1, 1, 1, 0, 0 };
+			static const uint32_t sBByInd[Collision::AABB::CORNER_COUNT]{ 1, 1, 1, 1, 0, 0, 0, 0 };
+			static const uint32_t sBBzInd[Collision::AABB::CORNER_COUNT]{ 1, 1, 0, 0, 0, 1, 1, 0 };
 
 			__m128 cumulativeMatrix[4];
 			cumulativeMatrix[0] = _mm_loadu_ps(&m_matViewProjection._r0.x);
@@ -369,7 +413,7 @@ namespace eastengine
 			if (minW < 0.00000001f)
 				return Result::eVisible;
 
-			for (UINT i = 0; i < AABB_VERTICES; i++)
+			for (size_t i = 0; i < Collision::AABB::CORNER_COUNT; i++)
 			{
 				// Transform the vertex
 				__m128 vert = cumulativeMatrix[3];

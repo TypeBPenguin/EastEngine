@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CommonLib/Singleton.h"
+#include "GraphicsInterface.h"
 
 namespace eastengine
 {
@@ -23,11 +24,6 @@ namespace eastengine
 				eVisible = 0x0,
 				eOccluded = 0x1,
 				eViewCulled = 0x3,
-			};
-
-			enum
-			{
-				AABB_VERTICES = 8,
 			};
 
 		public:

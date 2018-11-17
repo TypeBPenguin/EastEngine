@@ -62,8 +62,6 @@ namespace eastengine
 
 			private:
 				std::array<std::unique_ptr<IRenderer>, IRenderer::TypeCount> m_pRenderers{ nullptr };
-
-				Options m_prevOptions;
 			};
 
 			RenderManager::Impl::Impl()
@@ -88,6 +86,7 @@ namespace eastengine
 
 			void RenderManager::Impl::Render()
 			{
+				TRACER_EVENT(__FUNCTION__);
 				Device* pDeviceInstance = Device::GetInstance();
 				ID3D11Device* pDevice = pDeviceInstance->GetInterface();
 				ID3D11DeviceContext* pImmediateContext = pDeviceInstance->GetImmediateContext();
@@ -113,6 +112,7 @@ namespace eastengine
 				{
 					if (options.OnSSS == true)
 					{
+						TRACER_EVENT("SSS");
 						D3D11_TEXTURE2D_DESC swapchainDesc_forSSS = swapchainDesc;
 						if (options.OnHDR == true)
 						{
@@ -131,6 +131,7 @@ namespace eastengine
 
 					if (options.OnASSAO == true)
 					{
+						TRACER_EVENT("ASSAO");
 						RenderTarget* pLastUseRenderTarget = pDeviceInstance->GetLastUsedRenderTarget();
 						const RenderTarget* pNormalMap = pGBuffer->GetRenderTarget(EmGBuffer::eNormals);
 						const DepthStencil* pDepth = pGBuffer->GetDepthStencil();
@@ -144,6 +145,7 @@ namespace eastengine
 				{
 					if (options.OnHDR == true)
 					{
+						TRACER_EVENT("OnHDR");
 						RenderTarget* pHDR = pDeviceInstance->GetRenderTarget(&swapchainDesc, false);
 						const RenderTarget* pSource = pDeviceInstance->GetLastUsedRenderTarget();
 						GetHDRFilter()->Apply(pSource, pHDR);
@@ -153,12 +155,14 @@ namespace eastengine
 
 					if (options.OnBloomFilter == true)
 					{
+						TRACER_EVENT("OnBloomFilter");
 						RenderTarget* pSourceAndResult = pDeviceInstance->GetLastUsedRenderTarget();
 						GetBloomFilter()->Apply(pSourceAndResult);
 					}
 
 					if (options.OnColorGrading == true)
 					{
+						TRACER_EVENT("OnColorGrading");
 						RenderTarget* pColorGrading = pDeviceInstance->GetRenderTarget(&swapchainDesc, false);
 						const RenderTarget* pSource = pDeviceInstance->GetLastUsedRenderTarget();
 
@@ -169,6 +173,7 @@ namespace eastengine
 
 					if (options.OnDOF == true)
 					{
+						TRACER_EVENT("OnDOF");
 						RenderTarget* pDepthOfField = pDeviceInstance->GetRenderTarget(&swapchainDesc, false);
 						const RenderTarget* pSource = pDeviceInstance->GetLastUsedRenderTarget();
 						const DepthStencil* pDepth = pGBuffer->GetDepthStencil();
@@ -180,6 +185,7 @@ namespace eastengine
 
 					if (options.OnFXAA == true)
 					{
+						TRACER_EVENT("OnFXAA");
 						RenderTarget* pFxaa = pDeviceInstance->GetRenderTarget(&swapchainDesc, false);
 						const RenderTarget* pSource = pDeviceInstance->GetLastUsedRenderTarget();
 
@@ -196,7 +202,8 @@ namespace eastengine
 
 			void RenderManager::Impl::UpdateOptions(const Options& curOptions)
 			{
-				if (m_prevOptions.OnHDR != curOptions.OnHDR)
+				const Options& prevOptions = GetPrevOptions();
+				if (prevOptions.OnHDR != curOptions.OnHDR)
 				{
 					if (curOptions.OnHDR == true)
 					{
@@ -208,7 +215,7 @@ namespace eastengine
 					}
 				}
 
-				if (m_prevOptions.OnFXAA != curOptions.OnFXAA)
+				if (prevOptions.OnFXAA != curOptions.OnFXAA)
 				{
 					if (curOptions.OnFXAA == true)
 					{
@@ -220,7 +227,7 @@ namespace eastengine
 					}
 				}
 
-				if (m_prevOptions.OnDOF != curOptions.OnDOF)
+				if (prevOptions.OnDOF != curOptions.OnDOF)
 				{
 					if (curOptions.OnDOF == true)
 					{
@@ -232,7 +239,7 @@ namespace eastengine
 					}
 				}
 
-				if (m_prevOptions.OnASSAO != curOptions.OnASSAO)
+				if (prevOptions.OnASSAO != curOptions.OnASSAO)
 				{
 					if (curOptions.OnASSAO == true)
 					{
@@ -244,7 +251,7 @@ namespace eastengine
 					}
 				}
 
-				if (m_prevOptions.OnColorGrading != curOptions.OnColorGrading)
+				if (prevOptions.OnColorGrading != curOptions.OnColorGrading)
 				{
 					if (curOptions.OnColorGrading == true)
 					{
@@ -256,7 +263,7 @@ namespace eastengine
 					}
 				}
 
-				if (m_prevOptions.OnBloomFilter != curOptions.OnBloomFilter)
+				if (prevOptions.OnBloomFilter != curOptions.OnBloomFilter)
 				{
 					if (curOptions.OnBloomFilter == true)
 					{
@@ -268,7 +275,7 @@ namespace eastengine
 					}
 				}
 
-				if (m_prevOptions.OnSSS != curOptions.OnSSS)
+				if (prevOptions.OnSSS != curOptions.OnSSS)
 				{
 					if (curOptions.OnSSS == true)
 					{
@@ -279,8 +286,6 @@ namespace eastengine
 						m_pRenderers[IRenderer::eSSS].reset();
 					}
 				}
-
-				m_prevOptions = curOptions;
 			}
 
 			RenderManager::RenderManager()

@@ -683,6 +683,7 @@ namespace eastengine
 
 			void ModelRenderer::Impl::Render(ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext, Camera* pCamera, Group emGroup)
 			{
+				TRACER_EVENT(__FUNCTION__);
 				DX_PROFILING(ModelRenderer);
 
 				const bool isAlphaBlend = emGroup == Group::eAlphaBlend;

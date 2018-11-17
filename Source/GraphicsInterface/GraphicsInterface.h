@@ -288,9 +288,35 @@ namespace eastengine
 			};
 			SSSConfig sssConfig;
 		};
-
 		Options& GetOptions();
-		void SetOptions(const Options& options);
+		Options& GetPrevOptions();
+
+		struct DebugInfo
+		{
+			bool isEnableCollection{ false };
+
+			struct OcclusionCulling
+			{
+				std::atomic<uint32_t> renderTryCount{ 0 };
+				std::atomic<uint32_t> renderCompleteCount{ 0 };
+				std::atomic<uint32_t> visibleCount{ 0 };
+				std::atomic<uint32_t> occludedCount{ 0 };
+				std::atomic<uint32_t> viewCulledCount{ 0 };
+
+				OcclusionCulling& operator = (const OcclusionCulling& source)
+				{
+					renderTryCount.store(source.renderTryCount);
+					renderCompleteCount.store(source.renderCompleteCount);
+					visibleCount.store(source.visibleCount);
+					occludedCount.store(source.occludedCount);
+					viewCulledCount.store(source.viewCulledCount);
+					return *this;
+				}
+			};
+			OcclusionCulling occlusionCulling;
+		};
+		DebugInfo& GetDebugInfo();
+		DebugInfo& GetPrevDebugInfo();
 
 		class IVertexBuffer : public IResource
 		{

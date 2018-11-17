@@ -127,6 +127,7 @@ namespace eastengine
 
 			void EnvironmentRenderer::Impl::Render(ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext, Camera* pCamera)
 			{
+				TRACER_EVENT(__FUNCTION__);
 				DX_PROFILING(EnvironmentRenderer);
 
 				Device* pDeviceInstance = Device::GetInstance();

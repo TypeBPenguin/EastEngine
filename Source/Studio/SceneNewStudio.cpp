@@ -292,7 +292,7 @@ void SceneNewStudio::Enter()
 		return pActor;
 	};
 
-	for (int i = 0; i < 1; ++i)
+	for (int i = 0; i < 100; ++i)
 	{
 		string::StringID name;
 		name.Format("UnityChan%d", i);
@@ -1872,6 +1872,24 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 				{
 					TRACER_START();
 				}
+			}
+		}
+
+		if (ImGui::CollapsingHeader("Detail") == true)
+		{
+			graphics::DebugInfo& debugInfo = graphics::GetDebugInfo();
+			ImGui::Checkbox("Collection", &debugInfo.isEnableCollection);
+
+			const graphics::DebugInfo& prevDebugInfo = graphics::GetPrevDebugInfo();
+			if (ImGui::CollapsingHeader("OcclusionCulling") == true)
+			{
+				const graphics::DebugInfo::OcclusionCulling& occlusionCulling = prevDebugInfo.occlusionCulling;
+
+				ImGui::Text("RenderTryCount : %u", occlusionCulling.renderTryCount.load());
+				ImGui::Text("RenderCompleteCount : %u", occlusionCulling.renderCompleteCount.load());
+				ImGui::Text("VisibleCount : %u", occlusionCulling.visibleCount.load());
+				ImGui::Text("OccludedCount : %u", occlusionCulling.occludedCount.load());
+				ImGui::Text("ViewCulledCount : %u", occlusionCulling.viewCulledCount.load());
 			}
 		}
 

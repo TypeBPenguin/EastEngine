@@ -49,6 +49,7 @@ namespace eastengine
 			virtual void Run(std::function<void()> funcUpdate) = 0;
 			virtual void Cleanup(float fElapsedTime) = 0;
 			virtual void Update(float fElapsedTime) = 0;
+			virtual void PostUpdate() = 0;
 
 		public:
 			virtual APIs GetType() const = 0;
@@ -154,6 +155,11 @@ namespace eastengine
 
 			virtual void Update(float fElapsedTime) override
 			{
+				GetPrevOptions() = GetOptions();
+				GetPrevDebugInfo() = GetDebugInfo();
+				GetDebugInfo() = DebugInfo();
+				GetDebugInfo().isEnableCollection = GetPrevDebugInfo().isEnableCollection;
+
 				s_pCamera->Update(fElapsedTime);
 
 				s_pOcclusionCulling->Enable(GetOptions().OnOcclusionCulling);
@@ -163,6 +169,12 @@ namespace eastengine
 				s_pOcclusionCulling->ClearBuffer();
 
 				s_pLightManager->Update(fElapsedTime);
+			}
+
+			virtual void PostUpdate() override
+			{
+				s_pOcclusionCulling->Flush();
+				s_pOcclusionCulling->SuspendThreads();
 			}
 
 		public:
@@ -535,9 +547,7 @@ namespace eastengine
 
 		void PostUpdate()
 		{
-			OcclusionCulling* pOcclusionCulling = OcclusionCulling::GetInstance();
-			pOcclusionCulling->Flush();
-			pOcclusionCulling->SuspendThreads();
+			s_pGraphicsAPI->PostUpdate();
 		}
 
 		APIs GetAPI()

@@ -63,8 +63,6 @@ namespace eastengine
 
 			private:
 				std::array<std::unique_ptr<IRendererDX12>, IRenderer::TypeCount> m_pRenderers{ nullptr };
-
-				Options m_prevOptions;
 			};
 
 			RenderManager::Impl::Impl()
@@ -244,7 +242,8 @@ namespace eastengine
 
 			void RenderManager::Impl::UpdateOptions(const Options& curOptions)
 			{
-				if (m_prevOptions.OnHDR != curOptions.OnHDR)
+				const Options& prevOptions = GetPrevOptions();
+				if (prevOptions.OnHDR != curOptions.OnHDR)
 				{
 					if (curOptions.OnHDR == true)
 					{
@@ -265,7 +264,7 @@ namespace eastengine
 					}
 				}
 
-				if (m_prevOptions.OnFXAA != curOptions.OnFXAA)
+				if (prevOptions.OnFXAA != curOptions.OnFXAA)
 				{
 					if (curOptions.OnFXAA == true)
 					{
@@ -277,7 +276,7 @@ namespace eastengine
 					}
 				}
 
-				if (m_prevOptions.OnDOF != curOptions.OnDOF)
+				if (prevOptions.OnDOF != curOptions.OnDOF)
 				{
 					if (curOptions.OnDOF == true)
 					{
@@ -289,7 +288,7 @@ namespace eastengine
 					}
 				}
 
-				if (m_prevOptions.OnASSAO != curOptions.OnASSAO)
+				if (prevOptions.OnASSAO != curOptions.OnASSAO)
 				{
 					if (curOptions.OnASSAO == true)
 					{
@@ -301,7 +300,7 @@ namespace eastengine
 					}
 				}
 
-				if (m_prevOptions.OnColorGrading != curOptions.OnColorGrading)
+				if (prevOptions.OnColorGrading != curOptions.OnColorGrading)
 				{
 					if (curOptions.OnColorGrading == true)
 					{
@@ -313,7 +312,7 @@ namespace eastengine
 					}
 				}
 
-				if (m_prevOptions.OnBloomFilter != curOptions.OnBloomFilter)
+				if (prevOptions.OnBloomFilter != curOptions.OnBloomFilter)
 				{
 					if (curOptions.OnBloomFilter == true)
 					{
@@ -325,7 +324,7 @@ namespace eastengine
 					}
 				}
 
-				if (m_prevOptions.OnSSS != curOptions.OnSSS)
+				if (prevOptions.OnSSS != curOptions.OnSSS)
 				{
 					if (curOptions.OnSSS == true)
 					{
@@ -336,8 +335,6 @@ namespace eastengine
 						m_pRenderers[IRenderer::eSSS].reset();
 					}
 				}
-
-				m_prevOptions = curOptions;
 			}
 
 			RenderManager::RenderManager()
