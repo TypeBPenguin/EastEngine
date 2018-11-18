@@ -16,6 +16,7 @@ namespace eastengine
 				eDeferred,
 				eEnvironment,
 				eTerrain,
+				eVertex,
 				eFxaa,
 				eDownScale,
 				eGaussianBlur,

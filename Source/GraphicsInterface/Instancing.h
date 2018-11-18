@@ -15,7 +15,7 @@ namespace eastengine
 			math::float4 f4World2;
 			math::float4 f4World3;
 
-			TransformInstancingData();
+			TransformInstancingData() = default;
 			TransformInstancingData(const math::Matrix& f4x4World);
 
 			void EncodeMatrix(const math::Matrix& f4x4World)
@@ -42,7 +42,7 @@ namespace eastengine
 			uint32_t nDummy1 = 0;
 			uint32_t nDummy2 = 0;
 
-			MotionInstancingData();
+			MotionInstancingData() = default;
 			MotionInstancingData(uint32_t nVTFOffset);
 		};
 
@@ -51,7 +51,7 @@ namespace eastengine
 			TransformInstancingData worldData;
 			MotionInstancingData motionData;
 
-			SkinningInstancingData();
+			SkinningInstancingData() = default;
 			SkinningInstancingData(const math::Matrix& matWorld, MotionInstancingData motionData);
 		};
 	}

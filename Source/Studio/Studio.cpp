@@ -20,7 +20,7 @@ int main()
 
 	try
 	{
-		const eastengine::graphics::APIs emAPI = eastengine::graphics::eDX11;
+		const eastengine::graphics::APIs emAPI = eastengine::graphics::eDX12;
 		if (eastengine::MainSystem::GetInstance()->Initialize(emAPI, 1600, 900, false, StrID::EastEngine, StrID::EastEngine) == true)
 		{
 			eastengine::IScene* pScenes[] = { new SceneNewStudio };

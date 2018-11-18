@@ -165,6 +165,7 @@ namespace eastengine
 		{
 			bool OnVSync{ false };
 			bool OnOcclusionCulling{ true };
+			bool OnCollisionVisible{ false };
 
 			bool OnShadow{ false };
 			bool OnTessellation{ false };

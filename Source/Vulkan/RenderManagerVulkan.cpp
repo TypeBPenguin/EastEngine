@@ -122,6 +122,7 @@ namespace eastengine
 				void PushJob(const RenderJobStatic& renderJob) { m_pModelRenderer->PushJob(renderJob); }
 				void PushJob(const RenderJobSkinned& renderJob) { m_pModelRenderer->PushJob(renderJob); }
 				void PushJob(const RenderJobTerrain& renderJob) {}
+				void PushJob(const RenderJobVertex& renderJob) {};
 
 			private:
 				std::unique_ptr<ModelRenderer> m_pModelRenderer;
@@ -833,18 +834,10 @@ namespace eastengine
 				m_pImpl->PushJob(renderJob);
 			}
 
-			/*void RenderManager::PushJob(const VertexBuffer* pVertexBuffer, const IndexBuffer* pIndexBuffer, const Texture* pTexture, const math::Matrix& matWVP)
+			void RenderManager::PushJob(const RenderJobVertex& renderJob)
 			{
-				if (pVertexBuffer == nullptr || pIndexBuffer == nullptr || pTexture == nullptr)
-					return;
-
-				m_pImpl->PushJob(pVertexBuffer, pIndexBuffer, pTexture, matWVP);
+				m_pImpl->PushJob(renderJob);
 			}
-
-			const ImageBuffer* RenderManager::GetImageBuffer() const
-			{
-				return m_pImpl->GetImageBuffer();
-			}*/
 		}
 	}
 }

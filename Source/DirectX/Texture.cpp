@@ -147,7 +147,7 @@ namespace eastengine
 		bool Texture::Map(ThreadType emThreadID, uint32_t Subresource, D3D11_MAP emMap, void** ppData) const
 		{
 			D3D11_MAPPED_SUBRESOURCE map;
-			Memory::Clear(&map, sizeof(D3D11_MAPPED_SUBRESOURCE));
+			memory::Clear(&map, sizeof(D3D11_MAPPED_SUBRESOURCE));
 			
 			HRESULT hr = GetDeferredContext(emThreadID)->Map(m_pTexture2D, Subresource, emMap, 0, &map);
 			if (FAILED(hr))

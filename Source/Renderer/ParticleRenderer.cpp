@@ -436,7 +436,7 @@ namespace eastengine
 						ClassifyParticle::ParticleVertex& quadVertex = iter_blend.second;
 						for (auto& value : quadVertex.vecVerticesPtr)
 						{
-							Memory::Copy(pVertices, sizeof(VertexPosTexCol) * value.second, value.first, sizeof(VertexPosTexCol) * value.second);
+							memory::Copy(pVertices, sizeof(VertexPosTexCol) * value.second, value.first, sizeof(VertexPosTexCol) * value.second);
 							pVertices += value.second;
 						}
 					}

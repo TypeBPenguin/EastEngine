@@ -11,7 +11,7 @@ namespace eastengine
 
 		namespace geometry
 		{
-			enum EmDebugModel
+			enum DebugModelType
 			{
 				eBox,
 				eSphere,
@@ -21,7 +21,7 @@ namespace eastengine
 			bool Initialize();
 			void Release();
 
-			void GetDebugModel(EmDebugModel emDebugModel, IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer);
+			void GetDebugModel(DebugModelType emType, IVertexBuffer** ppVertexBuffer, IIndexBuffer** ppIndexBuffer);
 
 			void CalculateTangentBinormal(const VertexPosTex& vertex1, const VertexPosTex& vertex2, const VertexPosTex& vertex3, math::float3& tangent, math::float3& binormal);
 			void CalculateTangentBinormal(const math::float3& normal, math::float3& tangent, math::float3& binormal);

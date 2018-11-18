@@ -363,15 +363,15 @@ namespace eastengine
 
 					const DirectionalLightData* pDirectionalLightData = nullptr;
 					pLightManager->GetDirectionalLightData(&pDirectionalLightData, &pCommonContents->nDirectionalLightCount);
-					Memory::Copy(pCommonContents->lightDirectional, pDirectionalLightData, sizeof(DirectionalLightData) * pCommonContents->nDirectionalLightCount);
+					memory::Copy(pCommonContents->lightDirectional, pDirectionalLightData, sizeof(DirectionalLightData) * pCommonContents->nDirectionalLightCount);
 
 					const PointLightData* pPointLightData = nullptr;
 					pLightManager->GetPointLightData(&pPointLightData, &pCommonContents->nPointLightCount);
-					Memory::Copy(pCommonContents->lightPoint, pPointLightData, sizeof(PointLightData) * pCommonContents->nPointLightCount);
+					memory::Copy(pCommonContents->lightPoint, pPointLightData, sizeof(PointLightData) * pCommonContents->nPointLightCount);
 
 					const SpotLightData* pSpotLightData = nullptr;
 					pLightManager->GetSpotLightData(&pSpotLightData, &pCommonContents->nSpotLightCount);
-					Memory::Copy(pCommonContents->lightSpot, pSpotLightData, sizeof(SpotLightData) * pCommonContents->nSpotLightCount);
+					memory::Copy(pCommonContents->lightSpot, pSpotLightData, sizeof(SpotLightData) * pCommonContents->nSpotLightCount);
 				}
 			}
 
@@ -639,7 +639,6 @@ namespace eastengine
 					{
 						desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 					}
-
 					pRenderTarget = pDeviceInstance->GetRenderTarget(&desc, math::Color::Transparent, true);
 
 					vecRTVHandles.emplace_back(pRenderTarget->GetCPUHandle());
@@ -1072,7 +1071,7 @@ namespace eastengine
 										shader::StaticInstancingDataBuffer* pStaticInstancingData = m_staticInstancingDataBuffer.Cast(nFrameIndex, nStaticBufferIndex);
 										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_staticInstancingDataBuffer.GPUAddress(nFrameIndex, nStaticBufferIndex);
 
-										Memory::Copy(pStaticInstancingData->data.data(), sizeof(pStaticInstancingData->data),
+										memory::Copy(pStaticInstancingData->data.data(), sizeof(pStaticInstancingData->data),
 											&pInstanceData[i * eMaxInstancingCount], sizeof(math::Matrix) * nDrawInstanceCount);
 
 										pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->nRootParameterIndex[eRP_StaticInstancingDataCB], gpuAddress);
@@ -1400,7 +1399,7 @@ namespace eastengine
 										shader::SkinningInstancingDataBuffer* pSkinnedInstancingData = m_skinningInstancingDataBuffer.Cast(nFrameIndex, nSkinningBufferIndex);
 										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_skinningInstancingDataBuffer.GPUAddress(nFrameIndex, nSkinningBufferIndex);
 
-										Memory::Copy(pSkinnedInstancingData->data.data(), sizeof(pSkinnedInstancingData->data),
+										memory::Copy(pSkinnedInstancingData->data.data(), sizeof(pSkinnedInstancingData->data),
 											&pInstanceData[i * eMaxInstancingCount], sizeof(SkinningInstancingData) * nDrawInstanceCount);
 
 										pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->nRootParameterIndex[eRP_SkinningInstancingDataCB], gpuAddress);

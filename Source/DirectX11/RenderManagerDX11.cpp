@@ -20,6 +20,7 @@
 #include "BloomFilterDX11.h"
 #include "SSSDX11.h"
 #include "HDRFilterDX11.h"
+#include "VertexRendererDX11.h"
 
 namespace eastengine
 {
@@ -41,6 +42,7 @@ namespace eastengine
 				void PushJob(const RenderJobStatic& renderJob) { GetModelRenderer()->PushJob(renderJob); }
 				void PushJob(const RenderJobSkinned& renderJob) { GetModelRenderer()->PushJob(renderJob); }
 				void PushJob(const RenderJobTerrain& renderJob) { GetTerrainRenderer()->PushJob(renderJob); }
+				void PushJob(const RenderJobVertex& renderJob) { GetVertexRenderer()->PushJob(renderJob); }
 
 			private:
 				void UpdateOptions(const Options& curOptions);
@@ -50,6 +52,7 @@ namespace eastengine
 				DeferredRenderer* GetDeferredRenderer() const { return static_cast<DeferredRenderer*>(m_pRenderers[IRenderer::eDeferred].get()); }
 				EnvironmentRenderer* GetEnvironmentRenderer() const { return static_cast<EnvironmentRenderer*>(m_pRenderers[IRenderer::eEnvironment].get()); }
 				TerrainRenderer* GetTerrainRenderer() const { return static_cast<TerrainRenderer*>(m_pRenderers[IRenderer::eTerrain].get()); }
+				VertexRenderer* GetVertexRenderer() const { return static_cast<VertexRenderer*>(m_pRenderers[IRenderer::eVertex].get()); }
 				Fxaa* GetFxaa() const { return static_cast<Fxaa*>(m_pRenderers[IRenderer::eFxaa].get()); }
 				DownScale* GetDownScale() const { return static_cast<DownScale*>(m_pRenderers[IRenderer::eDownScale].get()); }
 				GaussianBlur* GetGaussianBlur() const { return static_cast<GaussianBlur*>(m_pRenderers[IRenderer::eGaussianBlur].get()); }
@@ -70,6 +73,7 @@ namespace eastengine
 				m_pRenderers[IRenderer::eDeferred] = std::make_unique<DeferredRenderer>();
 				m_pRenderers[IRenderer::eEnvironment] = std::make_unique<EnvironmentRenderer>();
 				m_pRenderers[IRenderer::eTerrain] = std::make_unique<TerrainRenderer>();
+				m_pRenderers[IRenderer::eVertex] = std::make_unique<VertexRenderer>();
 			}
 
 			RenderManager::Impl::~Impl()
@@ -82,6 +86,7 @@ namespace eastengine
 				GetDeferredRenderer()->Cleanup();
 				GetEnvironmentRenderer()->Cleanup();
 				GetTerrainRenderer()->Cleanup();
+				GetVertexRenderer()->Cleanup();
 			}
 
 			void RenderManager::Impl::Render()
@@ -141,6 +146,7 @@ namespace eastengine
 				}
 
 				GetModelRenderer()->Render(pDevice, pImmediateContext, pCamera, ModelRenderer::eAlphaBlend);
+				GetVertexRenderer()->Render(pDevice, pImmediateContext, pCamera);
 
 				{
 					if (options.OnHDR == true)
@@ -318,6 +324,11 @@ namespace eastengine
 			}
 
 			void RenderManager::PushJob(const RenderJobTerrain& renderJob)
+			{
+				m_pImpl->PushJob(renderJob);
+			}
+
+			void RenderManager::PushJob(const RenderJobVertex& renderJob)
 			{
 				m_pImpl->PushJob(renderJob);
 			}

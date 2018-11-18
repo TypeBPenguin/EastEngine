@@ -126,7 +126,7 @@ namespace eastengine
 				}
 
 				uint8_t* dstSubResourceMem = reinterpret_cast<uint8_t*>(uploadMem) + placedTexture2D.Offset;
-				Memory::Copy(dstSubResourceMem, nTextureMemSize, m_vtfInstance.buffer.data(), sizeof(math::Matrix) * m_vtfInstance.nAllocatedCount);
+				memory::Copy(dstSubResourceMem, nTextureMemSize, m_vtfInstance.buffer.data(), sizeof(math::Matrix) * m_vtfInstance.nAllocatedCount);
 
 				D3D12_TEXTURE_COPY_LOCATION dst{};
 				dst.pResource = m_vtfInstance.pVTFs[m_nFrameIndex]->GetResource();

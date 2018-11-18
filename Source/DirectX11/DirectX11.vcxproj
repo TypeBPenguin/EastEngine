@@ -186,6 +186,7 @@
     <ClInclude Include="TextureDX11.h" />
     <ClInclude Include="UtilDX11.h" />
     <ClInclude Include="VertexBufferDX11.h" />
+    <ClInclude Include="VertexRendererDX11.h" />
     <ClInclude Include="VTFManagerDX11.h" />
   </ItemGroup>
   <ItemGroup>
@@ -218,6 +219,7 @@
     <ClCompile Include="TextureDX11.cpp" />
     <ClCompile Include="UtilDX11.cpp" />
     <ClCompile Include="VertexBufferDX11.cpp" />
+    <ClCompile Include="VertexRendererDX11.cpp" />
     <ClCompile Include="VTFManagerDX11.cpp" />
   </ItemGroup>
   <ItemGroup>

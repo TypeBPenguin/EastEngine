@@ -150,7 +150,7 @@ namespace eastengine
 							throw_line("failed to map, constant buffer upload heap");
 						}
 
-						Memory::Clear(pViewGPUAddress[i], AlignedSize() * nHeapCount);
+						memory::Clear(pViewGPUAddress[i], AlignedSize() * nHeapCount);
 
 						gpuAddress[i] = pUploadHeaps[i]->GetGPUVirtualAddress();
 					}

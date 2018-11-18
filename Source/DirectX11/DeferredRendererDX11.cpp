@@ -91,15 +91,15 @@ namespace eastengine
 
 					const DirectionalLightData* pDirectionalLightData = nullptr;
 					pLightManager->GetDirectionalLightData(&pDirectionalLightData, &pCommonContents->nDirectionalLightCount);
-					Memory::Copy(pCommonContents->lightDirectional.data(), sizeof(pCommonContents->lightDirectional), pDirectionalLightData, sizeof(DirectionalLightData) * pCommonContents->nDirectionalLightCount);
+					memory::Copy(pCommonContents->lightDirectional.data(), sizeof(pCommonContents->lightDirectional), pDirectionalLightData, sizeof(DirectionalLightData) * pCommonContents->nDirectionalLightCount);
 
 					const PointLightData* pPointLightData = nullptr;
 					pLightManager->GetPointLightData(&pPointLightData, &pCommonContents->nPointLightCount);
-					Memory::Copy(pCommonContents->lightPoint.data(), sizeof(pCommonContents->lightPoint), pPointLightData, sizeof(PointLightData) * pCommonContents->nPointLightCount);
+					memory::Copy(pCommonContents->lightPoint.data(), sizeof(pCommonContents->lightPoint), pPointLightData, sizeof(PointLightData) * pCommonContents->nPointLightCount);
 
 					const SpotLightData* pSpotLightData = nullptr;
 					pLightManager->GetSpotLightData(&pSpotLightData, &pCommonContents->nSpotLightCount);
-					Memory::Copy(pCommonContents->lightSpot.data(), sizeof(pCommonContents->lightSpot), pSpotLightData, sizeof(SpotLightData) * pCommonContents->nSpotLightCount);
+					memory::Copy(pCommonContents->lightSpot.data(), sizeof(pCommonContents->lightSpot), pSpotLightData, sizeof(SpotLightData) * pCommonContents->nSpotLightCount);
 
 					pCB_CommonContents->Unmap(pDeviceContext);
 				}

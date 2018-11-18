@@ -41,6 +41,7 @@ namespace eastengine
 		void PushRenderJob(const RenderJobStatic& renderJob);
 		void PushRenderJob(const RenderJobSkinned& renderJob);
 		void PushRenderJob(const RenderJobTerrain& renderJob);
+		void PushRenderJob(const RenderJobVertex& renderJob);
 
 		void OcclusionCullingWriteBMP(const char* strPath);
 	}

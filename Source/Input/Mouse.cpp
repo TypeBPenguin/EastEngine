@@ -10,8 +10,8 @@ namespace eastengine
 			, m_nX(0)
 			, m_nY(0)
 		{
-			Memory::Clear(&m_CurMouseState, sizeof(m_CurMouseState));
-			Memory::Clear(&m_OldMouseState, sizeof(m_OldMouseState));
+			memory::Clear(&m_CurMouseState, sizeof(m_CurMouseState));
+			memory::Clear(&m_OldMouseState, sizeof(m_OldMouseState));
 		}
 
 		MouseInstance::~MouseInstance()
@@ -48,7 +48,7 @@ namespace eastengine
 		void MouseInstance::Update()
 		{
 			TRACER_EVENT("MouseInstance::Update");
-			Memory::Copy(&m_OldMouseState, sizeof(m_OldMouseState), &m_CurMouseState, sizeof(m_CurMouseState));
+			memory::Copy(&m_OldMouseState, sizeof(m_OldMouseState), &m_CurMouseState, sizeof(m_CurMouseState));
 
 			HRESULT hr = m_pMouse->GetDeviceState(sizeof(m_CurMouseState), reinterpret_cast<void**>(&m_CurMouseState));
 
@@ -56,7 +56,7 @@ namespace eastengine
 			{
 				if (hr == DIERR_INPUTLOST || hr == DIERR_NOTACQUIRED)
 				{
-					Memory::Clear(&m_CurMouseState, sizeof(m_CurMouseState));
+					memory::Clear(&m_CurMouseState, sizeof(m_CurMouseState));
 					m_pMouse->Acquire();
 				}
 			}

@@ -97,7 +97,7 @@ namespace eastengine
 
 		void GamePadInstance::ButtonStateTracker::Reset()
 		{
-			Memory::Clear(this, sizeof(ButtonStateTracker));
+			memory::Clear(this, sizeof(ButtonStateTracker));
 		}
 
 		GamePadInstance::Player::Player(GamePad::PlayerID emPlayer)
@@ -118,8 +118,8 @@ namespace eastengine
 		{
 			if (ThrottleRetry(fElapsedTime) == true)
 			{
-				Memory::Clear(&m_state, sizeof(State));
-				Memory::Clear(&m_capabilities, sizeof(Capabilities));
+				memory::Clear(&m_state, sizeof(State));
+				memory::Clear(&m_capabilities, sizeof(Capabilities));
 			}
 			else
 			{

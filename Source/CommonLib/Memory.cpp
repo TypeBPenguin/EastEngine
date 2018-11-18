@@ -5,7 +5,7 @@
 
 namespace eastengine
 {
-	namespace Memory
+	namespace memory
 	{
 		void Move(void* pDestination, std::size_t nDestinationSize, const void* pSource, std::size_t nSourceSize)
 		{
@@ -16,7 +16,7 @@ namespace eastengine
 			{
 				if (nSourceSize != _TRUNCATE)
 				{
-					LOG_WARNING("а╤╫иго╩О, Memory::Move(), BufferSize : %d < SourceSize : %d", nDestinationSize, nSourceSize);
+					LOG_WARNING("а╤╫иго╩О, memory::Move(), BufferSize : %d < SourceSize : %d", nDestinationSize, nSourceSize);
 				}
 				nSourceSize = nDestinationSize;
 			}
@@ -33,7 +33,7 @@ namespace eastengine
 			{
 				if (nSourceSize != _TRUNCATE)
 				{
-					LOG_WARNING("а╤╫иго╩О, Memory::Copy(), BufferSize : %d < SourceSize : %d", nDestinationSize, nSourceSize);
+					LOG_WARNING("а╤╫иго╩О, memory::Copy(), BufferSize : %d < SourceSize : %d", nDestinationSize, nSourceSize);
 				}
 				nSourceSize = nDestinationSize;
 			}

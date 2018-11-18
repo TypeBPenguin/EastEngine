@@ -84,5 +84,23 @@ namespace eastengine
 			ITexture* pTexDetailMap{ nullptr };
 			ITexture* pTexDetailNormalMap{ nullptr };
 		};
+
+		struct RenderJobVertex
+		{
+			const IVertexBuffer* pVertexBuffer{ nullptr };
+			const IIndexBuffer* pIndexBuffer{ nullptr };
+
+			math::Matrix matWorld;
+			math::Color color;
+
+			RenderJobVertex() = default;
+			RenderJobVertex(const IVertexBuffer* pVertexBuffer, const IIndexBuffer* pIndexBuffer, const math::Matrix& matWorld, const math::Color& color);
+
+			RenderJobVertex(const RenderJobVertex& source);
+			RenderJobVertex(RenderJobVertex&& source) noexcept;
+
+			RenderJobVertex& operator = (const RenderJobVertex& source);
+			RenderJobVertex& operator = (RenderJobVertex&& source) noexcept;
+		};
 	}
 }

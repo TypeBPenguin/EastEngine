@@ -102,7 +102,7 @@ namespace eastengine
 				{
 					const uint32_t nDestSize = sizeof(math::Matrix) * eBufferCapacity;
 
-					Memory::Copy(pData, nDestSize, m_vtfInstances[nThreadID].buffer.data(), sizeof(math::Matrix) * m_vtfInstances[nThreadID].nAllocatedCount);
+					memory::Copy(pData, nDestSize, m_vtfInstances[nThreadID].buffer.data(), sizeof(math::Matrix) * m_vtfInstances[nThreadID].nAllocatedCount);
 
 					m_vtfInstances[nThreadID].pVTF->Unmap(ThreadType::eImmediate, 0);
 				}

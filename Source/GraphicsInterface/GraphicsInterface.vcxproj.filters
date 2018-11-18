@@ -76,6 +76,12 @@
     <Filter Include="Render\Interface">
       <UniqueIdentifier>{4b36d37c-bedc-47e3-ad9f-42960b2d1581}</UniqueIdentifier>
     </Filter>
+    <Filter Include="MaskedOcclusionCulling">
+      <UniqueIdentifier>{57c649b9-8cd7-4034-bd09-0e5c98dfb4a0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MaskedOcclusionCulling\Library">
+      <UniqueIdentifier>{67decb06-2f2a-497d-8feb-ed3ed49c404c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -153,6 +159,15 @@
     <ClInclude Include="Renderer.h">
       <Filter>Render\Interface</Filter>
     </ClInclude>
+    <ClInclude Include="CullingThreadpool.h">
+      <Filter>MaskedOcclusionCulling\Library</Filter>
+    </ClInclude>
+    <ClInclude Include="MaskedOcclusionCulling.h">
+      <Filter>MaskedOcclusionCulling\Library</Filter>
+    </ClInclude>
+    <ClInclude Include="OcclusionCulling.h">
+      <Filter>MaskedOcclusionCulling</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -221,6 +236,21 @@
     <ClCompile Include="Renderer.cpp">
       <Filter>Render\Interface</Filter>
     </ClCompile>
+    <ClCompile Include="CullingThreadpool.cpp">
+      <Filter>MaskedOcclusionCulling\Library</Filter>
+    </ClCompile>
+    <ClCompile Include="MaskedOcclusionCulling.cpp">
+      <Filter>MaskedOcclusionCulling\Library</Filter>
+    </ClCompile>
+    <ClCompile Include="MaskedOcclusionCullingAVX2.cpp">
+      <Filter>MaskedOcclusionCulling\Library</Filter>
+    </ClCompile>
+    <ClCompile Include="MaskedOcclusionCullingAVX512.cpp">
+      <Filter>MaskedOcclusionCulling\Library</Filter>
+    </ClCompile>
+    <ClCompile Include="OcclusionCulling.cpp">
+      <Filter>MaskedOcclusionCulling</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="PixelShader.hlsl">
@@ -240,6 +270,12 @@
     </None>
     <None Include="vert.spv">
       <Filter>Shader\GLSL\spv</Filter>
+    </None>
+    <None Include="CompilerSpecific.inl">
+      <Filter>MaskedOcclusionCulling\Library</Filter>
+    </None>
+    <None Include="MaskedOcclusionCullingCommon.inl">
+      <Filter>MaskedOcclusionCulling\Library</Filter>
     </None>
   </ItemGroup>
 </Project>

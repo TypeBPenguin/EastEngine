@@ -9,10 +9,6 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="리소스 파일">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
     <Filter Include="Device">
       <UniqueIdentifier>{ddf2ade6-7187-4f10-a678-aaccb5bd550c}</UniqueIdentifier>
     </Filter>
@@ -87,6 +83,13 @@
     </Filter>
     <Filter Include="Renderer\PostProcessing\HDR">
       <UniqueIdentifier>{850f4a89-1bd7-41c3-8cd4-434de15421be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\Vertex">
+      <UniqueIdentifier>{a91d4b9c-6d5d-4497-a7d4-c64d4e1e7fe6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="리소스 파일">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -168,6 +171,9 @@
     <ClInclude Include="HDRFilterDX11.h">
       <Filter>Renderer\PostProcessing\HDR</Filter>
     </ClInclude>
+    <ClInclude Include="VertexRendererDX11.h">
+      <Filter>Renderer\Vertex</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -184,9 +190,6 @@
     </ClCompile>
     <ClCompile Include="TextureDX11.cpp">
       <Filter>Texture</Filter>
-    </ClCompile>
-    <ClCompile Include="VertexBufferDX11.cpp">
-      <Filter>VertexBuffer</Filter>
     </ClCompile>
     <ClCompile Include="ModelRendererDX11.cpp">
       <Filter>Renderer\Model</Filter>
@@ -244,6 +247,12 @@
     </ClCompile>
     <ClCompile Include="HDRFilterDX11.cpp">
       <Filter>Renderer\PostProcessing\HDR</Filter>
+    </ClCompile>
+    <ClCompile Include="VertexBufferDX11.cpp">
+      <Filter>VertexBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="VertexRendererDX11.cpp">
+      <Filter>Renderer\Vertex</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -19,12 +19,6 @@
     <Filter Include="Material\Node">
       <UniqueIdentifier>{8698d891-c485-4152-81ff-b9e9e21a4062}</UniqueIdentifier>
     </Filter>
-    <Filter Include="MaskedOcclusionCulling">
-      <UniqueIdentifier>{fc466148-26e5-4dc1-a130-d851414030a4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="MaskedOcclusionCulling\Library">
-      <UniqueIdentifier>{0cb0d323-d5f8-42d8-999a-8f37bde67a7c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Shadow">
       <UniqueIdentifier>{b8aa3d5b-ad6e-413b-acc2-ee2ba05a59e2}</UniqueIdentifier>
     </Filter>
@@ -57,15 +51,6 @@
     <ClInclude Include="MaterialNode.h">
       <Filter>Material\Node</Filter>
     </ClInclude>
-    <ClInclude Include="CullingThreadpool.h">
-      <Filter>MaskedOcclusionCulling\Library</Filter>
-    </ClInclude>
-    <ClInclude Include="MaskedOcclusionCulling.h">
-      <Filter>MaskedOcclusionCulling\Library</Filter>
-    </ClInclude>
-    <ClInclude Include="OcclusionCulling.h">
-      <Filter>MaskedOcclusionCulling</Filter>
-    </ClInclude>
     <ClInclude Include="CascadedShadows.h">
       <Filter>Shadow\CSM</Filter>
     </ClInclude>
@@ -95,21 +80,6 @@
     <ClCompile Include="MaterialNode.cpp">
       <Filter>Material\Node</Filter>
     </ClCompile>
-    <ClCompile Include="CullingThreadpool.cpp">
-      <Filter>MaskedOcclusionCulling\Library</Filter>
-    </ClCompile>
-    <ClCompile Include="MaskedOcclusionCulling.cpp">
-      <Filter>MaskedOcclusionCulling\Library</Filter>
-    </ClCompile>
-    <ClCompile Include="MaskedOcclusionCullingAVX2.cpp">
-      <Filter>MaskedOcclusionCulling\Library</Filter>
-    </ClCompile>
-    <ClCompile Include="MaskedOcclusionCullingAVX512.cpp">
-      <Filter>MaskedOcclusionCulling\Library</Filter>
-    </ClCompile>
-    <ClCompile Include="OcclusionCulling.cpp">
-      <Filter>MaskedOcclusionCulling</Filter>
-    </ClCompile>
     <ClCompile Include="CascadedShadows.cpp">
       <Filter>Shadow\CSM</Filter>
     </ClCompile>
@@ -128,13 +98,5 @@
     <ClCompile Include="ImageBasedLight.cpp">
       <Filter>ImageBasedLight</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="CompilerSpecific.inl">
-      <Filter>MaskedOcclusionCulling\Library</Filter>
-    </None>
-    <None Include="MaskedOcclusionCullingCommon.inl">
-      <Filter>MaskedOcclusionCulling\Library</Filter>
-    </None>
   </ItemGroup>
 </Project>

@@ -104,5 +104,41 @@ namespace eastengine
 
 			return *this;
 		}
+
+		RenderJobVertex::RenderJobVertex(const IVertexBuffer* pVertexBuffer, const IIndexBuffer* pIndexBuffer, const math::Matrix& matWorld, const math::Color& color)
+			: pVertexBuffer(pVertexBuffer)
+			, pIndexBuffer(pIndexBuffer)
+			, matWorld(matWorld)
+			, color(color)
+		{
+		}
+
+		RenderJobVertex::RenderJobVertex(const RenderJobVertex& source)
+		{
+			*this = source;
+		}
+
+		RenderJobVertex::RenderJobVertex(RenderJobVertex&& source) noexcept
+		{
+			*this = std::move(source);
+		}
+
+		RenderJobVertex& RenderJobVertex::operator = (const RenderJobVertex& source)
+		{
+			pVertexBuffer = source.pVertexBuffer;
+			pIndexBuffer = source.pIndexBuffer;
+			matWorld = source.matWorld;
+			color = source.color;
+			return *this;
+		}
+
+		RenderJobVertex& RenderJobVertex::operator = (RenderJobVertex&& source) noexcept
+		{
+			pVertexBuffer = std::move(source.pVertexBuffer);
+			pIndexBuffer = std::move(source.pIndexBuffer);
+			matWorld = std::move(source.matWorld);
+			color = std::move(source.color);
+			return *this;
+		}
 	}
 }

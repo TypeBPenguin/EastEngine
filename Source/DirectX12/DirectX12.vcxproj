@@ -193,6 +193,7 @@
     <ClInclude Include="UploadDX12.h" />
     <ClInclude Include="UtilDX12.h" />
     <ClInclude Include="VertexBufferDX12.h" />
+    <ClInclude Include="VertexRendererDX12.h" />
     <ClInclude Include="VTFManagerDX12.h" />
   </ItemGroup>
   <ItemGroup>
@@ -229,6 +230,7 @@
     <ClCompile Include="UploadDX12.cpp" />
     <ClCompile Include="UtilDX12.cpp" />
     <ClCompile Include="VertexBufferDX12.cpp" />
+    <ClCompile Include="VertexRendererDX12.cpp" />
     <ClCompile Include="VTFManagerDX12.cpp" />
   </ItemGroup>
   <ItemGroup>

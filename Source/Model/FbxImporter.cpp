@@ -118,10 +118,10 @@ namespace eastengine
 			XMFLOAT4X4 SrcMatrix;
 			if (pSrcMatrix == pDestMatrix)
 			{
-				Memory::Copy(&SrcMatrix, sizeof(XMFLOAT4X4), pSrcMatrix);
+				memory::Copy(&SrcMatrix, sizeof(XMFLOAT4X4), pSrcMatrix);
 				pSrcMatrix = &SrcMatrix;
 			}
-			Memory::Copy(pDestMatrix, sizeof(XMFLOAT4X4), pSrcMatrix);
+			memory::Copy(pDestMatrix, sizeof(XMFLOAT4X4), pSrcMatrix);
 
 			// What we're doing here is premultiplying by a left hand -> right hand matrix,
 			// and then postmultiplying by a right hand -> left hand matrix.
@@ -1925,8 +1925,8 @@ namespace eastengine
 						// Store skin weights
 						if (isSkinnedMesh == true)
 						{
-							Memory::Copy(&pTriangle->Vertex[nCornerIndex].BoneIndices, sizeof(DirectX::PackedVector::XMUBYTE4), skindata.GetIndices(dwDCCIndex));
-							Memory::Copy(&pTriangle->Vertex[nCornerIndex].BoneWeights, sizeof(DirectX::XMFLOAT4), skindata.GetWeights(dwDCCIndex));
+							memory::Copy(&pTriangle->Vertex[nCornerIndex].BoneIndices, sizeof(DirectX::PackedVector::XMUBYTE4), skindata.GetIndices(dwDCCIndex));
+							memory::Copy(&pTriangle->Vertex[nCornerIndex].BoneWeights, sizeof(DirectX::XMFLOAT4), skindata.GetWeights(dwDCCIndex));
 						}
 					}
 

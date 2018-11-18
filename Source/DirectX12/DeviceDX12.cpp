@@ -357,7 +357,7 @@ namespace eastengine
 				});
 
 #if defined(DEBUG) || defined(_DEBUG)
-				EnableShaderBasedValidation();
+				//EnableShaderBasedValidation();
 #endif
 
 				InitializeWindow(nWidth, nHeight, isFullScreen, strApplicationTitle, strApplicationName);

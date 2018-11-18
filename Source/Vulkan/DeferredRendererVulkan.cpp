@@ -246,15 +246,15 @@ namespace eastengine
 
 					const DirectionalLightData* pDirectionalLightData = nullptr;
 					pLightManager->GetDirectionalLightData(&pDirectionalLightData, &pLightContents->nDirectionalLightCount);
-					//Memory::Copy(pLightContents->lightDirectional.data(), sizeof(pLightContents->lightDirectional), pDirectionalLightData, sizeof(DirectionalLightData) * pLightContents->nDirectionalLightCount);
+					//memory::Copy(pLightContents->lightDirectional.data(), sizeof(pLightContents->lightDirectional), pDirectionalLightData, sizeof(DirectionalLightData) * pLightContents->nDirectionalLightCount);
 
 					const PointLightData* pPointLightData = nullptr;
 					pLightManager->GetPointLightData(&pPointLightData, &pLightContents->nPointLightCount);
-					//Memory::Copy(pLightContents->lightPoint.data(), sizeof(pLightContents->lightPoint), pPointLightData, sizeof(PointLightData) * pLightContents->nPointLightCount);
+					//memory::Copy(pLightContents->lightPoint.data(), sizeof(pLightContents->lightPoint), pPointLightData, sizeof(PointLightData) * pLightContents->nPointLightCount);
 
 					const SpotLightData* pSpotLightData = nullptr;
 					pLightManager->GetSpotLightData(&pSpotLightData, &pLightContents->nSpotLightCount);
-					//Memory::Copy(pLightContents->lightSpot.data(), sizeof(pLightContents->lightSpot), pSpotLightData, sizeof(SpotLightData) * pLightContents->nSpotLightCount);
+					//memory::Copy(pLightContents->lightSpot.data(), sizeof(pLightContents->lightSpot), pSpotLightData, sizeof(SpotLightData) * pLightContents->nSpotLightCount);
 
 					// Flush to make changes visible to the host 
 					VkMappedMemoryRange memoryRange{};

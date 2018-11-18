@@ -74,6 +74,7 @@ namespace eastengine
 			virtual void PushRenderJob(const RenderJobStatic& renderJob) = 0;
 			virtual void PushRenderJob(const RenderJobSkinned& renderJob) = 0;
 			virtual void PushRenderJob(const RenderJobTerrain& renderJob) = 0;
+			virtual void PushRenderJob(const RenderJobVertex& renderJob) = 0;
 
 			virtual void ReleaseResource(IResource* pResource) = 0;
 			virtual void CleanupGarbageCollection() = 0;
@@ -409,6 +410,12 @@ namespace eastengine
 				pRenderManager->PushJob(renderJob);
 			}
 
+			virtual void PushRenderJob(const RenderJobVertex& renderJob) override
+			{
+				RenderManager* pRenderManager = Device::GetInstance()->GetRenderManager();
+				pRenderManager->PushJob(renderJob);
+			}
+
 			virtual void ReleaseResource(IResource* pResource) override
 			{
 				if (pResource->GetResourceType() == StrID::Texture)
@@ -691,6 +698,14 @@ namespace eastengine
 		}
 
 		void PushRenderJob(const RenderJobTerrain& renderJob)
+		{
+			if (renderJob.pVertexBuffer == nullptr)
+				return;
+
+			s_pGraphicsAPI->PushRenderJob(renderJob);
+		}
+
+		void PushRenderJob(const RenderJobVertex& renderJob)
 		{
 			if (renderJob.pVertexBuffer == nullptr)
 				return;

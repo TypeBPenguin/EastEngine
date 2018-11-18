@@ -292,7 +292,7 @@ void SceneNewStudio::Enter()
 		return pActor;
 	};
 
-	for (int i = 0; i < 100; ++i)
+	for (int i = 0; i < 1; ++i)
 	{
 		string::StringID name;
 		name.Format("UnityChan%d", i);
@@ -846,20 +846,16 @@ void ShowConfig()
 
 	if (ImGui::CollapsingHeader("Debug") == true)
 	{
-		/*if (ImGui::TreeNode("CollisionMesh"))
+		if (ImGui::TreeNode("CollisionVisible"))
 		{
-			ImGui::PushID("CollisionMesh");
+			ImGui::PushID("CollisionVisible");
 
-			bool isApplyVisibleCollisionMesh = Config::IsEnable("VisibleCollisionMesh"_s);
-			if (ImGui::Checkbox("Visible", &isApplyVisibleCollisionMesh) == true)
-			{
-				Config::SetEnable("VisibleCollisionMesh"_s, isApplyVisibleCollisionMesh);
-			}
+			ImGui::Checkbox("Visible", &graphicsOptions.OnCollisionVisible);
 
 			ImGui::PopID();
 
 			ImGui::TreePop();
-		}*/
+		}
 
 		/*if (ImGui::TreeNode("Skeleton"))
 		{
@@ -889,7 +885,7 @@ void ShowConfig()
 			{
 				char path[512]{};
 				OPENFILENAME ofn;
-				Memory::Clear(&ofn, sizeof(ofn));
+				memory::Clear(&ofn, sizeof(ofn));
 
 				ofn.lStructSize = sizeof(OPENFILENAME);
 				ofn.hwndOwner = graphics::GetHwnd();
@@ -1253,7 +1249,7 @@ void ShowMotion(bool& isShowMotionMenu, gameobject::ComponentModel* pCompModel)
 		char path[512]{};
 
 		OPENFILENAME ofn;
-		Memory::Clear(&ofn, sizeof(ofn));
+		memory::Clear(&ofn, sizeof(ofn));
 
 		ofn.lStructSize = sizeof(OPENFILENAME);
 		ofn.hwndOwner = graphics::GetHwnd();
@@ -1535,7 +1531,7 @@ void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nInd
 			char path[512]{};
 
 			OPENFILENAME ofn;
-			Memory::Clear(&ofn, sizeof(ofn));
+			memory::Clear(&ofn, sizeof(ofn));
 
 			ofn.lStructSize = sizeof(OPENFILENAME);
 			ofn.hwndOwner = graphics::GetHwnd();
@@ -1853,7 +1849,7 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 				{
 					char path[512]{};
 					OPENFILENAME ofn;
-					Memory::Clear(&ofn, sizeof(ofn));
+					memory::Clear(&ofn, sizeof(ofn));
 
 					ofn.lStructSize = sizeof(OPENFILENAME);
 					ofn.hwndOwner = graphics::GetHwnd();
@@ -1881,15 +1877,21 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 			ImGui::Checkbox("Collection", &debugInfo.isEnableCollection);
 
 			const graphics::DebugInfo& prevDebugInfo = graphics::GetPrevDebugInfo();
-			if (ImGui::CollapsingHeader("OcclusionCulling") == true)
-			{
-				const graphics::DebugInfo::OcclusionCulling& occlusionCulling = prevDebugInfo.occlusionCulling;
 
+			if (ImGui::TreeNode("OcclusionCulling"))
+			{
+				ImGui::PushID("OcclusionCulling");
+
+				const graphics::DebugInfo::OcclusionCulling& occlusionCulling = prevDebugInfo.occlusionCulling;
 				ImGui::Text("RenderTryCount : %u", occlusionCulling.renderTryCount.load());
 				ImGui::Text("RenderCompleteCount : %u", occlusionCulling.renderCompleteCount.load());
 				ImGui::Text("VisibleCount : %u", occlusionCulling.visibleCount.load());
 				ImGui::Text("OccludedCount : %u", occlusionCulling.occludedCount.load());
 				ImGui::Text("ViewCulledCount : %u", occlusionCulling.viewCulledCount.load());
+
+				ImGui::PopID();
+
+				ImGui::TreePop();
 			}
 		}
 
@@ -2006,7 +2008,7 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 		{
 			char path[512]{};
 			OPENFILENAME ofn;
-			Memory::Clear(&ofn, sizeof(ofn));
+			memory::Clear(&ofn, sizeof(ofn));
 
 			ofn.lStructSize = sizeof(OPENFILENAME);
 			ofn.hwndOwner = graphics::GetHwnd();
@@ -2028,7 +2030,7 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 		{
 			char path[512]{};
 			OPENFILENAME ofn;
-			Memory::Clear(&ofn, sizeof(ofn));
+			memory::Clear(&ofn, sizeof(ofn));
 
 			ofn.lStructSize = sizeof(OPENFILENAME);
 			ofn.hwndOwner = graphics::GetHwnd();
@@ -2250,7 +2252,7 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 									{
 										char path[512]{};
 										OPENFILENAME ofn;
-										Memory::Clear(&ofn, sizeof(ofn));
+										memory::Clear(&ofn, sizeof(ofn));
 
 										ofn.lStructSize = sizeof(OPENFILENAME);
 										ofn.hwndOwner = graphics::GetHwnd();
@@ -2386,7 +2388,7 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 								char path[512]{};
 
 								OPENFILENAME ofn;
-								Memory::Clear(&ofn, sizeof(ofn));
+								memory::Clear(&ofn, sizeof(ofn));
 
 								ofn.lStructSize = sizeof(OPENFILENAME);
 								ofn.hwndOwner = graphics::GetHwnd();

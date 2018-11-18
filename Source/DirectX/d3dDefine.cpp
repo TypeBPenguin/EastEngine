@@ -12,7 +12,7 @@ namespace eastengine
 
 		SamplerStateDesc::SamplerStateDesc(const D3D11_SAMPLER_DESC& desc)
 		{
-			Memory::Copy(this, sizeof(SamplerStateDesc), &desc);
+			memory::Copy(this, sizeof(SamplerStateDesc), &desc);
 		}
 
 		SamplerStateKey SamplerStateDesc::GetKey() const

@@ -26,7 +26,7 @@ namespace eastengine
 
 			// Create buffer
 			D3D11_BUFFER_DESC buf_desc;
-			Memory::Clear(&buf_desc, sizeof(D3D11_BUFFER_DESC));
+			memory::Clear(&buf_desc, sizeof(D3D11_BUFFER_DESC));
 			buf_desc.ByteWidth = m_nByteWidth;
 			buf_desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
 			buf_desc.StructureByteStride = nByteStride;
@@ -60,7 +60,7 @@ namespace eastengine
 
 			// Create shader resource view
 			D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc;
-			Memory::Clear(&srv_desc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
+			memory::Clear(&srv_desc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
 			srv_desc.Format = DXGI_FORMAT_UNKNOWN;
 			srv_desc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
 			srv_desc.Buffer.FirstElement = 0;
@@ -73,7 +73,7 @@ namespace eastengine
 			{
 				// Create undordered access view
 				D3D11_UNORDERED_ACCESS_VIEW_DESC uav_desc;
-				Memory::Clear(&uav_desc, sizeof(D3D11_UNORDERED_ACCESS_VIEW_DESC));
+				memory::Clear(&uav_desc, sizeof(D3D11_UNORDERED_ACCESS_VIEW_DESC));
 				uav_desc.Format = DXGI_FORMAT_UNKNOWN;
 				uav_desc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
 				uav_desc.Buffer.FirstElement = 0;

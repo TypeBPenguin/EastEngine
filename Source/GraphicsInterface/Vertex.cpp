@@ -135,7 +135,7 @@ namespace eastengine
 			, normal(f3Normal)
 			, boneWeight(f3Weight)
 		{
-			Memory::Copy(boneIndices, indices);
+			memory::Copy(boneIndices, indices);
 		}
 
 		VertexClipSpace::VertexClipSpace()

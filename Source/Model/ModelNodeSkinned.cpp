@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "ModelNodeSkinned.h"
 
+#include "GeometryModel.h"
+
 namespace eastengine
 {
 	namespace graphics
@@ -119,8 +121,19 @@ namespace eastengine
 							if (pMaterial != nullptr && pMaterial->IsVisible() == false)
 								continue;
 
-							RenderJobSkinned subset(&modelSubset, m_pVertexBuffer[emLod], m_pIndexBuffer[emLod], pMaterial, matTransformation, modelSubset.nStartIndex, modelSubset.nIndexCount, nVTFID, m_fDistanceFromCamera, occlusionCullingData);
-							PushRenderJob(subset);
+							RenderJobSkinned renderJob(&modelSubset, m_pVertexBuffer[emLod], m_pIndexBuffer[emLod], pMaterial, matTransformation, modelSubset.nStartIndex, modelSubset.nIndexCount, nVTFID, m_fDistanceFromCamera, occlusionCullingData);
+							PushRenderJob(renderJob);
+
+							if (GetOptions().OnCollisionVisible == true)
+							{
+								IVertexBuffer* pVertexBuffer = nullptr;
+								IIndexBuffer* pIndexBuffer = nullptr;
+								geometry::GetDebugModel(geometry::DebugModelType::eBox, &pVertexBuffer, &pIndexBuffer);
+
+								const math::Matrix matWorld = math::Matrix::Compose(occlusionCullingData.aabb.Extents * 2.f, math::Quaternion::Identity, occlusionCullingData.aabb.Center);
+								RenderJobVertex debugJob(pVertexBuffer, pIndexBuffer, matWorld, math::Color::Blue);
+								PushRenderJob(debugJob);
+							}
 						}
 					}
 				}

@@ -475,7 +475,7 @@ namespace eastengine
 					{
 						isSuccess = geometry::CreateGrid(vertices, indices, pLoadInfo->fGridSizeX, pLoadInfo->fGridSizeZ, pLoadInfo->nBlockCountWidth, pLoadInfo->nBlockCountLength);
 
-						aabb.Extents = math::float3(pLoadInfo->fGridSizeX, 0.1f, pLoadInfo->fGridSizeZ);
+						aabb.Extents = math::float3(0.5f * pLoadInfo->fGridSizeX, 0.1f, 0.5f * pLoadInfo->fGridSizeZ);
 					}
 				}
 				break;
@@ -486,7 +486,7 @@ namespace eastengine
 					{
 						isSuccess = geometry::CreatePlane(vertices, indices, pLoadInfo->fEachLengthX, pLoadInfo->fEachLengthZ, pLoadInfo->nTotalCountX, pLoadInfo->nTotalCountZ);
 
-						aabb.Extents = math::float3(pLoadInfo->fEachLengthX * pLoadInfo->nTotalCountX, 0.1f, pLoadInfo->fEachLengthZ * pLoadInfo->nTotalCountZ);
+						aabb.Extents = math::float3(0.5f * pLoadInfo->fEachLengthX * pLoadInfo->nTotalCountX, 0.1f, 0.5f * pLoadInfo->fEachLengthZ * pLoadInfo->nTotalCountZ);
 					}
 				}
 				break;

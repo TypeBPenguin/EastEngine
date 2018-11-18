@@ -83,7 +83,7 @@ namespace eastengine
 					return false;
 
 				const uint32_t nDestSize = sizeof(math::Matrix) * eBufferCapacity;
-				Memory::Copy(mapped.pData, nDestSize, m_vtfInstance.buffer.data(), sizeof(math::Matrix) * m_vtfInstance.nAllocatedCount);
+				memory::Copy(mapped.pData, nDestSize, m_vtfInstance.buffer.data(), sizeof(math::Matrix) * m_vtfInstance.nAllocatedCount);
 
 				pDeviceContext->Unmap(m_vtfInstance.pVTF->GetTexture2D(), 0);
 

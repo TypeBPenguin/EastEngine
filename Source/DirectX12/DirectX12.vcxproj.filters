@@ -97,6 +97,9 @@
     <Filter Include="Renderer\Interface">
       <UniqueIdentifier>{7cdcc936-1184-42d2-b60f-07965c8eb652}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Renderer\Vertex">
+      <UniqueIdentifier>{40283e03-3c70-46f8-9d65-126c5257e56d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -192,6 +195,9 @@
     <ClInclude Include="UtilDX12.h">
       <Filter>Util</Filter>
     </ClInclude>
+    <ClInclude Include="VertexRendererDX12.h">
+      <Filter>Renderer\Vertex</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -280,6 +286,9 @@
     </ClCompile>
     <ClCompile Include="RendererDX12.cpp">
       <Filter>Renderer\Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="VertexRendererDX12.cpp">
+      <Filter>Renderer\Vertex</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

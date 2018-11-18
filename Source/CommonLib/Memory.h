@@ -2,7 +2,7 @@
 
 namespace eastengine
 {
-	namespace Memory
+	namespace memory
 	{
 		void Move(void* pDestination, std::size_t nDestinationSize, const void* pSource, std::size_t nSourceSize = _TRUNCATE);
 

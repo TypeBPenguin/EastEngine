@@ -64,8 +64,19 @@ namespace eastengine
 						if (pMaterial != nullptr && pMaterial->IsVisible() == false)
 							continue;
 
-						RenderJobStatic subset(&modelSubset, m_pVertexBuffer[level], m_pIndexBuffer[level], pMaterial, matTransformation, modelSubset.nStartIndex, modelSubset.nIndexCount, m_fDistanceFromCamera, occlusionCullingData);
-						PushRenderJob(subset);
+						RenderJobStatic renderJob(&modelSubset, m_pVertexBuffer[level], m_pIndexBuffer[level], pMaterial, matTransformation, modelSubset.nStartIndex, modelSubset.nIndexCount, m_fDistanceFromCamera, occlusionCullingData);
+						PushRenderJob(renderJob);
+
+						if (GetOptions().OnCollisionVisible == true)
+						{
+							IVertexBuffer* pVertexBuffer = nullptr;
+							IIndexBuffer* pIndexBuffer = nullptr;
+							geometry::GetDebugModel(geometry::DebugModelType::eBox, &pVertexBuffer, &pIndexBuffer);
+
+							const math::Matrix matWorld = math::Matrix::Compose(occlusionCullingData.aabb.Extents * 2.f, math::Quaternion::Identity, occlusionCullingData.aabb.Center);
+							RenderJobVertex debugJob(pVertexBuffer, pIndexBuffer, matWorld, math::Color::Red);
+							PushRenderJob(debugJob);
+						}
 					}
 				}
 			}

@@ -2,7 +2,7 @@
 
 /****************************************************************************
 *
-* Int2
+* int2
 *
 ****************************************************************************/
 
@@ -10,12 +10,12 @@
 // Comparision operators
 //------------------------------------------------------------------------------
 
-inline bool Int2::operator == (const Int2& V) const
+inline bool int2::operator == (const int2& V) const
 {
 	return this->x == V.x && this->y == V.y;
 }
 
-inline bool Int2::operator != (const Int2& V) const
+inline bool int2::operator != (const int2& V) const
 {
 	return (this->x == V.x && this->y == V.y) == false;
 }
@@ -24,7 +24,7 @@ inline bool Int2::operator != (const Int2& V) const
 // Assignment operators
 //------------------------------------------------------------------------------
 
-inline Int2& Int2::operator+= (const Int2& V)
+inline int2& int2::operator+= (const int2& V)
 {
 	this->x += V.x;
 	this->y += V.y;
@@ -32,7 +32,7 @@ inline Int2& Int2::operator+= (const Int2& V)
 	return *this;
 }
 
-inline Int2& Int2::operator-= (const Int2& V)
+inline int2& int2::operator-= (const int2& V)
 {
 	this->x -= V.x;
 	this->y -= V.y;
@@ -40,7 +40,7 @@ inline Int2& Int2::operator-= (const Int2& V)
 	return *this;
 }
 
-inline Int2& Int2::operator*= (const Int2& V)
+inline int2& int2::operator*= (const int2& V)
 {
 	this->x *= V.x;
 	this->y *= V.y;
@@ -48,7 +48,7 @@ inline Int2& Int2::operator*= (const Int2& V)
 	return *this;
 }
 
-inline Int2& Int2::operator*= (float S)
+inline int2& int2::operator*= (float S)
 {
 	this->x = static_cast<int>(this->x * S);
 	this->y = static_cast<int>(this->y * S);
@@ -56,7 +56,7 @@ inline Int2& Int2::operator*= (float S)
 	return *this;
 }
 
-inline Int2& Int2::operator/= (float S)
+inline int2& int2::operator/= (float S)
 {
 	assert(S != 0.0f);
 
@@ -70,39 +70,39 @@ inline Int2& Int2::operator/= (float S)
 // Binary operators
 //------------------------------------------------------------------------------
 
-inline Int2 operator+ (const Int2& V1, const Int2& V2)
+inline int2 operator+ (const int2& V1, const int2& V2)
 {
-	return Int2(V1.x + V2.x, V1.y + V2.y);
+	return int2(V1.x + V2.x, V1.y + V2.y);
 }
 
-inline Int2 operator- (const Int2& V1, const Int2& V2)
+inline int2 operator- (const int2& V1, const int2& V2)
 {
-	return Int2(V1.x - V2.x, V1.y - V2.y);
+	return int2(V1.x - V2.x, V1.y - V2.y);
 }
 
-inline Int2 operator* (const Int2& V1, const Int2& V2)
+inline int2 operator* (const int2& V1, const int2& V2)
 {
-	return Int2(V1.x * V2.x, V1.y * V2.y);
+	return int2(V1.x * V2.x, V1.y * V2.y);
 }
 
-inline Int2 operator* (const Int2& V, float S)
+inline int2 operator* (const int2& V, float S)
 {
-	return Int2(static_cast<int>(V.x * S), static_cast<int>(V.y * S));
+	return int2(static_cast<int>(V.x * S), static_cast<int>(V.y * S));
 }
 
-inline Int2 operator/ (const Int2& V1, const Int2& V2)
+inline int2 operator/ (const int2& V1, const int2& V2)
 {
-	return Int2(V1.x / V2.x, V1.y / V2.y);
+	return int2(V1.x / V2.x, V1.y / V2.y);
 }
 
-inline Int2 operator* (float S, const Int2& V)
+inline int2 operator* (float S, const int2& V)
 {
-	return Int2(static_cast<int>(V.x * S), static_cast<int>(V.y * S));
+	return int2(static_cast<int>(V.x * S), static_cast<int>(V.y * S));
 }
 
 /****************************************************************************
 *
-* Int3
+* int3
 *
 ****************************************************************************/
 
@@ -110,12 +110,12 @@ inline Int2 operator* (float S, const Int2& V)
 // Comparision operators
 //------------------------------------------------------------------------------
 
-inline bool Int3::operator == (const Int3& V) const
+inline bool int3::operator == (const int3& V) const
 {
 	return this->x == V.x && this->y == V.y && this->z == V.z;
 }
 
-inline bool Int3::operator != (const Int3& V) const
+inline bool int3::operator != (const int3& V) const
 {
 	return (this->x == V.x && this->y == V.y && this->z == V.z) == false;
 }
@@ -124,7 +124,7 @@ inline bool Int3::operator != (const Int3& V) const
 // Assignment operators
 //------------------------------------------------------------------------------
 
-inline Int3& Int3::operator+= (const Int3& V)
+inline int3& int3::operator+= (const int3& V)
 {
 	this->x += V.x;
 	this->y += V.y;
@@ -133,7 +133,7 @@ inline Int3& Int3::operator+= (const Int3& V)
 	return *this;
 }
 
-inline Int3& Int3::operator-= (const Int3& V)
+inline int3& int3::operator-= (const int3& V)
 {
 	this->x -= V.x;
 	this->y -= V.y;
@@ -142,7 +142,7 @@ inline Int3& Int3::operator-= (const Int3& V)
 	return *this;
 }
 
-inline Int3& Int3::operator*= (const Int3& V)
+inline int3& int3::operator*= (const int3& V)
 {
 	this->x *= V.x;
 	this->y *= V.y;
@@ -151,7 +151,7 @@ inline Int3& Int3::operator*= (const Int3& V)
 	return *this;
 }
 
-inline Int3& Int3::operator*= (float S)
+inline int3& int3::operator*= (float S)
 {
 	this->x = static_cast<int>(this->x / S);
 	this->y = static_cast<int>(this->y / S);
@@ -160,7 +160,7 @@ inline Int3& Int3::operator*= (float S)
 	return *this;
 }
 
-inline Int3& Int3::operator/= (float S)
+inline int3& int3::operator/= (float S)
 {
 	assert(S != 0.0f);
 
@@ -175,39 +175,39 @@ inline Int3& Int3::operator/= (float S)
 // Binary operators
 //------------------------------------------------------------------------------
 
-inline Int3 operator+ (const Int3& V1, const Int3& V2)
+inline int3 operator+ (const int3& V1, const int3& V2)
 {
-	return Int3(V1.x + V2.x, V1.y + V2.y, V1.z + V2.z);
+	return int3(V1.x + V2.x, V1.y + V2.y, V1.z + V2.z);
 }
 
-inline Int3 operator- (const Int3& V1, const Int3& V2)
+inline int3 operator- (const int3& V1, const int3& V2)
 {
-	return Int3(V1.x - V2.x, V1.y - V2.y, V1.z - V2.z);
+	return int3(V1.x - V2.x, V1.y - V2.y, V1.z - V2.z);
 }
 
-inline Int3 operator* (const Int3& V1, const Int3& V2)
+inline int3 operator* (const int3& V1, const int3& V2)
 {
-	return Int3(V1.x * V2.x, V1.y * V2.y, V1.z * V2.z);
+	return int3(V1.x * V2.x, V1.y * V2.y, V1.z * V2.z);
 }
 
-inline Int3 operator* (const Int3& V, float S)
+inline int3 operator* (const int3& V, float S)
 {
-	return Int3(static_cast<int>(V.x * S), static_cast<int>(V.y * S), static_cast<int>(V.z * S));
+	return int3(static_cast<int>(V.x * S), static_cast<int>(V.y * S), static_cast<int>(V.z * S));
 }
 
-inline Int3 operator/ (const Int3& V1, const Int3& V2)
+inline int3 operator/ (const int3& V1, const int3& V2)
 {
-	return Int3(V1.x / V2.x, V1.y / V2.y, V1.z / V2.z);
+	return int3(V1.x / V2.x, V1.y / V2.y, V1.z / V2.z);
 }
 
-inline Int3 operator* (float S, const Int3& V)
+inline int3 operator* (float S, const int3& V)
 {
-	return Int3(static_cast<int>(V.x * S), static_cast<int>(V.y * S), static_cast<int>(V.z * S));
+	return int3(static_cast<int>(V.x * S), static_cast<int>(V.y * S), static_cast<int>(V.z * S));
 }
 
 /****************************************************************************
 *
-* Int4
+* int4
 *
 ****************************************************************************/
 
@@ -215,12 +215,12 @@ inline Int3 operator* (float S, const Int3& V)
 // Comparision operators
 //------------------------------------------------------------------------------
 
-inline bool Int4::operator == (const Int4& V) const
+inline bool int4::operator == (const int4& V) const
 {
 	return this->x == V.x && this->y == V.y && this->z == V.z && this->w == V.w;
 }
 
-inline bool Int4::operator != (const Int4& V) const
+inline bool int4::operator != (const int4& V) const
 {
 	return (this->x == V.x && this->y == V.y && this->z == V.z && this->w == V.w) == false;
 }
@@ -229,7 +229,7 @@ inline bool Int4::operator != (const Int4& V) const
 // Assignment operators
 //------------------------------------------------------------------------------
 
-inline Int4& Int4::operator+= (const Int4& V)
+inline int4& int4::operator+= (const int4& V)
 {
 	this->x += V.x;
 	this->y += V.y;
@@ -239,7 +239,7 @@ inline Int4& Int4::operator+= (const Int4& V)
 	return *this;
 }
 
-inline Int4& Int4::operator-= (const Int4& V)
+inline int4& int4::operator-= (const int4& V)
 {
 	this->x -= V.x;
 	this->y -= V.y;
@@ -249,7 +249,7 @@ inline Int4& Int4::operator-= (const Int4& V)
 	return *this;
 }
 
-inline Int4& Int4::operator*= (const Int4& V)
+inline int4& int4::operator*= (const int4& V)
 {
 	this->x *= V.x;
 	this->y *= V.y;
@@ -259,7 +259,7 @@ inline Int4& Int4::operator*= (const Int4& V)
 	return *this;
 }
 
-inline Int4& Int4::operator*= (float S)
+inline int4& int4::operator*= (float S)
 {
 	this->x = static_cast<int>(this->x * S);
 	this->y = static_cast<int>(this->y * S);
@@ -269,7 +269,7 @@ inline Int4& Int4::operator*= (float S)
 	return *this;
 }
 
-inline Int4& Int4::operator/= (float S)
+inline int4& int4::operator/= (float S)
 {
 	assert(S != 0.0f);
 
@@ -285,39 +285,39 @@ inline Int4& Int4::operator/= (float S)
 // Binary operators
 //------------------------------------------------------------------------------
 
-inline Int4 operator+ (const Int4& V1, const Int4& V2)
+inline int4 operator+ (const int4& V1, const int4& V2)
 {
-	return Int4(V1.x + V2.x, V1.y + V2.y, V1.z + V2.z, V1.w + V2.w);
+	return int4(V1.x + V2.x, V1.y + V2.y, V1.z + V2.z, V1.w + V2.w);
 }
 
-inline Int4 operator- (const Int4& V1, const Int4& V2)
+inline int4 operator- (const int4& V1, const int4& V2)
 {
-	return Int4(V1.x - V2.x, V1.y - V2.y, V1.z - V2.z, V1.w - V2.w);
+	return int4(V1.x - V2.x, V1.y - V2.y, V1.z - V2.z, V1.w - V2.w);
 }
 
-inline Int4 operator* (const Int4& V1, const Int4& V2)
+inline int4 operator* (const int4& V1, const int4& V2)
 {
-	return Int4(V1.x * V2.x, V1.y * V2.y, V1.z * V2.z, V1.w * V2.w);
+	return int4(V1.x * V2.x, V1.y * V2.y, V1.z * V2.z, V1.w * V2.w);
 }
 
-inline Int4 operator* (const Int4& V, float S)
+inline int4 operator* (const int4& V, float S)
 {
-	return Int4(static_cast<int>(V.x * S), static_cast<int>(V.y * S), static_cast<int>(V.z * S), static_cast<int>(V.w * S));
+	return int4(static_cast<int>(V.x * S), static_cast<int>(V.y * S), static_cast<int>(V.z * S), static_cast<int>(V.w * S));
 }
 
-inline Int4 operator/ (const Int4& V1, const Int4& V2)
+inline int4 operator/ (const int4& V1, const int4& V2)
 {
-	return Int4(V1.x / V2.x, V1.y / V2.y, V1.z / V2.z, V1.w / V2.w);
+	return int4(V1.x / V2.x, V1.y / V2.y, V1.z / V2.z, V1.w / V2.w);
 }
 
-inline Int4 operator* (float S, const Int4& V)
+inline int4 operator* (float S, const int4& V)
 {
-	return Int4(static_cast<int>(V.x * S), static_cast<int>(V.y * S), static_cast<int>(V.z * S), static_cast<int>(V.w * S));
+	return int4(static_cast<int>(V.x * S), static_cast<int>(V.y * S), static_cast<int>(V.z * S), static_cast<int>(V.w * S));
 }
 
 /****************************************************************************
 *
-* UInt2
+* uint2
 *
 ****************************************************************************/
 
@@ -325,12 +325,12 @@ inline Int4 operator* (float S, const Int4& V)
 // Comparision operators
 //------------------------------------------------------------------------------
 
-inline bool UInt2::operator == (const UInt2& V) const
+inline bool uint2::operator == (const uint2& V) const
 {
 	return this->x == V.x && this->y == V.y;
 }
 
-inline bool UInt2::operator != (const UInt2& V) const
+inline bool uint2::operator != (const uint2& V) const
 {
 	return (this->x == V.x && this->y == V.y) == false;
 }
@@ -339,7 +339,7 @@ inline bool UInt2::operator != (const UInt2& V) const
 // Assignment operators
 //------------------------------------------------------------------------------
 
-inline UInt2& UInt2::operator+= (const UInt2& V)
+inline uint2& uint2::operator+= (const uint2& V)
 {
 	this->x += V.x;
 	this->y += V.y;
@@ -347,7 +347,7 @@ inline UInt2& UInt2::operator+= (const UInt2& V)
 	return *this;
 }
 
-inline UInt2& UInt2::operator-= (const UInt2& V)
+inline uint2& uint2::operator-= (const uint2& V)
 {
 	this->x -= V.x;
 	this->y -= V.y;
@@ -355,7 +355,7 @@ inline UInt2& UInt2::operator-= (const UInt2& V)
 	return *this;
 }
 
-inline UInt2& UInt2::operator*= (const UInt2& V)
+inline uint2& uint2::operator*= (const uint2& V)
 {
 	this->x *= V.x;
 	this->y *= V.y;
@@ -363,7 +363,7 @@ inline UInt2& UInt2::operator*= (const UInt2& V)
 	return *this;
 }
 
-inline UInt2& UInt2::operator*= (float S)
+inline uint2& uint2::operator*= (float S)
 {
 	this->x = static_cast<uint32_t>(this->x * S);
 	this->y = static_cast<uint32_t>(this->y * S);
@@ -371,7 +371,7 @@ inline UInt2& UInt2::operator*= (float S)
 	return *this;
 }
 
-inline UInt2& UInt2::operator/= (float S)
+inline uint2& uint2::operator/= (float S)
 {
 	assert(S != 0.0f);
 
@@ -385,39 +385,39 @@ inline UInt2& UInt2::operator/= (float S)
 // Binary operators
 //------------------------------------------------------------------------------
 
-inline UInt2 operator+ (const UInt2& V1, const UInt2& V2)
+inline uint2 operator+ (const uint2& V1, const uint2& V2)
 {
-	return UInt2(V1.x + V2.x, V1.y + V2.y);
+	return uint2(V1.x + V2.x, V1.y + V2.y);
 }
 
-inline UInt2 operator- (const UInt2& V1, const UInt2& V2)
+inline uint2 operator- (const uint2& V1, const uint2& V2)
 {
-	return UInt2(V1.x - V2.x, V1.y - V2.y);
+	return uint2(V1.x - V2.x, V1.y - V2.y);
 }
 
-inline UInt2 operator* (const UInt2& V1, const UInt2& V2)
+inline uint2 operator* (const uint2& V1, const uint2& V2)
 {
-	return UInt2(V1.x * V2.x, V1.y * V2.y);
+	return uint2(V1.x * V2.x, V1.y * V2.y);
 }
 
-inline UInt2 operator* (const UInt2& V, float S)
+inline uint2 operator* (const uint2& V, float S)
 {
-	return UInt2(static_cast<uint32_t>(V.x * S), static_cast<uint32_t>(V.y * S));
+	return uint2(static_cast<uint32_t>(V.x * S), static_cast<uint32_t>(V.y * S));
 }
 
-inline UInt2 operator/ (const UInt2& V1, const UInt2& V2)
+inline uint2 operator/ (const uint2& V1, const uint2& V2)
 {
-	return UInt2(V1.x / V2.x, V1.y / V2.y);
+	return uint2(V1.x / V2.x, V1.y / V2.y);
 }
 
-inline UInt2 operator* (float S, const UInt2& V)
+inline uint2 operator* (float S, const uint2& V)
 {
-	return UInt2(static_cast<uint32_t>(V.x * S), static_cast<uint32_t>(V.y * S));
+	return uint2(static_cast<uint32_t>(V.x * S), static_cast<uint32_t>(V.y * S));
 }
 
 /****************************************************************************
 *
-* UInt3
+* uint3
 *
 ****************************************************************************/
 
@@ -425,12 +425,12 @@ inline UInt2 operator* (float S, const UInt2& V)
 // Comparision operators
 //------------------------------------------------------------------------------
 
-inline bool UInt3::operator == (const UInt3& V) const
+inline bool uint3::operator == (const uint3& V) const
 {
 	return this->x == V.x && this->y == V.y && this->z == V.z;
 }
 
-inline bool UInt3::operator != (const UInt3& V) const
+inline bool uint3::operator != (const uint3& V) const
 {
 	return (this->x == V.x && this->y == V.y && this->z == V.z) == false;
 }
@@ -439,7 +439,7 @@ inline bool UInt3::operator != (const UInt3& V) const
 // Assignment operators
 //------------------------------------------------------------------------------
 
-inline UInt3& UInt3::operator+= (const UInt3& V)
+inline uint3& uint3::operator+= (const uint3& V)
 {
 	this->x += V.x;
 	this->y += V.y;
@@ -448,7 +448,7 @@ inline UInt3& UInt3::operator+= (const UInt3& V)
 	return *this;
 }
 
-inline UInt3& UInt3::operator-= (const UInt3& V)
+inline uint3& uint3::operator-= (const uint3& V)
 {
 	this->x -= V.x;
 	this->y -= V.y;
@@ -457,7 +457,7 @@ inline UInt3& UInt3::operator-= (const UInt3& V)
 	return *this;
 }
 
-inline UInt3& UInt3::operator*= (const UInt3& V)
+inline uint3& uint3::operator*= (const uint3& V)
 {
 	this->x *= V.x;
 	this->y *= V.y;
@@ -466,7 +466,7 @@ inline UInt3& UInt3::operator*= (const UInt3& V)
 	return *this;
 }
 
-inline UInt3& UInt3::operator*= (float S)
+inline uint3& uint3::operator*= (float S)
 {
 	this->x = static_cast<uint32_t>(this->x * S);
 	this->y = static_cast<uint32_t>(this->y * S);
@@ -475,7 +475,7 @@ inline UInt3& UInt3::operator*= (float S)
 	return *this;
 }
 
-inline UInt3& UInt3::operator/= (float S)
+inline uint3& uint3::operator/= (float S)
 {
 	assert(S != 0.0f);
 
@@ -490,39 +490,39 @@ inline UInt3& UInt3::operator/= (float S)
 // Binary operators
 //------------------------------------------------------------------------------
 
-inline UInt3 operator+ (const UInt3& V1, const UInt3& V2)
+inline uint3 operator+ (const uint3& V1, const uint3& V2)
 {
-	return UInt3(V1.x + V2.x, V1.y + V2.y, V1.z + V2.z);
+	return uint3(V1.x + V2.x, V1.y + V2.y, V1.z + V2.z);
 }
 
-inline UInt3 operator- (const UInt3& V1, const UInt3& V2)
+inline uint3 operator- (const uint3& V1, const uint3& V2)
 {
-	return UInt3(V1.x - V2.x, V1.y - V2.y, V1.z - V2.z);
+	return uint3(V1.x - V2.x, V1.y - V2.y, V1.z - V2.z);
 }
 
-inline UInt3 operator* (const UInt3& V1, const UInt3& V2)
+inline uint3 operator* (const uint3& V1, const uint3& V2)
 {
-	return UInt3(V1.x * V2.x, V1.y * V2.y, V1.z * V2.z);
+	return uint3(V1.x * V2.x, V1.y * V2.y, V1.z * V2.z);
 }
 
-inline UInt3 operator* (const UInt3& V, float S)
+inline uint3 operator* (const uint3& V, float S)
 {
-	return UInt3(static_cast<uint32_t>(V.x * S), static_cast<uint32_t>(V.y * S), static_cast<uint32_t>(V.z * S));
+	return uint3(static_cast<uint32_t>(V.x * S), static_cast<uint32_t>(V.y * S), static_cast<uint32_t>(V.z * S));
 }
 
-inline UInt3 operator/ (const UInt3& V1, const UInt3& V2)
+inline uint3 operator/ (const uint3& V1, const uint3& V2)
 {
-	return UInt3(V1.x / V2.x, V1.y / V2.y, V1.z / V2.z);
+	return uint3(V1.x / V2.x, V1.y / V2.y, V1.z / V2.z);
 }
 
-inline UInt3 operator* (float S, const UInt3& V)
+inline uint3 operator* (float S, const uint3& V)
 {
-	return UInt3(static_cast<uint32_t>(V.x * S), static_cast<uint32_t>(V.y * S), static_cast<uint32_t>(V.z * S));
+	return uint3(static_cast<uint32_t>(V.x * S), static_cast<uint32_t>(V.y * S), static_cast<uint32_t>(V.z * S));
 }
 
 /****************************************************************************
 *
-* UInt4
+* uint4
 *
 ****************************************************************************/
 
@@ -530,12 +530,12 @@ inline UInt3 operator* (float S, const UInt3& V)
 // Comparision operators
 //------------------------------------------------------------------------------
 
-inline bool UInt4::operator == (const UInt4& V) const
+inline bool uint4::operator == (const uint4& V) const
 {
 	return this->x == V.x && this->y == V.y && this->z == V.z && this->w == V.w;
 }
 
-inline bool UInt4::operator != (const UInt4& V) const
+inline bool uint4::operator != (const uint4& V) const
 {
 	return (this->x == V.x && this->y == V.y && this->z == V.z && this->w == V.w) == false;
 }
@@ -544,7 +544,7 @@ inline bool UInt4::operator != (const UInt4& V) const
 // Assignment operators
 //------------------------------------------------------------------------------
 
-inline UInt4& UInt4::operator+= (const UInt4& V)
+inline uint4& uint4::operator+= (const uint4& V)
 {
 	this->x += V.x;
 	this->y += V.y;
@@ -554,7 +554,7 @@ inline UInt4& UInt4::operator+= (const UInt4& V)
 	return *this;
 }
 
-inline UInt4& UInt4::operator-= (const UInt4& V)
+inline uint4& uint4::operator-= (const uint4& V)
 {
 	this->x -= V.x;
 	this->y -= V.y;
@@ -564,7 +564,7 @@ inline UInt4& UInt4::operator-= (const UInt4& V)
 	return *this;
 }
 
-inline UInt4& UInt4::operator*= (const UInt4& V)
+inline uint4& uint4::operator*= (const uint4& V)
 {
 	this->x *= V.x;
 	this->y *= V.y;
@@ -574,7 +574,7 @@ inline UInt4& UInt4::operator*= (const UInt4& V)
 	return *this;
 }
 
-inline UInt4& UInt4::operator*= (float S)
+inline uint4& uint4::operator*= (float S)
 {
 	this->x = static_cast<uint32_t>(this->x * S);
 	this->y = static_cast<uint32_t>(this->y * S);
@@ -584,7 +584,7 @@ inline UInt4& UInt4::operator*= (float S)
 	return *this;
 }
 
-inline UInt4& UInt4::operator/= (float S)
+inline uint4& uint4::operator/= (float S)
 {
 	assert(S != 0.0f);
 
@@ -600,34 +600,34 @@ inline UInt4& UInt4::operator/= (float S)
 // Binary operators
 //------------------------------------------------------------------------------
 
-inline UInt4 operator+ (const UInt4& V1, const UInt4& V2)
+inline uint4 operator+ (const uint4& V1, const uint4& V2)
 {
-	return UInt4(V1.x + V2.x, V1.y + V2.y, V1.z + V2.z, V1.w + V2.w);
+	return uint4(V1.x + V2.x, V1.y + V2.y, V1.z + V2.z, V1.w + V2.w);
 }
 
-inline UInt4 operator- (const UInt4& V1, const UInt4& V2)
+inline uint4 operator- (const uint4& V1, const uint4& V2)
 {
-	return UInt4(V1.x - V2.x, V1.y - V2.y, V1.z - V2.z, V1.w - V2.w);
+	return uint4(V1.x - V2.x, V1.y - V2.y, V1.z - V2.z, V1.w - V2.w);
 }
 
-inline UInt4 operator* (const UInt4& V1, const UInt4& V2)
+inline uint4 operator* (const uint4& V1, const uint4& V2)
 {
-	return UInt4(V1.x * V2.x, V1.y * V2.y, V1.z * V2.z, V1.w * V2.w);
+	return uint4(V1.x * V2.x, V1.y * V2.y, V1.z * V2.z, V1.w * V2.w);
 }
 
-inline UInt4 operator* (const UInt4& V, float S)
+inline uint4 operator* (const uint4& V, float S)
 {
-	return UInt4(static_cast<uint32_t>(V.x * S), static_cast<uint32_t>(V.y * S), static_cast<uint32_t>(V.z * S), static_cast<uint32_t>(V.w * S));
+	return uint4(static_cast<uint32_t>(V.x * S), static_cast<uint32_t>(V.y * S), static_cast<uint32_t>(V.z * S), static_cast<uint32_t>(V.w * S));
 }
 
-inline UInt4 operator/ (const UInt4& V1, const UInt4& V2)
+inline uint4 operator/ (const uint4& V1, const uint4& V2)
 {
-	return UInt4(V1.x / V2.x, V1.y / V2.y, V1.z / V2.z, V1.w / V2.w);
+	return uint4(V1.x / V2.x, V1.y / V2.y, V1.z / V2.z, V1.w / V2.w);
 }
 
-inline UInt4 operator* (float S, const UInt4& V)
+inline uint4 operator* (float S, const uint4& V)
 {
-	return UInt4(static_cast<uint32_t>(V.x * S), static_cast<uint32_t>(V.y * S), static_cast<uint32_t>(V.z * S), static_cast<uint32_t>(V.w * S));
+	return uint4(static_cast<uint32_t>(V.x * S), static_cast<uint32_t>(V.y * S), static_cast<uint32_t>(V.z * S), static_cast<uint32_t>(V.w * S));
 }
 
 /****************************************************************************

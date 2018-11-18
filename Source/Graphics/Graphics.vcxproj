@@ -179,13 +179,10 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClInclude>
-    <ClInclude Include="CullingThreadpool.h" />
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="ImageBasedLight.h" />
-    <ClInclude Include="MaskedOcclusionCulling.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="MaterialNode.h" />
-    <ClInclude Include="OcclusionCulling.h" />
     <ClInclude Include="Shadow.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -203,18 +200,10 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="CullingThreadpool.cpp" />
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="ImageBasedLight.cpp" />
-    <ClCompile Include="MaskedOcclusionCulling.cpp" />
-    <ClCompile Include="MaskedOcclusionCullingAVX2.cpp">
-      <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
-      <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
-    </ClCompile>
-    <ClCompile Include="MaskedOcclusionCullingAVX512.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="MaterialNode.cpp" />
-    <ClCompile Include="OcclusionCulling.cpp" />
     <ClCompile Include="Shadow.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -230,10 +219,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="TextureManager.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="CompilerSpecific.inl" />
-    <None Include="MaskedOcclusionCullingCommon.inl" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DirectX11\DirectX11.vcxproj">

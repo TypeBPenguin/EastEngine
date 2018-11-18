@@ -163,7 +163,7 @@ namespace eastengine
 			m_pd3dImmediateContext = new DeviceContext(pd3dImmediateContext);
 
 			DXGI_SWAP_CHAIN_DESC1 swapChainDesc;
-			Memory::Clear(swapChainDesc);
+			memory::Clear(swapChainDesc);
 			swapChainDesc.Width = 0;
 			swapChainDesc.Height = 0;
 			swapChainDesc.BufferCount = 2;
@@ -177,7 +177,7 @@ namespace eastengine
 			swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 			DXGI_SWAP_CHAIN_FULLSCREEN_DESC swapChainFullScreenDesc;
-			Memory::Clear(&swapChainFullScreenDesc, sizeof(swapChainFullScreenDesc));
+			memory::Clear(&swapChainFullScreenDesc, sizeof(swapChainFullScreenDesc));
 			swapChainFullScreenDesc.Windowed = isFullScreen == false;
 			swapChainFullScreenDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 
@@ -225,7 +225,7 @@ namespace eastengine
 					};
 
 					D3D11_INFO_QUEUE_FILTER filter;
-					Memory::Clear(&filter, sizeof(filter));
+					memory::Clear(&filter, sizeof(filter));
 					filter.DenyList.NumIDs = _countof(hide);
 					filter.DenyList.pIDList = hide;
 					m_pd3dInfoQueue->AddStorageFilterEntries(&filter);
@@ -486,7 +486,7 @@ namespace eastengine
 			m_pd3dDeferredContext[nThreadID]->ExecuteCommandList(m_pd3dImmediateContext);
 
 			DXGI_PRESENT_PARAMETERS  presentParam;
-			Memory::Clear(&presentParam, sizeof(DXGI_PRESENT_PARAMETERS));
+			memory::Clear(&presentParam, sizeof(DXGI_PRESENT_PARAMETERS));
 			HRESULT hr = m_pSwapChain->Present1(m_isVsync ? 1 : 0, 0, &presentParam);
 			if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
 			{

@@ -394,15 +394,15 @@ namespace eastengine
 
 					const DirectionalLightData* pDirectionalLightData = nullptr;
 					pLightManager->GetDirectionalLightData(&pDirectionalLightData, &pCommonContents->nDirectionalLightCount);
-					Memory::Copy(pCommonContents->lightDirectional, pDirectionalLightData, sizeof(DirectionalLightData) * pCommonContents->nDirectionalLightCount);
+					memory::Copy(pCommonContents->lightDirectional, pDirectionalLightData, sizeof(DirectionalLightData) * pCommonContents->nDirectionalLightCount);
 
 					const PointLightData* pPointLightData = nullptr;
 					pLightManager->GetPointLightData(&pPointLightData, &pCommonContents->nPointLightCount);
-					Memory::Copy(pCommonContents->lightPoint, pPointLightData, sizeof(PointLightData) * pCommonContents->nPointLightCount);
+					memory::Copy(pCommonContents->lightPoint, pPointLightData, sizeof(PointLightData) * pCommonContents->nPointLightCount);
 
 					const SpotLightData* pSpotLightData = nullptr;
 					pLightManager->GetSpotLightData(&pSpotLightData, &pCommonContents->nSpotLightCount);
-					Memory::Copy(pCommonContents->lightSpot, pSpotLightData, sizeof(SpotLightData) * pCommonContents->nSpotLightCount);
+					memory::Copy(pCommonContents->lightSpot, pSpotLightData, sizeof(SpotLightData) * pCommonContents->nSpotLightCount);
 
 					pCB_CommonContents->Unmap(pDeviceContext);
 				}
@@ -458,7 +458,7 @@ namespace eastengine
 							break;
 
 						StaticInstancingDataBuffer* pStaticInstancingData = pCB_StaticInstancingDataBuffer->Map(pDeviceContext);
-						Memory::Copy(pStaticInstancingData->data.data(), sizeof(pStaticInstancingData->data), &pInstanceData[i * eMaxInstancingCount], sizeof(math::Matrix) * nDrawInstanceCount);
+						memory::Copy(pStaticInstancingData->data.data(), sizeof(pStaticInstancingData->data), &pInstanceData[i * eMaxInstancingCount], sizeof(math::Matrix) * nDrawInstanceCount);
 						pCB_StaticInstancingDataBuffer->Unmap(pDeviceContext);
 
 						if (pIndexBuffer != nullptr)
@@ -502,7 +502,7 @@ namespace eastengine
 							break;
 
 						SkinningInstancingDataBuffer* pSkinningInstancingData = pCB_SkinningInstancingDataBuffer->Map(pDeviceContext);
-						Memory::Copy(pSkinningInstancingData->data.data(), sizeof(pSkinningInstancingData->data), &pInstanceData[i * eMaxInstancingCount], sizeof(SkinningInstancingData) * nDrawInstanceCount);
+						memory::Copy(pSkinningInstancingData->data.data(), sizeof(pSkinningInstancingData->data), &pInstanceData[i * eMaxInstancingCount], sizeof(SkinningInstancingData) * nDrawInstanceCount);
 						pCB_SkinningInstancingDataBuffer->Unmap(pDeviceContext);
 
 						if (pIndexBuffer != nullptr)
@@ -568,7 +568,7 @@ namespace eastengine
 				struct JobStatic
 				{
 					RenderJobStatic data;
-					bool isCulled = false;
+					bool isCulled{ false };
 
 					void Set(const RenderJobStatic& source)
 					{
@@ -579,7 +579,7 @@ namespace eastengine
 
 				struct JobStaticBatch
 				{
-					const JobStatic* pJob = nullptr;
+					const JobStatic* pJob{ nullptr };
 					std::vector<math::Matrix> vecInstanceData;
 
 					JobStaticBatch(const JobStatic* pJob, const math::Matrix& matWorld)
@@ -599,7 +599,7 @@ namespace eastengine
 				struct JobSkinned
 				{
 					RenderJobSkinned data;
-					bool isCulled = false;
+					bool isCulled{ false };
 
 					void Set(const RenderJobSkinned& source)
 					{
@@ -610,7 +610,7 @@ namespace eastengine
 
 				struct JobSkinnedBatch
 				{
-					const JobSkinned* pJob = nullptr;
+					const JobSkinned* pJob{ nullptr };
 					std::vector<SkinningInstancingData> vecInstanceData;
 
 					JobSkinnedBatch(const JobSkinned* pJob, const math::Matrix& matWorld, uint32_t nVTFID)

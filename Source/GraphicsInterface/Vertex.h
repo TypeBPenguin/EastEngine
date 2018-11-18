@@ -168,7 +168,7 @@ namespace eastengine
 				normal = vertex.normal;
 			}
 
-			void SetVertex(const math::float3& f3Pos, const math::float2& f2UV, const math::float3& f3Normal, const math::float3& f3Weight, const uint16_t _boneIndices[4]) { pos = f3Pos; uv = f2UV; normal = f3Normal; boneWeight = f3Weight; Memory::Copy(boneIndices, _boneIndices); }
+			void SetVertex(const math::float3& f3Pos, const math::float2& f2UV, const math::float3& f3Normal, const math::float3& f3Weight, const uint16_t _boneIndices[4]) { pos = f3Pos; uv = f2UV; normal = f3Normal; boneWeight = f3Weight; memory::Copy(boneIndices, _boneIndices); }
 		};
 
 		// For OcclusionCulling

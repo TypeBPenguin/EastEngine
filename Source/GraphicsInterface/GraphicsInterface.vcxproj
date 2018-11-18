@@ -155,6 +155,7 @@
   <ItemGroup>
     <ClInclude Include="AssaoInterface.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="CullingThreadpool.h" />
     <ClInclude Include="Define.h" />
     <ClInclude Include="DirectionalLight.h" />
     <ClInclude Include="imconfig.h" />
@@ -169,6 +170,8 @@
     <ClInclude Include="GraphicsInterface.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="LightManager.h" />
+    <ClInclude Include="MaskedOcclusionCulling.h" />
+    <ClInclude Include="OcclusionCulling.h" />
     <ClInclude Include="PointLight.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RenderJob.h" />
@@ -182,6 +185,7 @@
   <ItemGroup>
     <ClCompile Include="AssaoInterface.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="CullingThreadpool.cpp" />
     <ClCompile Include="Define.cpp" />
     <ClCompile Include="DirectionalLight.cpp" />
     <ClCompile Include="imgui.cpp" />
@@ -194,6 +198,10 @@
     <ClCompile Include="GraphicsInterface.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="LightManager.cpp" />
+    <ClCompile Include="MaskedOcclusionCulling.cpp" />
+    <ClCompile Include="MaskedOcclusionCullingAVX2.cpp" />
+    <ClCompile Include="MaskedOcclusionCullingAVX512.cpp" />
+    <ClCompile Include="OcclusionCulling.cpp" />
     <ClCompile Include="PointLight.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderJob.cpp" />
@@ -214,8 +222,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="CompilerSpecific.inl" />
     <None Include="frag.spv" />
     <None Include="FragmentShader.frag" />
+    <None Include="MaskedOcclusionCullingCommon.inl" />
     <None Include="PixelShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
       </ExcludedFromBuild>

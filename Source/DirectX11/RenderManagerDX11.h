@@ -22,6 +22,7 @@ namespace eastengine
 				void PushJob(const RenderJobStatic& renderJob);
 				void PushJob(const RenderJobSkinned& renderJob);
 				void PushJob(const RenderJobTerrain& renderJob);
+				void PushJob(const RenderJobVertex& renderJob);
 
 			private:
 				class Impl;

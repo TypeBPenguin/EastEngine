@@ -1686,7 +1686,7 @@ void ShowMotion(bool& isShowMotionMenu, gameobject::ComponentModel* pCompModel)
 		char path[512] = { 0 };
 
 		OPENFILENAME ofn;
-		Memory::Clear(&ofn, sizeof(ofn));
+		memory::Clear(&ofn, sizeof(ofn));
 
 		ofn.lStructSize = sizeof(OPENFILENAME);
 		ofn.hwndOwner = Windows::GetHwnd();
@@ -1968,7 +1968,7 @@ void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nInd
 			char path[512] = { 0 };
 
 			OPENFILENAME ofn;
-			Memory::Clear(&ofn, sizeof(ofn));
+			memory::Clear(&ofn, sizeof(ofn));
 
 			ofn.lStructSize = sizeof(OPENFILENAME);
 			ofn.hwndOwner = Windows::GetHwnd();
@@ -2257,7 +2257,7 @@ void SceneStudio::RenderUI()
 				{
 					char path[512] = { 0 };
 					OPENFILENAME ofn;
-					Memory::Clear(&ofn, sizeof(ofn));
+					memory::Clear(&ofn, sizeof(ofn));
 
 					ofn.lStructSize = sizeof(OPENFILENAME);
 					ofn.hwndOwner = Windows::GetHwnd();
@@ -2384,7 +2384,7 @@ void SceneStudio::RenderUI()
 		{
 			char path[512] = { 0 };
 			OPENFILENAME ofn;
-			Memory::Clear(&ofn, sizeof(ofn));
+			memory::Clear(&ofn, sizeof(ofn));
 
 			ofn.lStructSize = sizeof(OPENFILENAME);
 			ofn.hwndOwner = Windows::GetHwnd();
@@ -2406,7 +2406,7 @@ void SceneStudio::RenderUI()
 		{
 			char path[512] = { 0 };
 			OPENFILENAME ofn;
-			Memory::Clear(&ofn, sizeof(ofn));
+			memory::Clear(&ofn, sizeof(ofn));
 
 			ofn.lStructSize = sizeof(OPENFILENAME);
 			ofn.hwndOwner = Windows::GetHwnd();
@@ -2628,7 +2628,7 @@ void SceneStudio::RenderUI()
 									{
 										char path[512] = { 0 };
 										OPENFILENAME ofn;
-										Memory::Clear(&ofn, sizeof(ofn));
+										memory::Clear(&ofn, sizeof(ofn));
 
 										ofn.lStructSize = sizeof(OPENFILENAME);
 										ofn.hwndOwner = Windows::GetHwnd();
@@ -2764,7 +2764,7 @@ void SceneStudio::RenderUI()
 								char path[512] = { 0 };
 
 								OPENFILENAME ofn;
-								Memory::Clear(&ofn, sizeof(ofn));
+								memory::Clear(&ofn, sizeof(ofn));
 
 								ofn.lStructSize = sizeof(OPENFILENAME);
 								ofn.hwndOwner = Windows::GetHwnd();

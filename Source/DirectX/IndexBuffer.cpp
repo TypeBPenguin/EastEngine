@@ -29,7 +29,7 @@ namespace eastengine
 			uint32_t nDataSize = nFormatSize * nElementCount;
 
 			D3D11_BUFFER_DESC bufferDesc;
-			Memory::Clear(&bufferDesc, sizeof(D3D11_BUFFER_DESC));
+			memory::Clear(&bufferDesc, sizeof(D3D11_BUFFER_DESC));
 
 			bufferDesc.ByteWidth = nDataSize;
 			bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
@@ -40,7 +40,7 @@ namespace eastengine
 			if (pData != nullptr)
 			{
 				D3D11_SUBRESOURCE_DATA dataDesc;
-				Memory::Clear(&dataDesc, sizeof(D3D11_SUBRESOURCE_DATA));
+				memory::Clear(&dataDesc, sizeof(D3D11_SUBRESOURCE_DATA));
 				dataDesc.pSysMem = pData;
 
 				if (FAILED(GetDevice()->CreateBuffer(&bufferDesc, &dataDesc, &m_pIndexBuffer)))
@@ -68,7 +68,7 @@ namespace eastengine
 		bool IndexBuffer::Map(ThreadType emThreadID, uint32_t nSubresource, D3D11_MAP emMap, void** ppData) const
 		{
 			D3D11_MAPPED_SUBRESOURCE map;
-			Memory::Clear(&map, sizeof(D3D11_MAPPED_SUBRESOURCE));
+			memory::Clear(&map, sizeof(D3D11_MAPPED_SUBRESOURCE));
 
 			HRESULT hr = GetDeferredContext(emThreadID)->Map(m_pIndexBuffer, nSubresource, static_cast<D3D11_MAP>(emMap), 0, &map);
 			if (FAILED(hr))

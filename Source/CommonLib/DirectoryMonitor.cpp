@@ -121,7 +121,7 @@ namespace eastengine
 							}
 						} while (pFni->NextEntryOffset > 0);
 
-						Memory::Clear(pMonitor->buffer);
+						memory::Clear(pMonitor->buffer);
 					}
 				}
 			}
