@@ -302,8 +302,8 @@ namespace eastengine
 
 						const std::vector<RenderSubsetVertexBatch::InstVertexData>& vecInstData = renderSubsetBatch.vecInstData;
 						size_t nInstanceSize = vecInstData.size();
-						size_t nLoopCount = nInstanceSize / MAX_INSTANCE_NUM + 1;
-						for (size_t j = 0; j < nLoopCount; ++j)
+						size_t loopCount = nInstanceSize / MAX_INSTANCE_NUM + 1;
+						for (size_t j = 0; j < loopCount; ++j)
 						{
 							int nMax = std::min(MAX_INSTANCE_NUM * (j + 1), nInstanceSize);
 							int nNum = nMax - j * MAX_INSTANCE_NUM;

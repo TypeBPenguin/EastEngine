@@ -446,7 +446,7 @@ namespace eastengine
 			strFullPath.append(strFileName);
 
 			file::Stream file;
-			if (file.Open(strFullPath.c_str(), file::eRead | file::eBinary) == false)
+			if (file.Open(strFullPath.c_str(), file::eReadBinary) == false)
 			{
 				LOG_WARNING("아 실패함");
 				return nullptr;
@@ -457,7 +457,7 @@ namespace eastengine
 			std::string strBuf;
 			file >> strBuf;
 
-			materialInfo.strName = strBuf.c_str();
+			materialInfo.name = strBuf.c_str();
 			materialInfo.strPath = strFilePath;
 
 			file.Read(&materialInfo.colorAlbedo.r, 4);
@@ -509,14 +509,14 @@ namespace eastengine
 			*ppMaterial = nullptr;
 		}
 
-		bool IMaterial::SaveToFile(IMaterial* pMaterial, const char* strFilePath)
+		bool IMaterial::SaveFile(IMaterial* pMaterial, const char* strFilePath)
 		{
 			std::string strFullPath(strFilePath);
 			strFullPath.append(pMaterial->GetName().c_str());
 			strFullPath.append(".emtl");
 
 			file::Stream file;
-			if (file.Open(strFullPath.c_str(), file::eWrite | file::eBinary) == false)
+			if (file.Open(strFullPath.c_str(), file::eWriteBinary) == false)
 			{
 				LOG_WARNING("아 실패함");
 				return false;

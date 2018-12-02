@@ -6,7 +6,7 @@ namespace eastengine
 	namespace gameobject
 	{
 		ComponentLight::ComponentLight(IActor* pOwner)
-			: IComponent(pOwner, EmComponent::eLight)
+			: IComponent(pOwner, IComponent::eLight)
 		{
 		}
 

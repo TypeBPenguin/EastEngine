@@ -1,7 +1,5 @@
 #pragma once
 
-#include <fstream>
-
 namespace eastengine
 {
 	namespace file
@@ -12,6 +10,12 @@ namespace eastengine
 			eRead = 0x01,
 			eWrite = 0x02,
 			eBinary = 0x20,
+
+			eReadBinary = eRead | eBinary,
+			eWriteBinary = eWrite | eBinary,
+
+			eReadWrite = eRead | eWrite,
+			eReadWriteBinary = eRead | eWrite | eBinary,
 		};
 
 		class Stream
@@ -21,16 +25,20 @@ namespace eastengine
 			~Stream();
 
 		public:
-			bool Open(const char* fileName, uint32_t emMode = OpenMode::eNone);
-			void Close() { m_file.close(); }
+			bool Open(const char* fileName, OpenMode emMode = OpenMode::eNone);
+			void Close();
 
-			bool Eof() { return m_file.eof(); }
+			bool Eof() const;
 
-			void Clear() { m_file.clear(); }
-			void Seekg(std::streampos pos, uint32_t state) { m_file.seekp(pos, state); }
-			std::streampos Tellg() { m_file.tellg(); }
+			void Clear();
 
-			size_t GetFileSize() const { return m_nFileSize; }
+		public:
+			size_t GetFileSize() const;
+			const std::string& GetFilePath() const;
+			uint32_t GetOpenMode() const;
+
+		public:
+			const BYTE* GetBuffer();
 
 		public:
 			Stream& operator << (int8_t value);
@@ -85,19 +93,39 @@ namespace eastengine
 			Stream& Read(uint32_t* pBuffer, uint32_t nCount = 1);
 			Stream& Read(uint64_t* pBuffer, uint32_t nCount = 1);
 
-			Stream& Read(char* pBuffer, uint32_t nLength);
+			Stream& Read(char* pBuffer, size_t length);
 
 			void ReadLine(std::string& str);
 
-		public:
-			const std::string& GetFilePath() const { return m_strPath; }
-			uint32_t GetOpenMode() const { return m_nOpenMode; }
-
 		private:
-			std::fstream m_file;
-			std::string m_strPath;
-			uint32_t m_nOpenMode;
-			size_t m_nFileSize;
+			class Impl;
+			std::unique_ptr<Impl> m_pImpl;
+
+		public:
+			template <typename T>
+			static const T* To(const BYTE** ppBuffer, size_t count = 1)
+			{
+				assert(count > 0);
+
+				const T* pPointer = reinterpret_cast<const T*>(*ppBuffer);
+				*ppBuffer += sizeof(T) * count;
+
+				return pPointer;
+			}
+
+			static const char* ToString(const BYTE** ppBuffer)
+			{
+				const uint32_t* pLength = reinterpret_cast<const uint32_t*>(*ppBuffer);
+				*ppBuffer += sizeof(uint32_t);
+
+				if (*pLength == 0)
+					return "";
+
+				const char* pName = reinterpret_cast<const char*>(*ppBuffer);
+				*ppBuffer += *pLength;
+
+				return pName;
+			}
 		};
 	}
 }

@@ -1,6 +1,9 @@
 #include "stdafx.h"
 #include "ModelNodeStatic.h"
 
+#include "CommonLib/FileStream.h"
+#include "CommonLib/FileUtil.h"
+
 #include "GeometryModel.h"
 
 namespace eastengine
@@ -12,16 +15,21 @@ namespace eastengine
 		{
 		}
 
+		ModelNodeStatic::ModelNodeStatic(const char* filePath, const BYTE** ppBuffer)
+			: ModelNode(eStatic, filePath, ppBuffer)
+		{
+		}
+
 		ModelNodeStatic::~ModelNodeStatic()
 		{
 		}
 
-		void ModelNodeStatic::Update(float fElapsedTime, const math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance, bool isModelVisible) const
+		void ModelNodeStatic::Update(float elapsedTime, const math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance, bool isModelVisible) const
 		{
 			math::Matrix matTransformation = matParent;
-			if (m_strAttachedBoneName.empty() == false && pSkeletonInstance != nullptr)
+			if (m_attachedBoneName != StrID::None && pSkeletonInstance != nullptr)
 			{
-				ISkeletonInstance::IBone* pBone = pSkeletonInstance->GetBone(m_strAttachedBoneName);
+				ISkeletonInstance::IBone* pBone = pSkeletonInstance->GetBone(m_attachedBoneName);
 				if (pBone != nullptr)
 				{
 					const math::Matrix& matMotionTransform = pBone->GetSkinningMatrix();
@@ -50,7 +58,7 @@ namespace eastengine
 
 						if (pMaterialInstance != nullptr)
 						{
-							pMaterial = pMaterialInstance->GetMaterial(m_strNodeName, modelSubset.nMaterialID);
+							pMaterial = pMaterialInstance->GetMaterial(m_nodeName, modelSubset.nMaterialID);
 						}
 
 						if (pMaterial == nullptr)
@@ -84,7 +92,7 @@ namespace eastengine
 			const size_t nSize = m_vecChildModelNode.size();
 			for (size_t i = 0; i < nSize; ++i)
 			{
-				m_vecChildModelNode[i]->Update(fElapsedTime, matTransformation, pSkeletonInstance, pMaterialInstance, isModelVisible);
+				m_vecChildModelNode[i]->Update(elapsedTime, matTransformation, pSkeletonInstance, pMaterialInstance, isModelVisible);
 			}
 		}
 	}

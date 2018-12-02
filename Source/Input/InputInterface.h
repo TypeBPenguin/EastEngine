@@ -4,7 +4,7 @@ namespace eastengine
 {
 	namespace input
 	{
-		namespace Mouse
+		namespace mouse
 		{
 			enum Button
 			{
@@ -28,10 +28,10 @@ namespace eastengine
 				ePressed,
 			};
 
-			bool IsButtonEvent(Mouse::Button emMouseButton);
-			bool IsButtonDown(Mouse::Button emMouseButton);
-			bool IsButtonPressed(Mouse::Button emMouseButton);
-			bool IsButtonUp(Mouse::Button emMouseButton);
+			bool IsButtonEvent(mouse::Button emMouseButton);
+			bool IsButtonDown(mouse::Button emMouseButton);
+			bool IsButtonPressed(mouse::Button emMouseButton);
+			bool IsButtonUp(mouse::Button emMouseButton);
 
 			int	GetX();
 			int GetY();
@@ -41,17 +41,17 @@ namespace eastengine
 			long GetMoveWheel();	// »Ÿ ¿Ãµø∞≈∏Æ
 		}
 
-		namespace Keyboard
+		namespace keyboard
 		{
 #include "KeyCode.inl"
 
-			bool IsKeyEvent(Keyboard::KeyCode emKeyCode);
-			bool IsKeyDown(Keyboard::KeyCode emKeyCode);
-			bool IsKeyPressed(Keyboard::KeyCode emKeyCode);
-			bool IsKeyUp(Keyboard::KeyCode emKeyCode);
+			bool IsKeyEvent(keyboard::KeyCode emKeyCode);
+			bool IsKeyDown(keyboard::KeyCode emKeyCode);
+			bool IsKeyPressed(keyboard::KeyCode emKeyCode);
+			bool IsKeyUp(keyboard::KeyCode emKeyCode);
 		}
 
-		namespace GamePad
+		namespace gamepad
 		{
 			enum Type
 			{

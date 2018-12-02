@@ -39,8 +39,8 @@ namespace eastengine
 		float GetFPS() const { return m_pFpsChecker->GetFps(); }
 
 	private:
-		void Cleanup(float fElapsedTime);
-		void Update(float fElapsedTime);
+		void Cleanup(float elapsedTime);
+		void Update(float elapsedTime);
 
 	private:
 		std::unique_ptr<FpsChecker> m_pFpsChecker;
@@ -141,32 +141,32 @@ namespace eastengine
 		{
 			s_pTimer->Tick();
 
-			const float fElapsedTime = s_pTimer->GetElapsedTime();
-			Cleanup(fElapsedTime);
-			Update(fElapsedTime);
+			const float elapsedTime = s_pTimer->GetElapsedTime();
+			Cleanup(elapsedTime);
+			Update(elapsedTime);
 		});
 	}
 
-	void MainSystem::Impl::Cleanup(float fElapsedTime)
+	void MainSystem::Impl::Cleanup(float elapsedTime)
 	{
-		s_pModelManager->Cleanup(fElapsedTime);
-		graphics::Cleanup(fElapsedTime);
+		s_pModelManager->Cleanup(elapsedTime);
+		graphics::Cleanup(elapsedTime);
 	}
 
-	void MainSystem::Impl::Update(float fElapsedTime)
+	void MainSystem::Impl::Update(float elapsedTime)
 	{
 		performance::tracer::RefreshState();
 
-		m_pFpsChecker->Update(fElapsedTime);
-		s_pInputDevice->Update(fElapsedTime);
+		m_pFpsChecker->Update(elapsedTime);
+		s_pInputDevice->Update(elapsedTime);
 
-		graphics::Update(fElapsedTime);
+		graphics::Update(elapsedTime);
 
-		s_pSceneManager->Update(fElapsedTime);
-		s_pPhysicsSystem->Update(fElapsedTime);
-		s_pGameObjectManager->Update(fElapsedTime);
+		s_pSceneManager->Update(elapsedTime);
+		s_pPhysicsSystem->Update(elapsedTime);
+		s_pGameObjectManager->Update(elapsedTime);
 		s_pModelManager->Update();
-		s_pSoundSystem->Update(fElapsedTime);
+		s_pSoundSystem->Update(elapsedTime);
 
 		graphics::PostUpdate();
 	}

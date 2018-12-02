@@ -868,8 +868,7 @@ namespace eastengine
 					isIncludeNode = true;
 				}
 			}
-
-			if (isIncludeNode == true)
+			else
 			{
 				nCurrentIndex = static_cast<int>(scanlist.size());
 

@@ -164,7 +164,7 @@ namespace eastengine
 		struct Options
 		{
 			bool OnVSync{ false };
-			bool OnOcclusionCulling{ true };
+			bool OnOcclusionCulling{ false };
 			bool OnCollisionVisible{ false };
 
 			bool OnShadow{ false };
@@ -386,7 +386,7 @@ namespace eastengine
 			virtual const string::StringID& GetResourceType() const override { return StrID::Material; }
 
 		public:
-			virtual bool SaveToFile(const char* strFilePath) const = 0;
+			virtual bool SaveFile(const char* strFilePath) const = 0;
 
 		public:
 			virtual void LoadTexture() = 0;
@@ -522,9 +522,9 @@ namespace std
 	template <>
 	struct hash<eastengine::graphics::ITexture::Key>
 	{
-		const eastengine::string::StringData* operator()(const eastengine::graphics::ITexture::Key& key) const
+		const size_t operator()(const eastengine::graphics::ITexture::Key& key) const
 		{
-			return key.Value().Key();
+			return reinterpret_cast<size_t>(key.Value().Key());
 		}
 	};
 }

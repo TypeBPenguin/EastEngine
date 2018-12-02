@@ -26,7 +26,7 @@ namespace eastengine
 
 		public:
 			void Update();
-			void Cleanup(float fElapsedTime);
+			void Cleanup(float elapsedTime);
 
 		public:
 			// Model

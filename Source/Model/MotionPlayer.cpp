@@ -6,16 +6,17 @@ namespace eastengine
 	namespace graphics
 	{
 		MotionPlayer::MotionPlayer()
-			: m_isStop(false)
-			, m_isPause(false)
-			, m_fPlayTime(0.f)
-			, m_fStopTime(0.f)
-			, m_fStopTimeCheck(0.f)
-			, m_fBlendTime(0.f)
-			, m_fBlendWeight(0.f)
-			, m_nLoonCount(0)
-			, m_pMotion(nullptr)
 		{
+		}
+
+		MotionPlayer::MotionPlayer(const MotionPlayer& source)
+		{
+			*this = source;
+		}
+
+		MotionPlayer::MotionPlayer(MotionPlayer&& source) noexcept
+		{
+			*this = std::move(source);
 		}
 
 		MotionPlayer::~MotionPlayer()
@@ -27,19 +28,53 @@ namespace eastengine
 			}
 		}
 
+		MotionPlayer& MotionPlayer::operator = (const MotionPlayer& source)
+		{
+			m_isStop = source.m_isStop;
+			m_isPause = source.m_isPause;
+			m_playTime = source.m_playTime;
+			m_stopTime = source.m_stopTime;
+			m_stopTimeCheck = source.m_stopTimeCheck;
+			m_blendTime = source.m_blendTime;
+			m_blendWeight = source.m_blendWeight;
+			m_loonCount = source.m_loonCount;
+			m_playBackInfo = source.m_playBackInfo;
+			m_motionRecorder = source.m_motionRecorder;
+			m_pMotion = source.m_pMotion;
+
+			return *this;
+		}
+
+		MotionPlayer& MotionPlayer::operator = (MotionPlayer&& source) noexcept
+		{
+			m_isStop = std::move(source.m_isStop);
+			m_isPause = std::move(source.m_isPause);
+			m_playTime = std::move(source.m_playTime);
+			m_stopTime = std::move(source.m_stopTime);
+			m_stopTimeCheck = std::move(source.m_stopTimeCheck);
+			m_blendTime = std::move(source.m_blendTime);
+			m_blendWeight = std::move(source.m_blendWeight);
+			m_loonCount = std::move(source.m_loonCount);
+			m_playBackInfo = std::move(source.m_playBackInfo);
+			m_motionRecorder = std::move(source.m_motionRecorder);
+			m_pMotion = std::move(source.m_pMotion);
+
+			return *this;
+		}
+
 		float MotionPlayer::GetBlendWeight() const
 		{
-			if (math::IsZero(m_playBackInfo.fBlendTime) == false && m_fBlendTime <= m_playBackInfo.fBlendTime)
+			if (math::IsZero(m_playBackInfo.blendTime) == false && m_blendTime <= m_playBackInfo.blendTime)
 			{
-				return m_fBlendWeight;
+				return m_blendWeight;
 			}
 			else
 			{
-				return m_playBackInfo.fWeight;
+				return m_playBackInfo.weight;
 			}
 		}
 
-		bool MotionPlayer::Update(float fElapsedTime, bool isEnableTransformUpdate)
+		bool MotionPlayer::Update(float elapsedTime, bool isEnableTransformUpdate)
 		{
 			if (m_pMotion == nullptr)
 				return false;
@@ -50,8 +85,8 @@ namespace eastengine
 			bool isPlay = true;
 			if (m_isStop == true)
 			{
-				m_fStopTime += fElapsedTime;
-				if (m_fStopTime >= m_fStopTimeCheck)
+				m_stopTime += elapsedTime;
+				if (m_stopTime >= m_stopTimeCheck)
 				{
 					m_isStop = false;
 
@@ -61,14 +96,14 @@ namespace eastengine
 
 			if (isPlay == true)
 			{
-				const float fEndTime = m_pMotion->GetEndTime();
-				if (m_fPlayTime >= fEndTime)
+				const float endTime = m_pMotion->GetEndTime();
+				if (m_playTime >= endTime)
 				{
 					if (IsLoop() == true)
 					{
-						m_fPlayTime -= fEndTime;
+						m_playTime -= endTime;
 
-						m_motionRecorder.Clear(m_fPlayTime);
+						m_motionRecorder.Clear(m_playTime);
 					}
 					else
 					{
@@ -80,23 +115,23 @@ namespace eastengine
 
 				if (math::IsZero(GetBlendWeight()) == false)
 				{
-					float fPlayTime = m_fPlayTime;
+					float fPlayTime = m_playTime;
 					if (m_playBackInfo.isInverse == true)
 					{
-						fPlayTime = m_pMotion->GetEndTime() - m_fPlayTime;
+						fPlayTime = m_pMotion->GetEndTime() - m_playTime;
 					}
 
 					m_pMotion->Update(&m_motionRecorder, fPlayTime, m_playBackInfo.isInverse, isEnableTransformUpdate);
 				}
 
-				if (math::IsZero(m_playBackInfo.fBlendTime) == false && m_fBlendTime <= m_playBackInfo.fBlendTime)
+				if (math::IsZero(m_playBackInfo.blendTime) == false && m_blendTime <= m_playBackInfo.blendTime)
 				{
-					m_fBlendWeight = (m_fBlendTime / m_playBackInfo.fBlendTime) * m_playBackInfo.fWeight;
+					m_blendWeight = (m_blendTime / m_playBackInfo.blendTime) * m_playBackInfo.weight;
 
-					m_fBlendTime += fElapsedTime;
+					m_blendTime += elapsedTime;
 				}
 
-				m_fPlayTime += fElapsedTime * m_playBackInfo.fSpeed;
+				m_playTime += elapsedTime * m_playBackInfo.speed;
 
 				return true;
 			}
@@ -108,14 +143,13 @@ namespace eastengine
 			}
 		}
 
-		void MotionPlayer::Play(IMotion* pMotion, const MotionPlaybackInfo* pPlayback)
+		void MotionPlayer::Play(IMotion* pMotion, const MotionPlaybackInfo* pPlayback, float blendTime)
 		{
 			if (pMotion == nullptr)
 				return;
 
-			const float fStartTime = pMotion->GetStartTime();
-
-			Reset(fStartTime);
+			const float startTime = pMotion->GetStartTime();
+			Reset(startTime);
 
 			m_pMotion = pMotion;
 			m_pMotion->IncreaseReference();
@@ -123,34 +157,36 @@ namespace eastengine
 			if (pPlayback != nullptr)
 			{
 				m_playBackInfo = *pPlayback;
-				m_playBackInfo.fWeight = std::clamp(m_playBackInfo.fWeight, 0.f, 1.f);
+				m_playBackInfo.weight = std::clamp(m_playBackInfo.weight, 0.f, 1.f);
 			}
 			else
 			{
 				m_playBackInfo.Reset();
 			}
+
+			m_playBackInfo.blendTime = blendTime;
 		}
 
-		void MotionPlayer::Stop(float fStopTime)
+		void MotionPlayer::Stop(float stopTime)
 		{
-			m_fStopTimeCheck = fStopTime;
-			m_fStopTime = 0.f;
+			m_stopTimeCheck = stopTime;
+			m_stopTime = 0.f;
 			m_isStop = true;
 		}
 
-		void MotionPlayer::Reset(float fStartTime)
+		void MotionPlayer::Reset(float startTime)
 		{
 			m_isStop = false;
 
-			m_fPlayTime = fStartTime;
+			m_playTime = startTime;
 
-			m_fStopTime = 0.f;
-			m_fStopTimeCheck = 0.f;
+			m_stopTime = 0.f;
+			m_stopTimeCheck = 0.f;
 
-			m_fBlendTime = 0.f;
-			m_fBlendWeight = 0.f;
+			m_blendTime = 0.f;
+			m_blendWeight = 0.f;
 
-			m_nLoonCount = 0;
+			m_loonCount = 0;
 
 			if (m_pMotion != nullptr)
 			{
@@ -159,12 +195,7 @@ namespace eastengine
 			}
 
 			m_playBackInfo.Reset();
-			m_motionRecorder.Clear(fStartTime);
-		}
-
-		const math::Transform* MotionPlayer::GetTransform(const string::StringID& strBoneName) const
-		{
-			return m_motionRecorder.GetTransform(strBoneName);
+			m_motionRecorder.Clear(startTime);
 		}
 	}
 }

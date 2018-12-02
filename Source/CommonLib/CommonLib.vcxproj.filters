@@ -76,6 +76,18 @@
     <Filter Include="Thread\Pool">
       <UniqueIdentifier>{0b0f6fd3-2737-4722-b6de-96b9c5c065d3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="BehaviorTree">
+      <UniqueIdentifier>{31452c74-c299-4db3-bdcd-1116b81bf77d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FiniteStateMachine">
+      <UniqueIdentifier>{59670f10-bf65-4100-947c-9e2e41999712}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Container">
+      <UniqueIdentifier>{fe7c29e6-7ec4-4427-9ad4-12bf46d4bc7f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Container\robin_map">
+      <UniqueIdentifier>{45b55709-7367-4868-942e-04994011f2ce}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -153,6 +165,24 @@
     <ClInclude Include="Lock.h">
       <Filter>Thread\Lock</Filter>
     </ClInclude>
+    <ClInclude Include="BehaviorTree.h">
+      <Filter>BehaviorTree</Filter>
+    </ClInclude>
+    <ClInclude Include="FiniteStateMachine.h">
+      <Filter>FiniteStateMachine</Filter>
+    </ClInclude>
+    <ClInclude Include="robin_growth_policy.h">
+      <Filter>Container\robin_map</Filter>
+    </ClInclude>
+    <ClInclude Include="robin_hash.h">
+      <Filter>Container\robin_map</Filter>
+    </ClInclude>
+    <ClInclude Include="robin_map.h">
+      <Filter>Container\robin_map</Filter>
+    </ClInclude>
+    <ClInclude Include="robin_set.h">
+      <Filter>Container\robin_map</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -208,6 +238,12 @@
     </ClCompile>
     <ClCompile Include="Lock.cpp">
       <Filter>Thread\Lock</Filter>
+    </ClCompile>
+    <ClCompile Include="BehaviorTree.cpp">
+      <Filter>BehaviorTree</Filter>
+    </ClCompile>
+    <ClCompile Include="FiniteStateMachine.cpp">
+      <Filter>FiniteStateMachine</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

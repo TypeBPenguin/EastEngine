@@ -28,6 +28,12 @@
     <Filter Include="Scene\New">
       <UniqueIdentifier>{e811fc85-bf62-42e6-a75a-0eb0a63e523c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Actor">
+      <UniqueIdentifier>{a010a3ef-6a81-4ea1-978c-4b35fd0fb948}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Actor\Minion">
+      <UniqueIdentifier>{8d7a0d73-fe63-4412-be2f-4fb32d938346}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -51,6 +57,9 @@
     <ClInclude Include="SceneNewStudio.h">
       <Filter>Scene\New</Filter>
     </ClInclude>
+    <ClInclude Include="Minion.h">
+      <Filter>Actor\Minion</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -70,6 +79,9 @@
     </ClCompile>
     <ClCompile Include="SceneNewStudio.cpp">
       <Filter>Scene\New</Filter>
+    </ClCompile>
+    <ClCompile Include="Minion.cpp">
+      <Filter>Actor\Minion</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -11,10 +11,10 @@ namespace eastengine
 	{
 	}
 
-	void FpsChecker::Update(float fElapsedTime)
+	void FpsChecker::Update(float elapsedTime)
 	{
 		++m_nCount;
-		m_fTime += fElapsedTime;
+		m_fTime += elapsedTime;
 
 		if (m_fTime >= 1.f)
 		{

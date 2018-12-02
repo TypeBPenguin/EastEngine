@@ -21,6 +21,11 @@
 #include "MaskedOcclusionCulling.h"
 #include "CompilerSpecific.inl"
 
+#pragma warning(push)
+#pragma warning(disable:4127)
+#pragma warning(disable:4310)
+#pragma warning(disable:4456)
+
 #if MOC_RECORDER_ENABLE
 #include "FrameRecorder.h"
 #endif
@@ -450,3 +455,5 @@ void MaskedOcclusionCulling::Destroy(MaskedOcclusionCulling *moc)
 	moc->~MaskedOcclusionCulling();
 	alignedFreeCallback(moc);
 }
+
+#pragma warning(pop)

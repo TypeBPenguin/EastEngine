@@ -9,7 +9,7 @@ namespace eastengine
 	{
 		namespace vulkan
 		{
-			IndexBuffer::IndexBuffer(const uint8_t* pData, uint32_t indexCount, size_t formatSize)
+			IndexBuffer::IndexBuffer(const uint8_t* pData, uint32_t indexCount, size_t formatSize, bool isDynamic)
 				: m_indexCount(indexCount)
 			{
 				VkDevice device = Device::GetInstance()->GetInterface();

@@ -28,10 +28,10 @@ public:
 	virtual void Enter() override;
 	virtual void Exit() override;
 
-	virtual void Update(float fElapsedTime) override;
+	virtual void Update(float elapsedTime) override;
 
 private:
-	void ProcessInput(float fElapsedTime);
+	void ProcessInput(float elapsedTime);
 
 private:
 	void RenderUI();

@@ -10,7 +10,12 @@ namespace eastengine
 		{
 		public:
 			MotionRecorder();
+			MotionRecorder(const MotionRecorder& source);
+			MotionRecorder(MotionRecorder&& source) noexcept;
 			virtual ~MotionRecorder();
+
+			MotionRecorder& operator = (const MotionRecorder& source);
+			MotionRecorder& operator = (MotionRecorder&& source) noexcept;
 
 		public:
 			virtual void SetTransform(const string::StringID& strBoneName, const math::Transform& keyframe) override;
@@ -27,16 +32,16 @@ namespace eastengine
 				return pEvent;
 			}
 
-			virtual void SetLastPlayTime(float fLastPlayTime) override { m_fLastPlayTime = fLastPlayTime; }
-			virtual float GetLastPlayTime() const override { return m_fLastPlayTime; }
+			virtual void SetLastPlayTime(float fLastPlayTime) override { m_lastPlayTime = fLastPlayTime; }
+			virtual float GetLastPlayTime() const override { return m_lastPlayTime; }
 
 		public:
 			void Clear(float fStartTime);
 
 		private:
-			std::unordered_map<string::StringID, math::Transform> m_umapMotionData;
+			tsl::robin_map<string::StringID, math::Transform> m_rmapMotionData;
 			std::queue<const IMotionEvent*> m_queueEvents;
-			float m_fLastPlayTime{ 0.f };
+			float m_lastPlayTime{ 0.f };
 		};
 	}
 }

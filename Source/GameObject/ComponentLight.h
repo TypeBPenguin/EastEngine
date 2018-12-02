@@ -18,7 +18,7 @@ namespace eastengine
 			virtual ~ComponentLight();
 
 		public:
-			virtual void Update(float fElapsedTime) override;
+			virtual void Update(float elapsedTime) override;
 
 		private:
 			std::list<graphics::ILight*> m_listLights;

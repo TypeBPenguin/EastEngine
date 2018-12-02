@@ -40,15 +40,15 @@ namespace Contents
 
 		m_pActor = gameobject::IActor::Create(strName);
 
-		auto pCompModel = static_cast<gameobject::ComponentModel*>(m_pActor->CreateComponent(gameobject::EmComponent::eModel));
+		auto pCompModel = static_cast<gameobject::ComponentModel*>(m_pActor->CreateComponent(gameobject::IComponent::eModel));
 		pCompModel->Init(&loader);
 
 		pCompModel->GetModelInstance()->SetVisible(false);
 
-		auto pCompTimer = static_cast<gameobject::ComponentTimer*>(m_pActor->CreateComponent(gameobject::EmComponent::eTimer));
-		pCompTimer->StartTimeAction([&](uint32_t nEventID, float fElapsedTime, float fProcessTime)
+		auto pCompTimer = static_cast<gameobject::ComponentTimer*>(m_pActor->CreateComponent(gameobject::IComponent::eTimer));
+		pCompTimer->StartTimeAction([&](uint32_t nEventID, float elapsedTime, float fProcessTime)
 		{
-			Update(fElapsedTime);
+			Update(elapsedTime);
 		}, 0, 0);
 
 		m_pLight = pLight;
@@ -56,11 +56,11 @@ namespace Contents
 		return true;
 	}
 
-	void Sun::Update(float fElapsedTime)
+	void Sun::Update(float elapsedTime)
 	{
 		//math::Matrix matCenterAxis = math::Matrix::CreateTranslation(m_f3CenterAxis);
 		//
-		//m_f3OrbitalRotation += m_f3OrbitalRotateVelocity * fElapsedTime;
+		//m_f3OrbitalRotation += m_f3OrbitalRotateVelocity * elapsedTime;
 		//
 		//auto ResetRot = [](float& fRot)
 		//{
@@ -97,7 +97,7 @@ namespace Contents
 			pPointLight->SetPosition(m_pActor->GetPosition());
 
 			static float fTime = 0.f;
-			fTime += fElapsedTime * 0.1f;
+			fTime += elapsedTime * 0.1f;
 			pPointLight->SetAngle(std::abs(math::Sin(fTime) * 90.f));
 		}
 	}

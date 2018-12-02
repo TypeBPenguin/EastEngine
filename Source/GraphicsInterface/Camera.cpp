@@ -15,7 +15,7 @@ namespace eastengine
 			void SetView(const math::float3& vEye, const math::float3& vLookat, const math::float3& vUp);
 			void SetProjection(uint32_t nWidth, uint32_t nHeight, float fFov, float fNear, float fFar, bool isUpsideDown);
 
-			void Update(float fElapsedTime);
+			void Update(float elapsedTime);
 
 		public:
 			void UpdateView();
@@ -140,12 +140,12 @@ namespace eastengine
 			}
 		}
 
-		void Camera::Impl::Update(float fElapsedTime)
+		void Camera::Impl::Update(float elapsedTime)
 		{
 			TRACER_EVENT("Camera::Update");
 			const float fMin = 0.0001f;
 
-			float fValue = fElapsedTime * 5.f;
+			float fValue = elapsedTime * 5.f;
 			float fDeValue = 1.f - fValue;
 
 			if (std::abs(m_fAddDistance) > fMin)
@@ -385,9 +385,9 @@ namespace eastengine
 			m_pImpl->SetProjection(nWidth, nHeight, fFov, fNear, fFar, isUpsideDown);
 		}
 
-		void Camera::Update(float fElapsedTime)
+		void Camera::Update(float elapsedTime)
 		{
-			m_pImpl->Update(fElapsedTime);
+			m_pImpl->Update(elapsedTime);
 		}
 
 		void Camera::MoveFront(float fDist)

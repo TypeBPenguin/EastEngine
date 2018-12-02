@@ -99,7 +99,7 @@ namespace eastengine
 				//}
 
 				graphics::MaterialInfo materialInfo;
-				materialInfo.strName = strName;
+				materialInfo.name = strName;
 				materialInfo.colorAlbedo = math::Color::Red;
 				materialInfo.emRasterizerState = graphics::EmRasterizerState::eWireframeCullNone;
 				//materialInfo.emRasterizerState = graphics::EmRasterizerState::eSolidCCW;
@@ -181,7 +181,7 @@ namespace eastengine
 				const math::float3& f3AngularLowerLimit, const math::float3& f3AngularUpperLimit)
 			{
 				/*graphics::MaterialInfo materialInfo;
-				materialInfo.strName = strJointName;
+				materialInfo.name = strJointName;
 				materialInfo.colorAlbedo = math::Color::Red;
 				materialInfo.emRasterizerState = graphics::EmRasterizerState::eWireframeCullNone;
 
@@ -317,7 +317,7 @@ namespace eastengine
 			return true;
 		}
 
-		void RagDoll::Update(float fElapsedTime)
+		void RagDoll::Update(float elapsedTime)
 		{
 			//if (m_isRagDollState == false)
 			//{
@@ -326,13 +326,13 @@ namespace eastengine
 
 			for (auto& pBodyPart : m_vecBodyParts)
 			{
-				pBodyPart->pRigidBody->Update(fElapsedTime);
+				pBodyPart->pRigidBody->Update(elapsedTime);
 			
 				math::Matrix matWorld = pBodyPart->pRigidBody->GetWorldMatrix();
 			
 				if (pBodyPart->pPhysicsModelInstance != nullptr)
 				{
-					pBodyPart->pPhysicsModelInstance->Update(fElapsedTime, matWorld);
+					pBodyPart->pPhysicsModelInstance->Update(elapsedTime, matWorld);
 				}
 
 				//if (m_isRagDollState == true)

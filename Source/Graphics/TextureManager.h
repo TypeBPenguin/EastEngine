@@ -15,7 +15,7 @@ namespace eastengine
 			~TextureManager();
 
 		public:
-			void Cleanup(float fElapsedTime);
+			void Cleanup(float elapsedTime);
 
 			void AsyncLoadTexture(ITexture* pTexture, const char* strFilePath, std::function<bool(const std::string&)> funcLoad);
 

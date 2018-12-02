@@ -10,7 +10,7 @@ namespace eastengine
 		~Impl();
 
 	public:
-		void Update(float fElapsedTime);
+		void Update(float elapsedTime);
 
 	public:
 		void AddScene(IScene* pScene);
@@ -45,7 +45,7 @@ namespace eastengine
 		m_umapScene.clear();
 	}
 
-	void SceneManager::Impl::Update(float fElapsedTime)
+	void SceneManager::Impl::Update(float elapsedTime)
 	{
 		TRACER_EVENT(__FUNCTION__);
 		if (m_pChangeScene != nullptr)
@@ -74,7 +74,7 @@ namespace eastengine
 		if (m_pCurScene != nullptr)
 		{
 			TRACER_PUSHARGS("Scene Name", m_pCurScene->GetName().c_str());
-			m_pCurScene->Update(fElapsedTime);
+			m_pCurScene->Update(elapsedTime);
 		}
 	}
 
@@ -149,9 +149,9 @@ namespace eastengine
 	{
 	}
 
-	void SceneManager::Update(float fElapsedTime)
+	void SceneManager::Update(float elapsedTime)
 	{
-		m_pImpl->Update(fElapsedTime);
+		m_pImpl->Update(elapsedTime);
 	}
 
 	void SceneManager::AddScene(IScene* pScene)

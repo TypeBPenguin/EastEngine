@@ -32,21 +32,21 @@ namespace eastengine
 			m_pActor = IActor::Create(strName);
 			m_pActor->SetPosition(f3Pos);
 
-			ComponentModel* pCompModel = static_cast<ComponentModel*>(m_pActor->CreateComponent(EmComponent::eModel));
+			ComponentModel* pCompModel = static_cast<ComponentModel*>(m_pActor->CreateComponent(IComponent::eModel));
 
 			if (pCompModel != nullptr)
 			{
 				graphics::MaterialInfo materialInfo;
-				materialInfo.strName = StrID::Sector;
+				materialInfo.name = StrID::Sector;
 				//materialInfo.rasterizerStateKey = graphics::Device::GetInstance()->GetRasterizerStateKey(graphics::EmRasterizerState::eWireFrame);
 
 				graphics::ModelLoader loader;
 				loader.InitHexagon(StrID::Sector, &materialInfo, fRadius);
 
 				auto pModelInst = graphics::IModel::CreateInstance(loader);
-				pCompModel->Init(pModelInst);
+				pCompModel->Initialize(pModelInst);
 
-				ComponentPhysics* pCompPhysics = static_cast<ComponentPhysics*>(m_pActor->CreateComponent(EmComponent::ePhysics));
+				ComponentPhysics* pCompPhysics = static_cast<ComponentPhysics*>(m_pActor->CreateComponent(IComponent::ePhysics));
 
 				if (pCompPhysics != nullptr)
 				{
@@ -87,16 +87,16 @@ namespace eastengine
 			m_umapActor.erase(iter);
 		}
 
-		void Sector::Update(float fElapsedTime)
+		void Sector::Update(float elapsedTime)
 		{
 			if (m_isVisibleTile)
 			{
-				m_pActor->Update(fElapsedTime);
+				m_pActor->Update(elapsedTime);
 			}
 
 			for (auto& iter : m_umapActor)
 			{
-				iter.second->Update(fElapsedTime);
+				iter.second->Update(elapsedTime);
 			}
 		}
 

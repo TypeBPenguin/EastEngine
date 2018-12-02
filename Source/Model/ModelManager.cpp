@@ -29,7 +29,7 @@ namespace eastengine
 
 		public:
 			void Update();
-			void Cleanup(float fElapsedTime);
+			void Cleanup(float elapsedTime);
 
 		public:
 			void AsyncLoadModel(IModel* pModel, const ModelLoader& loader);
@@ -81,7 +81,6 @@ namespace eastengine
 			plf::colony<Motion> m_clnMotions;
 
 			std::unordered_map<IModel::Key, Model*> m_umapModelCaching;
-
 			std::unordered_map<IMotion::Key, Motion*> m_umapMotions;
 
 			Concurrency::concurrent_queue<RequestLoadModelInfo> m_conQueueRequestModelLoader;
@@ -131,20 +130,16 @@ namespace eastengine
 			TRACER_BEGINEVENT("ModelInstance");
 			Concurrency::parallel_for_each(m_clnModelInstance.begin(), m_clnModelInstance.end(), [](ModelInstance& mModelInstance)
 			{
-				if (mModelInstance.GetSkeleton() != nullptr)
-				{
-					mModelInstance.UpdateTransformations();
-				}
 				mModelInstance.UpdateModel();
 			});
 			TRACER_ENDEVENT();
 		}
 
-		void ModelManager::Impl::Cleanup(float fElapsedTime)
+		void ModelManager::Impl::Cleanup(float elapsedTime)
 		{
 			TRACER_EVENT("ModelManager::Flush");
 
-			m_fTime += fElapsedTime;
+			m_fTime += elapsedTime;
 
 			if (m_conQueueRequestModelLoader.empty() == false && m_isLoading == false)
 			{
@@ -379,9 +374,9 @@ namespace eastengine
 			m_pImpl->Update();
 		}
 
-		void ModelManager::Cleanup(float fElapsedTime)
+		void ModelManager::Cleanup(float elapsedTime)
 		{
-			m_pImpl->Cleanup(fElapsedTime);
+			m_pImpl->Cleanup(elapsedTime);
 		}
 
 		void ModelManager::AsyncLoadModel(IModel* pModel, const ModelLoader& loader)

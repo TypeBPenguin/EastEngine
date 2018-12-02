@@ -35,16 +35,20 @@ namespace eastengine
 				eUnlimitedTime = std::numeric_limits<uint32_t>::max(),
 			};
 
-			uint32_t nTimerID{ 0 };
-			uint32_t nInterval{ 0 };
-			uint32_t nLifeTime{ 0 };
-			float fIntervalCheckTime{ 0.f };
-			float fProcessTime{ 0.f };
+			uint32_t timerID{ 0 };
+			uint32_t interval{ 0 };
+			uint32_t lifeTime{ 0 };
+			float intervalCheckTime{ 0.f };
+			float processTime{ 0.f };
 			std::function<void(uint32_t, float, float)> funcCallback;
+			bool isStopRequest{ false };
 
-			TimeAction(std::function<void(uint32_t, float, float)> funcCallback, uint32_t nTimerID, uint32_t nInterval, uint32_t nLifeTime);
+			TimeAction(std::function<void(uint32_t, float, float)> funcCallback, uint32_t timerID, uint32_t interval, uint32_t lifeTime);
+			TimeAction(TimeAction&& source) noexcept;
 
-			bool Update(float fElapsedTime);
+			TimeAction& operator = (TimeAction&& source) noexcept;
+
+			bool Update(float elapsedTime);
 		};
 
 	private:
@@ -70,9 +74,9 @@ namespace eastengine
 		float GetElapsedTime() const;
 
 	public:
-		// Callback Function Parameter : nTimerID(uint32_t), fElapsedTime(float), fProcessTime(float)
-		void StartTimeAction(std::function<void(uint32_t, float, float)> funcCallback, uint32_t nTimerID, uint32_t nInterval, uint32_t nLifeTime = TimeAction::eUnlimitedTime);
-		void StopTimeAction(uint32_t nTimerID);
+		// Callback Function Parameter : timerID(uint32_t), elapsedTime(float), processTime(float)
+		void StartTimeAction(std::function<void(uint32_t, float, float)> funcCallback, uint32_t timerID, uint32_t interval, uint32_t lifeTime = TimeAction::eUnlimitedTime);
+		void StopTimeAction(uint32_t timerID);
 
 	private:
 		class Impl;

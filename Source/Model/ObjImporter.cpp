@@ -73,8 +73,6 @@ namespace eastengine
 
 		bool ObjImporter::loadModelData(file::Stream& file, const float fScaleFactor)
 		{
-			file.Seekg(0, std::ios::beg);
-
 			m_objData.Clear();
 
 			std::string temp;
@@ -478,7 +476,7 @@ namespace eastengine
 						break;
 
 					ReleaseResource(&pVertexBuffer[i]);
-					pVertexBuffer[i] = CreateVertexBuffer(reinterpret_cast<uint8_t*>(vecVertices[i].data()), static_cast<uint32_t>(vecVertices[i].size()), sizeof(VertexPosTexNor));
+					pVertexBuffer[i] = CreateVertexBuffer(reinterpret_cast<uint8_t*>(vecVertices[i].data()), static_cast<uint32_t>(vecVertices[i].size()), sizeof(VertexPosTexNor), true);
 					if (pVertexBuffer[i] == nullptr)
 					{
 						FailFunc();
@@ -486,7 +484,7 @@ namespace eastengine
 					}
 
 					ReleaseResource(&pIndexBuffer[i]);
-					pIndexBuffer[i] = CreateIndexBuffer(reinterpret_cast<uint8_t*>(vecIndices[i].data()), static_cast<uint32_t>(vecIndices[i].size()), sizeof(VertexPosTexNor));
+					pIndexBuffer[i] = CreateIndexBuffer(reinterpret_cast<uint8_t*>(vecIndices[i].data()), static_cast<uint32_t>(vecIndices[i].size()), sizeof(VertexPosTexNor), true);
 					if (pIndexBuffer[i] == nullptr)
 					{
 						FailFunc();

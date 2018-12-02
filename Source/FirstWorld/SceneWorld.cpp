@@ -40,6 +40,6 @@ void SceneWorld::Exit()
 {
 }
 
-void SceneWorld::Update(float fElapsedTime)
+void SceneWorld::Update(float elapsedTime)
 {
 }

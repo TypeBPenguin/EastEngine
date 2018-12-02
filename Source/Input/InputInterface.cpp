@@ -10,24 +10,24 @@ namespace eastengine
 {
 	namespace input
 	{
-		namespace Mouse
+		namespace mouse
 		{
-			bool IsButtonEvent(Mouse::Button emMouseButton)
+			bool IsButtonEvent(mouse::Button emMouseButton)
 			{
 				return Device::GetInstance()->GetMouse()->IsButtonEvent(emMouseButton);
 			}
 
-			bool IsButtonDown(Mouse::Button emMouseButton)
+			bool IsButtonDown(mouse::Button emMouseButton)
 			{
 				return Device::GetInstance()->GetMouse()->IsButtonDown(emMouseButton);
 			}
 
-			bool IsButtonPressed(Mouse::Button emMouseButton)
+			bool IsButtonPressed(mouse::Button emMouseButton)
 			{
 				return Device::GetInstance()->GetMouse()->IsButtonPressed(emMouseButton);
 			}
 
-			bool IsButtonUp(Mouse::Button emMouseButton)
+			bool IsButtonUp(mouse::Button emMouseButton)
 			{
 				return Device::GetInstance()->GetMouse()->IsButtonUp(emMouseButton);
 			}
@@ -58,7 +58,7 @@ namespace eastengine
 			}
 		}
 
-		namespace Keyboard
+		namespace keyboard
 		{
 			static_assert(DIK_ESCAPE == eEscape, "DIK Mismatch");
 			static_assert(DIK_1 == e1, "DIK Mismatch");
@@ -205,28 +205,28 @@ namespace eastengine
 			static_assert(DIK_MAIL == eMail, "DIK Mismatch");
 			static_assert(DIK_MEDIASELECT == eMediaSelect, "DIK Mismatch");
 
-			bool IsKeyEvent(Keyboard::KeyCode emKeyCode)
+			bool IsKeyEvent(keyboard::KeyCode emKeyCode)
 			{
 				return Device::GetInstance()->GetKeyboard()->IsKeyEvent(emKeyCode);
 			}
 
-			bool IsKeyDown(Keyboard::KeyCode emKeyCode)
+			bool IsKeyDown(keyboard::KeyCode emKeyCode)
 			{
 				return Device::GetInstance()->GetKeyboard()->IsKeyDown(emKeyCode);
 			}
 
-			bool IsKeyPressed(Keyboard::KeyCode emKeyCode)
+			bool IsKeyPressed(keyboard::KeyCode emKeyCode)
 			{
 				return Device::GetInstance()->GetKeyboard()->IsKeyPressed(emKeyCode);
 			}
 
-			bool IsKeyUp(Keyboard::KeyCode emKeyCode)
+			bool IsKeyUp(keyboard::KeyCode emKeyCode)
 			{
 				return Device::GetInstance()->GetKeyboard()->IsKeyUp(emKeyCode);
 			}
 		}
 
-		namespace GamePad
+		namespace gamepad
 		{
 			GamePadInstance::Player* GetPlayer(PlayerID playerID)
 			{

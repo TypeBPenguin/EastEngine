@@ -19,7 +19,7 @@ namespace eastengine
 			bool Initislize(const RigidBodyProperty& physicsProperty);
 
 		public:
-			void Update(float fElapsedTime);
+			void Update(float elapsedTime);
 			void UpdateBoundingBox(const math::Matrix& matWorld);
 
 			bool IsCollision(RigidBody* pRigidBody);
@@ -173,7 +173,7 @@ namespace eastengine
 			return true;
 		}
 
-		void RigidBody::Impl::Update(float fElapsedTime)
+		void RigidBody::Impl::Update(float elapsedTime)
 		{
 			m_matWorld = math::Convert(m_pRigidBody->getWorldTransform());
 
@@ -461,9 +461,9 @@ namespace eastengine
 			return pRigidBody;
 		}
 
-		void RigidBody::Update(float fElapsedTime)
+		void RigidBody::Update(float elapsedTime)
 		{
-			m_pImpl->Update(fElapsedTime);
+			m_pImpl->Update(elapsedTime);
 		}
 
 		void RigidBody::UpdateBoundingBox(const math::Matrix& matWorld)

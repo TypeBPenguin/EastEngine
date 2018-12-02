@@ -16,7 +16,8 @@ namespace eastengine
 		const float PIDIV2 = 1.5707963267948966192313216916398f;
 		const float PIDIV4 = 0.78539816339744830961566084581988f;
 
-		std::mt19937& mt19937();
+		extern std::random_device random_device;
+		extern std::mt19937_64 mt19937_64;
 
 		float ToRadians(float fDegrees);
 		float ToDegrees(float fRadians);
@@ -40,22 +41,7 @@ namespace eastengine
 		float ACosEst(float Value);
 
 		template <typename T>
-		inline bool IsReallyZero(T value)
-		{
-			if (std::abs(value) <= std::numeric_limits<T>::epsilon())
-				return true;
-
-			return false;
-		}
-
-		template <typename T>
-		inline bool IsReallySame(T value1, T value2)
-		{
-			return IsReallyZero(value1 - value2);
-		}
-
-		template <typename T>
-		inline bool IsSame(T value1, T value2)
+		inline bool IsEqual(T value1, T value2)
 		{
 			return IsZero(value1 - value2);
 		}
@@ -63,34 +49,10 @@ namespace eastengine
 		template <typename T>
 		inline bool IsZero(T value)
 		{
-			if (value == 0)
+			if (std::abs(value) <= std::numeric_limits<T>::epsilon())
 				return true;
 
 			return false;
-		}
-
-		template <>
-		inline bool IsZero(float value)
-		{
-			if (std::abs(value) <= 1e-05f)
-				return true;
-
-			return false;
-		}
-
-		template <>
-		inline bool IsZero(double value)
-		{
-			if (std::abs(value) <= 1e-10)
-				return true;
-
-			return false;
-		}
-
-		template <typename T>
-		inline bool IsEqual(T value1, T value2)
-		{
-			return IsZero(value1 - value2);
 		}
 
 		template <typename T>
@@ -100,7 +62,28 @@ namespace eastengine
 		}
 
 		template <typename T>
-		T Random(T min = -RAND_MAX, T max = RAND_MAX);
+		T Random(T min = std::numeric_limits<T>::min(), T max = std::numeric_limits<T>::max())
+		{
+			if (min > max)
+			{
+				std::swap(min, max);
+			}
+
+			const std::uniform_int_distribution<T> distribution(min, max);
+			return distribution(mt19937_64);
+		}
+
+		template <typename T>
+		T RandomReal(T min = std::numeric_limits<T>::min(), T max = std::numeric_limits<T>::max())
+		{
+			if (min > max)
+			{
+				std::swap(min, max);
+			}
+
+			const std::uniform_real_distribution<T> distribution(min, max);
+			return distribution(mt19937_64);
+		}
 
 		struct float2;
 		struct float3;

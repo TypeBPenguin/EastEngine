@@ -19,7 +19,7 @@ namespace eastengine
 			~Impl();
 
 		public:
-			void Update(float fElapsedTime);
+			void Update(float elapsedTime);
 
 		public:
 			IActor* CreateActor(const string::StringID& strActorName);
@@ -96,7 +96,7 @@ namespace eastengine
 		{
 		}
 
-		void GameObjectManager::Impl::Update(float fElapsedTime)
+		void GameObjectManager::Impl::Update(float elapsedTime)
 		{
 			// Sky
 			{
@@ -117,7 +117,7 @@ namespace eastengine
 					}
 					else
 					{
-						skybox.Update(fElapsedTime);
+						skybox.Update(elapsedTime);
 						++iter;
 					}
 				}
@@ -142,7 +142,7 @@ namespace eastengine
 					}
 					else
 					{
-						terrain.Update(fElapsedTime);
+						terrain.Update(elapsedTime);
 						++iter;
 					}
 				}
@@ -167,7 +167,7 @@ namespace eastengine
 					}
 					else
 					{
-						actor.Update(fElapsedTime);
+						actor.Update(elapsedTime);
 						++iter;
 					}
 				}
@@ -305,9 +305,9 @@ namespace eastengine
 		{
 		}
 
-		void GameObjectManager::Update(float fElapsedTime)
+		void GameObjectManager::Update(float elapsedTime)
 		{
-			m_pImpl->Update(fElapsedTime);
+			m_pImpl->Update(elapsedTime);
 		}
 
 		IActor* GameObjectManager::CreateActor(const string::StringID& strActorName)

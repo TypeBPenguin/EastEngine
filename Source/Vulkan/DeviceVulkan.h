@@ -63,7 +63,7 @@ namespace eastengine
 
 				void Run(std::function<void()> funcUpdate);
 
-				void Cleanup(float fElapsedTime);
+				void Cleanup(float elapsedTime);
 
 			public:
 				const math::uint2& GetScreenSize() const;

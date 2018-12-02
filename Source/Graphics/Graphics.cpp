@@ -47,8 +47,8 @@ namespace eastengine
 			virtual void Initialize(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const string::StringID& strApplicationTitle, const string::StringID& strApplicationName) = 0;
 			virtual void Release() = 0;
 			virtual void Run(std::function<void()> funcUpdate) = 0;
-			virtual void Cleanup(float fElapsedTime) = 0;
-			virtual void Update(float fElapsedTime) = 0;
+			virtual void Cleanup(float elapsedTime) = 0;
+			virtual void Update(float elapsedTime) = 0;
 			virtual void PostUpdate() = 0;
 
 		public:
@@ -62,8 +62,8 @@ namespace eastengine
 			virtual IImageBasedLight* GetImageBasedLight() const = 0;
 			virtual IVTFManager* GetVTFManager() const = 0;
 
-			virtual IVertexBuffer* CreateVertexBuffer(const uint8_t* pData, uint32_t vertexCount, size_t formatSize) = 0;
-			virtual IIndexBuffer* CreateIndexBuffer(const uint8_t* pData, uint32_t indexCount, size_t formatSize) = 0;
+			virtual IVertexBuffer* CreateVertexBuffer(const uint8_t* pData, uint32_t vertexCount, size_t formatSize, bool isDynamic) = 0;
+			virtual IIndexBuffer* CreateIndexBuffer(const uint8_t* pData, uint32_t indexCount, size_t formatSize, bool isDynamic) = 0;
 			virtual ITexture* CreateTexture(const char* strFilePath) = 0;
 			virtual ITexture* CreateTextureAsync(const char* strFilePath) = 0;
 			virtual ITexture* CreateTexture(const TextureDesc& desc) = 0;
@@ -147,21 +147,21 @@ namespace eastengine
 				Device::GetInstance()->Run(funcUpdate);
 			}
 
-			virtual void Cleanup(float fElapsedTime) override
+			virtual void Cleanup(float elapsedTime) override
 			{
 				CleanupGarbageCollection();
-				m_pTextureManager->Cleanup(fElapsedTime);
-				Device::GetInstance()->Cleanup(fElapsedTime);
+				m_pTextureManager->Cleanup(elapsedTime);
+				Device::GetInstance()->Cleanup(elapsedTime);
 			}
 
-			virtual void Update(float fElapsedTime) override
+			virtual void Update(float elapsedTime) override
 			{
 				GetPrevOptions() = GetOptions();
 				GetPrevDebugInfo() = GetDebugInfo();
 				GetDebugInfo() = DebugInfo();
 				GetDebugInfo().isEnableCollection = GetPrevDebugInfo().isEnableCollection;
 
-				s_pCamera->Update(fElapsedTime);
+				s_pCamera->Update(elapsedTime);
 
 				s_pOcclusionCulling->Enable(GetOptions().OnOcclusionCulling);
 				s_pOcclusionCulling->Update(s_pCamera);
@@ -169,7 +169,7 @@ namespace eastengine
 				s_pOcclusionCulling->WakeThreads();
 				s_pOcclusionCulling->ClearBuffer();
 
-				s_pLightManager->Update(fElapsedTime);
+				s_pLightManager->Update(elapsedTime);
 			}
 
 			virtual void PostUpdate() override
@@ -246,11 +246,11 @@ namespace eastengine
 				}
 			}
 
-			virtual IVertexBuffer* CreateVertexBuffer(const uint8_t* pData, uint32_t vertexCount, size_t formatSize) override
+			virtual IVertexBuffer* CreateVertexBuffer(const uint8_t* pData, uint32_t vertexCount, size_t formatSize, bool isDynamic) override
 			{
 				thread::SRWWriteLock writeLock(&m_srwLock);
 
-				std::unique_ptr<VertexBuffer> pVertexBuffer = std::make_unique<VertexBuffer>(pData, vertexCount, formatSize);
+				std::unique_ptr<VertexBuffer> pVertexBuffer = std::make_unique<VertexBuffer>(pData, vertexCount, formatSize, isDynamic);
 				auto iter = m_umapVertexBuffers.emplace(pVertexBuffer.get(), std::move(pVertexBuffer));
 				if (iter.second == false)
 				{
@@ -262,11 +262,11 @@ namespace eastengine
 				return iter.first->second.get();
 			}
 
-			virtual IIndexBuffer* CreateIndexBuffer(const uint8_t* pData, uint32_t indexCount, size_t formatSize) override
+			virtual IIndexBuffer* CreateIndexBuffer(const uint8_t* pData, uint32_t indexCount, size_t formatSize, bool isDynamic) override
 			{
 				thread::SRWWriteLock writeLock(&m_srwLock);
 
-				std::unique_ptr<IndexBuffer> pIndexBuffer = std::make_unique<IndexBuffer>(pData, indexCount, formatSize);
+				std::unique_ptr<IndexBuffer> pIndexBuffer = std::make_unique<IndexBuffer>(pData, indexCount, formatSize, isDynamic);
 				auto iter = m_umapIndexBuffers.emplace(pIndexBuffer.get(), std::move(pIndexBuffer));
 				if (iter.second == false)
 				{
@@ -542,14 +542,14 @@ namespace eastengine
 			s_pGraphicsAPI->Run(funcUpdate);
 		}
 
-		void Cleanup(float fElapsedTime)
+		void Cleanup(float elapsedTime)
 		{
-			s_pGraphicsAPI->Cleanup(fElapsedTime);
+			s_pGraphicsAPI->Cleanup(elapsedTime);
 		}
 
-		void Update(float fElapsedTime)
+		void Update(float elapsedTime)
 		{
-			s_pGraphicsAPI->Update(fElapsedTime);
+			s_pGraphicsAPI->Update(elapsedTime);
 		}
 
 		void PostUpdate()
@@ -597,14 +597,14 @@ namespace eastengine
 			return s_pGraphicsAPI->GetVTFManager();
 		}
 
-		IVertexBuffer* CreateVertexBuffer(const uint8_t* pData, uint32_t vertexCount, size_t formatSize)
+		IVertexBuffer* CreateVertexBuffer(const uint8_t* pData, uint32_t vertexCount, size_t formatSize, bool isDynamic)
 		{
-			return s_pGraphicsAPI->CreateVertexBuffer(pData, vertexCount, formatSize);
+			return s_pGraphicsAPI->CreateVertexBuffer(pData, vertexCount, formatSize, isDynamic);
 		}
 
-		IIndexBuffer* CreateIndexBuffer(const uint8_t* pData, uint32_t indexCount, size_t formatSize)
+		IIndexBuffer* CreateIndexBuffer(const uint8_t* pData, uint32_t indexCount, size_t formatSize, bool isDynamic)
 		{
-			return s_pGraphicsAPI->CreateIndexBuffer(pData, indexCount, formatSize);
+			return s_pGraphicsAPI->CreateIndexBuffer(pData, indexCount, formatSize, isDynamic);
 		}
 
 		ITexture* CreateTexture(const char* strFilePath)

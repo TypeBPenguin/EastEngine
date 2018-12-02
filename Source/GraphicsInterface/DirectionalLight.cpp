@@ -64,7 +64,7 @@ namespace eastengine
 			return nullptr;
 		}
 
-		void DirectionalLight::Update(float fElapsedTime)
+		void DirectionalLight::Update(float elapsedTime)
 		{
 			//if (Config::IsEnable("Shadow"_s) == true && IsEnableShadow() == true && m_pCascadedShadows != nullptr)
 			//{

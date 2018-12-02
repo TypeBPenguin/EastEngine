@@ -43,7 +43,7 @@ namespace eastengine
 			return nullptr;
 		}
 
-		void PointLight::Update(float fElapsedTime)
+		void PointLight::Update(float elapsedTime)
 		{
 			//if (Config::IsEnable("Shadow"_s) == true && IsEnableShadow() == true && m_pShadowCubeMap != nullptr)
 			//{

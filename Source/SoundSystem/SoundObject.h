@@ -13,7 +13,7 @@ namespace eastengine
 			~Sound();
 
 		public:
-			void UpdateDestroyWaitTime(float fElapsedTime) { m_fDestroyWaitTime += fElapsedTime; }
+			void UpdateDestroyWaitTime(float elapsedTime) { m_fDestroyWaitTime += elapsedTime; }
 			float GetDestroyWaitTime() const { return m_fDestroyWaitTime; }
 			void Alive() { m_fDestroyWaitTime = 0.f; }
 

@@ -2331,8 +2331,8 @@ namespace eastengine
 						posVertices.emplace_back(vertex.pos);
 					}
 
-					m_pVertexBuffer[DebugModelType::eBox] = CreateVertexBuffer(reinterpret_cast<uint8_t*>(posVertices.data()), static_cast<uint32_t>(posVertices.size()), sizeof(VertexPos));
-					m_pIndexBuffer[DebugModelType::eBox] = CreateIndexBuffer(reinterpret_cast<uint8_t*>(indices.data()), static_cast<uint32_t>(indices.size()), sizeof(uint32_t));
+					m_pVertexBuffer[DebugModelType::eBox] = CreateVertexBuffer(reinterpret_cast<uint8_t*>(posVertices.data()), static_cast<uint32_t>(posVertices.size()), sizeof(VertexPos), false);
+					m_pIndexBuffer[DebugModelType::eBox] = CreateIndexBuffer(reinterpret_cast<uint8_t*>(indices.data()), static_cast<uint32_t>(indices.size()), sizeof(uint32_t), false);
 
 					return true;
 				}
@@ -2351,8 +2351,8 @@ namespace eastengine
 						posVertices.emplace_back(vertex.pos);
 					}
 
-					m_pVertexBuffer[DebugModelType::eSphere] = CreateVertexBuffer(reinterpret_cast<uint8_t*>(posVertices.data()), static_cast<uint32_t>(posVertices.size()), sizeof(VertexPos));
-					m_pIndexBuffer[DebugModelType::eSphere] = CreateIndexBuffer(reinterpret_cast<uint8_t*>(indices.data()), static_cast<uint32_t>(indices.size()), sizeof(uint32_t));
+					m_pVertexBuffer[DebugModelType::eSphere] = CreateVertexBuffer(reinterpret_cast<uint8_t*>(posVertices.data()), static_cast<uint32_t>(posVertices.size()), sizeof(VertexPos), false);
+					m_pIndexBuffer[DebugModelType::eSphere] = CreateIndexBuffer(reinterpret_cast<uint8_t*>(indices.data()), static_cast<uint32_t>(indices.size()), sizeof(uint32_t), false);
 
 					return true;
 				}

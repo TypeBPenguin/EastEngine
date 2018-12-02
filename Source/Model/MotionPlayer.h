@@ -11,24 +11,29 @@ namespace eastengine
 		{
 		public:
 			MotionPlayer();
+			MotionPlayer(const MotionPlayer& source);
+			MotionPlayer(MotionPlayer&& source) noexcept;
 			virtual ~MotionPlayer();
 
+			MotionPlayer& operator = (const MotionPlayer& source);
+			MotionPlayer& operator = (MotionPlayer&& source) noexcept;
+
 		public:
-			virtual float GetPlayTime() const override { return m_fPlayTime; }
-			virtual void SetPlayTime(float fPlayTime) override { m_fPlayTime = fPlayTime; }
+			virtual float GetPlayTime() const override { return m_playTime; }
+			virtual void SetPlayTime(float fPlayTime) override { m_playTime = fPlayTime; }
 
-			virtual float GetSpeed() const override { return m_playBackInfo.fSpeed; }
-			virtual void SetSpeed(float fSpeed) override { m_playBackInfo.fSpeed = fSpeed; }
+			virtual float GetSpeed() const override { return m_playBackInfo.speed; }
+			virtual void SetSpeed(float speed) override { m_playBackInfo.speed = speed; }
 
-			virtual float GetWeight() const override { return m_playBackInfo.fWeight; }
-			virtual void SetWeight(float fWeight) override { m_playBackInfo.fWeight = fWeight; }
+			virtual float GetWeight() const override { return m_playBackInfo.weight; }
+			virtual void SetWeight(float weight) override { m_playBackInfo.weight = weight; }
 
 			virtual float GetBlendWeight() const override;
 
-			virtual float GetBlendTime() const override { return m_playBackInfo.fBlendTime; }
-			virtual int GetMaxLoopCount() const override { return m_playBackInfo.nLoopCount; }
-			virtual int GetLoopCount() const override { return m_nLoonCount; }
-			virtual bool IsLoop() const override { return m_playBackInfo.nLoopCount == MotionPlaybackInfo::eMaxLoopCount; }
+			virtual float GetBlendTime() const override { return m_playBackInfo.blendTime; }
+			virtual int GetMaxLoopCount() const override { return m_playBackInfo.loopCount; }
+			virtual int GetLoopCount() const override { return m_loonCount; }
+			virtual bool IsLoop() const override { return m_playBackInfo.loopCount == MotionPlaybackInfo::eMaxLoopCount; }
 			virtual bool IsInverse() const override { return m_playBackInfo.isInverse; }
 
 			virtual bool IsPause() const override { return m_isPause; }
@@ -40,33 +45,34 @@ namespace eastengine
 			virtual const IMotionEvent* PopEvent() override { return m_motionRecorder.PopEvent(); }
 
 		public:
-			bool Update(float fElapsedTime, bool isEnableTransformUpdate);
+			bool Update(float elapsedTime, bool isEnableTransformUpdate);
 
-			void Play(IMotion* pMotion, const MotionPlaybackInfo* pPlayback);
-			void Stop(float fStopTime);
+			void Play(IMotion* pMotion, const MotionPlaybackInfo* pPlayback, float blendTime);
+			void Stop(float stopTime);
 
-			void Reset(float fStartTime);
-
-			const math::Transform* GetTransform(const string::StringID& strBoneName) const;
+			const math::Transform* GetTransform(const string::StringID& boneName) const { return m_motionRecorder.GetTransform(boneName); }
 
 		private:
-			bool m_isStop;
-			bool m_isPause;
+			void Reset(float startTime);
 
-			float m_fPlayTime;
+		private:
+			bool m_isStop{ false };
+			bool m_isPause{ false };
 
-			float m_fStopTime;
-			float m_fStopTimeCheck;
+			float m_playTime{ 0.f };
 
-			float m_fBlendTime;
-			float m_fBlendWeight;
+			float m_stopTime{ 0.f };
+			float m_stopTimeCheck{ 0.f };
 
-			uint32_t m_nLoonCount;
+			float m_blendTime{ 0.f };
+			float m_blendWeight{ 0.f };
 
-			IMotion* m_pMotion;
+			uint32_t m_loonCount{ 0 };
 
 			MotionPlaybackInfo m_playBackInfo;
 			MotionRecorder m_motionRecorder;
+
+			IMotion* m_pMotion{ nullptr };
 		};
 	}
 }

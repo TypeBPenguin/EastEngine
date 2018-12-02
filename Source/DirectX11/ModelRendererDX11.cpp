@@ -448,8 +448,8 @@ namespace eastengine
 						pDeviceContext->IASetIndexBuffer(nullptr, DXGI_FORMAT_UNKNOWN, 0);
 					}
 
-					const size_t nLoopCount = nInstanceCount / eMaxInstancingCount + 1;
-					for (size_t i = 0; i < nLoopCount; ++i)
+					const size_t loopCount = nInstanceCount / eMaxInstancingCount + 1;
+					for (size_t i = 0; i < loopCount; ++i)
 					{
 						const size_t nEnableDrawCount = std::min(eMaxInstancingCount * (i + 1), nInstanceCount);
 						const size_t nDrawInstanceCount = nEnableDrawCount - i * eMaxInstancingCount;
@@ -492,8 +492,8 @@ namespace eastengine
 						pDeviceContext->IASetIndexBuffer(nullptr, DXGI_FORMAT_UNKNOWN, 0);
 					}
 
-					const size_t nLoopCount = nInstanceCount / eMaxInstancingCount + 1;
-					for (size_t i = 0; i < nLoopCount; ++i)
+					const size_t loopCount = nInstanceCount / eMaxInstancingCount + 1;
+					for (size_t i = 0; i < loopCount; ++i)
 					{
 						const size_t nEnableDrawCount = std::min(eMaxInstancingCount * (i + 1), nInstanceCount);
 						const size_t nDrawInstanceCount = nEnableDrawCount - i * eMaxInstancingCount;
@@ -644,6 +644,7 @@ namespace eastengine
 				CreateVertexShader(pDevice, shader::eUseSkinning, "VS");
 
 				CreatePixelShader(pDevice, 0, "PS");
+				CreatePixelShader(pDevice, shader::eUseSkinning, "PS");
 
 				m_skinningInstancingDataBuffer.Create(pDevice, "SkinningInstancingDataBuffer");
 				m_staticInstancingDataBuffer.Create(pDevice, "StaticInstancingDataBuffer");
@@ -701,11 +702,11 @@ namespace eastengine
 					{
 						JobStatic& job = m_vecJobStatics[emGroup][i];
 						const OcclusionCullingData& occlusionCullingData = job.data.occlusionCullingData;
-						if (frustum.Contains(occlusionCullingData.aabb) == Collision::EmContainment::eDisjoint)
-						{
-							job.isCulled = true;
-							return;
-						}
+						//if (frustum.Contains(occlusionCullingData.aabb) == Collision::EmContainment::eDisjoint)
+						//{
+						//	job.isCulled = true;
+						//	return;
+						//}
 
 						if (pOcclusionCulling->TestRect(occlusionCullingData.aabb) != OcclusionCulling::eVisible)
 						{
@@ -719,11 +720,11 @@ namespace eastengine
 					{
 						JobSkinned& job = m_vecJobSkinneds[emGroup][i];
 						const OcclusionCullingData& occlusionCullingData = job.data.occlusionCullingData;
-						if (frustum.Contains(occlusionCullingData.aabb) == Collision::EmContainment::eDisjoint)
-						{
-							job.isCulled = true;
-							return;
-						}
+						//if (frustum.Contains(occlusionCullingData.aabb) == Collision::EmContainment::eDisjoint)
+						//{
+						//	job.isCulled = true;
+						//	return;
+						//}
 
 						if (pOcclusionCulling->TestRect(occlusionCullingData.aabb) != OcclusionCulling::eVisible)
 						{

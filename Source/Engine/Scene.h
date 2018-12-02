@@ -11,7 +11,7 @@ namespace eastengine
 		virtual void Enter() = 0;
 		virtual void Exit() = 0;
 
-		virtual void Update(float fElapsedTime) = 0;
+		virtual void Update(float elapsedTime) = 0;
 
 	public:
 		const string::StringID& GetName() const { return m_strName; }

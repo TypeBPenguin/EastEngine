@@ -12,11 +12,12 @@ namespace eastengine
 			class Bone : public IMotion::IBone
 			{
 			public:
-				Bone(const string::StringID& strBoneName, const std::vector<Keyframe>& _vecKeyframes, float fFrameInterval);
+				Bone(const string::StringID& strBoneName, std::vector<Keyframe>&& vecKeyframes, float fFrameInterval);
+				Bone(const string::StringID& strBoneName, const Keyframe* pKeyframes, size_t keyframeCount, float fFrameInterval);
 				virtual ~Bone() override;
 
 			public:
-				virtual const string::StringID& GetName() const override { return m_strBoneName; }
+				virtual const string::StringID& GetName() const override { return m_boneName; }
 
 				virtual float GetStartTime() const override
 				{
@@ -41,14 +42,13 @@ namespace eastengine
 				virtual const Keyframe* GetKeyframe(uint32_t nIndex) const override { return &m_vecKeyframes[nIndex]; }
 
 			private:
-				string::StringID m_strBoneName;
+				const string::StringID m_boneName;
+				const float m_frameInterval{ 0 };
 				std::vector<Keyframe> m_vecKeyframes;
-				float m_fFrameInterval;
 			};
 
 		public:
 			Motion(Key key);
-			//Motion(const Motion& source);
 			Motion(Motion&& source) noexcept;
 			virtual ~Motion();
 
@@ -58,8 +58,9 @@ namespace eastengine
 		public:
 			virtual void Update(IMotionRecorder* pRecorder, float fPlayTime, bool isInverse, bool isEnableTransformUpdate) const override;
 
-			virtual float GetStartTime() const override { return m_fStartTime; }
-			virtual float GetEndTime() const override { return m_fEndTime; }
+			virtual float GetStartTime() const override { return m_startTime; }
+			virtual float GetEndTime() const override { return m_endTime; }
+			virtual float GetFrameInterval() const override { return m_frameInterval; }
 
 		public:
 			virtual const string::StringID& GetName() const override { return m_strName; }
@@ -70,12 +71,15 @@ namespace eastengine
 			virtual const IBone* GetBone(const string::StringID& strBoneName) const override;
 			
 		public:
-			void SetName(const string::StringID& strName) { m_strName; }
+			void SetName(const string::StringID& strName) { m_strName = strName; }
 			void SetFilePath(const std::string& strFilePath) { m_strFilePath = strFilePath; }
-			void AddBoneKeyframes(const string::StringID& strBoneName, const std::vector<Keyframe>& vecKeyframes);
+			void AddBoneKeyframes(const string::StringID& strBoneName, std::vector<Keyframe>&& vecKeyframes);
 			void SetInfo(float fStartTime, float fEndTime, float fFrameInterval);
 
 			void AddEvent(const IMotionEvent* pMotionEvent) { m_vecEvents.emplace_back(pMotionEvent); }
+
+		public:
+			bool LoadFile(const char* path);
 
 		private:
 			const Key m_key;
@@ -83,12 +87,12 @@ namespace eastengine
 			string::StringID m_strName;
 			std::string m_strFilePath;
 
-			float m_fStartTime{ 0.f };
-			float m_fEndTime{ 0.f };
-			float m_fFrameInterval{ 0.f };
+			float m_startTime{ 0.f };
+			float m_endTime{ 0.f };
+			float m_frameInterval{ 0.f };
 
 			std::vector<Bone> m_vecBones;
-			std::unordered_map<string::StringID, Bone*> m_umapBones;
+			tsl::robin_map<string::StringID, Bone*> m_rmapBones;
 
 			std::vector<const IMotionEvent*> m_vecEvents;
 		};

@@ -69,6 +69,16 @@ namespace eastengine
 			LODReductionRate(float lv0, float lv1, float lv2, float lv3, float lv4);
 		};
 
+		enum MotionLayers
+		{
+			eLayer1 = 0,
+			eLayer2,
+			eLayer3,
+			eLayer4,
+
+			eLayerCount,
+		};
+
 		struct IMotionEvent
 		{
 			const int nID{ 0 };
@@ -123,13 +133,14 @@ namespace eastengine
 			static IMotion* Create(const MotionLoader& loader);
 			static void Destroy(IMotion** ppMotion);
 
-			static bool SaveToFile(IMotion* pMotion, const char* strFilePath);
+			static bool SaveFile(IMotion* pMotion, const char* strFilePath);
 
 		public:
 			virtual void Update(IMotionRecorder* pRecorder, float fPlayTime, bool isInverse, bool isEnableTransformUpdate) const = 0;
 
 			virtual float GetStartTime() const = 0;
 			virtual float GetEndTime() const = 0;
+			virtual float GetFrameInterval() const = 0;
 
 		public:
 			virtual const string::StringID& GetName() const = 0;
@@ -140,19 +151,6 @@ namespace eastengine
 			virtual const IBone* GetBone(const string::StringID& strBoneName) const = 0;
 		};
 
-		namespace EmMotion
-		{
-			enum Layers
-			{
-				eLayer1 = 0,
-				eLayer2,
-				eLayer3,
-				eLayer4,
-
-				eLayerCount,
-			};
-		}
-
 		struct MotionPlaybackInfo
 		{
 			enum : uint32_t
@@ -160,19 +158,21 @@ namespace eastengine
 				eMaxLoopCount = std::numeric_limits<uint32_t>::max(),
 			};
 
-			float fSpeed = 1.f;
-			float fWeight = 0.f;
-			float fBlendTime = 0.f;
-			uint32_t nLoopCount = 1;
-			bool isInverse = false;
+			float speed{ 1.f };
+			float weight{ 1.f };
+			float blendTime{ 0.2f };
+			uint32_t loopCount{ 1 };
+			bool isInverse{ false };
+			bool isFreezeEndFrame{ false };
 
 			void Reset()
 			{
-				fSpeed = 1.f;
-				fWeight = 0.f;
-				fBlendTime = 0.f;
-				nLoopCount = 1;
+				speed = 1.f;
+				weight = 1.f;
+				blendTime = 0.2f;
+				loopCount = 1;
 				isInverse = false;
+				isFreezeEndFrame = false;
 			}
 		};
 
@@ -187,10 +187,10 @@ namespace eastengine
 			virtual void SetPlayTime(float fPlayTime) = 0;
 
 			virtual float GetSpeed() const = 0;
-			virtual void SetSpeed(float fSpeed) = 0;
+			virtual void SetSpeed(float speed) = 0;
 
 			virtual float GetWeight() const = 0;
-			virtual void SetWeight(float fWeight) = 0;
+			virtual void SetWeight(float weight) = 0;
 
 			virtual float GetBlendWeight() const = 0;
 
@@ -233,10 +233,10 @@ namespace eastengine
 			virtual ~IMotionSystem() = default;
 
 		public:
-			virtual void Play(EmMotion::Layers emLayer, IMotion* pMotion, const MotionPlaybackInfo* pPlayback = nullptr) = 0;
-			virtual void Stop(EmMotion::Layers emLayer, float fStopTime) = 0;
+			virtual void Play(MotionLayers emLayer, IMotion* pMotion, const MotionPlaybackInfo* pPlayback = nullptr) = 0;
+			virtual void Stop(MotionLayers emLayer, float fStopTime) = 0;
 
-			virtual IMotionPlayer* GetPlayer(EmMotion::Layers emLayer) = 0;
+			virtual IMotionPlayer* GetPlayer(MotionLayers emLayer) = 0;
 		};
 
 		class IMaterialInstance
@@ -269,7 +269,7 @@ namespace eastengine
 			};
 
 		public:
-			virtual void Update(float fElapsedTime, const math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance, bool isModelVisible) const = 0;
+			virtual void Update(float elapsedTime, const math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance, bool isModelVisible) const = 0;
 
 		public:
 			virtual IModelNode::Type GetType() const = 0;
@@ -283,7 +283,7 @@ namespace eastengine
 			virtual const string::StringID& GetName() const = 0;
 			virtual const string::StringID& GetAttachedBoneName() const = 0;
 
-			virtual IModelNode* GetParentNode() const = 0;
+			virtual const string::StringID& GetParentName() const = 0;
 
 			virtual IVertexBuffer* GetVertexBuffer(LOD emLod = eLv0) const = 0;
 			virtual IIndexBuffer* GetIndexBuffer(LOD emLod = eLv0) const = 0;
@@ -313,7 +313,7 @@ namespace eastengine
 		private:
 			struct tKey {};
 		public:
-			using Key = PhantomType<tKey, const string::StringID>;
+			using Key = PhantomType<tKey, string::StringID>;
 			virtual Key GetKey() const = 0;
 
 		protected:
@@ -330,10 +330,10 @@ namespace eastengine
 			static IModelInstance* CreateInstance(IModel* pIModel);
 			static void DestroyInstance(IModelInstance** ppModelInstance);
 
-			static bool SaveToFile(IModel* pModel, const char* strFilePath);
+			static bool SaveFile(IModel* pModel, const char* strFilePath);
 
 		public:
-			virtual void Update(float fElapsedTime, const math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance) = 0;
+			virtual void Update(float elapsedTime, const math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance) = 0;
 
 			virtual void ChangeName(const string::StringID& strName) = 0;
 
@@ -367,7 +367,7 @@ namespace eastengine
 			virtual ~IModelInstance() = default;
 
 		public:
-			virtual void Update(float fElapsedTime, const math::Matrix& matParent) = 0;
+			virtual void Update(float elapsedTime, const math::Matrix& matParent) = 0;
 
 			virtual bool Attachment(IModelInstance* pInstance, const string::StringID& strNodeName, const math::Matrix& matOffset = math::Matrix::Identity) = 0;
 			virtual bool Attachment(IModelInstance* pInstance, const math::Matrix& matOffset = math::Matrix::Identity) = 0;
@@ -442,16 +442,13 @@ namespace eastengine
 				virtual uint32_t GetIndex() const = 0;
 				virtual const string::StringID& GetName() const = 0;
 
-				virtual IBone* GetParent() const = 0;
+				virtual const IBone* GetParent() const = 0;
 
 				virtual const math::Matrix& GetSkinningMatrix() const = 0;
 
 				virtual void SetMotionMatrix(const math::Matrix& matrix) = 0;
 				virtual const math::Matrix& GetMotionMatrix() const = 0;
 				virtual void ClearMotionMatrix() = 0;
-
-				virtual const math::Matrix& GetUserOffsetMatrix() const = 0;
-				virtual void SetUserOffsetMatrix(const math::Matrix& matrix) = 0;
 
 				virtual const math::Matrix& GetLocalMatrix() const = 0;
 				virtual const math::Matrix& GetGlobalMatrix() const = 0;
@@ -473,6 +470,9 @@ namespace eastengine
 			virtual void SetDirty() = 0;
 			virtual bool IsDirty() const = 0;
 			virtual bool IsValid() const = 0;
+
+			virtual const math::Matrix* GetUserOffsetMatrix(const string::StringID& boneName) const = 0;
+			virtual void SetUserOffsetMatrix(const string::StringID& boneName, const math::Matrix& matrix) = 0;
 		};
 	}
 }
@@ -482,18 +482,18 @@ namespace std
 	template <>
 	struct hash<eastengine::graphics::IModel::Key>
 	{
-		const eastengine::string::StringData* operator()(const eastengine::graphics::IModel::Key& key) const
+		const size_t operator()(const eastengine::graphics::IModel::Key& key) const
 		{
-			return key.Value().Key();
+			return reinterpret_cast<size_t>(key.Value().Key());
 		}
 	};
 
 	template <>
 	struct hash<eastengine::graphics::IMotion::Key>
 	{
-		const eastengine::string::StringData* operator()(const eastengine::graphics::IMotion::Key& key) const
+		const size_t operator()(const eastengine::graphics::IMotion::Key& key) const
 		{
-			return key.Value().Key();
+			return reinterpret_cast<size_t>(key.Value().Key());
 		}
 	};
 }

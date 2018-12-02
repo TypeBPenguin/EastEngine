@@ -10,10 +10,11 @@ namespace eastengine
 		{
 		public:
 			ModelNodeStatic(LOD emLOD = eLv0);
+			ModelNodeStatic(const char* filePath, const BYTE** ppBuffer);
 			virtual ~ModelNodeStatic();
 
 		public:
-			virtual void Update(float fElapsedTime, const math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance, bool isModelVisible) const override;
+			virtual void Update(float elapsedTime, const math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance, bool isModelVisible) const override;
 
 		public:
 			virtual IModelNode::Type GetType() const override { return IModelNode::Type::eStatic; }

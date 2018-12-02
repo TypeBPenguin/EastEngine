@@ -15,10 +15,11 @@ namespace eastengine
 		{
 		public:
 			ModelNode(LOD emMaxLod = LOD::eLv0);
+			ModelNode(Type emType, const char* filePath, const BYTE** ppBuffer);
 			virtual ~ModelNode() = 0;
 
 		public:
-			virtual void Update(float fElapsedTime, const math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance, bool isModelVisible) const = 0;
+			virtual void Update(float elapsedTime, const math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance, bool isModelVisible) const = 0;
 
 		public:
 			virtual bool IsVisible() const override { return m_isVisible; }
@@ -27,10 +28,10 @@ namespace eastengine
 			virtual float GetDistanceFromCamera() const override { return m_fDistanceFromCamera; }
 			virtual void SetDistanceFromCamera(float fDist) override { m_fDistanceFromCamera = fDist; }
 
-			virtual const string::StringID& GetName() const override { return m_strNodeName; }
-			virtual const string::StringID& GetAttachedBoneName() const override { return m_strAttachedBoneName; }
+			virtual const string::StringID& GetName() const override { return m_nodeName; }
+			virtual const string::StringID& GetAttachedBoneName() const override { return m_attachedBoneName; }
 
-			virtual IModelNode* GetParentNode() const override { return m_pParentNode; }
+			virtual const string::StringID& GetParentName() const override { return m_parentNodeName; }
 
 			virtual IVertexBuffer* GetVertexBuffer(LOD emLod = eLv0) const override;
 			virtual IIndexBuffer* GetIndexBuffer(LOD emLod = eLv0) const override;
@@ -55,10 +56,10 @@ namespace eastengine
 			virtual void SetLOD(LOD emLod = eLv0) override { m_emLod = std::min(emLod, m_emMaxLod); }
 
 		public:
-			void SetNodeName(const string::StringID& strNodeName) { m_strNodeName = strNodeName; }
-			void SetAttachedBoneName(const string::StringID& strNodeName) { m_strAttachedBoneName = strNodeName; }
+			void SetNodeName(const string::StringID& strNodeName) { m_nodeName = strNodeName; }
+			void SetAttachedBoneName(const string::StringID& strNodeName) { m_attachedBoneName = strNodeName; }
 
-			void SetParentNode(IModelNode* pModelNode) { m_pParentNode = pModelNode; }
+			void SetParentName(const string::StringID& parentName) { m_parentNodeName = parentName; }
 			void AddChildNode(IModelNode* pChildNode) { m_vecChildModelNode.push_back(pChildNode); }
 
 			void SetVertexBuffer(IVertexBuffer* pVertexBuffer, LOD emLod = eLv0);
@@ -72,12 +73,15 @@ namespace eastengine
 			void SetRawVertices(const VertexPos* pVertices, size_t vertexCount) { m_rawVertices.clear(); m_rawVertices.assign(pVertices, pVertices + vertexCount); }
 			void SetRawIndices(const uint32_t* pIndices, size_t indexCount) { m_rawIndices.clear(); m_rawIndices.assign(pIndices, pIndices + indexCount); }
 
+			void SetRawVertices(std::vector<VertexPos>&& source) { m_rawVertices = std::move(source); }
+			void SetRawIndices(std::vector<uint32_t>&& source) { m_rawIndices = std::move(source); }
+
 		protected:
 			bool m_isVisible{ true };
-			string::StringID m_strNodeName;
-			string::StringID m_strAttachedBoneName;
+			string::StringID m_nodeName;
+			string::StringID m_attachedBoneName{ StrID::None };
+			string::StringID m_parentNodeName{ StrID::None };
 
-			IModelNode* m_pParentNode{ nullptr };
 			std::vector<IModelNode*> m_vecChildModelNode;
 
 			std::vector<IMaterial*> m_vecMaterial;

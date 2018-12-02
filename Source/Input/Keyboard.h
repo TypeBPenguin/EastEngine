@@ -18,14 +18,14 @@ namespace eastengine
 			void Update();
 
 		public:
-			bool IsKeyEvent(Keyboard::KeyCode emKeyCode) const { return IsCurKeyDown(emKeyCode); }
-			bool IsKeyDown(Keyboard::KeyCode emKeyCode) const { return IsOldKeyDown(emKeyCode) == false && IsCurKeyDown(emKeyCode); }
-			bool IsKeyPressed(Keyboard::KeyCode emKeyCode) const { return IsOldKeyDown(emKeyCode) && IsCurKeyDown(emKeyCode); }
-			bool IsKeyUp(Keyboard::KeyCode emKeyCode) const { return IsOldKeyDown(emKeyCode) && IsCurKeyDown(emKeyCode) == false; }
+			bool IsKeyEvent(keyboard::KeyCode emKeyCode) const { return IsCurKeyDown(emKeyCode); }
+			bool IsKeyDown(keyboard::KeyCode emKeyCode) const { return IsOldKeyDown(emKeyCode) == false && IsCurKeyDown(emKeyCode); }
+			bool IsKeyPressed(keyboard::KeyCode emKeyCode) const { return IsOldKeyDown(emKeyCode) && IsCurKeyDown(emKeyCode); }
+			bool IsKeyUp(keyboard::KeyCode emKeyCode) const { return IsOldKeyDown(emKeyCode) && IsCurKeyDown(emKeyCode) == false; }
 
 		private:
-			bool IsCurKeyDown(Keyboard::KeyCode emKeyCode) const { return (m_curKeyState[emKeyCode] & 0x80) != 0; }
-			bool IsOldKeyDown(Keyboard::KeyCode emKeyCode) const { return (m_oldKeyState[emKeyCode] & 0x80) != 0; }
+			bool IsCurKeyDown(keyboard::KeyCode emKeyCode) const { return (m_curKeyState[emKeyCode] & 0x80) != 0; }
+			bool IsOldKeyDown(keyboard::KeyCode emKeyCode) const { return (m_oldKeyState[emKeyCode] & 0x80) != 0; }
 
 		private:
 			struct IDirectInputDevice8A* m_pKeyboard;		// 키보드 디바이스

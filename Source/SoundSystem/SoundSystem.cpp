@@ -17,7 +17,7 @@ namespace eastengine
 			~Impl();
 
 		public:
-			void Update(float fElapsedTime);
+			void Update(float elapsedTime);
 
 		public:
 			void SetListenerAttributes(const ListenerAttributes& listenerAttributes) { m_listenerAttributes = listenerAttributes; }
@@ -85,7 +85,7 @@ namespace eastengine
 			}
 		}
 
-		void System::Impl::Update(float fElapsedTime)
+		void System::Impl::Update(float elapsedTime)
 		{
 			if (m_pFmodSystem == nullptr)
 				return;
@@ -156,7 +156,7 @@ namespace eastengine
 						const std::shared_ptr<Sound>& pSound = iter_sound->second;
 						if (pSound.use_count() == 1)
 						{
-							pSound->UpdateDestroyWaitTime(fElapsedTime);
+							pSound->UpdateDestroyWaitTime(elapsedTime);
 							if (pSound->GetDestroyWaitTime() >= DestroyWaitTime)
 							{
 								iter_sound = uampSounds.erase(iter_sound);
@@ -405,9 +405,9 @@ namespace eastengine
 			m_pImpl->SetListenerAttributes(listenerAttributes);
 		}
 
-		void System::Update(float fElapsedTime)
+		void System::Update(float elapsedTime)
 		{
-			m_pImpl->Update(fElapsedTime);
+			m_pImpl->Update(elapsedTime);
 		}
 	}
 }

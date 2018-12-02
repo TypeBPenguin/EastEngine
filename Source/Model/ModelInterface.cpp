@@ -3,6 +3,7 @@
 
 #include "CommonLib/FileUtil.h"
 #include "CommonLib/FileStream.h"
+#include "CommonLib/Timer.h"
 
 #include "ModelManager.h"
 
@@ -67,11 +68,15 @@ namespace eastengine
 			{
 				string::StringID strMotionName = file::GetFileNameWithoutExtension(loader.GetFilePath().c_str()).c_str();
 
+				Stopwatch sw;
+				sw.Start();
 				if (ModelManager::GetInstance()->LoadMotionFBX(pMotion, loader.GetFilePath().c_str(), loader.GetScaleFactor()) == false)
 				{
 					pMotion->SetState(IResource::eInvalid);
 					return nullptr;
 				}
+				sw.Stop();
+				LOG_MESSAGE("FBX Motion Load Complete : %lf[%s]", sw.Elapsed(), loader.GetFilePath().c_str());
 
 				pMotion->SetState(IResource::eComplete);
 
@@ -82,11 +87,15 @@ namespace eastengine
 			{
 				string::StringID strMotionName = file::GetFileNameWithoutExtension(loader.GetFilePath().c_str()).c_str();
 
+				Stopwatch sw;
+				sw.Start();
 				if (XPSImport::LoadMotion(pMotion, loader.GetFilePath().c_str()) == false)
 				{
 					pMotion->SetState(IResource::eInvalid);
 					return nullptr;
 				}
+				sw.Stop();
+				LOG_MESSAGE("Xps Motion Load Complete : %lf[%s]", sw.Elapsed(), loader.GetFilePath().c_str());
 
 				pMotion->SetState(IResource::eComplete);
 
@@ -95,43 +104,19 @@ namespace eastengine
 			break;
 			case EmMotionLoader::eEast:
 			{
-				file::Stream file;
-				if (file.Open(loader.GetFilePath().c_str(), file::eRead | file::eBinary) == false)
+				Stopwatch sw;
+				sw.Start();
+				if (pMotion->LoadFile(loader.GetFilePath().c_str()) == false)
 				{
-					LOG_WARNING("Can't open to file : %s", loader.GetFilePath().c_str());
-					return false;
+					pMotion->SetState(IResource::eInvalid);
+					return nullptr;
 				}
-
-				std::string strBuf;
-				file >> strBuf;
-
-				uint32_t nBoneCount = 0;
-				file >> nBoneCount;
-
-				for (uint32_t i = 0; i < nBoneCount; ++i)
-				{
-					file >> strBuf;
-
-					uint32_t nKeyframe = 0;
-					file >> nKeyframe;
-
-					std::vector<Keyframe> vecKeyframes;
-					vecKeyframes.resize(nKeyframe);
-
-					for (uint32_t j = 0; j < nKeyframe; ++j)
-					{
-						file >> vecKeyframes[j].fTime;
-						file.Read(&vecKeyframes[j].transform.position.x, 3);
-						file.Read(&vecKeyframes[j].transform.scale.x, 3);
-						file.Read(&vecKeyframes[j].transform.rotation.x, 4);
-					}
-
-					pMotion->AddBoneKeyframes(strBuf.c_str(), vecKeyframes);
-				}
-
+				sw.Stop();
+				LOG_MESSAGE("Emot Motion Load Complete : %lf[%s]", sw.Elapsed(), loader.GetFilePath().c_str());
+				
 				pMotion->SetState(IResource::eComplete);
-
-				file.Close();
+				
+				return pMotion;
 			}
 			break;
 			default:
@@ -150,10 +135,10 @@ namespace eastengine
 			*ppMotion = nullptr;
 		}
 
-		bool IMotion::SaveToFile(IMotion* pMotion, const char* strFilePath)
+		bool IMotion::SaveFile(IMotion* pMotion, const char* strFilePath)
 		{
 			file::Stream file;
-			if (file.Open(strFilePath, file::eWrite | file::eBinary) == false)
+			if (file.Open(strFilePath, file::eWriteBinary) == false)
 			{
 				LOG_WARNING("Can't save to file : %s", strFilePath);
 				return false;
@@ -161,8 +146,11 @@ namespace eastengine
 
 			file << pMotion->GetName().c_str();
 
-			uint32_t nBoneCount = pMotion->GetBoneCount();
+			file << pMotion->GetStartTime();
+			file << pMotion->GetEndTime();
+			file << pMotion->GetFrameInterval();
 
+			const uint32_t nBoneCount = pMotion->GetBoneCount();
 			file << nBoneCount;
 
 			for (uint32_t i = 0; i < nBoneCount; ++i)
@@ -179,9 +167,9 @@ namespace eastengine
 					const Keyframe* pKeyframe = pBone->GetKeyframe(j);
 
 					file << pKeyframe->fTime;
-					file.Write(&pKeyframe->transform.position.x, 3);
 					file.Write(&pKeyframe->transform.scale.x, 3);
 					file.Write(&pKeyframe->transform.rotation.x, 4);
+					file.Write(&pKeyframe->transform.position.x, 3);
 				}
 			}
 
@@ -269,7 +257,7 @@ namespace eastengine
 			}
 		}
 
-		bool IModel::SaveToFile(IModel* pModel, const char* strFilePath)
+		bool IModel::SaveFile(IModel* pModel, const char* strFilePath)
 		{
 			if (strFilePath == nullptr)
 				return false;
@@ -282,7 +270,7 @@ namespace eastengine
 			// Stream 은 빨라서 좋지만, 데이터 규격이 달라지면 기존 데이터를 사용할 수 없게됨
 			// 또는 확실한 버전 관리로, 버전별 Save Load 로직을 구별한다면 Stream 으로도 문제없음
 			file::Stream file;
-			if (file.Open(strFilePath, file::eWrite | file::eBinary) == false)
+			if (file.Open(strFilePath, file::eWriteBinary) == false)
 			{
 				LOG_WARNING("Can't save to file : %s", strFilePath);
 				return false;
@@ -307,23 +295,8 @@ namespace eastengine
 
 				file << pNode->GetName().c_str();
 
-				if (pNode->GetParentNode() != nullptr)
-				{
-					file << pNode->GetParentNode()->GetName().c_str();
-				}
-				else
-				{
-					file << "NoParent";
-				}
-
-				if (pNode->GetAttachedBoneName().empty() == false)
-				{
-					file << pNode->GetAttachedBoneName().c_str();
-				}
-				else
-				{
-					file << "None";
-				}
+				file << pNode->GetParentName().c_str();
+				file << pNode->GetAttachedBoneName().c_str();
 
 				const Collision::AABB& aabb = pNode->GetOriginAABB();
 				file.Write(&aabb.Center.x, 3);
@@ -410,7 +383,7 @@ namespace eastengine
 					IMaterial* pMaterial = pNode->GetMaterial(j);
 					file << pMaterial->GetName().c_str();
 
-					pMaterial->SaveToFile(strPath.c_str());
+					pMaterial->SaveFile(strPath.c_str());
 				}
 
 				if (pNode->GetType() == IModelNode::eSkinned)

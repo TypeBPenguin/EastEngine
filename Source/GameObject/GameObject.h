@@ -59,15 +59,15 @@ namespace eastengine
 			static IActor* Create(const string::StringID& strName);
 			static void Destroy(IActor** ppActor);
 
-			static bool SaveToFile(IActor* pActor, const char* strFilePath);
+			static bool SaveFile(IActor* pActor, const char* strFilePath);
 
 		public:
-			virtual void Update(float fElapsedTime) = 0;
+			virtual void Update(float elapsedTime) = 0;
 
-			virtual IComponent* CreateComponent(EmComponent::Type emComponentType) = 0;
-			virtual void DestroyComponent(EmComponent::Type emComponentType) = 0;
+			virtual IComponent* CreateComponent(IComponent::Type emComponentType) = 0;
+			virtual void DestroyComponent(IComponent::Type emComponentType) = 0;
 
-			virtual IComponent* GetComponent(EmComponent::Type emComponentType) = 0;
+			virtual IComponent* GetComponent(IComponent::Type emComponentType) = 0;
 
 		public:
 			virtual const string::StringID& GetName() const = 0;
@@ -134,7 +134,7 @@ namespace eastengine
 			virtual ObjectType GetType() const override { return ObjectType::eTerrain; }
 
 		public:
-			virtual void Update(float fElapsedTime) = 0;
+			virtual void Update(float elapsedTime) = 0;
 
 		public:
 			virtual const string::StringID& GetName() const = 0;
@@ -172,7 +172,7 @@ namespace eastengine
 			virtual ObjectType GetType() const override { return ObjectType::eSky; }
 
 		public:
-			virtual void Update(float fElapsedTime) = 0;
+			virtual void Update(float elapsedTime) = 0;
 
 		public:
 			virtual const string::StringID& GetName() const = 0;

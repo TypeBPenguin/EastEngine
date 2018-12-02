@@ -61,7 +61,7 @@ namespace eastengine
 			~RagDoll();
 
 			bool BuildBipadRagDoll(graphics::ISkeletonInstance* pSkeleton, const math::float3& f3Pos, const math::Quaternion& quatRotation, float fScale);
-			void Update(float fElapsedTime);
+			void Update(float elapsedTime);
 
 			BodyPart* AddBodyPart(const string::StringID& strPartName, const physics::RigidBodyProperty& rigidBodyProperty, graphics::IModelInstance* pPhysicsModelInstance, graphics::ISkeletonInstance::IBone* pBone);
 			Joint* AddJoint(const string::StringID& strJointName, const physics::ConstraintProperty& constraintProperty, BodyPart* pBodyPartA, BodyPart* pBodyPartB, graphics::IModelInstance* pPhysicsModelInstance);

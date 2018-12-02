@@ -47,7 +47,7 @@ namespace eastengine
 			void Init(const physics::RigidBodyProperty& rigidBodyProperty, bool isCollisionModelVisible = false);
 			void Init(graphics::IModelInstance* pModelInstance, const physics::RigidBodyProperty& rigidBodyProperty, uint32_t nTargetLod = 0, bool isCollisionModelVisible = false);
 			void Init(const string::StringID& strID, const graphics::IVertexBuffer* pVertexBuffer, const graphics::IIndexBuffer* pIndexBuffer, math::Matrix* pMatWorld, const physics::RigidBodyProperty& rigidBodyProperty, bool isCollisionModelVisible = false);
-			virtual void Update(float fElapsedTime) override;
+			virtual void Update(float elapsedTime) override;
 
 		public:
 			void SetActiveState(physics::EmActiveState::Type emActiveState);

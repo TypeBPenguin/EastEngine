@@ -51,7 +51,7 @@ namespace eastengine
 			bool Init(SectorInitInfo& sectorInitInfo);
 			void Release();
 
-			void Update(float fElapsedTime);
+			void Update(float elapsedTime);
 
 			void EnterLeaveSector(EnterLeaveSectorInfo& moveSectorInfo) { m_listEnterLeaveSectorActor.emplace_back(moveSectorInfo); }
 

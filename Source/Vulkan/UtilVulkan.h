@@ -69,9 +69,9 @@ namespace std
 	template <>
 	struct hash<eastengine::graphics::vulkan::PSOKey>
 	{
-		const eastengine::string::StringData* operator()(const eastengine::graphics::vulkan::PSOKey& key) const
+		const size_t operator()(const eastengine::graphics::vulkan::PSOKey& key) const
 		{
-			return key.Value().Key();
+			return reinterpret_cast<size_t>(key.Value().Key());
 		}
 	};
 }

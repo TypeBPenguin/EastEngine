@@ -154,8 +154,8 @@ namespace eastengine
 
 		struct MaterialInfo
 		{
-			string::StringID strName;
-			std::string strPath;
+			string::StringID name;
+			std::string path;
 
 			math::Color colorAlbedo{ math::Color::White };
 			math::Color colorEmissive{ math::Color::Transparent };

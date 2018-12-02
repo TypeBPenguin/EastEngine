@@ -176,9 +176,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor.h" />
-    <ClInclude Include="BehaviorTree.h" />
-    <ClInclude Include="ComponentActionState.h" />
+    <ClInclude Include="ComponentBehaviorTree.h" />
     <ClInclude Include="ComponentCamera.h" />
+    <ClInclude Include="ComponentFiniteStateMachine.h" />
     <ClInclude Include="ComponentLight.h" />
     <ClInclude Include="ComponentModel.h" />
     <ClInclude Include="ComponentPhysics.h" />
@@ -196,9 +196,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Actor.cpp" />
-    <ClCompile Include="BehaviorTree.cpp" />
-    <ClCompile Include="ComponentActionState.cpp" />
+    <ClCompile Include="ComponentBehaviorTree.cpp" />
     <ClCompile Include="ComponentCamera.cpp" />
+    <ClCompile Include="ComponentFiniteStateMachine.cpp" />
     <ClCompile Include="ComponentLight.cpp" />
     <ClCompile Include="ComponentModel.cpp" />
     <ClCompile Include="ComponentPhysics.cpp" />

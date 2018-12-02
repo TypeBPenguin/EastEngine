@@ -10,8 +10,8 @@ namespace eastengine
 		void Initialize(APIs emAPI, uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const string::StringID& strApplicationTitle, const string::StringID& strApplicationName);
 		void Release();
 		void Run(std::function<void()> funcUpdate);
-		void Cleanup(float fElapsedTime);
-		void Update(float fElapsedTime);
+		void Cleanup(float elapsedTime);
+		void Update(float elapsedTime);
 		void PostUpdate();
 
 		APIs GetAPI();
@@ -25,8 +25,8 @@ namespace eastengine
 		IImageBasedLight* GetImageBasedLight();
 		IVTFManager* GetVTFManager();
 
-		IVertexBuffer* CreateVertexBuffer(const uint8_t* pData, uint32_t vertexCount, size_t formatSize);
-		IIndexBuffer* CreateIndexBuffer(const uint8_t* pData, uint32_t indexCount, size_t formatSize);
+		IVertexBuffer* CreateVertexBuffer(const uint8_t* pData, uint32_t vertexCount, size_t formatSize, bool isDynamic);
+		IIndexBuffer* CreateIndexBuffer(const uint8_t* pData, uint32_t indexCount, size_t formatSize, bool isDynamic);
 		ITexture* CreateTexture(const char* strFilePath);
 		ITexture* CreateTextureAsync(const char* strFilePath);
 		ITexture* CreateTexture(const TextureDesc& desc);

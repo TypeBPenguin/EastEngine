@@ -140,7 +140,7 @@ namespace eastengine
 			m_isInit = false;
 		}
 
-		void SectorMgr::Update(float fElapsedTime)
+		void SectorMgr::Update(float elapsedTime)
 		{
 			{
 				auto iter = m_listEnterLeaveSectorActor.begin();
@@ -163,7 +163,7 @@ namespace eastengine
 
 			for (auto& iter : m_umapSector)
 			{
-				iter.second->Update(fElapsedTime);
+				iter.second->Update(elapsedTime);
 			}
 		}
 

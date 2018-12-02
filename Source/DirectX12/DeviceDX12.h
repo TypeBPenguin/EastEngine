@@ -45,7 +45,7 @@ namespace eastengine
 
 				void Run(std::function<void()> funcUpdate);
 
-				void Cleanup(float fElapsedTime);
+				void Cleanup(float elapsedTime);
 
 			public:
 				RenderTarget* GetRenderTarget(const D3D12_RESOURCE_DESC* pDesc, const math::Color& clearColor, bool isIncludeLastUseRenderTarget = true);

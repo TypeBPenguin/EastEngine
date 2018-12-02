@@ -3,6 +3,7 @@
 
 #include "CommonLib/FileStream.h"
 #include "CommonLib/FileUtil.h"
+#include "CommonLib/Timer.h"
 
 #include "ModelManager.h"
 
@@ -34,6 +35,7 @@ namespace StrID
 	RegisterStringID(EastEngine_Capsule);
 	RegisterStringID(EastEngine_Grid);
 	RegisterStringID(EastEngine_Plane);
+	RegisterStringID(NoParent);
 };
 
 namespace eastengine
@@ -68,9 +70,6 @@ namespace eastengine
 
 		Model::Model(Key key)
 			: m_key(key)
-			, m_isVisible(true)
-			, m_isDirtyLocalMatrix(false)
-			, m_f3Scale(math::float3::One)
 		{
 		}
 
@@ -79,32 +78,13 @@ namespace eastengine
 			, m_isVisible(source.m_isVisible)
 			, m_isDirtyLocalMatrix(source.m_isDirtyLocalMatrix)
 			, m_skeleton(source.m_skeleton)
-			, m_f3Pos(source.m_f3Pos)
-			, m_f3Scale(source.m_f3Scale)
-			, m_quat(source.m_quat)
+			, m_transform(source.m_transform)
 			, m_matLocal(source.m_matLocal)
 			, m_strModelName(source.m_strModelName)
 			, m_strFilePath(source.m_strFilePath)
 			, m_vecHierarchyModelNodes(source.m_vecHierarchyModelNodes)
 			, m_vecModelNodes(source.m_vecModelNodes)
 			, m_vecModelInstances(source.m_vecModelInstances)
-		{
-		}
-
-		Model::Model(Model&& source) noexcept
-			: m_key(std::move(source.m_key))
-			, m_isVisible(std::move(source.m_isVisible))
-			, m_isDirtyLocalMatrix(std::move(source.m_isDirtyLocalMatrix))
-			, m_skeleton(std::move(source.m_skeleton))
-			, m_f3Pos(std::move(source.m_f3Pos))
-			, m_f3Scale(std::move(source.m_f3Scale))
-			, m_quat(std::move(source.m_quat))
-			, m_matLocal(std::move(source.m_matLocal))
-			, m_strModelName(std::move(source.m_strModelName))
-			, m_strFilePath(std::move(source.m_strFilePath))
-			, m_vecHierarchyModelNodes(std::move(source.m_vecHierarchyModelNodes))
-			, m_vecModelNodes(std::move(source.m_vecModelNodes))
-			, m_vecModelInstances(std::move(source.m_vecModelInstances))
 		{
 		}
 
@@ -163,16 +143,16 @@ namespace eastengine
 
 			if (m_isDirtyLocalMatrix == true)
 			{
-				m_matLocal = math::Matrix::Compose(m_f3Scale, m_quat, m_f3Pos);
+				m_matLocal = m_transform.Compose();
 				m_isDirtyLocalMatrix = false;
 			}
 		}
 
-		void Model::Update(float fElapsedTime, const math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance)
+		void Model::Update(float elapsedTime, const math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance)
 		{
 			std::for_each(m_vecHierarchyModelNodes.begin(), m_vecHierarchyModelNodes.end(), [&](IModelNode* pModelNode)
 			{
-				pModelNode->Update(fElapsedTime, matParent, pSkeletonInstance, pMaterialInstance, m_isVisible);
+				pModelNode->Update(elapsedTime, matParent, pSkeletonInstance, pMaterialInstance, m_isVisible);
 			});
 		}
 
@@ -231,8 +211,16 @@ namespace eastengine
 			{
 			case ModelLoader::eFbx:
 			{
+				Stopwatch sw;
+				sw.Start();
 				isSuccess = ModelManager::GetInstance()->LoadModelFBX(this, loader.GetFilePath().c_str(), loader.GetScaleFactor(), loader.IsFlipZ());
-				if (isSuccess == false)
+				sw.Stop();
+
+				if (isSuccess == true)
+				{
+					LOG_MESSAGE("FBX Model Load Complete : %lf[%s]", sw.Elapsed(), loader.GetFilePath().c_str());
+				}
+				else
 				{
 					LOG_ERROR("Can't load Model[FBX] : %s", loader.GetFilePath().c_str());
 				}
@@ -241,8 +229,16 @@ namespace eastengine
 			case ModelLoader::eObj:
 			{
 				// fbx에 obj를 넣어도 된다.
+				Stopwatch sw;
+				sw.Start();
 				isSuccess = ModelManager::GetInstance()->LoadModelFBX(this, loader.GetFilePath().c_str(), loader.GetScaleFactor(), loader.IsFlipZ());
-				if (isSuccess == false)
+				sw.Stop();
+
+				if (isSuccess == true)
+				{
+					LOG_MESSAGE("Obj Model Load Complete : %lf[%s]", sw.Elapsed(), loader.GetFilePath().c_str());
+				}
+				else
 				{
 					LOG_ERROR("Can't load Model[Obj] : %s", loader.GetFilePath().c_str());
 				}
@@ -250,8 +246,16 @@ namespace eastengine
 			break;
 			case ModelLoader::eXps:
 			{
+				Stopwatch sw;
+				sw.Start();
 				isSuccess = XPSImport::LoadModel(this, loader.GetFilePath().c_str(), loader.GetDevideKeywords(), loader.GetDevideKeywordCount());
-				if (isSuccess == false)
+				sw.Stop();
+
+				if (isSuccess == true)
+				{
+					LOG_MESSAGE("Xps Model Load Complete : %lf[%s]", sw.Elapsed(), loader.GetFilePath().c_str());
+				}
+				else
 				{
 					LOG_ERROR("Can't load Model[XPS] : %s", loader.GetFilePath().c_str());
 				}
@@ -259,8 +263,16 @@ namespace eastengine
 			break;
 			case ModelLoader::eEast:
 			{
-				isSuccess = LoadToFile(loader.GetFilePath().c_str());
-				if (isSuccess == false)
+				Stopwatch sw;
+				sw.Start();
+				isSuccess = LoadFile(loader.GetFilePath().c_str());
+				sw.Stop();
+
+				if (isSuccess == true)
+				{
+					LOG_MESSAGE("Emod Model Load Complete : %lf[%s]", sw.Elapsed(), loader.GetFilePath().c_str());
+				}
+				else
 				{
 					LOG_ERROR("Can't load Model[East] : %s", loader.GetFilePath().c_str());
 				}
@@ -496,8 +508,8 @@ namespace eastengine
 
 				if (isSuccess == true)
 				{
-					IVertexBuffer* pVertexBuffer = CreateVertexBuffer(reinterpret_cast<const uint8_t*>(vertices.data()), static_cast<uint32_t>(vertices.size()), sizeof(VertexPosTexNor));
-					IIndexBuffer* pIndexBuffer = CreateIndexBuffer(reinterpret_cast<const uint8_t*>(indices.data()), static_cast<uint32_t>(indices.size()), sizeof(uint32_t));
+					IVertexBuffer* pVertexBuffer = CreateVertexBuffer(reinterpret_cast<const uint8_t*>(vertices.data()), static_cast<uint32_t>(vertices.size()), sizeof(VertexPosTexNor), true);
+					IIndexBuffer* pIndexBuffer = CreateIndexBuffer(reinterpret_cast<const uint8_t*>(indices.data()), static_cast<uint32_t>(indices.size()), sizeof(uint32_t), true);
 
 					const size_t vertexCount = vertices.size();
 					std::vector<VertexPos> rawVertices;
@@ -523,7 +535,7 @@ namespace eastengine
 			return isSuccess;
 		}
 
-		bool Model::LoadToFile(const char* strFilePath)
+		bool Model::LoadFile(const char* strFilePath)
 		{
 			const std::string strFileExtension = file::GetFileExtension(strFilePath);
 			if (strFileExtension != ".emod")
@@ -536,292 +548,96 @@ namespace eastengine
 			// Stream 은 빨라서 좋지만, 데이터 규격이 달라지면 기존 데이터를 사용할 수 없게됨
 			// 또는 확실한 버전 관리로, 버전별 Save Load 로직을 구현한다면 Stream 으로도 문제없음
 			file::Stream file;
-			if (file.Open(strFilePath, file::eRead | file::eBinary) == false)
+			if (file.Open(strFilePath, file::eReadBinary) == false)
 			{
 				LOG_WARNING("Can't open to file : %s", strFilePath);
 				return false;
 			}
 
-			// Common
-			std::string strBuf;
-			math::float3 f3Buf;
-			math::Quaternion quatBuf;
-			math::Matrix matBuf;
-
-			file >> strBuf;
-			SetName(strBuf.c_str());
-
-			file.Read(&f3Buf.x, 3);
-			SetLocalPosition(f3Buf);
-
-			file.Read(&f3Buf.x, 3);
-			SetLocalScale(f3Buf);
-
-			file.Read(&quatBuf.x, 4);
-			SetLocalRotation(quatBuf);
-
-			// Node
-			uint32_t nNodeCount = 0;
-			file >> nNodeCount;
-
-			for (uint32_t i = 0; i < nNodeCount; ++i)
+			const BYTE* pBuffer = file.GetBuffer();
+			const BYTE** ppBuffer = &pBuffer;
 			{
-				ModelNode* pNode = nullptr;
+				const std::string filePath = file::GetFilePath(strFilePath);
 
-				int nType = 0;
-				file >> nType;
+				const string::StringID modelName = file::Stream::ToString(ppBuffer);
+				SetName(modelName);
 
-				switch (nType)
+				m_transform.position = *file::Stream::To<math::float3>(ppBuffer);
+				m_transform.scale = *file::Stream::To<math::float3>(ppBuffer);
+				m_transform.rotation = *file::Stream::To<math::Quaternion>(ppBuffer);
+
+				m_isDirtyLocalMatrix = true;
+
+				const uint32_t nodeCount = *file::Stream::To<uint32_t>(ppBuffer);
+				for (uint32_t i = 0; i < nodeCount; ++i)
 				{
-				case IModelNode::eStatic:
-					pNode = new ModelNodeStatic;
-					break;
-				case IModelNode::eSkinned:
-					pNode = new ModelNodeSkinned;
-					break;
-				default:
-					LOG_WARNING("잘못된타입임돠, 데이터 포맷이 바뀐 듯 함돠.");
-					break;
-				}
+					ModelNode* pNode = nullptr;
 
-				file >> strBuf;
-				pNode->SetNodeName(strBuf.c_str());
-
-				std::string a = "NoParent";
-
-				file >> strBuf;
-				if (strBuf == "NoParent")
-				{
-					AddNode(pNode, pNode->GetName(), true);
-				}
-				else
-				{
-					ModelNode* pParentNode = static_cast<ModelNode*>(GetNode(strBuf.c_str()));
-					assert(pParentNode != nullptr);
-
-					pParentNode->AddChildNode(pNode);
-					pNode->SetParentNode(pParentNode);
-
-					AddNode(pNode, pNode->GetName(), false);
-				}
-
-				file >> strBuf;
-				if (strBuf != "None")
-				{
-					pNode->SetAttachedBoneName(strBuf.c_str());
-				}
-
-				Collision::AABB aabb;
-				file.Read(&aabb.Center.x, 3);
-				file.Read(&aabb.Extents.x, 3);
-				pNode->SetOriginAABB(aabb);
-
-				bool isVisible = true;
-				file >> isVisible;
-
-				pNode->SetVisible(isVisible);
-
-				uint32_t nSubsetCount = 0;
-				file >> nSubsetCount;
-
-				std::vector<ModelSubset> vecSubsets;
-				vecSubsets.resize(nSubsetCount);
-				for (uint32_t j = 0; j < nSubsetCount; ++j)
-				{
-					file >> strBuf;
-					vecSubsets[j].strName = strBuf.c_str();
-
-					file >> vecSubsets[j].nStartIndex;
-					file >> vecSubsets[j].nIndexCount;
-					file >> vecSubsets[j].nMaterialID;
-
-					int nTemp = 0;
-					file >> nTemp;
-					vecSubsets[j].emPrimitiveType = static_cast<EmPrimitive::Type>(nTemp);
-				}
-
-				pNode->AddModelSubsets(vecSubsets);
-
-				uint32_t vertexCount = 0;
-				file >> vertexCount;
-
-				std::vector<VertexPos> rawVertices;
-				rawVertices.resize(vertexCount);
-
-				IVertexBuffer* pVertexBuffer = nullptr;
-				if (nType == IModelNode::eStatic)
-				{
-					std::vector<VertexPosTexNor> vertices;
-					vertices.resize(vertexCount);
-
-					for (uint32_t j = 0; j < vertexCount; ++j)
+					const IModelNode::Type emType = *file::Stream::To<IModelNode::Type>(ppBuffer);
+					switch (emType)
 					{
-						VertexPosTexNor& vertex = vertices[j];
-						file.Read(&vertex.pos.x, 3);
-						file.Read(&vertex.uv.x, 2);
-						file.Read(&vertex.normal.x, 3);
-
-						rawVertices[j].pos = vertex.pos;
+					case IModelNode::eStatic:
+						pNode = new ModelNodeStatic(filePath.c_str(), ppBuffer);
+						break;
+					case IModelNode::eSkinned:
+						pNode = new ModelNodeSkinned(filePath.c_str(), ppBuffer);
+						break;
+					default:
+						LOG_WARNING("잘못된타입임돠, 데이터 포맷이 바뀐 듯 함돠.");
+						break;
 					}
 
-					pVertexBuffer = CreateVertexBuffer(reinterpret_cast<const uint8_t*>(vertices.data()), static_cast<uint32_t>(vertices.size()), sizeof(VertexPosTexNor));
-					if (pVertexBuffer == nullptr)
+					const string::StringID& parentNodeName = pNode->GetParentName();
+					if (parentNodeName == StrID::NoParent || parentNodeName == StrID::None)
 					{
-						LOG_ERROR("버텍스 버퍼 생성 실패했슴돠");
-						return false;
-					}
-				}
-				else if (nType == IModelNode::eSkinned)
-				{
-					std::vector<VertexPosTexNorWeiIdx> vertices;
-					vertices.resize(vertexCount);
-
-					for (uint32_t j = 0; j < vertexCount; ++j)
-					{
-						VertexPosTexNorWeiIdx& vertex = vertices[j];
-						file.Read(&vertex.pos.x, 3);
-						file.Read(&vertex.uv.x, 2);
-						file.Read(&vertex.normal.x, 3);
-						file.Read(&vertex.boneWeight.x, 3);
-						file.Read(&vertex.boneIndices[0], 4);
-
-						rawVertices[j].pos = vertex.pos;
-					}
-
-					pVertexBuffer = CreateVertexBuffer(reinterpret_cast<const uint8_t*>(vertices.data()), static_cast<uint32_t>(vertices.size()), sizeof(VertexPosTexNorWeiIdx));
-					if (pVertexBuffer == nullptr)
-					{
-						LOG_ERROR("버텍스 버퍼 생성 실패했슴돠");
-						return false;
-					}
-				}
-
-				pNode->SetVertexBuffer(pVertexBuffer);
-				ReleaseResource(&pVertexBuffer);
-
-				pNode->SetRawVertices(rawVertices.data(), rawVertices.size());
-
-				uint32_t indexCount = 0;
-				file >> indexCount;
-
-				std::vector<uint32_t> vecIndices;
-				vecIndices.resize(indexCount);
-
-				for (uint32_t j = 0; j < indexCount; ++j)
-				{
-					file >> vecIndices[j];
-				}
-
-				IIndexBuffer* pIndexBuffer = CreateIndexBuffer(reinterpret_cast<const uint8_t*>(vecIndices.data()), static_cast<uint32_t>(vecIndices.size()), sizeof(uint32_t));
-				if (pIndexBuffer == nullptr)
-				{
-					LOG_ERROR("인덱스 버퍼 생성 실패했슴돠");
-					return false;
-				}
-
-				pNode->SetIndexBuffer(pIndexBuffer);
-				ReleaseResource(&pIndexBuffer);
-
-				pNode->SetRawIndices(vecIndices.data(), vecIndices.size());
-
-				uint32_t nMaterialCount = 0;
-				file >> nMaterialCount;
-
-				for (uint32_t j = 0; j < nMaterialCount; ++j)
-				{
-					file >> strBuf;
-
-					strBuf.append(".emtl");
-
-					IMaterial* pMaterial = CreateMaterial(strBuf.c_str(), file::GetFilePath(strFilePath).c_str());
-					pNode->AddMaterial(pMaterial);
-					ReleaseResource(&pMaterial);
-				}
-
-				if (nType == IModelNode::eSkinned)
-				{
-					ModelNodeSkinned* pSkinned = static_cast<ModelNodeSkinned*>(pNode);
-
-					uint32_t nBoneCount = 0;
-					file >> nBoneCount;
-
-					std::vector<string::StringID> vecBones;
-					vecBones.resize(nBoneCount);
-
-					for (uint32_t j = 0; j < nBoneCount; ++j)
-					{
-						file >> strBuf;
-						vecBones[j] = strBuf.c_str();
-					}
-
-					pSkinned->SetBoneNameList(vecBones);
-				}
-			}
-
-			// Skeleton
-			bool isHasSkeleton = false;
-			file >> isHasSkeleton;
-
-			if (isHasSkeleton == true)
-			{
-				uint32_t nBoneCount = 0;
-				file >> nBoneCount;
-
-				m_skeleton.ReserveBone(nBoneCount);
-
-				for (uint32_t i = 0; i < nBoneCount; ++i)
-				{
-					std::string strName;
-					file >> strName;
-
-					std::string strParentName;
-					file >> strParentName;
-
-					math::Matrix matMotionOffset;
-					file.Read(&matMotionOffset._11, 16);
-
-					math::Matrix matDefaultMotionData;
-					file.Read(&matDefaultMotionData._11, 16);
-
-					if (strParentName == "NoParent")
-					{
-						m_skeleton.CreateBone(strName.c_str(), matMotionOffset, matDefaultMotionData);
+						AddNode(pNode, pNode->GetName(), true);
 					}
 					else
 					{
-						m_skeleton.CreateBone(strParentName.c_str(), strName.c_str(), matMotionOffset, matDefaultMotionData);
+						ModelNode* pParentNode = static_cast<ModelNode*>(GetNode(parentNodeName));
+						assert(pParentNode != nullptr);
+
+						pParentNode->AddChildNode(pNode);
+						AddNode(pNode, pNode->GetName(), false);
 					}
 				}
-			}
 
-			for (const auto& pNode : m_vecModelNodes)
-			{
-				const uint32_t nMaterialCount = pNode->GetMaterialCount();
-				for (uint32_t i = 0; i < nMaterialCount; ++i)
+				// Skeleton
+				const bool isHasSkeleton = *file::Stream::To<bool>(ppBuffer);
+				if (isHasSkeleton == true)
 				{
-					IMaterial* pMaterial = pNode->GetMaterial(i);
-					pMaterial->LoadTexture();
+					m_skeleton.LoadFile(ppBuffer);
 				}
 
-				const uint32_t nBoneCount = m_skeleton.GetBoneCount();
-				if (nBoneCount > 0)
+				for (const auto& pNode : m_vecModelNodes)
 				{
-					if (pNode->GetType() != IModelNode::eSkinned)
-						continue;
-
-					ModelNodeSkinned* pNodeSkinned = static_cast<ModelNodeSkinned*>(pNode);
-
-					uint32_t nIncludBoneCount = pNodeSkinned->GetBoneCount();
-
-					std::vector<string::StringID> vecBoneNames;
-					vecBoneNames.resize(nIncludBoneCount);
-
-					for (uint32_t j = 0; j < nIncludBoneCount; ++j)
+					const uint32_t nMaterialCount = pNode->GetMaterialCount();
+					for (uint32_t i = 0; i < nMaterialCount; ++i)
 					{
-						vecBoneNames[j] = pNodeSkinned->GetBoneName(j);
+						IMaterial* pMaterial = pNode->GetMaterial(i);
+						pMaterial->LoadTexture();
 					}
 
-					m_skeleton.SetSkinnedList(pNodeSkinned->GetName(), &vecBoneNames.front(), vecBoneNames.size());
+					const uint32_t nBoneCount = m_skeleton.GetBoneCount();
+					if (nBoneCount > 0)
+					{
+						if (pNode->GetType() != IModelNode::eSkinned)
+							continue;
+
+						ModelNodeSkinned* pNodeSkinned = static_cast<ModelNodeSkinned*>(pNode);
+
+						uint32_t nIncludBoneCount = pNodeSkinned->GetBoneCount();
+
+						std::vector<string::StringID> vecBoneNames;
+						vecBoneNames.resize(nIncludBoneCount);
+
+						for (uint32_t j = 0; j < nIncludBoneCount; ++j)
+						{
+							vecBoneNames[j] = pNodeSkinned->GetBoneName(j);
+						}
+
+						m_skeleton.SetSkinnedList(pNodeSkinned->GetName(), &vecBoneNames.front(), vecBoneNames.size());
+					}
 				}
 			}
 

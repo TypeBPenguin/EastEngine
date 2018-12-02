@@ -513,7 +513,7 @@ namespace eastengine
 
 			static IMaterial* Create(const char* strFileName, const char* strFilePath);
 			static void Destroy(IMaterial** ppMaterial);
-			static bool SaveToFile(IMaterial* pMaterial, const char* strFilePath);
+			static bool SaveFile(IMaterial* pMaterial, const char* strFilePath);
 
 		public:
 			virtual void LoadTexture() = 0;

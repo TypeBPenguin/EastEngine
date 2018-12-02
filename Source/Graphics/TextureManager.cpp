@@ -44,7 +44,7 @@ namespace eastengine
 			};
 
 		public:
-			void Cleanup(float fElapsedTime);
+			void Cleanup(float elapsedTime);
 
 			void AsyncLoadTexture(ITexture* pTexture, const char* strFilePath, std::function<bool(const std::string&)> funcLoad);
 
@@ -120,10 +120,10 @@ namespace eastengine
 			m_umapTexture.clear();
 		}
 
-		void TextureManager::Impl::Cleanup(float fElapsedTime)
+		void TextureManager::Impl::Cleanup(float elapsedTime)
 		{
 			TRACER_EVENT("TextureManager::Flush");
-			m_fTime += fElapsedTime;
+			m_fTime += elapsedTime;
 
 			std::lock_guard<std::mutex> lock(m_mutex);
 
@@ -220,9 +220,9 @@ namespace eastengine
 		{
 		}
 
-		void TextureManager::Cleanup(float fElapsedTime)
+		void TextureManager::Cleanup(float elapsedTime)
 		{
-			m_pImpl->Cleanup(fElapsedTime);
+			m_pImpl->Cleanup(elapsedTime);
 		}
 
 		void TextureManager::AsyncLoadTexture(ITexture* pTexture, const char* strFilePath, std::function<bool(const std::string&)> funcLoad)

@@ -26,7 +26,7 @@ namespace eastengine
 		IActor* IActor::CreateByFile(const char* strFilePath)
 		{
 			file::Stream file;
-			if (file.Open(strFilePath, file::eRead | file::eBinary) == false)
+			if (file.Open(strFilePath, file::eReadBinary) == false)
 			{
 				LOG_WARNING("Can't open to file : %s", strFilePath);
 				return nullptr;
@@ -45,11 +45,11 @@ namespace eastengine
 				strBuf.clear();
 				file >> strBuf;
 
-				EmComponent::Type emType = EmComponent::GetType(strBuf.c_str());
-				if (emType != EmComponent::TypeCount)
+				IComponent::Type emType = IComponent::GetType(strBuf.c_str());
+				if (emType != IComponent::TypeCount)
 				{
 					IComponent* pComponent = pActor->CreateComponent(emType);
-					pComponent->LoadToFile(file);
+					pComponent->LoadFile(file);
 				}
 			}
 
@@ -74,10 +74,10 @@ namespace eastengine
 			*ppActor = nullptr;
 		}
 
-		bool IActor::SaveToFile(IActor* pActor, const char* strFilePath)
+		bool IActor::SaveFile(IActor* pActor, const char* strFilePath)
 		{
 			file::Stream file;
-			if (file.Open(strFilePath, file::eWrite | file::eBinary) == false)
+			if (file.Open(strFilePath, file::eWriteBinary) == false)
 			{
 				LOG_WARNING("Can't open to file : %s", strFilePath);
 				return false;
@@ -86,9 +86,9 @@ namespace eastengine
 			file << pActor->GetName().c_str();
 
 			uint32_t nCount = 0;
-			for (int i = 0; i < EmComponent::TypeCount; ++i)
+			for (int i = 0; i < IComponent::TypeCount; ++i)
 			{
-				IComponent* pComponent = pActor->GetComponent(static_cast<EmComponent::Type>(i));
+				IComponent* pComponent = pActor->GetComponent(static_cast<IComponent::Type>(i));
 				if (pComponent != nullptr)
 				{
 					++nCount;
@@ -97,14 +97,14 @@ namespace eastengine
 
 			file << nCount;
 
-			for (int i = 0; i < EmComponent::TypeCount; ++i)
+			for (int i = 0; i < IComponent::TypeCount; ++i)
 			{
-				IComponent* pComponent = pActor->GetComponent(static_cast<EmComponent::Type>(i));
+				IComponent* pComponent = pActor->GetComponent(static_cast<IComponent::Type>(i));
 				if (pComponent != nullptr)
 				{
-					file << EmComponent::ToString(pComponent->GetComponentType());
+					file << IComponent::ToString(pComponent->GetComponentType());
 
-					pComponent->SaveToFile(file);
+					pComponent->SaveFile(file);
 				}
 			}
 

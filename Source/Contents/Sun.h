@@ -26,7 +26,7 @@ namespace Contents
 
 	public:
 		bool Init(const string::StringID& strName, graphics::ILight* pLight, float fRadius, const math::float3& f3CenterAxis, const math::float3& f3Velocity, const math::float3& f3OrbitalPos);
-		void Update(float fElapsedTime);
+		void Update(float elapsedTime);
 
 	public:
 		const math::float3& GetCenterAxis() const { return m_f3CenterAxis; }

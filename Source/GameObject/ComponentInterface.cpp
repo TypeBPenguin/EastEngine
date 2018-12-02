@@ -5,60 +5,54 @@ namespace eastengine
 {
 	namespace gameobject
 	{
-		namespace EmComponent
+		const char* IComponent::ToString(Type emType)
 		{
-			const char* ToString(Type emType)
+			switch (emType)
 			{
-				switch (emType)
-				{
-				case EmComponent::eActionState:
-					return "ActionState";
-					break;
-				case EmComponent::eTimer:
-					return "Timer";
-					break;
-				case EmComponent::ePhysics:
-					return "Physics";
-					break;
-				case EmComponent::eModel:
-					return "Model";
-					break;
-				case EmComponent::eCamera:
-					return "Camera";
-					break;
-				}
-
+			case eTimer:
+				return "Timer";
+			case eBehaviorTree:
+				return "BehaviorTree";
+			case ePhysics:
+				return "Physics";
+			case eModel:
+				return "Model";
+			case eCamera:
+				return "Camera";
+			case eLight:
+				return "Light";
+			default:
 				return nullptr;
-			}
-
-			Type GetType(const char* strType)
-			{
-				if (string::IsEquals(strType, "ActionState"))
-				{
-					return gameobject::EmComponent::eActionState;
-				}
-				else if (string::IsEquals(strType, "Timer"))
-				{
-					return gameobject::EmComponent::eTimer;
-				}
-				else if (string::IsEquals(strType, "Physics"))
-				{
-					return gameobject::EmComponent::ePhysics;
-				}
-				else if (string::IsEquals(strType, "Model"))
-				{
-					return gameobject::EmComponent::eModel;
-				}
-				else if (string::IsEquals(strType, "Camera"))
-				{
-					return gameobject::EmComponent::eCamera;
-				}
-
-				return gameobject::EmComponent::TypeCount;
 			}
 		}
 
-		IComponent::IComponent(IActor* pOwner, EmComponent::Type emCompType)
+		IComponent::Type IComponent::GetType(const char* strType)
+		{
+			if (string::IsEquals(strType, "BehaviorTree"))
+			{
+				return IComponent::eBehaviorTree;
+			}
+			else if (string::IsEquals(strType, "Timer"))
+			{
+				return IComponent::eTimer;
+			}
+			else if (string::IsEquals(strType, "Physics"))
+			{
+				return IComponent::ePhysics;
+			}
+			else if (string::IsEquals(strType, "Model"))
+			{
+				return IComponent::eModel;
+			}
+			else if (string::IsEquals(strType, "Camera"))
+			{
+				return IComponent::eCamera;
+			}
+
+			return IComponent::TypeCount;
+		}
+
+		IComponent::IComponent(IActor* pOwner, Type emCompType)
 			: m_pOwner(pOwner)
 			, m_emCompType(emCompType)
 		{
@@ -84,7 +78,7 @@ namespace eastengine
 			return pComponent;
 		}
 
-		void IComponent::DelComponent(EmComponent::Type emComponentType)
+		void IComponent::DelComponent(Type emComponentType)
 		{
 			auto iter = m_umapChild.find(emComponentType);
 			if (iter == m_umapChild.end())
@@ -93,7 +87,7 @@ namespace eastengine
 			m_umapChild.erase(iter);
 		}
 
-		IComponent* IComponent::GetComponent(EmComponent::Type emComponentType)
+		IComponent* IComponent::GetComponent(Type emComponentType)
 		{
 			auto iter = m_umapChild.find(emComponentType);
 			if (iter == m_umapChild.end())

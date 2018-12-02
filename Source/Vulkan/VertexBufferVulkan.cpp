@@ -9,7 +9,7 @@ namespace eastengine
 	{
 		namespace vulkan
 		{
-			VertexBuffer::VertexBuffer(const uint8_t* pData, uint32_t vertexCount, size_t formatSize)
+			VertexBuffer::VertexBuffer(const uint8_t* pData, uint32_t vertexCount, size_t formatSize, bool isDynamic)
 				: m_vertexCount(vertexCount)
 				, m_formatSize(static_cast<uint32_t>(formatSize))
 			{

@@ -111,21 +111,21 @@ SkeletonController::~SkeletonController()
 	}
 }
 
-bool SkeletonController::Process(float fElapsedTime)
+bool SkeletonController::Process(float elapsedTime)
 {
 	graphics::Camera* pCamera = graphics::Camera::GetInstance();
 	if (pCamera == nullptr)
 		return false;
 
 	int nThreadID = graphics::GetThreadID(graphics::eUpdate);
-	const math::int2 n2MousePoint(input::Mouse::GetX(), input::Mouse::GetY());
+	const math::int2 n2MousePoint(input::mouse::GetX(), input::mouse::GetY());
 	const math::uint2 n2ScreenSize = graphics::GetDevice()->GetScreenSize();
 	const math::Matrix& matView = pCamera->GetViewMatrix(nThreadID);
 	const math::Matrix& matProjection = pCamera->GetProjMatrix(nThreadID);
 
 	const Collision::Ray rayScreen = Collision::Ray::CreateFromScreenCoordinates(n2MousePoint, n2ScreenSize, matView, matProjection);
 
-	const bool isEnableRayTest = input::Mouse::IsButtonDown(input::Mouse::eLeft);
+	const bool isEnableRayTest = input::mouse::IsButtonDown(input::mouse::eLeft);
 	float fNearDistance = std::numeric_limits<float>::max();
 	graphics::ISkeletonInstance::IBone* pNearBone = nullptr;
 	bool isExistsCollisionBone = false;
@@ -134,7 +134,7 @@ bool SkeletonController::Process(float fElapsedTime)
 	for (size_t i = 0; i < nActorCount; ++i)
 	{
 		gameobject::IActor* pActor = gameobject::ActorManager::GetInstance()->GetActor(i);
-		gameobject::ComponentModel* pCompModel = static_cast<gameobject::ComponentModel*>(pActor->GetComponent(gameobject::EmComponent::eModel));
+		gameobject::ComponentModel* pCompModel = static_cast<gameobject::ComponentModel*>(pActor->GetComponent(gameobject::IComponent::eModel));
 		if (pCompModel != nullptr && pCompModel->IsLoadComplete() == true)
 		{
 			graphics::IModelInstance* pModelInstance = pCompModel->GetModelInstance();
@@ -202,7 +202,7 @@ bool SkeletonController::Process(float fElapsedTime)
 	else
 	{
 		static float fDist = 0.f;
-		if (m_pSelectedBone != nullptr && input::Mouse::IsButtonDown(input::Mouse::eMiddle) == true)
+		if (m_pSelectedBone != nullptr && input::mouse::IsButtonDown(input::mouse::eMiddle) == true)
 		{
 			math::float3 f3Scale;
 			math::float3 f3Pos;
@@ -221,7 +221,7 @@ bool SkeletonController::Process(float fElapsedTime)
 				m_isBoneMoveMode = false;
 			}
 		}
-		else if (input::Mouse::IsButtonUp(input::Mouse::eMiddle) == true)
+		else if (input::mouse::IsButtonUp(input::mouse::eMiddle) == true)
 		{
 			m_isBoneMoveMode = false;
 		}
@@ -229,8 +229,8 @@ bool SkeletonController::Process(float fElapsedTime)
 		if (m_isBoneMoveMode == true)
 		{
 			math::Matrix matInvView = matView;
-			math::float3 sideward = matInvView.Right() * fDist * 0.001f * static_cast<float>(input::Mouse::GetMoveX());
-			math::float3 upward = matInvView.Up() * fDist * 0.001f * -static_cast<float>(input::Mouse::GetMoveY());
+			math::float3 sideward = matInvView.Right() * fDist * 0.001f * static_cast<float>(input::mouse::GetMoveX());
+			math::float3 upward = matInvView.Up() * fDist * 0.001f * -static_cast<float>(input::mouse::GetMoveY());
 
 			//math::float3 f3Position = m_pSelectedBone->GetUserOffsetPosition() + sideward + upward;
 			//m_pSelectedBone->SetUserOffsetPosition(f3Position);

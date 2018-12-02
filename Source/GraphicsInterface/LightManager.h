@@ -16,7 +16,7 @@ namespace eastengine
 			virtual ~LightManager();
 
 		public:
-			void Update(float fElapsedTime);
+			void Update(float elapsedTime);
 
 		public:
 			bool AddLight(ILight* pLight);

@@ -6,30 +6,23 @@ namespace eastengine
 	namespace gameobject
 	{
 		ComponentTimer::ComponentTimer(IActor* pOwner)
-			: IComponent(pOwner, EmComponent::eTimer)
+			: IComponent(pOwner, IComponent::eTimer)
 		{
 		}
 
 		ComponentTimer::~ComponentTimer()
 		{
-			m_listTimeActions.clear();
 		}
 
-		void ComponentTimer::Update(float fElapsedTime)
+		void ComponentTimer::Update(float elapsedTime)
 		{
-			for (auto iter = m_listTimeActions.begin(); iter != m_listTimeActions.end();)
+			m_timeActions.erase(std::remove_if(m_timeActions.begin(), m_timeActions.end(), [elapsedTime](Timer::TimeAction& timeActions)
 			{
-				Timer::TimeAction& timeAction = *iter;
+				if (timeActions.isStopRequest == true)
+					return true;
 
-				bool isContinue = timeAction.Update(fElapsedTime);
-				if (isContinue == true)
-				{
-					++iter;
-					continue;
-				}
-
-				iter = m_listTimeActions.erase(iter);
-			}
+				return timeActions.Update(elapsedTime);
+			}), m_timeActions.end());
 		}
 	}
 }

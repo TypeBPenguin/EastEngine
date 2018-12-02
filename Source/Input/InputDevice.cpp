@@ -25,7 +25,7 @@ namespace eastengine
 			void Initialize(HINSTANCE hInstance, HWND hWnd, DWORD keyboardCoopFlag = eNoneExclusive | eForeGround, DWORD mouseCoopFlag = eNoneExclusive | eForeGround);
 
 		public:
-			void Update(float fElapsedTime);
+			void Update(float elapsedTime);
 
 			bool HandleMessage(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam);
 
@@ -70,12 +70,12 @@ namespace eastengine
 			m_isInitialized = true;
 		}
 
-		void Device::Impl::Update(float fElapsedTime)
+		void Device::Impl::Update(float elapsedTime)
 		{
 			TRACER_EVENT("InputDevice::Update");
 			m_mouse.Update();
 			m_keyboard.Update();
-			m_gamePad.Update(fElapsedTime);
+			m_gamePad.Update(elapsedTime);
 		}
 
 		bool Device::Impl::HandleMessage(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
@@ -104,9 +104,9 @@ namespace eastengine
 			m_pImpl->Initialize(hInstance, hWnd, keyboardCoopFlag, mouseCoopFlag);
 		}
 
-		void Device::Update(float fElapsedTime)
+		void Device::Update(float elapsedTime)
 		{
-			m_pImpl->Update(fElapsedTime);
+			m_pImpl->Update(elapsedTime);
 		}
 
 		bool Device::HandleMessage(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)

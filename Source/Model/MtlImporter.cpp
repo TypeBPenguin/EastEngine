@@ -52,7 +52,7 @@ namespace eastengine
 					strNewMtlName = strNewMtlName.substr(1, strNewMtlName.length());
 
 					MaterialInfo info;
-					info.strName = strNewMtlName.c_str();
+					info.name = strNewMtlName.c_str();
 					auto iter = m_umapNewMtrl.emplace(string::StringID(strNewMtlName.c_str()), CreateMaterial(&info));
 					pMaterial = iter.first->second;
 				}

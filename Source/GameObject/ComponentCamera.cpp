@@ -12,7 +12,7 @@ namespace eastengine
 	namespace gameobject
 	{
 		ComponentCamera::ComponentCamera(IActor* pOwner)
-			: IComponent(pOwner, EmComponent::eCamera)
+			: IComponent(pOwner, IComponent::eCamera)
 			, m_isThirdView(false)
 		{
 		}
@@ -36,7 +36,7 @@ namespace eastengine
 			m_pMainCamera->SetDistance(fThirdViewDistance);
 		}
 
-		void ComponentCamera::Update(float fElapsedTime)
+		void ComponentCamera::Update(float elapsedTime)
 		{
 			if (m_pMainCamera == nullptr)
 				return;
@@ -57,12 +57,12 @@ namespace eastengine
 				m_pMainCamera->SetThirdView(f3Eye);
 			}
 
-			float dx = static_cast<float>(input::Mouse::GetMoveX() * 0.25f);
-			float dy = static_cast<float>(input::Mouse::GetMoveY() * 0.25f);
-			float dz = static_cast<float>(input::Mouse::GetMoveWheel()) * 0.01f;
+			float dx = static_cast<float>(input::mouse::GetMoveX() * 0.25f);
+			float dy = static_cast<float>(input::mouse::GetMoveY() * 0.25f);
+			float dz = static_cast<float>(input::mouse::GetMoveWheel()) * 0.01f;
 			bool bX = fabsf(dx) > 0.f;
 			bool bY = fabsf(dy) > 0.f;
-			if (input::Mouse::IsButtonPressed(input::Mouse::eRight))
+			if (input::mouse::IsButtonPressed(input::mouse::eRight))
 			{
 				if (bX)
 				{

@@ -78,8 +78,8 @@ namespace eastengine
 		float GetElapsedTime() const { return static_cast<float>(m_dDeltaTime); };
 
 	public:
-		void StartTimeAction(std::function<void(uint32_t, float, float)> funcCallback, uint32_t nTimerID, uint32_t nInterval, uint32_t nLifeTime = TimeAction::eUnlimitedTime);
-		void StopTimeAction(uint32_t nTimerID);
+		void StartTimeAction(std::function<void(uint32_t, float, float)> funcCallback, uint32_t timerID, uint32_t interval, uint32_t lifeTime = TimeAction::eUnlimitedTime);
+		void StopTimeAction(uint32_t timerID);
 
 	private:
 		bool m_isStopped{ false };
@@ -92,7 +92,7 @@ namespace eastengine
 
 		std::chrono::milliseconds m_pausedTime;
 
-		std::list<TimeAction> m_listTimeActions;
+		std::vector<TimeAction> m_timeActions;
 	};
 
 	Timer::Impl::Impl()
@@ -163,20 +163,14 @@ namespace eastengine
 
 		m_dDeltaTime = std::max(m_dDeltaTime, 0.0);
 
-		float fElapsedTime = GetElapsedTime();
-		for (auto iter = m_listTimeActions.begin(); iter != m_listTimeActions.end();)
+		const float elapsedTime = GetElapsedTime();
+		m_timeActions.erase(std::remove_if(m_timeActions.begin(), m_timeActions.end(), [elapsedTime](TimeAction& timeActions)
 		{
-			Timer::TimeAction& timeAction = *iter;
+			if (timeActions.isStopRequest == true)
+				return true;
 
-			bool isContinue = timeAction.Update(fElapsedTime);
-			if (isContinue == true)
-			{
-				++iter;
-				continue;
-			}
-
-			iter = m_listTimeActions.erase(iter);
-		}
+			return timeActions.Update(elapsedTime);
+		}), m_timeActions.end());
 	}
 
 	double Timer::Impl::GetGameTime() const
@@ -187,50 +181,68 @@ namespace eastengine
 		return std::chrono::duration_cast<std::chrono::duration<double>>((m_curTime - m_pausedTime) - m_baseTime).count();
 	}
 
-	void Timer::Impl::StartTimeAction(std::function<void(uint32_t, float, float)> funcCallback, uint32_t nTimerID, uint32_t nInterval, uint32_t nLifeTime)
+	void Timer::Impl::StartTimeAction(std::function<void(uint32_t, float, float)> funcCallback, uint32_t timerID, uint32_t interval, uint32_t lifeTime)
 	{
-		m_listTimeActions.emplace_back(funcCallback, nTimerID, nInterval, nLifeTime);
+		m_timeActions.emplace_back(funcCallback, timerID, interval, lifeTime);
 	}
 
-	void Timer::Impl::StopTimeAction(uint32_t nTimerID)
+	void Timer::Impl::StopTimeAction(uint32_t timerID)
 	{
-		auto iter = std::find_if(m_listTimeActions.begin(), m_listTimeActions.end(), [nTimerID](const TimeAction& timeAction)
+		auto iter = std::find_if(m_timeActions.begin(), m_timeActions.end(), [timerID](const TimeAction& timeAction)
 		{
-			return timeAction.nTimerID == nTimerID;
+			return timeAction.timerID == timerID;
 		});
 
-		if (iter != m_listTimeActions.end())
+		if (iter != m_timeActions.end())
 		{
-			m_listTimeActions.erase(iter);
+			iter->isStopRequest = true;
 		}
 	}
 
-	Timer::TimeAction::TimeAction(std::function<void(uint32_t, float, float)> funcCallback, uint32_t nTimerID, uint32_t nInterval, uint32_t nLifeTime)
+	Timer::TimeAction::TimeAction(std::function<void(uint32_t, float, float)> funcCallback, uint32_t timerID, uint32_t interval, uint32_t lifeTime)
 		: funcCallback(funcCallback)
-		, nTimerID(nTimerID)
-		, nInterval(nInterval)
-		, nLifeTime(nLifeTime)
+		, timerID(timerID)
+		, interval(interval)
+		, lifeTime(lifeTime)
 	{
 	}
 
-	bool Timer::TimeAction::Update(float fElapsedTime)
+	Timer::TimeAction::TimeAction(TimeAction&& source) noexcept
 	{
-		if (nLifeTime != eUnlimitedTime)
+		*this = std::move(source);
+	}
+
+	Timer::TimeAction& Timer::TimeAction::operator = (TimeAction&& source) noexcept
+	{
+		timerID = std::move(source.timerID);
+		interval = std::move(source.interval);
+		lifeTime = std::move(source.lifeTime);
+		intervalCheckTime = std::move(source.intervalCheckTime);
+		processTime = std::move(source.processTime);
+		funcCallback = std::move(source.funcCallback);
+		isStopRequest = std::move(source.isStopRequest);
+
+		return *this;
+	}
+
+	bool Timer::TimeAction::Update(float elapsedTime)
+	{
+		if (lifeTime != eUnlimitedTime)
 		{
-			uint32_t nProcessTime = static_cast<uint32_t>(fProcessTime * 1000.f);
-			if (nProcessTime >= nLifeTime)
+			uint32_t nProcessTime = static_cast<uint32_t>(processTime * 1000.f);
+			if (nProcessTime >= lifeTime)
 				return false;
 		}
 
-		fProcessTime += fElapsedTime;
-		fIntervalCheckTime += fElapsedTime;
+		processTime += elapsedTime;
+		intervalCheckTime += elapsedTime;
 
-		uint32_t nIntervalCheckTime = static_cast<uint32_t>(fIntervalCheckTime * 1000.f);
-		if (nIntervalCheckTime >= nInterval)
+		const uint32_t intervalCheckTimeMS = static_cast<uint32_t>(intervalCheckTime * 1000.f);
+		if (intervalCheckTimeMS >= interval)
 		{
-			fIntervalCheckTime -= nInterval * 0.001f;
+			intervalCheckTime -= static_cast<float>(interval) * 0.001f;
 
-			funcCallback(nTimerID, fElapsedTime, fProcessTime);
+			funcCallback(timerID, elapsedTime, processTime);
 		}
 
 		return true;
@@ -275,13 +287,13 @@ namespace eastengine
 		return m_pImpl->GetElapsedTime();
 	}
 
-	void Timer::StartTimeAction(std::function<void(uint32_t, float, float)> funcCallback, uint32_t nTimerID, uint32_t nInterval, uint32_t nLifeTime)
+	void Timer::StartTimeAction(std::function<void(uint32_t, float, float)> funcCallback, uint32_t timerID, uint32_t interval, uint32_t lifeTime)
 	{
-		m_pImpl->StartTimeAction(funcCallback, nTimerID, nInterval, nLifeTime);
+		m_pImpl->StartTimeAction(funcCallback, timerID, interval, lifeTime);
 	}
 
-	void Timer::StopTimeAction(uint32_t nTimerID)
+	void Timer::StopTimeAction(uint32_t timerID)
 	{
-		m_pImpl->StopTimeAction(nTimerID);
+		m_pImpl->StopTimeAction(timerID);
 	}
 }

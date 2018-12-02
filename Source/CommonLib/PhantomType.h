@@ -19,6 +19,18 @@ namespace eastengine
 		{
 		}
 
+		PhantomType& operator = (const VALUE& source) noexcept
+		{
+			value = source;
+			return *this;
+		}
+
+		PhantomType& operator = (VALUE&& source) noexcept
+		{
+			value = std::move(source);
+			return *this;
+		}
+
 		bool operator == (const PhantomType& other) const { return value == other.value; }
 		bool operator != (const PhantomType& other) const { return value != other.value; }
 

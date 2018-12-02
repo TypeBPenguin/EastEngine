@@ -55,7 +55,7 @@ namespace eastengine
 			void Enter(IActor* pActor);
 			void Leave(IActor* pActor);
 
-			void Update(float fElapsedTime);
+			void Update(float elapsedTime);
 
 			bool MoveToNearSector(EmSector::Dir emSectorDir, IActor* pActor);
 

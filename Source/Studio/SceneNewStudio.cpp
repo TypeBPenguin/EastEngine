@@ -1,10 +1,12 @@
 #include "stdafx.h"
 #include "SceneNewStudio.h"
 
+#include "CommonLib/BehaviorTree.h"
 #include "CommonLib/FileUtil.h"
 
 #include "GraphicsInterface/Camera.h"
 #include "Input/InputInterface.h"
+
 #include "Model/ModelInterface.h"
 #include "Model/ModelLoader.h"
 #include "Model/MotionLoader.h"
@@ -19,6 +21,8 @@
 #include "SoundSystem/SoundInterface.h"
 
 #include "GraphicsInterface/imguiHelper.h"
+
+#include "Minion.h"
 
 using namespace eastengine;
 
@@ -51,6 +55,169 @@ SceneNewStudio::SceneNewStudio()
 
 SceneNewStudio::~SceneNewStudio()
 {
+}
+
+void TestBehaviorTree()
+{
+	// 교만, 질투, 분노, 나태, 탐욕, 식탐, 색욕
+	// 겸손, 친절, 인내, 근면, 자선, 절제, 순결
+	struct Bear
+	{
+		int money{ 0 };
+		int hungry{ 0 };
+		int sleepy{ 0 };
+		int food{ 0 };
+
+		void Work() { ++hungry; ++sleepy; money += 2; }
+		void Sleep() { hungry += 1; sleepy -= 2; }
+		void Eat() { --food; hungry -= 5; }
+
+		bool IsWakeup() const { return sleepy <= 0; }
+		bool IsSleepy() const { return sleepy > 10; }
+		bool IsHungry() const { return hungry > 5; }
+		bool IsHasFood() const { return food > 0; }
+
+		bool CanIBuyFood(int needMoney) const { return needMoney < money; }
+		void BuyFood(int needMoney) { money -= needMoney; ++food; }
+	};
+
+	Bear bear;
+
+	BehaviorTree bTree;
+	BehaviorTree::IDecoratorNode* pRoot = bTree.GetRoot();
+	auto pCoolDown = pRoot->SetCooldown("CoolDown", 3.f);
+	auto pMain = pCoolDown->SetSequence("Main");
+
+	auto pRandomSelector = pMain->AddRandomSelector("RandomSelector");
+	pMain->AddAction("Day", [&]()
+	{
+		LOG_ERROR("Day Result : nmoney[%d], hungry[%d], sleepy[%d], food[%d]", bear.money, bear.hungry, bear.sleepy, bear.food);
+		return true;
+	});
+
+	{
+		auto pEatSomeFood = pRandomSelector->AddSequence("EatSomeFood");
+		pEatSomeFood->AddAction("CheckHungry", [&]()
+		{
+			if (bear.IsHungry() == true)
+			{
+				LOG_MESSAGE("곰은 배가 고파요");
+				return true;
+			}
+			else
+			{
+				LOG_WARNING("곰은 배고프지 않아요");
+				return false;
+			}
+		});
+
+		auto pCheckFood = pEatSomeFood->AddSelector("CheckFood");
+		pCheckFood->AddAction("CheckFood", [&]()
+		{
+			if (bear.IsHasFood() == true)
+			{
+				LOG_MESSAGE("곰은 음식을 가지고 있어요");
+				return true;
+			}
+			else
+			{
+				LOG_WARNING("곰은 음식이 없어요");
+				return false;
+			}
+		});
+
+		auto pBuyFood = pCheckFood->AddSequence("BuyFood");
+		pBuyFood->AddAction("CheckMoney", [&]()
+		{
+			if (bear.CanIBuyFood(5) == true)
+			{
+				LOG_MESSAGE("곰은 돈이 있어요");
+				return true;
+			}
+			else
+			{
+				LOG_WARNING("곰은 돈이 없어요");
+				return false;
+			}
+		});
+		pBuyFood->AddAction("BuyFood", [&]()
+		{
+			LOG_MESSAGE("곰은 음식을 샀어요");
+			bear.BuyFood(5);
+			return true;
+		});
+
+		pEatSomeFood->AddAction("EatFood", [&]()
+		{
+			LOG_MESSAGE("곰은 음식을 먹었어요");
+			bear.Eat();
+			return true;
+		});
+	}
+	{
+		auto pSleep = pRandomSelector->AddSequence("Sleep");
+		pSleep->AddAction("IsSleep", [&]()
+		{
+			if (bear.IsSleepy() == true)
+			{
+				LOG_MESSAGE("곰은 졸려요");
+				return true;
+			}
+			else
+			{
+				LOG_WARNING("곰은 졸리지 않아요");
+				return false;
+			}
+		});
+
+		auto pSleeping = pSleep->AddConditionalLoop("SleepingLoop");
+		pSleeping->SetAction("Sleeping", [&]()
+		{
+			if (bear.IsWakeup() == false)
+			{
+				LOG_MESSAGE("곰은 잠자고 있어요");
+				bear.Sleep();
+				return true;
+			}
+			else
+			{
+				LOG_WARNING("곰은 잠에서 깨어났어요");
+				return false;
+			}
+		});
+	}
+	{
+		auto pWork = pRandomSelector->AddSequence("Work");
+		pWork->AddAction("CanIWork", [&]()
+		{
+			if (bear.IsSleepy() == false)
+			{
+				LOG_MESSAGE("곰은 일 할수 있어요");
+				return true;
+			}
+			else
+			{
+				LOG_MESSAGE("곰은 졸려서 일 할수 없어요");
+				return false;
+			}
+		});
+
+		pWork->AddAction("Work", [&]()
+		{
+			LOG_MESSAGE("곰은 일을 했어요");
+			bear.Work();
+			return true;
+		});
+	}
+
+	while (1)
+	{
+		const float elapsedTime = 0.016f;
+
+		bTree.Run(elapsedTime);
+
+		Sleep(16);
+	}
 }
 
 void SceneNewStudio::Enter()
@@ -105,8 +272,8 @@ void SceneNewStudio::Enter()
 
 		graphics::geometry::CreateSphere(vertices, indices, 1.f, 32u);
 
-		graphics::IVertexBuffer* pVertexBuffer = graphics::CreateVertexBuffer(reinterpret_cast<const uint8_t*>(vertices.data()), static_cast<uint32_t>(vertices.size()), sizeof(graphics::VertexPosTexNor));
-		graphics::IIndexBuffer* pIndexBuffer = graphics::CreateIndexBuffer(reinterpret_cast<const uint8_t*>(indices.data()), static_cast<uint32_t>(indices.size()), sizeof(uint32_t));
+		graphics::IVertexBuffer* pVertexBuffer = graphics::CreateVertexBuffer(reinterpret_cast<const uint8_t*>(vertices.data()), static_cast<uint32_t>(vertices.size()), sizeof(graphics::VertexPosTexNor), false);
+		graphics::IIndexBuffer* pIndexBuffer = graphics::CreateIndexBuffer(reinterpret_cast<const uint8_t*>(indices.data()), static_cast<uint32_t>(indices.size()), sizeof(uint32_t), false);
 
 		pImageBasedLight->SetEnvironmentSphere(pVertexBuffer, pIndexBuffer);
 
@@ -118,17 +285,17 @@ void SceneNewStudio::Enter()
 		auto pActor = gameobject::GameObjectManager::GetInstance()->CreateActor(StrID::Studio_Ground);
 
 		graphics::MaterialInfo material;
-		material.strName = StrID::Studio_Ground;
+		material.name = StrID::Studio_Ground;
 
 		graphics::ModelLoader loader;
 		loader.InitPlane(StrID::Studio_Ground, 1.f, 1.f, 100, 100, &material);
 
-		auto pCompModel = static_cast<gameobject::ComponentModel*>(pActor->CreateComponent(gameobject::EmComponent::eModel));
-		pCompModel->Init(&loader);
+		auto pCompModel = static_cast<gameobject::ComponentModel*>(pActor->CreateComponent(gameobject::IComponent::eModel));
+		pCompModel->Initialize(&loader);
 
 		auto pModelInst = pCompModel->GetModelInstance();
 
-		//auto pCompPhysics = static_cast<gameobject::ComponentPhysics*>(pActor->CreateComponent(gameobject::EmComponent::ePhysics));
+		//auto pCompPhysics = static_cast<gameobject::ComponentPhysics*>(pActor->CreateComponent(gameobject::IComponent::ePhysics));
 		//
 		//physics::RigidBodyProperty prop;
 		//prop.fRestitution = 0.75f;
@@ -136,7 +303,7 @@ void SceneNewStudio::Enter()
 		//prop.fMass = 0.f;
 		//prop.nCollisionFlag = physics::EmCollision::eStaticObject;
 		//prop.shapeInfo.SetTriangleMesh();
-		//pCompPhysics->Init(pModelInst, prop);
+		//pCompPhysics->Initialize(pModelInst, prop);
 
 		/*gameobject::SectorInitInfo sectorInitInfo;
 		sectorInitInfo.fRadius = 10.f;
@@ -148,85 +315,85 @@ void SceneNewStudio::Enter()
 		m_pSectorMgr = CreateSectorMgr(sectorInitInfo);*/
 	}
 
-	graphics::IMaterial* pMaterial_override = nullptr;
-	for (int j = 0; j < 5; ++j)
-	{
-		for (int i = 0; i < 50; ++i)
-		{
-			/*graphics::MaterialInfo materialInfo;
-			materialInfo.strName.Format("TestBox%d", (i % 10) + 1);
-			materialInfo.strPath = file::GetPath(file::eTexture);
-
-			materialInfo.strTextureNameArray[graphics::EmMaterial::eAlbedo].Format("Pattern\\pattern_%02d\\%s", (i % 10) + 1, "diffus.tga");
-			materialInfo.strTextureNameArray[graphics::EmMaterial::eNormal].Format("Pattern\\pattern_%02d\\%s", (i % 10) + 1, "Normal.tga");
-			materialInfo.strTextureNameArray[graphics::EmMaterial::eSpecularColor].Format("Pattern\\pattern_%02d\\%s", (i % 10) + 1, "specular.tga");
-			*/
-			graphics::MaterialInfo materialInfo;
-			materialInfo.strName = "TestBox";
-			materialInfo.strPath = file::GetPath(file::eTexture);
-
-			materialInfo.strTextureNameArray[graphics::EmMaterial::eAlbedo].Format("Pattern\\pattern_01\\%s", "diffus.tga");
-			materialInfo.strTextureNameArray[graphics::EmMaterial::eNormal].Format("Pattern\\pattern_01\\%s", "Normal.tga");
-			materialInfo.strTextureNameArray[graphics::EmMaterial::eSpecular].Format("Pattern\\pattern_01\\%s", "specular.tga");
-
-			//materialInfo.f4PaddingRoughMetEmi.y = 0.1f * ((i % 10) + 1);
-			//materialInfo.f4PaddingRoughMetEmi.z = 1.f - 0.1f * ((i % 10) + 1);
-
-			materialInfo.f4PaddingRoughMetEmi.y = 0.5f;
-			materialInfo.f4PaddingRoughMetEmi.z = 0.5f;
-
-			//materialInfo.rasterizerStateDesc = graphics::GetDevice()->GetRasterizerStateDesc(graphics::EmRasterizerState::eNone);
-			//materialInfo.colorAlbedo = math::Color(math::Random(0.f, 1.f), math::Random(0.f, 1.f), math::Random(0.f, 1.f), 1.f);
-
-			gameobject::IActor* pActor = gameobject::GameObjectManager::GetInstance()->CreateActor("TestBox");
-
-			math::float3 f3Pos;
-			f3Pos.x = -4.f + (i % 5) * 3.f;
-			//f3Pos.y = 100.5f + (j * 3.f);
-			f3Pos.y = 0.5f + (j * 3.f);
-			f3Pos.z = -4.f + (i / 5) * 3.f;
-
-			pActor->SetPosition(f3Pos);
-
-			gameobject::ComponentModel* pCompModel = static_cast<gameobject::ComponentModel*>(pActor->CreateComponent(gameobject::EmComponent::eModel));
-
-			graphics::ModelLoader loader;
-			//loader.InitBox(string::Format("TestBox%d", (i % 10) + 1).c_str(), &materialInfo);
-			loader.InitBox("TestBox", &materialInfo);
-			pCompModel->Init(&loader);
-			auto pModelInst = pCompModel->GetModelInstance();
-
-			if (i % 2 == 0)
-			{
-				if (pMaterial_override == nullptr)
-				{
-					graphics::MaterialInfo materialInfo2;
-					materialInfo2.strName = "TestBox";
-					materialInfo2.strPath = file::GetPath(file::eTexture);
-
-					materialInfo2.strTextureNameArray[graphics::EmMaterial::eAlbedo].Format("Pattern\\pattern_02\\%s", "diffus.tga");
-					materialInfo2.strTextureNameArray[graphics::EmMaterial::eNormal].Format("Pattern\\pattern_02\\%s", "Normal.tga");
-					materialInfo2.strTextureNameArray[graphics::EmMaterial::eSpecular].Format("Pattern\\pattern_02\\%s", "specular.tga");
-
-					pMaterial_override = graphics::CreateMaterial(&materialInfo2);
-					pMaterial_override->DecreaseReference();
-				}
-				pModelInst->ChangeMaterial("EastEngine_Box", 0, pMaterial_override);
-			}
-
-			//gameobject::ComponentPhysics* pCompPhysics = static_cast<gameobject::ComponentPhysics*>(pActor->CreateComponent(gameobject::EmComponent::ePhysics));
-			//
-			//physics::RigidBodyProperty prop;
-			//prop.fRestitution = 0.5f;
-			//prop.strName.Format("TestBox_RigidBody%d", i).c_str();
-			//
-			//prop.shapeInfo.SetBox(math::float3(1.f));
-			////prop.shapeInfo.SetCapsule(math::Random(0.5f, 1.f), math::Random(1.f, 2.f));
-			//prop.nCollisionFlag = physics::EmCollision::eCharacterObject;
-			//prop.f3OriginPos = f3Pos;
-			//pCompPhysics->Init(prop);
-		}
-	}
+	//graphics::IMaterial* pMaterial_override = nullptr;
+	//for (int j = 0; j < 5; ++j)
+	//{
+	//	for (int i = 0; i < 50; ++i)
+	//	{
+	//		/*graphics::MaterialInfo materialInfo;
+	//		materialInfo.name.Format("TestBox%d", (i % 10) + 1);
+	//		materialInfo.strPath = file::GetPath(file::eTexture);
+	//
+	//		materialInfo.strTextureNameArray[graphics::EmMaterial::eAlbedo].Format("Pattern\\pattern_%02d\\%s", (i % 10) + 1, "diffus.tga");
+	//		materialInfo.strTextureNameArray[graphics::EmMaterial::eNormal].Format("Pattern\\pattern_%02d\\%s", (i % 10) + 1, "Normal.tga");
+	//		materialInfo.strTextureNameArray[graphics::EmMaterial::eSpecularColor].Format("Pattern\\pattern_%02d\\%s", (i % 10) + 1, "specular.tga");
+	//		*/
+	//		graphics::MaterialInfo materialInfo;
+	//		materialInfo.name = "TestBox";
+	//		materialInfo.strPath = file::GetPath(file::eTexture);
+	//
+	//		materialInfo.strTextureNameArray[graphics::EmMaterial::eAlbedo].Format("Pattern\\pattern_01\\%s", "diffus.tga");
+	//		materialInfo.strTextureNameArray[graphics::EmMaterial::eNormal].Format("Pattern\\pattern_01\\%s", "Normal.tga");
+	//		materialInfo.strTextureNameArray[graphics::EmMaterial::eSpecular].Format("Pattern\\pattern_01\\%s", "specular.tga");
+	//
+	//		//materialInfo.f4PaddingRoughMetEmi.y = 0.1f * ((i % 10) + 1);
+	//		//materialInfo.f4PaddingRoughMetEmi.z = 1.f - 0.1f * ((i % 10) + 1);
+	//
+	//		materialInfo.f4PaddingRoughMetEmi.y = 0.5f;
+	//		materialInfo.f4PaddingRoughMetEmi.z = 0.5f;
+	//
+	//		//materialInfo.rasterizerStateDesc = graphics::GetDevice()->GetRasterizerStateDesc(graphics::EmRasterizerState::eNone);
+	//		//materialInfo.colorAlbedo = math::Color(math::Random(0.f, 1.f), math::Random(0.f, 1.f), math::Random(0.f, 1.f), 1.f);
+	//
+	//		gameobject::IActor* pActor = gameobject::GameObjectManager::GetInstance()->CreateActor("TestBox");
+	//
+	//		math::float3 f3Pos;
+	//		f3Pos.x = -4.f + (i % 5) * 3.f;
+	//		//f3Pos.y = 100.5f + (j * 3.f);
+	//		f3Pos.y = 0.5f + (j * 3.f);
+	//		f3Pos.z = -4.f + (i / 5) * 3.f;
+	//
+	//		pActor->SetPosition(f3Pos);
+	//
+	//		gameobject::ComponentModel* pCompModel = static_cast<gameobject::ComponentModel*>(pActor->CreateComponent(gameobject::IComponent::eModel));
+	//
+	//		graphics::ModelLoader loader;
+	//		//loader.InitBox(string::Format("TestBox%d", (i % 10) + 1).c_str(), &materialInfo);
+	//		loader.InitBox("TestBox", &materialInfo);
+	//		pCompModel->Initialize(&loader);
+	//		auto pModelInst = pCompModel->GetModelInstance();
+	//
+	//		if (i % 2 == 0)
+	//		{
+	//			if (pMaterial_override == nullptr)
+	//			{
+	//				graphics::MaterialInfo materialInfo2;
+	//				materialInfo2.strName = "TestBox";
+	//				materialInfo2.strPath = file::GetPath(file::eTexture);
+	//
+	//				materialInfo2.strTextureNameArray[graphics::EmMaterial::eAlbedo].Format("Pattern\\pattern_02\\%s", "diffus.tga");
+	//				materialInfo2.strTextureNameArray[graphics::EmMaterial::eNormal].Format("Pattern\\pattern_02\\%s", "Normal.tga");
+	//				materialInfo2.strTextureNameArray[graphics::EmMaterial::eSpecular].Format("Pattern\\pattern_02\\%s", "specular.tga");
+	//
+	//				pMaterial_override = graphics::CreateMaterial(&materialInfo2);
+	//				pMaterial_override->DecreaseReference();
+	//			}
+	//			pModelInst->ChangeMaterial("EastEngine_Box", 0, pMaterial_override);
+	//		}
+	//
+	//		//gameobject::ComponentPhysics* pCompPhysics = static_cast<gameobject::ComponentPhysics*>(pActor->CreateComponent(gameobject::IComponent::ePhysics));
+	//		//
+	//		//physics::RigidBodyProperty prop;
+	//		//prop.fRestitution = 0.5f;
+	//		//prop.strName.Format("TestBox_RigidBody%d", i).c_str();
+	//		//
+	//		//prop.shapeInfo.SetBox(math::float3(1.f));
+	//		////prop.shapeInfo.SetCapsule(math::Random(0.5f, 1.f), math::Random(1.f, 2.f));
+	//		//prop.nCollisionFlag = physics::EmCollision::eCharacterObject;
+	//		//prop.f3OriginPos = f3Pos;
+	//		//pCompPhysics->Initialize(prop);
+	//	}
+	//}
 
 	if (false)
 	{
@@ -286,8 +453,8 @@ void SceneNewStudio::Enter()
 		}
 		loader.SetEnableThreadLoad(false);
 
-		gameobject::ComponentModel* pModel = static_cast<gameobject::ComponentModel*>(pActor->CreateComponent(gameobject::EmComponent::eModel));
-		pModel->Init(&loader);
+		gameobject::ComponentModel* pModel = static_cast<gameobject::ComponentModel*>(pActor->CreateComponent(gameobject::IComponent::eModel));
+		pModel->Initialize(&loader);
 
 		return pActor;
 	};
@@ -305,18 +472,18 @@ void SceneNewStudio::Enter()
 		pos.z = 0.f + (2.f * (i / 10));
 
 		gameobject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
-		gameobject::ComponentModel* pModel = static_cast<gameobject::ComponentModel*>(pActor->CreateComponent(gameobject::EmComponent::eModel));
+		gameobject::ComponentModel* pModel = static_cast<gameobject::ComponentModel*>(pActor->CreateComponent(gameobject::IComponent::eModel));
 		graphics::IModelInstance* pModelInstance = pModel->GetModelInstance();
 
 		//if (false)
 		{
 			const std::vector<const char*> vecAnim =
 			{
-				"Actor\\UnityChan\\Animations\\unitychan_WAIT00.fbx",
-				"Actor\\UnityChan\\Animations\\unitychan_WAIT01.fbx",
-				"Actor\\UnityChan\\Animations\\unitychan_WAIT02.fbx",
-				"Actor\\UnityChan\\Animations\\unitychan_WAIT03.fbx",
-				"Actor\\UnityChan\\Animations\\unitychan_WAIT04.fbx",
+				"Actor\\UnityChan\\Animations\\unitychan_WAIT00.emot",
+				"Actor\\UnityChan\\Animations\\unitychan_WAIT01.emot",
+				"Actor\\UnityChan\\Animations\\unitychan_WAIT02.emot",
+				"Actor\\UnityChan\\Animations\\unitychan_WAIT03.emot",
+				"Actor\\UnityChan\\Animations\\unitychan_WAIT04.emot",
 			};
 
 			std::string strPathMotion(file::GetDataPath());
@@ -330,11 +497,11 @@ void SceneNewStudio::Enter()
 			graphics::IMotion* pMotion = graphics::IMotion::Create(motionLoader);
 
 			graphics::MotionPlaybackInfo playback;
-			playback.fSpeed = math::Random(0.5f, 1.5f);
-			playback.nLoopCount = graphics::MotionPlaybackInfo::eMaxLoopCount;
-			//playback.fWeight = math::Random(0.1f, 0.5f);
-			playback.fWeight = 1.f;
-			pModel->PlayMotion(graphics::EmMotion::eLayer1, pMotion, &playback);
+			playback.speed = math::RandomReal(0.5f, 1.5f);
+			playback.loopCount = graphics::MotionPlaybackInfo::eMaxLoopCount;
+			//playback.weight = math::Random(0.1f, 0.5f);
+			playback.weight = 1.f;
+			pModel->PlayMotion(graphics::MotionLayers::eLayer1, pMotion, &playback);
 		}
 
 		//{
@@ -361,13 +528,13 @@ void SceneNewStudio::Enter()
 		//	graphics::IMotion* pMotion = graphics::IMotion::Create(motionLoader);
 
 		//	graphics::MotionPlaybackInfo playback;
-		//	playback.fSpeed = math::Random(0.5f, 1.5f);
-		//	playback.nLoopCount = graphics::MotionPlaybackInfo::eMaxLoopCount;
-		//	playback.fWeight = math::Random(0.7f, 1.f);
-		//	pMotionSystem->Play(graphics::EmMotion::eLayer2, pMotion, &playback);
+		//	playback.speed = math::Random(0.5f, 1.5f);
+		//	playback.loopCount = graphics::MotionPlaybackInfo::eMaxLoopCount;
+		//	playback.weight = math::Random(0.7f, 1.f);
+		//	pMotionSystem->Play(graphics::MotionLayers::eLayer2, pMotion, &playback);
 		//}
 
-		//gameobject::ComponentPhysics* pCompPhysics = static_cast<gameobject::ComponentPhysics*>(pActor->CreateComponent(gameobject::EmComponent::ePhysics));
+		//gameobject::ComponentPhysics* pCompPhysics = static_cast<gameobject::ComponentPhysics*>(pActor->CreateComponent(gameobject::IComponent::ePhysics));
 
 		//math::float3 ragdollPos = pActor->GetPosition();
 		//pCompPhysics->m_pRagDoll->BuildBipadRagDoll(pModelInstance->GetSkeleton(), ragdollPos, math::Quaternion::Identity, 0.8f);
@@ -402,7 +569,7 @@ void SceneNewStudio::Enter()
 		strPath.append("Model\\KimJiYoon\\KimJiYoon.emod");
 
 		gameobject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
-		gameobject::ComponentModel* pModel = static_cast<gameobject::ComponentModel*>(pActor->CreateComponent(gameobject::EmComponent::eModel));
+		gameobject::ComponentModel* pModel = static_cast<gameobject::ComponentModel*>(pActor->CreateComponent(gameobject::IComponent::eModel));
 
 		//if (false)
 		{
@@ -416,10 +583,10 @@ void SceneNewStudio::Enter()
 			graphics::IMotion* pMotion = graphics::IMotion::Create(motionLoader);
 
 			graphics::MotionPlaybackInfo playback;
-			playback.fSpeed = 1.f;
-			playback.nLoopCount = graphics::MotionPlaybackInfo::eMaxLoopCount;
-			playback.fWeight = 1.f;
-			pModel->PlayMotion(graphics::EmMotion::eLayer1, pMotion, &playback);
+			playback.speed = 1.f;
+			playback.loopCount = graphics::MotionPlaybackInfo::eMaxLoopCount;
+			playback.weight = 1.f;
+			pModel->PlayMotion(graphics::MotionLayers::eLayer1, pMotion, &playback);
 		}
 	}
 
@@ -435,7 +602,7 @@ void SceneNewStudio::Enter()
 		strPath.append("Model\\2B_NierAutomata\\2B_NierAutomata.emod");
 
 		gameobject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
-		gameobject::ComponentModel* pModel = static_cast<gameobject::ComponentModel*>(pActor->CreateComponent(gameobject::EmComponent::eModel));
+		gameobject::ComponentModel* pModel = static_cast<gameobject::ComponentModel*>(pActor->CreateComponent(gameobject::IComponent::eModel));
 
 		graphics::IModelInstance* pModelInstance = pModel->GetModelInstance();
 
@@ -637,6 +804,10 @@ void SceneNewStudio::Enter()
 		gameobject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
 	}
 
+	{
+		m_pMinion = std::make_unique<Minion>();
+	}
+
 	// Sound
 	{
 		strPath = file::GetPath(file::eSound);
@@ -649,19 +820,19 @@ void SceneNewStudio::Exit()
 {
 }
 
-void SceneNewStudio::Update(float fElapsedTime)
+void SceneNewStudio::Update(float elapsedTime)
 {
 	const ImGuiIO& io = ImGui::GetIO();
 
-	if (io.WantCaptureMouse == false)
-	{
-		ProcessInput(fElapsedTime);
-	}
+	//if (io.WantCaptureMouse == false)
+	//{
+	//	ProcessInput(elapsedTime);
+	//}
 
-	RenderImGui(fElapsedTime);
+	RenderImGui(elapsedTime);
 
 	static float fTime = 0.f;
-	fTime += fElapsedTime;
+	fTime += elapsedTime;
 
 	static int nFrame = 0;
 	++nFrame;
@@ -677,18 +848,18 @@ void SceneNewStudio::Update(float fElapsedTime)
 	}
 }
 
-void SceneNewStudio::ProcessInput(float fElapsedTime)
+void SceneNewStudio::ProcessInput(float elapsedTime)
 {
 	graphics::Camera* pCamera = graphics::Camera::GetInstance();
 	if (pCamera == nullptr)
 		return;
 
-	float dx = static_cast<float>(input::Mouse::GetMoveX());
-	float dy = static_cast<float>(input::Mouse::GetMoveY());
-	float dz = static_cast<float>(input::Mouse::GetMoveWheel());
+	float dx = static_cast<float>(input::mouse::GetMoveX());
+	float dy = static_cast<float>(input::mouse::GetMoveY());
+	float dz = static_cast<float>(input::mouse::GetMoveWheel());
 	bool isMoveAxisX = math::IsZero(dx) == false;
 	bool isMoveAxisY = math::IsZero(dy) == false;
-	if (input::Mouse::IsButtonPressed(input::Mouse::eRight))
+	if (input::mouse::IsButtonPressed(input::mouse::eRight))
 	{
 		if (isMoveAxisX == true)
 		{
@@ -701,7 +872,7 @@ void SceneNewStudio::ProcessInput(float fElapsedTime)
 		}
 	}
 
-	if (input::Mouse::IsButtonPressed(input::Mouse::eMiddle))
+	if (input::mouse::IsButtonPressed(input::mouse::eMiddle))
 	{
 		if (isMoveAxisX == true)
 		{
@@ -714,7 +885,7 @@ void SceneNewStudio::ProcessInput(float fElapsedTime)
 		}
 	}
 
-	if (input::Mouse::IsButtonPressed(input::Mouse::eLeft))
+	if (input::mouse::IsButtonPressed(input::mouse::eLeft))
 	{
 		if (isMoveAxisX == true)
 		{
@@ -732,72 +903,72 @@ void SceneNewStudio::ProcessInput(float fElapsedTime)
 		pCamera->MoveForward(dz * 0.01f);
 	}
 
-	if (input::Keyboard::IsKeyPressed(input::Keyboard::eW))
+	if (input::keyboard::IsKeyPressed(input::keyboard::eW))
 	{
 		pCamera->MoveForward(1.f);
 	}
 
-	if (input::Keyboard::IsKeyPressed(input::Keyboard::eS))
+	if (input::keyboard::IsKeyPressed(input::keyboard::eS))
 	{
 		pCamera->MoveForward(-1.f);
 	}
 
-	if (input::Keyboard::IsKeyPressed(input::Keyboard::eA))
+	if (input::keyboard::IsKeyPressed(input::keyboard::eA))
 	{
 		pCamera->MoveSideward(-1.f);
 	}
 
-	if (input::Keyboard::IsKeyPressed(input::Keyboard::eD))
+	if (input::keyboard::IsKeyPressed(input::keyboard::eD))
 	{
 		pCamera->MoveSideward(1.f);
 	}
 
-	if (input::Keyboard::IsKeyPressed(input::Keyboard::eE))
+	if (input::keyboard::IsKeyPressed(input::keyboard::eE))
 	{
 		pCamera->MoveUpward(1.f);
 	}
 
-	if (input::Keyboard::IsKeyPressed(input::Keyboard::eQ))
+	if (input::keyboard::IsKeyPressed(input::keyboard::eQ))
 	{
 		pCamera->MoveUpward(-1.f);
 	}
 
-	if (input::GamePad::IsConnected() == true)
+	if (input::gamepad::IsConnected() == true)
 	{
-		auto LogButton = [](const char* strButtonName, const input::GamePad::ButtonState& emButtonState)
+		auto LogButton = [](const char* strButtonName, const input::gamepad::ButtonState& emButtonState)
 		{
-			if (emButtonState == input::GamePad::ButtonState::ePressed)
+			if (emButtonState == input::gamepad::ButtonState::ePressed)
 			{
 				LOG_MESSAGE("%s Pressed", strButtonName);
 			}
-			else if (emButtonState == input::GamePad::ButtonState::eUp)
+			else if (emButtonState == input::gamepad::ButtonState::eUp)
 			{
 				LOG_MESSAGE("%s Up", strButtonName);
 			}
-			else if (emButtonState == input::GamePad::ButtonState::eDown)
+			else if (emButtonState == input::gamepad::ButtonState::eDown)
 			{
 				LOG_MESSAGE("%s Down", strButtonName);
 			}
 		};
 
-		LogButton("A", input::GamePad::A());
-		LogButton("B", input::GamePad::B());
-		LogButton("X", input::GamePad::X());
-		LogButton("Y", input::GamePad::Y());
+		LogButton("A", input::gamepad::A());
+		LogButton("B", input::gamepad::B());
+		LogButton("X", input::gamepad::X());
+		LogButton("Y", input::gamepad::Y());
 
-		LogButton("LeftStick", input::GamePad::LeftStick());
-		LogButton("RightStick", input::GamePad::RightStick());
+		LogButton("LeftStick", input::gamepad::LeftStick());
+		LogButton("RightStick", input::gamepad::RightStick());
 
-		LogButton("LeftShoulder", input::GamePad::LeftShoulder());
-		LogButton("RightShoulder", input::GamePad::RightShoulder());
+		LogButton("LeftShoulder", input::gamepad::LeftShoulder());
+		LogButton("RightShoulder", input::gamepad::RightShoulder());
 
-		LogButton("Back", input::GamePad::Back());
-		LogButton("Start", input::GamePad::Start());
+		LogButton("Back", input::gamepad::Back());
+		LogButton("Start", input::gamepad::Start());
 
-		LogButton("DPadUp", input::GamePad::DPadUp());
-		LogButton("DPadDown", input::GamePad::DPadDown());
-		LogButton("DPadLeft", input::GamePad::DPadLeft());
-		LogButton("DPadRight", input::GamePad::DPadRight());
+		LogButton("DPadUp", input::gamepad::DPadUp());
+		LogButton("DPadDown", input::gamepad::DPadDown());
+		LogButton("DPadLeft", input::gamepad::DPadLeft());
+		LogButton("DPadRight", input::gamepad::DPadRight());
 
 		auto LogStick = [](const char* strStickName, float fValue)
 		{
@@ -807,12 +978,12 @@ void SceneNewStudio::ProcessInput(float fElapsedTime)
 			}
 		};
 
-		LogStick("LeftThumbStickX", input::GamePad::LeftThumbStickX());
-		LogStick("LeftThumbStickY", input::GamePad::LeftThumbStickY());
-		LogStick("RightThumbStickX", input::GamePad::RightThumbStickX());
-		LogStick("RightThumbStickY", input::GamePad::RightThumbStickY());
-		LogStick("LeftTrigger", input::GamePad::LeftTrigger());
-		LogStick("RightTrigger", input::GamePad::RightTrigger());
+		LogStick("LeftThumbStickX", input::gamepad::LeftThumbStickX());
+		LogStick("LeftThumbStickY", input::gamepad::LeftThumbStickY());
+		LogStick("RightThumbStickX", input::gamepad::RightThumbStickX());
+		LogStick("RightThumbStickY", input::gamepad::RightThumbStickY());
+		LogStick("LeftTrigger", input::gamepad::LeftTrigger());
+		LogStick("RightTrigger", input::gamepad::RightTrigger());
 
 		//static float fTime = 0.f;
 		//if (fTime >= 5.f)
@@ -820,7 +991,7 @@ void SceneNewStudio::ProcessInput(float fElapsedTime)
 		//	pPlayer->SetVibration(0.5f, 0.5f, 1.f);
 		//	fTime -= 5.f;
 		//}
-		//fTime += fElapsedTime;
+		//fTime += elapsedTime;
 	}
 	else
 	{
@@ -831,7 +1002,7 @@ void SceneNewStudio::ProcessInput(float fElapsedTime)
 		//	fTime -= 1.f;
 		//}
 		//
-		//fTime += fElapsedTime;
+		//fTime += elapsedTime;
 	}
 }
 
@@ -1246,7 +1417,8 @@ void ShowMotion(bool& isShowMotionMenu, gameobject::ComponentModel* pCompModel)
 
 	if (ImGui::Button("Load Motion") == true)
 	{
-		char path[512]{};
+		const size_t bufferSize = 8192;
+		char path[bufferSize]{};
 
 		OPENFILENAME ofn;
 		memory::Clear(&ofn, sizeof(ofn));
@@ -1255,21 +1427,38 @@ void ShowMotion(bool& isShowMotionMenu, gameobject::ComponentModel* pCompModel)
 		ofn.hwndOwner = graphics::GetHwnd();
 		ofn.lpstrFilter = "Motion File(*.fbx;*.emot)\0*.fbx;*.emot\0FBX File(*.fbx)\0*.fbx\0EastMotion File(*.emot)\0*.emot\0";
 		ofn.lpstrFile = path;
-		ofn.nMaxFile = 256;
+		ofn.nMaxFile = bufferSize;
+		ofn.Flags = OFN_ALLOWMULTISELECT | OFN_EXPLORER;
 		if (GetOpenFileName(&ofn) != 0)
 		{
-			const std::string strFileExtension = file::GetFileExtension(ofn.lpstrFile);
-			if (string::IsEqualsNoCase(strFileExtension.c_str(), ".fbx") == true)
+			char* ptr = path;
+			ptr[ofn.nFileOffset - 1] = 0;
+
+			const std::string directory = ptr;
+			ptr += ofn.nFileOffset;
+
+			std::vector<std::string> files;
+			while (*ptr)
 			{
-				graphics::MotionLoader loader;
-				loader.InitFBX(file::GetFileName(ofn.lpstrFile).c_str(), ofn.lpstrFile, 0.01f);
-				graphics::IMotion::Create(loader);
+				files.emplace_back(directory + "\\" + ptr);
+				ptr += (lstrlen(ptr) + 1);
 			}
-			else if (string::IsEqualsNoCase(strFileExtension.c_str(), ".emot") == true)
+
+			for (auto& filePath : files)
 			{
-				graphics::MotionLoader loader;
-				loader.InitEast(file::GetFileName(ofn.lpstrFile).c_str(), ofn.lpstrFile);
-				graphics::IMotion::Create(loader);
+				const std::string strFileExtension = file::GetFileExtension(filePath);
+				if (string::IsEqualsNoCase(strFileExtension.c_str(), ".fbx") == true)
+				{
+					graphics::MotionLoader loader;
+					loader.InitFBX(file::GetFileName(filePath).c_str(), filePath.c_str());
+					graphics::IMotion::Create(loader);
+				}
+				else if (string::IsEqualsNoCase(strFileExtension.c_str(), ".emot") == true)
+				{
+					graphics::MotionLoader loader;
+					loader.InitEast(file::GetFileName(filePath).c_str(), filePath.c_str());
+					graphics::IMotion::Create(loader);
+				}
 			}
 		}
 	}
@@ -1285,10 +1474,42 @@ void ShowMotion(bool& isShowMotionMenu, gameobject::ComponentModel* pCompModel)
 		vecMotionNames.emplace_back(pMotion->GetName().c_str());
 	}
 
+	static graphics::MotionLayers emLayer = graphics::MotionLayers::eLayer1;
+	static float fMotionSpeed = 1.f;
+	static float fMotionWeight = 1.f;
+	static float fMotionBlendTime = 0.f;
+	static bool isMotionLoop = false;
+	static bool isMotionInverse = false;
+
 	static int nSelectedIndex = 0;
 	if (vecMotionNames.empty() == false)
 	{
-		ImGui::ListBox("Motion List", &nSelectedIndex, &vecMotionNames.front(), static_cast<int>(vecMotionNames.size()), 6);
+		int prevSelectedIndex = -1;
+		if (ImGui::ListBox("Motion List", &nSelectedIndex, &vecMotionNames.front(), static_cast<int>(vecMotionNames.size()), 6) == true)
+		{
+			if (prevSelectedIndex == nSelectedIndex)
+			{
+				graphics::MotionPlaybackInfo playback;
+				playback.speed = fMotionSpeed;
+				playback.weight = fMotionWeight;
+				playback.blendTime = fMotionBlendTime;
+				playback.loopCount = isMotionLoop == true ? graphics::MotionPlaybackInfo::eMaxLoopCount : 1;
+				playback.isInverse = isMotionInverse;
+
+				graphics::IMotion* pMotion = nullptr;
+				if (0 <= nSelectedIndex && nSelectedIndex < static_cast<int>(vecMotionNames.size()))
+				{
+					pMotion = graphics::ModelManager::GetInstance()->GetMotion(nSelectedIndex);
+				}
+
+				if (pMotion != nullptr)
+				{
+					pCompModel->PlayMotion(emLayer, pMotion, &playback);
+				}
+			}
+
+			prevSelectedIndex = nSelectedIndex;
+		}
 	}
 
 	graphics::IMotion* pMotion = nullptr;
@@ -1299,35 +1520,26 @@ void ShowMotion(bool& isShowMotionMenu, gameobject::ComponentModel* pCompModel)
 
 	if (pMotion != nullptr)
 	{
-		const std::array<char*, graphics::EmMotion::eLayerCount> layers = { "Layer1", "Layer2", "Layer3", "Layer4", };
+		const std::array<char*, graphics::MotionLayers::eLayerCount> layers = { "Layer1", "Layer2", "Layer3", "Layer4", };
 
-		static graphics::EmMotion::Layers emLayer = graphics::EmMotion::eLayer1;
 		ImGui::Combo("Layer", reinterpret_cast<int*>(&emLayer), layers.data(), static_cast<int>(layers.size()));
 
-		static float fMotionSpeed = 1.f;
 		ImGui::DragFloat("Speed", &fMotionSpeed, 0.001f, 0.001f, 10.f);
-
-		static float fMotionWeight = 1.f;
 		ImGui::DragFloat("Weight", &fMotionWeight, 0.001f, 0.f, 1.f);
-
-		static float fMotionBlendTime = 0.f;
 		ImGui::DragFloat("BlendTime", &fMotionBlendTime, 0.001f, 0.f, pMotion->GetEndTime());
-
-		static bool isMotionLoop = false;
 		ImGui::Checkbox("Loop", &isMotionLoop);
 
 		ImGui::SameLine();
 
-		static bool isMotionInverse = false;
 		ImGui::Checkbox("Invert", &isMotionInverse);
 
 		if (ImGui::Button("Play") == true)
 		{
 			graphics::MotionPlaybackInfo playback;
-			playback.fSpeed = fMotionSpeed;
-			playback.fWeight = fMotionWeight;
-			playback.fBlendTime = fMotionBlendTime;
-			playback.nLoopCount = isMotionLoop == true ? graphics::MotionPlaybackInfo::eMaxLoopCount : 1;
+			playback.speed = fMotionSpeed;
+			playback.weight = fMotionWeight;
+			playback.blendTime = fMotionBlendTime;
+			playback.loopCount = isMotionLoop == true ? graphics::MotionPlaybackInfo::eMaxLoopCount : 1;
 			playback.isInverse = isMotionInverse;
 
 			pCompModel->PlayMotion(emLayer, pMotion, &playback);
@@ -1339,9 +1551,9 @@ void ShowMotion(bool& isShowMotionMenu, gameobject::ComponentModel* pCompModel)
 	graphics::IMotionSystem* pMotionSystem = pCompModel->GetModelInstance()->GetMotionSystem();
 	if (pMotionSystem != nullptr)
 	{
-		for (int i = 0; i < graphics::EmMotion::eLayerCount; ++i)
+		for (int i = 0; i < graphics::MotionLayers::eLayerCount; ++i)
 		{
-			graphics::EmMotion::Layers emLayer = static_cast<graphics::EmMotion::Layers>(i);
+			graphics::MotionLayers emLayer = static_cast<graphics::MotionLayers>(i);
 			graphics::IMotionPlayer* pPlayer = pMotionSystem->GetPlayer(emLayer);
 
 			std::string strLayer = string::Format("Layer%d", i);
@@ -1823,7 +2035,7 @@ void ShowSoundWindow(bool& isShowSoundMenu)
 	ImGui::End();
 }
 
-void SceneNewStudio::RenderImGui(float fElapsedTime)
+void SceneNewStudio::RenderImGui(float elapsedTime)
 {
 	ShowConfig();
 
@@ -2047,7 +2259,7 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 
 				if (string::IsEqualsNoCase(file::GetFileExtension(path).c_str(), ".eact") == true)
 				{
-					gameobject::IActor::SaveToFile(pActor, path);
+					gameobject::IActor::SaveFile(pActor, path);
 				}
 			}
 		}
@@ -2107,12 +2319,12 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 				ImGui::Separator();
 
 				std::vector<const char*> vecComponents;
-				for (int i = 0; i < gameobject::EmComponent::TypeCount; ++i)
+				for (int i = 0; i < gameobject::IComponent::TypeCount; ++i)
 				{
-					gameobject::EmComponent::Type emType = static_cast<gameobject::EmComponent::Type>(i);
+					gameobject::IComponent::Type emType = static_cast<gameobject::IComponent::Type>(i);
 					if (pActor->GetComponent(emType) == nullptr)
 					{
-						const char* strComponentName = gameobject::EmComponent::ToString(emType);
+						const char* strComponentName = gameobject::IComponent::ToString(emType);
 						if (strComponentName != nullptr)
 						{
 							vecComponents.emplace_back(strComponentName);
@@ -2125,12 +2337,12 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 				{
 					ImGui::PushID("Component");
 
-					static gameobject::EmComponent::Type emType = gameobject::EmComponent::TypeCount;
+					static gameobject::IComponent::Type emType = gameobject::IComponent::TypeCount;
 					nCurItem = std::min(nCurItem, static_cast<int>(vecComponents.size() - 1));
 					if (ImGui::Combo("Add Component", &nCurItem, &vecComponents.front(), static_cast<int>(vecComponents.size())) == true)
 					{
-						emType = static_cast<gameobject::EmComponent::Type>(nCurItem);
-						if (emType != gameobject::EmComponent::TypeCount)
+						emType = static_cast<gameobject::IComponent::Type>(nCurItem);
+						if (emType != gameobject::IComponent::TypeCount)
 						{
 							ImGui::OpenPopup("Component Add Confirm");
 						}
@@ -2161,36 +2373,36 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 
 		if (pActor != nullptr)
 		{
-			for (int i = 0; i < gameobject::EmComponent::TypeCount; ++i)
+			for (int i = 0; i < gameobject::IComponent::TypeCount; ++i)
 			{
-				gameobject::IComponent* pComponent = pActor->GetComponent(static_cast<gameobject::EmComponent::Type>(i));
+				gameobject::IComponent* pComponent = pActor->GetComponent(static_cast<gameobject::IComponent::Type>(i));
 				if (pComponent == nullptr)
 					continue;
 
 				switch (i)
 				{
-				case gameobject::EmComponent::eActionState:
+				case gameobject::IComponent::eBehaviorTree:
 				{
 					if (ImGui::CollapsingHeader("ActionState"))
 					{
 					}
 				}
 				break;
-				case gameobject::EmComponent::eTimer:
+				case gameobject::IComponent::eTimer:
 				{
 					if (ImGui::CollapsingHeader("Timer"))
 					{
 					}
 				}
 				break;
-				case gameobject::EmComponent::ePhysics:
+				case gameobject::IComponent::ePhysics:
 				{
 					if (ImGui::CollapsingHeader("Physics"))
 					{
 					}
 				}
 				break;
-				case gameobject::EmComponent::eModel:
+				case gameobject::IComponent::eModel:
 				{
 					if (ImGui::CollapsingHeader("Model"))
 					{
@@ -2269,7 +2481,7 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 
 											if (string::IsEqualsNoCase(file::GetFileExtension(path).c_str(), ".emod") == true)
 											{
-												if (graphics::IModel::SaveToFile(pModel, path) == false)
+												if (graphics::IModel::SaveFile(pModel, path) == false)
 												{
 													LOG_ERROR("저장 실패 : %s", path);
 												}
@@ -2407,7 +2619,7 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 										loader.InitFBX(strName, ofn.lpstrFile, fScaleFactor);
 										loader.SetEnableThreadLoad(true);
 
-										pCompModel->Init(&loader);
+										pCompModel->Initialize(&loader);
 									}
 									else if (string::IsEqualsNoCase(strFileExtension.c_str(), ".obj") == true)
 									{
@@ -2418,7 +2630,7 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 										loader.InitObj(strName, ofn.lpstrFile, fScaleFactor);
 										loader.SetEnableThreadLoad(true);
 
-										pCompModel->Init(&loader);
+										pCompModel->Initialize(&loader);
 									}
 									else if (string::IsEqualsNoCase(strFileExtension.c_str(), ".emod") == true)
 									{
@@ -2426,7 +2638,7 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 										loader.InitEast(file::GetFileName(ofn.lpstrFile).c_str(), ofn.lpstrFile);
 										loader.SetEnableThreadLoad(true);
 
-										pCompModel->Init(&loader);
+										pCompModel->Initialize(&loader);
 									}
 								}
 							}
@@ -2475,7 +2687,7 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 										graphics::ModelLoader loader;
 										loader.InitCube(buf, nullptr, fSize);
 
-										pCompModel->Init(&loader);
+										pCompModel->Initialize(&loader);
 
 										ImGui::CloseCurrentPopup();
 									}
@@ -2498,7 +2710,7 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 										graphics::ModelLoader loader;
 										loader.InitBox(buf, nullptr, f3Size);
 
-										pCompModel->Init(&loader);
+										pCompModel->Initialize(&loader);
 
 										ImGui::CloseCurrentPopup();
 									}
@@ -2524,7 +2736,7 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 										graphics::ModelLoader loader;
 										loader.InitSphere(buf, nullptr, fDiameter, nTessellation);
 
-										pCompModel->Init(&loader);
+										pCompModel->Initialize(&loader);
 
 										ImGui::CloseCurrentPopup();
 									}
@@ -2550,7 +2762,7 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 										graphics::ModelLoader loader;
 										loader.InitGeoSphere(buf, nullptr, fDiameter, nTessellation);
 
-										pCompModel->Init(&loader);
+										pCompModel->Initialize(&loader);
 
 										ImGui::CloseCurrentPopup();
 									}
@@ -2579,7 +2791,7 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 										graphics::ModelLoader loader;
 										loader.InitCylinder(buf, nullptr, fHeight, fDiameter, nTessellation);
 
-										pCompModel->Init(&loader);
+										pCompModel->Initialize(&loader);
 
 										ImGui::CloseCurrentPopup();
 									}
@@ -2608,7 +2820,7 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 										graphics::ModelLoader loader;
 										loader.InitCone(buf, nullptr, fDiameter, fHeight, nTessellation);
 
-										pCompModel->Init(&loader);
+										pCompModel->Initialize(&loader);
 
 										ImGui::CloseCurrentPopup();
 									}
@@ -2637,7 +2849,7 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 										graphics::ModelLoader loader;
 										loader.InitTorus(buf, nullptr, fDiameter, fThickness, nTessellation);
 
-										pCompModel->Init(&loader);
+										pCompModel->Initialize(&loader);
 
 										ImGui::CloseCurrentPopup();
 									}
@@ -2660,7 +2872,7 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 										graphics::ModelLoader loader;
 										loader.InitTetrahedron(buf, nullptr, fSize);
 
-										pCompModel->Init(&loader);
+										pCompModel->Initialize(&loader);
 
 										ImGui::CloseCurrentPopup();
 									}
@@ -2683,7 +2895,7 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 										graphics::ModelLoader loader;
 										loader.InitOctahedron(buf, nullptr, fSize);
 
-										pCompModel->Init(&loader);
+										pCompModel->Initialize(&loader);
 
 										ImGui::CloseCurrentPopup();
 									}
@@ -2706,7 +2918,7 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 										graphics::ModelLoader loader;
 										loader.InitDodecahedron(buf, nullptr, fSize);
 
-										pCompModel->Init(&loader);
+										pCompModel->Initialize(&loader);
 
 										ImGui::CloseCurrentPopup();
 									}
@@ -2729,7 +2941,7 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 										graphics::ModelLoader loader;
 										loader.InitIcosahedron(buf, nullptr, fSize);
 
-										pCompModel->Init(&loader);
+										pCompModel->Initialize(&loader);
 
 										ImGui::CloseCurrentPopup();
 									}
@@ -2755,7 +2967,7 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 										graphics::ModelLoader loader;
 										loader.InitTeapot(buf, nullptr, fSize, nTessellation);
 
-										pCompModel->Init(&loader);
+										pCompModel->Initialize(&loader);
 
 										ImGui::CloseCurrentPopup();
 									}
@@ -2778,7 +2990,7 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 										graphics::ModelLoader loader;
 										loader.InitHexagon(buf, nullptr, fRadius);
 
-										pCompModel->Init(&loader);
+										pCompModel->Initialize(&loader);
 
 										ImGui::CloseCurrentPopup();
 									}
@@ -2804,7 +3016,7 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 										graphics::ModelLoader loader;
 										loader.InitCapsule(buf, nullptr, fRadius, fHeight);
 
-										pCompModel->Init(&loader);
+										pCompModel->Initialize(&loader);
 
 										ImGui::CloseCurrentPopup();
 									}
@@ -2829,7 +3041,7 @@ void SceneNewStudio::RenderImGui(float fElapsedTime)
 					}
 				}
 				break;
-				case gameobject::EmComponent::eCamera:
+				case gameobject::IComponent::eCamera:
 				{
 					if (ImGui::CollapsingHeader("Camera"))
 					{

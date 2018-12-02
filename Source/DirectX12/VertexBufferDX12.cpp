@@ -14,7 +14,7 @@ namespace eastengine
 			class VertexBuffer::Impl
 			{
 			public:
-				Impl(const uint8_t* pData, uint32_t vertexCount, size_t formatSize);
+				Impl(const uint8_t* pData, uint32_t vertexCount, size_t formatSize, bool isDynamic);
 				~Impl();
 
 			public:
@@ -35,7 +35,7 @@ namespace eastengine
 				uint32_t m_vertexCount{ 0 };
 			};
 
-			VertexBuffer::Impl::Impl(const uint8_t* pData, uint32_t vertexCount, size_t formatSize)
+			VertexBuffer::Impl::Impl(const uint8_t* pData, uint32_t vertexCount, size_t formatSize, bool isDynamic)
 				: m_vertexCount(vertexCount)
 			{
 				TRACER_EVENT("VertexBuffer_Init");
@@ -163,8 +163,8 @@ namespace eastengine
 				m_pBuffer->Unmap(0, &readRange);
 			}
 
-			VertexBuffer::VertexBuffer(const uint8_t* pData, uint32_t vertexCount, size_t formatSize)
-				: m_pImpl{ std::make_unique<Impl>(pData, vertexCount, formatSize) }
+			VertexBuffer::VertexBuffer(const uint8_t* pData, uint32_t vertexCount, size_t formatSize, bool isDynamic)
+				: m_pImpl{ std::make_unique<Impl>(pData, vertexCount, formatSize, isDynamic) }
 			{
 			}
 

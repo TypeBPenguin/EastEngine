@@ -29,16 +29,16 @@ namespace eastengine
 			return std::clamp(scaledValue, -1.f, 1.f);
 		}
 
-		void ApplyStickDeadZone(float x, float y, GamePad::DeadZone emDeadZoneMode, float fMaxValue, float fDeadZoneSize,
+		void ApplyStickDeadZone(float x, float y, gamepad::DeadZone emDeadZoneMode, float fMaxValue, float fDeadZoneSize,
 			_Out_ float& fResultX_out, _Out_ float& fResultY_out)
 		{
 			switch (emDeadZoneMode)
 			{
-			case GamePad::eIndependentAxes:
+			case gamepad::eIndependentAxes:
 				fResultX_out = ApplyLinearDeadZone(x, fMaxValue, fDeadZoneSize);
 				fResultY_out = ApplyLinearDeadZone(y, fMaxValue, fDeadZoneSize);
 				break;
-			case GamePad::eCircular:
+			case gamepad::eCircular:
 			{
 				const float dist = sqrtf(x*x + y*y);
 				const float wanted = ApplyLinearDeadZone(dist, fMaxValue, fDeadZoneSize);
@@ -49,23 +49,23 @@ namespace eastengine
 				fResultY_out = std::clamp(y * scale, -1.f, 1.f);
 			}
 			break;
-			default: // GamePad::DEAD_ZONE_NONE
+			default: // gamepad::DEAD_ZONE_NONE
 				fResultX_out = ApplyLinearDeadZone(x, fMaxValue, 0);
 				fResultY_out = ApplyLinearDeadZone(y, fMaxValue, 0);
 				break;
 			}
 		}
 
-#define UPDATE_BUTTON_STATE(field) field = static_cast<GamePad::ButtonState>( ( !!state.buttons.field ) | ( ( !!state.buttons.field ^ !!lastState.buttons.field ) << 1 ) );
+#define UPDATE_BUTTON_STATE(field) field = static_cast<gamepad::ButtonState>( ( !!state.buttons.field ) | ( ( !!state.buttons.field ^ !!lastState.buttons.field ) << 1 ) );
 
 		void GamePadInstance::ButtonStateTracker::Update(const GamePadInstance::State& state)
 		{
 			UPDATE_BUTTON_STATE(a);
 
-			assert((!state.buttons.a && !lastState.buttons.a) == (a == GamePad::eIdle));
-			assert((state.buttons.a && lastState.buttons.a) == (a == GamePad::ePressed));
-			assert((!state.buttons.a && lastState.buttons.a) == (a == GamePad::eUp));
-			assert((state.buttons.a && !lastState.buttons.a) == (a == GamePad::eDown));
+			assert((!state.buttons.a && !lastState.buttons.a) == (a == gamepad::eIdle));
+			assert((state.buttons.a && lastState.buttons.a) == (a == gamepad::ePressed));
+			assert((!state.buttons.a && lastState.buttons.a) == (a == gamepad::eUp));
+			assert((state.buttons.a && !lastState.buttons.a) == (a == gamepad::eDown));
 
 			UPDATE_BUTTON_STATE(b);
 			UPDATE_BUTTON_STATE(x);
@@ -80,15 +80,15 @@ namespace eastengine
 			UPDATE_BUTTON_STATE(back);
 			UPDATE_BUTTON_STATE(start);
 
-			dpadUp = static_cast<GamePad::ButtonState>((!!state.dpad.up) | ((!!state.dpad.up ^ !!lastState.dpad.up) << 1));
-			dpadDown = static_cast<GamePad::ButtonState>((!!state.dpad.down) | ((!!state.dpad.down ^ !!lastState.dpad.down) << 1));
-			dpadLeft = static_cast<GamePad::ButtonState>((!!state.dpad.left) | ((!!state.dpad.left ^ !!lastState.dpad.left) << 1));
-			dpadRight = static_cast<GamePad::ButtonState>((!!state.dpad.right) | ((!!state.dpad.right ^ !!lastState.dpad.right) << 1));
+			dpadUp = static_cast<gamepad::ButtonState>((!!state.dpad.up) | ((!!state.dpad.up ^ !!lastState.dpad.up) << 1));
+			dpadDown = static_cast<gamepad::ButtonState>((!!state.dpad.down) | ((!!state.dpad.down ^ !!lastState.dpad.down) << 1));
+			dpadLeft = static_cast<gamepad::ButtonState>((!!state.dpad.left) | ((!!state.dpad.left ^ !!lastState.dpad.left) << 1));
+			dpadRight = static_cast<gamepad::ButtonState>((!!state.dpad.right) | ((!!state.dpad.right ^ !!lastState.dpad.right) << 1));
 
-			assert((!state.dpad.up && !lastState.dpad.up) == (dpadUp == GamePad::eIdle));
-			assert((state.dpad.up && lastState.dpad.up) == (dpadUp == GamePad::ePressed));
-			assert((!state.dpad.up && lastState.dpad.up) == (dpadUp == GamePad::eUp));
-			assert((state.dpad.up && !lastState.dpad.up) == (dpadUp == GamePad::eDown));
+			assert((!state.dpad.up && !lastState.dpad.up) == (dpadUp == gamepad::eIdle));
+			assert((state.dpad.up && lastState.dpad.up) == (dpadUp == gamepad::ePressed));
+			assert((!state.dpad.up && lastState.dpad.up) == (dpadUp == gamepad::eUp));
+			assert((state.dpad.up && !lastState.dpad.up) == (dpadUp == gamepad::eDown));
 
 			lastState = state;
 		}
@@ -100,13 +100,13 @@ namespace eastengine
 			memory::Clear(this, sizeof(ButtonStateTracker));
 		}
 
-		GamePadInstance::Player::Player(GamePad::PlayerID emPlayer)
+		GamePadInstance::Player::Player(gamepad::PlayerID emPlayer)
 			: m_emPlayerID(emPlayer)
 			, m_isConnected(false)
 			, m_fLastReadTime(0.f)
 			, m_fVibrationTime(0.f)
 			, m_fMaxVibrationTime(0.f)
-			, m_emDeadZoneMode(GamePad::DeadZone::eIndependentAxes)
+			, m_emDeadZoneMode(gamepad::DeadZone::eIndependentAxes)
 		{
 		}
 
@@ -114,9 +114,9 @@ namespace eastengine
 		{
 		}
 
-		void GamePadInstance::Player::Update(float fElapsedTime)
+		void GamePadInstance::Player::Update(float elapsedTime)
 		{
-			if (ThrottleRetry(fElapsedTime) == true)
+			if (ThrottleRetry(elapsedTime) == true)
 			{
 				memory::Clear(&m_state, sizeof(State));
 				memory::Clear(&m_capabilities, sizeof(Capabilities));
@@ -136,7 +136,7 @@ namespace eastengine
 					}
 					else
 					{
-						m_fVibrationTime += fElapsedTime;
+						m_fVibrationTime += elapsedTime;
 					}
 				}
 			}
@@ -198,7 +198,7 @@ namespace eastengine
 				m_state.dpad.right = (xbuttons & XINPUT_GAMEPAD_DPAD_RIGHT) != 0;
 				m_state.dpad.left = (xbuttons & XINPUT_GAMEPAD_DPAD_LEFT) != 0;
 
-				if (m_emDeadZoneMode == GamePad::DeadZone::eNone)
+				if (m_emDeadZoneMode == gamepad::DeadZone::eNone)
 				{
 					m_state.triggers.left = ApplyLinearDeadZone(float(xState.Gamepad.bLeftTrigger), 255.f, 0.f);
 					m_state.triggers.right = ApplyLinearDeadZone(float(xState.Gamepad.bRightTrigger), 255.f, 0.f);
@@ -235,23 +235,23 @@ namespace eastengine
 				m_capabilities.emPlayerID = m_emPlayerID;
 				if (xCaps.Type == XINPUT_DEVTYPE_GAMEPAD)
 				{
-					static_assert(XINPUT_DEVSUBTYPE_GAMEPAD == GamePad::eGamePad, "xinput.h mismatch");
-					static_assert(XINPUT_DEVSUBTYPE_WHEEL == GamePad::eWheel, "xinput.h mismatch");
-					static_assert(XINPUT_DEVSUBTYPE_ARCADE_STICK == GamePad::eArcadeStick, "xinput.h mismatch");
-					static_assert(XINPUT_DEVSUBTYPE_FLIGHT_STICK == GamePad::eFlightStick, "xinput.h mismatch");
-					static_assert(XINPUT_DEVSUBTYPE_DANCE_PAD == GamePad::eDancePad, "xinput.h mismatch");
-					static_assert(XINPUT_DEVSUBTYPE_GUITAR == GamePad::eGuitar, "xinput.h mismatch");
-					static_assert(XINPUT_DEVSUBTYPE_GUITAR_ALTERNATE == GamePad::eGuitarAlternate, "xinput.h mismatch");
-					static_assert(XINPUT_DEVSUBTYPE_DRUM_KIT == GamePad::eDrumKit, "xinput.h mismatch");
-					static_assert(XINPUT_DEVSUBTYPE_GUITAR_BASS == GamePad::eGuitarBass, "xinput.h mismatch");
-					static_assert(XINPUT_DEVSUBTYPE_ARCADE_PAD == GamePad::eArcadePad, "xinput.h mismatch");
+					static_assert(XINPUT_DEVSUBTYPE_GAMEPAD == gamepad::eGamePad, "xinput.h mismatch");
+					static_assert(XINPUT_DEVSUBTYPE_WHEEL == gamepad::eWheel, "xinput.h mismatch");
+					static_assert(XINPUT_DEVSUBTYPE_ARCADE_STICK == gamepad::eArcadeStick, "xinput.h mismatch");
+					static_assert(XINPUT_DEVSUBTYPE_FLIGHT_STICK == gamepad::eFlightStick, "xinput.h mismatch");
+					static_assert(XINPUT_DEVSUBTYPE_DANCE_PAD == gamepad::eDancePad, "xinput.h mismatch");
+					static_assert(XINPUT_DEVSUBTYPE_GUITAR == gamepad::eGuitar, "xinput.h mismatch");
+					static_assert(XINPUT_DEVSUBTYPE_GUITAR_ALTERNATE == gamepad::eGuitarAlternate, "xinput.h mismatch");
+					static_assert(XINPUT_DEVSUBTYPE_DRUM_KIT == gamepad::eDrumKit, "xinput.h mismatch");
+					static_assert(XINPUT_DEVSUBTYPE_GUITAR_BASS == gamepad::eGuitarBass, "xinput.h mismatch");
+					static_assert(XINPUT_DEVSUBTYPE_ARCADE_PAD == gamepad::eArcadePad, "xinput.h mismatch");
 
-					m_capabilities.emGamepadType = GamePad::Type(xCaps.SubType);
+					m_capabilities.emGamepadType = gamepad::Type(xCaps.SubType);
 				}
 			}
 		}
 
-		bool GamePadInstance::Player::ThrottleRetry(float fElapsedTime)
+		bool GamePadInstance::Player::ThrottleRetry(float elapsedTime)
 		{
 			// This function minimizes a potential performance issue with XInput on Windows when
 			// checking a disconnected controller slot which requires device enumeration.
@@ -259,7 +259,7 @@ namespace eastengine
 			if (m_isConnected == true)
 				return false;
 
-			m_fLastReadTime += fElapsedTime;
+			m_fLastReadTime += elapsedTime;
 
 			if (m_fLastReadTime < 1.f)
 				return true;
@@ -268,7 +268,7 @@ namespace eastengine
 		}
 
 		GamePadInstance::GamePadInstance()
-			: m_players({ GamePad::e1P, GamePad::e2P, GamePad::e3P, GamePad::e4P })
+			: m_players({ gamepad::e1P, gamepad::e2P, gamepad::e3P, gamepad::e4P })
 		{
 		}
 
@@ -276,12 +276,12 @@ namespace eastengine
 		{
 		}
 
-		void GamePadInstance::Update(float fElapsedTime)
+		void GamePadInstance::Update(float elapsedTime)
 		{
 			TRACER_EVENT("GamePadInstance::Update");
 			for (auto& player : m_players)
 			{
-				player.Update(fElapsedTime);
+				player.Update(elapsedTime);
 			}
 		}
 	}

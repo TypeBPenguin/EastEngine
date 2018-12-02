@@ -14,6 +14,90 @@ namespace eastengine
 		{
 		}
 
+		ModelNode::ModelNode(Type emType, const char* filePath, const BYTE** ppBuffer)
+		{
+			m_nodeName = file::Stream::ToString(ppBuffer);
+			m_parentNodeName = file::Stream::ToString(ppBuffer);
+			m_attachedBoneName = file::Stream::ToString(ppBuffer);
+
+			const Collision::AABB* pAABB = file::Stream::To<Collision::AABB>(ppBuffer);
+			SetOriginAABB(*pAABB);
+
+			m_isVisible = *file::Stream::To<bool>(ppBuffer);
+
+			const uint32_t subsetCount = *file::Stream::To<uint32_t>(ppBuffer);
+			m_vecModelSubsets->resize(subsetCount);
+
+			for (uint32_t i = 0; i < subsetCount; ++i)
+			{
+				m_vecModelSubsets[eLv0][i].strName = file::Stream::ToString(ppBuffer);
+
+				m_vecModelSubsets[eLv0][i].nStartIndex = *file::Stream::To<uint32_t>(ppBuffer);
+				m_vecModelSubsets[eLv0][i].nIndexCount = *file::Stream::To<uint32_t>(ppBuffer);
+				m_vecModelSubsets[eLv0][i].nMaterialID = *file::Stream::To<uint32_t>(ppBuffer);
+
+				const int* pPrimitiveType = file::Stream::To<int>(ppBuffer);
+				m_vecModelSubsets[eLv0][i].emPrimitiveType = static_cast<EmPrimitive::Type>(*pPrimitiveType);
+			}
+
+			const uint32_t vertexCount = *file::Stream::To<uint32_t>(ppBuffer);
+			m_rawVertices.resize(vertexCount);
+
+			const uint8_t* pVertices = nullptr;
+			size_t vertexFormatSize = 0;
+			switch (emType)
+			{
+			case eStatic:
+				pVertices = reinterpret_cast<const uint8_t*>(file::Stream::To<VertexPosTexNor>(ppBuffer, vertexCount));
+				vertexFormatSize = sizeof(VertexPosTexNor);
+				break;
+			case eSkinned:
+				pVertices = reinterpret_cast<const uint8_t*>(file::Stream::To<VertexPosTexNorWeiIdx>(ppBuffer, vertexCount));
+				vertexFormatSize = sizeof(VertexPosTexNorWeiIdx);
+				break;
+			default:
+				throw_line("unknown model node type");
+				break;
+			}
+
+			for (uint32_t i = 0; i < vertexCount; ++i)
+			{
+				m_rawVertices[i].pos = *reinterpret_cast<const math::float3*>(pVertices + vertexFormatSize * i);
+			}
+
+			IVertexBuffer* pVertexBuffer = CreateVertexBuffer(pVertices, vertexCount, vertexFormatSize, true);
+			if (pVertexBuffer == nullptr)
+			{
+				LOG_ERROR("¹öÅØ½º ¹öÆÛ »ý¼º ½ÇÆÐÇß½¿µÂ");
+			}
+			SetVertexBuffer(pVertexBuffer);
+			ReleaseResource(&pVertexBuffer);
+
+			const uint32_t indexCount = *file::Stream::To<uint32_t>(ppBuffer);
+			const uint32_t* pIndices = file::Stream::To<uint32_t>(ppBuffer, indexCount);
+
+			IIndexBuffer* pIndexBuffer = CreateIndexBuffer(reinterpret_cast<const uint8_t*>(pIndices), indexCount, sizeof(uint32_t), true);
+			if (pIndexBuffer == nullptr)
+			{
+				LOG_ERROR("ÀÎµ¦½º ¹öÆÛ »ý¼º ½ÇÆÐÇß½¿µÂ");
+			}
+			SetIndexBuffer(pIndexBuffer);
+			ReleaseResource(&pIndexBuffer);
+
+			SetRawIndices(pIndices, indexCount);
+
+			const uint32_t materialCount = *file::Stream::To<uint32_t>(ppBuffer);
+			for (uint32_t i = 0; i < materialCount; ++i)
+			{
+				std::string fileName = file::Stream::ToString(ppBuffer);
+				fileName += ".emtl";
+
+				IMaterial* pMaterial = CreateMaterial(fileName.c_str(), filePath);
+				AddMaterial(pMaterial);
+				ReleaseResource(&pMaterial);
+			}
+		}
+
 		ModelNode::~ModelNode()
 		{
 			for (auto& pVertexBuffer : m_pVertexBuffer)
@@ -57,7 +141,10 @@ namespace eastengine
 			assert(emLod <= m_emMaxLod);
 			ReleaseResource(&m_pVertexBuffer[emLod]);
 
-			pVertexBuffer->IncreaseReference();
+			if (pVertexBuffer != nullptr)
+			{
+				pVertexBuffer->IncreaseReference();
+			}
 			m_pVertexBuffer[emLod] = pVertexBuffer;
 		}
 
@@ -90,24 +177,28 @@ namespace eastengine
 			assert(emLod <= m_emMaxLod);
 			ReleaseResource(&m_pIndexBuffer[emLod]);
 
-			pIndexBuffer->IncreaseReference();
+			if (pIndexBuffer != nullptr)
+			{
+				pIndexBuffer->IncreaseReference();
+			}
 			m_pIndexBuffer[emLod] = pIndexBuffer;
 		}
 
 		void ModelNode::AddMaterial(IMaterial* pMaterial)
 		{
-			pMaterial->IncreaseReference();
-			m_vecMaterial.push_back(pMaterial);
+			if (pMaterial != nullptr)
+			{
+				pMaterial->IncreaseReference();
+				m_vecMaterial.push_back(pMaterial);
+			}
 		}
 
 		void ModelNode::AddMaterialArray(IMaterial** ppMaterials, size_t nCount)
 		{
 			m_vecMaterial.reserve(m_vecMaterial.size() + nCount);
-
 			for (size_t i = 0; i < nCount; ++i)
 			{
-				ppMaterials[i]->IncreaseReference();
-				m_vecMaterial.emplace_back(ppMaterials[i]);
+				AddMaterial(ppMaterials[i]);
 			}
 		}
 

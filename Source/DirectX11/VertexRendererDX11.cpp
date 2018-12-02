@@ -124,8 +124,8 @@ namespace eastengine
 						pDeviceContext->IASetIndexBuffer(nullptr, DXGI_FORMAT_UNKNOWN, 0);
 					}
 
-					const size_t nLoopCount = nInstanceCount / eMaxInstancingCount + 1;
-					for (size_t i = 0; i < nLoopCount; ++i)
+					const size_t loopCount = nInstanceCount / eMaxInstancingCount + 1;
+					for (size_t i = 0; i < loopCount; ++i)
 					{
 						const size_t nEnableDrawCount = std::min(eMaxInstancingCount * (i + 1), nInstanceCount);
 						const size_t nDrawInstanceCount = nEnableDrawCount - i * eMaxInstancingCount;

@@ -15,30 +15,30 @@ namespace eastengine
 			virtual ~ComponentTimer();
 
 		public:
-			virtual void Update(float fElapsedTime) override;
+			virtual void Update(float elapsedTime) override;
 
 		public:
-			// Callback Function Parameter : nTimerID(uint32_t), fElapsedTime(float), fProcessTime(float)
-			void StartTimeAction(std::function<void(uint32_t, float, float)> funcCallback, uint32_t nTimerID, uint32_t nInterval, uint32_t nLifeTime = Timer::TimeAction::eUnlimitedTime)
+			// Callback Function Parameter : nTimerID(uint32_t), elapsedTime(float), fProcessTime(float)
+			void StartTimeAction(std::function<void(uint32_t, float, float)> funcCallback, uint32_t timerID, uint32_t interval, uint32_t lifeTime= Timer::TimeAction::eUnlimitedTime)
 			{
-				m_listTimeActions.emplace_back(funcCallback, nTimerID, nInterval, nLifeTime);
+				m_timeActions.emplace_back(funcCallback, timerID, interval, lifeTime);
 			}
 
-			void StopTimeAction(uint32_t nTimerID)
+			void StopTimeAction(uint32_t timerID)
 			{
-				auto iter = std::find_if(m_listTimeActions.begin(), m_listTimeActions.end(), [nTimerID](const Timer::TimeAction& timeAction)
+				auto iter = std::find_if(m_timeActions.begin(), m_timeActions.end(), [timerID](const Timer::TimeAction& timeAction)
 				{
-					return timeAction.nTimerID == nTimerID;
+					return timeAction.timerID == timerID;
 				});
 
-				if (iter != m_listTimeActions.end())
+				if (iter != m_timeActions.end())
 				{
-					m_listTimeActions.erase(iter);
+					iter->isStopRequest = true;
 				}
 			}
 
 		private:
-			std::list<Timer::TimeAction> m_listTimeActions;
+			std::vector<Timer::TimeAction> m_timeActions;
 		};
 	}
 }

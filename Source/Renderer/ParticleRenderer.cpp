@@ -698,8 +698,8 @@ namespace eastengine
 					}
 
 					uint32_t nInstanceSize = iter.second.nCopyCount;
-					uint32_t nLoopCount = iter.second.nCopyCount / 32 + 1;
-					for (uint32_t j = 0; j < nLoopCount; ++j)
+					uint32_t loopCount = iter.second.nCopyCount / 32 + 1;
+					for (uint32_t j = 0; j < loopCount; ++j)
 					{
 						int nMax = std::min(32 * (j + 1), nInstanceSize);
 						int nNum = nMax - j * 32;

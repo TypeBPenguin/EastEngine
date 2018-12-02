@@ -132,7 +132,7 @@ namespace eastengine
 					pPSConstants->nTexInputIndex3 = nTexInputIndex[3];
 				}
 
-				void SetHDRContents(HDRConstants* pHDRConstants, const Options::HDRConfig& hdrConfig, float fElapsedTime)
+				void SetHDRContents(HDRConstants* pHDRConstants, const Options::HDRConfig& hdrConfig, float elapsedTime)
 				{
 					pHDRConstants->BloomThreshold = hdrConfig.BloomThreshold;
 					pHDRConstants->BloomMagnitude = hdrConfig.BloomMagnitude;
@@ -151,7 +151,7 @@ namespace eastengine
 					pHDRConstants->LuminanceSaturation = hdrConfig.LuminanceSaturation;
 					pHDRConstants->Bias = hdrConfig.Bias;
 
-					pHDRConstants->TimeDelta = fElapsedTime;
+					pHDRConstants->TimeDelta = elapsedTime;
 					pHDRConstants->LumMapMipLevel = hdrConfig.LumMapMipLevel;
 
 					pHDRConstants->ToneMapTechnique = static_cast<int>(hdrConfig.emToneMappingType);

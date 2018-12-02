@@ -113,7 +113,7 @@ namespace eastengine
 			static ISpotLight* CreateSpotLight(const string::StringID& strName, const math::float3& f3Position, const math::float3& f3Direction, float fAngle, const math::Color& color, float fIntensity, float fAmbientIntensity = 0.f, float fReflectionIntensity = 0.f);
 
 		public:
-			virtual void Update(float fElapsedTime) = 0;
+			virtual void Update(float elapsedTime) = 0;
 
 		public:
 			virtual const string::StringID& GetName() const = 0;

@@ -11,7 +11,7 @@ namespace eastengine
 			class VertexBuffer : public IVertexBuffer
 			{
 			public:
-				VertexBuffer(const uint8_t* pData, uint32_t vertexCount, size_t formatSize);
+				VertexBuffer(const uint8_t* pData, uint32_t vertexCount, size_t formatSize, bool isDynamic);
 				virtual ~VertexBuffer();
 
 			public:

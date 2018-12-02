@@ -129,7 +129,7 @@ namespace eastengine
 					pCB_PSConstants->Unmap(pDeviceContext);
 				}
 
-				void SetHDRContents(ID3D11DeviceContext* pDeviceContext, ConstantBuffer<HDRConstants>* pCB_HDRConstants, const Options::HDRConfig& hdrConfig, float fElapsedTime)
+				void SetHDRContents(ID3D11DeviceContext* pDeviceContext, ConstantBuffer<HDRConstants>* pCB_HDRConstants, const Options::HDRConfig& hdrConfig, float elapsedTime)
 				{
 					HDRConstants* pHDRConstants = pCB_HDRConstants->Map(pDeviceContext);
 					{
@@ -150,7 +150,7 @@ namespace eastengine
 						pHDRConstants->LuminanceSaturation = hdrConfig.LuminanceSaturation;
 						pHDRConstants->Bias = hdrConfig.Bias;
 
-						pHDRConstants->TimeDelta = fElapsedTime;
+						pHDRConstants->TimeDelta = elapsedTime;
 						pHDRConstants->LumMapMipLevel = hdrConfig.LumMapMipLevel;
 
 						pHDRConstants->ToneMapTechnique = static_cast<int>(hdrConfig.emToneMappingType);

@@ -9,8 +9,9 @@ namespace eastengine
 	{
 		namespace dx11
 		{
-			IndexBuffer::IndexBuffer(const uint8_t* pData, uint32_t indexCount, size_t formatSize)
+			IndexBuffer::IndexBuffer(const uint8_t* pData, uint32_t indexCount, size_t formatSize, bool isDynamic)
 				: m_indexCount(indexCount)
+				, m_isDynamic(isDynamic)
 			{
 				TRACER_EVENT("IndexBufferDX11_Init");
 				SetState(IResource::eReady);
@@ -19,11 +20,14 @@ namespace eastengine
 
 				HRESULT hr = S_OK;
 
+				const uint32_t cpuAccessFlags = isDynamic == true ? D3D11_CPU_ACCESS_WRITE : 0;
+				const D3D11_USAGE usage = isDynamic == true ? D3D11_USAGE_DYNAMIC : D3D11_USAGE_DEFAULT;
+
 				D3D11_BUFFER_DESC bufferDesc{};
 				bufferDesc.ByteWidth = static_cast<uint32_t>(indexCount * formatSize);
 				bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-				bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-				bufferDesc.CPUAccessFlags = 0;
+				bufferDesc.Usage = usage;
+				bufferDesc.CPUAccessFlags = cpuAccessFlags;
 				bufferDesc.MiscFlags = 0;
 
 				D3D11_SUBRESOURCE_DATA indexData{};

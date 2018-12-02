@@ -72,7 +72,7 @@ namespace eastengine
 
 			void SetFov(float fov)
 			{
-				if (math::IsSame(m_cameraFov, fov) == false)
+				if (math::IsEqual(m_cameraFov, fov) == false)
 				{
 					m_cameraFov = fov;
 					m_radiusThreshold = OccludeeSizeThreshold * OccludeeSizeThreshold * m_cameraFov;
@@ -81,7 +81,7 @@ namespace eastengine
 
 			void SetNearClip(float nearClip)
 			{
-				if (math::IsSame(m_cameraNearClip, nearClip) == false)
+				if (math::IsEqual(m_cameraNearClip, nearClip) == false)
 				{
 					m_cameraNearClip = nearClip;
 					m_pCullingThreadPool->SetNearClipPlane(m_cameraNearClip);
@@ -145,7 +145,7 @@ namespace eastengine
 			, m_screenSize(width, height)
 		{
 			const uint32_t nThreadCount = std::thread::hardware_concurrency() - 1;
-			m_pCullingThreadPool = std::make_unique<CullingThreadpool>(nThreadCount, 10, 6, 128);
+			m_pCullingThreadPool = std::make_unique<CullingThreadpool>(nThreadCount, 8, 6, 32);
 			m_pCullingThreadPool->SetBuffer(m_pMaskedOcclusionCulling);
 			m_pCullingThreadPool->SetResolution(width, height);
 

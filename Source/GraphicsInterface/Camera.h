@@ -17,7 +17,7 @@ namespace eastengine
 			void SetView(const math::float3& vEye, const math::float3& vLookat, const math::float3& vUp);
 			void SetProjection(uint32_t nWidth, uint32_t nHeight, float fFov, float fNear, float fFar, bool isUpsideDown = false);
 
-			void Update(float fElapsedTime);
+			void Update(float elapsedTime);
 
 		public:
 			void MoveFront(float fDist);

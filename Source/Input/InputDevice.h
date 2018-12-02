@@ -32,7 +32,7 @@ namespace eastengine
 			void Initialize(HINSTANCE hInstance, HWND hWnd, DWORD keyboardCoopFlag = eNoneExclusive | eForeGround, DWORD mouseCoopFlag = eNoneExclusive | eForeGround);
 
 		public:
-			void Update(float fElapsedTime);
+			void Update(float elapsedTime);
 
 			bool HandleMessage(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam);
 

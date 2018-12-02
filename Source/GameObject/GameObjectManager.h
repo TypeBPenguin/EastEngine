@@ -16,7 +16,7 @@ namespace eastengine
 			virtual ~GameObjectManager();
 
 		public:
-			void Update(float fElapsedTime);
+			void Update(float elapsedTime);
 
 		public:
 			IActor* CreateActor(const string::StringID& strActorName);

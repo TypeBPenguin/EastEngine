@@ -14,7 +14,7 @@ namespace eastengine
 			class IndexBuffer::Impl
 			{
 			public:
-				Impl(const uint8_t* pData, uint32_t indexCount, size_t formatSize);
+				Impl(const uint8_t* pData, uint32_t indexCount, size_t formatSize, bool isDynamic);
 				~Impl();
 
 			public:
@@ -33,7 +33,7 @@ namespace eastengine
 				uint32_t m_indexCount{ 0 };
 			};
 
-			IndexBuffer::Impl::Impl(const uint8_t* pData, uint32_t indexCount, size_t formatSize)
+			IndexBuffer::Impl::Impl(const uint8_t* pData, uint32_t indexCount, size_t formatSize, bool isDynamic)
 				: m_indexCount(indexCount)
 			{
 				TRACER_EVENT("IndexBuffer_Init");
@@ -173,8 +173,8 @@ namespace eastengine
 				m_pBuffer->Unmap(0, &readRange);
 			}
 
-			IndexBuffer::IndexBuffer(const uint8_t* pData, uint32_t indexCount, size_t formatSize)
-				: m_pImpl{ std::make_unique<Impl>(pData, indexCount, formatSize) }
+			IndexBuffer::IndexBuffer(const uint8_t* pData, uint32_t indexCount, size_t formatSize, bool isDynamic)
+				: m_pImpl{ std::make_unique<Impl>(pData, indexCount, formatSize, isDynamic) }
 			{
 			}
 

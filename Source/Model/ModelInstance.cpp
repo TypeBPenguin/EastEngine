@@ -48,25 +48,63 @@ namespace eastengine
 		{
 		}
 
-		ModelInstance::AttachmentNode::AttachmentNode(ModelInstance* pInstance, const string::StringID& strNodeName, const math::Matrix& matOffset, Type emType)
+		ModelInstance::AttachmentNode::AttachmentNode(ModelInstance* pInstance, const string::StringID& nodeName, const math::Matrix& matOffset, Type emType)
 			: pInstance(pInstance)
-			, strNodeName(strNodeName)
+			, nodeName(nodeName)
 			, matOffset(matOffset)
 			, emType(emType)
 		{
 		}
 
 		ModelInstance::ModelInstance(IModel* pModel)
-			: m_isVisible(true)
-			, m_isAttachment(false)
-			, m_fElapsedTime(0.f)
-			, m_pModel(pModel)
+			: m_pModel(pModel)
 		{
+		}
+
+		ModelInstance::ModelInstance(const ModelInstance& source)
+		{
+			*this = source;
+		}
+
+		ModelInstance::ModelInstance(ModelInstance&& source) noexcept
+		{
+			*this = std::move(source);
 		}
 
 		ModelInstance::~ModelInstance()
 		{
-			m_pModel = nullptr;
+		}
+
+		ModelInstance& ModelInstance::operator = (const ModelInstance& source)
+		{
+			m_isVisible = source.m_isVisible;
+			m_isAttachment = source.m_isAttachment;
+			m_pModel = source.m_pModel;
+			m_elapsedTime = source.m_elapsedTime;
+			m_matParent = source.m_matParent;
+			m_matWorld = source.m_matWorld;
+			m_motionSystem = source.m_motionSystem;
+			m_skeletonInstance = source.m_skeletonInstance;
+			m_materialInstance = source.m_materialInstance;
+			m_attachmentNode = source.m_attachmentNode;
+
+			return *this;
+		}
+
+		ModelInstance& ModelInstance::operator = (ModelInstance&& source) noexcept
+		{
+			m_isVisible = std::move(source.m_isVisible);
+			m_isAttachment = std::move(source.m_isAttachment);
+			m_pModel = std::move(source.m_pModel);
+			m_elapsedTime = std::move(source.m_elapsedTime);
+			m_matParent = std::move(source.m_matParent);
+			m_matWorld = std::move(source.m_matWorld);
+			m_motionSystem = std::move(source.m_motionSystem);
+			m_skeletonInstance = std::move(source.m_skeletonInstance);
+			m_materialInstance = std::move(source.m_materialInstance);
+			m_attachmentNode = std::move(source.m_attachmentNode);
+
+			return *this;
 		}
 
 		void ModelInstance::UpdateTransformations()
@@ -82,18 +120,18 @@ namespace eastengine
 
 			if (m_skeletonInstance.IsValid() == true)
 			{
-				m_motionSystem.Update(m_fElapsedTime);
+				m_motionSystem.Update(m_elapsedTime);
 				m_skeletonInstance.Update(m_matParent);
 			}
 
-			for (auto iter = m_vecAttachmentNode.begin(); iter != m_vecAttachmentNode.end();)
+			for (auto iter = m_attachmentNode.begin(); iter != m_attachmentNode.end();)
 			{
 				AttachmentNode& node = *iter;
 				switch (node.emType)
 				{
 				case AttachmentNode::Type::eNone:
 				{
-					node.pInstance->Update(m_fElapsedTime, node.matOffset * m_matParent);
+					node.pInstance->Update(m_elapsedTime, node.matOffset * m_matParent);
 					node.pInstance->UpdateModel();
 
 					++iter;
@@ -102,10 +140,10 @@ namespace eastengine
 				break;
 				case AttachmentNode::Type::eBone:
 				{
-					ISkeletonInstance::IBone* pBone = m_skeletonInstance.GetBone(node.strNodeName);
+					ISkeletonInstance::IBone* pBone = m_skeletonInstance.GetBone(node.nodeName);
 					if (pBone != nullptr)
 					{
-						node.pInstance->Update(m_fElapsedTime, node.matOffset * pBone->GetGlobalMatrix());
+						node.pInstance->Update(m_elapsedTime, node.matOffset * pBone->GetGlobalMatrix());
 						node.pInstance->UpdateModel();
 
 						++iter;
@@ -116,7 +154,7 @@ namespace eastengine
 				break;
 				}
 
-				iter = m_vecAttachmentNode.erase(iter);
+				iter = m_attachmentNode.erase(iter);
 			}
 		}
 
@@ -131,12 +169,13 @@ namespace eastengine
 			if (IsAttachment() == true)
 				return;
 
-			m_pModel->Update(m_fElapsedTime, m_matParent, &m_skeletonInstance, &m_materialInstance);
+			UpdateTransformations();
+			m_pModel->Update(m_elapsedTime, m_matParent, &m_skeletonInstance, &m_materialInstance);
 		}
 
-		void ModelInstance::Update(float fElapsedTime, const math::Matrix& matParent)
+		void ModelInstance::Update(float elapsedTime, const math::Matrix& matParent)
 		{
-			m_fElapsedTime = fElapsedTime;
+			m_elapsedTime = elapsedTime;
 			m_matParent = m_pModel->GetLocalMatrix() * matParent;
 		}
 
@@ -151,7 +190,7 @@ namespace eastengine
 				ModelInstance* pModelInstance = static_cast<ModelInstance*>(pInstance);
 				pModelInstance->SetAttachment(true);
 
-				m_vecAttachmentNode.emplace_back(pModelInstance, strNodeName, matOffset, AttachmentNode::Type::eBone);
+				m_attachmentNode.emplace_back(pModelInstance, strNodeName, matOffset, AttachmentNode::Type::eBone);
 
 				return true;
 			}
@@ -167,23 +206,23 @@ namespace eastengine
 			ModelInstance* pModelInstance = static_cast<ModelInstance*>(pInstance);
 			pModelInstance->SetAttachment(true);
 
-			m_vecAttachmentNode.emplace_back(pModelInstance, StrID::EmptyString, matOffset, AttachmentNode::Type::eNone);
+			m_attachmentNode.emplace_back(pModelInstance, StrID::EmptyString, matOffset, AttachmentNode::Type::eNone);
 
 			return true;
 		}
 
 		bool ModelInstance::Dettachment(IModelInstance* pInstance)
 		{
-			auto iter = std::find_if(m_vecAttachmentNode.begin(), m_vecAttachmentNode.end(), [&pInstance](const AttachmentNode& attachmentNode)
+			auto iter = std::find_if(m_attachmentNode.begin(), m_attachmentNode.end(), [&pInstance](const AttachmentNode& attachmentNode)
 			{
 				return attachmentNode.pInstance == pInstance;
 			});
 
-			if (iter != m_vecAttachmentNode.end())
+			if (iter != m_attachmentNode.end())
 			{
 				iter->pInstance->SetAttachment(false);
 
-				m_vecAttachmentNode.erase(iter);
+				m_attachmentNode.erase(iter);
 				return true;
 			}
 

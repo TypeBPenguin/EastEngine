@@ -29,7 +29,7 @@ namespace eastengine
 			virtual ~System();
 
 		public:
-			void Update(float fElapsedTime);
+			void Update(float elapsedTime);
 
 		public:
 			void SetListenerAttributes(const ListenerAttributes& listenerAttributes);

@@ -2,6 +2,8 @@
 
 #include "Engine/SceneManager.h"
 
+class Minion;
+
 class SceneNewStudio : public eastengine::IScene
 {
 public:
@@ -12,13 +14,13 @@ public:
 	virtual void Enter() override;
 	virtual void Exit() override;
 
-	virtual void Update(float fElapsedTime) override;
+	virtual void Update(float elapsedTime) override;
 
 private:
-	void ProcessInput(float fElapsedTime);
-	void RenderImGui(float fElapsedTime);
+	void ProcessInput(float elapsedTime);
+	void RenderImGui(float elapsedTime);
 
 private:
-
+	std::unique_ptr<Minion> m_pMinion;
 };
 

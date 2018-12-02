@@ -309,8 +309,8 @@ namespace eastengine
 						const shader::VertexInstancingData* pInstanceData = batch.instanceData.data();
 						const size_t nInstanceCount = batch.instanceData.size();
 
-						const size_t nLoopCount = nInstanceCount / eMaxInstancingCount + 1;
-						for (size_t i = 0; i < nLoopCount; ++i)
+						const size_t loopCount = nInstanceCount / eMaxInstancingCount + 1;
+						for (size_t i = 0; i < loopCount; ++i)
 						{
 							const size_t nEnableDrawCount = std::min(eMaxInstancingCount * (i + 1), nInstanceCount);
 							const size_t nDrawInstanceCount = nEnableDrawCount - i * eMaxInstancingCount;

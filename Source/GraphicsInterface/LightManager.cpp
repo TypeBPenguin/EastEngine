@@ -12,7 +12,7 @@ namespace eastengine
 			~Impl();
 
 		public:
-			void Update(float fElapsedTime);
+			void Update(float elapsedTime);
 
 		public:
 			bool AddLight(ILight* pLight);
@@ -60,28 +60,28 @@ namespace eastengine
 			//m_pLightBuffers.fill(nullptr);
 		}
 
-		void LightManager::Impl::Update(float fElapsedTime)
+		void LightManager::Impl::Update(float elapsedTime)
 		{
 			TRACER_EVENT("LightManager::Update");
 
 			TRACER_BEGINEVENT("Directional");
-			std::for_each(m_vecDirectionalLights.begin(), m_vecDirectionalLights.end(), [fElapsedTime](IDirectionalLight* pLight)
+			std::for_each(m_vecDirectionalLights.begin(), m_vecDirectionalLights.end(), [elapsedTime](IDirectionalLight* pLight)
 			{
-				pLight->Update(fElapsedTime);
+				pLight->Update(elapsedTime);
 			});
 			TRACER_ENDEVENT();
 
 			TRACER_BEGINEVENT("Spot");
-			std::for_each(m_vecSpotLights.begin(), m_vecSpotLights.end(), [fElapsedTime](ISpotLight* pLight)
+			std::for_each(m_vecSpotLights.begin(), m_vecSpotLights.end(), [elapsedTime](ISpotLight* pLight)
 			{
-				pLight->Update(fElapsedTime);
+				pLight->Update(elapsedTime);
 			});
 			TRACER_ENDEVENT();
 
 			TRACER_BEGINEVENT("Point");
-			std::for_each(m_vecPointLights.begin(), m_vecPointLights.end(), [fElapsedTime](IPointLight* pLight)
+			std::for_each(m_vecPointLights.begin(), m_vecPointLights.end(), [elapsedTime](IPointLight* pLight)
 			{
-				pLight->Update(fElapsedTime);
+				pLight->Update(elapsedTime);
 			});
 			TRACER_ENDEVENT();
 
@@ -383,9 +383,9 @@ namespace eastengine
 		{
 		}
 
-		void LightManager::Update(float fElapsedTime)
+		void LightManager::Update(float elapsedTime)
 		{
-			m_pImpl->Update(fElapsedTime);
+			m_pImpl->Update(elapsedTime);
 		}
 
 		bool LightManager::AddLight(ILight* pLight)

@@ -21,7 +21,7 @@ namespace eastengine
 		}
 
 		ComponentPhysics::ComponentPhysics(IActor* pOwner)
-			: IComponent(pOwner, EmComponent::ePhysics)
+			: IComponent(pOwner, IComponent::ePhysics)
 			, m_isInit(false)
 			, m_isCollisionModelVisible(false)
 			, m_emRigidBodyType(RigidBodyType::eNone)
@@ -85,7 +85,7 @@ namespace eastengine
 			m_isCollisionModelVisible = isCollisionModelVisible;
 		}
 
-		void ComponentPhysics::Update(float fElapsedTime)
+		void ComponentPhysics::Update(float elapsedTime)
 		{
 			if (m_isInit == false)
 			{
@@ -148,7 +148,7 @@ namespace eastengine
 
 			if (m_pRagDoll != nullptr)
 			{
-				m_pRagDoll->Update(fElapsedTime);
+				m_pRagDoll->Update(elapsedTime);
 			}
 
 			for (auto iter = m_umapPhysicsNode.begin(); iter != m_umapPhysicsNode.end(); ++iter)
@@ -156,7 +156,7 @@ namespace eastengine
 				if (iter->second.pRigidBody == nullptr)
 					continue;
 
-				iter->second.pRigidBody->Update(fElapsedTime);
+				iter->second.pRigidBody->Update(elapsedTime);
 
 				math::Matrix matWorld = iter->second.pRigidBody->GetWorldMatrix();
 
@@ -177,7 +177,7 @@ namespace eastengine
 				if (iter->second.pPhysicsModelInstance != nullptr)
 				{
 					iter->second.pPhysicsModelInstance->SetVisible(m_isCollisionModelVisible);
-					iter->second.pPhysicsModelInstance->Update(fElapsedTime, m_pOwner->GetWorldMatrix());
+					iter->second.pPhysicsModelInstance->Update(elapsedTime, m_pOwner->GetWorldMatrix());
 				}
 			}
 		}
@@ -193,7 +193,7 @@ namespace eastengine
 		void ComponentPhysics::initPhysics(const string::StringID& strID, const physics::RigidBodyProperty& rigidBodyProperty, const math::Matrix* pMatWorld, graphics::IModelInstance* pModelInstance)
 		{
 			graphics::MaterialInfo materialInfo;
-			materialInfo.strName = strID;
+			materialInfo.name = strID;
 			materialInfo.colorAlbedo = math::Color::Red;
 			materialInfo.emRasterizerState = graphics::EmRasterizerState::eWireframeCullNone;
 

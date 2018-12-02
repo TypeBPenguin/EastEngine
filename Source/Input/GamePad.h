@@ -106,8 +106,8 @@ namespace eastengine
 			struct Capabilities
 			{
 				bool isConnected = false;
-				GamePad::Type emGamepadType = GamePad::eUnknown;
-				GamePad::PlayerID emPlayerID = GamePad::e1P;
+				gamepad::Type emGamepadType = gamepad::eUnknown;
+				gamepad::PlayerID emPlayerID = gamepad::e1P;
 
 				bool IsConnected() const { return isConnected; }
 			};
@@ -124,44 +124,44 @@ namespace eastengine
 				void Reset();
 
 			public:
-				const GamePad::ButtonState& A() const { return a; }
-				const GamePad::ButtonState& B() const { return b; }
-				const GamePad::ButtonState& X() const { return x; }
-				const GamePad::ButtonState& Y() const { return y; }
+				const gamepad::ButtonState& A() const { return a; }
+				const gamepad::ButtonState& B() const { return b; }
+				const gamepad::ButtonState& X() const { return x; }
+				const gamepad::ButtonState& Y() const { return y; }
 
-				const GamePad::ButtonState& LeftStick() const { return leftStick; }
-				const GamePad::ButtonState& RightStick() const { return rightStick; }
+				const gamepad::ButtonState& LeftStick() const { return leftStick; }
+				const gamepad::ButtonState& RightStick() const { return rightStick; }
 
-				const GamePad::ButtonState& LeftShoulder() const { return leftShoulder; }
-				const GamePad::ButtonState& RightShoulder() const { return rightShoulder; }
+				const gamepad::ButtonState& LeftShoulder() const { return leftShoulder; }
+				const gamepad::ButtonState& RightShoulder() const { return rightShoulder; }
 
-				const GamePad::ButtonState& Back() const { return back; }
-				const GamePad::ButtonState& Start() const { return start; }
+				const gamepad::ButtonState& Back() const { return back; }
+				const gamepad::ButtonState& Start() const { return start; }
 
-				const GamePad::ButtonState& DPadUp() const { return dpadUp; }
-				const GamePad::ButtonState& DPadDown() const { return dpadDown; }
-				const GamePad::ButtonState& DPadLeft() const { return dpadLeft; }
-				const GamePad::ButtonState& DPadRight() const { return dpadRight; }
+				const gamepad::ButtonState& DPadUp() const { return dpadUp; }
+				const gamepad::ButtonState& DPadDown() const { return dpadDown; }
+				const gamepad::ButtonState& DPadLeft() const { return dpadLeft; }
+				const gamepad::ButtonState& DPadRight() const { return dpadRight; }
 
 			private:
-				GamePad::ButtonState a;
-				GamePad::ButtonState b;
-				GamePad::ButtonState x;
-				GamePad::ButtonState y;
+				gamepad::ButtonState a;
+				gamepad::ButtonState b;
+				gamepad::ButtonState x;
+				gamepad::ButtonState y;
 
-				GamePad::ButtonState leftStick;
-				GamePad::ButtonState rightStick;
+				gamepad::ButtonState leftStick;
+				gamepad::ButtonState rightStick;
 
-				GamePad::ButtonState leftShoulder;
-				GamePad::ButtonState rightShoulder;
+				gamepad::ButtonState leftShoulder;
+				gamepad::ButtonState rightShoulder;
 
-				GamePad::ButtonState back;
-				GamePad::ButtonState start;
+				gamepad::ButtonState back;
+				gamepad::ButtonState start;
 
-				GamePad::ButtonState dpadUp;
-				GamePad::ButtonState dpadDown;
-				GamePad::ButtonState dpadLeft;
-				GamePad::ButtonState dpadRight;
+				gamepad::ButtonState dpadUp;
+				gamepad::ButtonState dpadDown;
+				gamepad::ButtonState dpadLeft;
+				gamepad::ButtonState dpadRight;
 
 				State lastState;
 			};
@@ -169,21 +169,21 @@ namespace eastengine
 			class Player
 			{
 			public:
-				Player(GamePad::PlayerID emPlayer);
+				Player(gamepad::PlayerID emPlayer);
 				~Player();
 
 			public:
-				void Update(float fElapsedTime);
+				void Update(float elapsedTime);
 
 				bool SetVibration(float fLeftMotor, float fRightMotor, float fVibrationTime = 0.f);
 
 			public:
-				GamePad::PlayerID GetPlayerID() const { return m_emPlayerID; }
+				gamepad::PlayerID GetPlayerID() const { return m_emPlayerID; }
 
 				bool IsConnected() const { return m_isConnected; }
 
-				GamePad::DeadZone GetDeadZone() const { return m_emDeadZoneMode; }
-				void SetDeadZone(GamePad::DeadZone emDeadZone) { m_emDeadZoneMode = emDeadZone; }
+				gamepad::DeadZone GetDeadZone() const { return m_emDeadZoneMode; }
+				void SetDeadZone(gamepad::DeadZone emDeadZone) { m_emDeadZoneMode = emDeadZone; }
 
 				const State& GetCurState() const { return m_state; }
 				const ButtonStateTracker& GetButtonStateTracker() const { return m_buttonStateTracker; }
@@ -193,7 +193,7 @@ namespace eastengine
 				void RefreshState();
 				void RefreshCapabilities();
 
-				bool ThrottleRetry(float fElapsedTime);
+				bool ThrottleRetry(float elapsedTime);
 				void ClearSlot(float fTime)
 				{
 					m_isConnected = false;
@@ -203,7 +203,7 @@ namespace eastengine
 				}
 
 			private:
-				GamePad::PlayerID m_emPlayerID;
+				gamepad::PlayerID m_emPlayerID;
 
 				bool m_isConnected;
 				float m_fLastReadTime;
@@ -211,7 +211,7 @@ namespace eastengine
 				float m_fVibrationTime;
 				float m_fMaxVibrationTime;
 
-				GamePad::DeadZone m_emDeadZoneMode;
+				gamepad::DeadZone m_emDeadZoneMode;
 
 				State m_state;
 				ButtonStateTracker m_buttonStateTracker;
@@ -219,18 +219,18 @@ namespace eastengine
 				Capabilities m_capabilities;
 			};
 
-			Player* GetPlayer(GamePad::PlayerID emPlayerID) { return &m_players[emPlayerID]; }
+			Player* GetPlayer(gamepad::PlayerID emPlayerID) { return &m_players[emPlayerID]; }
 
 			// Set the vibration motor speeds of the gamepad
-			bool SetVibration(GamePad::PlayerID emPlayerID, float fLeftMotor, float fRightMotor, float fVibrationTime = 0.f)
+			bool SetVibration(gamepad::PlayerID emPlayerID, float fLeftMotor, float fRightMotor, float fVibrationTime = 0.f)
 			{
 				return m_players[emPlayerID].SetVibration(fLeftMotor, fRightMotor, fVibrationTime);
 			}
 
-			void Update(float fElapsedTime);
+			void Update(float elapsedTime);
 
 		private:
-			std::array<Player, GamePad::PlayerCount> m_players;
+			std::array<Player, gamepad::PlayerCount> m_players;
 		};
 	}
 }

@@ -49,7 +49,8 @@ namespace eastengine
 
 namespace StrID
 {
-	static const eastengine::string::StringID EmptyString("");
+	extern const eastengine::string::StringID EmptyString;
+	extern const eastengine::string::StringID None;
 }
 
 namespace std
@@ -57,9 +58,9 @@ namespace std
 	template <>
 	struct hash<eastengine::string::StringID>
 	{
-		const eastengine::string::StringData* operator()(const eastengine::string::StringID& key) const
+		const size_t operator()(const eastengine::string::StringID& key) const
 		{
-			return key.Key();
+			return reinterpret_cast<size_t>(key.Key());
 		}
 	};
 }

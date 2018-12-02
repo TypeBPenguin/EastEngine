@@ -78,7 +78,7 @@ namespace eastengine
 			bool LoadModel(Model* pModel, const char* strFilePath, const std::string* pStrDevideModels, size_t nKeywordCount)
 			{
 				file::Stream file;
-				if (file.Open(strFilePath, file::eRead | file::eBinary) == false)
+				if (file.Open(strFilePath, file::eReadBinary) == false)
 					return false;
 
 				std::string strPath = file::GetFilePath(strFilePath);
@@ -116,11 +116,6 @@ namespace eastengine
 
 					int8_t byte = 0;
 					file.Read(&byte);
-
-					if (byte > 2)
-					{
-						file.Seekg(-1, 1);
-					}
 
 					strTemp.clear();
 					strTemp.resize(length);
@@ -367,8 +362,8 @@ namespace eastengine
 							vecModelSubset[nIndex].nMaterialID = nIndex;
 
 							MaterialInfo materianInfo;
-							materianInfo.strPath = strPath;
-							materianInfo.strName = meshOptimizer.strName;
+							materianInfo.path = strPath;
+							materianInfo.name = meshOptimizer.strName;
 							materianInfo.strTextureNameArray[EmMaterial::eAlbedo] = std::get<0>(key).c_str();
 							materianInfo.strTextureNameArray[EmMaterial::eNormal] = std::get<1>(key).c_str();
 							vecMaterial[nIndex] = CreateMaterial(&materianInfo);
@@ -437,8 +432,8 @@ namespace eastengine
 							vecModelSubset[i].nMaterialID = i;
 
 							MaterialInfo materianInfo;
-							materianInfo.strPath = strPath;
-							materianInfo.strName.Format("material_%s", mesh.name.c_str());
+							materianInfo.path = strPath;
+							materianInfo.name.Format("material_%s", mesh.name.c_str());
 
 							if (mesh.numTextures == 1)
 							{
@@ -482,11 +477,11 @@ namespace eastengine
 						}
 					}
 
-					IVertexBuffer* pVertexBuffer = CreateVertexBuffer(reinterpret_cast<uint8_t*>(vecVertices.data()), static_cast<uint32_t>(vecVertices.size()), sizeof(VertexPosTexNorWeiIdx));
+					IVertexBuffer* pVertexBuffer = CreateVertexBuffer(reinterpret_cast<uint8_t*>(vecVertices.data()), static_cast<uint32_t>(vecVertices.size()), sizeof(VertexPosTexNorWeiIdx), true);
 					pSkinnedNode->SetVertexBuffer(pVertexBuffer);
 					ReleaseResource(&pVertexBuffer);
 
-					IIndexBuffer* pIndexBuffer = CreateIndexBuffer(reinterpret_cast<uint8_t*>(vecIndices.data()), static_cast<uint32_t>(vecIndices.size()), sizeof(uint32_t));
+					IIndexBuffer* pIndexBuffer = CreateIndexBuffer(reinterpret_cast<uint8_t*>(vecIndices.data()), static_cast<uint32_t>(vecIndices.size()), sizeof(uint32_t), true);
 					pSkinnedNode->SetIndexBuffer(pIndexBuffer);
 					ReleaseResource(&pIndexBuffer);
 
@@ -536,7 +531,7 @@ namespace eastengine
 						string::StringID strBoneName = bone.name.c_str();
 						if (strParentBoneName.empty() == false)
 						{
-							pSkeleton->CreateBone(strParentBoneName, strBoneName, matMotionOffset, matDefault);
+							pSkeleton->CreateBone(strBoneName, strParentBoneName, matMotionOffset, matDefault);
 						}
 						else
 						{
@@ -584,7 +579,7 @@ namespace eastengine
 			bool LoadMotion(Motion* pMotion, const char* strFilePath)
 			{
 				file::Stream file;
-				if (file.Open(strFilePath, file::eRead | file::eBinary) == false)
+				if (file.Open(strFilePath, file::eReadBinary) == false)
 					return false;
 
 				pMotion->SetInfo(0.f, 0.f, 0.f);
@@ -622,7 +617,7 @@ namespace eastengine
 
 						vecKeyframes.emplace_back(keyframe);
 
-						pMotion->AddBoneKeyframes(strName, vecKeyframes);
+						pMotion->AddBoneKeyframes(strName, std::move(vecKeyframes));
 					}
 				}
 

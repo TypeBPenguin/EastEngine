@@ -57,7 +57,7 @@ namespace eastengine
 			return nullptr;
 		}
 
-		void SpotLight::Update(float fElapsedTime)
+		void SpotLight::Update(float elapsedTime)
 		{
 			//if (Config::IsEnable("Shadow"_s) == true && IsEnableShadow() == true && m_pShadowMap != nullptr)
 			//{

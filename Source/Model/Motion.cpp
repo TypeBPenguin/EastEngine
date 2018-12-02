@@ -1,15 +1,24 @@
 #include "stdafx.h"
 #include "Motion.h"
 
+#include "CommonLib/FileStream.h"
+
 namespace eastengine
 {
 	namespace graphics
 	{
-		Motion::Bone::Bone(const string::StringID& strBoneName, const std::vector<Keyframe>& _vecKeyframes, float fFrameInterval)
-			: m_strBoneName(strBoneName)
-			, m_fFrameInterval(fFrameInterval)
+		Motion::Bone::Bone(const string::StringID& boneName, std::vector<Keyframe>&& vecKeyframes, float fFrameInterval)
+			: m_boneName(boneName)
+			, m_frameInterval(fFrameInterval)
+			, m_vecKeyframes(std::move(vecKeyframes))
 		{
-			m_vecKeyframes = std::move(_vecKeyframes);
+		}
+
+		Motion::Bone::Bone(const string::StringID& boneName, const Keyframe* pKeyframes, size_t keyframeCount, float fFrameInterval)
+			: m_boneName(boneName)
+			, m_frameInterval(fFrameInterval)
+			, m_vecKeyframes(pKeyframes, pKeyframes + keyframeCount)
+		{
 		}
 
 		Motion::Bone::~Bone()
@@ -165,7 +174,7 @@ namespace eastengine
 				}
 			}
 
-			pRecorder->SetTransform(m_strBoneName, transform);
+			pRecorder->SetTransform(m_boneName, transform);
 		}
 
 		Motion::Motion(Key key)
@@ -173,27 +182,15 @@ namespace eastengine
 		{
 		}
 
-		//Motion::Motion(const Motion& source)
-		//	: m_key(source.m_key)
-		//	, m_strName(source.m_strName)
-		//	, m_strFilePath(source.m_strFilePath)
-		//	, m_vecBones(source.m_vecBones)
-		//	, m_umapBones(source.m_umapBones)
-		//	, m_fStartTime(source.m_fStartTime)
-		//	, m_fEndTime(source.m_fEndTime)
-		//	, m_fFrameInterval(source.m_fFrameInterval)
-		//{
-		//}
-
 		Motion::Motion(Motion&& source) noexcept
 			: m_key(std::move(source.m_key))
 			, m_strName(std::move(source.m_strName))
 			, m_strFilePath(std::move(source.m_strFilePath))
 			, m_vecBones(std::move(source.m_vecBones))
-			, m_umapBones(std::move(source.m_umapBones))
-			, m_fStartTime(std::move(source.m_fStartTime))
-			, m_fEndTime(std::move(source.m_fEndTime))
-			, m_fFrameInterval(std::move(source.m_fFrameInterval))
+			, m_rmapBones(std::move(source.m_rmapBones))
+			, m_startTime(std::move(source.m_startTime))
+			, m_endTime(std::move(source.m_endTime))
+			, m_frameInterval(std::move(source.m_frameInterval))
 			, m_vecEvents(std::move(source.m_vecEvents))
 		{
 		}
@@ -210,7 +207,7 @@ namespace eastengine
 			{
 				std::for_each(m_vecBones.begin(), m_vecBones.end(), [&](const Bone& bone)
 				{
-					bone.Update(m_fFrameInterval, pRecorder, fPlayTime, isInverse);
+					bone.Update(m_frameInterval, pRecorder, fPlayTime, isInverse);
 				});
 			}
 
@@ -224,26 +221,64 @@ namespace eastengine
 			pRecorder->SetLastPlayTime(fPlayTime);
 		}
 
-		const IMotion::IBone* Motion::GetBone(const string::StringID& strBoneName) const
+		const IMotion::IBone* Motion::GetBone(const string::StringID& boneName) const
 		{
-			auto iter = m_umapBones.find(strBoneName);
-			if (iter != m_umapBones.end())
+			auto iter = m_rmapBones.find(boneName);
+			if (iter != m_rmapBones.end())
 				return iter->second;
 
 			return nullptr;
 		}
 
-		void Motion::AddBoneKeyframes(const string::StringID& strBoneName, const std::vector<Keyframe>& vecKeyframes)
+		void Motion::AddBoneKeyframes(const string::StringID& boneName, std::vector<Keyframe>&& vecKeyframes)
 		{
-			m_vecBones.emplace_back(strBoneName, vecKeyframes, m_fFrameInterval);
-			m_umapBones.emplace(strBoneName, &m_vecBones.back());
+			m_vecBones.emplace_back(boneName, std::move(vecKeyframes), m_frameInterval);
+			m_rmapBones.emplace(boneName, &m_vecBones.back());
 		}
 
 		void Motion::SetInfo(float fStartTime, float fEndTime, float fFrameInterval)
 		{
-			m_fStartTime = fStartTime;
-			m_fEndTime = fEndTime;
-			m_fFrameInterval = fFrameInterval;
+			m_startTime = fStartTime;
+			m_endTime = fEndTime;
+			m_frameInterval = fFrameInterval;
+		}
+
+		bool Motion::LoadFile(const char* path)
+		{
+			file::Stream file;
+			if (file.Open(path, file::eReadBinary) == false)
+			{
+				LOG_WARNING("Can't open to file : %s", path);
+				return false;
+			}
+
+			const BYTE* pBuffer = file.GetBuffer();
+			{
+				const string::StringID name = file::Stream::ToString(&pBuffer);
+
+				m_startTime = *file::Stream::To<float>(&pBuffer);
+				m_endTime = *file::Stream::To<float>(&pBuffer);
+				m_frameInterval = *file::Stream::To<float>(&pBuffer);
+
+				const uint32_t boneCount = *file::Stream::To<uint32_t>(&pBuffer);
+				m_vecBones.reserve(boneCount);
+				m_rmapBones.reserve(boneCount);
+
+				for (uint32_t i = 0; i < boneCount; ++i)
+				{
+					const string::StringID boneName = file::Stream::ToString(&pBuffer);
+
+					const uint32_t keyFrameCount = *file::Stream::To<uint32_t>(&pBuffer);
+					const Keyframe* pKeyframes = file::Stream::To<Keyframe>(&pBuffer, keyFrameCount);
+
+					m_vecBones.emplace_back(boneName, pKeyframes, keyFrameCount, m_frameInterval);
+					m_rmapBones.emplace(boneName, &m_vecBones.back());
+				}
+			}
+
+			file.Close();
+
+			return true;
 		}
 	}
 }

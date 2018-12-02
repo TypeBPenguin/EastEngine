@@ -3,14 +3,13 @@
 
 #include "CommonLib/FileUtil.h"
 
-#include "Windows/Windows.h"
-#include "DirectX/Device.h"
+#include "Graphics/Graphics.h"
+
 #include "Model/ModelManager.h"
-#include "Model/MotionManager.h"
 
 using namespace eastengine;
 
-enum EmFlag
+enum
 {
 	eModel = 1,
 	eMotion = 2,
@@ -76,29 +75,25 @@ int main(int argn, char** argc)
 
 	std::cout << "초기화 중..." << std::endl;
 
-	if (Windows::WindowsManager::GetInstance()->Initialize("FBXConvertor", 800, 600, false) == false)
+	try
 	{
-		std::cout << "초기화 실패" << std::endl;
+		graphics::Initialize(graphics::APIs::eDX11, 800, 600, false, "FBXConvertor", "FBXConvertor");
+		ShowWindow(graphics::GetHwnd(), SW_HIDE);
 	}
-
-	ShowWindow(Windows::GetHwnd(), SW_HIDE);
-
-	if (graphics::Device::GetInstance()->Initialize(Windows::GetHwnd(), 800, 600, false, true) == false)
+	catch (...)
 	{
-		std::cout << "초기화 실패" << std::endl;
 	}
 
 	graphics::ModelManager::GetInstance();
-	graphics::MotionManager::GetInstance();
 
 	std::cout << "추출 시작 : S(성공), F(실패)" << std::endl;
 	std::cout << "추출 타입 : " << strLoadType.c_str() << ", 스케일 : " << fScale << std::endl;
 
-	std::list<graphics::IModel*> listModel;
-	std::list<graphics::IMotion*> listMotion;
+	std::vector<graphics::IModel*> models;
+	std::vector<graphics::IMotion*> motions;
 
-	int nModelFailedCount = 0;
-	int nMotionFailedCount = 0;
+	int modelFailedCount = 0;
+	int motionFailedCount = 0;
 
 	for (int i = 1; i < argn; ++i)
 	{
@@ -108,20 +103,20 @@ int main(int argn, char** argc)
 			loader.InitFBX(file::GetFileNameWithoutExtension(argc[i]).c_str(), argc[i], fScale);
 			graphics::IModel* pModel = graphics::IModel::Create(loader, false);
 
-			if (pModel->GetState() == graphics::EmLoadState::eComplete)
+			if (pModel->GetState() == graphics::IResource::eComplete)
 			{
 				std::string strPath = file::GetFilePath(argc[i]);
 				strPath.append(file::GetFileNameWithoutExtension(argc[i]));
 				strPath.append(".emod");
-				if (graphics::IModel::SaveToFile(pModel, strPath.c_str()) == true)
+				if (graphics::IModel::SaveFile(pModel, strPath.c_str()) == true)
 				{
 					std::cout << "Model[S] : " << argc[i] << std::endl;
-					listModel.emplace_back(pModel);
+					models.emplace_back(pModel);
 				}
 				else
 				{
 					std::cout << "Model[F] : " << argc[i] << std::endl;
-					++nModelFailedCount;
+					++modelFailedCount;
 
 					DeleteFile(strPath.c_str());
 				}
@@ -129,7 +124,7 @@ int main(int argn, char** argc)
 			else
 			{
 				std::cout << "Model[F] : " << argc[i] << std::endl;
-				++nModelFailedCount;
+				++modelFailedCount;
 			}
 		}
 
@@ -139,20 +134,20 @@ int main(int argn, char** argc)
 			loader.InitFBX(file::GetFileNameWithoutExtension(argc[i]).c_str(), argc[i], fScale);
 			graphics::IMotion* pMotion = graphics::IMotion::Create(loader);
 
-			if (pMotion->GetState() == graphics::EmLoadState::eComplete)
+			if (pMotion->GetState() == graphics::IResource::eComplete)
 			{
 				std::string strPath = file::GetFilePath(argc[i]);
 				strPath.append(file::GetFileNameWithoutExtension(argc[i]));
 				strPath.append(".emot");
-				if (graphics::IMotion::SaveToFile(pMotion, strPath.c_str()) == true)
+				if (graphics::IMotion::SaveFile(pMotion, strPath.c_str()) == true)
 				{
 					std::cout << "Motion[S] : " << argc[i] << std::endl;
-					listMotion.emplace_back(pMotion);
+					motions.emplace_back(pMotion);
 				}
 				else
 				{
 					std::cout << "Motion[F] : " << argc[i] << std::endl;
-					++nMotionFailedCount;
+					++motionFailedCount;
 
 					DeleteFile(strPath.c_str());
 				}
@@ -160,7 +155,7 @@ int main(int argn, char** argc)
 			else
 			{
 				std::cout << "Motion[F] : " << argc[i] << std::endl;
-				++nMotionFailedCount;
+				++motionFailedCount;
 			}
 		}
 	}
@@ -168,23 +163,19 @@ int main(int argn, char** argc)
 	std::cout << "추출 완료" << std::endl;
 	if ((nFlag & eModel) != 0)
 	{
-		std::cout << "모델 : S(" << listModel.size() << "), F(" << nModelFailedCount << ")" << std::endl;
+		std::cout << "모델 : S(" << models.size() << "), F(" << modelFailedCount << ")" << std::endl;
 	}
 
 	if ((nFlag & eMotion) != 0)
 	{
-		std::cout << "모션 : S(" << listMotion.size() << "), F(" << nMotionFailedCount << ")" << std::endl;
+		std::cout << "모션 : S(" << motions.size() << "), F(" << motionFailedCount << ")" << std::endl;
 	}
 
 	graphics::ModelManager::DestroyInstance();
-	graphics::MotionManager::DestroyInstance();
 
-	graphics::Device::GetInstance()->Release();
-	graphics::Device::DestroyInstance();
+	graphics::Release();
 
-	Windows::WindowsManager::DestroyInstance();
-
-	String::Release();
+	string::Release();
 
 	system("pause");
 

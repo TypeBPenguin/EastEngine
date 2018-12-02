@@ -14,7 +14,7 @@ namespace eastengine
 		virtual ~SceneManager();
 
 	public:
-		void Update(float fElapsedTime);
+		void Update(float elapsedTime);
 
 	public:
 		void AddScene(IScene* pScene);

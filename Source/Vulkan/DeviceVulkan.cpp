@@ -79,7 +79,7 @@ namespace eastengine
 				void Release();
 
 				void Run(std::function<void()> funcUpdate);
-				void Cleanup(float fElapsedTime);
+				void Cleanup(float elapsedTime);
 
 				void Render();
 
@@ -278,7 +278,7 @@ namespace eastengine
 				vkDeviceWaitIdle(m_device);
 			}
 
-			void Device::Impl::Cleanup(float fElapsedTime)
+			void Device::Impl::Cleanup(float elapsedTime)
 			{
 			}
 
@@ -1330,9 +1330,9 @@ namespace eastengine
 				m_pImpl->Run(funcUpdate);
 			}
 
-			void Device::Cleanup(float fElapsedTime)
+			void Device::Cleanup(float elapsedTime)
 			{
-				m_pImpl->Cleanup(fElapsedTime);
+				m_pImpl->Cleanup(elapsedTime);
 			}
 
 			const math::uint2& Device::GetScreenSize() const

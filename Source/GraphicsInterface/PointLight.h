@@ -17,7 +17,7 @@ namespace eastengine
 			static PointLight* Create(const string::StringID& strName, const math::float3& f3Position, const math::Color& color, float fIntensity, float fAmbientIntensity = 0.f, float fReflectionIntensity = 0.f);
 
 		public:
-			virtual void Update(float fElapsedTime) override;
+			virtual void Update(float elapsedTime) override;
 
 		public:
 			virtual const string::StringID& GetName() const override { return m_strName; }

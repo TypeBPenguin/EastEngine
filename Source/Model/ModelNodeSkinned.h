@@ -10,10 +10,11 @@ namespace eastengine
 		{
 		public:
 			ModelNodeSkinned(LOD emLOD = eLv0);
+			ModelNodeSkinned(const char* filePath, const BYTE** ppBuffer);
 			virtual ~ModelNodeSkinned();
 
 		public:
-			virtual void Update(float fElapsedTime, const math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance, bool isModelVisible) const override;
+			virtual void Update(float elapsedTime, const math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance, bool isModelVisible) const override;
 
 		public:
 			virtual IModelNode::Type GetType() const override { return IModelNode::Type::eSkinned; }

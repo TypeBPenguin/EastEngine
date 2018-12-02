@@ -46,28 +46,33 @@ namespace eastengine
 				};
 
 				ModelInstance* pInstance{ nullptr };
-				string::StringID strNodeName;
-				Type emType = Type::eNone;
+				string::StringID nodeName;
+				Type emType{ Type::eNone };
 				math::Matrix matOffset;
 
-				AttachmentNode(ModelInstance* pInstance, const string::StringID& strNodeName, const math::Matrix& matOffset, Type emAttachNodeType);
+				AttachmentNode(ModelInstance* pInstance, const string::StringID& nodeName, const math::Matrix& matOffset, Type emAttachNodeType);
 			};
 
 		public:
 			ModelInstance(IModel* pModel);
+			ModelInstance(const ModelInstance& source);
+			ModelInstance(ModelInstance&& source) noexcept;
 			virtual ~ModelInstance();
+
+			ModelInstance& operator = (const ModelInstance& source);
+			ModelInstance& operator = (ModelInstance&& source) noexcept;
 
 		public:
 			void UpdateTransformations();
 			void UpdateModel();
 
 		public:
-			virtual void Update(float fElapsedTime, const math::Matrix& matParent) override;
+			virtual void Update(float elapsedTime, const math::Matrix& matParent) override;
 
 			virtual bool Attachment(IModelInstance* pInstance, const string::StringID& strNodeName, const math::Matrix& matOffset = math::Matrix::Identity) override;
 			virtual bool Attachment(IModelInstance* pInstance, const math::Matrix& matOffset = math::Matrix::Identity) override;
-			virtual IModelInstance* GetAttachment(size_t nIndex) const override { return m_vecAttachmentNode[nIndex].pInstance; }
-			virtual size_t GetAttachmentCount() const override { return m_vecAttachmentNode.size(); }
+			virtual IModelInstance* GetAttachment(size_t nIndex) const override { return m_attachmentNode[nIndex].pInstance; }
+			virtual size_t GetAttachmentCount() const override { return m_attachmentNode.size(); }
 			virtual bool IsAttachment() const override { return m_isAttachment; }
 
 			virtual bool Dettachment(IModelInstance* pInstance) override;
@@ -92,21 +97,21 @@ namespace eastengine
 			void SetAttachment(bool isAttachment) { m_isAttachment = isAttachment; }
 
 		private:
-			bool m_isVisible;
-			bool m_isAttachment;
+			bool m_isVisible{ true };
+			bool m_isAttachment{ false };
 
-			IModel* m_pModel;
+			IModel* m_pModel{ nullptr };
 
-			float m_fElapsedTime;
+			float m_elapsedTime{ 0.f };
+
 			math::Matrix m_matParent;
-
 			math::Matrix m_matWorld;
 
 			MotionSystem m_motionSystem;
 			SkeletonInstance m_skeletonInstance;
 			MaterialInstance m_materialInstance;
 
-			std::vector<AttachmentNode> m_vecAttachmentNode;
+			std::vector<AttachmentNode> m_attachmentNode;
 		};
 	}
 }

@@ -13,8 +13,14 @@
 #include <variant>
 
 #include <map>
+#include <unordered_map>
+#include <set>
+#include <unordered_set>
 #include <future>
 #include <atomic>
+
+#include "robin_map.h"
+#include "robin_set.h"
 
 inline void SetBitMask(int& nMask, int nBit)
 {

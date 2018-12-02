@@ -54,54 +54,49 @@ namespace eastengine
 			strFullPath.append(strFileName);
 
 			file::Stream file;
-			if (file.Open(strFullPath.c_str(), file::eRead | file::eBinary) == false)
+			if (file.Open(strFullPath.c_str(), file::eReadBinary) == false)
 			{
 				LOG_WARNING("아 실패함");
 				return nullptr;
 			}
 
+			const BYTE* pBuffer = file.GetBuffer();
+			const BYTE** ppBuffer = &pBuffer;
+
 			MaterialInfo materialInfo;
+			materialInfo.name = file::Stream::ToString(ppBuffer);
+			materialInfo.path = strFilePath;
+			materialInfo.colorAlbedo = *file::Stream::To<math::Color>(ppBuffer);
+			materialInfo.colorEmissive = *file::Stream::To<math::Color>(ppBuffer);
+			materialInfo.f4PaddingRoughMetEmi = *file::Stream::To<math::float4>(ppBuffer);
+			materialInfo.f4SurSpecTintAniso = *file::Stream::To<math::float4>(ppBuffer);
+			materialInfo.f4SheenTintClearcoatGloss = *file::Stream::To<math::float4>(ppBuffer);
 
-			std::string strBuf;
-			file >> strBuf;
-
-			materialInfo.strName = strBuf.c_str();
-			materialInfo.strPath = strFilePath;
-
-			file.Read(&materialInfo.colorAlbedo.r, 4);
-			file.Read(&materialInfo.colorEmissive.r, 4);
-
-			file.Read(&materialInfo.f4PaddingRoughMetEmi.x, 4);
-			file.Read(&materialInfo.f4SurSpecTintAniso.x, 4);
-			file.Read(&materialInfo.f4SheenTintClearcoatGloss.x, 4);
-
-			file >> materialInfo.isVisible;
-			file >> materialInfo.fStippleTransparencyFactor;
-			file >> materialInfo.fTessellationFactor;
-			file >> materialInfo.isAlbedoAlphaChannelMaskMap;
+			materialInfo.isVisible = *file::Stream::To<bool>(ppBuffer);
+			materialInfo.fStippleTransparencyFactor = *file::Stream::To<float>(ppBuffer);
+			materialInfo.fTessellationFactor = *file::Stream::To<float>(ppBuffer);
+			materialInfo.isAlbedoAlphaChannelMaskMap = *file::Stream::To<bool>(ppBuffer);
 
 			for (int i = 0; i < EmMaterial::TypeCount; ++i)
 			{
-				file >> strBuf;
-
-				if (strBuf != "None")
+				const char* textureName = file::Stream::ToString(ppBuffer);
+				if (string::IsEquals(textureName, "None") == false)
 				{
-					materialInfo.strTextureNameArray[i] = strBuf.c_str();
+					materialInfo.strTextureNameArray[i] = textureName;
 				}
 			}
 
-			int nValue = 0;
-			file >> nValue;
-			materialInfo.emSamplerState = static_cast<EmSamplerState::Type>(nValue);
+			int type = *file::Stream::To<int>(ppBuffer);
+			materialInfo.emSamplerState = static_cast<EmSamplerState::Type>(type);
 
-			file >> nValue;
-			materialInfo.emBlendState = static_cast<EmBlendState::Type>(nValue);
+			type = *file::Stream::To<int>(ppBuffer);
+			materialInfo.emBlendState = static_cast<EmBlendState::Type>(type);
 
-			file >> nValue;
-			materialInfo.emRasterizerState = static_cast<EmRasterizerState::Type>(nValue);
+			type = *file::Stream::To<int>(ppBuffer);
+			materialInfo.emRasterizerState = static_cast<EmRasterizerState::Type>(type);
 
-			file >> nValue;
-			materialInfo.emDepthStencilState = static_cast<EmDepthStencilState::Type>(nValue);
+			type = *file::Stream::To<int>(ppBuffer);
+			materialInfo.emDepthStencilState = static_cast<EmDepthStencilState::Type>(type);
 
 			file.Close();
 
@@ -124,14 +119,14 @@ namespace eastengine
 			return pMaterial;
 		}
 
-		bool Material::SaveToFile(const char* strFilePath) const
+		bool Material::SaveFile(const char* strFilePath) const
 		{
 			std::string strFullPath(strFilePath);
 			strFullPath.append(GetName().c_str());
 			strFullPath.append(".emtl");
 
 			file::Stream file;
-			if (file.Open(strFullPath.c_str(), file::eWrite | file::eBinary) == false)
+			if (file.Open(strFullPath.c_str(), file::eWriteBinary) == false)
 			{
 				LOG_WARNING("아 실패함");
 				return false;
@@ -153,14 +148,14 @@ namespace eastengine
 
 			for (int i = 0; i < EmMaterial::TypeCount; ++i)
 			{
-				const string::StringID& strName = GetTextureName(static_cast<EmMaterial::Type>(i));
-				if (strName.empty() == true)
+				const string::StringID& name = GetTextureName(static_cast<EmMaterial::Type>(i));
+				if (name.empty() == true)
 				{
 					file << "None";
 				}
 				else
 				{
-					file << strName.c_str();
+					file << name.c_str();
 				}
 			}
 

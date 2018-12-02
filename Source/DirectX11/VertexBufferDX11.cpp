@@ -9,9 +9,10 @@ namespace eastengine
 	{
 		namespace dx11
 		{
-			VertexBuffer::VertexBuffer(const uint8_t* pData, uint32_t vertexCount, size_t formatSize)
+			VertexBuffer::VertexBuffer(const uint8_t* pData, uint32_t vertexCount, size_t formatSize, bool isDynamic)
 				: m_vertexCount(vertexCount)
 				, m_formatSize(static_cast<uint32_t>(formatSize))
+				, m_isDynamic(isDynamic)
 			{
 				TRACER_EVENT("VertexBuffer_Init");
 				SetState(IResource::eReady);
@@ -20,11 +21,14 @@ namespace eastengine
 
 				HRESULT hr = S_OK;
 
+				const uint32_t cpuAccessFlags = isDynamic == true ? D3D11_CPU_ACCESS_WRITE : 0;
+				const D3D11_USAGE usage = isDynamic == true ? D3D11_USAGE_DYNAMIC : D3D11_USAGE_DEFAULT;
+
 				D3D11_BUFFER_DESC bufferDesc{};
 				bufferDesc.ByteWidth = static_cast<uint32_t>(vertexCount * formatSize);
 				bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-				bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-				bufferDesc.CPUAccessFlags = 0;
+				bufferDesc.Usage = usage;
+				bufferDesc.CPUAccessFlags = cpuAccessFlags;
 				bufferDesc.MiscFlags = 0;
 
 				D3D11_SUBRESOURCE_DATA vertexData{};

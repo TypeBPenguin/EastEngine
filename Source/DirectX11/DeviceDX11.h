@@ -42,7 +42,7 @@ namespace eastengine
 
 				void Run(std::function<void()> funcUpdate);
 
-				void Cleanup(float fElapsedTime);
+				void Cleanup(float elapsedTime);
 
 			public:
 				RenderTarget* GetRenderTarget(const D3D11_TEXTURE2D_DESC* pDesc, bool isIncludeLastUseRenderTarget = true);

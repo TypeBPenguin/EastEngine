@@ -19,7 +19,7 @@ public:
 	~SkeletonController();
 
 public:
-	bool Process(float fElapsedTime);
+	bool Process(float elapsedTime);
 	void RenderUI();
 
 private:

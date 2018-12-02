@@ -14,7 +14,6 @@ namespace eastengine
 		public:
 			Model(Key key);
 			Model(const Model& source);
-			Model(Model&& source) noexcept;
 			virtual ~Model();
 
 		public:
@@ -28,19 +27,19 @@ namespace eastengine
 			void Ready();
 
 		public:
-			virtual void Update(float fElapsedTime, const math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance) override;
+			virtual void Update(float elapsedTime, const math::Matrix& matParent, ISkeletonInstance* pSkeletonInstance, IMaterialInstance* pMaterialInstance) override;
 
 			virtual void ChangeName(const string::StringID& strName) override;
 
 			void LoadCompleteCallback(bool isSuccess);
 
 		public:
-			virtual const math::float3& GetLocalPosition() const override { return m_f3Pos; }
-			virtual void SetLocalPosition(const math::float3& f3Pos) override { m_f3Pos = f3Pos; m_isDirtyLocalMatrix = true; }
-			virtual const math::float3& GetLocalScale() const override { return m_f3Scale; }
-			virtual void SetLocalScale(const math::float3& f3Scale) override { m_f3Scale = f3Scale; m_isDirtyLocalMatrix = true; }
-			virtual const math::Quaternion& GetLocalRotation() const override { return m_quat; }
-			virtual void SetLocalRotation(const math::Quaternion& quat) override { m_quat = quat; m_isDirtyLocalMatrix = true; }
+			virtual const math::float3& GetLocalPosition() const override { return m_transform.position; }
+			virtual void SetLocalPosition(const math::float3& f3Pos) override { m_transform.position = f3Pos; m_isDirtyLocalMatrix = true; }
+			virtual const math::float3& GetLocalScale() const override { return m_transform.scale; }
+			virtual void SetLocalScale(const math::float3& f3Scale) override { m_transform.scale = f3Scale; m_isDirtyLocalMatrix = true; }
+			virtual const math::Quaternion& GetLocalRotation() const override { return m_transform.rotation; }
+			virtual void SetLocalRotation(const math::Quaternion& quat) override { m_transform.rotation = quat; m_isDirtyLocalMatrix = true; }
 
 			virtual const math::Matrix& GetLocalMatrix() const override { return m_matLocal; }
 
@@ -60,21 +59,19 @@ namespace eastengine
 			void AddNode(IModelNode* pNode, const string::StringID& strNodeName, bool isRootNode);
 
 			bool Load(const ModelLoader& loader);
-			bool LoadToFile(const char* strFilePath);
+			bool LoadFile(const char* strFilePath);
 			void SetName(const string::StringID& strModelName) { m_strModelName = strModelName; }
 			void SetFilePath(const std::string& strFilePath) { m_strFilePath = strFilePath; }
 
 		private:
-			const Key m_key;
+			Key m_key;
 
-			bool m_isVisible;
-			bool m_isDirtyLocalMatrix;
+			bool m_isVisible{ true };
+			bool m_isDirtyLocalMatrix{ true };
 
 			Skeleton m_skeleton;
 
-			math::float3 m_f3Pos;
-			math::float3 m_f3Scale;
-			math::Quaternion m_quat;
+			math::Transform m_transform;
 
 			math::Matrix m_matLocal;
 

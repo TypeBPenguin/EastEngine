@@ -13,7 +13,7 @@ namespace eastengine
 			virtual ~Terrain();
 
 		public:
-			virtual void Update(float fElapsedTime) override;
+			virtual void Update(float elapsedTime) override;
 
 		public:
 			virtual const string::StringID& GetName() const override { return m_strName; }

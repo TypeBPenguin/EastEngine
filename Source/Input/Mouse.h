@@ -42,10 +42,10 @@ namespace eastengine
 			void HandleMouse(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam);
 
 		public:
-			bool IsButtonEvent(Mouse::Button emMouseButton) const { return CurMouseDown(emMouseButton); }
-			bool IsButtonDown(Mouse::Button emMouseButton) const { return !OldMouseDown(emMouseButton) && CurMouseDown(emMouseButton); }
-			bool IsButtonPressed(Mouse::Button emMouseButton) const { return OldMouseDown(emMouseButton) && CurMouseDown(emMouseButton); }
-			bool IsButtonUp(Mouse::Button emMouseButton) const { return OldMouseDown(emMouseButton) && !CurMouseDown(emMouseButton); }
+			bool IsButtonEvent(mouse::Button emMouseButton) const { return CurMouseDown(emMouseButton); }
+			bool IsButtonDown(mouse::Button emMouseButton) const { return !OldMouseDown(emMouseButton) && CurMouseDown(emMouseButton); }
+			bool IsButtonPressed(mouse::Button emMouseButton) const { return OldMouseDown(emMouseButton) && CurMouseDown(emMouseButton); }
+			bool IsButtonUp(mouse::Button emMouseButton) const { return OldMouseDown(emMouseButton) && !CurMouseDown(emMouseButton); }
 
 			int	GetX() const { return m_nX; }
 			int GetY() const { return m_nY; }
@@ -55,8 +55,8 @@ namespace eastengine
 			long GetMoveWheel() const { return m_CurMouseState.moveWheel; }	// 휠 이동거리
 
 		private:
-			bool CurMouseDown(Mouse::Button emMouseButton) const { return (m_CurMouseState.rgbButtonArr[static_cast<int>(emMouseButton)] & 0x80) != 0; }
-			bool OldMouseDown(Mouse::Button emMouseButton) const { return (m_OldMouseState.rgbButtonArr[static_cast<int>(emMouseButton)] & 0x80) != 0; }
+			bool CurMouseDown(mouse::Button emMouseButton) const { return (m_CurMouseState.rgbButtonArr[static_cast<int>(emMouseButton)] & 0x80) != 0; }
+			bool OldMouseDown(mouse::Button emMouseButton) const { return (m_OldMouseState.rgbButtonArr[static_cast<int>(emMouseButton)] & 0x80) != 0; }
 
 		private:
 			struct IDirectInputDevice8A* m_pMouse;	// 마우스 디바이스

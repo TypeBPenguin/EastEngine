@@ -9,12 +9,16 @@ namespace eastengine
 
 	namespace gameobject
 	{
-		namespace EmComponent
+		class IActor;
+
+		class IComponent
 		{
+		public:
 			enum Type
 			{
 				eTimer = 0,
-				eActionState,
+				eBehaviorTree,
+				eFiniteStateMachine,
 				ePhysics,
 				eModel,
 				eCamera,
@@ -23,40 +27,35 @@ namespace eastengine
 				TypeCount,
 			};
 
-			const char* ToString(Type emType);
-			Type GetType(const char* strType);
-		}
+			static const char* ToString(Type emType);
+			static Type GetType(const char* strType);
 
-		class IActor;
-
-		class IComponent
-		{
 		public:
-			IComponent(IActor* pOwner, EmComponent::Type emCompType);
+			IComponent(IActor* pOwner, Type emCompType);
 			virtual ~IComponent() = 0;
 
 		public:
-			virtual void Update(float fElapsedTime) = 0;
+			virtual void Update(float elapsedTime) = 0;
 
-			virtual bool LoadToFile(file::Stream& file) { return true; }
-			virtual bool SaveToFile(file::Stream& file) { return true; }
+			virtual bool LoadFile(file::Stream& file) { return true; }
+			virtual bool SaveFile(file::Stream& file) { return true; }
 
 		public:
 			IComponent* AddComponent(IComponent* pComponent);
-			IComponent* GetComponent(EmComponent::Type emComponentType);
-			void DelComponent(EmComponent::Type emComponentType);
+			IComponent* GetComponent(Type emComponentType);
+			void DelComponent(Type emComponentType);
 
 		public:
 			IActor* GetOwner() const { return m_pOwner; }
-			EmComponent::Type GetComponentType() { return m_emCompType; }
+			Type GetComponentType() const { return m_emCompType; }
 
 		protected:
 			IActor* m_pOwner;
 
-			std::unordered_map<EmComponent::Type, IComponent*> m_umapChild;
+			std::unordered_map<Type, IComponent*> m_umapChild;
 
 		private:
-			EmComponent::Type m_emCompType;
+			Type m_emCompType;
 		};
 	}
 }

@@ -64,7 +64,7 @@ namespace eastengine
 
 			static RigidBody* Create(const RigidBodyProperty& physicsProperty);
 
-			void Update(float fElapsedTime);
+			void Update(float elapsedTime);
 			void UpdateBoundingBox(const math::Matrix& matWorld);
 
 			bool IsCollision(RigidBody* pRigidBody);

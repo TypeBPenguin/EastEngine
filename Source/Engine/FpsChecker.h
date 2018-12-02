@@ -8,7 +8,7 @@ namespace eastengine
 		FpsChecker();
 		~FpsChecker();
 
-		void Update(float fElapsedTime);
+		void Update(float elapsedTime);
 		float GetFps() { return m_fFps; }
 
 	private:

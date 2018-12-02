@@ -19,16 +19,16 @@ namespace eastengine
 			static std::unique_ptr<Material> Clone(const Material* pSource);
 
 		public:
-			virtual bool SaveToFile(const char* strFilePath) const override;
+			virtual bool SaveFile(const char* strFilePath) const override;
 
 		public:
 			virtual void LoadTexture() override;
 
-			virtual const string::StringID& GetName() const override { return m_info.strName; }
-			virtual void SetName(const string::StringID& strName) override { m_info.strName = strName; }
+			virtual const string::StringID& GetName() const override { return m_info.name; }
+			virtual void SetName(const string::StringID& strName) override { m_info.name = strName; }
 
-			virtual const std::string& GetPath() const override { return m_info.strPath; }
-			virtual void SetPath(const std::string& strPath) override { m_info.strPath = strPath; }
+			virtual const std::string& GetPath() const override { return m_info.path; }
+			virtual void SetPath(const std::string& strPath) override { m_info.path = strPath; }
 
 			virtual const math::Color& GetAlbedoColor() const override { return m_info.colorAlbedo; }
 			virtual void SetAlbedoColor(const math::Color& color) override { m_info.colorAlbedo = color; }

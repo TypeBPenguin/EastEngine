@@ -24,9 +24,6 @@
     <Filter Include="Component\Camera">
       <UniqueIdentifier>{b5003bef-f21d-46b7-9010-446bede2b72e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="BehaviorTree">
-      <UniqueIdentifier>{054468bd-d773-4a88-bf96-4f06c5f91254}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Component\Timer">
       <UniqueIdentifier>{6a0a75a7-e97a-4fd8-af68-c0deb75b4267}</UniqueIdentifier>
     </Filter>
@@ -42,9 +39,6 @@
     </Filter>
     <Filter Include="Component\Light">
       <UniqueIdentifier>{56e46121-76d0-445f-ab58-ff9932f4ad87}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Component\ActionState">
-      <UniqueIdentifier>{4a5a7229-1721-4fc2-a44d-3116a4e0c4e4}</UniqueIdentifier>
     </Filter>
     <Filter Include="GameObject">
       <UniqueIdentifier>{b353f6a5-a395-4189-9de4-36ad806d7bb4}</UniqueIdentifier>
@@ -66,6 +60,12 @@
     </Filter>
     <Filter Include="GameObject\Manager">
       <UniqueIdentifier>{c2fdd33c-9e94-4f12-88e4-2bfcc9ee01a0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Component\BehaviorTree">
+      <UniqueIdentifier>{4a5a7229-1721-4fc2-a44d-3116a4e0c4e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Component\FiniteStateMachine">
+      <UniqueIdentifier>{f9bb3cab-d206-4a62-ac98-83cfbd012988}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -99,12 +99,6 @@
     <ClInclude Include="ComponentCamera.h">
       <Filter>Component\Camera</Filter>
     </ClInclude>
-    <ClInclude Include="BehaviorTree.h">
-      <Filter>BehaviorTree</Filter>
-    </ClInclude>
-    <ClInclude Include="ComponentActionState.h">
-      <Filter>Component\ActionState</Filter>
-    </ClInclude>
     <ClInclude Include="RagDoll.h">
       <Filter>Physics\RagDoll</Filter>
     </ClInclude>
@@ -125,6 +119,12 @@
     </ClInclude>
     <ClInclude Include="GameObjectManager.h">
       <Filter>GameObject\Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentBehaviorTree.h">
+      <Filter>Component\BehaviorTree</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentFiniteStateMachine.h">
+      <Filter>Component\FiniteStateMachine</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -152,12 +152,6 @@
     <ClCompile Include="ComponentCamera.cpp">
       <Filter>Component\Camera</Filter>
     </ClCompile>
-    <ClCompile Include="BehaviorTree.cpp">
-      <Filter>BehaviorTree</Filter>
-    </ClCompile>
-    <ClCompile Include="ComponentActionState.cpp">
-      <Filter>Component\ActionState</Filter>
-    </ClCompile>
     <ClCompile Include="RagDoll.cpp">
       <Filter>Physics\RagDoll</Filter>
     </ClCompile>
@@ -178,6 +172,12 @@
     </ClCompile>
     <ClCompile Include="GameObjectManager.cpp">
       <Filter>GameObject\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentBehaviorTree.cpp">
+      <Filter>Component\BehaviorTree</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentFiniteStateMachine.cpp">
+      <Filter>Component\FiniteStateMachine</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

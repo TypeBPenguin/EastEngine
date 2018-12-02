@@ -4,6 +4,12 @@
 #include "Lock.h"
 #include "Log.h"
 
+namespace StrID
+{
+	const eastengine::string::StringID EmptyString("");
+	const eastengine::string::StringID None("None");
+}
+
 namespace eastengine
 {
 	namespace string

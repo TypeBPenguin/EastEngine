@@ -27,12 +27,18 @@
 #include <list>
 #include <queue>
 #include <stack>
+#include <set>
+#include <unordered_set>
 
 #include <optional>
 #include <variant>
 
 #include <Shlwapi.h>
+#include <fstream>
 #include <filesystem>
 
 #include <ppl.h>
 #include <concurrent_queue.h>
+
+#include "robin_map.h"
+#include "robin_set.h"

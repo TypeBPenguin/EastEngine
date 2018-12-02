@@ -108,7 +108,7 @@ namespace eastengine
 				}
 			}
 
-			return CreateVertexBuffer(reinterpret_cast<uint8_t*>(vecVertices.data()), static_cast<uint32_t>(vecVertices.size()), sizeof(T));
+			return CreateVertexBuffer(reinterpret_cast<uint8_t*>(vecVertices.data()), static_cast<uint32_t>(vecVertices.size()), sizeof(T), true);
 		}
 
 		IIndexBuffer* WriteIndexBuffer(ExportIB* pIB, std::vector<uint32_t>& rawIndices_out)
@@ -132,7 +132,7 @@ namespace eastengine
 					rawIndices_out.emplace_back(pRawIndicex[i]);
 				}
 
-				return CreateIndexBuffer(pIndices, static_cast<uint32_t>(indexCount), sizeof(uint32_t));
+				return CreateIndexBuffer(pIndices, static_cast<uint32_t>(indexCount), sizeof(uint32_t), true);
 			}
 
 			return nullptr;
@@ -160,7 +160,7 @@ namespace eastengine
 
 		void WriteMaterial(ExportMaterial* pExportMaterial, MaterialInfo& materialInfo)
 		{
-			materialInfo.strName = pExportMaterial->GetName().SafeString();
+			materialInfo.name = pExportMaterial->GetName().SafeString();
 
 			ExportMaterialParameter* pColor = pExportMaterial->FindParameter("DiffuseColor");
 			if (pColor != nullptr)
@@ -323,7 +323,7 @@ namespace eastengine
 							vecSubsets[i].nMaterialID = static_cast<uint32_t>(vecMaterials.size());
 
 							MaterialInfo materialInfo;
-							materialInfo.strPath = file::GetFilePath(pModel->GetFilePath());
+							materialInfo.path = file::GetFilePath(pModel->GetFilePath());
 							WriteMaterial(pBinding->pMaterial, materialInfo);
 
 							vecMaterials.emplace_back(CreateMaterial(&materialInfo));
@@ -376,7 +376,7 @@ namespace eastengine
 					if (pParentNode != nullptr)
 					{
 						pParentNode->AddChildNode(pModelNode);
-						pModelNode->SetParentNode(pParentNode);
+						pModelNode->SetParentName(pParentNode->GetName());
 						pModel->AddNode(pModelNode, pModelNode->GetName(), false);
 					}
 					else
@@ -415,7 +415,7 @@ namespace eastengine
 				}
 				else
 				{
-					pSkeleton->CreateBone(strParentBoneName, strBoneName, matMotionOffset, matDefaultMotionData);
+					pSkeleton->CreateBone(strBoneName, strParentBoneName, matMotionOffset, matDefaultMotionData);
 				}
 			}
 
@@ -678,7 +678,7 @@ namespace eastengine
 				vecKeyframes.emplace_back();
 			}
 
-			pMotion->AddBoneKeyframes(strName, vecKeyframes);
+			pMotion->AddBoneKeyframes(strName, std::move(vecKeyframes));
 		}
 
 		bool WriteMotion(Motion* pMotion)

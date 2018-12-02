@@ -13,7 +13,7 @@ namespace eastengine
 			class IndexBuffer : public IIndexBuffer
 			{
 			public:
-				IndexBuffer(const uint8_t* pData, uint32_t indexCount, size_t formatSize);
+				IndexBuffer(const uint8_t* pData, uint32_t indexCount, size_t formatSize, bool isDynamic);
 				virtual ~IndexBuffer();
 
 			public:
@@ -28,6 +28,7 @@ namespace eastengine
 			private:
 				ID3D11Buffer* m_pBuffer{ nullptr };
 				uint32_t m_indexCount{ 0 };
+				bool m_isDynamic{ false };
 			};
 		}
 	}

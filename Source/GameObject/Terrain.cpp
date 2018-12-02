@@ -91,7 +91,7 @@ namespace eastengine
 			return true;
 		}
 
-		void Terrain::Update(float fElapsedTime)
+		void Terrain::Update(float elapsedTime)
 		{
 			if (m_isBuildComplete == false)
 				return;
@@ -134,7 +134,7 @@ namespace eastengine
 
 			if (m_pPhysics != nullptr)
 			{
-				m_pPhysics->Update(fElapsedTime);
+				m_pPhysics->Update(elapsedTime);
 			}
 		}
 
@@ -202,7 +202,7 @@ namespace eastengine
 		bool Terrain::loadHeightMap(const char* strFilePath)
 		{
 			file::Stream file;
-			if (file.Open(strFilePath, file::eBinary | file::eRead) == false)
+			if (file.Open(strFilePath, file::eReadBinary) == false)
 				return false;
 
 			BITMAPFILEHEADER bitmapFileHeader;
@@ -265,7 +265,7 @@ namespace eastengine
 			// Start by creating the array structure to hold the height map data.
 			// Open the bitmap map file in binary.
 			file::Stream file;
-			if (file.Open(strFilePath, file::eBinary | file::eRead) == false)
+			if (file.Open(strFilePath, file::eReadBinary) == false)
 				return false;
 
 			// Calculate the size of the bitmap image data.  
@@ -518,7 +518,7 @@ namespace eastengine
 				}
 			}
 
-			m_pHeightField = graphics::CreateVertexBuffer(reinterpret_cast<const uint8_t*>(vecPatches_rawdata.data()), static_cast<uint32_t>(vecPatches_rawdata.size()), sizeof(vecPatches_rawdata[0]));
+			m_pHeightField = graphics::CreateVertexBuffer(reinterpret_cast<const uint8_t*>(vecPatches_rawdata.data()), static_cast<uint32_t>(vecPatches_rawdata.size()), sizeof(vecPatches_rawdata[0]), false);
 
 			return true;
 		}

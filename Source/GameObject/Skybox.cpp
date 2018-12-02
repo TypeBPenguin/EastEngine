@@ -44,13 +44,13 @@ namespace eastengine
 				return;
 			}
 
-			m_pVertexBuffer = graphics::CreateVertexBuffer(reinterpret_cast<uint8_t*>(vertices.data()), static_cast<uint32_t>(vertices.size()), sizeof(graphics::VertexPosTexNor));
-			m_pIndexBuffer = graphics::CreateIndexBuffer(reinterpret_cast<uint8_t*>(indices.data()), static_cast<uint32_t>(indices.size()), sizeof(uint32_t));
+			m_pVertexBuffer = graphics::CreateVertexBuffer(reinterpret_cast<uint8_t*>(vertices.data()), static_cast<uint32_t>(vertices.size()), sizeof(graphics::VertexPosTexNor), false);
+			m_pIndexBuffer = graphics::CreateIndexBuffer(reinterpret_cast<uint8_t*>(indices.data()), static_cast<uint32_t>(indices.size()), sizeof(uint32_t), false);
 
 			m_pTexture = graphics::CreateTexture(property.strTexSky.c_str());
 		}
 
-		void Skybox::Update(float fElapsedTime)
+		void Skybox::Update(float elapsedTime)
 		{
 			if (IsVisible() == true)
 			{

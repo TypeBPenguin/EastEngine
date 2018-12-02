@@ -47,7 +47,7 @@ namespace eastengine
 				void Initialize(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const string::StringID& strApplicationTitle, const string::StringID& strApplicationName);
 				void Release();
 
-				void Cleanup(float fElapsedTime);
+				void Cleanup(float elapsedTime);
 
 			public:
 				RenderTarget* GetRenderTarget(const D3D12_RESOURCE_DESC* pDesc, const math::Color& clearColor, bool isIncludeLastUseRenderTarget = true);
@@ -492,7 +492,7 @@ namespace eastengine
 				m_isInitislized = false;
 			}
 
-			void Device::Impl::Cleanup(float fElapsedTime)
+			void Device::Impl::Cleanup(float elapsedTime)
 			{
 				{
 					thread::SRWWriteLock writeLock(&m_srwLock_releaseResource);
@@ -534,7 +534,7 @@ namespace eastengine
 					{
 						if (iter->second.nFrameIndex >= eFrameBufferCount)
 						{
-							iter->second.fUnusedTime += fElapsedTime;
+							iter->second.fUnusedTime += elapsedTime;
 
 							if (iter->second.fUnusedTime > 30.f)
 							{
@@ -1080,9 +1080,9 @@ namespace eastengine
 				m_pImpl->Run(funcUpdate);
 			}
 
-			void Device::Cleanup(float fElapsedTime)
+			void Device::Cleanup(float elapsedTime)
 			{
-				m_pImpl->Cleanup(fElapsedTime);
+				m_pImpl->Cleanup(elapsedTime);
 			}
 
 			RenderTarget* Device::GetRenderTarget(const D3D12_RESOURCE_DESC* pDesc, const math::Color& clearColor, bool isIncludeLastUseRenderTarget)

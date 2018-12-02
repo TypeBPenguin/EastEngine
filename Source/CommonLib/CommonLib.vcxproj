@@ -193,9 +193,11 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BehaviorTree.h" />
     <ClInclude Include="CommandLine.h" />
     <ClInclude Include="CrashHandler.h" />
     <ClInclude Include="ErrorDefine.h" />
+    <ClInclude Include="FiniteStateMachine.h" />
     <ClInclude Include="json.hpp" />
     <ClInclude Include="Lock.h" />
     <ClInclude Include="Memory.h" />
@@ -209,6 +211,10 @@
     <ClInclude Include="Log.h" />
     <ClInclude Include="Math.h" />
     <ClInclude Include="plf_colony.h" />
+    <ClInclude Include="robin_growth_policy.h" />
+    <ClInclude Include="robin_hash.h" />
+    <ClInclude Include="robin_map.h" />
+    <ClInclude Include="robin_set.h" />
     <ClInclude Include="Singleton.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="StringTable.h" />
@@ -222,9 +228,11 @@
     <ClInclude Include="PhantomType.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BehaviorTree.cpp" />
     <ClCompile Include="CommandLine.cpp" />
     <ClCompile Include="CommonLib.cpp" />
     <ClCompile Include="CrashHandler.cpp" />
+    <ClCompile Include="FiniteStateMachine.cpp" />
     <ClCompile Include="Lock.cpp" />
     <ClCompile Include="Memory.cpp" />
     <ClCompile Include="Performance.cpp" />
