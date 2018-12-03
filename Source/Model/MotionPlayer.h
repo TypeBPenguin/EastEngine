@@ -45,7 +45,7 @@ namespace eastengine
 			virtual const IMotionEvent* PopEvent() override { return m_motionRecorder.PopEvent(); }
 
 		public:
-			bool Update(float elapsedTime, bool isEnableTransformUpdate);
+			bool Update(float elapsedTime);
 
 			void Play(IMotion* pMotion, const MotionPlaybackInfo* pPlayback, float blendTime);
 			void Stop(float stopTime);
@@ -58,6 +58,7 @@ namespace eastengine
 		private:
 			bool m_isStop{ false };
 			bool m_isPause{ false };
+			bool m_isRecordedLastFrame{ false };
 
 			float m_playTime{ 0.f };
 

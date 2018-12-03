@@ -56,7 +56,7 @@ namespace eastengine
 			virtual Key GetKey() const override { return m_key; }
 
 		public:
-			virtual void Update(IMotionRecorder* pRecorder, float fPlayTime, bool isInverse, bool isEnableTransformUpdate) const override;
+			virtual void Update(IMotionRecorder* pRecorder, float fPlayTime, bool isInverse) const override;
 
 			virtual float GetStartTime() const override { return m_startTime; }
 			virtual float GetEndTime() const override { return m_endTime; }

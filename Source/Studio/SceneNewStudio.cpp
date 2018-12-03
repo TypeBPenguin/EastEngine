@@ -479,11 +479,11 @@ void SceneNewStudio::Enter()
 		{
 			const std::vector<const char*> vecAnim =
 			{
-				"Actor\\UnityChan\\Animations\\unitychan_WAIT00.emot",
-				"Actor\\UnityChan\\Animations\\unitychan_WAIT01.emot",
-				"Actor\\UnityChan\\Animations\\unitychan_WAIT02.emot",
-				"Actor\\UnityChan\\Animations\\unitychan_WAIT03.emot",
-				"Actor\\UnityChan\\Animations\\unitychan_WAIT04.emot",
+				"Actor\\UnityChan\\Animations\\unitychan_WAIT00.fbx",
+				"Actor\\UnityChan\\Animations\\unitychan_WAIT01.fbx",
+				"Actor\\UnityChan\\Animations\\unitychan_WAIT02.fbx",
+				"Actor\\UnityChan\\Animations\\unitychan_WAIT03.fbx",
+				"Actor\\UnityChan\\Animations\\unitychan_WAIT04.fbx",
 			};
 
 			std::string strPathMotion(file::GetDataPath());
@@ -1480,6 +1480,7 @@ void ShowMotion(bool& isShowMotionMenu, gameobject::ComponentModel* pCompModel)
 	static float fMotionBlendTime = 0.f;
 	static bool isMotionLoop = false;
 	static bool isMotionInverse = false;
+	static bool isFreezeAtLastFrame = false;
 
 	static int nSelectedIndex = 0;
 	if (vecMotionNames.empty() == false)
@@ -1495,6 +1496,7 @@ void ShowMotion(bool& isShowMotionMenu, gameobject::ComponentModel* pCompModel)
 				playback.blendTime = fMotionBlendTime;
 				playback.loopCount = isMotionLoop == true ? graphics::MotionPlaybackInfo::eMaxLoopCount : 1;
 				playback.isInverse = isMotionInverse;
+				playback.isFreezeAtLastFrame = isFreezeAtLastFrame;
 
 				graphics::IMotion* pMotion = nullptr;
 				if (0 <= nSelectedIndex && nSelectedIndex < static_cast<int>(vecMotionNames.size()))
@@ -1532,6 +1534,7 @@ void ShowMotion(bool& isShowMotionMenu, gameobject::ComponentModel* pCompModel)
 		ImGui::SameLine();
 
 		ImGui::Checkbox("Invert", &isMotionInverse);
+		ImGui::Checkbox("FreezeAtLastFrame", &isFreezeAtLastFrame);
 
 		if (ImGui::Button("Play") == true)
 		{
@@ -1541,6 +1544,7 @@ void ShowMotion(bool& isShowMotionMenu, gameobject::ComponentModel* pCompModel)
 			playback.blendTime = fMotionBlendTime;
 			playback.loopCount = isMotionLoop == true ? graphics::MotionPlaybackInfo::eMaxLoopCount : 1;
 			playback.isInverse = isMotionInverse;
+			playback.isFreezeAtLastFrame = isFreezeAtLastFrame;
 
 			pCompModel->PlayMotion(emLayer, pMotion, &playback);
 		}

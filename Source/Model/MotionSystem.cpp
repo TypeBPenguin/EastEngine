@@ -46,22 +46,19 @@ namespace eastengine
 		void MotionSystem::Update(float elapsedTime)
 		{
 			bool isMotionUpdated = false;
-			bool isEnableTransformUpdate = true;
-			int lastLayerIndex = -1;
 
 			for (int i = 0; i < MotionLayers::eLayerCount; ++i)
 			{
-				if (isEnableTransformUpdate == true)
-				{
-					lastLayerIndex = i;
-				}
-
-				if (m_motionPlayers[i].Update(elapsedTime, isEnableTransformUpdate) == true)
+				if (m_motionPlayers[i].Update(elapsedTime) == true)
 				{
 					const float blendWeight = m_motionPlayers[i].GetBlendWeight();
 					if (math::IsZero(blendWeight) == false)
 					{
-						m_blendMotionPlayers[i].Update(elapsedTime, isEnableTransformUpdate);
+						m_blendMotionPlayers[i].Update(elapsedTime);
+					}
+					else
+					{
+						m_blendMotionPlayers[i].Stop(0.f);
 					}
 
 					isMotionUpdated = true;
@@ -72,7 +69,7 @@ namespace eastengine
 
 			if (isMotionUpdated == true)
 			{
-				for (int i = lastLayerIndex; i >= 0; --i)
+				for (int i = 0; i < MotionLayers::eLayerCount; ++i)
 				{
 					BlendingLayers(m_motionPlayers[i], m_blendMotionPlayers[i]);
 				}
@@ -188,6 +185,10 @@ namespace eastengine
 						math::float3::Lerp(motionTransform.scale, pSourceBlendTransform->scale, blendWeight, motionTransform.scale);
 						math::Quaternion::Lerp(motionTransform.rotation, pSourceBlendTransform->rotation, blendWeight, motionTransform.rotation);
 						math::float3::Lerp(motionTransform.position, pSourceBlendTransform->position, blendWeight, motionTransform.position);
+					}
+					else
+					{
+						LOG_MESSAGE("ASDF");
 					}
 
 					const math::Transform* pSourceTransform = player.GetTransform(boneName);

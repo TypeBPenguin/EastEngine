@@ -348,6 +348,7 @@ Minion::Minion()
 	});
 
 	pEventMotionPlay = std::make_unique<EventMotionPlay>(0.f, "NonCombat_JogFwd.emot", graphics::eLayer1);
+	pEventMotionPlay->playbackInfo.loopCount = graphics::MotionPlaybackInfo::eMaxLoopCount;
 
 	fsmAction.AddState(FSM_Action::eMove, "Move")
 		.SetRelation(FSM_Action::eIdle)

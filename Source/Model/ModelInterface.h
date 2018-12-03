@@ -136,7 +136,7 @@ namespace eastengine
 			static bool SaveFile(IMotion* pMotion, const char* strFilePath);
 
 		public:
-			virtual void Update(IMotionRecorder* pRecorder, float fPlayTime, bool isInverse, bool isEnableTransformUpdate) const = 0;
+			virtual void Update(IMotionRecorder* pRecorder, float fPlayTime, bool isInverse) const = 0;
 
 			virtual float GetStartTime() const = 0;
 			virtual float GetEndTime() const = 0;
@@ -163,7 +163,7 @@ namespace eastengine
 			float blendTime{ 0.2f };
 			uint32_t loopCount{ 1 };
 			bool isInverse{ false };
-			bool isFreezeEndFrame{ false };
+			bool isFreezeAtLastFrame{ false };
 
 			void Reset()
 			{
@@ -172,7 +172,7 @@ namespace eastengine
 				blendTime = 0.2f;
 				loopCount = 1;
 				isInverse = false;
-				isFreezeEndFrame = false;
+				isFreezeAtLastFrame = false;
 			}
 		};
 

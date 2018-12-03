@@ -201,15 +201,12 @@ namespace eastengine
 			m_vecEvents.clear();
 		}
 
-		void Motion::Update(IMotionRecorder* pRecorder, float fPlayTime, bool isInverse, bool isEnableTransformUpdate) const
+		void Motion::Update(IMotionRecorder* pRecorder, float fPlayTime, bool isInverse) const
 		{
-			if (isEnableTransformUpdate == true)
+			std::for_each(m_vecBones.begin(), m_vecBones.end(), [&](const Bone& bone)
 			{
-				std::for_each(m_vecBones.begin(), m_vecBones.end(), [&](const Bone& bone)
-				{
-					bone.Update(m_frameInterval, pRecorder, fPlayTime, isInverse);
-				});
-			}
+				bone.Update(m_frameInterval, pRecorder, fPlayTime, isInverse);
+			});
 
 			std::for_each(m_vecEvents.begin(), m_vecEvents.end(), [&](const IMotionEvent* pEvent)
 			{

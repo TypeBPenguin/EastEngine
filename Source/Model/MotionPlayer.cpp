@@ -32,6 +32,7 @@ namespace eastengine
 		{
 			m_isStop = source.m_isStop;
 			m_isPause = source.m_isPause;
+			m_isRecordedLastFrame = source.m_isRecordedLastFrame;
 			m_playTime = source.m_playTime;
 			m_stopTime = source.m_stopTime;
 			m_stopTimeCheck = source.m_stopTimeCheck;
@@ -49,6 +50,7 @@ namespace eastengine
 		{
 			m_isStop = std::move(source.m_isStop);
 			m_isPause = std::move(source.m_isPause);
+			m_isRecordedLastFrame = std::move(source.m_isRecordedLastFrame);
 			m_playTime = std::move(source.m_playTime);
 			m_stopTime = std::move(source.m_stopTime);
 			m_stopTimeCheck = std::move(source.m_stopTimeCheck);
@@ -74,7 +76,7 @@ namespace eastengine
 			}
 		}
 
-		bool MotionPlayer::Update(float elapsedTime, bool isEnableTransformUpdate)
+		bool MotionPlayer::Update(float elapsedTime)
 		{
 			if (m_pMotion == nullptr)
 				return false;
@@ -82,7 +84,7 @@ namespace eastengine
 			if (m_isPause == true)
 				return true;
 
-			bool isPlay = true;
+			bool isPlaying = true;
 			if (m_isStop == true)
 			{
 				m_stopTime += elapsedTime;
@@ -90,11 +92,11 @@ namespace eastengine
 				{
 					m_isStop = false;
 
-					isPlay = false;
+					isPlaying = false;
 				}
 			}
 
-			if (isPlay == true)
+			if (isPlaying == true)
 			{
 				const float endTime = m_pMotion->GetEndTime();
 				if (m_playTime >= endTime)
@@ -105,7 +107,7 @@ namespace eastengine
 
 						m_motionRecorder.Clear(m_playTime);
 					}
-					else
+					else if (m_playBackInfo.isFreezeAtLastFrame == false)
 					{
 						Reset(0.f);
 
@@ -118,10 +120,21 @@ namespace eastengine
 					float fPlayTime = m_playTime;
 					if (m_playBackInfo.isInverse == true)
 					{
-						fPlayTime = m_pMotion->GetEndTime() - m_playTime;
+						fPlayTime = endTime - m_playTime;
 					}
 
-					m_pMotion->Update(&m_motionRecorder, fPlayTime, m_playBackInfo.isInverse, isEnableTransformUpdate);
+					if (m_playBackInfo.isFreezeAtLastFrame == true && fPlayTime >= endTime && m_isRecordedLastFrame == false)
+					{
+						fPlayTime = endTime;
+
+						m_pMotion->Update(&m_motionRecorder, fPlayTime, m_playBackInfo.isInverse);
+
+						m_isRecordedLastFrame = true;
+					}
+					else
+					{
+						m_pMotion->Update(&m_motionRecorder, fPlayTime, m_playBackInfo.isInverse);
+					}
 				}
 
 				if (math::IsZero(m_playBackInfo.blendTime) == false && m_blendTime <= m_playBackInfo.blendTime)
@@ -131,7 +144,10 @@ namespace eastengine
 					m_blendTime += elapsedTime;
 				}
 
-				m_playTime += elapsedTime * m_playBackInfo.speed;
+				if (m_playBackInfo.isFreezeAtLastFrame == false || m_isRecordedLastFrame == false)
+				{
+					m_playTime += elapsedTime * m_playBackInfo.speed;
+				}
 
 				return true;
 			}
@@ -177,6 +193,8 @@ namespace eastengine
 		void MotionPlayer::Reset(float startTime)
 		{
 			m_isStop = false;
+			m_isPause = false;
+			m_isRecordedLastFrame = false;
 
 			m_playTime = startTime;
 
