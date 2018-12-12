@@ -285,13 +285,11 @@ namespace eastengine
 				if (pITexture != nullptr)
 					return pITexture;
 
-				Texture* pTexture = new Texture(key);
+				std::unique_ptr<Texture> pTexture = std::make_unique<Texture>(key);
 				pTexture->Load(strFilePath);
 				pTexture->IncreaseReference();
 
-				m_pTextureManager->PushTexture(pTexture);
-
-				return pTexture;
+				return m_pTextureManager->PushTexture(std::move(pTexture));
 			}
 
 			virtual ITexture* CreateTextureAsync(const char* strFilePath) override
@@ -301,15 +299,14 @@ namespace eastengine
 				if (pITexture != nullptr)
 					return pITexture;
 
-				Texture* pTexture = new Texture(key);
+				std::unique_ptr<Texture> pTexture = std::make_unique<Texture>(key);
 				pTexture->IncreaseReference();
 
-				m_pTextureManager->AsyncLoadTexture(pTexture, strFilePath, [pTexture](const std::string& strPath)
+				return m_pTextureManager->AsyncLoadTexture(std::move(pTexture), strFilePath, [](ITexture* pTextureInterface, const std::string& strPath)
 				{
+					Texture* pTexture = static_cast<Texture*>(pTextureInterface);
 					return pTexture->Load(strPath.c_str());
 				});
-
-				return pTexture;
 			}
 
 			virtual ITexture* CreateTexture(const TextureDesc& desc) override
@@ -319,13 +316,11 @@ namespace eastengine
 				if (pITexture != nullptr)
 					return pITexture;
 
-				Texture* pTexture = new Texture(key);
+				std::unique_ptr<Texture> pTexture = std::make_unique<Texture>(key);
 				pTexture->Initialize(desc);
 				pTexture->IncreaseReference();
 
-				m_pTextureManager->PushTexture(pTexture);
-
-				return pTexture;
+				return m_pTextureManager->PushTexture(std::move(pTexture));
 			}
 
 			virtual IMaterial* CreateMaterial(const MaterialInfo* pInfo) override
@@ -469,9 +464,9 @@ namespace eastengine
 			std::unique_ptr<TextureManager> m_pTextureManager;
 			std::unique_ptr<ImageBasedLight> m_pImageBasedLight;
 
-			std::unordered_map<IResource*, std::unique_ptr<VertexBuffer>> m_umapVertexBuffers;
-			std::unordered_map<IResource*, std::unique_ptr<IndexBuffer>> m_umapIndexBuffers;
-			std::unordered_map<IResource*, std::unique_ptr<Material>> m_umapMaterials;
+			tsl::robin_map<IResource*, std::unique_ptr<VertexBuffer>> m_umapVertexBuffers;
+			tsl::robin_map<IResource*, std::unique_ptr<IndexBuffer>> m_umapIndexBuffers;
+			tsl::robin_map<IResource*, std::unique_ptr<Material>> m_umapMaterials;
 			
 			Camera* s_pCamera{ nullptr };
 			LightManager* s_pLightManager{ nullptr };

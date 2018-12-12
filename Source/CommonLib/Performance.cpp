@@ -314,7 +314,7 @@ namespace eastengine
 									}
 									else
 									{
-										static_assert(always_false<T>::value, "non-exhaustive visitor!");
+										static_assert(false, "non-exhaustive visitor!");
 									}
 								}, args.variantValue);
 

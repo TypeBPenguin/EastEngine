@@ -60,42 +60,41 @@ namespace eastengine
 				return nullptr;
 			}
 
-			const BYTE* pBuffer = file.GetBuffer();
-			const BYTE** ppBuffer = &pBuffer;
+			BinaryReader binaryReader = file.GetBinaryReader();
 
 			MaterialInfo materialInfo;
-			materialInfo.name = file::Stream::ToString(ppBuffer);
+			materialInfo.name = binaryReader.ReadString();;
 			materialInfo.path = strFilePath;
-			materialInfo.colorAlbedo = *file::Stream::To<math::Color>(ppBuffer);
-			materialInfo.colorEmissive = *file::Stream::To<math::Color>(ppBuffer);
-			materialInfo.f4PaddingRoughMetEmi = *file::Stream::To<math::float4>(ppBuffer);
-			materialInfo.f4SurSpecTintAniso = *file::Stream::To<math::float4>(ppBuffer);
-			materialInfo.f4SheenTintClearcoatGloss = *file::Stream::To<math::float4>(ppBuffer);
+			materialInfo.colorAlbedo = binaryReader.Read<math::Color>();
+			materialInfo.colorEmissive = binaryReader.Read < math::Color>();
+			materialInfo.f4PaddingRoughMetEmi = binaryReader.Read<math::float4>();
+			materialInfo.f4SurSpecTintAniso = binaryReader.Read<math::float4>();
+			materialInfo.f4SheenTintClearcoatGloss = binaryReader.Read<math::float4>();
 
-			materialInfo.isVisible = *file::Stream::To<bool>(ppBuffer);
-			materialInfo.fStippleTransparencyFactor = *file::Stream::To<float>(ppBuffer);
-			materialInfo.fTessellationFactor = *file::Stream::To<float>(ppBuffer);
-			materialInfo.isAlbedoAlphaChannelMaskMap = *file::Stream::To<bool>(ppBuffer);
+			materialInfo.isVisible = binaryReader;
+			materialInfo.fStippleTransparencyFactor = binaryReader;
+			materialInfo.fTessellationFactor = binaryReader;
+			materialInfo.isAlbedoAlphaChannelMaskMap = binaryReader;
 
 			for (int i = 0; i < EmMaterial::TypeCount; ++i)
 			{
-				const char* textureName = file::Stream::ToString(ppBuffer);
-				if (string::IsEquals(textureName, "None") == false)
+				const string::StringID textureName = binaryReader.ReadString();;
+				if (textureName != StrID::None)
 				{
 					materialInfo.strTextureNameArray[i] = textureName;
 				}
 			}
 
-			int type = *file::Stream::To<int>(ppBuffer);
+			int type = binaryReader;
 			materialInfo.emSamplerState = static_cast<EmSamplerState::Type>(type);
 
-			type = *file::Stream::To<int>(ppBuffer);
+			type = binaryReader;
 			materialInfo.emBlendState = static_cast<EmBlendState::Type>(type);
 
-			type = *file::Stream::To<int>(ppBuffer);
+			type = binaryReader;
 			materialInfo.emRasterizerState = static_cast<EmRasterizerState::Type>(type);
 
-			type = *file::Stream::To<int>(ppBuffer);
+			type = binaryReader;
 			materialInfo.emDepthStencilState = static_cast<EmDepthStencilState::Type>(type);
 
 			file.Close();

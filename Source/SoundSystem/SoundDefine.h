@@ -56,7 +56,7 @@ namespace eastengine
 			math::float3 f3Up{ math::float3::Up };
 		};
 
-		struct tChannelID {};
+		struct tChannelID { static constexpr uint64_t DefaultValue() { return eInvalidChannelID; } };
 		using ChannelID = PhantomType<tChannelID, uint64_t>;
 	}
 }

@@ -12,10 +12,10 @@ namespace eastengine
 			class RenderTarget
 			{
 			private:
-				struct tKey {};
+				struct tKey { static constexpr const char* DefaultValue() { return ""; } };
 
 			public:
-				using Key = PhantomType<tKey, const string::StringID>;
+				using Key = PhantomType<tKey, string::StringID>;
 
 			public:
 				RenderTarget(const Key& key);

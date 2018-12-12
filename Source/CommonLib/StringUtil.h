@@ -4,9 +4,9 @@ namespace eastengine
 {
 	namespace string
 	{
-		std::size_t Length(const char* string);
+		inline size_t Length(const char* string) { return strlen(string); }
 
-		inline bool Copy(char* strDestination, std::size_t size, const char* strSource, std::size_t nMaxCount = _TRUNCATE)
+		inline bool Copy(char* strDestination, size_t size, const char* strSource, size_t nMaxCount = _TRUNCATE)
 		{
 			if (strDestination == nullptr || strSource == nullptr)
 			{
@@ -25,13 +25,13 @@ namespace eastengine
 			return true;
 		}
 
-		template <std::size_t size>
-		inline bool Copy(char(&strDestination)[size], const char* strSource, std::size_t nMaxCount = _TRUNCATE)
+		template <size_t size>
+		inline bool Copy(char(&strDestination)[size], const char* strSource, size_t nMaxCount = _TRUNCATE)
 		{
 			return Copy(strDestination, size, strSource, nMaxCount);
 		}
 
-		inline bool Copy(wchar_t* strDestination, std::size_t size, const wchar_t* strSource, std::size_t nMaxCount = _TRUNCATE)
+		inline bool Copy(wchar_t* strDestination, size_t size, const wchar_t* strSource, size_t nMaxCount = _TRUNCATE)
 		{
 			if (strDestination == nullptr || strSource == nullptr)
 			{
@@ -50,13 +50,13 @@ namespace eastengine
 			return true;
 		}
 
-		template <std::size_t size>
-		inline bool Copy(wchar_t(&strDestination)[size], const wchar_t* strSource, std::size_t nMaxCount = _TRUNCATE)
+		template <size_t size>
+		inline bool Copy(wchar_t(&strDestination)[size], const wchar_t* strSource, size_t nMaxCount = _TRUNCATE)
 		{
 			return Copy(strDestination, size, strSource, nMaxCount);
 		}
 
-		inline bool Concat(char* strDestination, std::size_t size, const char* strSource, std::size_t nMaxCount = _TRUNCATE)
+		inline bool Concat(char* strDestination, size_t size, const char* strSource, size_t nMaxCount = _TRUNCATE)
 		{
 			if (strDestination == nullptr || strSource == nullptr)
 			{
@@ -75,13 +75,13 @@ namespace eastengine
 			return true;
 		}
 
-		template <std::size_t size>
-		inline bool Concat(char(&strDestination)[size], const char* strSource, std::size_t nMaxCount = _TRUNCATE)
+		template <size_t size>
+		inline bool Concat(char(&strDestination)[size], const char* strSource, size_t nMaxCount = _TRUNCATE)
 		{
 			return Concat(strDestination, size, strSource, nMaxCount);
 		}
 
-		inline bool Concat(wchar_t* strDestination, std::size_t size, const wchar_t* strSource, std::size_t nMaxCount = _TRUNCATE)
+		inline bool Concat(wchar_t* strDestination, size_t size, const wchar_t* strSource, size_t nMaxCount = _TRUNCATE)
 		{
 			if (strDestination == nullptr || strSource == nullptr)
 			{
@@ -100,8 +100,8 @@ namespace eastengine
 			return true;
 		}
 
-		template <std::size_t size>
-		inline bool Concat(wchar_t(&strDestination)[size], const wchar_t* strSource, std::size_t nMaxCount = _TRUNCATE)
+		template <size_t size>
+		inline bool Concat(wchar_t(&strDestination)[size], const wchar_t* strSource, size_t nMaxCount = _TRUNCATE)
 		{
 			return Concat(strDestination, size, strSource, nMaxCount);
 		}
@@ -190,15 +190,15 @@ namespace eastengine
 		std::vector<std::string> Tokenizer(const std::string& string, const char* strDelimiter);
 
 		char* ToUpper(char* string, uint32_t nLength);
-		template <typename T, std::size_t size>
+		template <typename T, size_t size>
 		char* ToUpper(char(&string)[size]) { return ToUpper(string, size); }
 
 		char* ToLower(char* string, uint32_t nLength);
-		template <typename T, std::size_t size>
+		template <typename T, size_t size>
 		char* ToLower(char(&string)[size]) { return ToLower(string, size); }
 
 		template <typename T>
-		std::string ToString(T value);
+		std::string ToString(T value) { return std::to_string(value); }
 
 		template <typename T>
 		T ToValue(const char* string);

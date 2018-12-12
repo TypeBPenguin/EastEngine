@@ -535,8 +535,8 @@ namespace eastengine
 				void DeferredGroupSetup(Device* pDeviceInstance, ID3D11DeviceContext* pDeviceContext);
 				RenderTarget* AlphaBlendGroupSetup(Device* pDeviceInstance, ID3D11DeviceContext* pDeviceContext);
 
-				void RenderStaticElement(Device* pDeviceInstance, ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext, Camera* pCamera, Group emGroup, std::unordered_map<const IMaterial*, uint32_t>& umapMaterialMask);
-				void RenderSkinnedElement(Device* pDeviceInstance, ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext, Camera* pCamera, Group emGroup, std::unordered_map<const IMaterial*, uint32_t>& umapMaterialMask);
+				void RenderStaticElement(Device* pDeviceInstance, ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext, Camera* pCamera, Group emGroup, tsl::robin_map<const IMaterial*, uint32_t>& umapMaterialMask);
+				void RenderSkinnedElement(Device* pDeviceInstance, ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext, Camera* pCamera, Group emGroup, tsl::robin_map<const IMaterial*, uint32_t>& umapMaterialMask);
 
 			private:
 				struct RenderState
@@ -563,7 +563,7 @@ namespace eastengine
 				// for alphablend, common.hlsl
 				ConstantBuffer<shader::CommonContents> m_commonContentsBuffer;
 
-				std::unordered_map<shader::MaskKey, RenderState> m_umapRenderStates;
+				tsl::robin_map<shader::MaskKey, RenderState> m_umapRenderStates;
 
 				struct JobStatic
 				{
@@ -592,8 +592,8 @@ namespace eastengine
 				std::array<std::vector<JobStatic>, GroupCount> m_vecJobStatics;
 				std::array<size_t, GroupCount> m_nJobStaticCount;
 
-				using UMapJobStaticBatch = std::unordered_map<const void*, JobStaticBatch>;
-				using UMapJobStaticMaterialBatch = std::unordered_map<const IMaterial*, UMapJobStaticBatch>;
+				using UMapJobStaticBatch = tsl::robin_map<const void*, JobStaticBatch>;
+				using UMapJobStaticMaterialBatch = tsl::robin_map<const IMaterial*, UMapJobStaticBatch>;
 				UMapJobStaticMaterialBatch m_umapJobStaticMasterBatchs;
 
 				struct JobSkinned
@@ -623,8 +623,8 @@ namespace eastengine
 				std::array<std::vector<JobSkinned>, GroupCount> m_vecJobSkinneds;
 				std::array<size_t, GroupCount> m_nJobSkinnedCount;
 
-				using UMapJobSkinnedBatch = std::unordered_map<const void*, JobSkinnedBatch>;
-				using UMapJobSkinnedMaterialBatch = std::unordered_map<const IMaterial*, UMapJobSkinnedBatch>;
+				using UMapJobSkinnedBatch = tsl::robin_map<const void*, JobSkinnedBatch>;
+				using UMapJobSkinnedMaterialBatch = tsl::robin_map<const IMaterial*, UMapJobSkinnedBatch>;
 				UMapJobSkinnedMaterialBatch m_umapJobSkinnedMasterBatchs;
 			};
 
@@ -670,13 +670,13 @@ namespace eastengine
 				m_vsConstants.Destroy();
 				m_commonContentsBuffer.Destroy();
 
-				std::for_each(m_umapRenderStates.begin(), m_umapRenderStates.end(), [](std::pair<const shader::MaskKey, RenderState>& iter)
+				for (auto iter = m_umapRenderStates.begin(); iter != m_umapRenderStates.end(); ++iter)
 				{
-					RenderState& renderState = iter.second;
+					RenderState& renderState = iter.value();
 					SafeRelease(renderState.pVertexShader);
 					SafeRelease(renderState.pPixelShader);
 					SafeRelease(renderState.pInputLayout);
-				});
+				}
 				m_umapRenderStates.clear();
 
 				SafeRelease(m_pShaderBlob);
@@ -779,7 +779,7 @@ namespace eastengine
 					pDeviceContext->PSSetSamplers(shader::eSampler_Clamp, 1, &pSamplerClamp);
 				}
 
-				std::unordered_map<const IMaterial*, uint32_t> umapMaterialMask;
+				tsl::robin_map<const IMaterial*, uint32_t> umapMaterialMask;
 				umapMaterialMask.rehash(m_umapJobStaticMasterBatchs.size() + m_umapJobSkinnedMasterBatchs.size());
 
 				RenderStaticElement(pDeviceInstance, pDevice, pDeviceContext, pCamera, emGroup, umapMaterialMask);
@@ -901,7 +901,7 @@ namespace eastengine
 				return pRenderTarget;
 			}
 
-			void ModelRenderer::Impl::RenderStaticElement(Device* pDeviceInstance, ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext, Camera* pCamera, Group emGroup, std::unordered_map<const IMaterial*, uint32_t>& umapMaterialMask)
+			void ModelRenderer::Impl::RenderStaticElement(Device* pDeviceInstance, ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext, Camera* pCamera, Group emGroup, tsl::robin_map<const IMaterial*, uint32_t>& umapMaterialMask)
 			{
 				DX_PROFILING(RenderStaticElement);
 
@@ -918,7 +918,7 @@ namespace eastengine
 						auto iter = umapJobStaticBatch.find(job.data.pKey);
 						if (iter != umapJobStaticBatch.end())
 						{
-							iter->second.vecInstanceData.emplace_back(job.data.matWorld.Transpose());
+							iter.value().vecInstanceData.emplace_back(job.data.matWorld.Transpose());
 						}
 						else
 						{
@@ -926,7 +926,7 @@ namespace eastengine
 						}
 					}
 
-					std::unordered_map<shader::MaskKey, std::vector<const JobStaticBatch*>> umapJobStaticMaskBatch;
+					tsl::robin_map<shader::MaskKey, std::vector<const JobStaticBatch*>> umapJobStaticMaskBatch;
 					umapJobStaticMaskBatch.rehash(m_umapJobStaticMasterBatchs.size());
 
 					for (auto& iter_master : m_umapJobStaticMasterBatchs)
@@ -964,11 +964,11 @@ namespace eastengine
 						}
 					}
 
-					for (auto& iter : umapJobStaticMaskBatch)
+					for (auto iter = umapJobStaticMaskBatch.begin(); iter != umapJobStaticMaskBatch.end(); ++iter)
 					{
-						std::vector<const JobStaticBatch*>& vecJobBatch = iter.second;
+						std::vector<const JobStaticBatch*>& vecJobBatch = iter.value();
 
-						const RenderState* pRenderState = GetRenderState(pDevice, iter.first);
+						const RenderState* pRenderState = GetRenderState(pDevice, iter->first);
 						if (pRenderState == nullptr)
 							continue;
 
@@ -978,7 +978,7 @@ namespace eastengine
 						pDeviceContext->IASetInputLayout(pRenderState->pInputLayout);
 						pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-						if ((iter.first & shader::eUseInstancing) == shader::eUseInstancing)
+						if ((iter->first & shader::eUseInstancing) == shader::eUseInstancing)
 						{
 							pDeviceContext->VSSetConstantBuffers(shader::eCB_StaticInstancingData, 1, &m_staticInstancingDataBuffer.pBuffer);
 
@@ -1070,7 +1070,7 @@ namespace eastengine
 				m_umapJobStaticMasterBatchs.clear();
 			}
 
-			void ModelRenderer::Impl::RenderSkinnedElement(Device* pDeviceInstance, ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext, Camera* pCamera, Group emGroup, std::unordered_map<const IMaterial*, uint32_t>& umapMaterialMask)
+			void ModelRenderer::Impl::RenderSkinnedElement(Device* pDeviceInstance, ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext, Camera* pCamera, Group emGroup, tsl::robin_map<const IMaterial*, uint32_t>& umapMaterialMask)
 			{
 				DX_PROFILING(RenderSkinnedElement);
 
@@ -1091,7 +1091,7 @@ namespace eastengine
 						auto iter = umapJobSkinnedBatch.find(job.data.pKey);
 						if (iter != umapJobSkinnedBatch.end())
 						{
-							iter->second.vecInstanceData.emplace_back(job.data.matWorld, job.data.nVTFID);
+							iter.value().vecInstanceData.emplace_back(job.data.matWorld, job.data.nVTFID);
 						}
 						else
 						{
@@ -1099,7 +1099,7 @@ namespace eastengine
 						}
 					}
 
-					std::unordered_map<shader::MaskKey, std::vector<const JobSkinnedBatch*>> umapJobSkinnedMaskBatch;
+					tsl::robin_map<shader::MaskKey, std::vector<const JobSkinnedBatch*>> umapJobSkinnedMaskBatch;
 					umapJobSkinnedMaskBatch.rehash(m_umapJobSkinnedMasterBatchs.size());
 
 					for (auto& iter_master : m_umapJobSkinnedMasterBatchs)
@@ -1146,11 +1146,11 @@ namespace eastengine
 					};
 					pDeviceContext->VSSetShaderResources(shader::eSRV_VTF, _countof(pSRVs), pSRVs);
 
-					for (auto& iter : umapJobSkinnedMaskBatch)
+					for (auto iter = umapJobSkinnedMaskBatch.begin(); iter != umapJobSkinnedMaskBatch.end(); ++iter)
 					{
-						std::vector<const JobSkinnedBatch*>& vecJobBatch = iter.second;
+						std::vector<const JobSkinnedBatch*>& vecJobBatch = iter.value();
 
-						const RenderState* pRenderState = GetRenderState(pDevice, iter.first);
+						const RenderState* pRenderState = GetRenderState(pDevice, iter->first);
 						if (pRenderState == nullptr)
 							continue;
 
@@ -1160,7 +1160,7 @@ namespace eastengine
 						pDeviceContext->IASetInputLayout(pRenderState->pInputLayout);
 						pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-						if ((iter.first & shader::eUseInstancing) == shader::eUseInstancing)
+						if ((iter->first & shader::eUseInstancing) == shader::eUseInstancing)
 						{
 							pDeviceContext->VSSetConstantBuffers(shader::eCB_SkinningInstancingData, 1, &m_skinningInstancingDataBuffer.pBuffer);
 

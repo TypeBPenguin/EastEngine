@@ -554,33 +554,33 @@ namespace eastengine
 				return false;
 			}
 
-			const BYTE* pBuffer = file.GetBuffer();
-			const BYTE** ppBuffer = &pBuffer;
+			BinaryReader binaryReader = file.GetBinaryReader();
+
 			{
 				const std::string filePath = file::GetFilePath(strFilePath);
 
-				const string::StringID modelName = file::Stream::ToString(ppBuffer);
+				const string::StringID modelName = binaryReader.ReadString();
 				SetName(modelName);
 
-				m_transform.position = *file::Stream::To<math::float3>(ppBuffer);
-				m_transform.scale = *file::Stream::To<math::float3>(ppBuffer);
-				m_transform.rotation = *file::Stream::To<math::Quaternion>(ppBuffer);
+				m_transform.position = binaryReader;
+				m_transform.scale = binaryReader;
+				m_transform.rotation = binaryReader;
 
 				m_isDirtyLocalMatrix = true;
 
-				const uint32_t nodeCount = *file::Stream::To<uint32_t>(ppBuffer);
+				const uint32_t nodeCount = binaryReader;
 				for (uint32_t i = 0; i < nodeCount; ++i)
 				{
 					ModelNode* pNode = nullptr;
 
-					const IModelNode::Type emType = *file::Stream::To<IModelNode::Type>(ppBuffer);
+					const IModelNode::Type emType = binaryReader;
 					switch (emType)
 					{
 					case IModelNode::eStatic:
-						pNode = new ModelNodeStatic(filePath.c_str(), ppBuffer);
+						pNode = new ModelNodeStatic(filePath.c_str(), binaryReader);
 						break;
 					case IModelNode::eSkinned:
-						pNode = new ModelNodeSkinned(filePath.c_str(), ppBuffer);
+						pNode = new ModelNodeSkinned(filePath.c_str(), binaryReader);
 						break;
 					default:
 						LOG_WARNING("잘못된타입임돠, 데이터 포맷이 바뀐 듯 함돠.");
@@ -603,10 +603,10 @@ namespace eastengine
 				}
 
 				// Skeleton
-				const bool isHasSkeleton = *file::Stream::To<bool>(ppBuffer);
+				const bool isHasSkeleton = binaryReader ;
 				if (isHasSkeleton == true)
 				{
-					m_skeleton.LoadFile(ppBuffer);
+					m_skeleton.LoadFile(binaryReader);
 				}
 
 				for (const auto& pNode : m_vecModelNodes)

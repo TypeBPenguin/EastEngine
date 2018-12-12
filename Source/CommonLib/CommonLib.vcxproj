@@ -194,6 +194,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BehaviorTree.h" />
+    <ClInclude Include="Binary.h" />
     <ClInclude Include="CommandLine.h" />
     <ClInclude Include="CrashHandler.h" />
     <ClInclude Include="ErrorDefine.h" />
@@ -229,6 +230,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BehaviorTree.cpp" />
+    <ClCompile Include="Binary.cpp" />
     <ClCompile Include="CommandLine.cpp" />
     <ClCompile Include="CommonLib.cpp" />
     <ClCompile Include="CrashHandler.cpp" />

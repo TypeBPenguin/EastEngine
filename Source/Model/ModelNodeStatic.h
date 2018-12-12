@@ -10,7 +10,7 @@ namespace eastengine
 		{
 		public:
 			ModelNodeStatic(LOD emLOD = eLv0);
-			ModelNodeStatic(const char* filePath, const BYTE** ppBuffer);
+			ModelNodeStatic(const char* filePath, BinaryReader& binaryReader);
 			virtual ~ModelNodeStatic();
 
 		public:

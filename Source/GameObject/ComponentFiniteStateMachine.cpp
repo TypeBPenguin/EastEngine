@@ -16,9 +16,9 @@ namespace eastengine
 
 		void ComponentFiniteStateMachine::Update(float elapsedTime)
 		{
-			for (auto& iter : m_umapStateMachines)
+			for (auto iter = m_umapStateMachines.begin(); iter != m_umapStateMachines.end(); ++iter)
 			{
-				iter.second.Update(elapsedTime);
+				iter.value().Update(elapsedTime);
 			}
 		}
 
@@ -36,17 +36,17 @@ namespace eastengine
 		{
 			auto iter = m_umapStateMachines.find(id);
 			if (iter != m_umapStateMachines.end())
-				return iter->second;
+				return iter.value();
 
 			auto iter_result = m_umapStateMachines.emplace(id, FiniteStateMachine(id, name));
-			return iter_result.first->second;
+			return iter_result.first.value();
 		}
 
 		FiniteStateMachine* ComponentFiniteStateMachine::GetStateMachine(uint32_t id)
 		{
 			auto iter = m_umapStateMachines.find(id);
 			if (iter != m_umapStateMachines.end())
-				return &iter->second;
+				return &iter.value();
 
 			return nullptr;
 		}

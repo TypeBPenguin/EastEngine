@@ -47,6 +47,12 @@ namespace eastengine
 			void Callback(FMOD_CHANNEL_CALLBACKTYPE type, void* pCommanddata1, void* pCommanddata2);
 			void Resume();
 			void Pause();
+			void Mute();
+
+		public:
+			bool IsPlaying() const;
+			uint32_t GetPosition() const;
+			uint32_t GetLength() const;
 
 		public:
 			const ChannelID& GetID() const { return m_id; }

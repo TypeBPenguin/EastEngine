@@ -249,24 +249,24 @@ namespace eastengine
 				return false;
 			}
 
-			const BYTE* pBuffer = file.GetBuffer();
+			BinaryReader binaryReader = file.GetBinaryReader();
 			{
-				const string::StringID name = file::Stream::ToString(&pBuffer);
+				const string::StringID name = binaryReader.ReadString();
 
-				m_startTime = *file::Stream::To<float>(&pBuffer);
-				m_endTime = *file::Stream::To<float>(&pBuffer);
-				m_frameInterval = *file::Stream::To<float>(&pBuffer);
+				m_startTime = binaryReader;
+				m_endTime = binaryReader;
+				m_frameInterval = binaryReader;
 
-				const uint32_t boneCount = *file::Stream::To<uint32_t>(&pBuffer);
+				const uint32_t boneCount = binaryReader;
 				m_vecBones.reserve(boneCount);
 				m_rmapBones.reserve(boneCount);
 
 				for (uint32_t i = 0; i < boneCount; ++i)
 				{
-					const string::StringID boneName = file::Stream::ToString(&pBuffer);
+					const string::StringID boneName = binaryReader.ReadString();
 
-					const uint32_t keyFrameCount = *file::Stream::To<uint32_t>(&pBuffer);
-					const Keyframe* pKeyframes = file::Stream::To<Keyframe>(&pBuffer, keyFrameCount);
+					const uint32_t keyFrameCount = binaryReader;
+					const Keyframe* pKeyframes = &binaryReader.Read<Keyframe>(keyFrameCount);
 
 					m_vecBones.emplace_back(boneName, pKeyframes, keyFrameCount, m_frameInterval);
 					m_rmapBones.emplace(boneName, &m_vecBones.back());

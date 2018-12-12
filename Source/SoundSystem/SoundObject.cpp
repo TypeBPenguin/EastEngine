@@ -84,5 +84,31 @@ namespace eastengine
 		{
 			m_pInterface->setPaused(true);
 		}
+
+		void Channel::Mute()
+		{
+			m_pInterface->setMute(true);
+		}
+
+		bool Channel::IsPlaying() const
+		{
+			bool isPlaying{ false };
+			m_pInterface->isPlaying(&isPlaying);
+			return isPlaying;
+		}
+
+		uint32_t Channel::GetPosition() const
+		{
+			uint32_t position{ 0 };
+			m_pInterface->getPosition(&position, FMOD_TIMEUNIT_MS);
+			return position;
+		}
+
+		uint32_t Channel::GetLength() const
+		{
+			uint32_t length{ 0 };
+			m_pSound->GetInterface()->getLength(&length, FMOD_TIMEUNIT_MS);
+			return length;
+		}
 	}
 }

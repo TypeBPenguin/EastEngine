@@ -139,7 +139,6 @@ namespace eastengine
 				struct RenderPipeline
 				{
 					PSOCache psoCache;
-
 					std::array<ID3D12GraphicsCommandList2*, eFrameBufferCount> pBundles{ nullptr };
 				};
 				std::array<RenderPipeline, shader::ePS_Count> m_pipelineStates;

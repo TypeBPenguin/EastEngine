@@ -70,16 +70,16 @@ namespace eastengine
 			const math::int2& GetCoordinate() { return m_n2Coordinate; }
 
 		private:
-			SectorMgr* m_pSectorMgr;
-			IActor* m_pActor;
+			SectorMgr* m_pSectorMgr{ nullptr };
+			IActor* m_pActor{ nullptr };
 
-			float m_fRadius;
+			float m_fRadius{ 0.f };
 			math::int2 m_n2Coordinate;
 
 			std::vector<Sector*> m_vecNearSector;
-			std::unordered_map<IGameObject::Handle, IActor*> m_umapActor;
+			tsl::robin_map<IGameObject::Handle, IActor*> m_umapActor;
 
-			bool m_isVisibleTile;
+			bool m_isVisibleTile{ false };
 		};
 	}
 }

@@ -26,6 +26,19 @@ namespace eastengine
 	{
 	}
 
+	FiniteStateMachine& FiniteStateMachine::operator = (FiniteStateMachine&& source) noexcept
+	{
+		m_id = std::move(source.m_id);
+		m_name = std::move(source.m_name);
+		m_curStateID = std::move(source.m_curStateID);
+		m_transitStateID = std::move(source.m_transitStateID);
+		m_defaultStateID = std::move(source.m_defaultStateID);
+		m_stateTime = std::move(source.m_stateTime);
+		m_rmapStates = std::move(source.m_rmapStates);
+
+		return *this;
+	}
+
 	FiniteStateMachine::State::State(const string::StringID& name)
 		: m_name(name)
 	{

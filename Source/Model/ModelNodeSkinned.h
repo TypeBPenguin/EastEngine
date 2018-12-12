@@ -10,7 +10,7 @@ namespace eastengine
 		{
 		public:
 			ModelNodeSkinned(LOD emLOD = eLv0);
-			ModelNodeSkinned(const char* filePath, const BYTE** ppBuffer);
+			ModelNodeSkinned(const char* filePath, BinaryReader& binaryReader);
 			virtual ~ModelNodeSkinned();
 
 		public:

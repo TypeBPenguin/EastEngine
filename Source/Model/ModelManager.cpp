@@ -80,8 +80,8 @@ namespace eastengine
 
 			plf::colony<Motion> m_clnMotions;
 
-			std::unordered_map<IModel::Key, Model*> m_umapModelCaching;
-			std::unordered_map<IMotion::Key, Motion*> m_umapMotions;
+			tsl::robin_map<IModel::Key, Model*> m_umapModelCaching;
+			tsl::robin_map<IMotion::Key, Motion*> m_umapMotions;
 
 			Concurrency::concurrent_queue<RequestLoadModelInfo> m_conQueueRequestModelLoader;
 			Concurrency::concurrent_queue<ResultLoadModelInfo> m_conFuncLoadCompleteCallback;

@@ -61,8 +61,8 @@ namespace eastengine
 				const char HS_CompileVersion[]{ "hs_5_0" };
 				const char DS_CompileVersion[]{ "ds_5_0" };
 
-				struct tMaskKey {};
-				using MaskKey = PhantomType<tMaskKey, const uint32_t>;
+				struct tMaskKey { static constexpr uint32_t DefaultValue() { return 0; } };
+				using MaskKey = PhantomType<tMaskKey, uint32_t>;
 			}
 
 			namespace util

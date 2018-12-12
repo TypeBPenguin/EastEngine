@@ -95,7 +95,7 @@ namespace eastengine
 			thread::SRWWriteLock writeLock(&m_srwLock);
 
 			{
-				TRACER_BEGINEVENT("RequestStopChannels");
+				TRACER_EVENT("RequestStopChannels");
 				m_vecReqStopChannels.erase(std::remove_if(m_vecReqStopChannels.begin(), m_vecReqStopChannels.end(), [&](const StopChannel& stopChannel)
 				{
 					auto iter = m_umapChannels.find(stopChannel.id);
@@ -122,12 +122,10 @@ namespace eastengine
 						return false;
 					}
 				}), m_vecReqStopChannels.end());
-
-				TRACER_ENDEVENT();
 			}
 
 			{
-				TRACER_BEGINEVENT("GarbageCollect_Channel");
+				TRACER_EVENT("GarbageCollect_Channel");
 				for (auto iter = m_umapChannels.begin(); iter != m_umapChannels.end();)
 				{
 					Channel* pChannel = iter->second.get();
@@ -140,11 +138,10 @@ namespace eastengine
 						++iter;
 					}
 				}
-				TRACER_ENDEVENT();
 			}
 
 			{
-				TRACER_BEGINEVENT("GarbageCollect_Sound");
+				TRACER_EVENT("GarbageCollect_Sound");
 
 				const float DestroyWaitTime = 60.f;
 
@@ -181,11 +178,10 @@ namespace eastengine
 						++iter_mode;
 					}
 				}
-				TRACER_ENDEVENT();
 			}
 
 			{
-				TRACER_BEGINEVENT("FMOD System Update");
+				TRACER_EVENT("FMOD System Update");
 
 				const FMOD_VECTOR* pPosition = reinterpret_cast<const FMOD_VECTOR*>(&m_listenerAttributes.f3Position);
 				const FMOD_VECTOR* pVelocity = reinterpret_cast<const FMOD_VECTOR*>(&m_listenerAttributes.f3Velocity);
@@ -194,7 +190,6 @@ namespace eastengine
 				m_pFmodSystem->set3DListenerAttributes(0, pPosition, pVelocity, pForward, pUp);
 				
 				m_pFmodSystem->update();
-				TRACER_ENDEVENT();
 			}
 		}
 

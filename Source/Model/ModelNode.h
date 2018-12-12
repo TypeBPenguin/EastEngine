@@ -1,5 +1,7 @@
 #pragma once
 
+#include "CommonLib/FileStream.h"
+
 #include "ModelInterface.h"
 
 namespace eastengine
@@ -15,7 +17,7 @@ namespace eastengine
 		{
 		public:
 			ModelNode(LOD emMaxLod = LOD::eLv0);
-			ModelNode(Type emType, const char* filePath, const BYTE** ppBuffer);
+			ModelNode(Type emType, const char* filePath, BinaryReader& binaryReader);
 			virtual ~ModelNode() = 0;
 
 		public:

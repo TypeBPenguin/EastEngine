@@ -16,13 +16,13 @@ namespace eastengine
 			{
 				std::string strFilePath;
 				ITexture* pTexture_out{ nullptr };
-				std::function<bool(const std::string&)> funcLoader;
+				std::function<bool(ITexture* pTexture, const std::string&)> funcLoader;
 
 				RequestLoadTextureInfo()
 				{
 				}
 
-				RequestLoadTextureInfo(const std::string& strFilePath, ITexture* pTexture_out, std::function<bool(const std::string&)> funcLoader)
+				RequestLoadTextureInfo(const std::string& strFilePath, ITexture* pTexture_out, std::function<bool(ITexture* pTexture, const std::string&)> funcLoader)
 					: strFilePath(strFilePath)
 					, pTexture_out(pTexture_out)
 					, funcLoader(funcLoader)
@@ -46,10 +46,10 @@ namespace eastengine
 		public:
 			void Cleanup(float elapsedTime);
 
-			void AsyncLoadTexture(ITexture* pTexture, const char* strFilePath, std::function<bool(const std::string&)> funcLoad);
+			ITexture* AsyncLoadTexture(std::unique_ptr<IResource> pResource, const char* strFilePath, std::function<bool(ITexture* pTexture, const std::string&)> funcLoad);
 
 		public:
-			void PushTexture(ITexture* pTexture);
+			ITexture* PushTexture(std::unique_ptr<IResource> pResource);
 			ITexture* GetTexture(const ITexture::Key& key);
 
 		private:
@@ -64,7 +64,7 @@ namespace eastengine
 			std::queue<RequestLoadTextureInfo> m_queueRequestLoadTexture;
 			std::queue<ResultLoadTextureInfo> m_queueCompleteTexture;
 
-			std::unordered_map<ITexture::Key, ITexture*> m_umapTexture;
+			tsl::robin_map<ITexture::Key, std::unique_ptr<IResource>> m_rmapTextures;
 		};
 
 		TextureManager::Impl::Impl()
@@ -91,7 +91,7 @@ namespace eastengine
 
 					requestInfo.pTexture_out->SetState(IResource::eLoading);
 
-					bool isSuccess = requestInfo.funcLoader(requestInfo.strFilePath.c_str());
+					const bool isSuccess = requestInfo.funcLoader(requestInfo.pTexture_out, requestInfo.strFilePath.c_str());
 
 					std::lock_guard<std::mutex> lock(m_mutex);
 					m_queueCompleteTexture.push({ requestInfo.pTexture_out, isSuccess });
@@ -105,19 +105,17 @@ namespace eastengine
 			m_condition.notify_all();
 			m_thread.join();
 
-			std::for_each(m_umapTexture.begin(), m_umapTexture.end(), [](std::pair<const ITexture::Key, ITexture*>& iter)
+			for (auto& iter : m_rmapTextures)
 			{
-				IResource* pResource = iter.second;
-				if (pResource->GetReferenceCount() > 1)
+				ITexture* pTexture = static_cast<ITexture*>(iter.second.get());
+				if (pTexture->GetReferenceCount() > 1)
 				{
-					string::StringID name(iter.second->GetKey());
-					LOG_WARNING("failed to reference count managed : refCount[%d], name[%s]", pResource->GetReferenceCount(), name.c_str());
+					const string::StringID name(pTexture->GetKey());
+					LOG_WARNING("failed to reference count managed : refCount[%d], name[%s]", pTexture->GetReferenceCount(), name.c_str());
 					Sleep(100);
 				}
-
-				SafeDelete(pResource);
-			});
-			m_umapTexture.clear();
+			}
+			m_rmapTextures.clear();
 		}
 
 		void TextureManager::Impl::Cleanup(float elapsedTime)
@@ -151,10 +149,10 @@ namespace eastengine
 			{
 				m_fTime = 0.f;
 
-				auto iter = m_umapTexture.begin();
-				while (iter != m_umapTexture.end())
+				auto iter = m_rmapTextures.begin();
+				while (iter != m_rmapTextures.end())
 				{
-					ITexture* pTexture = iter->second;
+					ITexture* pTexture = static_cast<ITexture*>(iter.value().get());
 
 					if (pTexture->GetState() == IResource::eReady ||
 						pTexture->GetState() == IResource::eLoading)
@@ -175,40 +173,47 @@ namespace eastengine
 						}
 						else
 						{
-							IResource* pResource = pTexture;
-							SafeDelete(pResource);
-							iter = m_umapTexture.erase(iter);
+							iter = m_rmapTextures.erase(iter);
 						}
 					}
 				}
 			}
 		}
 
-		void TextureManager::Impl::AsyncLoadTexture(ITexture* pTexture, const char* strFilePath, std::function<bool(const std::string&)> funcLoad)
+		ITexture* TextureManager::Impl::AsyncLoadTexture(std::unique_ptr<IResource> pResource, const char* strFilePath, std::function<bool(ITexture* pTexture, const std::string&)> funcLoad)
 		{
-			PushTexture(pTexture);
+			ITexture* pTexture = PushTexture(std::move(pResource));
 			{
 				std::lock_guard<std::mutex> lock(m_mutex);
 				m_queueRequestLoadTexture.push({ strFilePath, pTexture, funcLoad });
 			}
 			m_condition.notify_all();
+
+			return pTexture;
 		}
 
-		void TextureManager::Impl::PushTexture(ITexture* pTexture)
+		ITexture* TextureManager::Impl::PushTexture(std::unique_ptr<IResource> pResource)
 		{
 			std::lock_guard<std::mutex> lock(m_mutex);
 
+			ITexture* pTexture = static_cast<ITexture*>(pResource.get());
 			pTexture->SetAlive(true);
-			m_umapTexture.emplace(pTexture->GetKey(), pTexture);
+			auto iter_result = m_rmapTextures.emplace(pTexture->GetKey(), std::move(pResource));
+			if (iter_result.second == false)
+				return nullptr;
+
+			return static_cast<ITexture*>(iter_result.first.value().get());
 		}
 
 		ITexture* TextureManager::Impl::GetTexture(const ITexture::Key& key)
 		{
-			auto iter = m_umapTexture.find(key);
-			if (iter == m_umapTexture.end())
-				return nullptr;
+			std::lock_guard<std::mutex> lock(m_mutex);
 
-			return iter->second;
+			auto iter = m_rmapTextures.find(key);
+			if (iter != m_rmapTextures.end())
+				return static_cast<ITexture*>(iter.value().get());
+
+			return nullptr;
 		}
 
 		TextureManager::TextureManager()
@@ -225,14 +230,14 @@ namespace eastengine
 			m_pImpl->Cleanup(elapsedTime);
 		}
 
-		void TextureManager::AsyncLoadTexture(ITexture* pTexture, const char* strFilePath, std::function<bool(const std::string&)> funcLoad)
+		ITexture* TextureManager::AsyncLoadTexture(std::unique_ptr<IResource> pResource, const char* strFilePath, std::function<bool(ITexture* pTexture, const std::string&)> funcLoad)
 		{
-			m_pImpl->AsyncLoadTexture(pTexture, strFilePath, funcLoad);
+			return m_pImpl->AsyncLoadTexture(std::move(pResource), strFilePath, funcLoad);
 		}
 
-		void TextureManager::PushTexture(ITexture* pTexture)
+		ITexture* TextureManager::PushTexture(std::unique_ptr<IResource> pResource)
 		{
-			m_pImpl->PushTexture(pTexture);
+			return m_pImpl->PushTexture(std::move(pResource));
 		}
 
 		ITexture* TextureManager::GetTexture(const ITexture::Key& key)

@@ -391,8 +391,8 @@ namespace eastengine
 				void PushJob(const RenderJobSkinned& job);
 
 			private:
-				void RenderStaticElement(Device* pDeviceInstance, ID3D12Device* pDevice, Camera* pCamera, Group emGroup, shader::Pass emPass, const D3D12_CPU_DESCRIPTOR_HANDLE* pRTVHandles, size_t nRTVHandleCount, const D3D12_CPU_DESCRIPTOR_HANDLE* pDSVHandle, std::unordered_map<const IMaterial*, uint32_t>& umapMaterialMask);
-				void RenderSkinnedElement(Device* pDeviceInstance, ID3D12Device* pDevice, Camera* pCamera, Group emGroup, shader::Pass emPass, const D3D12_CPU_DESCRIPTOR_HANDLE* pRTVHandles, size_t nRTVHandleCount, const D3D12_CPU_DESCRIPTOR_HANDLE* pDSVHandle, std::unordered_map<const IMaterial*, uint32_t>& umapMaterialMask);
+				void RenderStaticElement(Device* pDeviceInstance, ID3D12Device* pDevice, Camera* pCamera, Group emGroup, shader::Pass emPass, const D3D12_CPU_DESCRIPTOR_HANDLE* pRTVHandles, size_t nRTVHandleCount, const D3D12_CPU_DESCRIPTOR_HANDLE* pDSVHandle, tsl::robin_map<const IMaterial*, uint32_t>& umapMaterialMask);
+				void RenderSkinnedElement(Device* pDeviceInstance, ID3D12Device* pDevice, Camera* pCamera, Group emGroup, shader::Pass emPass, const D3D12_CPU_DESCRIPTOR_HANDLE* pRTVHandles, size_t nRTVHandleCount, const D3D12_CPU_DESCRIPTOR_HANDLE* pDSVHandle, tsl::robin_map<const IMaterial*, uint32_t>& umapMaterialMask);
 
 			private:
 				enum RootParameters : uint32_t
@@ -474,8 +474,8 @@ namespace eastengine
 				std::array<std::array<JobStatic, shader::eMaxJobCount>, GroupCount> m_vecJobStatics;
 				std::array<size_t, GroupCount> m_nJobStaticCount;
 
-				using UMapJobStaticBatch = std::unordered_map<const void*, JobStaticBatch>;
-				using UMapJobStaticMaterialBatch = std::unordered_map<const IMaterial*, UMapJobStaticBatch>;
+				using UMapJobStaticBatch = tsl::robin_map<const void*, JobStaticBatch>;
+				using UMapJobStaticMaterialBatch = tsl::robin_map<const IMaterial*, UMapJobStaticBatch>;
 				UMapJobStaticMaterialBatch m_umapJobStaticMasterBatchs;
 
 				struct JobSkinned
@@ -505,8 +505,8 @@ namespace eastengine
 				std::array<std::array<JobSkinned, shader::eMaxJobCount>, GroupCount> m_vecJobSkinneds;
 				std::array<size_t, GroupCount> m_nJobSkinnedCount;
 
-				using UMapJobSkinnedBatch = std::unordered_map<const void*, JobSkinnedBatch>;
-				using UMapJobSkinnedMaterialBatch = std::unordered_map<const IMaterial*, UMapJobSkinnedBatch>;
+				using UMapJobSkinnedBatch = tsl::robin_map<const void*, JobSkinnedBatch>;
+				using UMapJobSkinnedMaterialBatch = tsl::robin_map<const IMaterial*, UMapJobSkinnedBatch>;
 				UMapJobSkinnedMaterialBatch m_umapJobSkinnedMasterBatchs;
 			};
 
@@ -552,11 +552,6 @@ namespace eastengine
 				m_srvIndexConstantsBuffer.Destroy();
 				m_commonContentsBuffer.Destroy();
 
-				std::for_each(m_umapRenderPipelines.begin(), m_umapRenderPipelines.end(), [](std::pair<const PSOKey, RenderPipeline>& iter)
-				{
-					RenderPipeline& renderPipeline = iter.second;
-					renderPipeline.psoCache.Destroy();
-				});
 				m_umapRenderPipelines.clear();
 
 				SafeRelease(m_pShaderBlob);
@@ -564,12 +559,12 @@ namespace eastengine
 
 			void ModelRenderer::Impl::RefreshPSO(ID3D12Device* pDevice)
 			{
-				for (auto& iter : m_umapRenderPipelines)
+				for (auto iter = m_umapRenderPipelines.begin(); iter != m_umapRenderPipelines.end(); ++iter)
 				{
-					const PSOKey& psoKey = iter.first;
+					const PSOKey& psoKey = iter->first;
 					if ((psoKey.nMask & shader::eUseAlphaBlending) == shader::eUseAlphaBlending)
 					{
-						CreatePipelineState(pDevice, psoKey, &iter.second);
+						CreatePipelineState(pDevice, psoKey, &iter->second);
 					}
 				}
 			}
@@ -669,7 +664,7 @@ namespace eastengine
 					pVSConstantsBuffer->nTexVTFIndex = pVTFTexture->GetDescriptorIndex();
 				}
 
-				std::unordered_map<const IMaterial*, uint32_t> umapMaterialMask;
+				tsl::robin_map<const IMaterial*, uint32_t> umapMaterialMask;
 				umapMaterialMask.rehash(m_umapJobStaticMasterBatchs.size() + m_umapJobSkinnedMasterBatchs.size());
 
 				if (isAlphaBlend == true)
@@ -859,7 +854,7 @@ namespace eastengine
 				return pRenderPipeline;
 			}
 
-			void ModelRenderer::Impl::RenderStaticElement(Device* pDeviceInstance, ID3D12Device* pDevice, Camera* pCamera, Group emGroup, shader::Pass emPass, const D3D12_CPU_DESCRIPTOR_HANDLE* pRTVHandles, size_t nRTVHandleCount, const D3D12_CPU_DESCRIPTOR_HANDLE* pDSVHandle, std::unordered_map<const IMaterial*, uint32_t>& umapMaterialMask)
+			void ModelRenderer::Impl::RenderStaticElement(Device* pDeviceInstance, ID3D12Device* pDevice, Camera* pCamera, Group emGroup, shader::Pass emPass, const D3D12_CPU_DESCRIPTOR_HANDLE* pRTVHandles, size_t nRTVHandleCount, const D3D12_CPU_DESCRIPTOR_HANDLE* pDSVHandle, tsl::robin_map<const IMaterial*, uint32_t>& umapMaterialMask)
 			{
 				const uint32_t nFrameIndex = pDeviceInstance->GetFrameIndex();
 				DescriptorHeap* pSRVDescriptorHeap = pDeviceInstance->GetSRVDescriptorHeap();
@@ -883,7 +878,7 @@ namespace eastengine
 						auto iter = umapJobStaticBatch.find(job.data.pKey);
 						if (iter != umapJobStaticBatch.end())
 						{
-							iter->second.vecInstanceData.emplace_back(job.data.matWorld.Transpose());
+							iter.value().vecInstanceData.emplace_back(job.data.matWorld.Transpose());
 						}
 						else
 						{
@@ -891,7 +886,7 @@ namespace eastengine
 						}
 					}
 
-					std::unordered_map<PSOKey, std::vector<const JobStaticBatch*>> umapJobStaticMaskBatch;
+					tsl::robin_map<PSOKey, std::vector<const JobStaticBatch*>> umapJobStaticMaskBatch;
 					umapJobStaticMaskBatch.rehash(m_umapJobStaticMasterBatchs.size());
 
 					for (auto& iter_master : m_umapJobStaticMasterBatchs)
@@ -969,7 +964,7 @@ namespace eastengine
 									break;
 
 								pPSOKey = &iter->first;
-								pJobBatchs = &iter->second;
+								pJobBatchs = &iter.value();
 								++iter;
 
 								pRenderPipeline = CreateRenderPipeline(pDevice, *pPSOKey);
@@ -1185,7 +1180,7 @@ namespace eastengine
 				m_umapJobStaticMasterBatchs.clear();
 			}
 
-			void ModelRenderer::Impl::RenderSkinnedElement(Device* pDeviceInstance, ID3D12Device* pDevice, Camera* pCamera, Group emGroup, shader::Pass emPass, const D3D12_CPU_DESCRIPTOR_HANDLE* pRTVHandles, size_t nRTVHandleCount, const D3D12_CPU_DESCRIPTOR_HANDLE* pDSVHandle, std::unordered_map<const IMaterial*, uint32_t>& umapMaterialMask)
+			void ModelRenderer::Impl::RenderSkinnedElement(Device* pDeviceInstance, ID3D12Device* pDevice, Camera* pCamera, Group emGroup, shader::Pass emPass, const D3D12_CPU_DESCRIPTOR_HANDLE* pRTVHandles, size_t nRTVHandleCount, const D3D12_CPU_DESCRIPTOR_HANDLE* pDSVHandle, tsl::robin_map<const IMaterial*, uint32_t>& umapMaterialMask)
 			{
 				const uint32_t nFrameIndex = pDeviceInstance->GetFrameIndex();
 				DescriptorHeap* pSRVDescriptorHeap = pDeviceInstance->GetSRVDescriptorHeap();
@@ -1209,7 +1204,7 @@ namespace eastengine
 						auto iter = umapJobSkinnedBatch.find(job.data.pKey);
 						if (iter != umapJobSkinnedBatch.end())
 						{
-							iter->second.vecInstanceData.emplace_back(job.data.matWorld, job.data.nVTFID);
+							iter.value().vecInstanceData.emplace_back(job.data.matWorld, job.data.nVTFID);
 						}
 						else
 						{
@@ -1217,7 +1212,7 @@ namespace eastengine
 						}
 					}
 
-					std::unordered_map<PSOKey, std::vector<const JobSkinnedBatch*>> umapJobSkinnedMaskBatch;
+					tsl::robin_map<PSOKey, std::vector<const JobSkinnedBatch*>> umapJobSkinnedMaskBatch;
 					umapJobSkinnedMaskBatch.rehash(m_umapJobSkinnedMasterBatchs.size());
 
 					for (auto& iter_master : m_umapJobSkinnedMasterBatchs)
@@ -1297,7 +1292,7 @@ namespace eastengine
 									break;
 
 								pPSOKey = &iter->first;
-								pJobBatchs = &iter->second;
+								pJobBatchs = &iter.value();
 								++iter;
 
 								pRenderPipeline = CreateRenderPipeline(pDevice, *pPSOKey);

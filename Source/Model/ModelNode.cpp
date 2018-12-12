@@ -14,33 +14,33 @@ namespace eastengine
 		{
 		}
 
-		ModelNode::ModelNode(Type emType, const char* filePath, const BYTE** ppBuffer)
+		ModelNode::ModelNode(Type emType, const char* filePath, BinaryReader& binaryReader)
 		{
-			m_nodeName = file::Stream::ToString(ppBuffer);
-			m_parentNodeName = file::Stream::ToString(ppBuffer);
-			m_attachedBoneName = file::Stream::ToString(ppBuffer);
+			m_nodeName = binaryReader.ReadString();
+			m_parentNodeName = binaryReader.ReadString();
+			m_attachedBoneName = binaryReader.ReadString();
 
-			const Collision::AABB* pAABB = file::Stream::To<Collision::AABB>(ppBuffer);
-			SetOriginAABB(*pAABB);
+			const Collision::AABB& aabb = binaryReader;
+			SetOriginAABB(aabb);
 
-			m_isVisible = *file::Stream::To<bool>(ppBuffer);
+			m_isVisible = binaryReader;
 
-			const uint32_t subsetCount = *file::Stream::To<uint32_t>(ppBuffer);
+			const uint32_t subsetCount = binaryReader;
 			m_vecModelSubsets->resize(subsetCount);
 
 			for (uint32_t i = 0; i < subsetCount; ++i)
 			{
-				m_vecModelSubsets[eLv0][i].strName = file::Stream::ToString(ppBuffer);
+				m_vecModelSubsets[eLv0][i].strName = binaryReader.ReadString();
 
-				m_vecModelSubsets[eLv0][i].nStartIndex = *file::Stream::To<uint32_t>(ppBuffer);
-				m_vecModelSubsets[eLv0][i].nIndexCount = *file::Stream::To<uint32_t>(ppBuffer);
-				m_vecModelSubsets[eLv0][i].nMaterialID = *file::Stream::To<uint32_t>(ppBuffer);
+				m_vecModelSubsets[eLv0][i].nStartIndex = binaryReader;
+				m_vecModelSubsets[eLv0][i].nIndexCount = binaryReader;
+				m_vecModelSubsets[eLv0][i].nMaterialID = binaryReader;
 
-				const int* pPrimitiveType = file::Stream::To<int>(ppBuffer);
-				m_vecModelSubsets[eLv0][i].emPrimitiveType = static_cast<EmPrimitive::Type>(*pPrimitiveType);
+				const int primitiveType = binaryReader;
+				m_vecModelSubsets[eLv0][i].emPrimitiveType = static_cast<EmPrimitive::Type>(primitiveType);
 			}
 
-			const uint32_t vertexCount = *file::Stream::To<uint32_t>(ppBuffer);
+			const uint32_t vertexCount = binaryReader;
 			m_rawVertices.resize(vertexCount);
 
 			const uint8_t* pVertices = nullptr;
@@ -48,11 +48,11 @@ namespace eastengine
 			switch (emType)
 			{
 			case eStatic:
-				pVertices = reinterpret_cast<const uint8_t*>(file::Stream::To<VertexPosTexNor>(ppBuffer, vertexCount));
+				pVertices = reinterpret_cast<const uint8_t*>(&binaryReader.Read<VertexPosTexNor>(vertexCount));
 				vertexFormatSize = sizeof(VertexPosTexNor);
 				break;
 			case eSkinned:
-				pVertices = reinterpret_cast<const uint8_t*>(file::Stream::To<VertexPosTexNorWeiIdx>(ppBuffer, vertexCount));
+				pVertices = reinterpret_cast<const uint8_t*>(&binaryReader.Read<VertexPosTexNorWeiIdx>(vertexCount));
 				vertexFormatSize = sizeof(VertexPosTexNorWeiIdx);
 				break;
 			default:
@@ -73,8 +73,8 @@ namespace eastengine
 			SetVertexBuffer(pVertexBuffer);
 			ReleaseResource(&pVertexBuffer);
 
-			const uint32_t indexCount = *file::Stream::To<uint32_t>(ppBuffer);
-			const uint32_t* pIndices = file::Stream::To<uint32_t>(ppBuffer, indexCount);
+			const uint32_t indexCount = binaryReader;
+			const uint32_t* pIndices = &binaryReader.Read<uint32_t>(indexCount);
 
 			IIndexBuffer* pIndexBuffer = CreateIndexBuffer(reinterpret_cast<const uint8_t*>(pIndices), indexCount, sizeof(uint32_t), true);
 			if (pIndexBuffer == nullptr)
@@ -86,10 +86,10 @@ namespace eastengine
 
 			SetRawIndices(pIndices, indexCount);
 
-			const uint32_t materialCount = *file::Stream::To<uint32_t>(ppBuffer);
+			const uint32_t materialCount = binaryReader;
 			for (uint32_t i = 0; i < materialCount; ++i)
 			{
-				std::string fileName = file::Stream::ToString(ppBuffer);
+				std::string fileName = binaryReader.ReadString();
 				fileName += ".emtl";
 
 				IMaterial* pMaterial = CreateMaterial(fileName.c_str(), filePath);

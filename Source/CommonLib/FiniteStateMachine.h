@@ -11,6 +11,8 @@ namespace eastengine
 		FiniteStateMachine(FiniteStateMachine&& source) noexcept;
 		~FiniteStateMachine();
 
+		FiniteStateMachine& operator = (FiniteStateMachine&& source) noexcept;
+
 	public:
 		struct IEvent
 		{
@@ -85,8 +87,8 @@ namespace eastengine
 		void Update(float elapsedTime);
 
 	private:
-		const uint32_t m_id{ 0 };
-		const string::StringID m_name;
+		uint32_t m_id{ 0 };
+		string::StringID m_name;
 
 		enum : uint32_t
 		{

@@ -15,8 +15,8 @@ namespace eastengine
 		{
 		}
 
-		ModelNodeStatic::ModelNodeStatic(const char* filePath, const BYTE** ppBuffer)
-			: ModelNode(eStatic, filePath, ppBuffer)
+		ModelNodeStatic::ModelNodeStatic(const char* filePath, BinaryReader& binaryReader)
+			: ModelNode(eStatic, filePath, binaryReader)
 		{
 		}
 

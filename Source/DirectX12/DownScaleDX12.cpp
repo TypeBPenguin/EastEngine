@@ -99,7 +99,6 @@ namespace eastengine
 				struct RenderState
 				{
 					PSOCache psoCache;
-
 					std::array<ID3D12GraphicsCommandList2*, eFrameBufferCount> pBundles{ nullptr };
 				};
 				std::array<RenderState, shader::ePS_Count> m_renderStates;

@@ -74,13 +74,13 @@ namespace eastengine
 			size_t m_nAllocateIndex{ 0 };
 
 			plf::colony<Actor> m_colonyActor;
-			std::unordered_map<IGameObject::Handle, Actor*> m_umapActors;
+			tsl::robin_map<IGameObject::Handle, Actor*> m_umapActors;
 
 			plf::colony<Skybox> m_colonySkybox;
-			std::unordered_map<IGameObject::Handle, Skybox*> m_umapSkybox;
+			tsl::robin_map<IGameObject::Handle, Skybox*> m_umapSkybox;
 
 			plf::colony<Terrain> m_colonyTerrain;
-			std::unordered_map<IGameObject::Handle, Terrain*> m_umapTerrain;
+			tsl::robin_map<IGameObject::Handle, Terrain*> m_umapTerrain;
 
 			std::array<thread::SRWLock, ObjectType::eTypeCount> m_srwLockObjects;
 		};
@@ -94,6 +94,8 @@ namespace eastengine
 
 		GameObjectManager::Impl::~Impl()
 		{
+			IGameObject::Handle h{0};
+			IGameObject::Handle h2 = std::move(h);
 		}
 
 		void GameObjectManager::Impl::Update(float elapsedTime)

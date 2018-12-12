@@ -14,14 +14,14 @@ namespace eastengine
 		{
 		}
 
-		ModelNodeSkinned::ModelNodeSkinned(const char* filePath, const BYTE** ppBuffer)
-			: ModelNode(eSkinned, filePath, ppBuffer)
+		ModelNodeSkinned::ModelNodeSkinned(const char* filePath, BinaryReader& binaryReader)
+			: ModelNode(eSkinned, filePath, binaryReader)
 		{
-			const uint32_t boneCount = *file::Stream::To<uint32_t>(ppBuffer);
+			const uint32_t boneCount = binaryReader;
 			m_vecBoneName.resize(boneCount);
 			for (uint32_t i = 0; i < boneCount; ++i)
 			{
-				m_vecBoneName[i] = file::Stream::ToString(ppBuffer);
+				m_vecBoneName[i] = binaryReader.ReadString();
 			}
 		}
 

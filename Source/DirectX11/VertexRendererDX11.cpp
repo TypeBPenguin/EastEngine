@@ -188,7 +188,7 @@ namespace eastengine
 						instanceData.emplace_back(job.matWorld, job.color);
 					}
 				};
-				std::unordered_map<const IVertexBuffer*, JobVertexBatch> m_umapJobVertexBatchs;
+				tsl::robin_map<const IVertexBuffer*, JobVertexBatch> m_umapJobVertexBatchs;
 			};
 
 			VertexRenderer::Impl::Impl()
@@ -307,7 +307,7 @@ namespace eastengine
 				auto iter = m_umapJobVertexBatchs.find(job.pVertexBuffer);
 				if (iter != m_umapJobVertexBatchs.end())
 				{
-					iter->second.instanceData.emplace_back(job.matWorld, job.color);
+					iter.value().instanceData.emplace_back(job.matWorld, job.color);
 				}
 				else
 				{

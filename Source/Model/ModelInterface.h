@@ -91,10 +91,10 @@ namespace eastengine
 		class IMotion : public IResource
 		{
 		private:
-			struct tKey {};
+			struct tKey { static constexpr const char* DefaultValue() { return ""; } };
 
 		public:
-			using Key = PhantomType<tKey, const string::StringID>;
+			using Key = PhantomType<tKey, string::StringID>;
 			virtual Key GetKey() const = 0;
 
 		public:
@@ -311,7 +311,8 @@ namespace eastengine
 		class IModel : public IResource
 		{
 		private:
-			struct tKey {};
+			struct tKey { static constexpr const char* DefaultValue() { return ""; } };
+
 		public:
 			using Key = PhantomType<tKey, string::StringID>;
 			virtual Key GetKey() const = 0;

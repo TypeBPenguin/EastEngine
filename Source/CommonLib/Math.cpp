@@ -1420,7 +1420,7 @@ namespace eastengine
 			XMVector3TransformNormalStream(reinterpret_cast<XMFLOAT3*>(resultArray), sizeof(XMFLOAT3), reinterpret_cast<const XMFLOAT3*>(varray), sizeof(XMFLOAT3), count, M);
 		}
 
-		float3 FresnelTerm(const float3& v1, const float3& v2)
+		float3 float3::FresnelTerm(const float3& v1, const float3& v2)
 		{
 			using namespace DirectX;
 			XMVECTOR V1 = v1;

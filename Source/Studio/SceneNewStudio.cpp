@@ -2028,9 +2028,11 @@ void ShowSoundWindow(bool& isShowSoundMenu)
 	static int nSelectedIndex = 0;
 	if (vecFiles.empty() == false)
 	{
+		static sound::ChannelID channelID(sound::ChannelID::Default());
 		if (ImGui::ListBox("Sound List", &nSelectedIndex, &vecFilePaths.front(), static_cast<int>(vecFilePaths.size()), 6) == true)
 		{
-			sound::Play2D(vecFilePaths[nSelectedIndex]);
+			sound::Stop(channelID, 1.f);
+			channelID = sound::Play2D(vecFilePaths[nSelectedIndex]);
 		}
 	}
 

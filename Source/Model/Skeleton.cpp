@@ -109,26 +109,26 @@ namespace eastengine
 			skinnedData.boneNames.assign(pBoneNames, pBoneNames + nNameCount);
 		}
 
-		void Skeleton::LoadFile(const BYTE** ppBuffer)
+		void Skeleton::LoadFile(BinaryReader& binaryReader)
 		{
-			const uint32_t boneCount = *file::Stream::To<uint32_t>(ppBuffer);
+			const uint32_t boneCount = binaryReader;
 			m_bones.resize(boneCount);
 
 			for (uint32_t i = 0; i < boneCount; ++i)
 			{
-				const string::StringID boneName = file::Stream::ToString(ppBuffer);
-				const string::StringID parentBoneName = file::Stream::ToString(ppBuffer);
+				const string::StringID boneName = binaryReader.ReadString();
+				const string::StringID parentBoneName = binaryReader.ReadString();
 
-				const math::Matrix* pMotionOffsetMatrix = file::Stream::To<math::Matrix>(ppBuffer);
-				const math::Matrix* pDefaultMotionMatrix = file::Stream::To<math::Matrix>(ppBuffer);
+				const math::Matrix& motionOffsetMatrix = binaryReader;
+				const math::Matrix& defaultMotionMatrix = binaryReader;
 
 				if (parentBoneName == StrID::NoParent || parentBoneName == StrID::None)
 				{
-					CreateBone(boneName, *pMotionOffsetMatrix, *pDefaultMotionMatrix);
+					CreateBone(boneName, motionOffsetMatrix, defaultMotionMatrix);
 				}
 				else
 				{
-					CreateBone(boneName, parentBoneName, *pMotionOffsetMatrix, *pDefaultMotionMatrix);
+					CreateBone(boneName, parentBoneName, motionOffsetMatrix, defaultMotionMatrix);
 				}
 			}
 		}

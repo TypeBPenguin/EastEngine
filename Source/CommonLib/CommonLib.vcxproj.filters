@@ -88,6 +88,9 @@
     <Filter Include="Container\robin_map">
       <UniqueIdentifier>{45b55709-7367-4868-942e-04994011f2ce}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Binary">
+      <UniqueIdentifier>{810bbd89-1aae-4a38-99b2-0097b0b1df42}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -183,6 +186,9 @@
     <ClInclude Include="robin_set.h">
       <Filter>Container\robin_map</Filter>
     </ClInclude>
+    <ClInclude Include="Binary.h">
+      <Filter>Binary</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -244,6 +250,9 @@
     </ClCompile>
     <ClCompile Include="FiniteStateMachine.cpp">
       <Filter>FiniteStateMachine</Filter>
+    </ClCompile>
+    <ClCompile Include="Binary.cpp">
+      <Filter>Binary</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

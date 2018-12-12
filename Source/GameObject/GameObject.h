@@ -26,10 +26,14 @@ namespace eastengine
 		class IGameObject
 		{
 		private:
-			struct tHandle {};
 
 		public:
-			using Handle = PhantomType<tHandle, const uint64_t>;
+			enum : uint64_t
+			{
+				eInvalidHandle = std::numeric_limits<uint64_t>::max(),
+			};
+			struct tHandle { static constexpr uint64_t DefaultValue() { return eInvalidHandle; } };
+			using Handle = PhantomType<tHandle, uint64_t>;
 
 		protected:
 			IGameObject(const Handle& handle);

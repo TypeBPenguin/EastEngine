@@ -41,18 +41,18 @@ namespace eastengine
 		float ACosEst(float Value);
 
 		template <typename T>
-		inline bool IsEqual(T value1, T value2)
-		{
-			return IsZero(value1 - value2);
-		}
-
-		template <typename T>
 		inline bool IsZero(T value)
 		{
 			if (std::abs(value) <= std::numeric_limits<T>::epsilon())
 				return true;
 
 			return false;
+		}
+
+		template <typename T>
+		inline bool IsEqual(T value1, T value2)
+		{
+			return IsZero(value1 - value2);
 		}
 
 		template <typename T>

@@ -17,10 +17,10 @@ namespace eastengine
 		public:
 			void Cleanup(float elapsedTime);
 
-			void AsyncLoadTexture(ITexture* pTexture, const char* strFilePath, std::function<bool(const std::string&)> funcLoad);
+			ITexture* AsyncLoadTexture(std::unique_ptr<IResource> pResource, const char* strFilePath, std::function<bool(ITexture* pTexture, const std::string&)> funcLoad);
 
 		public:
-			void PushTexture(ITexture* pTexture);
+			ITexture* PushTexture(std::unique_ptr<IResource> pResource);
 			ITexture* GetTexture(const ITexture::Key& key);
 
 		private:

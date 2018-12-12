@@ -6,7 +6,7 @@ namespace eastengine
 	struct PhantomType
 	{
 	private:
-		VALUE value{};
+		VALUE value{ PHANTOM_TYPE::DefaultValue() };
 
 	public:
 		explicit PhantomType(const VALUE& value)
@@ -36,5 +36,7 @@ namespace eastengine
 
 		operator VALUE() const { return value; }
 		const VALUE& Value() const { return value; }
+
+		static constexpr VALUE Default() { return PHANTOM_TYPE::DefaultValue(); }
 	};
 }

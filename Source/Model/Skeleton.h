@@ -1,5 +1,7 @@
 #pragma once
 
+#include "CommonLib/FileStream.h"
+
 #include "ModelInterface.h"
 
 namespace eastengine
@@ -53,7 +55,7 @@ namespace eastengine
 			void SetSkinnedList(const string::StringID& strSkinnedName, const string::StringID* pBoneNames, size_t nNameCount);
 
 		public:
-			void LoadFile(const BYTE** ppBuffer);
+			void LoadFile(BinaryReader& binaryReader);
 
 		private:
 			std::vector<Bone> m_bones;

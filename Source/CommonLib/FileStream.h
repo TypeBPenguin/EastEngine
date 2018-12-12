@@ -1,5 +1,9 @@
 #pragma once
 
+#include <fstream>
+
+#include "Binary.h"
+
 namespace eastengine
 {
 	namespace file
@@ -38,94 +42,161 @@ namespace eastengine
 			uint32_t GetOpenMode() const;
 
 		public:
-			const BYTE* GetBuffer();
+			BinaryReader GetBinaryReader();
 
 		public:
-			Stream& operator << (int8_t value);
-			Stream& operator >> (int8_t& value);
-			Stream& operator << (int16_t value);
-			Stream& operator >> (int16_t& value);
-			Stream& operator << (int value);
-			Stream& operator >> (int& value);
-			Stream& operator << (DWORD value);
-			Stream& operator >> (DWORD& value);
-			Stream& operator << (uint8_t value);
-			Stream& operator >> (uint8_t& value);
-			Stream& operator << (uint16_t value);
-			Stream& operator >> (uint16_t& value);
-			Stream& operator << (uint32_t value);
-			Stream& operator >> (uint32_t& value);
-			Stream& operator << (float value);
-			Stream& operator >> (float& value);
-			Stream& operator << (double value);
-			Stream& operator >> (double& value);
-			Stream& operator << (bool value);
-			Stream& operator >> (bool& value);
-			Stream& operator << (const std::string& value);
-			Stream& operator >> (std::string& value);
-			Stream& operator << (const std::wstring& value);
-			Stream& operator >> (std::wstring& value);
-			Stream& operator << (const char* value);
-			Stream& operator << (wchar_t* value);
+			template <typename T>
+			Stream& operator << (const T& value)
+			{
+				if ((m_emOpenMode & OpenMode::eBinary) == 0)
+				{
+					m_file << value;
+				}
+				else
+				{
+					m_file.write(reinterpret_cast<const char*>(&value), sizeof(T));
+				}
+				return *this;
+			}
+
+			Stream& operator << (const char* value)
+			{
+				if ((m_emOpenMode & OpenMode::eBinary) == 0)
+				{
+					m_file << value;
+				}
+				else
+				{
+					const size_t size = strlen(value) + 1;
+					*this << static_cast<uint32_t>(size);
+					m_file.write(value, size);
+				}
+				return *this;
+			}
+
+			Stream& operator << (const std::string& value)
+			{
+				if ((m_emOpenMode & OpenMode::eBinary) == 0)
+				{
+					m_file << value.c_str();
+				}
+				else
+				{
+					const size_t size = value.length() + 1;
+					*this << static_cast<uint32_t>(size);
+					m_file.write(value.c_str(), size);
+				}
+				return *this;
+			}
+
+			template <typename T>
+			Stream& operator >> (T& value)
+			{
+				if ((m_emOpenMode & OpenMode::eBinary) == 0)
+				{
+					m_file >> value;
+				}
+				else
+				{
+					m_file.read(reinterpret_cast<char*>(&value), sizeof(T));
+				}
+				return *this;
+			}
+
+			Stream& operator >> (std::string& value)
+			{
+				if ((m_emOpenMode & OpenMode::eBinary) == 0)
+				{
+					ReadLine(value);
+				}
+				else
+				{
+					uint32_t size = 0;
+					*this >> size;
+
+					if (size <= 0)
+						return *this;
+
+					value.resize(static_cast<size_t>(size));
+					m_file.read(value.data(), size);
+
+					value = value.substr(0, value.size() - 1);
+				}
+
+				return *this;
+			}
 
 		public:
-			Stream& Write(const float* pValue, uint32_t nCount = 1);
-			Stream& Write(const double* pValue, uint32_t nCount = 1);
-			Stream& Write(const int8_t* pValue, uint32_t nCount = 1);
-			Stream& Write(const int16_t* pValue, uint32_t nCount = 1);
-			Stream& Write(const int32_t* pValue, uint32_t nCount = 1);
-			Stream& Write(const int64_t* pValue, uint32_t nCount = 1);
-			Stream& Write(const uint8_t* pValue, uint32_t nCount = 1);
-			Stream& Write(const uint16_t* pValue, uint32_t nCount = 1);
-			Stream& Write(const uint32_t* pValue, uint32_t nCount = 1);
-			Stream& Write(const uint64_t* pValue, uint32_t nCount = 1);
+			template <typename T>
+			Stream& Write(const T* pValue, uint32_t nCount = 1)
+			{
+				for (uint32_t i = 0; i < nCount; ++i)
+				{
+					*this << pValue[i];
+				}
+				return *this;
+			}
 
-			Stream& Write(const char* pValue, uint32_t nLength = 1);
+			Stream& Write(const char* pValue, size_t nLength)
+			{
+				if ((m_emOpenMode & OpenMode::eBinary) == 0)
+				{
+					m_file << pValue;
+				}
+				else
+				{
+					*this << nLength;
+					m_file.write(pValue, nLength);
+				}
 
-			Stream& Read(float* pBuffer, uint32_t nCount = 1);
-			Stream& Read(double* pBuffer, uint32_t nCount = 1);
-			Stream& Read(int8_t* pBuffer, uint32_t nCount = 1);
-			Stream& Read(int16_t* pBuffer, uint32_t nCount = 1);
-			Stream& Read(int32_t* pBuffer, uint32_t nCount = 1);
-			Stream& Read(int64_t* pBuffer, uint32_t nCount = 1);
-			Stream& Read(uint8_t* pBuffer, uint32_t nCount = 1);
-			Stream& Read(uint16_t* pBuffer, uint32_t nCount = 1);
-			Stream& Read(uint32_t* pBuffer, uint32_t nCount = 1);
-			Stream& Read(uint64_t* pBuffer, uint32_t nCount = 1);
+				return *this;
+			}
 
-			Stream& Read(char* pBuffer, size_t length);
+			template <typename T, size_t size>
+			Stream& Write(const T(&value)[size])
+			{
+				for (uint32_t i = 0; i < size; ++i)
+				{
+					*this << value[i];
+				}
+				return *this;
+			}
+
+			template <typename T>
+			Stream& Read(T* pBuffer, uint32_t nCount = 1)
+			{
+				for (uint32_t i = 0; i < nCount; ++i)
+				{
+					*this >> pBuffer[i];
+				}
+				return *this;
+			}
+
+			Stream& Read(char* pBuffer, size_t length)
+			{
+				m_file.read(pBuffer, length);
+				return *this;
+			}
+
+			template <typename T, size_t size>
+			Stream& Read(T(&value)[size])
+			{
+				for (uint32_t i = 0; i < size; ++i)
+				{
+					*this >> value[i];
+				}
+				return *this;
+			}
 
 			void ReadLine(std::string& str);
 
 		private:
-			class Impl;
-			std::unique_ptr<Impl> m_pImpl;
+			std::fstream m_file;
+			std::string m_path;
+			OpenMode m_emOpenMode{ eNone };
+			size_t m_fileSize{ 0 };
 
-		public:
-			template <typename T>
-			static const T* To(const BYTE** ppBuffer, size_t count = 1)
-			{
-				assert(count > 0);
-
-				const T* pPointer = reinterpret_cast<const T*>(*ppBuffer);
-				*ppBuffer += sizeof(T) * count;
-
-				return pPointer;
-			}
-
-			static const char* ToString(const BYTE** ppBuffer)
-			{
-				const uint32_t* pLength = reinterpret_cast<const uint32_t*>(*ppBuffer);
-				*ppBuffer += sizeof(uint32_t);
-
-				if (*pLength == 0)
-					return "";
-
-				const char* pName = reinterpret_cast<const char*>(*ppBuffer);
-				*ppBuffer += *pLength;
-
-				return pName;
-			}
+			std::vector<char> m_buffer;
 		};
 	}
 }

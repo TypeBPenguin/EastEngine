@@ -24,7 +24,7 @@ namespace eastengine
 			FiniteStateMachine* GetStateMachine(uint32_t id);
 
 		private:
-			std::unordered_map<uint32_t, FiniteStateMachine> m_umapStateMachines;
+			tsl::robin_map<uint32_t, FiniteStateMachine> m_umapStateMachines;
 		};
 	}
 }

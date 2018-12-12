@@ -10,11 +10,6 @@ namespace eastengine
 {
 	namespace string
 	{
-		std::size_t Length(const char* string)
-		{
-			return std::strlen(string);
-		}
-		
 		std::vector<std::string> Tokenizer(const char* string, const char* strDelimiter)
 		{
 			if (string == nullptr)
@@ -55,17 +50,17 @@ namespace eastengine
 			return string;
 		}
 
-		template <> std::string ToString(int8_t value) { return std::to_string(value); }
-		template <> std::string ToString(int16_t value) { return std::to_string(value); }
-		template <> std::string ToString(int32_t value) { return std::to_string(value); }
-		template <> std::string ToString(int64_t value) { return std::to_string(value); }
-		template <> std::string ToString(uint8_t value) { return std::to_string(value); }
-		template <> std::string ToString(uint16_t value) { return std::to_string(value); }
-		template <> std::string ToString(uint32_t value) { return std::to_string(value); }
-		template <> std::string ToString(uint64_t value) { return std::to_string(value); }
-		template <> std::string ToString(float value) { return std::to_string(value); }
-		template <> std::string ToString(double value) { return std::to_string(value); }
-		template <> std::string ToString(long double value) { return std::to_string(value); }
+		//template <> std::string ToString(int8_t value) { return std::to_string(value); }
+		//template <> std::string ToString(int16_t value) { return std::to_string(value); }
+		//template <> std::string ToString(int32_t value) { return std::to_string(value); }
+		//template <> std::string ToString(int64_t value) { return std::to_string(value); }
+		//template <> std::string ToString(uint8_t value) { return std::to_string(value); }
+		//template <> std::string ToString(uint16_t value) { return std::to_string(value); }
+		//template <> std::string ToString(uint32_t value) { return std::to_string(value); }
+		//template <> std::string ToString(uint64_t value) { return std::to_string(value); }
+		//template <> std::string ToString(float value) { return std::to_string(value); }
+		//template <> std::string ToString(double value) { return std::to_string(value); }
+		//template <> std::string ToString(long double value) { return std::to_string(value); }
 
 		template <> int32_t ToValue(const char* string) { if (string == nullptr) return 0; return std::stoi(string); }
 		template <> int64_t ToValue(const char* string) { if (string == nullptr) return 0; return std::stoll(string); }
