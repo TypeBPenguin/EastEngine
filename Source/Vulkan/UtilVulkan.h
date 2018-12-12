@@ -9,8 +9,8 @@ namespace eastengine
 	{
 		namespace vulkan
 		{
-			struct tKey {};
-			using PSOKey = PhantomType<tKey, const string::StringID>;
+			struct tKey { static constexpr const char* DefaultValue() { return ""; } };
+			using PSOKey = PhantomType<tKey, string::StringID>;
 
 			enum CompileShaderType
 			{

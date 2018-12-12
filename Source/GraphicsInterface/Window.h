@@ -33,7 +33,7 @@ namespace eastengine
 			string::StringID m_strApplicationTitle;
 			string::StringID m_strApplicationName;
 
-			std::unordered_map<string::StringID, std::function<void(HWND, uint32_t, WPARAM, LPARAM)>> m_umapHandlers;
+			tsl::robin_map<string::StringID, std::function<void(HWND, uint32_t, WPARAM, LPARAM)>> m_umapHandlers;
 		};
 	}
 }

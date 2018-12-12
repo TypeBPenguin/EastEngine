@@ -362,10 +362,10 @@ namespace eastengine
 			virtual const string::StringID& GetResourceType() const override { return StrID::Texture; }
 
 		private:
-			struct tKey {};
+			struct tKey { string::StringID DefaultValue() { return ""; } };
 
 		public:
-			using Key = PhantomType<tKey, const string::StringID>;
+			using Key = PhantomType<tKey, string::StringID>;
 
 		public:
 			virtual const Key& GetKey() const = 0;
