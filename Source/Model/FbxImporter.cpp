@@ -1,6 +1,7 @@
 #include "StdAfx.h"
 #include "FbxImporter.h"
 
+#include "CommonLib/Lock.h"
 #include "CommonLib/FileStream.h"
 #include "CommonLib/FileUtil.h"
 
@@ -14,6 +15,30 @@
 #include "Skeleton.h"
 
 #include "FbxWriter.h"
+
+#define FBXSDK_NEW_API
+
+#pragma warning(push)
+#pragma warning( disable : 4616 6011 )
+#include <fbxsdk.h>
+#pragma warning(pop)
+
+#include <DirectXMath.h>
+#include <DirectXPackedVector.h>
+#include <DirectXCollision.h>
+
+#undef USE_OPENEXR
+
+#include "ExternLib/FBXExporter/ExportObjects/ExportXmlParser.h"
+#include "ExternLib/FBXExporter/ExportObjects/ExportPath.h"
+#include "ExternLib/FBXExporter/ExportObjects/ExportMaterial.h"
+#include "ExternLib/FBXExporter/ExportObjects/ExportObjects.h"
+
+namespace DirectX
+{
+	struct XMFLOAT4X4;
+	struct XMFLOAT3;
+}
 
 ATG::ExportScene* g_pScene = nullptr;
 ExportPath g_CurrentInputFileName;
@@ -74,6 +99,31 @@ namespace eastengine
 			{
 				LOG_ERROR("%s", strMessage);
 			}
+		};
+
+		class FBXTransformer : public ATG::IDCCTransformer
+		{
+		public:
+			FBXTransformer();
+			~FBXTransformer() = default;
+
+		public:
+			void Initialize(fbxsdk::FbxScene* pScene);
+
+			virtual void TransformMatrix(DirectX::XMFLOAT4X4* pDestMatrix, const DirectX::XMFLOAT4X4* pSrcMatrix) const override;
+			virtual void TransformPosition(DirectX::XMFLOAT3* pDestPosition, const DirectX::XMFLOAT3* pSrcPosition) const override;
+			virtual void TransformDirection(DirectX::XMFLOAT3* pDestDirection, const DirectX::XMFLOAT3* pSrcDirection) const override;
+			virtual float TransformLength(float fInputLength) const override;
+
+		public:
+			// Sets unit scale for exporting all geometry - works with characters too.
+			void SetUnitScale(const float fScale) { m_fUnitScale = fScale; }
+			void SetZFlip(const bool bFlip) { m_isFlipZ = bFlip; }
+
+		protected:
+			float m_fUnitScale;
+			bool m_isMaxConversion;
+			bool m_isFlipZ;
 		};
 
 		FBXTransformer::FBXTransformer()
@@ -205,23 +255,105 @@ namespace eastengine
 			return fInputLength * m_fUnitScale;
 		}
 
-		FBXImport::FBXImport()
-			: m_pSDKManager(nullptr)
-			, m_pImporter(nullptr)
-			, m_pFBXScene(nullptr)
-			, m_isBindPoseFixupRequired(false)
-			, m_pConsoleOutListener(nullptr)
-			, m_pDebugSpewListener(nullptr)
-			, m_pManifest(nullptr)
+		class FBXImport::Impl
+		{
+		public:
+			Impl();
+			~Impl();
+
+		public:
+			bool Initialize();
+			void Release();
+
+		public:
+			bool LoadModel(Model* pModel, const char* strFilePath, float fScale, bool isFlipZ);
+			bool LoadMotion(Motion* pMotion, const char* strFilePath, float fScale);
+
+		private:
+			void ModelSettings();
+			void MotionSettings();
+
+			bool ImportFile(const char* strFileName);
+
+		private:
+			void SetBindPose();
+
+			math::Matrix ParseTransform(fbxsdk::FbxNode* pNode, ATG::ExportFrame* pFrame, const math::Matrix& matParentWorld, const bool isWarnings = true);
+			void ParseNode(fbxsdk::FbxNode* pNode, ATG::ExportFrame* pParentFrame, const math::Matrix& matParentWorld);
+			void ParseCamera(fbxsdk::FbxCamera* pFbxCamera, ATG::ExportFrame* pParentFrame);
+			void ParseLight(fbxsdk::FbxLight* pFbxLight, ATG::ExportFrame* pParentFrame);
+			void FixupNode(ATG::ExportFrame* pFrame, const math::Matrix& matParentWorld);
+
+			struct AnimationScanNode
+			{
+				int nParentIndex{ 0 };
+				fbxsdk::FbxNode* pNode{ nullptr };
+				ATG::ExportAnimationTrack* pTrack{ nullptr };
+				DWORD dwFlags{ 0 };
+				math::Matrix matGlobal;
+			};
+
+			void ParseAnimNode(FbxNode* pNode, std::vector<AnimationScanNode>& scanlist, DWORD nFlags, int nParentIndex, bool isIncludeNode);
+			void AddKey(AnimationScanNode& asn, const AnimationScanNode* pParent, const FbxAMatrix& matFBXGlobal, float fTime);
+
+			void CaptureAnimation(std::vector<AnimationScanNode>& scanlist, ATG::ExportAnimation* pAnim, FbxScene* pFbxScene);
+			void ParseAnimStack(FbxScene* pFbxScene, FbxString* strAnimStackName);
+			void ParseAnimation(fbxsdk::FbxScene* pFbxScene);
+
+			void FixupGenericMaterial(ATG::ExportMaterial* pMaterial);
+			void AddTextureParameter(ATG::ExportMaterial* pMaterial, const char* strParamName, uint32_t nIndex, const char* strFileName, DWORD nFlags);
+			bool ExtractTextures(fbxsdk::FbxProperty Property, const char* strParameterName, ATG::ExportMaterial* pMaterial, DWORD nFlags);
+			ATG::ExportMaterial* ParseMaterial(fbxsdk::FbxSurfaceMaterial* pFbxMaterial);
+
+			struct SkinData
+			{
+				std::vector<fbxsdk::FbxNode*> InfluenceNodes;
+				size_t nVertexCount = 0;
+				uint32_t nVertexStride = 0;
+				std::unique_ptr<byte[]> pBoneIndices;
+				std::unique_ptr<float[]> pBoneWeights;
+
+				void Alloc(size_t nCount, DWORD nStride);
+				byte* GetIndices(size_t nIndex);
+				float* GetWeights(size_t nIndex);
+
+				uint32_t GetBoneCount() const { return static_cast<uint32_t>(InfluenceNodes.size()); }
+
+				void InsertWeight(size_t nIndex, uint32_t nBoneIndex, float fBoneWeight);
+			};
+
+			void CaptureBindPoseMatrix(fbxsdk::FbxNode* pNode, const fbxsdk::FbxMatrix& matBindPose);
+			bool ParseMeshSkinning(fbxsdk::FbxMesh* pMesh, SkinData* pSkinData);
+			void ParseMesh(fbxsdk::FbxNode* pNode, fbxsdk::FbxMesh* pFbxMesh, ATG::ExportFrame* pParentFrame, bool isSubDProcess = false, const char* strSuffix = nullptr);
+			void ParseSubDiv(fbxsdk::FbxNode* pNode, fbxsdk::FbxSubDiv* pFbxSubD, ATG::ExportFrame* pParentFrame);
+
+		private:
+			thread::SRWLock m_srwLock;
+
+			fbxsdk::FbxManager* m_pSDKManager{ nullptr };
+			fbxsdk::FbxImporter* m_pImporter{ nullptr };
+			fbxsdk::FbxScene* m_pFBXScene{ nullptr };
+
+			std::unordered_map<eastengine::string::StringID, eastengine::math::Matrix> m_umapMotionOffsetMarix;
+
+			std::unordered_map<string::StringID, fbxsdk::FbxMatrix> m_BindPoseMap;
+			bool m_isBindPoseFixupRequired{ false };
+
+			class ConsoleOutListener* m_pConsoleOutListener{ nullptr };
+			class ATG::DebugSpewListener* m_pDebugSpewListener{ nullptr };
+			FBXTransformer m_fbxTransformer;
+			ATG::ExportManifest* m_pManifest{ nullptr };
+		};
+
+		FBXImport::Impl::Impl()
 		{
 		}
 
-		FBXImport::~FBXImport()
+		FBXImport::Impl::~Impl()
 		{
-			Release();
 		}
 
-		bool FBXImport::Initialize()
+		bool FBXImport::Impl::Initialize()
 		{
 			ExportLog::ClearListeners();
 
@@ -325,7 +457,7 @@ namespace eastengine
 			return true;
 		}
 
-		void FBXImport::Release()
+		void FBXImport::Impl::Release()
 		{
 			SafeDelete(m_pManifest);
 			SafeDelete(m_pConsoleOutListener);
@@ -354,7 +486,7 @@ namespace eastengine
 			ExportString::ReleaseStringList();
 		}
 
-		bool FBXImport::LoadModel(Model* pModel, const char* strFilePath, float fScale, bool isFlipZ)
+		bool FBXImport::Impl::LoadModel(Model* pModel, const char* strFilePath, float fScale, bool isFlipZ)
 		{
 			if (pModel == nullptr || strFilePath == nullptr)
 				return false;
@@ -410,7 +542,7 @@ namespace eastengine
 			return true;
 		}
 
-		bool FBXImport::LoadMotion(Motion* pMotion, const char* strFilePath, float fScale)
+		bool FBXImport::Impl::LoadMotion(Motion* pMotion, const char* strFilePath, float fScale)
 		{
 			if (pMotion == nullptr || strFilePath == nullptr)
 				return false;
@@ -458,7 +590,7 @@ namespace eastengine
 			return true;
 		}
 
-		void FBXImport::ModelSettings()
+		void FBXImport::Impl::ModelSettings()
 		{
 			g_pScene->Settings().bExportAnimations = false;
 			g_pScene->Settings().bExportCameras = false;
@@ -471,7 +603,7 @@ namespace eastengine
 			g_pScene->Settings().bOptimizeVCache = true;
 		}
 
-		void FBXImport::MotionSettings()
+		void FBXImport::Impl::MotionSettings()
 		{
 			g_pScene->Settings().bExportAnimations = true;
 			g_pScene->Settings().bCompressVertexData = false;
@@ -491,7 +623,7 @@ namespace eastengine
 			g_pScene->Settings().bOptimizeAnimations = true;
 		}
 
-		bool FBXImport::ImportFile(const char* strFileName)
+		bool FBXImport::Impl::ImportFile(const char* strFileName)
 		{
 			assert(m_pSDKManager != nullptr);
 			assert(m_pImporter != nullptr);
@@ -577,7 +709,7 @@ namespace eastengine
 			return true;
 		}
 
-		void FBXImport::SetBindPose()
+		void FBXImport::Impl::SetBindPose()
 		{
 			assert(m_pFBXScene != nullptr);
 
@@ -637,7 +769,7 @@ namespace eastengine
 			ExportLog::LogMsg(3, "Created bind pose map with %Iu nodes.", m_BindPoseMap.size());
 		}
 
-		math::Matrix FBXImport::ParseTransform(fbxsdk::FbxNode* pNode, ATG::ExportFrame* pFrame, const math::Matrix& matParentWorld, const bool isWarnings)
+		math::Matrix FBXImport::Impl::ParseTransform(fbxsdk::FbxNode* pNode, ATG::ExportFrame* pFrame, const math::Matrix& matParentWorld, const bool isWarnings)
 		{
 			math::Matrix matWorld;
 			math::Matrix matLocal;
@@ -709,7 +841,7 @@ namespace eastengine
 			return matWorld;
 		}
 
-		void FBXImport::ParseNode(FbxNode* pNode, ATG::ExportFrame* pParentFrame, const math::Matrix& matParentWorld)
+		void FBXImport::Impl::ParseNode(FbxNode* pNode, ATG::ExportFrame* pParentFrame, const math::Matrix& matParentWorld)
 		{
 			ExportLog::LogMsg(2, "Parsing node \"%s\".", pNode->GetName());
 
@@ -738,7 +870,7 @@ namespace eastengine
 			}
 		}
 
-		void FBXImport::ParseCamera(FbxCamera* pFbxCamera, ATG::ExportFrame* pParentFrame)
+		void FBXImport::Impl::ParseCamera(FbxCamera* pFbxCamera, ATG::ExportFrame* pParentFrame)
 		{
 			if (pFbxCamera == nullptr || g_pScene->Settings().bExportCameras == false)
 				return;
@@ -756,7 +888,7 @@ namespace eastengine
 			pParentFrame->AddCamera(pCamera);
 		}
 
-		void FBXImport::ParseLight(FbxLight* pFbxLight, ATG::ExportFrame* pParentFrame)
+		void FBXImport::Impl::ParseLight(FbxLight* pFbxLight, ATG::ExportFrame* pParentFrame)
 		{
 			if (pFbxLight == nullptr || g_pScene->Settings().bExportLights == false)
 				return;
@@ -834,7 +966,7 @@ namespace eastengine
 			}
 		}
 
-		void FBXImport::FixupNode(ATG::ExportFrame* pFrame, const math::Matrix& matParentWorld)
+		void FBXImport::Impl::FixupNode(ATG::ExportFrame* pFrame, const math::Matrix& matParentWorld)
 		{
 			fbxsdk::FbxNode* pNode = reinterpret_cast<fbxsdk::FbxNode*>(pFrame->GetDCCObject());
 
@@ -856,7 +988,7 @@ namespace eastengine
 			}
 		}
 
-		void FBXImport::ParseAnimNode(FbxNode* pNode, std::vector<AnimationScanNode>& scanlist, DWORD dwFlags, int nParentIndex, bool isIncludeNode)
+		void FBXImport::Impl::ParseAnimNode(FbxNode* pNode, std::vector<AnimationScanNode>& scanlist, DWORD dwFlags, int nParentIndex, bool isIncludeNode)
 		{
 			int nCurrentIndex = nParentIndex;
 
@@ -887,7 +1019,7 @@ namespace eastengine
 			}
 		}
 
-		void FBXImport::AddKey(AnimationScanNode& asn, const AnimationScanNode* pParent, const FbxAMatrix& matFBXGlobal, float fTime)
+		void FBXImport::Impl::AddKey(AnimationScanNode& asn, const AnimationScanNode* pParent, const FbxAMatrix& matFBXGlobal, float fTime)
 		{
 			math::Matrix matGlobal = ConvertMatrix(matFBXGlobal);
 
@@ -913,7 +1045,7 @@ namespace eastengine
 				*reinterpret_cast<const DirectX::XMFLOAT3*>(&f3Scale));
 		}
 
-		void FBXImport::CaptureAnimation(std::vector<AnimationScanNode>& scanlist, ATG::ExportAnimation* pAnim, FbxScene* pFbxScene)
+		void FBXImport::Impl::CaptureAnimation(std::vector<AnimationScanNode>& scanlist, ATG::ExportAnimation* pAnim, FbxScene* pFbxScene)
 		{
 			const float fDeltaTime = pAnim->fSourceSamplingInterval;
 			const float fStartTime = pAnim->fStartTime;
@@ -954,7 +1086,7 @@ namespace eastengine
 			}
 		}
 
-		void FBXImport::ParseAnimStack(FbxScene* pFbxScene, FbxString* strAnimStackName)
+		void FBXImport::Impl::ParseAnimStack(FbxScene* pFbxScene, FbxString* strAnimStackName)
 		{
 			// TODO - Ignore "Default"? FBXSDK_TAKENODE_DEFAULT_NAME
 
@@ -1033,7 +1165,7 @@ namespace eastengine
 			pAnim->Optimize();
 		}
 
-		void FBXImport::ParseAnimation(fbxsdk::FbxScene* pFbxScene)
+		void FBXImport::Impl::ParseAnimation(fbxsdk::FbxScene* pFbxScene)
 		{
 			assert(pFbxScene != nullptr);
 
@@ -1051,7 +1183,7 @@ namespace eastengine
 			}
 		}
 
-		void FBXImport::FixupGenericMaterial(ATG::ExportMaterial* pMaterial)
+		void FBXImport::Impl::FixupGenericMaterial(ATG::ExportMaterial* pMaterial)
 		{
 			ExportMaterialParameter OutputParam;
 			OutputParam.ParamType = MPT_TEXTURE2D;
@@ -1128,7 +1260,7 @@ namespace eastengine
 			});
 		}
 
-		void FBXImport::AddTextureParameter(ATG::ExportMaterial* pMaterial, const char* strParamName, uint32_t nIndex, const char* strFileName, DWORD dwFlags)
+		void FBXImport::Impl::AddTextureParameter(ATG::ExportMaterial* pMaterial, const char* strParamName, uint32_t nIndex, const char* strFileName, DWORD dwFlags)
 		{
 			ExportMaterialParameter OutputParam;
 			if (nIndex == 0)
@@ -1148,7 +1280,7 @@ namespace eastengine
 			pMaterial->AddParameter(OutputParam);
 		}
 
-		bool FBXImport::ExtractTextures(fbxsdk::FbxProperty Property, const char* strParameterName, ATG::ExportMaterial* pMaterial, DWORD dwFlags)
+		bool FBXImport::Impl::ExtractTextures(fbxsdk::FbxProperty Property, const char* strParameterName, ATG::ExportMaterial* pMaterial, DWORD dwFlags)
 		{
 			auto CheckUVSettings = [](fbxsdk::FbxFileTexture* texture, ATG::ExportMaterial* pMaterial)
 			{
@@ -1216,7 +1348,7 @@ namespace eastengine
 			return bResult;
 		}
 
-		ATG::ExportMaterial* FBXImport::ParseMaterial(fbxsdk::FbxSurfaceMaterial* pFbxMaterial)
+		ATG::ExportMaterial* FBXImport::Impl::ParseMaterial(fbxsdk::FbxSurfaceMaterial* pFbxMaterial)
 		{
 			if (pFbxMaterial == nullptr)
 				return nullptr;
@@ -1368,7 +1500,7 @@ namespace eastengine
 				uint32_t nParameterFlags;
 			};
 
-			TextureParameterExtraction ExtractionList[] =
+			static const TextureParameterExtraction ExtractionList[] =
 			{
 				{ FbxSurfaceMaterial::sTransparentColor,   "AlphaTexture",                 PPO_TransparentMaterial,    ExportMaterialParameter::EMPF_ALPHACHANNEL },
 				{ FbxSurfaceMaterial::sDiffuse,            "DiffuseTexture",               PPO_Nothing,                ExportMaterialParameter::EMPF_DIFFUSEMAP },
@@ -1411,7 +1543,7 @@ namespace eastengine
 			return pMaterial;
 		}
 
-		void FBXImport::SkinData::Alloc(size_t nCount, DWORD nStride)
+		void FBXImport::Impl::SkinData::Alloc(size_t nCount, DWORD nStride)
 		{
 			nVertexCount = nCount;
 			nVertexStride = nStride;
@@ -1424,19 +1556,19 @@ namespace eastengine
 			ZeroMemory(pBoneWeights.get(), sizeof(float) * nBufferSize);
 		}
 
-		byte* FBXImport::SkinData::GetIndices(size_t nIndex)
+		byte* FBXImport::Impl::SkinData::GetIndices(size_t nIndex)
 		{
 			assert(nIndex < nVertexCount);
 			return pBoneIndices.get() + (nIndex * nVertexStride);
 		}
 
-		float* FBXImport::SkinData::GetWeights(size_t nIndex)
+		float* FBXImport::Impl::SkinData::GetWeights(size_t nIndex)
 		{
 			assert(nIndex < nVertexCount);
 			return pBoneWeights.get() + (nIndex * nVertexStride);
 		}
 
-		void FBXImport::SkinData::InsertWeight(size_t nIndex, uint32_t nBoneIndex, float fBoneWeight)
+		void FBXImport::Impl::SkinData::InsertWeight(size_t nIndex, uint32_t nBoneIndex, float fBoneWeight)
 		{
 			byte* pIndices = GetIndices(nIndex);
 			float* pWeights = GetWeights(nIndex);
@@ -1458,7 +1590,7 @@ namespace eastengine
 			}
 		}
 
-		void FBXImport::CaptureBindPoseMatrix(fbxsdk::FbxNode* pNode, const fbxsdk::FbxMatrix& matBindPose)
+		void FBXImport::Impl::CaptureBindPoseMatrix(fbxsdk::FbxNode* pNode, const fbxsdk::FbxMatrix& matBindPose)
 		{
 			auto iter = m_BindPoseMap.find(pNode->GetName());
 			if (iter != m_BindPoseMap.end())
@@ -1481,7 +1613,7 @@ namespace eastengine
 			}
 		}
 
-		bool FBXImport::ParseMeshSkinning(fbxsdk::FbxMesh* pMesh, SkinData* pSkinData)
+		bool FBXImport::Impl::ParseMeshSkinning(fbxsdk::FbxMesh* pMesh, SkinData* pSkinData)
 		{
 			int nDeformerCount = pMesh->GetDeformerCount(FbxDeformer::eSkin);
 			if (nDeformerCount == 0)
@@ -1539,7 +1671,7 @@ namespace eastengine
 			return true;
 		}
 
-		void FBXImport::ParseMesh(fbxsdk::FbxNode* pNode, fbxsdk::FbxMesh* pFbxMesh, ATG::ExportFrame* pParentFrame, bool isSubDProcess, const char* strSuffix)
+		void FBXImport::Impl::ParseMesh(fbxsdk::FbxNode* pNode, fbxsdk::FbxMesh* pFbxMesh, ATG::ExportFrame* pParentFrame, bool isSubDProcess, const char* strSuffix)
 		{
 			if (g_pScene->Settings().bExportMeshes == false)
 				return;
@@ -2006,7 +2138,7 @@ namespace eastengine
 			g_pScene->AddMesh(pMesh);
 		}
 
-		void FBXImport::ParseSubDiv(FbxNode* pNode, FbxSubDiv* pFbxSubD, ATG::ExportFrame* pParentFrame)
+		void FBXImport::Impl::ParseSubDiv(FbxNode* pNode, FbxSubDiv* pFbxSubD, ATG::ExportFrame* pParentFrame)
 		{
 			if (g_pScene->Settings().bExportMeshes == false)
 				return;
@@ -2049,6 +2181,36 @@ namespace eastengine
 			ExportLog::LogMsg(3, "Parsing level %u", nCurrentLevel);
 			std::string strSuffix = string::Format("_level%u", nCurrentLevel);
 			ParseMesh(pNode, pLevelMesh, pParentFrame, true, strSuffix.c_str());
+		}
+
+		FBXImport::FBXImport()
+			: m_pImpl{ std::make_unique<Impl>() }
+		{
+		}
+
+		FBXImport::~FBXImport()
+		{
+			Release();
+		}
+
+		bool FBXImport::Initialize()
+		{
+			return m_pImpl->Initialize();
+		}
+
+		void FBXImport::Release()
+		{
+			m_pImpl->Release();
+		}
+
+		bool FBXImport::LoadModel(Model* pModel, const char* strFilePath, float fScale, bool isFlipZ)
+		{
+			return m_pImpl->LoadModel(pModel, strFilePath, fScale, isFlipZ);
+		}
+
+		bool FBXImport::LoadMotion(Motion* pMotion, const char* strFilePath, float fScale)
+		{
+			return m_pImpl->LoadMotion(pMotion, strFilePath, fScale);
 		}
 	}
 }

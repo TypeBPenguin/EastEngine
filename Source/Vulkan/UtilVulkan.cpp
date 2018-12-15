@@ -4,7 +4,7 @@
 #include "CommonLib/FileUtil.h"
 #include "CommonLib/FileStream.h"
 
-#include "shaderc/shaderc.hpp"
+//#include "shaderc/shaderc.hpp"
 
 namespace eastengine
 {
@@ -12,68 +12,68 @@ namespace eastengine
 	{
 		namespace vulkan
 		{
-			static_assert(CompileShaderType::eVertexShader == shaderc_glsl_vertex_shader, "mismatch compile shader type");
-			static_assert(CompileShaderType::eFragmentShader == shaderc_glsl_fragment_shader, "mismatch compile shader type");
-			static_assert(CompileShaderType::eComputeShader == shaderc_glsl_compute_shader, "mismatch compile shader type");
-			static_assert(CompileShaderType::eGeometryShader == shaderc_glsl_geometry_shader, "mismatch compile shader type");
-			static_assert(CompileShaderType::eTessControl == shaderc_glsl_tess_control_shader, "mismatch compile shader type");
-			static_assert(CompileShaderType::eTessEvaluation == shaderc_glsl_tess_evaluation_shader, "mismatch compile shader type");
+			//static_assert(CompileShaderType::eVertexShader == shaderc_glsl_vertex_shader, "mismatch compile shader type");
+			//static_assert(CompileShaderType::eFragmentShader == shaderc_glsl_fragment_shader, "mismatch compile shader type");
+			//static_assert(CompileShaderType::eComputeShader == shaderc_glsl_compute_shader, "mismatch compile shader type");
+			//static_assert(CompileShaderType::eGeometryShader == shaderc_glsl_geometry_shader, "mismatch compile shader type");
+			//static_assert(CompileShaderType::eTessControl == shaderc_glsl_tess_control_shader, "mismatch compile shader type");
+			//static_assert(CompileShaderType::eTessEvaluation == shaderc_glsl_tess_evaluation_shader, "mismatch compile shader type");
 
 			namespace util
 			{
-				class FileIncluder : public shaderc::CompileOptions::IncluderInterface
-				{
-				public:
-					FileIncluder(const char* strFilePath)
-						: m_strFilePath(file::GetFilePath(strFilePath))
-					{
-					}
-
-					virtual ~FileIncluder() = default;
-
-				private:
-					struct IncludeFileInfo
-					{
-						std::string code;
-					};
-
-				public:
-					virtual shaderc_include_result* GetInclude(const char* requested_source, shaderc_include_type type, const char* requesting_source, size_t include_depth) override
-					{
-						std::string strFilePath = m_strFilePath;
-						strFilePath.append(requested_source);
-
-						file::Stream file;
-						if (file.Open(strFilePath.c_str()) == false)
-						{
-							std::string error = string::Format("not exists file : %s", strFilePath.c_str());
-							throw_line(error.c_str());
-						}
-
-						IncludeFileInfo* pFileInfo = new IncludeFileInfo;
-						pFileInfo->code.resize(file.GetFileSize());
-						file.Read(pFileInfo->code.data(), static_cast<uint32_t>(file.GetFileSize()));
-
-						pFileInfo->code.resize(strlen(pFileInfo->code.c_str()));
-
-						return new shaderc_include_result
-						{
-							requested_source, strlen(requested_source),
-							pFileInfo->code.c_str(), pFileInfo->code.size(),
-							pFileInfo
-						};
-					}
-
-					virtual void ReleaseInclude(shaderc_include_result* pIncludeResult) override
-					{
-						IncludeFileInfo* pFileInfo = static_cast<IncludeFileInfo*>(pIncludeResult->user_data);
-						SafeDelete(pFileInfo);
-						SafeDelete(pIncludeResult);
-					}
-
-				private:
-					const std::string m_strFilePath;
-				};
+				//class FileIncluder : public shaderc::CompileOptions::IncluderInterface
+				//{
+				//public:
+				//	FileIncluder(const char* strFilePath)
+				//		: m_strFilePath(file::GetFilePath(strFilePath))
+				//	{
+				//	}
+				//
+				//	virtual ~FileIncluder() = default;
+				//
+				//private:
+				//	struct IncludeFileInfo
+				//	{
+				//		std::string code;
+				//	};
+				//
+				//public:
+				//	virtual shaderc_include_result* GetInclude(const char* requested_source, shaderc_include_type type, const char* requesting_source, size_t include_depth) override
+				//	{
+				//		std::string strFilePath = m_strFilePath;
+				//		strFilePath.append(requested_source);
+				//
+				//		file::Stream file;
+				//		if (file.Open(strFilePath.c_str()) == false)
+				//		{
+				//			std::string error = string::Format("not exists file : %s", strFilePath.c_str());
+				//			throw_line(error.c_str());
+				//		}
+				//
+				//		IncludeFileInfo* pFileInfo = new IncludeFileInfo;
+				//		pFileInfo->code.resize(file.GetFileSize());
+				//		file.Read(pFileInfo->code.data(), static_cast<uint32_t>(file.GetFileSize()));
+				//
+				//		pFileInfo->code.resize(strlen(pFileInfo->code.c_str()));
+				//
+				//		return new shaderc_include_result
+				//		{
+				//			requested_source, strlen(requested_source),
+				//			pFileInfo->code.c_str(), pFileInfo->code.size(),
+				//			pFileInfo
+				//		};
+				//	}
+				//
+				//	virtual void ReleaseInclude(shaderc_include_result* pIncludeResult) override
+				//	{
+				//		IncludeFileInfo* pFileInfo = static_cast<IncludeFileInfo*>(pIncludeResult->user_data);
+				//		SafeDelete(pFileInfo);
+				//		SafeDelete(pIncludeResult);
+				//	}
+				//
+				//private:
+				//	const std::string m_strFilePath;
+				//};
 
 				std::string LoadShaderCode(const char* strFilePath)
 				{
@@ -99,46 +99,47 @@ namespace eastengine
 
 				std::vector<uint32_t> CompileShader(CompileShaderType emCompileShaderType, const char* sourceText, size_t sourceTextSize, const ShaderMacro* pShaderMacros, size_t nMacroCount, const char* strFilePath)
 				{
-					const std::array<shaderc_shader_kind, CompileShaderTypeCount> shaderKind =
-					{
-						shaderc_glsl_vertex_shader,
-						shaderc_glsl_fragment_shader,
-						shaderc_glsl_compute_shader,
-						shaderc_glsl_geometry_shader,
-						shaderc_glsl_tess_control_shader,
-						shaderc_glsl_tess_evaluation_shader,
-					};
-
-					shaderc::CompileOptions options;
-
-					for (size_t i = 0; i < nMacroCount; ++i)
-					{
-						options.AddMacroDefinition(pShaderMacros[i].Name, pShaderMacros[i].Definition);
-					}
-
-					options.SetIncluder(std::make_unique<FileIncluder>(strFilePath));
-					options.SetSourceLanguage(shaderc_source_language_glsl);
-
-#if defined( DEBUG ) || defined( _DEBUG )
-					options.SetOptimizationLevel(shaderc_optimization_level_zero);
-					options.SetGenerateDebugInfo();
-#else
-					options.SetOptimizationLevel(shaderc_optimization_level_size);
-#endif
-
-					// google shaderc 라이브러리에 메모리릭이 존재..
-					// https://github.com/google/shaderc/issues/356 참조
-					// 추후 수정 예정이라고하니 나중을 기다려보자
-					// 아니면 여기 나와있는 것 처럼 고쳐보자
-					shaderc::Compiler compiler;
-					shaderc::SpvCompilationResult module = compiler.CompileGlslToSpv(sourceText, sourceTextSize, shaderKind[emCompileShaderType], strFilePath, options);
-
-					if (module.GetCompilationStatus() != shaderc_compilation_status_success)
-					{
-						throw_line(module.GetErrorMessage().c_str());
-					}
-
-					return { module.cbegin(), module.cend() };
+//					const std::array<shaderc_shader_kind, CompileShaderTypeCount> shaderKind =
+//					{
+//						shaderc_glsl_vertex_shader,
+//						shaderc_glsl_fragment_shader,
+//						shaderc_glsl_compute_shader,
+//						shaderc_glsl_geometry_shader,
+//						shaderc_glsl_tess_control_shader,
+//						shaderc_glsl_tess_evaluation_shader,
+//					};
+//
+//					shaderc::CompileOptions options;
+//
+//					for (size_t i = 0; i < nMacroCount; ++i)
+//					{
+//						options.AddMacroDefinition(pShaderMacros[i].Name, pShaderMacros[i].Definition);
+//					}
+//
+//					options.SetIncluder(std::make_unique<FileIncluder>(strFilePath));
+//					options.SetSourceLanguage(shaderc_source_language_glsl);
+//
+//#if defined( DEBUG ) || defined( _DEBUG )
+//					options.SetOptimizationLevel(shaderc_optimization_level_zero);
+//					options.SetGenerateDebugInfo();
+//#else
+//					options.SetOptimizationLevel(shaderc_optimization_level_size);
+//#endif
+//
+//					// google shaderc 라이브러리에 메모리릭이 존재..
+//					// https://github.com/google/shaderc/issues/356 참조
+//					// 추후 수정 예정이라고하니 나중을 기다려보자
+//					// 아니면 여기 나와있는 것 처럼 고쳐보자
+//					shaderc::Compiler compiler;
+//					shaderc::SpvCompilationResult module = compiler.CompileGlslToSpv(sourceText, sourceTextSize, shaderKind[emCompileShaderType], strFilePath, options);
+//
+//					if (module.GetCompilationStatus() != shaderc_compilation_status_success)
+//					{
+//						throw_line(module.GetErrorMessage().c_str());
+//					}
+//
+//					return { module.cbegin(), module.cend() };
+					return {};
 				}
 
 				VkShaderModule CreateShaderModule(VkDevice device, const uint32_t* pShaderCode, size_t nCodeSize)

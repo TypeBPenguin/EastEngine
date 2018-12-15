@@ -233,11 +233,6 @@
     </ClCompile>
     <ClCompile Include="XpsImporter.cpp" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Graphics\Graphics.vcxproj">
-      <Project>{388c8bce-27cc-4468-b2c3-514eaa2ba568}</Project>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
