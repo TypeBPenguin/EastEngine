@@ -28,6 +28,7 @@ namespace eastengine
 
 		public:
 			void Initialize(uint32_t nWidth, uint32_t nHeight);
+			void Release();
 
 		public:
 			void Enable(bool isEnable);

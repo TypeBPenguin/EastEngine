@@ -43,7 +43,11 @@ namespace eastengine
 			~Impl();
 
 		public:
-			void Enable(bool isEnable) { m_isEnable = isEnable; }
+			void Initialize();
+			void Release();
+
+		public:
+			void Enable(bool isEnable);
 			bool IsEnable() const { return m_isEnable; }
 
 			void ClearBuffer();
@@ -141,13 +145,23 @@ namespace eastengine
 		};
 
 		OcclusionCulling::Impl::Impl(uint32_t width, uint32_t height)
-			: m_pMaskedOcclusionCulling{ MaskedOcclusionCulling::Create() }
-			, m_screenSize(width, height)
+			: m_screenSize(width, height)
 		{
+		}
+
+		OcclusionCulling::Impl::~Impl()
+		{
+			Release();
+		}
+
+		void OcclusionCulling::Impl::Initialize()
+		{
+			m_pMaskedOcclusionCulling = MaskedOcclusionCulling::Create();
+
 			const uint32_t nThreadCount = std::thread::hardware_concurrency() - 1;
 			m_pCullingThreadPool = std::make_unique<CullingThreadpool>(nThreadCount, 8, 6, 32);
 			m_pCullingThreadPool->SetBuffer(m_pMaskedOcclusionCulling);
-			m_pCullingThreadPool->SetResolution(width, height);
+			m_pCullingThreadPool->SetResolution(m_screenSize.x, m_screenSize.y);
 
 			m_renderWaitThread = std::thread([&]()
 			{
@@ -181,7 +195,7 @@ namespace eastengine
 			});
 		}
 
-		OcclusionCulling::Impl::~Impl()
+		void OcclusionCulling::Impl::Release()
 		{
 			{
 				std::lock_guard<std::mutex> lock(m_mutex);
@@ -191,11 +205,37 @@ namespace eastengine
 			m_condition.notify_all();
 
 			ClearBuffer();
-			MaskedOcclusionCulling::Destroy(m_pMaskedOcclusionCulling);
+			if (m_pMaskedOcclusionCulling != nullptr)
+			{
+				MaskedOcclusionCulling::Destroy(m_pMaskedOcclusionCulling);
+			}
+		}
+
+		void OcclusionCulling::Impl::Enable(bool isEnable)
+		{
+			m_isEnable = isEnable;
+
+			if (m_isEnable == true)
+			{
+				if (m_pMaskedOcclusionCulling == nullptr)
+				{
+					Initialize();
+				}
+			}
+			else
+			{
+				if (m_pMaskedOcclusionCulling != nullptr)
+				{
+					Release();
+				}
+			}
 		}
 
 		void OcclusionCulling::Impl::ClearBuffer()
 		{
+			if (IsEnable() == false)
+				return;
+
 			if (m_emState != ePause)
 			{
 				TRACER_EVENT(__FUNCTION__);
@@ -212,6 +252,9 @@ namespace eastengine
 
 		void OcclusionCulling::Impl::Flush()
 		{
+			if (IsEnable() == false)
+				return;
+
 			if (m_emState != ePause)
 			{
 				TRACER_EVENT(__FUNCTION__);
@@ -228,6 +271,9 @@ namespace eastengine
 
 		void OcclusionCulling::Impl::WakeThreads()
 		{
+			if (IsEnable() == false)
+				return;
+
 			if (m_emState != ePause)
 			{
 				TRACER_EVENT(__FUNCTION__);
@@ -241,6 +287,9 @@ namespace eastengine
 
 		void OcclusionCulling::Impl::SuspendThreads()
 		{
+			if (IsEnable() == false)
+				return;
+
 			if (m_emState != ePause)
 			{
 				TRACER_EVENT(__FUNCTION__);
@@ -259,6 +308,9 @@ namespace eastengine
 
 		void OcclusionCulling::Impl::Update(const Camera* pCamera)
 		{
+			if (IsEnable() == false)
+				return;
+
 			SaveBMP();
 
 			if (m_isEnable == false && m_emState != State::ePause)
@@ -279,6 +331,9 @@ namespace eastengine
 
 		void OcclusionCulling::Impl::RenderTriangles(const math::Matrix& matWorld, const VertexPos* pVertices, const uint32_t* pIndices, int indexCount)
 		{
+			if (IsEnable() == false)
+				return;
+
 			if (pVertices == nullptr || pIndices == nullptr || (indexCount % 3 != 0))
 				return;
 
@@ -306,6 +361,9 @@ namespace eastengine
 
 		OcclusionCulling::Result OcclusionCulling::Impl::TestTriangles(const math::Matrix& matWorld, const VertexPos* pVertices, const uint32_t* pIndices, int indexCount)
 		{
+			if (IsEnable() == false)
+				return OcclusionCulling::eVisible;
+
 			if (pVertices == nullptr || pIndices == nullptr || (indexCount % 3 != 0))
 				return OcclusionCulling::eViewCulled;
 
@@ -339,6 +397,9 @@ namespace eastengine
 
 		OcclusionCulling::Result OcclusionCulling::Impl::TestRect(float xmin, float ymin, float xmax, float ymax, float wmin) const
 		{
+			if (IsEnable() == false)
+				return OcclusionCulling::eVisible;
+
 			if (m_emState == ePause)
 				return OcclusionCulling::eVisible;
 
@@ -365,6 +426,9 @@ namespace eastengine
 
 		OcclusionCulling::Result OcclusionCulling::Impl::TestRect(const collision::AABB& aabb) const
 		{
+			if (IsEnable() == false)
+				return OcclusionCulling::eVisible;
+
 			if (m_emState == ePause)
 				return OcclusionCulling::eVisible;
 
@@ -476,6 +540,9 @@ namespace eastengine
 
 		void OcclusionCulling::Impl::TonemapDepth(float *depth, unsigned char *image, int w, int h)
 		{
+			if (IsEnable() == false)
+				return;
+
 			// Find min/max w coordinate (discard cleared pixels)
 			float minW = std::numeric_limits<float>::max();
 			float maxW = std::numeric_limits<float>::min();
@@ -505,6 +572,9 @@ namespace eastengine
 
 		void OcclusionCulling::Impl::WriteBMP(const char *filename, const unsigned char *data, int w, int h)
 		{
+			if (IsEnable() == false)
+				return;
+
 			const short header[] = { 0x4D42, 0, 0, 0, 0, 26, 0, 12, 0, static_cast<short>(w), static_cast<short>(h), 1, 24 };
 
 			FILE* f = nullptr;
@@ -522,6 +592,9 @@ namespace eastengine
 
 		void OcclusionCulling::Impl::SaveBMP()
 		{
+			if (IsEnable() == false)
+				return;
+
 			if (m_savePath.empty() == true)
 				return;
 
@@ -542,6 +615,9 @@ namespace eastengine
 
 		void OcclusionCulling::Impl::Write(const char* strPath)
 		{
+			if (IsEnable() == false)
+				return;
+
 			m_savePath = strPath;
 		}
 
@@ -556,6 +632,11 @@ namespace eastengine
 		void OcclusionCulling::Initialize(uint32_t width, uint32_t height)
 		{
 			m_pImpl = std::make_unique<Impl>(width, height);
+		}
+
+		void OcclusionCulling::Release()
+		{
+			m_pImpl.reset();
 		}
 
 		void OcclusionCulling::Enable(bool isEnable)
