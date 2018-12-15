@@ -104,8 +104,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>vulkan-1.lib;glfw3.lib;third_party\glslang\SPIRV\Release\SPIRV.lib;third_party\glslang\glslang\Release\glslang.lib;third_party\glslang\glslang\OSDependent\Windows\Release\OSDependent.lib;third_party\glslang\OGLCompilersDLL\Release\OGLCompiler.lib;third_party\glslang\hlsl\Release\HLSL.lib;third_party\spirv-tools\source\opt\Release\SPIRV-Tools-opt.lib;third_party\glslang\SPIRV\Release\SPVRemapper.lib;third_party\spirv-tools\source\Release\SPIRV-Tools.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\VulkanSDK\1.0.68.0\Lib;C:\VulkanSDK\1.0.68.0\shaderc\build;../ExternLib/glfw/lib/x64/Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>vulkan-1.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\VulkanSDK\1.0.68.0\Lib;../ExternLib/glfw/lib/x64/Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -142,8 +142,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>C:\VulkanSDK\1.0.68.0\Lib;C:\VulkanSDK\1.0.68.0\shaderc\build;../ExternLib/glfw/lib/x64/Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>vulkan-1.lib;glfw3.lib;third_party\glslang\SPIRV\Debug\SPIRVd.lib;third_party\glslang\glslang\Debug\glslangd.lib;third_party\glslang\glslang\OSDependent\Windows\Debug\OSDependentd.lib;third_party\glslang\OGLCompilersDLL\Debug\OGLCompilerd.lib;third_party\glslang\hlsl\Debug\HLSLd.lib;third_party\spirv-tools\source\opt\Debug\SPIRV-Tools-optd.lib;third_party\glslang\SPIRV\Debug\SPVRemapperd.lib;third_party\spirv-tools\source\Debug\SPIRV-Toolsd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\VulkanSDK\1.0.68.0\Lib;../ExternLib/glfw/lib/x64/Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>vulkan-1.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
