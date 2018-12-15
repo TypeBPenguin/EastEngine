@@ -39,7 +39,7 @@ namespace eastengine
 			void SuspendThreads();
 
 			void Update(const Camera* pCamera);
-			const Collision::Frustum& GetCameraFrustum() const;
+			const collision::Frustum& GetCameraFrustum() const;
 
 		public:
 			void RenderTriangles(const math::Matrix& matWorld, const VertexPos* pVertices, const uint32_t* pIndices, size_t nIndexCount);
@@ -47,7 +47,7 @@ namespace eastengine
 		
 		public:
 			Result TestRect(float xmin, float ymin, float xmax, float ymax, float wmin) const;
-			Result TestRect(const Collision::AABB& aabb) const;
+			Result TestRect(const collision::AABB& aabb) const;
 
 		public:
 			void Write(const char* strPath = "C:\\image.bmp");

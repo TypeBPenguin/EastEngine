@@ -10,14 +10,14 @@ namespace eastengine
 	{
 		struct GhostProperty
 		{
-			int nCollisionFlag = EmCollision::eCharacterObject;
+			int nCollisionFlag = CollisionFlag::eCharacterObject;
 
 			math::float3 f3OriginPos;
 			math::Quaternion originQuat;
 
 			Shape shapeInfo;
 
-			EmPhysicsShape::Type GetShapeType() const { return shapeInfo.emPhysicsShapeType; }
+			ShapeType GetShapeType() const { return shapeInfo.emShapeType; }
 		};
 
 		class GhostObject

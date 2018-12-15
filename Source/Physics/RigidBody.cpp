@@ -50,13 +50,13 @@ namespace eastengine
 			void SetSleepingThresholds(float fLinear, float fAngular);
 			void SetAngularFactor(float fFactor);
 
-			void SetActiveState(EmActiveState::Type emActiveState);
+			void SetActiveState(ActiveStateType emActiveState);
 			void SetGravity(bool isEnable);
 			void SetGravity(const math::float3& f3Gravity);
 
-			const Collision::AABB& GetAABB() const { return m_boundingBox; }
-			const Collision::Sphere& GetBoundingSphere() const { return m_boundingSphere; }
-			const Collision::OBB& GetOBB() const { return m_boundingOrientedBox; }
+			const collision::AABB& GetAABB() const { return m_boundingBox; }
+			const collision::Sphere& GetBoundingSphere() const { return m_boundingSphere; }
+			const collision::OBB& GetOBB() const { return m_boundingOrientedBox; }
 
 			btRigidBody* GetInterface() { return m_pRigidBody.get(); }
 
@@ -73,9 +73,9 @@ namespace eastengine
 
 			math::Matrix m_matWorld;
 
-			Collision::AABB m_boundingBox;
-			Collision::Sphere m_boundingSphere;
-			Collision::OBB m_boundingOrientedBox;
+			collision::AABB m_boundingBox;
+			collision::Sphere m_boundingSphere;
+			collision::OBB m_boundingOrientedBox;
 
 			std::vector<CollisionResult> m_vecCollisionResults;
 			bool m_isEnableTriangleDrawCallback{ false };
@@ -116,7 +116,7 @@ namespace eastengine
 			if (m_pCollisionShape == nullptr)
 				return false;
 
-			if (rigidBodyProperty.GetShapeType() == EmPhysicsShape::eTriangleMesh)
+			if (rigidBodyProperty.GetShapeType() == ShapeType::eTriangleMesh)
 			{
 				const Shape::TriangleMesh* pShapeInfo = std::get_if<Shape::TriangleMesh>(&rigidBodyProperty.shapeInfo.element);
 				if (pShapeInfo == nullptr)
@@ -151,8 +151,8 @@ namespace eastengine
 
 			btVector3 localInertia(0.f, 0.f, 0.f);
 			// IneritaTensor¸¦ °è»ê
-			if ((rigidBodyProperty.nCollisionFlag & EmCollision::eStaticObject) == 0 &&
-				(rigidBodyProperty.nCollisionFlag & EmCollision::eKinematicObject) == 0)
+			if ((rigidBodyProperty.nCollisionFlag & CollisionFlag::eStaticObject) == 0 &&
+				(rigidBodyProperty.nCollisionFlag & CollisionFlag::eKinematicObject) == 0)
 			{
 				m_pCollisionShape->calculateLocalInertia(m_rigidBodyProperty.fMass, localInertia);
 			}
@@ -186,8 +186,8 @@ namespace eastengine
 
 			if (m_rigidBodyProperty.funcTriangleDrawCallback != nullptr && m_isEnableTriangleDrawCallback == true)
 			{
-				if (m_rigidBodyProperty.shapeInfo.emPhysicsShapeType == EmPhysicsShape::Type::eTriangleMesh ||
-					m_rigidBodyProperty.shapeInfo.emPhysicsShapeType == EmPhysicsShape::Type::eTerrain)
+				if (m_rigidBodyProperty.shapeInfo.emShapeType == ShapeType::eTriangleMesh ||
+					m_rigidBodyProperty.shapeInfo.emShapeType == ShapeType::eTerrain)
 				{
 					btConcaveShape* pShape = static_cast<btConcaveShape*>(m_pCollisionShape.get());
 
@@ -195,10 +195,10 @@ namespace eastengine
 					btVector3 aabbMax(btScalar(1e30), btScalar(1e30), btScalar(1e30));
 
 					std::vector<math::float3> triangles;
-					if (m_rigidBodyProperty.shapeInfo.emPhysicsShapeType == EmPhysicsShape::Type::eTriangleMesh)
+					if (m_rigidBodyProperty.shapeInfo.emShapeType == ShapeType::eTriangleMesh)
 					{
 					}
-					else if (m_rigidBodyProperty.shapeInfo.emPhysicsShapeType == EmPhysicsShape::Type::eTerrain)
+					else if (m_rigidBodyProperty.shapeInfo.emShapeType == ShapeType::eTerrain)
 					{
 						const Shape::Terrain* pShapeInfo = std::get_if<Shape::Terrain>(&m_rigidBodyProperty.shapeInfo.element);
 						if (pShapeInfo != nullptr)
@@ -223,10 +223,10 @@ namespace eastengine
 			math::float3 f3Min = math::Convert(vMin);
 			math::float3 f3Max = math::Convert(vMax);
 
-			Collision::AABB::CreateFromPoints(m_boundingBox, f3Min, f3Max);
+			collision::AABB::CreateFromPoints(m_boundingBox, f3Min, f3Max);
 			m_boundingBox.Extents = math::float3::Max(m_boundingBox.Extents, math::float3(0.01f));
-			Collision::Sphere::CreateFromAABB(m_boundingSphere, m_boundingBox);
-			Collision::OBB::CreateFromAABB(m_boundingOrientedBox, m_boundingBox);
+			collision::Sphere::CreateFromAABB(m_boundingSphere, m_boundingBox);
+			collision::OBB::CreateFromAABB(m_boundingOrientedBox, m_boundingBox);
 		}
 
 		bool RigidBody::Impl::IsCollision(RigidBody* pRigidBody)
@@ -408,7 +408,7 @@ namespace eastengine
 			m_pRigidBody->setAngularFactor(fFactor);
 		}
 
-		void RigidBody::Impl::SetActiveState(EmActiveState::Type emActiveState)
+		void RigidBody::Impl::SetActiveState(ActiveStateType emActiveState)
 		{
 			m_pRigidBody->setActivationState((int)(emActiveState));
 		}
@@ -445,7 +445,7 @@ namespace eastengine
 
 		RigidBody* RigidBody::Create(const RigidBodyProperty& rigidBodyProperty)
 		{
-			if (rigidBodyProperty.GetShapeType() == EmPhysicsShape::eEmpty)
+			if (rigidBodyProperty.GetShapeType() == ShapeType::eEmpty)
 				return nullptr;
 
 			RigidBody* pRigidBody = new RigidBody;
@@ -556,7 +556,7 @@ namespace eastengine
 			m_pImpl->SetAngularFactor(fFactor);
 		}
 
-		void RigidBody::SetActiveState(EmActiveState::Type emActiveState)
+		void RigidBody::SetActiveState(ActiveStateType emActiveState)
 		{
 			m_pImpl->SetActiveState(emActiveState);
 		}
@@ -571,17 +571,17 @@ namespace eastengine
 			m_pImpl->SetGravity(f3Gravity);
 		}
 
-		const Collision::AABB& RigidBody::GetAABB() const
+		const collision::AABB& RigidBody::GetAABB() const
 		{
 			return m_pImpl->GetAABB();
 		}
 
-		const Collision::Sphere& RigidBody::GetBoundingSphere() const
+		const collision::Sphere& RigidBody::GetBoundingSphere() const
 		{
 			return m_pImpl->GetBoundingSphere();
 		}
 
-		const Collision::OBB& RigidBody::GetOBB() const
+		const collision::OBB& RigidBody::GetOBB() const
 		{
 			return m_pImpl->GetOBB();
 		}

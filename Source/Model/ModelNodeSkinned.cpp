@@ -97,17 +97,6 @@ namespace eastengine
 					}
 					else
 					{
-						// 검증되지 않은 방식, 추후 수정 필요
-						math::Matrix matBoneTransformation;
-						if (pSkeletonInstance != nullptr)
-						{
-							ISkeletonInstance::IBone* pBone = pSkeletonInstance->GetBone(m_vecBoneName[0]);
-							if (pBone != nullptr)
-							{
-								matBoneTransformation = pBone->GetSkinningMatrix();
-							}
-						}
-
 						OcclusionCullingData occlusionCullingData;
 						occlusionCullingData.pVertices = m_rawVertices.data();
 						occlusionCullingData.pIndices = m_rawIndices.data();

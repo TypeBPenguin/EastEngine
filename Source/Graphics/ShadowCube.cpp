@@ -136,7 +136,7 @@ namespace eastengine
 				//const math::float3& f3Target = m_pLight->GetPosition();
 				m_matViews[i] = math::Matrix::CreateLookAt(f3Pos, f3Target, f3Up[i]);
 
-				Collision::Frustum::CreateFromMatrix(m_frustums[i], m_matProjection);
+				collision::Frustum::CreateFromMatrix(m_frustums[i], m_matProjection);
 				m_frustums[i].Transform(m_matViews[i].Invert());
 			}
 

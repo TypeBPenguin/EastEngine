@@ -17,8 +17,8 @@ namespace eastengine
 		APIs GetAPI();
 		HWND GetHwnd();
 		HINSTANCE GetHInstance();
-		void AddMessageHandler(const string::StringID& strName, std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler);
-		void RemoveMessageHandler(const string::StringID& strName);
+		void AddMessageHandler(const string::StringID& name, std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler);
+		void RemoveMessageHandler(const string::StringID& name);
 
 		const math::uint2& GetScreenSize();
 
@@ -34,6 +34,10 @@ namespace eastengine
 		IMaterial* CreateMaterial(const MaterialInfo* pInfo);
 		IMaterial* CreateMaterial(const char* strFileName, const char* strFilePath);
 		IMaterial* CloneMaterial(const IMaterial* pMaterial);
+
+		IDirectionalLight* CreateDirectionalLight(const string::StringID& name, bool isEnableShadow, const DirectionalLightData& lightData);
+		IPointLight* CreatePointLight(const string::StringID& name, bool isEnableShadow, const PointLightData& lightData);
+		ISpotLight* CreateSpotLight(const string::StringID& name, bool isEnableShadow, const SpotLightData& lightData);
 
 		template <typename T>
 		void ReleaseResource(T** ppResource);

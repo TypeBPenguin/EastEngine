@@ -113,7 +113,7 @@ namespace eastengine
 
 			m_matProjection = math::Matrix::CreatePerspectiveFieldOfView(fFov, 1.f, 0.01f, fDepth);
 
-			Collision::Frustum::CreateFromMatrix(m_frustum, m_matProjection);
+			collision::Frustum::CreateFromMatrix(m_frustum, m_matProjection);
 			m_frustum.Transform(m_matView.Invert());
 
 			// 아래 검증 필요

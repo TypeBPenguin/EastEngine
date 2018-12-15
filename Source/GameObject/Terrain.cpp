@@ -68,7 +68,7 @@ namespace eastengine
 			m_property.rigidBodyProperty.fMass = 0.f;
 			m_property.rigidBodyProperty.strName = StrID::Terrain_Physics;
 
-			m_property.rigidBodyProperty.nCollisionFlag = physics::EmCollision::eStaticObject;
+			m_property.rigidBodyProperty.nCollisionFlag = physics::CollisionFlag::eStaticObject;
 
 			m_matWorld = math::Matrix::Compose(m_property.transform.scale, m_property.transform.rotation, m_property.transform.position);
 			m_property.rigidBodyProperty.matOffset = m_matWorld;

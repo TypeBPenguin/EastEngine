@@ -6,7 +6,7 @@
 
 namespace eastengine
 {
-	namespace Collision
+	namespace collision
 	{
 		Sphere::Sphere() {}
 		Sphere::Sphere(_In_ const math::float3& center, _In_ float radius)

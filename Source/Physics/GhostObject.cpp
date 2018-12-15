@@ -57,7 +57,7 @@ namespace eastengine
 			if (m_pCollisionShape == nullptr)
 				return false;
 
-			if (ghostProperty.GetShapeType() == EmPhysicsShape::eTriangleMesh)
+			if (ghostProperty.GetShapeType() == ShapeType::eTriangleMesh)
 			{
 				btBvhTriangleMeshShape* pTriangleMeshShape = static_cast<btBvhTriangleMeshShape*>(m_pCollisionShape.get());
 				m_pTriangleMesh = static_cast<btTriangleMesh*>(pTriangleMeshShape->getMeshInterface());

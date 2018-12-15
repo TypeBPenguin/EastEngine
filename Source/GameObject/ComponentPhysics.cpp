@@ -182,7 +182,7 @@ namespace eastengine
 			}
 		}
 
-		void ComponentPhysics::SetActiveState(physics::EmActiveState::Type emActiveState)
+		void ComponentPhysics::SetActiveState(physics::ActiveStateType emActiveState)
 		{
 			for (auto& iter : m_umapPhysicsNode)
 			{
@@ -200,9 +200,9 @@ namespace eastengine
 			physics::RigidBody* pRigidBody = nullptr;
 			graphics::IModelInstance* pPhysicsModelInst = nullptr;
 
-			switch (rigidBodyProperty.shapeInfo.emPhysicsShapeType)
+			switch (rigidBodyProperty.shapeInfo.emShapeType)
 			{
-			case physics::EmPhysicsShape::eBox:
+			case physics::ShapeType::eBox:
 			{
 				pRigidBody = physics::RigidBody::Create(rigidBodyProperty);
 
@@ -215,7 +215,7 @@ namespace eastengine
 				pPhysicsModelInst = graphics::IModel::CreateInstance(modelLoader);
 			}
 			break;
-			case physics::EmPhysicsShape::eSphere:
+			case physics::ShapeType::eSphere:
 			{
 				pRigidBody = physics::RigidBody::Create(rigidBodyProperty);
 
@@ -228,13 +228,13 @@ namespace eastengine
 				pPhysicsModelInst = graphics::IModel::CreateInstance(modelLoader);
 			}
 			break;
-			case physics::EmPhysicsShape::eCylinder:
+			case physics::ShapeType::eCylinder:
 				break;
-			case physics::EmPhysicsShape::eCylinder_X:
+			case physics::ShapeType::eCylinder_X:
 				break;
-			case physics::EmPhysicsShape::eCylinder_Z:
+			case physics::ShapeType::eCylinder_Z:
 				break;
-			case physics::EmPhysicsShape::eCapsule:
+			case physics::ShapeType::eCapsule:
 			{
 				pRigidBody = physics::RigidBody::Create(rigidBodyProperty);
 
@@ -247,11 +247,11 @@ namespace eastengine
 				pPhysicsModelInst = graphics::IModel::CreateInstance(modelLoader);
 			}
 			break;
-			case physics::EmPhysicsShape::eCapsule_X:
+			case physics::ShapeType::eCapsule_X:
 				break;
-			case physics::EmPhysicsShape::eCapsule_Z:
+			case physics::ShapeType::eCapsule_Z:
 				break;
-			case physics::EmPhysicsShape::eCone:
+			case physics::ShapeType::eCone:
 			{
 				pRigidBody = physics::RigidBody::Create(rigidBodyProperty);
 
@@ -264,16 +264,16 @@ namespace eastengine
 				pPhysicsModelInst = graphics::IModel::CreateInstance(modelLoader);
 			}
 			break;
-			case physics::EmPhysicsShape::eCone_X:
+			case physics::ShapeType::eCone_X:
 				break;
-			case physics::EmPhysicsShape::eCone_Z:
+			case physics::ShapeType::eCone_Z:
 				break;
-			case physics::EmPhysicsShape::eHull:
+			case physics::ShapeType::eHull:
 			{
 				pRigidBody = physics::RigidBody::Create(rigidBodyProperty);
 			}
 			break;
-			case physics::EmPhysicsShape::eTriangleMesh:
+			case physics::ShapeType::eTriangleMesh:
 			{
 				pRigidBody = physics::RigidBody::Create(rigidBodyProperty);
 			}

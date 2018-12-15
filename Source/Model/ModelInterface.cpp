@@ -298,7 +298,7 @@ namespace eastengine
 				file << pNode->GetParentName().c_str();
 				file << pNode->GetAttachedBoneName().c_str();
 
-				const Collision::AABB& aabb = pNode->GetOriginAABB();
+				const collision::AABB& aabb = pNode->GetOriginAABB();
 				file.Write(&aabb.Center.x, 3);
 				file.Write(&aabb.Extents.x, 3);
 

@@ -24,6 +24,14 @@
 #define asuint floatBitsToUint
 #endif
 
+float4x4 DecodeMatrix(in float4 encodedMatrix0, in float4 encodedMatrix1, in float4 encodedMatrix2)
+{
+	return float4x4(float4(encodedMatrix0.xyz, 0.f),
+		float4(encodedMatrix1.xyz, 0.f),
+		float4(encodedMatrix2.xyz, 0.f),
+		float4(encodedMatrix0.w, encodedMatrix1.w, encodedMatrix2.w, 1.f));
+}
+
 float3 CalcWorldSpacePosFromDepth(in float depth, in float2 uv, in float4x4 matInvView, in float4x4 matInvProj)
 {
 	float x = uv.x * 2.f - 1.f;

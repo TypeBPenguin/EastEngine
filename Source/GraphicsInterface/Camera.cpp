@@ -60,7 +60,7 @@ namespace eastengine
 			float GetNearClip() const { return m_frustum.Near; }
 
 		public:
-			const Collision::Frustum& GetFrustum() const { return m_frustum; }
+			const collision::Frustum& GetFrustum() const { return m_frustum; }
 
 		private:
 			bool m_isThirdPerson{ false };
@@ -97,7 +97,7 @@ namespace eastengine
 			math::float3 m_f3RotationOffset;
 			math::float3 m_f3Rotation;
 
-			Collision::Frustum m_frustum;
+			collision::Frustum m_frustum;
 
 			float m_fMaxMoveSpeed{ 10.f };
 			float m_fMaxRotSpeed{ 10.f };
@@ -320,7 +320,7 @@ namespace eastengine
 
 		void Camera::Impl::UpdateFrustum()
 		{
-			Collision::Frustum::CreateFromMatrix(m_frustum, m_matProj);
+			collision::Frustum::CreateFromMatrix(m_frustum, m_matProj);
 			m_frustum.Transform(m_matView.Invert());
 		}
 
@@ -510,7 +510,7 @@ namespace eastengine
 			return m_pImpl->GetNearClip();
 		}
 
-		const Collision::Frustum& Camera::GetFrustum() const
+		const collision::Frustum& Camera::GetFrustum() const
 		{
 			return m_pImpl->GetFrustum();
 		}

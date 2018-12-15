@@ -10,56 +10,47 @@ namespace eastengine
 	{
 		const float Gravity = -9.80665f;
 
-		namespace EmActiveState
+		enum ActiveStateType
 		{
-			enum Type
-			{
-				eActiveTag = 1,
-				eIslandSleeping,
-				eWantsDeactivation,
-				eDisableDeactivation,
-				eDisableSimulation,
-			};
-		}
+			eActiveTag = 1,
+			eIslandSleeping,
+			eWantsDeactivation,
+			eDisableDeactivation,
+			eDisableSimulation,
+		};
 
-		namespace EmCollision
+		enum CollisionFlag
 		{
-			enum Flag
-			{
-				eStaticObject = 1,
-				eKinematicObject = 1 << 1,
-				eNoContactResponse = 1 << 2,
-				eCustomMaterialCallback = 1 << 3, //this allows per-triangle material (friction/restitution)
-				eCharacterObject = 1 << 4,
-				eDisableVisualizeObject = 1 << 5, //disable debug drawing
-				eDisableSPUCollisionProcessing = 1 << 6, //disable parallel/SPU processing
-			};
-		}
+			eStaticObject = 1,
+			eKinematicObject = 1 << 1,
+			eNoContactResponse = 1 << 2,
+			eCustomMaterialCallback = 1 << 3, //this allows per-triangle material (friction/restitution)
+			eCharacterObject = 1 << 4,
+			eDisableVisualizeObject = 1 << 5, //disable debug drawing
+			eDisableSPUCollisionProcessing = 1 << 6, //disable parallel/SPU processing
+		};
 
-		namespace EmPhysicsShape
+		enum ShapeType
 		{
-			enum Type
-			{
-				eEmpty = 0,
-				eBox,
-				eSphere,
-				eCylinder,
-				eCylinder_X,
-				eCylinder_Z,
-				eCapsule,
-				eCapsule_X,
-				eCapsule_Z,
-				eCone,
-				eCone_X,
-				eCone_Z,
-				eHull,
-				eTriangleMesh,
-				eTerrain,
-				eStaticPlane,
+			eEmpty = 0,
+			eBox,
+			eSphere,
+			eCylinder,
+			eCylinder_X,
+			eCylinder_Z,
+			eCapsule,
+			eCapsule_X,
+			eCapsule_Z,
+			eCone,
+			eCone_X,
+			eCone_Z,
+			eHull,
+			eTriangleMesh,
+			eTerrain,
+			eStaticPlane,
 
-				eCount,
-			};
-		}
+			eCount,
+		};
 
 		struct Shape
 		{
@@ -126,7 +117,7 @@ namespace eastengine
 				TriangleMesh,
 				Terrain> element;
 
-			EmPhysicsShape::Type emPhysicsShapeType = EmPhysicsShape::eEmpty;
+			ShapeType emShapeType = ShapeType::eEmpty;
 			
 			Shape()
 			{
@@ -136,7 +127,7 @@ namespace eastengine
 			{
 				element = source.element;
 
-				emPhysicsShapeType = source.emPhysicsShapeType;
+				emShapeType = source.emShapeType;
 
 				return *this;
 			}
@@ -146,7 +137,7 @@ namespace eastengine
 				Box& box = element.emplace<Box>();
 
 				box.f3Size = f3Size;
-				emPhysicsShapeType = physics::EmPhysicsShape::eBox;
+				emShapeType = physics::ShapeType::eBox;
 			}
 
 			void SetSphere(float fRadius)
@@ -154,7 +145,7 @@ namespace eastengine
 				Sphere& sphere = element.emplace<Sphere>();
 
 				sphere.fRadius = fRadius;
-				emPhysicsShapeType = physics::EmPhysicsShape::eSphere;
+				emShapeType = physics::ShapeType::eSphere;
 			}
 
 			void SetCylinder(const math::float3& f3HalfExtents)
@@ -162,7 +153,7 @@ namespace eastengine
 				Cylinder& cylinder = element.emplace<Cylinder>();
 
 				cylinder.f3HalfExtents = f3HalfExtents;
-				emPhysicsShapeType = physics::EmPhysicsShape::eCylinder;
+				emShapeType = physics::ShapeType::eCylinder;
 			}
 
 			void SetCylinderX(const math::float3& f3HalfExtents)
@@ -170,7 +161,7 @@ namespace eastengine
 				Cylinder& cylinder = element.emplace<Cylinder>();
 
 				cylinder.f3HalfExtents = f3HalfExtents;
-				emPhysicsShapeType = physics::EmPhysicsShape::eCylinder_X;
+				emShapeType = physics::ShapeType::eCylinder_X;
 			}
 
 			void SetCylinderZ(const math::float3& f3HalfExtents)
@@ -178,7 +169,7 @@ namespace eastengine
 				Cylinder& cylinder = element.emplace<Cylinder>();
 
 				cylinder.f3HalfExtents = f3HalfExtents;
-				emPhysicsShapeType = physics::EmPhysicsShape::eCylinder_Z;
+				emShapeType = physics::ShapeType::eCylinder_Z;
 			}
 
 			void SetCapsule(float fRadius, float fHeight)
@@ -187,7 +178,7 @@ namespace eastengine
 
 				capsule.fRadius = fRadius;
 				capsule.fHeight = fHeight;
-				emPhysicsShapeType = physics::EmPhysicsShape::eCapsule;
+				emShapeType = physics::ShapeType::eCapsule;
 			}
 
 			void SetCapsuleX(float fRadius, float fHeight)
@@ -196,7 +187,7 @@ namespace eastengine
 
 				capsule.fRadius = fRadius;
 				capsule.fHeight = fHeight;
-				emPhysicsShapeType = physics::EmPhysicsShape::eCapsule_X;
+				emShapeType = physics::ShapeType::eCapsule_X;
 			}
 
 			void SetCapsuleZ(float fRadius, float fHeight)
@@ -205,7 +196,7 @@ namespace eastengine
 
 				capsule.fRadius = fRadius;
 				capsule.fHeight = fHeight;
-				emPhysicsShapeType = physics::EmPhysicsShape::eCapsule_Z;
+				emShapeType = physics::ShapeType::eCapsule_Z;
 			}
 
 			void SetCone(float fRadius, float fHeight)
@@ -214,7 +205,7 @@ namespace eastengine
 
 				cone.fRadius = fRadius;
 				cone.fHeight = fHeight;
-				emPhysicsShapeType = physics::EmPhysicsShape::eCone;
+				emShapeType = physics::ShapeType::eCone;
 			}
 
 			void SetConeX(float fRadius, float fHeight)
@@ -223,7 +214,7 @@ namespace eastengine
 
 				cone.fRadius = fRadius;
 				cone.fHeight = fHeight;
-				emPhysicsShapeType = physics::EmPhysicsShape::eCone_X;
+				emShapeType = physics::ShapeType::eCone_X;
 			}
 
 			void SetConeZ(float fRadius, float fHeight)
@@ -232,14 +223,14 @@ namespace eastengine
 
 				cone.fRadius = fRadius;
 				cone.fHeight = fHeight;
-				emPhysicsShapeType = physics::EmPhysicsShape::eCone_Z;
+				emShapeType = physics::ShapeType::eCone_Z;
 			}
 
 			void SetHull()
 			{
 				element.emplace<Hull>();
 
-				emPhysicsShapeType = physics::EmPhysicsShape::eHull;
+				emShapeType = physics::ShapeType::eHull;
 			}
 
 			void SetHull(const math::float3* pVertices, uint32_t nVertexCount, const uint32_t* pIndices, uint32_t nIndexCount)
@@ -250,14 +241,14 @@ namespace eastengine
 				hull.nVertexCount = nVertexCount;
 				hull.pIndices = pIndices;
 				hull.nIndexCount = nIndexCount;
-				emPhysicsShapeType = physics::EmPhysicsShape::eHull;
+				emShapeType = physics::ShapeType::eHull;
 			}
 
 			void SetTriangleMesh()
 			{
 				element.emplace<TriangleMesh>();
 
-				emPhysicsShapeType = physics::EmPhysicsShape::eTriangleMesh;
+				emShapeType = physics::ShapeType::eTriangleMesh;
 			}
 
 			void SetTriangleMesh(const math::float3* pVertices, uint32_t nVertexCount)
@@ -268,7 +259,7 @@ namespace eastengine
 				triangleMesh.nVertexCount = nVertexCount;
 				triangleMesh.pIndices = nullptr;
 				triangleMesh.nIndexCount = 0;
-				emPhysicsShapeType = physics::EmPhysicsShape::eTriangleMesh;
+				emShapeType = physics::ShapeType::eTriangleMesh;
 			}
 
 			void SetTriangleMesh(const math::float3* pVertices, uint32_t nVertexCount, const uint32_t* pIndices, uint32_t nIndexCount)
@@ -279,7 +270,7 @@ namespace eastengine
 				triangleMesh.nVertexCount = nVertexCount;
 				triangleMesh.pIndices = pIndices;
 				triangleMesh.nIndexCount = nIndexCount;
-				emPhysicsShapeType = physics::EmPhysicsShape::eTriangleMesh;
+				emShapeType = physics::ShapeType::eTriangleMesh;
 			}
 
 			void SetTriangleMesh(const math::float3* pVertices, uint32_t nVertexCount, uint32_t nStride, const uint32_t* pIndices, uint32_t nIndexCount)
@@ -291,7 +282,7 @@ namespace eastengine
 				triangleMesh.nStride = nStride;
 				triangleMesh.pIndices = pIndices;
 				triangleMesh.nIndexCount = nIndexCount;
-				emPhysicsShapeType = physics::EmPhysicsShape::eTriangleMesh;
+				emShapeType = physics::ShapeType::eTriangleMesh;
 			}
 
 			// 이거 누가.. 사용 방법 좀 연구해주셈;;
@@ -306,7 +297,7 @@ namespace eastengine
 			//	terrain.fHeightMin = fHeightMin;
 			//	terrain.pHeightArray = pHeightArray;
 			//	terrain.nHeightArarySize = nHeightArarySize;
-			//	emPhysicsShapeType = physics::EmPhysicsShape::eTerrain;
+			//	emShapeType = physics::ShapeType::eTerrain;
 			//}
 		};
 

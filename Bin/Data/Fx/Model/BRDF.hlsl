@@ -117,7 +117,7 @@ float3 Specular(float3 specularColor, float3 h, float3 v, float3 l, float a, flo
 }
 
 void CalcBRDF(in float3 albedoColor, in float3 normal, in float3 tangent, in float3 binormal,
-	in float3 lightDir, in float3 viewDir,
+	in float3 lightColor, in float3 lightDir, in float3 viewDir,
 	float roughness, float metallic,
 	float subsurface, float specular, float specularTint, float anisotropic,
 	float sheen, float sheenTint, float clearcoat, float clearcoatGloss,
@@ -172,5 +172,5 @@ void CalcBRDF(in float3 albedoColor, in float3 normal, in float3 tangent, in flo
 	float Gr = smithG_GGX(NdL, 0.25f) * smithG_GGX(NdV, 0.25f);
 	albedo = (INV_PI * lerp(Fd, ss, subsurface) * albedoColor + Fsheen) * (1.f - metallic);
 
-	diffuse = (albedo + Gs*Fs*Ds + 0.25f * clearcoat * Gr * Fr * Dr) * NdL;
+	diffuse = (lightColor * albedo + Gs*Fs*Ds + 0.25f * clearcoat * Gr * Fr * Dr) * NdL;
 }

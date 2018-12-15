@@ -90,12 +90,12 @@ float4 CalcColor(in float3 posW,
 	[loop]
 	for (i = 0; i < g_nDirectionalLightCount; ++i)
 	{
-		float3 lightColor = g_lightDirectional[i].f3Color;
-		float3 lightDir = normalize(-g_lightDirectional[i].f3Dir);
+		float3 lightColor = g_lightDirectional[i].color;
+		float3 lightDir = normalize(-g_lightDirectional[i].direction);
 	
-		float lightIntensity = g_lightDirectional[i].fLightIntensity;
-		float ambientIntensity = g_lightDirectional[i].fAmbientIntensity;
-		float reflectionIntensity = g_lightDirectional[i].fReflectionIntensity;
+		float lightIntensity = g_lightDirectional[i].lightIntensity;
+		float ambientIntensity = g_lightDirectional[i].ambientIntensity;
+		float reflectionIntensity = g_lightDirectional[i].reflectionIntensity;
 	
 		float attenuation = 1.f;
 	
@@ -103,7 +103,7 @@ float4 CalcColor(in float3 posW,
 		float3 diffuseColor = float3(0.f, 0.f, 0.f);
 	
 		CalcBRDF(realAlbedo, normal, tangent, binormal,
-			lightDir, viewDir,
+			lightColor, lightDir, viewDir,
 			roughness, metallic,
 			subsourface, specular, specularTint, anisotropic,
 			sheen, sheenTint, clearcoat, clearcoatGloss,
@@ -117,17 +117,17 @@ float4 CalcColor(in float3 posW,
 	[loop]
 	for (i = 0; i < g_nPointLightCount; ++i)
 	{
-		float3 lightColor = g_lightPoint[i].f3Color;
-		float3 lightDir = g_lightPoint[i].f3Pos - posW;
+		float3 lightColor = g_lightPoint[i].color;
+		float3 lightDir = g_lightPoint[i].position - posW;
 		float lightDist = length(lightDir);
 		lightDir /= lightDist;
 
-		float lightIntensity = g_lightPoint[i].fLightIntensity;
+		float lightIntensity = g_lightPoint[i].lightIntensity;
 		float attenuation = (PI / (lightDist * lightDist)) * lightIntensity;
 		if (attenuation > PI)
 		{
-			float ambientIntensity = g_lightPoint[i].fAmbientIntensity;
-			float reflectionIntensity = g_lightPoint[i].fReflectionIntensity;
+			float ambientIntensity = g_lightPoint[i].ambientIntensity;
+			float reflectionIntensity = g_lightPoint[i].reflectionIntensity;
 
 			float3 albedo = float3(0.f, 0.f, 0.f);
 			float3 diffuseColor = float3(0.f, 0.f, 0.f);
@@ -137,7 +137,7 @@ float4 CalcColor(in float3 posW,
 			attenuation *= 0.1f;
 
 			CalcBRDF(realAlbedo, normal, tangent, binormal,
-				lightDir, viewDir,
+				lightColor, lightDir, viewDir,
 				roughness, metallic,
 				subsourface, specular, specularTint, anisotropic,
 				sheen, sheenTint, clearcoat, clearcoatGloss,
@@ -152,36 +152,36 @@ float4 CalcColor(in float3 posW,
 	[loop]
 	for (i = 0; i < g_nSpotLightCount; ++i)
 	{
-		float3 lightDir = g_lightSpot[i].f3Pos - posW;
+		float3 lightDir = g_lightSpot[i].position - posW;
 		float lightDist = length(lightDir);
 		lightDir /= lightDist;
 
 		float minCos = cos(radians(g_lightSpot[i].fAngle));
 		float maxCos = lerp(minCos, 1.f, 0.5f);
 
-		float cosAngle = dot(-g_lightSpot[i].f3Dir, lightDir);
+		float cosAngle = dot(-g_lightSpot[i].direction, lightDir);
 
 		float spotIntensity = smoothstep(minCos, maxCos, cosAngle);
 		if (spotIntensity > 0.001f)
 		{
 			spotIntensity -= 0.001f + 1e-5f;
 
-			float lightIntensity = g_lightSpot[i].fLightIntensity;
+			float lightIntensity = g_lightSpot[i].lightIntensity;
 			float attenuation = (PI / (lightDist * lightDist)) * lightIntensity;
 			attenuation *= 0.1f;
 
 			//attenuation = smoothstep(0.01f, 1.f, attenuation);
 
-			float3 lightColor = g_lightSpot[i].f3Color;
+			float3 lightColor = g_lightSpot[i].color;
 
-			float ambientIntensity = g_lightSpot[i].fAmbientIntensity;
-			float reflectionIntensity = g_lightSpot[i].fReflectionIntensity;
+			float ambientIntensity = g_lightSpot[i].ambientIntensity;
+			float reflectionIntensity = g_lightSpot[i].reflectionIntensity;
 
 			float3 albedo = float3(0.f, 0.f, 0.f);
 			float3 diffuseColor = float3(0.f, 0.f, 0.f);
 
 			CalcBRDF(realAlbedo, normal, tangent, binormal,
-				lightDir, viewDir,
+				lightColor, lightDir, viewDir,
 				roughness, metallic,
 				subsourface, specular, specularTint, anisotropic,
 				sheen, sheenTint, clearcoat, clearcoatGloss,

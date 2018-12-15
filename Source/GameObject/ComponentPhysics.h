@@ -50,7 +50,7 @@ namespace eastengine
 			virtual void Update(float elapsedTime) override;
 
 		public:
-			void SetActiveState(physics::EmActiveState::Type emActiveState);
+			void SetActiveState(physics::ActiveStateType emActiveState);
 
 			const PhysicsNode* GetPhysicsNode(const string::StringID& strName)
 			{

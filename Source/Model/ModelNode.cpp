@@ -20,7 +20,7 @@ namespace eastengine
 			m_parentNodeName = binaryReader.ReadString();
 			m_attachedBoneName = binaryReader.ReadString();
 
-			const Collision::AABB& aabb = binaryReader;
+			const collision::AABB& aabb = binaryReader;
 			SetOriginAABB(aabb);
 
 			m_isVisible = binaryReader;
@@ -230,7 +230,7 @@ namespace eastengine
 			return nullptr;
 		}
 
-		void ModelNode::SetOriginAABB(const Collision::AABB& aabb)
+		void ModelNode::SetOriginAABB(const collision::AABB& aabb)
 		{
 			m_originAABB = aabb;
 			m_originAABB.Extents = math::float3::Max(m_originAABB.Extents, math::float3(0.01f));

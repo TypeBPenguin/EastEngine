@@ -1,36 +1,54 @@
-
-cbuffer PPConstants : register(b1)
-{
-	float BloomThreshold : packoffset(c0.x);
-	float BloomMagnitude : packoffset(c0.y);
-	float BloomBlurSigma : packoffset(c0.z);
-	float Tau : packoffset(c0.w);
-	float TimeDelta : packoffset(c1.x);
-	float ToneMapTechnique : packoffset(c1.y);
-	float Exposure : packoffset(c1.z);
-	float KeyValue : packoffset(c1.w);
-	float AutoExposure : packoffset(c2.x);
-	float WhiteLevel : packoffset(c2.y);
-	float ShoulderStrength : packoffset(c2.z);
-	float LinearStrength : packoffset(c2.w);
-	float LinearAngle : packoffset(c3.x);
-	float ToeStrength : packoffset(c3.y);
-	float ToeNumerator : packoffset(c3.z);
-	float ToeDenominator : packoffset(c3.w);
-	float LinearWhite : packoffset(c4.x);
-	float LuminanceSaturation : packoffset(c4.y);
-	float LumMapMipLevel : packoffset(c4.z);
-	float Bias : packoffset(c4.w);
-};
+#ifdef DX12
+#include "../../DescriptorTablesDX12.hlsl"
+#endif
 
 cbuffer PSConstants : register(b0)
 {
-	float2 InputSize0 : packoffset(c0.x);
-	float2 InputSize1 : packoffset(c0.z);
-	float2 InputSize2 : packoffset(c1.x);
-	float2 InputSize3 : packoffset(c1.z);
-	float2 OutputSize : packoffset(c2.x);
+	float2 InputSize0;
+	float2 InputSize1;
+	float2 InputSize2;
+	float2 InputSize3;
+	float2 OutputSize;
+	float2 padding;
+
+#ifdef DX12
+
+	uint g_nTexInputIndex0;
+	uint g_nTexInputIndex1;
+	uint g_nTexInputIndex2;
+	uint g_nTexInputIndex3;
+
+#endif
 }
+
+cbuffer HDRConstants : register(b1)
+{
+	float BloomThreshold;
+	float BloomMagnitude;
+	float BloomBlurSigma;
+	float Tau;
+	float Exposure;
+	float KeyValue;
+	float WhiteLevel;
+	float ShoulderStrength;
+	float LinearStrength;
+	float LinearAngle;
+	float ToeStrength;
+	float ToeNumerator;
+	float ToeDenominator;
+	float LinearWhite;
+	float LuminanceSaturation;
+	float Bias;
+
+	int LumMapMipLevel;
+
+	int ToneMapTechnique;
+	int AutoExposure;
+
+	float TimeDelta;
+};
+
+#ifdef DX11
 
 SamplerState PointSampler : register(s0);
 SamplerState LinearSampler : register(s1);
@@ -39,6 +57,27 @@ Texture2D InputTexture0 : register(t0);
 Texture2D InputTexture1 : register(t1);
 Texture2D InputTexture2 : register(t2);
 Texture2D InputTexture3 : register(t3);
+
+#define TexInputTexture0	InputTexture0
+#define TexInputTexture1	InputTexture1
+#define TexInputTexture2	InputTexture2
+#define TexInputTexture3	InputTexture3
+
+#elif DX12
+
+SamplerState PointSampler : register(s0, space100);
+SamplerState LinearSampler : register(s1, space100);
+
+#define TexInputTexture0	Tex2DTable[g_nTexInputIndex0]
+#define TexInputTexture1	Tex2DTable[g_nTexInputIndex1]
+#define TexInputTexture2	Tex2DTable[g_nTexInputIndex2]
+#define TexInputTexture3	Tex2DTable[g_nTexInputIndex3]
+
+#else
+
+#error "Only support Dx11, Dx12"
+
+#endif
 
 struct PSInput
 {
@@ -59,7 +98,8 @@ float CalcLuminance(float3 color)
 // Retrieves the log-average lumanaince from the texture
 float GetAvgLuminance(Texture2D lumTex, float2 texCoord)
 {
-	return exp(lumTex.SampleLevel(LinearSampler, texCoord, LumMapMipLevel).x);
+	//return exp(lumTex.SampleLevel(LinearSampler, texCoord, LumMapMipLevel).x);
+	return exp(lumTex.Sample(LinearSampler, texCoord).x);
 }
 
 // Logarithmic mapping
@@ -288,7 +328,7 @@ float4 Blur(in PSInput input, float2 texScale, float sigma)
 		float weight = CalcGaussianWeight(i, sigma);
 		float2 texCoord = input.TexCoord;
 		texCoord += (i / InputSize0) * texScale;
-		float4 sample = InputTexture0.Sample(PointSampler, texCoord);
+		float4 sample = TexInputTexture0.Sample(PointSampler, texCoord);
 		color += sample * weight;
 	}
 
@@ -304,10 +344,10 @@ float4 ThresholdPS(in PSInput input) : SV_Target
 {
 	float3 color = 0;
 
-	color = InputTexture0.Sample(LinearSampler, input.TexCoord).rgb;
+	color = TexInputTexture0.Sample(LinearSampler, input.TexCoord).rgb;
 
 	// Tone map it to threshold
-	float avgLuminance = GetAvgLuminance(InputTexture1, input.TexCoord);
+	float avgLuminance = GetAvgLuminance(TexInputTexture1, input.TexCoord);
 	float exposure = 0;
 	color = ToneMap(color, avgLuminance, BloomThreshold, exposure);
 	return float4(color, 1.0f);
@@ -316,7 +356,7 @@ float4 ThresholdPS(in PSInput input) : SV_Target
 // Uses hw bilinear filtering for upscaling or downscaling
 float4 ScalePS(in PSInput input) : SV_Target
 {
-	return InputTexture0.Sample(LinearSampler, input.TexCoord);
+	return TexInputTexture0.Sample(LinearSampler, input.TexCoord);
 }
 
 // Horizontal gaussian blur
@@ -334,13 +374,13 @@ float4 BloomBlurVPS(in PSInput input) : SV_Target
 float4 CompositePS(in PSInput input) : SV_Target
 {
 	// Tone map the primary input
-	float avgLuminance = GetAvgLuminance(InputTexture1, input.TexCoord);
-	float3 color = InputTexture0.Sample(PointSampler, input.TexCoord).rgb;
+	float avgLuminance = GetAvgLuminance(TexInputTexture1, input.TexCoord);
+	float3 color = TexInputTexture0.Sample(PointSampler, input.TexCoord).rgb;
 	float exposure = 0;
 	color = ToneMap(color, avgLuminance, 0, exposure);
 
 	// Sample the bloom
-	float3 bloom = InputTexture2.Sample(LinearSampler, input.TexCoord).rgb;
+	float3 bloom = TexInputTexture2.Sample(LinearSampler, input.TexCoord).rgb;
 	bloom = bloom * BloomMagnitude;
 
 	// Add in the bloom
@@ -356,13 +396,13 @@ void CompositeWithExposurePS(in PSInput input,
 	out float4 outputExposure : SV_Target1)
 {
 	// Tone map the primary input
-	float avgLuminance = GetAvgLuminance(InputTexture1, input.TexCoord);
-	float3 color = InputTexture0.Sample(PointSampler, input.TexCoord).rgb;
+	float avgLuminance = GetAvgLuminance(TexInputTexture1, input.TexCoord);
+	float3 color = TexInputTexture0.Sample(PointSampler, input.TexCoord).rgb;
 	float exposure = 0;
 	color = ToneMap(color, avgLuminance, 0, exposure);
 
 	// Sample the bloom
-	float3 bloom = InputTexture2.Sample(LinearSampler, input.TexCoord).rgb;
+	float3 bloom = TexInputTexture2.Sample(LinearSampler, input.TexCoord).rgb;
 	bloom = bloom * BloomMagnitude;
 
 	// Add in the bloom
@@ -378,7 +418,7 @@ void CompositeWithExposurePS(in PSInput input,
 float4 LuminanceMapPS(in PSInput input) : SV_Target
 {
 	// Sample the input
-	float3 color = InputTexture0.Sample(LinearSampler, input.TexCoord).rgb;
+	float3 color = TexInputTexture0.Sample(LinearSampler, input.TexCoord).rgb;
 
 	// calculate the luminance using a weighted average
 	float luminance = CalcLuminance(color);
@@ -389,83 +429,11 @@ float4 LuminanceMapPS(in PSInput input) : SV_Target
 // Slowly adjusts the scene luminance based on the previous scene luminance
 float4 AdaptLuminancePS(in PSInput input) : SV_Target
 {
-	float lastLum = exp(InputTexture0.Sample(PointSampler, input.TexCoord).x);
-	float currentLum = InputTexture1.Sample(PointSampler, input.TexCoord).x;
+	float lastLum = exp(TexInputTexture0.Sample(PointSampler, input.TexCoord).x);
+	float currentLum = TexInputTexture1.Sample(PointSampler, input.TexCoord).x;
 
 	// Adapt the luminance using Pattanaik's technique    
 	float adaptedLum = lastLum + (currentLum - lastLum) * (1 - exp(-TimeDelta * Tau));
 
 	return float4(log(adaptedLum), 1.0f, 1.0f, 1.0f);
-}
-
-technique11 Threshold
-{
-	pass Pass_0
-	{
-		SetVertexShader(CompileShader(vs_5_0, VS()));
-		SetPixelShader(CompileShader(ps_5_0, ThresholdPS()));
-	}
-}
-
-technique11 BloomBlurH
-{
-	pass Pass_0
-	{
-		SetVertexShader(CompileShader(vs_5_0, VS()));
-		SetPixelShader(CompileShader(ps_5_0, BloomBlurHPS()));
-	}
-}
-
-technique11 BloomBlurV
-{
-	pass Pass_0
-	{
-		SetVertexShader(CompileShader(vs_5_0, VS()));
-		SetPixelShader(CompileShader(ps_5_0, BloomBlurVPS()));
-	}
-}
-
-technique11 LuminanceMap
-{
-	pass Pass_0
-	{
-		SetVertexShader(CompileShader(vs_5_0, VS()));
-		SetPixelShader(CompileShader(ps_5_0, LuminanceMapPS()));
-	}
-}
-
-technique11 Composite
-{
-	pass Pass_0
-	{
-		SetVertexShader(CompileShader(vs_5_0, VS()));
-		SetPixelShader(CompileShader(ps_5_0, CompositePS()));
-	}
-}
-
-technique11 CompositeWithExposure
-{
-	pass Pass_0
-	{
-		SetVertexShader(CompileShader(vs_5_0, VS()));
-		SetPixelShader(CompileShader(ps_5_0, CompositeWithExposurePS()));
-	}
-}
-
-technique11 Scale
-{
-	pass Pass_0
-	{
-		SetVertexShader(CompileShader(vs_5_0, VS()));
-		SetPixelShader(CompileShader(ps_5_0, ScalePS()));
-	}
-}
-
-technique11 AdaptLuminance
-{
-	pass Pass_0
-	{
-		SetVertexShader(CompileShader(vs_5_0, VS()));
-		SetPixelShader(CompileShader(ps_5_0, AdaptLuminancePS()));
-	}
 }

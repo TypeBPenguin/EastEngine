@@ -52,15 +52,6 @@
     <Filter Include="Light">
       <UniqueIdentifier>{90422cb0-6a28-4090-8b5e-b31883a26a6d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Light\Directional">
-      <UniqueIdentifier>{10d60c8a-b2bc-4c04-9ad4-85dad0e453e9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Light\Spot">
-      <UniqueIdentifier>{0076839e-1b56-4a10-b05f-5dea597e9055}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Light\Point">
-      <UniqueIdentifier>{8e583979-2ee1-49da-89b3-ad7f5b6d3831}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Interface\PostProcessing">
       <UniqueIdentifier>{225d6a02-1594-496e-aac1-baf7e6d7bb8a}</UniqueIdentifier>
     </Filter>
@@ -81,6 +72,15 @@
     </Filter>
     <Filter Include="MaskedOcclusionCulling\Library">
       <UniqueIdentifier>{67decb06-2f2a-497d-8feb-ed3ed49c404c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Light\Directional">
+      <UniqueIdentifier>{b6318773-44d1-4cc1-88dc-8fe064640a89}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Light\Point">
+      <UniqueIdentifier>{5c88b57f-b245-4c28-95ea-fd8a945524db}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Light\Spot">
+      <UniqueIdentifier>{e88d9667-62d3-4d50-bfb5-eac43b6a24e0}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -115,18 +115,6 @@
       <Filter>Render\Subset</Filter>
     </ClInclude>
     <ClInclude Include="Light.h">
-      <Filter>Light</Filter>
-    </ClInclude>
-    <ClInclude Include="DirectionalLight.h">
-      <Filter>Light\Directional</Filter>
-    </ClInclude>
-    <ClInclude Include="PointLight.h">
-      <Filter>Light\Point</Filter>
-    </ClInclude>
-    <ClInclude Include="SpotLight.h">
-      <Filter>Light\Spot</Filter>
-    </ClInclude>
-    <ClInclude Include="LightManager.h">
       <Filter>Light</Filter>
     </ClInclude>
     <ClInclude Include="AssaoInterface.h">
@@ -168,6 +156,18 @@
     <ClInclude Include="OcclusionCulling.h">
       <Filter>MaskedOcclusionCulling</Filter>
     </ClInclude>
+    <ClInclude Include="LightManager.h">
+      <Filter>Light</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectionalLight.h">
+      <Filter>Light\Directional</Filter>
+    </ClInclude>
+    <ClInclude Include="PointLight.h">
+      <Filter>Light\Point</Filter>
+    </ClInclude>
+    <ClInclude Include="SpotLight.h">
+      <Filter>Light\Spot</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -198,18 +198,6 @@
       <Filter>Render\Subset</Filter>
     </ClCompile>
     <ClCompile Include="Light.cpp">
-      <Filter>Light</Filter>
-    </ClCompile>
-    <ClCompile Include="DirectionalLight.cpp">
-      <Filter>Light\Directional</Filter>
-    </ClCompile>
-    <ClCompile Include="PointLight.cpp">
-      <Filter>Light\Point</Filter>
-    </ClCompile>
-    <ClCompile Include="SpotLight.cpp">
-      <Filter>Light\Spot</Filter>
-    </ClCompile>
-    <ClCompile Include="LightManager.cpp">
       <Filter>Light</Filter>
     </ClCompile>
     <ClCompile Include="AssaoInterface.cpp">
@@ -250,6 +238,18 @@
     </ClCompile>
     <ClCompile Include="OcclusionCulling.cpp">
       <Filter>MaskedOcclusionCulling</Filter>
+    </ClCompile>
+    <ClCompile Include="LightManager.cpp">
+      <Filter>Light</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectionalLight.cpp">
+      <Filter>Light\Directional</Filter>
+    </ClCompile>
+    <ClCompile Include="PointLight.cpp">
+      <Filter>Light\Point</Filter>
+    </ClCompile>
+    <ClCompile Include="SpotLight.cpp">
+      <Filter>Light\Spot</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

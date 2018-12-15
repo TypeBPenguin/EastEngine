@@ -8,58 +8,48 @@ namespace eastengine
 	{
 		class SpotLight : public ISpotLight
 		{
-		private:
-			SpotLight();
-
 		public:
+			SpotLight(const string::StringID& name, bool isEnableShadow, const SpotLightData& lightData);
 			virtual ~SpotLight();
 
-			static SpotLight* Create(const string::StringID& strName, const math::float3& f3Position, const math::float3& f3Direction, float fAngle, const math::Color& color, float fIntensity, float fAmbientIntensity = 0.f, float fReflectionIntensity = 0.f);
+		public:
+			void Update(float elapsedTime);
 
 		public:
-			virtual void Update(float elapsedTime) override;
+			virtual const string::StringID& GetName() const override { return m_name; }
 
-		public:
-			virtual const string::StringID& GetName() const override { return m_strName; }
+			virtual float GetIntensity() const override { return m_lightData.lightIntensity; }
+			virtual void SetIntensity(float fIntensity) override { m_lightData.lightIntensity = fIntensity; }
 
-			virtual float GetIntensity() const override { return m_fIntensity; }
-			virtual void SetIntensity(float fIntensity) override { m_fIntensity = fIntensity; }
+			virtual float GetAmbientIntensity() const override { return m_lightData.ambientIntensity; }
+			virtual void SetAmbientIntensity(float fAmbientIntensity) override { m_lightData.ambientIntensity= fAmbientIntensity; }
 
-			virtual float GetAmbientIntensity() const override { return m_fAmbientIntensity; }
-			virtual void SetAmbientIntensity(float fAmbientIntensity) override { m_fAmbientIntensity = fAmbientIntensity; }
+			virtual float GetReflectionIntensity() const override { return m_lightData.reflectionIntensity; }
+			virtual void SetReflectionIntensity(float fReflectionIntensity) override { m_lightData.reflectionIntensity = fReflectionIntensity;; }
 
-			virtual float GetReflectionIntensity() const override { return m_fReflectionIntensity; }
-			virtual void SetReflectionIntensity(float fReflectionIntensity) override { m_fReflectionIntensity = fReflectionIntensity;; }
-
-			virtual const math::Color& GetColor() const override { return m_color; }
-			virtual void SetColor(const math::Color& color) override { m_color = color; }
+			virtual const math::float3& GetColor() const override { return m_lightData.color; }
+			virtual void SetColor(const math::float3& color) override { m_lightData.color = color; }
 
 			virtual bool IsEnableShadow() const override { return m_isEnableShadow; }
 			virtual void SetEnableShadow(bool isEnableShadow) override { m_isEnableShadow = isEnableShadow; }
 
 		public:
-			virtual const math::float3& GetPosition() const override { return m_f3Pos; }
-			virtual void SetPosition(const math::float3& vPos) override { m_f3Pos = vPos; }
+			virtual const math::float3& GetPosition() const override { return m_lightData.position; }
+			virtual void SetPosition(const math::float3& vPos) override { m_lightData.position = vPos; }
 
-			virtual const math::float3& GetDirection() const override { return m_f3Direction; }
-			virtual void SetDirection(const math::float3& f3Direction) override { m_f3Direction = f3Direction; }
+			virtual const math::float3& GetDirection() const override { return m_lightData.direction; }
+			virtual void SetDirection(const math::float3& f3Direction) override { m_lightData.direction = f3Direction; }
 
-			virtual float GetAngle() const override { return m_fAngle; }
-			virtual void SetAngle(float fAngle) override { m_fAngle = fAngle; }
+			virtual float GetAngle() const override { return m_lightData.angle; }
+			virtual void SetAngle(float fAngle) override { m_lightData.angle = fAngle; }
+
+			virtual const SpotLightData& GetData() const override { return m_lightData; }
 
 		protected:
-			string::StringID m_strName;
-			bool m_isEnableShadow;
+			string::StringID m_name;
+			bool m_isEnableShadow{ false };
 
-			math::float3 m_f3Pos;
-			math::float3 m_f3Direction;
-
-			float m_fAngle;
-			float m_fIntensity;
-			float m_fAmbientIntensity;
-			float m_fReflectionIntensity;
-
-			math::Color m_color;
+			SpotLightData m_lightData;
 		};
 	}
 }

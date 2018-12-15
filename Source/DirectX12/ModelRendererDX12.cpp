@@ -581,12 +581,12 @@ namespace eastengine
 				{
 					TRACER_EVENT("Culling");
 
-					const Collision::Frustum& frustum = pCamera->GetFrustum();
+					const collision::Frustum& frustum = pCamera->GetFrustum();
 					concurrency::parallel_for(0llu, m_nJobStaticCount[emGroup], [&](size_t i)
 					{
 						JobStatic& job = m_vecJobStatics[emGroup][i];
 						const OcclusionCullingData& occlusionCullingData = job.data.occlusionCullingData;
-						if (frustum.Contains(occlusionCullingData.aabb) == Collision::EmContainment::eDisjoint)
+						if (frustum.Contains(occlusionCullingData.aabb) == collision::EmContainment::eDisjoint)
 						{
 							job.isCulled = true;
 							return;
@@ -603,7 +603,7 @@ namespace eastengine
 					{
 						JobSkinned& job = m_vecJobSkinneds[emGroup][i];
 						const OcclusionCullingData& occlusionCullingData = job.data.occlusionCullingData;
-						if (frustum.Contains(occlusionCullingData.aabb) == Collision::EmContainment::eDisjoint)
+						if (frustum.Contains(occlusionCullingData.aabb) == collision::EmContainment::eDisjoint)
 						{
 							job.isCulled = true;
 							return;

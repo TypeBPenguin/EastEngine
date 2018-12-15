@@ -12,14 +12,6 @@
 
 #endif
 
-float4x4 DecodeMatrix(in float4 encodedMatrix0, in float4 encodedMatrix1, in float4 encodedMatrix2)
-{
-	return float4x4(float4(encodedMatrix0.xyz, 0),
-		float4(encodedMatrix1.xyz, 0),
-		float4(encodedMatrix2.xyz, 0),
-		float4(encodedMatrix0.w, encodedMatrix1.w, encodedMatrix2.w, 1.f));
-}
-
 #ifdef USE_INSTANCING
 
 #define eMaxInstancingCount 64

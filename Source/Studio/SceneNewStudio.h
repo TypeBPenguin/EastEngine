@@ -2,6 +2,14 @@
 
 #include "Engine/SceneManager.h"
 
+namespace eastengine
+{
+	namespace graphics
+	{
+		class ILight;
+	}
+}
+
 class Minion;
 
 class SceneNewStudio : public eastengine::IScene
@@ -22,5 +30,7 @@ private:
 
 private:
 	std::unique_ptr<Minion> m_pMinion;
+
+	std::vector<eastengine::graphics::ILight*> m_pLights{ nullptr };
 };
 

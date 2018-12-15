@@ -35,7 +35,7 @@ namespace eastengine
 			float fLinearDamping = 0.f;		// 공기 저항
 			float fAngularDamping = 0.f;	// 회전 저항(?)
 
-			int nCollisionFlag = EmCollision::eStaticObject;
+			int nCollisionFlag = CollisionFlag::eStaticObject;
 
 			short nGroup = 0;
 			short nMask = 0;
@@ -51,7 +51,7 @@ namespace eastengine
 
 			Shape shapeInfo;
 
-			EmPhysicsShape::Type GetShapeType() const { return shapeInfo.emPhysicsShapeType; }
+			ShapeType GetShapeType() const { return shapeInfo.emShapeType; }
 		};
 
 		class RigidBody
@@ -93,13 +93,13 @@ namespace eastengine
 			void SetSleepingThresholds(float fLinear, float fAngular);
 			void SetAngularFactor(float fFactor);
 
-			void SetActiveState(EmActiveState::Type emActiveState);
+			void SetActiveState(ActiveStateType emActiveState);
 			void SetGravity(bool isEnable);
 			void SetGravity(const math::float3& f3Gravity);
 
-			const Collision::AABB& GetAABB() const;
-			const Collision::Sphere& GetBoundingSphere() const;
-			const Collision::OBB& GetOBB() const;
+			const collision::AABB& GetAABB() const;
+			const collision::Sphere& GetBoundingSphere() const;
+			const collision::OBB& GetOBB() const;
 
 			btRigidBody* GetInterface();
 

@@ -86,7 +86,7 @@ namespace eastengine
 					float fPosX = (float)(x)* sectorInitInfo.fRadius * 1.5f;
 					float fPosY = ((float)(y)+(float)(x)* -0.5f) * sectorInitInfo.fRadius * 2.f;
 
-					Collision::Ray ray(math::float3(fPosX, -1.f, fPosY), math::float3(0.f, 1.f, 0.f));
+					collision::Ray ray(math::float3(fPosX, -1.f, fPosY), math::float3(0.f, 1.f, 0.f));
 
 					for (int i = 0; i < 6; ++i)
 					{

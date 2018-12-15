@@ -4,7 +4,7 @@
 
 namespace eastengine
 {
-	namespace Collision
+	namespace collision
 	{
 		namespace EmContainment
 		{
@@ -344,9 +344,9 @@ namespace eastengine
 
 namespace std
 {
-	template<> struct less<eastengine::Collision::Ray>
+	template<> struct less<eastengine::collision::Ray>
 	{
-		bool operator()(const eastengine::Collision::Ray& R1, const eastengine::Collision::Ray& R2) const
+		bool operator()(const eastengine::collision::Ray& R1, const eastengine::collision::Ray& R2) const
 		{
 			if (R1.position.x != R2.position.x) return R1.position.x < R2.position.x;
 			if (R1.position.y != R2.position.y) return R1.position.y < R2.position.y;

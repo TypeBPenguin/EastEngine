@@ -44,7 +44,7 @@ namespace eastengine
 			virtual const math::Matrix& GetViewMatrix(EmDirection emDirection) const override { return m_matViews[emDirection]; }
 			virtual const math::Matrix& GetProjectionMatrix() const override { return m_matProjection; }
 			virtual const math::Viewport& GetViewport() const override { return m_viewport; }
-			virtual const Collision::Frustum& GetFrustum(EmDirection emDirection) const override { return m_frustums[emDirection]; }
+			virtual const collision::Frustum& GetFrustum(EmDirection emDirection) const override { return m_frustums[emDirection]; }
 
 			virtual float GetFarPlane() const override { return m_fFarPlane; }
 
@@ -57,7 +57,7 @@ namespace eastengine
 
 			math::Viewport m_viewport;
 
-			std::array<Collision::Frustum, DirectionCount> m_frustums;
+			std::array<collision::Frustum, DirectionCount> m_frustums;
 
 			int m_nPCFBlurSize;
 			float m_fDepthBias;

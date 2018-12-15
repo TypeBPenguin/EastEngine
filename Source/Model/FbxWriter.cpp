@@ -213,7 +213,7 @@ namespace eastengine
 			if (pMesh == nullptr)
 				return nullptr;
 
-			Collision::AABB aabb;
+			collision::AABB aabb;
 
 			switch (pMesh->GetSmallestBound())
 			{

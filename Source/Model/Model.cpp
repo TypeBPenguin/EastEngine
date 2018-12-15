@@ -283,9 +283,9 @@ namespace eastengine
 				std::vector<VertexPosTexNor> vertices;
 				std::vector<uint32_t> indices;
 
-				Collision::AABB aabb;
+				collision::AABB aabb;
 
-				auto SetModelNode = [&](const ModelLoader& loader, const string::StringID& strNodeName, IVertexBuffer* pVertexBuffer, IIndexBuffer* pIndexBuffer, const std::vector<VertexPos>& rawVertices, const std::vector<uint32_t>& rawIndices, const Collision::AABB& aabb)
+				auto SetModelNode = [&](const ModelLoader& loader, const string::StringID& strNodeName, IVertexBuffer* pVertexBuffer, IIndexBuffer* pIndexBuffer, const std::vector<VertexPos>& rawVertices, const std::vector<uint32_t>& rawIndices, const collision::AABB& aabb)
 				{
 					ModelNodeStatic* pModelStatic = new ModelNodeStatic;
 					pModelStatic->SetVertexBuffer(pVertexBuffer);

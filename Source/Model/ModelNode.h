@@ -51,8 +51,8 @@ namespace eastengine
 			virtual uint32_t GetModelSubsetCount(LOD emLod = eLv0) const override { assert(emLod <= m_emMaxLod); return static_cast<uint32_t>(m_vecModelSubsets[emLod].size()); }
 			virtual const ModelSubset* GetModelSubset(uint32_t index, LOD emLod = eLv0) const override { assert(emLod <= m_emMaxLod); return &m_vecModelSubsets[emLod][index]; }
 
-			virtual void SetOriginAABB(const Collision::AABB& aabb) override;
-			virtual const Collision::AABB& GetOriginAABB() const override { return m_originAABB; }
+			virtual void SetOriginAABB(const collision::AABB& aabb) override;
+			virtual const collision::AABB& GetOriginAABB() const override { return m_originAABB; }
 
 			virtual LOD GetLOD() const override { return m_emLod; }
 			virtual void SetLOD(LOD emLod = eLv0) override { m_emLod = std::min(emLod, m_emMaxLod); }
@@ -100,7 +100,7 @@ namespace eastengine
 
 			float m_fDistanceFromCamera{ 0.f };
 
-			Collision::AABB m_originAABB;
+			collision::AABB m_originAABB;
 		};
 	}
 }

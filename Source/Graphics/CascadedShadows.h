@@ -38,7 +38,7 @@ namespace eastengine
 			virtual const math::Matrix& GetViewMatrix(uint32_t nIndex) override { return m_matViews[GetSafeIndex(nIndex)]; }
 			virtual const math::Matrix& GetProjectionMatrix(uint32_t nIndex) override { return m_matProjections[GetSafeIndex(nIndex)]; }
 			virtual const math::Viewport& GetViewport(uint32_t nIndex) override { return m_viewportCascade[GetSafeIndex(nIndex)]; }
-			virtual const Collision::Frustum& GetFrustum(uint32_t nIndex) override { return m_frustums[GetSafeIndex(nIndex)]; }
+			virtual const collision::Frustum& GetFrustum(uint32_t nIndex) override { return m_frustums[GetSafeIndex(nIndex)]; }
 
 			virtual const math::float2& GetSplitDepths(uint32_t nIndex) override { return m_f2SplitDepths[GetSafeIndex(nIndex)]; }
 
@@ -65,7 +65,7 @@ namespace eastengine
 			
 			std::array<math::Viewport, CascadedShadowsConfig::eMaxLevel> m_viewportCascade;
 
-			std::array<Collision::Frustum, CascadedShadowsConfig::eMaxLevel> m_frustums;
+			std::array<collision::Frustum, CascadedShadowsConfig::eMaxLevel> m_frustums;
 
 			std::array<math::float2, CascadedShadowsConfig::eMaxLevel> m_f2SplitDepths;
 

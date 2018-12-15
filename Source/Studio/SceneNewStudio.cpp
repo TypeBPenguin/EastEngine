@@ -59,8 +59,6 @@ SceneNewStudio::~SceneNewStudio()
 
 void TestBehaviorTree()
 {
-	// 교만, 질투, 분노, 나태, 탐욕, 식탐, 색욕
-	// 겸손, 친절, 인내, 근면, 자선, 절제, 순결
 	struct Bear
 	{
 		int money{ 0 };
@@ -229,12 +227,27 @@ void SceneNewStudio::Enter()
 	graphics::Camera::GetInstance()->SetView({ 0.f, 2.f, -10.f }, { 0.f, 0.f, 0.f }, { 0.f, 1.f, 0.f });
 
 	{
-		math::float3 f3LightPosition(0.f, 500.f, -500.f);
-		math::float3 f3LightDirection(math::float3::Zero - f3LightPosition);
-		f3LightDirection.Normalize();
+		const math::float3 f3LightPosition(0.f, 500.f, -500.f);
 
-		graphics::ILight* pLight = graphics::ILight::CreateDirectionalLight("MainLight", f3LightDirection, math::Color::White, 1.f, 0.5f, 0.25f);
-		pLight->SetEnableShadow(false);
+		graphics::DirectionalLightData lightData;
+		lightData.direction = math::float3::Zero - f3LightPosition;
+		lightData.direction.Normalize();
+		m_pLights.emplace_back(graphics::CreateDirectionalLight("MainLight", false, lightData));
+
+		graphics::PointLightData pointLightData;
+		pointLightData.lightIntensity = 1000.f;
+		pointLightData.position.y = 10.f;
+		pointLightData.color = math::float3(1.f, 0.f, 0.f);
+		m_pLights.emplace_back(graphics::CreatePointLight("PointLight", false, pointLightData));
+
+		graphics::SpotLightData spotLightData;
+		spotLightData.lightIntensity = 1000.f;
+		spotLightData.position.x = -10.f;
+		spotLightData.position.y = 10.f;
+		spotLightData.direction = math::float3(0.f, -1.f, 0.f);
+		spotLightData.angle = 30.f;
+		spotLightData.color = math::float3(0.f, 1.f, 0.f);
+		m_pLights.emplace_back(graphics::CreateSpotLight("SpotLight", false, spotLightData));
 	}
 
 	std::string strPath = file::GetPath(file::eTexture);
@@ -293,7 +306,7 @@ void SceneNewStudio::Enter()
 		auto pCompModel = static_cast<gameobject::ComponentModel*>(pActor->CreateComponent(gameobject::IComponent::eModel));
 		pCompModel->Initialize(&loader);
 
-		auto pModelInst = pCompModel->GetModelInstance();
+		//auto pModelInst = pCompModel->GetModelInstance();
 
 		//auto pCompPhysics = static_cast<gameobject::ComponentPhysics*>(pActor->CreateComponent(gameobject::IComponent::ePhysics));
 		//
@@ -301,7 +314,7 @@ void SceneNewStudio::Enter()
 		//prop.fRestitution = 0.75f;
 		//prop.strName = StrID::Studio_Ground;
 		//prop.fMass = 0.f;
-		//prop.nCollisionFlag = physics::EmCollision::eStaticObject;
+		//prop.nCollisionFlag = physics::CollisionFlag::eStaticObject;
 		//prop.shapeInfo.SetTriangleMesh();
 		//pCompPhysics->Initialize(pModelInst, prop);
 
@@ -389,7 +402,7 @@ void SceneNewStudio::Enter()
 	//		//
 	//		//prop.shapeInfo.SetBox(math::float3(1.f));
 	//		////prop.shapeInfo.SetCapsule(math::Random(0.5f, 1.f), math::Random(1.f, 2.f));
-	//		//prop.nCollisionFlag = physics::EmCollision::eCharacterObject;
+	//		//prop.nCollisionFlag = physics::CollisionFlag::eCharacterObject;
 	//		//prop.f3OriginPos = f3Pos;
 	//		//pCompPhysics->Initialize(prop);
 	//	}
@@ -818,16 +831,22 @@ void SceneNewStudio::Enter()
 
 void SceneNewStudio::Exit()
 {
+	m_pMinion.reset();
+	for (auto& pLight : m_pLights)
+	{
+		graphics::ReleaseResource(&pLight);
+	}
+	m_pLights.clear();
 }
 
 void SceneNewStudio::Update(float elapsedTime)
 {
 	const ImGuiIO& io = ImGui::GetIO();
 
-	//if (io.WantCaptureMouse == false)
-	//{
-	//	ProcessInput(elapsedTime);
-	//}
+	if (io.WantCaptureMouse == false)
+	{
+		ProcessInput(elapsedTime);
+	}
 
 	RenderImGui(elapsedTime);
 
@@ -1134,7 +1153,7 @@ void ShowConfig()
 			const std::array<const char*, graphics::Options::BloomFilterConfig::PresetCount> presets = { "Wide", "Focussed", "Small", "SuperWide", "Cheap", "One", };
 
 			graphics::Options::BloomFilterConfig& bloomFilterConfig = graphicsOptions.bloomFilterConfig;
-			
+
 			ImGui::Combo("Presets", reinterpret_cast<int*>(&bloomFilterConfig.emPreset), presets.data(), static_cast<int>(presets.size()));
 
 			ImGui::DragFloat("Threshold", &bloomFilterConfig.fThreshold, 0.001f, 0.f, 10.f);
@@ -1474,21 +1493,70 @@ void ShowMotion(bool& isShowMotionMenu, gameobject::ComponentModel* pCompModel)
 		vecMotionNames.emplace_back(pMotion->GetName().c_str());
 	}
 
-	static graphics::MotionLayers emLayer = graphics::MotionLayers::eLayer1;
-	static float fMotionSpeed = 1.f;
-	static float fMotionWeight = 1.f;
-	static float fMotionBlendTime = 0.f;
-	static bool isMotionLoop = false;
-	static bool isMotionInverse = false;
-	static bool isFreezeAtLastFrame = false;
-
-	static int nSelectedIndex = 0;
-	if (vecMotionNames.empty() == false)
 	{
-		int prevSelectedIndex = -1;
-		if (ImGui::ListBox("Motion List", &nSelectedIndex, &vecMotionNames.front(), static_cast<int>(vecMotionNames.size()), 6) == true)
+		static graphics::MotionLayers emLayer = graphics::MotionLayers::eLayer1;
+		static float fMotionSpeed = 1.f;
+		static float fMotionWeight = 1.f;
+		static float fMotionBlendTime = 0.f;
+		static bool isMotionLoop = false;
+		static bool isMotionInverse = false;
+		static bool isFreezeAtLastFrame = false;
+
+		static int nSelectedIndex = 0;
+		if (vecMotionNames.empty() == false)
 		{
-			if (prevSelectedIndex == nSelectedIndex)
+			int prevSelectedIndex = -1;
+			if (ImGui::ListBox("Motion List", &nSelectedIndex, &vecMotionNames.front(), static_cast<int>(vecMotionNames.size()), 6) == true)
+			{
+				if (prevSelectedIndex == nSelectedIndex)
+				{
+					graphics::MotionPlaybackInfo playback;
+					playback.speed = fMotionSpeed;
+					playback.weight = fMotionWeight;
+					playback.blendTime = fMotionBlendTime;
+					playback.loopCount = isMotionLoop == true ? graphics::MotionPlaybackInfo::eMaxLoopCount : 1;
+					playback.isInverse = isMotionInverse;
+					playback.isFreezeAtLastFrame = isFreezeAtLastFrame;
+
+					graphics::IMotion* pMotion = nullptr;
+					if (0 <= nSelectedIndex && nSelectedIndex < static_cast<int>(vecMotionNames.size()))
+					{
+						pMotion = graphics::ModelManager::GetInstance()->GetMotion(nSelectedIndex);
+					}
+
+					if (pMotion != nullptr)
+					{
+						pCompModel->PlayMotion(emLayer, pMotion, &playback);
+					}
+				}
+
+				prevSelectedIndex = nSelectedIndex;
+			}
+		}
+
+		graphics::IMotion* pMotion = nullptr;
+		if (0 <= nSelectedIndex && nSelectedIndex < static_cast<int>(vecMotionNames.size()))
+		{
+			pMotion = graphics::ModelManager::GetInstance()->GetMotion(nSelectedIndex);
+		}
+
+		if (pMotion != nullptr)
+		{
+			const std::array<char*, graphics::MotionLayers::eLayerCount> layers = { "Layer1", "Layer2", "Layer3", "Layer4", };
+
+			ImGui::Combo("Layer", reinterpret_cast<int*>(&emLayer), layers.data(), static_cast<int>(layers.size()));
+
+			ImGui::DragFloat("Speed", &fMotionSpeed, 0.001f, 0.001f, 10.f);
+			ImGui::DragFloat("Weight", &fMotionWeight, 0.001f, 0.f, 1.f);
+			ImGui::DragFloat("BlendTime", &fMotionBlendTime, 0.001f, 0.f, pMotion->GetEndTime());
+			ImGui::Checkbox("Loop", &isMotionLoop);
+
+			ImGui::SameLine();
+
+			ImGui::Checkbox("Invert", &isMotionInverse);
+			ImGui::Checkbox("FreezeAtLastFrame", &isFreezeAtLastFrame);
+
+			if (ImGui::Button("Play") == true)
 			{
 				graphics::MotionPlaybackInfo playback;
 				playback.speed = fMotionSpeed;
@@ -1498,58 +1566,11 @@ void ShowMotion(bool& isShowMotionMenu, gameobject::ComponentModel* pCompModel)
 				playback.isInverse = isMotionInverse;
 				playback.isFreezeAtLastFrame = isFreezeAtLastFrame;
 
-				graphics::IMotion* pMotion = nullptr;
-				if (0 <= nSelectedIndex && nSelectedIndex < static_cast<int>(vecMotionNames.size()))
-				{
-					pMotion = graphics::ModelManager::GetInstance()->GetMotion(nSelectedIndex);
-				}
-
-				if (pMotion != nullptr)
-				{
-					pCompModel->PlayMotion(emLayer, pMotion, &playback);
-				}
+				pCompModel->PlayMotion(emLayer, pMotion, &playback);
 			}
 
-			prevSelectedIndex = nSelectedIndex;
+			ImGui::Separator();
 		}
-	}
-
-	graphics::IMotion* pMotion = nullptr;
-	if (0 <= nSelectedIndex && nSelectedIndex < static_cast<int>(vecMotionNames.size()))
-	{
-		pMotion = graphics::ModelManager::GetInstance()->GetMotion(nSelectedIndex);
-	}
-
-	if (pMotion != nullptr)
-	{
-		const std::array<char*, graphics::MotionLayers::eLayerCount> layers = { "Layer1", "Layer2", "Layer3", "Layer4", };
-
-		ImGui::Combo("Layer", reinterpret_cast<int*>(&emLayer), layers.data(), static_cast<int>(layers.size()));
-
-		ImGui::DragFloat("Speed", &fMotionSpeed, 0.001f, 0.001f, 10.f);
-		ImGui::DragFloat("Weight", &fMotionWeight, 0.001f, 0.f, 1.f);
-		ImGui::DragFloat("BlendTime", &fMotionBlendTime, 0.001f, 0.f, pMotion->GetEndTime());
-		ImGui::Checkbox("Loop", &isMotionLoop);
-
-		ImGui::SameLine();
-
-		ImGui::Checkbox("Invert", &isMotionInverse);
-		ImGui::Checkbox("FreezeAtLastFrame", &isFreezeAtLastFrame);
-
-		if (ImGui::Button("Play") == true)
-		{
-			graphics::MotionPlaybackInfo playback;
-			playback.speed = fMotionSpeed;
-			playback.weight = fMotionWeight;
-			playback.blendTime = fMotionBlendTime;
-			playback.loopCount = isMotionLoop == true ? graphics::MotionPlaybackInfo::eMaxLoopCount : 1;
-			playback.isInverse = isMotionInverse;
-			playback.isFreezeAtLastFrame = isFreezeAtLastFrame;
-
-			pCompModel->PlayMotion(emLayer, pMotion, &playback);
-		}
-
-		ImGui::Separator();
 	}
 
 	graphics::IMotionSystem* pMotionSystem = pCompModel->GetModelInstance()->GetMotionSystem();
@@ -1557,7 +1578,7 @@ void ShowMotion(bool& isShowMotionMenu, gameobject::ComponentModel* pCompModel)
 	{
 		for (int i = 0; i < graphics::MotionLayers::eLayerCount; ++i)
 		{
-			graphics::MotionLayers emLayer = static_cast<graphics::MotionLayers>(i);
+			const graphics::MotionLayers emLayer = static_cast<graphics::MotionLayers>(i);
 			graphics::IMotionPlayer* pPlayer = pMotionSystem->GetPlayer(emLayer);
 
 			std::string strLayer = string::Format("Layer%d", i);

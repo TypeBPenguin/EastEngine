@@ -1,6 +1,10 @@
 #include "stdafx.h"
 #include "LightManager.h"
 
+#include "DirectionalLight.h"
+#include "PointLight.h"
+#include "SpotLight.h"
+
 namespace eastengine
 {
 	namespace graphics
@@ -15,15 +19,18 @@ namespace eastengine
 			void Update(float elapsedTime);
 
 		public:
-			bool AddLight(ILight* pLight);
+			IDirectionalLight* CreateDirectionalLight(const string::StringID& name, bool isEnableShadow, const DirectionalLightData& lightData);
+			IPointLight* CreatePointLight(const string::StringID& name, bool isEnableShadow, const PointLightData& lightData);
+			ISpotLight* CreateSpotLight(const string::StringID& name, bool isEnableShadow, const SpotLightData& lightData);
+
 			void Remove(ILight* pLight);
-			void Remove(ILight::Type emType, size_t nIndex);
+			void Remove(ILight::Type emType, size_t index);
 			void RemoveAll();
-			ILight* GetLight(ILight::Type emType, size_t nIndex);
-			size_t GetLightCount(ILight::Type emType);
+			ILight* GetLight(ILight::Type emType, size_t index) const;
+			size_t GetLightCount(ILight::Type emType) const;
 
 		public:
-			uint32_t GetLightCountInView(ILight::Type emType);
+			uint32_t GetLightCountInView(ILight::Type emType) const;
 			void GetDirectionalLightData(const DirectionalLightData** ppDirectionalLightData, uint32_t* pSize) const;
 			void GetPointLightData(const PointLightData** ppPointLightData, uint32_t* pSize) const;
 			void GetSpotLightData(const SpotLightData** ppSpotLightData, uint32_t* pSize) const;
@@ -32,11 +39,11 @@ namespace eastengine
 			void UpdateLightBuffer();
 
 		private:
-			std::array<uint32_t, ILight::eCount> m_nLightCountInView;
+			std::array<uint32_t, ILight::eCount> m_lightCountInView{ 0 };
 
-			std::vector<IDirectionalLight*> m_vecDirectionalLights;
-			std::vector<ISpotLight*> m_vecSpotLights;
-			std::vector<IPointLight*> m_vecPointLights;
+			std::vector<std::unique_ptr<DirectionalLight>> m_directionalLights;
+			std::vector<std::unique_ptr<SpotLight>> m_spotLights;
+			std::vector<std::unique_ptr<PointLight>> m_pointLights;
 
 			std::array<DirectionalLightData, ILight::eMaxDirectionalLightCount> m_directionalLightData;
 			std::array<PointLightData, ILight::eMaxPointLightCount> m_pointLightData;
@@ -45,85 +52,90 @@ namespace eastengine
 
 		LightManager::Impl::Impl()
 		{
-			//m_pLightBuffers[ILight::eDirectional] = IStructuredBuffer::Create(m_directionalLightData.data(), m_directionalLightData.size(), sizeof(DirectionalLightData));
-			//m_pLightBuffers[ILight::ePoint] = IStructuredBuffer::Create(m_pointLightData.data(), m_pointLightData.size(), sizeof(PointLightData));
-			//m_pLightBuffers[ILight::eSpot] = IStructuredBuffer::Create(m_spotLightData.data(), m_spotLightData.size(), sizeof(SpotLightData));
-
-			m_nLightCountInView.fill(0u);
 		}
 
 		LightManager::Impl::~Impl()
 		{
 			RemoveAll();
-
-			//std::for_each(m_pLightBuffers.begin(), m_pLightBuffers.end(), DeleteSTLObject());
-			//m_pLightBuffers.fill(nullptr);
 		}
 
 		void LightManager::Impl::Update(float elapsedTime)
 		{
-			TRACER_EVENT("LightManager::Update");
+			TRACER_EVENT(__FUNCTION__);
 
-			TRACER_BEGINEVENT("Directional");
-			std::for_each(m_vecDirectionalLights.begin(), m_vecDirectionalLights.end(), [elapsedTime](IDirectionalLight* pLight)
+			if (m_directionalLights.empty() == false)
 			{
-				pLight->Update(elapsedTime);
-			});
-			TRACER_ENDEVENT();
+				TRACER_EVENT("Directional");
+				m_directionalLights.erase(std::remove_if(m_directionalLights.begin(), m_directionalLights.end(), [elapsedTime](std::unique_ptr<DirectionalLight>& pDirectionalLight)
+				{
+					if (pDirectionalLight->GetReferenceCount() < 0)
+						return true;
 
-			TRACER_BEGINEVENT("Spot");
-			std::for_each(m_vecSpotLights.begin(), m_vecSpotLights.end(), [elapsedTime](ISpotLight* pLight)
-			{
-				pLight->Update(elapsedTime);
-			});
-			TRACER_ENDEVENT();
+					pDirectionalLight->Update(elapsedTime);
+					return false;
+				}), m_directionalLights.end());
+			}
 
-			TRACER_BEGINEVENT("Point");
-			std::for_each(m_vecPointLights.begin(), m_vecPointLights.end(), [elapsedTime](IPointLight* pLight)
+			if (m_spotLights.empty() == false)
 			{
-				pLight->Update(elapsedTime);
-			});
-			TRACER_ENDEVENT();
+				TRACER_EVENT("Spot");
+				m_spotLights.erase(std::remove_if(m_spotLights.begin(), m_spotLights.end(), [elapsedTime](std::unique_ptr<SpotLight>& pSpotLight)
+				{
+					if (pSpotLight->GetReferenceCount() < 0)
+						return true;
+
+					pSpotLight->Update(elapsedTime);
+					return false;
+				}), m_spotLights.end());
+			}
+
+			if (m_pointLights.empty() == false)
+			{
+				TRACER_EVENT("Point");
+				m_pointLights.erase(std::remove_if(m_pointLights.begin(), m_pointLights.end(), [elapsedTime](std::unique_ptr<PointLight>& pPointLight)
+				{
+					if (pPointLight->GetReferenceCount() < 0)
+						return true;
+
+					pPointLight->Update(elapsedTime);
+					return false;
+				}), m_pointLights.end());
+			}
 
 			UpdateLightBuffer();
 		}
 
-		bool LightManager::Impl::AddLight(ILight* pLight)
+		IDirectionalLight* LightManager::Impl::CreateDirectionalLight(const string::StringID& name, bool isEnableShadow, const DirectionalLightData& lightData)
 		{
-			switch (pLight->GetType())
+			if (m_directionalLights.size() >= ILight::eMaxDirectionalLightCount)
 			{
-			case ILight::Type::eDirectional:
-			{
-				auto iter = std::find(m_vecDirectionalLights.begin(), m_vecDirectionalLights.end(), pLight);
-				if (iter != m_vecDirectionalLights.end())
-					return false;
-
-				m_vecDirectionalLights.emplace_back(static_cast<IDirectionalLight*>(pLight));
-			}
-			break;
-			case ILight::Type::ePoint:
-			{
-				auto iter = std::find(m_vecPointLights.begin(), m_vecPointLights.end(), pLight);
-				if (iter != m_vecPointLights.end())
-					return false;
-
-				m_vecPointLights.emplace_back(static_cast<IPointLight*>(pLight));
-			}
-			break;
-			case ILight::Type::eSpot:
-			{
-				auto iter = std::find(m_vecSpotLights.begin(), m_vecSpotLights.end(), pLight);
-				if (iter != m_vecSpotLights.end())
-					return false;
-
-				m_vecSpotLights.emplace_back(static_cast<ISpotLight*>(pLight));
-			}
-			break;
-			default:
-				return false;
+				LOG_WARNING("failed to create directional light : Too many directional lights[%d]", ILight::eMaxDirectionalLightCount);
+				return nullptr;
 			}
 
-			return true;
+			return m_directionalLights.emplace_back(std::make_unique<DirectionalLight>(name, isEnableShadow, lightData)).get();
+		}
+
+		IPointLight* LightManager::Impl::CreatePointLight(const string::StringID& name, bool isEnableShadow, const PointLightData& lightData)
+		{
+			if (m_pointLights.size() >= ILight::eMaxPointLightCount)
+			{
+				LOG_WARNING("failed to create point light : Too many point lights[%d]", ILight::eMaxPointLightCount);
+				return nullptr;
+			}
+
+			return m_pointLights.emplace_back(std::make_unique<PointLight>(name, isEnableShadow, lightData)).get();
+		}
+
+		ISpotLight* LightManager::Impl::CreateSpotLight(const string::StringID& name, bool isEnableShadow, const SpotLightData& lightData)
+		{
+			if (m_spotLights.size() >= ILight::eMaxSpotLightCount)
+			{
+				LOG_WARNING("failed to create spot light : Too many spot lights[%d]", ILight::eMaxSpotLightCount);
+				return nullptr;
+			}
+
+			return m_spotLights.emplace_back(std::make_unique<SpotLight>(name, isEnableShadow, lightData)).get();
 		}
 
 		void LightManager::Impl::Remove(ILight* pLight)
@@ -132,28 +144,40 @@ namespace eastengine
 			{
 			case ILight::Type::eDirectional:
 			{
-				auto iter = std::find(m_vecDirectionalLights.begin(), m_vecDirectionalLights.end(), pLight);
-				if (iter != m_vecDirectionalLights.end())
+				auto iter = std::find_if(m_directionalLights.begin(), m_directionalLights.end(), [pLight](std::unique_ptr<DirectionalLight>& pDirectionalLight)
 				{
-					m_vecDirectionalLights.erase(iter);
+					return pDirectionalLight.get() == pLight;
+				});
+
+				if (iter != m_directionalLights.end())
+				{
+					m_directionalLights.erase(iter);
 				}
 			}
 			break;
 			case ILight::Type::ePoint:
 			{
-				auto iter = std::find(m_vecPointLights.begin(), m_vecPointLights.end(), pLight);
-				if (iter != m_vecPointLights.end())
+				auto iter = std::find_if(m_pointLights.begin(), m_pointLights.end(), [pLight](std::unique_ptr<PointLight>& pPointLight)
 				{
-					m_vecPointLights.erase(iter);
+					return pPointLight.get() == pLight;
+				});
+
+				if (iter != m_pointLights.end())
+				{
+					m_pointLights.erase(iter);
 				}
 			}
 			break;
 			case ILight::Type::eSpot:
 			{
-				auto iter = std::find(m_vecSpotLights.begin(), m_vecSpotLights.end(), pLight);
-				if (iter != m_vecSpotLights.end())
+				auto iter = std::find_if(m_spotLights.begin(), m_spotLights.end(), [pLight](std::unique_ptr<SpotLight>& pSpotLight)
 				{
-					m_vecSpotLights.erase(iter);
+					return pSpotLight.get() == pLight;
+				});
+
+				if (iter != m_spotLights.end())
+				{
+					m_spotLights.erase(iter);
 				}
 			}
 			break;
@@ -162,49 +186,49 @@ namespace eastengine
 			}
 		}
 
-		void LightManager::Impl::Remove(ILight::Type emType, size_t nIndex)
+		void LightManager::Impl::Remove(ILight::Type emType, size_t index)
 		{
 			switch (emType)
 			{
 			case ILight::Type::eDirectional:
 			{
-				if (nIndex >= m_vecDirectionalLights.size())
+				if (index >= m_directionalLights.size())
 					return;
 
-				auto iter = m_vecDirectionalLights.begin();
-				std::advance(iter, nIndex);
+				auto iter = m_directionalLights.begin();
+				std::advance(iter, index);
 
-				if (iter != m_vecDirectionalLights.end())
+				if (iter != m_directionalLights.end())
 				{
-					m_vecDirectionalLights.erase(iter);
+					m_directionalLights.erase(iter);
 				}
 			}
 			break;
 			case ILight::Type::ePoint:
 			{
-				if (nIndex >= m_vecPointLights.size())
+				if (index >= m_pointLights.size())
 					return;
 
-				auto iter = m_vecPointLights.begin();
-				std::advance(iter, nIndex);
+				auto iter = m_pointLights.begin();
+				std::advance(iter, index);
 
-				if (iter != m_vecPointLights.end())
+				if (iter != m_pointLights.end())
 				{
-					m_vecPointLights.erase(iter);
+					m_pointLights.erase(iter);
 				}
 			}
 			break;
 			case ILight::Type::eSpot:
 			{
-				if (nIndex >= m_vecSpotLights.size())
+				if (index >= m_spotLights.size())
 					return;
 
-				auto iter = m_vecSpotLights.begin();
-				std::advance(iter, nIndex);
+				auto iter = m_spotLights.begin();
+				std::advance(iter, index);
 
-				if (iter != m_vecSpotLights.end())
+				if (iter != m_spotLights.end())
 				{
-					m_vecSpotLights.erase(iter);
+					m_spotLights.erase(iter);
 				}
 			}
 			break;
@@ -215,42 +239,37 @@ namespace eastengine
 
 		void LightManager::Impl::RemoveAll()
 		{
-			std::for_each(m_vecDirectionalLights.begin(), m_vecDirectionalLights.end(), DeleteSTLObject());
-			m_vecDirectionalLights.clear();
-
-			std::for_each(m_vecSpotLights.begin(), m_vecSpotLights.end(), DeleteSTLObject());
-			m_vecDirectionalLights.clear();
-
-			std::for_each(m_vecPointLights.begin(), m_vecPointLights.end(), DeleteSTLObject());
-			m_vecDirectionalLights.clear();
+			m_directionalLights.clear();
+			m_spotLights.clear();
+			m_pointLights.clear();
 		}
 
-		ILight* LightManager::Impl::GetLight(ILight::Type emType, size_t nIndex)
+		ILight* LightManager::Impl::GetLight(ILight::Type emType, size_t index) const
 		{
 			switch (emType)
 			{
 			case ILight::Type::eDirectional:
 			{
-				if (nIndex >= m_vecDirectionalLights.size())
+				if (index >= m_directionalLights.size())
 					return nullptr;
 
-				return m_vecDirectionalLights[nIndex];
+				return m_directionalLights[index].get();
 			}
 			break;
 			case ILight::Type::ePoint:
 			{
-				if (nIndex >= m_vecPointLights.size())
+				if (index >= m_pointLights.size())
 					return nullptr;
 
-				return m_vecPointLights[nIndex];
+				return m_pointLights[index].get();
 			}
 			break;
 			case ILight::Type::eSpot:
 			{
-				if (nIndex >= m_vecSpotLights.size())
+				if (index >= m_spotLights.size())
 					return nullptr;
 
-				return m_vecSpotLights[nIndex];
+				return m_spotLights[index].get();
 			}
 			break;
 			default:
@@ -258,24 +277,24 @@ namespace eastengine
 			}
 		}
 
-		size_t LightManager::Impl::GetLightCount(ILight::Type emType)
+		size_t LightManager::Impl::GetLightCount(ILight::Type emType) const
 		{
 			switch (emType)
 			{
 			case ILight::Type::eDirectional:
-				return m_vecDirectionalLights.size();
+				return m_directionalLights.size();
 			case ILight::Type::ePoint:
-				return m_vecPointLights.size();
+				return m_pointLights.size();
 			case ILight::Type::eSpot:
-				return m_vecSpotLights.size();
+				return m_spotLights.size();
 			default:
 				return 0;
 			}
 		}
 
-		uint32_t LightManager::Impl::GetLightCountInView(ILight::Type emType)
+		uint32_t LightManager::Impl::GetLightCountInView(ILight::Type emType) const
 		{
-			return m_nLightCountInView[emType];
+			return m_lightCountInView[emType];
 		}
 
 		void LightManager::Impl::GetDirectionalLightData(const DirectionalLightData** ppDirectionalLightData, uint32_t* pSize) const
@@ -287,7 +306,7 @@ namespace eastengine
 
 			if (pSize != nullptr)
 			{
-				*pSize = static_cast<uint32_t>(m_vecDirectionalLights.size());
+				*pSize = static_cast<uint32_t>(m_directionalLights.size());
 			}
 		}
 
@@ -300,7 +319,7 @@ namespace eastengine
 
 			if (pSize != nullptr)
 			{
-				*pSize = static_cast<uint32_t>(m_vecPointLights.size());
+				*pSize = static_cast<uint32_t>(m_pointLights.size());
 			}
 		}
 
@@ -313,65 +332,64 @@ namespace eastengine
 
 			if (pSize != nullptr)
 			{
-				*pSize = static_cast<uint32_t>(m_vecSpotLights.size());
+				*pSize = static_cast<uint32_t>(m_spotLights.size());
 			}
 		}
 
 		void LightManager::Impl::UpdateLightBuffer()
 		{
-			m_nLightCountInView.fill(0);
+			TRACER_EVENT(__FUNCTION__);
 
-			TRACER_BEGINEVENT("UpdateLightBuffer_Directional");
-			std::for_each(m_vecDirectionalLights.begin(), m_vecDirectionalLights.end(), [&](IDirectionalLight* pLight)
+			m_lightCountInView.fill(0);
+
 			{
-				uint32_t& nLightIndex = m_nLightCountInView[ILight::eDirectional];
-				if (nLightIndex < ILight::eMaxDirectionalLightCount)
+				TRACER_EVENT("Directional");
+				std::for_each(m_directionalLights.begin(), m_directionalLights.end(), [&](std::unique_ptr<DirectionalLight>& pLight)
 				{
-					m_directionalLightData[nLightIndex].Set(pLight->GetColor(), pLight->GetDirection(), pLight->GetIntensity(), pLight->GetAmbientIntensity(), pLight->GetReflectionIntensity());
-					++nLightIndex;
-				}
-			});
-			TRACER_ENDEVENT();
-
-			TRACER_BEGINEVENT("UpdateLightBuffer_Point");
-			std::for_each(m_vecPointLights.begin(), m_vecPointLights.end(), [&](IPointLight* pLight)
-			{
-				Collision::Sphere sphere(pLight->GetPosition(), math::PI * pLight->GetIntensity());
-
-				// 이걸 보거든, 방향 및 거리 계산을 계산해서 프러스텀 안에 들어갈때 버퍼에 추가하도록 바꾸시오.
-				//if (frustum.Contains(sphere) == Collision::EmContainment::eContains)
-				{
-					uint32_t& nLightIndex = m_nLightCountInView[ILight::ePoint];
-					if (nLightIndex < ILight::eMaxPointLightCount)
+					uint32_t& lightIndex = m_lightCountInView[ILight::eDirectional];
+					if (lightIndex < ILight::eMaxDirectionalLightCount)
 					{
-						m_pointLightData[nLightIndex].Set(pLight->GetColor(), pLight->GetPosition(), pLight->GetIntensity(), pLight->GetAmbientIntensity(), pLight->GetReflectionIntensity());
-						++nLightIndex;
+						m_directionalLightData[lightIndex] = pLight->GetData();
+						++lightIndex;
 					}
-				}
-			});
-			TRACER_ENDEVENT();
+				});
+			}
 
-			TRACER_BEGINEVENT("UpdateLightBuffer_Spot");
-			std::for_each(m_vecSpotLights.begin(), m_vecSpotLights.end(), [&](ISpotLight* pLight)
 			{
-				// 이걸 보거든, 방향 및 거리 계산을 계산해서 프러스텀 안에 들어갈때 버퍼에 추가하도록 바꾸시오.
-				if (true)
+				TRACER_EVENT("Point");
+				std::for_each(m_pointLights.begin(), m_pointLights.end(), [&](std::unique_ptr<PointLight>& pLight)
 				{
-					uint32_t& nLightIndex = m_nLightCountInView[ILight::eSpot];
-					if (nLightIndex < ILight::eMaxSpotLightCount)
-					{
-						m_spotLightData[nLightIndex].Set(pLight->GetColor(), pLight->GetPosition(), pLight->GetDirection(), pLight->GetIntensity(), pLight->GetAmbientIntensity(), pLight->GetReflectionIntensity(), pLight->GetAngle());
-						++nLightIndex;
-					}
-				}
-			});
-			TRACER_ENDEVENT();
+					collision::Sphere sphere(pLight->GetPosition(), math::PI * pLight->GetIntensity());
 
-			TRACER_BEGINEVENT("UpdateLightBuffer_UpdateSubresource");
-			//m_pLightBuffers[ILight::eDirectional]->UpdateSubresource(ThreadType::eImmediate, 0, m_directionalLightData.data(), m_nLightCountInView[ILight::eDirectional]);
-			//m_pLightBuffers[ILight::ePoint]->UpdateSubresource(ThreadType::eImmediate, 0, m_pointLightData.data(), m_nLightCountInView[ILight::ePoint]);
-			//m_pLightBuffers[ILight::eSpot]->UpdateSubresource(ThreadType::eImmediate, 0, m_spotLightData.data(), m_nLightCountInView[ILight::eSpot]);
-			TRACER_ENDEVENT();
+					// 이걸 보거든, 방향 및 거리 계산을 계산해서 프러스텀 안에 들어갈때 버퍼에 추가하도록 바꾸시오.
+					//if (frustum.Contains(sphere) == collision::EmContainment::eContains)
+					{
+						uint32_t& lightIndex = m_lightCountInView[ILight::ePoint];
+						if (lightIndex < ILight::eMaxPointLightCount)
+						{
+							m_pointLightData[lightIndex] = pLight->GetData();
+							++lightIndex;
+						}
+					}
+				});
+			}
+
+			{
+				TRACER_EVENT("Spot");
+				std::for_each(m_spotLights.begin(), m_spotLights.end(), [&](std::unique_ptr<SpotLight>& pLight)
+				{
+					// 이걸 보거든, 방향 및 거리 계산을 계산해서 프러스텀 안에 들어갈때 버퍼에 추가하도록 바꾸시오.
+					if (true)
+					{
+						uint32_t& lightIndex = m_lightCountInView[ILight::eSpot];
+						if (lightIndex < ILight::eMaxSpotLightCount)
+						{
+							m_spotLightData[lightIndex] = pLight->GetData();
+							++lightIndex;
+						}
+					}
+				});
+			}
 		}
 
 		LightManager::LightManager()
@@ -388,9 +406,19 @@ namespace eastengine
 			m_pImpl->Update(elapsedTime);
 		}
 
-		bool LightManager::AddLight(ILight* pLight)
+		IDirectionalLight* LightManager::CreateDirectionalLight(const string::StringID& name, bool isEnableShadow, const DirectionalLightData& lightData)
 		{
-			return m_pImpl->AddLight(pLight);
+			return m_pImpl->CreateDirectionalLight(name, isEnableShadow, lightData);
+		}
+
+		IPointLight* LightManager::CreatePointLight(const string::StringID& name, bool isEnableShadow, const PointLightData& lightData)
+		{
+			return m_pImpl->CreatePointLight(name, isEnableShadow, lightData);
+		}
+
+		ISpotLight* LightManager::CreateSpotLight(const string::StringID& name, bool isEnableShadow, const SpotLightData& lightData)
+		{
+			return m_pImpl->CreateSpotLight(name, isEnableShadow, lightData);
 		}
 
 		void LightManager::Remove(ILight* pLight)
@@ -398,9 +426,9 @@ namespace eastengine
 			m_pImpl->Remove(pLight);
 		}
 
-		void LightManager::Remove(ILight::Type emType, size_t nIndex)
+		void LightManager::Remove(ILight::Type emType, size_t index)
 		{
-			m_pImpl->Remove(emType, nIndex);
+			m_pImpl->Remove(emType, index);
 		}
 
 		void LightManager::RemoveAll()
@@ -408,17 +436,17 @@ namespace eastengine
 			m_pImpl->RemoveAll();
 		}
 
-		ILight* LightManager::GetLight(ILight::Type emType, size_t nIndex)
+		ILight* LightManager::GetLight(ILight::Type emType, size_t index) const
 		{
-			return m_pImpl->GetLight(emType, nIndex);
+			return m_pImpl->GetLight(emType, index);
 		}
 
-		size_t LightManager::GetLightCount(ILight::Type emType)
+		size_t LightManager::GetLightCount(ILight::Type emType) const
 		{
 			return m_pImpl->GetLightCount(emType);
 		}
 
-		uint32_t LightManager::GetLightCountInView(ILight::Type emType)
+		uint32_t LightManager::GetLightCountInView(ILight::Type emType) const
 		{
 			return m_pImpl->GetLightCountInView(emType);
 		}

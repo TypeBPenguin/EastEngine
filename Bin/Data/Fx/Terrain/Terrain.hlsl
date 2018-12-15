@@ -6,30 +6,6 @@
 
 #ifdef DX11
 
-//RasterizerState CullBackMS
-//{
-//	CullMode = Back;
-//	FrontCounterClockwise = TRUE;
-//	MultisampleEnable = TRUE;
-//};
-//
-//RasterizerState WireframeMS
-//{
-//	CullMode = NONE;
-//	FillMode = WIREFRAME;
-//	MultisampleEnable = TRUE;
-//};
-//
-//DepthStencilState DepthNormal
-//{
-//	DepthFunc = LESS_EQUAL;
-//};
-//
-//BlendState NoBlending
-//{
-//	BlendEnable[0] = FALSE;
-//};
-
 SamplerState SamplerLinearWrap : register(s0);
 SamplerState SamplerLinearBorder : register(s1);
 SamplerState SamplerAnisotropicBorder : register(s2);
@@ -57,6 +33,10 @@ SamplerState SamplerAnisotropicBorder : register(s2, space100);
 
 #define TexDetail(uv)			Tex2DTable[g_nTexDetail].Sample(SamplerLinearWrap, uv)
 #define TexDetailNormal(uv)		Tex2DTable[g_nTexDetailNormal].Sample(SamplerLinearWrap, uv)
+
+#else
+
+#error "Only support Dx11, Dx12"
 
 #endif
 

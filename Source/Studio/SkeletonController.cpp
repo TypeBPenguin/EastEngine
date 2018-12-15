@@ -32,7 +32,7 @@ SkeletonController::SkeletonController()
 
 			physics::RigidBodyProperty rigidBodyProperty;
 			rigidBodyProperty.strName.Format("%s_%d_%d", "SkeletonController", i, j);
-			rigidBodyProperty.nCollisionFlag = physics::EmCollision::eKinematicObject;
+			rigidBodyProperty.nCollisionFlag = physics::CollisionFlag::eKinematicObject;
 
 			switch (i)
 			{
@@ -123,7 +123,7 @@ bool SkeletonController::Process(float elapsedTime)
 	const math::Matrix& matView = pCamera->GetViewMatrix(nThreadID);
 	const math::Matrix& matProjection = pCamera->GetProjMatrix(nThreadID);
 
-	const Collision::Ray rayScreen = Collision::Ray::CreateFromScreenCoordinates(n2MousePoint, n2ScreenSize, matView, matProjection);
+	const collision::Ray rayScreen = collision::Ray::CreateFromScreenCoordinates(n2MousePoint, n2ScreenSize, matView, matProjection);
 
 	const bool isEnableRayTest = input::mouse::IsButtonDown(input::mouse::eLeft);
 	float fNearDistance = std::numeric_limits<float>::max();
@@ -152,7 +152,7 @@ bool SkeletonController::Process(float elapsedTime)
 						math::Quaternion quatRot;
 						pBone->GetGlobalMatrix().Decompose(f3Scale, quatRot, f3Pos);
 
-						const Collision::OBB obb(f3Pos, math::float3(0.02f), quatRot);
+						const collision::OBB obb(f3Pos, math::float3(0.02f), quatRot);
 
 						if (isEnableRayTest == true)
 						{
@@ -209,7 +209,7 @@ bool SkeletonController::Process(float elapsedTime)
 			math::Quaternion quatRot;
 			m_pSelectedBone->GetGlobalMatrix().Decompose(f3Scale, quatRot, f3Pos);
 
-			const Collision::OBB obb(f3Pos, math::float3(0.02f), quatRot);
+			const collision::OBB obb(f3Pos, math::float3(0.02f), quatRot);
 
 			fDist = 0.f;
 			if (rayScreen.Intersects(obb, fDist) == true)

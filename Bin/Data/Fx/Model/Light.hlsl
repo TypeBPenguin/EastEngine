@@ -30,38 +30,38 @@
 
 struct DirectionalLight
 {
-	float3 f3Color;
-	float fLightIntensity;
+	float3 color;
+	float lightIntensity;
 
-	float3 f3Dir;
-	float fAmbientIntensity;
+	float3 direction;
+	float ambientIntensity;
 
 	float3 padding;
-	float fReflectionIntensity;
+	float reflectionIntensity;
 };
 
 struct PointLight
 {
-	float3 f3Color;
-	float fLightIntensity;
+	float3 color;
+	float lightIntensity;
 
-	float3 f3Pos;
-	float fAmbientIntensity;
+	float3 position;
+	float ambientIntensity;
 
 	float3 padding;
-	float fReflectionIntensity;
+	float reflectionIntensity;
 };
 
 struct SpotLight
 {
-	float3 f3Color;
-	float fLightIntensity;
+	float3 color;
+	float lightIntensity;
 
-	float3 f3Pos;
-	float fAmbientIntensity;
+	float3 position;
+	float ambientIntensity;
 
-	float3 f3Dir;
-	float fReflectionIntensity;
+	float3 direction;
+	float reflectionIntensity;
 
 	float3 padding;
 	float fAngle;

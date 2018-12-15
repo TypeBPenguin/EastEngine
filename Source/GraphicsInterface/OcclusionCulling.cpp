@@ -52,7 +52,7 @@ namespace eastengine
 			void SuspendThreads();
 
 			void Update(const Camera* pCamera);
-			const Collision::Frustum& GetCameraFrustum() const { return m_cameraFrustum; }
+			const collision::Frustum& GetCameraFrustum() const { return m_cameraFrustum; }
 
 		public:
 			void RenderTriangles(const math::Matrix& matWorld, const VertexPos* pVertices, const uint32_t* pIndices, int indexCount);
@@ -60,7 +60,7 @@ namespace eastengine
 
 		public:
 			Result TestRect(float xmin, float ymin, float xmax, float ymax, float wmin) const;
-			Result TestRect(const Collision::AABB& aabb) const;
+			Result TestRect(const collision::AABB& aabb) const;
 
 		public:
 			void Write(const char* strPath);
@@ -95,7 +95,7 @@ namespace eastengine
 
 			float m_cameraFov{ 0.f };
 			float m_cameraNearClip{ 0.f };
-			Collision::Frustum m_cameraFrustum;
+			collision::Frustum m_cameraFrustum;
 
 			float m_radiusThreshold{ 0.f };
 			MaskedOcclusionCulling* m_pMaskedOcclusionCulling{ nullptr };
@@ -363,15 +363,15 @@ namespace eastengine
 			return emResult;
 		}
 
-		OcclusionCulling::Result OcclusionCulling::Impl::TestRect(const Collision::AABB& aabb) const
+		OcclusionCulling::Result OcclusionCulling::Impl::TestRect(const collision::AABB& aabb) const
 		{
 			if (m_emState == ePause)
 				return OcclusionCulling::eVisible;
 
 			// 0 = use min corner, 1 = use max corner
-			static const uint32_t sBBxInd[Collision::AABB::CORNER_COUNT]{ 1, 0, 0, 1, 1, 1, 0, 0 };
-			static const uint32_t sBByInd[Collision::AABB::CORNER_COUNT]{ 1, 1, 1, 1, 0, 0, 0, 0 };
-			static const uint32_t sBBzInd[Collision::AABB::CORNER_COUNT]{ 1, 1, 0, 0, 0, 1, 1, 0 };
+			static const uint32_t sBBxInd[collision::AABB::CORNER_COUNT]{ 1, 0, 0, 1, 1, 1, 0, 0 };
+			static const uint32_t sBByInd[collision::AABB::CORNER_COUNT]{ 1, 1, 1, 1, 0, 0, 0, 0 };
+			static const uint32_t sBBzInd[collision::AABB::CORNER_COUNT]{ 1, 1, 0, 0, 0, 1, 1, 0 };
 
 			__m128 cumulativeMatrix[4];
 			cumulativeMatrix[0] = _mm_loadu_ps(&m_matViewProjection._r0.x);
@@ -413,7 +413,7 @@ namespace eastengine
 			if (minW < 0.00000001f)
 				return Result::eVisible;
 
-			for (size_t i = 0; i < Collision::AABB::CORNER_COUNT; i++)
+			for (size_t i = 0; i < collision::AABB::CORNER_COUNT; i++)
 			{
 				// Transform the vertex
 				__m128 vert = cumulativeMatrix[3];
@@ -446,7 +446,7 @@ namespace eastengine
 			if (center.w > 1.f && (aabb.Extents.LengthSquared() < center.w * m_radiusThreshold))
 				return Result::eViewCulled;
 			
-			math::float3 corners[Collision::AABB::CORNER_COUNT];
+			math::float3 corners[collision::AABB::CORNER_COUNT];
 			aabb.GetCorners(corners);
 			
 			math::float4 max(std::numeric_limits<float>::min());
@@ -593,7 +593,7 @@ namespace eastengine
 			m_pImpl->Update(pCamera);
 		}
 
-		const Collision::Frustum& OcclusionCulling::GetCameraFrustum() const
+		const collision::Frustum& OcclusionCulling::GetCameraFrustum() const
 		{
 			return m_pImpl->GetCameraFrustum();
 		}
@@ -615,7 +615,7 @@ namespace eastengine
 			return m_pImpl->TestRect(xmin, ymin, xmax, ymax, wmin);
 		}
 
-		OcclusionCulling::Result OcclusionCulling::TestRect(const Collision::AABB& aabb) const
+		OcclusionCulling::Result OcclusionCulling::TestRect(const collision::AABB& aabb) const
 		{
 			return m_pImpl->TestRect(aabb);
 		}

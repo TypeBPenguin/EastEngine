@@ -112,7 +112,7 @@ namespace eastengine
 				physics::RigidBodyProperty prop;
 				prop.fLinearDamping = 0.05f;
 				prop.fAngularDamping = 0.85f;
-				prop.nCollisionFlag = physics::EmCollision::eCharacterObject;
+				prop.nCollisionFlag = physics::CollisionFlag::eCharacterObject;
 				prop.strName = strName;
 				prop.f3OriginPos = f3NewPos;
 				prop.originQuat = newQuat;
@@ -128,7 +128,7 @@ namespace eastengine
 				pBodyPart->fHeight = fNewHeight;
 				//pBodyPart->isChildBone = isChildBone;
 
-				pBodyPart->pRigidBody->SetActiveState(physics::EmActiveState::eIslandSleeping);
+				pBodyPart->pRigidBody->SetActiveState(physics::ActiveStateType::eIslandSleeping);
 
 				return pBodyPart;
 			};
@@ -421,7 +421,7 @@ namespace eastengine
 
 			for (auto& pBodyPart : m_vecBodyParts)
 			{
-				pBodyPart->pRigidBody->SetActiveState(physics::EmActiveState::eActiveTag);
+				pBodyPart->pRigidBody->SetActiveState(physics::ActiveStateType::eActiveTag);
 			}
 		}
 

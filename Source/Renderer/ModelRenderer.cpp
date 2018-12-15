@@ -704,8 +704,8 @@ namespace eastengine
 			void RenderStaticModel(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, uint32_t nRenderTypeFlag);
 			void RenderSkinnedModel(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, uint32_t nRenderTypeFlag);
 
-			void RenderStaticModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, const math::Matrix* pMatView, const math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap);
-			void RenderSkinnedModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, const math::Matrix* pMatView, const math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap);
+			void RenderStaticModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, const math::Matrix* pMatView, const math::Matrix& matProj, const collision::Frustum& frustum, bool isRenderCubeMap);
+			void RenderSkinnedModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, const math::Matrix* pMatView, const math::Matrix& matProj, const collision::Frustum& frustum, bool isRenderCubeMap);
 
 		private:
 			struct StaticSubset
@@ -879,7 +879,7 @@ namespace eastengine
 										const math::Matrix& matView = pCascadedShadows->GetViewMatrix(nCascadeLevel);
 										const math::Matrix& matProj = pCascadedShadows->GetProjectionMatrix(nCascadeLevel);
 
-										const Collision::Frustum& frustum = pCascadedShadows->GetFrustum(nCascadeLevel);
+										const collision::Frustum& frustum = pCascadedShadows->GetFrustum(nCascadeLevel);
 
 										RenderStaticModel_Shadow(pDevice, pDeviceContext, pCamera, nRenderGroupFlag, &matView, matProj, frustum, false);
 										RenderSkinnedModel_Shadow(pDevice, pDeviceContext, pCamera, nRenderGroupFlag, &matView, matProj, frustum, false);
@@ -910,7 +910,7 @@ namespace eastengine
 
 									const math::Matrix& matProj = pShadowCubeMap->GetProjectionMatrix();
 
-									const Collision::Frustum& frustum = pShadowCubeMap->GetFrustum(IShadowCubeMap::EmDirection::eFront);
+									const collision::Frustum& frustum = pShadowCubeMap->GetFrustum(IShadowCubeMap::EmDirection::eFront);
 
 									RenderStaticModel_Shadow(pDevice, pDeviceContext, pCamera, nRenderGroupFlag, matViews.data(), matProj, frustum, true);
 									RenderSkinnedModel_Shadow(pDevice, pDeviceContext, pCamera, nRenderGroupFlag, matViews.data(), matProj, frustum, true);
@@ -934,7 +934,7 @@ namespace eastengine
 									const math::Matrix& matView = pShadowMap->GetViewMatrix();
 									const math::Matrix& matProj = pShadowMap->GetProjectionMatrix();
 
-									const Collision::Frustum& frustum = pShadowMap->GetFrustum();
+									const collision::Frustum& frustum = pShadowMap->GetFrustum();
 
 									RenderStaticModel_Shadow(pDevice, pDeviceContext, pCamera, nRenderGroupFlag, &matView, matProj, frustum, false);
 									RenderSkinnedModel_Shadow(pDevice, pDeviceContext, pCamera, nRenderGroupFlag, &matView, matProj, frustum, false);
@@ -1024,7 +1024,7 @@ namespace eastengine
 
 			//	const math::Matrix matClipSpace = pCamera->GetViewMatrix() * pCamera->GetProjMatrix() * matViewport;
 
-			//	const Collision::Frustum& frustum = pCamera->GetFrustum();
+			//	const collision::Frustum& frustum = pCamera->GetFrustum();
 
 			//	OcclusionCulling::GetInstance()->Start();
 			//	for (size_t i = 0; i < m_nStaticIndex[nRenderGroupFlag]; ++i)
@@ -1032,7 +1032,7 @@ namespace eastengine
 			//		StaticSubset& subset = m_vecStaticSubsets[nRenderGroupFlag][i];
 			//		const RenderSubsetStatic& renderSubset = subset.data;
 
-			//		if (frustum.Contains(subset.data.boundingSphere) == Collision::EmContainment::eDisjoint)
+			//		if (frustum.Contains(subset.data.boundingSphere) == collision::EmContainment::eDisjoint)
 			//		{
 			//			subset.isCulling = true;
 			//			continue;
@@ -1081,7 +1081,7 @@ namespace eastengine
 				int nThreadID = GetThreadID(ThreadType::eRender);
 				const math::Matrix& matView = pCamera->GetViewMatrix(nThreadID);
 				const math::Matrix& matProj = pCamera->GetProjMatrix(nThreadID);
-				const Collision::Frustum& frustum = pCamera->GetFrustum(nThreadID);
+				const collision::Frustum& frustum = pCamera->GetFrustum(nThreadID);
 				const math::float3 f3Position = matView.Invert().Translation();
 
 				std::map<std::pair<const void*, IMaterial*>, RenderSubsetStaticBatch> mapStatic;
@@ -1095,7 +1095,7 @@ namespace eastengine
 						if (subset.isCulling == true)
 							continue;
 
-						if (frustum.Contains(subset.data.boundingSphere) == Collision::EmContainment::eDisjoint)
+						if (frustum.Contains(subset.data.boundingSphere) == collision::EmContainment::eDisjoint)
 							continue;
 
 						auto iter = mapStatic.find(subset.pairKey);
@@ -1163,7 +1163,7 @@ namespace eastengine
 				int nThreadID = GetThreadID(ThreadType::eRender);
 				const math::Matrix& matView = pCamera->GetViewMatrix(nThreadID);
 				const math::Matrix& matProj = pCamera->GetProjMatrix(nThreadID);
-				const Collision::Frustum& frustum = pCamera->GetFrustum(nThreadID);
+				const collision::Frustum& frustum = pCamera->GetFrustum(nThreadID);
 				const math::float3 f3Position = matView.Invert().Translation();
 
 				std::map<std::pair<const void*, IMaterial*>, RenderSubsetSkinnedBatch> mapSkinned;
@@ -1178,7 +1178,7 @@ namespace eastengine
 
 						//if (renderSubset.pBoundingSphere != nullptr)
 						//{
-						//	if (pCamera->IsFrustumContains(subset.boundingSphere) == Collision::EmContainment::eDisjoint)
+						//	if (pCamera->IsFrustumContains(subset.boundingSphere) == collision::EmContainment::eDisjoint)
 						//		continue;
 						//}
 
@@ -1226,7 +1226,7 @@ namespace eastengine
 			}
 		}
 
-		void ModelRenderer::Impl::RenderStaticModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, const math::Matrix* pMatView, const math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap)
+		void ModelRenderer::Impl::RenderStaticModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, const math::Matrix* pMatView, const math::Matrix& matProj, const collision::Frustum& frustum, bool isRenderCubeMap)
 		{
 			TRACER_EVENT("ModelRenderer::RenderStaticModel_Shadow");
 			D3D_PROFILING(pDeviceContext, StaticModel_ShadowDepth);
@@ -1243,7 +1243,7 @@ namespace eastengine
 
 				if (isRenderCubeMap == false)
 				{
-					if (frustum.Contains(subset.data.boundingSphere) == Collision::EmContainment::eDisjoint)
+					if (frustum.Contains(subset.data.boundingSphere) == collision::EmContainment::eDisjoint)
 						continue;
 				}
 
@@ -1294,7 +1294,7 @@ namespace eastengine
 			mapStatic.clear();
 		}
 
-		void ModelRenderer::Impl::RenderSkinnedModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, const math::Matrix* pMatView, const math::Matrix& matProj, const Collision::Frustum& frustum, bool isRenderCubeMap)
+		void ModelRenderer::Impl::RenderSkinnedModel_Shadow(IDevice* pDevice, IDeviceContext* pDeviceContext, Camera* pCamera, uint32_t nRenderGroupFlag, const math::Matrix* pMatView, const math::Matrix& matProj, const collision::Frustum& frustum, bool isRenderCubeMap)
 		{
 			TRACER_EVENT("ModelRenderer::RenderSkinnedModel_Shadow");
 			D3D_PROFILING(pDeviceContext, SkinnedModel_ShadowDepth);
@@ -1315,7 +1315,7 @@ namespace eastengine
 					//{
 					//	if (renderSubset.pBoundingSphere != nullptr)
 					//	{
-					//		if (pCamera->IsFrustumContains(subset.boundingSphere) == Collision::EmContainment::eDisjoint)
+					//		if (pCamera->IsFrustumContains(subset.boundingSphere) == collision::EmContainment::eDisjoint)
 					//			continue;
 					//	}
 					//}

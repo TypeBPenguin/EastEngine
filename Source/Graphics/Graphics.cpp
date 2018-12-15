@@ -71,6 +71,10 @@ namespace eastengine
 			virtual IMaterial* CreateMaterial(const char* strFileName, const char* strFilePath) = 0;
 			virtual IMaterial* CloneMaterial(const IMaterial* pMaterialSource) = 0;
 
+			virtual IDirectionalLight* CreateDirectionalLight(const string::StringID& name, bool isEnableShadow, const DirectionalLightData& lightData) = 0;
+			virtual IPointLight* CreatePointLight(const string::StringID& name, bool isEnableShadow, const PointLightData& lightData) = 0;
+			virtual ISpotLight* CreateSpotLight(const string::StringID& name, bool isEnableShadow, const SpotLightData& lightData) = 0;
+
 			virtual void PushRenderJob(const RenderJobStatic& renderJob) = 0;
 			virtual void PushRenderJob(const RenderJobSkinned& renderJob) = 0;
 			virtual void PushRenderJob(const RenderJobTerrain& renderJob) = 0;
@@ -374,6 +378,21 @@ namespace eastengine
 				return iter.first->second.get();
 			}
 
+			virtual IDirectionalLight* CreateDirectionalLight(const string::StringID& name, bool isEnableShadow, const DirectionalLightData& lightData) override
+			{
+				return s_pLightManager->CreateDirectionalLight(name, isEnableShadow, lightData);
+			}
+
+			virtual IPointLight* CreatePointLight(const string::StringID& name, bool isEnableShadow, const PointLightData& lightData) override
+			{
+				return s_pLightManager->CreatePointLight(name, isEnableShadow, lightData);
+			}
+
+			virtual ISpotLight* CreateSpotLight(const string::StringID& name, bool isEnableShadow, const SpotLightData& lightData) override
+			{
+				return s_pLightManager->CreateSpotLight(name, isEnableShadow, lightData);
+			}
+
 			virtual void PushRenderJob(const RenderJobStatic& renderJob) override
 			{
 				if (s_pOcclusionCulling->IsEnable() == true)
@@ -381,8 +400,8 @@ namespace eastengine
 					const IMaterial* pMaterial = renderJob.pMaterial;
 					if (pMaterial == nullptr || pMaterial->GetBlendState() == EmBlendState::eOff)
 					{
-						const Collision::Frustum& cameraFrustum = s_pOcclusionCulling->GetCameraFrustum();
-						if (cameraFrustum.Contains(renderJob.occlusionCullingData.aabb) != Collision::EmContainment::eDisjoint)
+						const collision::Frustum& cameraFrustum = s_pOcclusionCulling->GetCameraFrustum();
+						if (cameraFrustum.Contains(renderJob.occlusionCullingData.aabb) != collision::EmContainment::eDisjoint)
 						{
 							s_pOcclusionCulling->RenderTriangles(renderJob.matWorld, renderJob.occlusionCullingData.pVertices, renderJob.occlusionCullingData.pIndices, renderJob.occlusionCullingData.indexCount);
 						}
@@ -413,7 +432,10 @@ namespace eastengine
 
 			virtual void ReleaseResource(IResource* pResource) override
 			{
-				if (pResource->GetResourceType() == StrID::Texture)
+				if (pResource->GetResourceType() == StrID::Texture ||
+					pResource->GetResourceType() == StrID::DirectionalLight ||
+					pResource->GetResourceType() == StrID::PointLight ||
+					pResource->GetResourceType() == StrID::SpotLight)
 				{
 					pResource->DecreaseReference();
 				}
@@ -632,49 +654,41 @@ namespace eastengine
 			return s_pGraphicsAPI->CloneMaterial(pMaterial);
 		}
 
-		template <>
-		void ReleaseResource(IVertexBuffer** ppResource)
+		IDirectionalLight* CreateDirectionalLight(const string::StringID& name, bool isEnableShadow, const DirectionalLightData& lightData)
 		{
-			if (ppResource == nullptr || *ppResource == nullptr)
-				return;
-
-			s_pGraphicsAPI->ReleaseResource(*ppResource);
-
-			*ppResource = nullptr;
+			return s_pGraphicsAPI->CreateDirectionalLight(name, isEnableShadow, lightData);
 		}
 
-		template <>
-		void ReleaseResource(IIndexBuffer** ppResource)
+		IPointLight* CreatePointLight(const string::StringID& name, bool isEnableShadow, const PointLightData& lightData)
 		{
-			if (ppResource == nullptr || *ppResource == nullptr)
-				return;
-
-			s_pGraphicsAPI->ReleaseResource(*ppResource);
-
-			*ppResource = nullptr;
+			return s_pGraphicsAPI->CreatePointLight(name, isEnableShadow, lightData);
 		}
 
-		template <>
-		void ReleaseResource(ITexture** ppResource)
+		ISpotLight* CreateSpotLight(const string::StringID& name, bool isEnableShadow, const SpotLightData& lightData)
 		{
-			if (ppResource == nullptr || *ppResource == nullptr)
-				return;
-
-			s_pGraphicsAPI->ReleaseResource(*ppResource);
-
-			*ppResource = nullptr;
+			return s_pGraphicsAPI->CreateSpotLight(name, isEnableShadow, lightData);
 		}
 
-		template <>
-		void ReleaseResource(IMaterial** ppResource)
-		{
-			if (ppResource == nullptr || *ppResource == nullptr)
-				return;
+#define DeclReleaseResource(type)									\
+		template <>													\
+		void ReleaseResource(type** ppResource)						\
+		{															\
+			if (ppResource == nullptr || *ppResource == nullptr)	\
+				return;												\
+																	\
+			s_pGraphicsAPI->ReleaseResource(*ppResource);			\
+																	\
+			*ppResource = nullptr;									\
+		}															\
 
-			s_pGraphicsAPI->ReleaseResource(*ppResource);
-
-			*ppResource = nullptr;
-		}
+		DeclReleaseResource(IVertexBuffer);
+		DeclReleaseResource(IIndexBuffer);
+		DeclReleaseResource(ITexture);
+		DeclReleaseResource(IMaterial);
+		DeclReleaseResource(IDirectionalLight);
+		DeclReleaseResource(IPointLight);
+		DeclReleaseResource(ISpotLight);
+		DeclReleaseResource(ILight);
 
 		void PushRenderJob(const RenderJobStatic& renderJob)
 		{

@@ -39,7 +39,7 @@ namespace eastengine
 			virtual const math::Matrix& GetViewMatrix() const override { return m_matView; }
 			virtual const math::Matrix& GetProjectionMatrix() const override { return m_matProjection; }
 			virtual const math::Viewport& GetViewport() const override { return m_viewport; }
-			virtual const Collision::Frustum& GetFrustum() const override { return m_frustum; }
+			virtual const collision::Frustum& GetFrustum() const override { return m_frustum; }
 
 			virtual ISamplerState* GetSamplerPCF() const override { return m_pSamplerShadowPCF; }
 			virtual ISamplerState* GetSamplerPoint() const override { return m_pSamplerShadowPoint; }
@@ -54,7 +54,7 @@ namespace eastengine
 
 			math::Viewport m_viewport;
 
-			Collision::Frustum m_frustum;
+			collision::Frustum m_frustum;
 
 			int m_nPCFBlurSize;
 			float m_fDepthBias;

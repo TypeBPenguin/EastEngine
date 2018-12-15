@@ -8,7 +8,7 @@ namespace eastengine
 	{
 		struct OcclusionCullingData
 		{
-			Collision::AABB aabb;
+			collision::AABB aabb;
 			const VertexPos* pVertices{ nullptr };
 			const uint32_t* pIndices{ nullptr };
 			size_t indexCount{ 0 };

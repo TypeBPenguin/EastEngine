@@ -56,7 +56,7 @@ namespace eastengine
 			float GetNearClip() const;
 
 		public:
-			const Collision::Frustum& GetFrustum() const;
+			const collision::Frustum& GetFrustum() const;
 
 		private:
 			class Impl;

@@ -267,7 +267,7 @@ void SceneStudio::Enter()
 		prop.fRestitution = 0.75f;
 		prop.strName = StrID::Studio_Ground;
 		prop.fMass = 0.f;
-		prop.nCollisionFlag = physics::EmCollision::eStaticObject;
+		prop.nCollisionFlag = physics::CollisionFlag::eStaticObject;
 		prop.shapeInfo.SetTriangleMesh();
 		pCompPhysics->Init(pModelInst, prop);
 	
@@ -378,7 +378,7 @@ void SceneStudio::Enter()
 
 	//		prop.shapeInfo.SetBox(math::float3(1.f));
 	//		//prop.shapeInfo.SetCapsule(math::Random(0.5f, 1.f), math::Random(1.f, 2.f));
-	//		prop.nCollisionFlag = physics::EmCollision::eCharacterObject;
+	//		prop.nCollisionFlag = physics::CollisionFlag::eCharacterObject;
 	//		prop.f3OriginPos = f3Pos;
 	//		pCompPhysics->Init(prop);
 	//	}

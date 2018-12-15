@@ -301,8 +301,8 @@ namespace eastengine
 			virtual uint32_t GetModelSubsetCount(LOD emLod = eLv0) const = 0;
 			virtual const ModelSubset* GetModelSubset(uint32_t nIndex, LOD emLod = eLv0) const = 0;
 
-			virtual void SetOriginAABB(const Collision::AABB& aabb) = 0;
-			virtual const Collision::AABB& GetOriginAABB() const = 0;
+			virtual void SetOriginAABB(const collision::AABB& aabb) = 0;
+			virtual const collision::AABB& GetOriginAABB() const = 0;
 
 			virtual LOD GetLOD() const = 0;
 			virtual void SetLOD(LOD emLod) = 0;

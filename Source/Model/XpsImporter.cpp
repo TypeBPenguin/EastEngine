@@ -493,8 +493,8 @@ namespace eastengine
 						ReleaseResource(&pMaterial);
 					}
 
-					Collision::AABB aabb;
-					Collision::AABB::CreateFromPoints(aabb, vecVertices.size(), &vecVertices[0].pos, VertexPosTexNorWeiIdx::Size());
+					collision::AABB aabb;
+					collision::AABB::CreateFromPoints(aabb, vecVertices.size(), &vecVertices[0].pos, VertexPosTexNorWeiIdx::Size());
 
 					pSkinnedNode->SetOriginAABB(aabb);
 
