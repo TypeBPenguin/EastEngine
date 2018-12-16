@@ -18,7 +18,18 @@ namespace eastengine
 		virtual ~MainSystem();
 
 	public:
-		bool Initialize(graphics::APIs emAPI, uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const string::StringID& strApplicationTitle, const string::StringID& strApplicationName);
+		struct Initializer
+		{
+			graphics::APIs emAPI{ graphics::APIs::eDX11 };
+			uint32_t width{ 1600 };
+			uint32_t height{ 900 };
+			bool isFullScreen{ false };
+			string::StringID applicationTitle;
+			string::StringID applicationName;
+		};
+
+	public:
+		bool Initialize(const Initializer& initializer);
 
 	public:
 		void Run(IScene** ppScene, size_t nSceneCount, size_t nMainScene);

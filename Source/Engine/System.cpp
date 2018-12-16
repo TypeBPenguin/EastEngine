@@ -180,9 +180,9 @@ namespace eastengine
 	{
 	}
 
-	bool MainSystem::Initialize(graphics::APIs emAPI, uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const string::StringID& strApplicationTitle, const string::StringID& strApplicationName)
+	bool MainSystem::Initialize(const Initializer& initializer)
 	{
-		return m_pImpl->Initialize(emAPI, nWidth, nHeight, isFullScreen, strApplicationTitle, strApplicationName);
+		return m_pImpl->Initialize(initializer.emAPI, initializer.width, initializer.height, initializer.isFullScreen, initializer.applicationTitle, initializer.applicationName);
 	}
 
 	void MainSystem::Run(IScene** ppScene, size_t nSceneCount, size_t nMainScene)

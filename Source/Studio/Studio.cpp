@@ -20,8 +20,15 @@ int main()
 
 	try
 	{
-		const eastengine::graphics::APIs emAPI = eastengine::graphics::eDX11;
-		if (eastengine::MainSystem::GetInstance()->Initialize(emAPI, 1600, 900, false, StrID::EastEngine, StrID::EastEngine) == true)
+		eastengine::MainSystem::Initializer initializer;
+		initializer.emAPI = eastengine::graphics::eDX11;
+		initializer.width = 1600;
+		initializer.height = 900;
+		initializer.isFullScreen = false;
+		initializer.applicationTitle = StrID::EastEngine;
+		initializer.applicationName = StrID::EastEngine;
+
+		if (eastengine::MainSystem::GetInstance()->Initialize(initializer) == true)
 		{
 			eastengine::IScene* pScenes[] = { new SceneNewStudio };
 			eastengine::MainSystem::GetInstance()->Run(pScenes, _countof(pScenes), 0);
