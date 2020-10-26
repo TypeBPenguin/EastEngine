@@ -1,10 +1,9 @@
 #pragma once
 
 #include "CommonLib/Timer.h"
-
 #include "ComponentInterface.h"
 
-namespace eastengine
+namespace est
 {
 	namespace gameobject
 	{

@@ -2,11 +2,11 @@
 
 #include "Singleton.h"
 
-namespace eastengine
+namespace est
 {
 	namespace file
 	{
-		using DirectoryMonitorCallback = void (CALLBACK*)(const char* strPath, DWORD dwAction, LPARAM lParam);
+		using DirectoryMonitorCallback = void (CALLBACK*)(const wchar_t* strPath, DWORD dwAction, LPARAM lParam);
 
 		enum Filter
 		{
@@ -31,7 +31,7 @@ namespace eastengine
 			void Update();
 
 		public:
-			void AddDirectoryMonitor(const char* strDirectory, DirectoryMonitorCallback funcCallback, DWORD notifyFilter = Filter::eFileName | Filter::eDirName | Filter::eAttributes | Filter::eSize | Filter::eLastWrite | Filter::eCreation);
+			void AddDirectoryMonitor(const wchar_t* directory, DirectoryMonitorCallback funcCallback, DWORD notifyFilter = Filter::eFileName | Filter::eDirName | Filter::eAttributes | Filter::eSize | Filter::eLastWrite | Filter::eCreation);
 
 		private:
 			class Impl;

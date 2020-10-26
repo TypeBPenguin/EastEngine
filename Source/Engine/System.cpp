@@ -7,7 +7,7 @@
 #include "CommonLib/CrashHandler.h"
 
 #include "Input/InputDevice.h"
-#include "Model/ModelManager.h"
+#include "Graphics/Model/ModelManager.h"
 #include "GameObject/GameObjectManager.h"
 #include "Physics/PhysicsSystem.h"
 #include "SoundSystem/SoundSystem.h"
@@ -15,12 +15,12 @@
 #include "FpsChecker.h"
 #include "SceneManager.h"
 
-namespace StrID
+namespace sid
 {
 	RegisterStringID(Input);
 }
 
-namespace eastengine
+namespace est
 {
 	class MainSystem::Impl
 	{
@@ -29,11 +29,12 @@ namespace eastengine
 		~Impl();
 
 	public:
-		bool Initialize(graphics::APIs emAPI, uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const string::StringID& strApplicationTitle, const string::StringID& strApplicationName);
+		bool Initialize(const Initializer& initializer);
 		void Release();
 
 	public:
-		void Run(IScene** ppScene, size_t nSceneCount, size_t nMainScene);
+		void Run(std::vector<std::unique_ptr<IScene>>&& pScenes, const string::StringID& startSceneName);
+		void Exit();
 
 	public:
 		float GetFPS() const { return m_pFpsChecker->GetFps(); }
@@ -52,6 +53,8 @@ namespace eastengine
 		gameobject::GameObjectManager* s_pGameObjectManager{ nullptr };
 		physics::System* s_pPhysicsSystem{ nullptr };
 		sound::System* s_pSoundSystem{ nullptr };
+
+		bool m_isRunning{ true };
 	};
 
 	MainSystem::Impl::Impl()
@@ -64,35 +67,39 @@ namespace eastengine
 		Release();
 	}
 
-	bool MainSystem::Impl::Initialize(graphics::APIs emAPI, uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const string::StringID& strApplicationTitle, const string::StringID& strApplicationName)
+	bool MainSystem::Impl::Initialize(const Initializer& initializer)
 	{
-		std::string strDumpPath = file::GetBinPath();
-		strDumpPath.append("Dump\\");
-		if (CrashHandler::Initialize(strDumpPath.c_str()) == false)
+		std::wstring dumpPath = file::GetBinPath();
+		dumpPath.append(L"Dump\\");
+		if (CrashHandler::Initialize(dumpPath.c_str()) == false)
 			return false;
 
 		thread::ThreadPool::GetInstance();
+		jobsystem::Initialize();
 
 		s_pTimer = Timer::GetInstance();
+		s_pTimer->SetLimitElapsedTime(initializer.limitElapsedTime);
 
-		graphics::Initialize(emAPI, nWidth, nHeight, isFullScreen, strApplicationTitle, strApplicationName);
+		graphics::Initialize(initializer.emAPI, initializer.width, initializer.height, initializer.isFullScreen, initializer.isVSync, initializer.applicationTitle, initializer.applicationName);
 
 		s_pInputDevice = input::Device::GetInstance();
 		s_pInputDevice->Initialize(graphics::GetHInstance(), graphics::GetHwnd());
 
-		graphics::AddMessageHandler(StrID::Input, [](HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
+		graphics::AddMessageHandler(sid::Input, [](HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
 		{
 			input::Device::GetInstance()->HandleMessage(hWnd, nMsg, wParam, lParam);
 		});
 
 		s_pPhysicsSystem = physics::System::GetInstance();
+		s_pPhysicsSystem->Initialize({});
+
 		s_pSoundSystem = sound::System::GetInstance();
 
 		s_pModelManager = graphics::ModelManager::GetInstance();
 		s_pGameObjectManager = gameobject::GameObjectManager::GetInstance();
 
 		s_pSceneManager = SceneManager::GetInstance();
-		
+
 		return true;
 	}
 
@@ -103,6 +110,7 @@ namespace eastengine
 		SceneManager::DestroyInstance();
 		s_pSceneManager = nullptr;
 
+		s_pGameObjectManager->Release();
 		gameobject::GameObjectManager::DestroyInstance();
 		s_pGameObjectManager = nullptr;
 
@@ -126,16 +134,17 @@ namespace eastengine
 		string::Release();
 	}
 
-	void MainSystem::Impl::Run(IScene** ppScene, size_t nSceneCount, size_t nMainScene)
+	void MainSystem::Impl::Run(std::vector<std::unique_ptr<IScene>>&& pScenes, const string::StringID& startSceneName)
 	{
-		s_pTimer->Start();
-
-		for (size_t i = 0; i < nSceneCount; ++i)
+		for (auto& pScene : pScenes)
 		{
-			s_pSceneManager->AddScene(ppScene[i]);
+			s_pSceneManager->AddScene(std::move(pScene));
 		}
+		pScenes.clear();
 
-		s_pSceneManager->ChangeScene(ppScene[nMainScene]->GetName());
+		s_pSceneManager->ChangeScene(startSceneName);
+
+		s_pTimer->Reset();
 
 		graphics::Run([&]()
 		{
@@ -144,17 +153,26 @@ namespace eastengine
 			const float elapsedTime = s_pTimer->GetElapsedTime();
 			Cleanup(elapsedTime);
 			Update(elapsedTime);
+
+			return m_isRunning;
 		});
+	}
+
+	void MainSystem::Impl::Exit()
+	{
+		m_isRunning = false;
 	}
 
 	void MainSystem::Impl::Cleanup(float elapsedTime)
 	{
+		TRACER_EVENT(__FUNCTIONW__);
 		s_pModelManager->Cleanup(elapsedTime);
 		graphics::Cleanup(elapsedTime);
 	}
 
 	void MainSystem::Impl::Update(float elapsedTime)
 	{
+		TRACER_EVENT(__FUNCTIONW__);
 		performance::tracer::RefreshState();
 
 		m_pFpsChecker->Update(elapsedTime);
@@ -168,7 +186,7 @@ namespace eastengine
 		s_pModelManager->Update();
 		s_pSoundSystem->Update(elapsedTime);
 
-		graphics::PostUpdate();
+		graphics::PostUpdate(elapsedTime);
 	}
 
 	MainSystem::MainSystem()
@@ -182,12 +200,17 @@ namespace eastengine
 
 	bool MainSystem::Initialize(const Initializer& initializer)
 	{
-		return m_pImpl->Initialize(initializer.emAPI, initializer.width, initializer.height, initializer.isFullScreen, initializer.applicationTitle, initializer.applicationName);
+		return m_pImpl->Initialize(initializer);
 	}
 
-	void MainSystem::Run(IScene** ppScene, size_t nSceneCount, size_t nMainScene)
+	void MainSystem::Run(std::vector<std::unique_ptr<IScene>>&& pScenes, const string::StringID& startSceneName)
 	{
-		m_pImpl->Run(ppScene, nSceneCount, nMainScene);
+		m_pImpl->Run(std::move(pScenes), startSceneName);
+	}
+
+	void MainSystem::Exit()
+	{
+		return m_pImpl->Exit();
 	}
 
 	float MainSystem::GetFPS() const

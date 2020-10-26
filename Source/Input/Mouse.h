@@ -2,7 +2,7 @@
 
 #include "InputInterface.h"
 
-namespace eastengine
+namespace est
 {
 	namespace input
 	{
@@ -29,7 +29,7 @@ namespace eastengine
 						byte undefineButton[5];
 					};
 
-					byte rgbButtonArr[8];
+					byte rgbButtonArr[8]{ 0 };
 				};
 			};
 

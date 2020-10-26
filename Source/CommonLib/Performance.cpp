@@ -6,7 +6,7 @@
 #include "FileUtil.h"
 #include "json.hpp"
 
-namespace eastengine
+namespace est
 {
 	namespace performance
 	{
@@ -23,13 +23,13 @@ namespace eastengine
 
 			public:
 				void Start();
-				void End(const char* strSaveFilePath);
+				void End(const wchar_t* saveFilePath);
 
-				void BeginEvent(const char* strTitle, const char* strCategory);
-				void EndEvent();
+				void BeginEvent(const wchar_t* title, const wchar_t* category);
+				void EndEvent(bool isForceRecord);
 
 				template <typename T>
-				void PushArgs(const char* strKey, T value)
+				void PushArgs(const wchar_t* key, T value)
 				{
 					if (IsTracing() == false)
 						return;
@@ -39,12 +39,12 @@ namespace eastengine
 					Event* pEvent = GetLastEvent();
 					if (pEvent != nullptr)
 					{
-						pEvent->args.push_back({ strKey, value });
+						pEvent->args.push_back({ key, value });
 					}
 				}
 
 				template <>
-				void PushArgs(const char* strKey, const char* value)
+				void PushArgs(const wchar_t* key, const wchar_t* value)
 				{
 					if (IsTracing() == false)
 						return;
@@ -54,13 +54,13 @@ namespace eastengine
 					Event* pEvent = GetLastEvent();
 					if (pEvent != nullptr)
 					{
-						pEvent->args.push_back({ strKey, std::string{ value } });
+						pEvent->args.push_back({ key, std::wstring{ value } });
 					}
 				}
 
 			public:
 				float TracingTime() const;
-				constexpr bool IsTracing() const noexcept;
+				bool IsTracing() const;
 
 			private:
 				void Save();
@@ -116,7 +116,7 @@ namespace eastengine
 
 					struct Args
 					{
-						std::string strKey;
+						std::wstring key;
 
 						std::variant<
 							bool,
@@ -126,7 +126,7 @@ namespace eastengine
 							uint64_t,
 							float,
 							double,
-							std::string> variantValue;
+							std::wstring> variantValue;
 					};
 					std::vector<Args> args;
 				};
@@ -137,8 +137,8 @@ namespace eastengine
 				thread::SRWLock m_srwLock;
 
 				std::optional<std::chrono::high_resolution_clock::time_point> m_startTime;
-				std::unordered_map<uint32_t, std::vector<Event>> m_umapEvents;
-				std::unordered_map<uint32_t, std::stack<size_t>> m_umapEventLinkers;
+				tsl::robin_map<uint32_t, std::vector<Event>> m_umapEvents;
+				tsl::robin_map<uint32_t, std::stack<size_t>> m_umapEventLinkers;
 
 				enum State
 				{
@@ -151,7 +151,7 @@ namespace eastengine
 				};
 
 				State m_emState{ eIdle };
-				std::string m_strSaveFilePath;
+				std::wstring m_saveFilePath;
 			};
 
 			TracerImpl::TracerImpl()
@@ -186,16 +186,16 @@ namespace eastengine
 				m_emState = eRequestStart;
 			}
 
-			void TracerImpl::End(const char* strSaveFilePath)
+			void TracerImpl::End(const wchar_t* saveFilePath)
 			{
 				if (IsTracing() == false)
 					return;
 
-				m_strSaveFilePath = strSaveFilePath;
+				m_saveFilePath = saveFilePath;
 				m_emState = eRequestEnd;
 			}
 
-			void TracerImpl::BeginEvent(const char* title, const char* category)
+			void TracerImpl::BeginEvent(const wchar_t* title, const wchar_t* category)
 			{
 				if (IsTracing() == false)
 					return;
@@ -205,13 +205,13 @@ namespace eastengine
 				const uint32_t threadID = GetCurrentThreadId();
 				const uint32_t processID = GetCurrentProcessId();
 
-				const size_t nIndex = m_umapEvents[threadID].size();
-				m_umapEventLinkers[threadID].emplace(nIndex);
+				const size_t index = m_umapEvents[threadID].size();
+				m_umapEventLinkers[threadID].emplace(index);
 
 				m_umapEvents[threadID].emplace_back(Event::eBegin, title, category, processID, threadID);
 			}
 
-			void TracerImpl::EndEvent()
+			void TracerImpl::EndEvent(bool isForceRecord)
 			{
 				if (IsTracing() == false)
 					return;
@@ -222,23 +222,29 @@ namespace eastengine
 				if (m_umapEventLinkers[threadID].empty() == true)
 					return;
 
-				const size_t nIndex = m_umapEventLinkers[threadID].top();
+				const size_t index = m_umapEventLinkers[threadID].top();
 				m_umapEventLinkers[threadID].pop();
-				assert(nIndex < m_umapEvents[threadID].size());
+				if (index >= m_umapEvents[threadID].size())
+					return;
 
-				const Event& beginEvent = m_umapEvents[threadID][nIndex];
+				enum
+				{
+					eTracingThreshold = 50,
+				};
+
+				const Event& beginEvent = m_umapEvents[threadID][index];
 
 				const std::chrono::high_resolution_clock::time_point nowTime = std::chrono::high_resolution_clock::now();
 				const std::chrono::microseconds time = std::chrono::duration_cast<std::chrono::microseconds>(nowTime - beginEvent.time);
-				if (time.count() > 0)
+				if (isForceRecord == true || time.count() > eTracingThreshold)
 				{
 					const uint32_t processID = GetCurrentProcessId();
-					m_umapEvents[threadID].emplace_back(Event::eEnd, StrID::EmptyString, StrID::EmptyString, processID, threadID, nowTime);
+					m_umapEvents[threadID].emplace_back(Event::eEnd, sid::EmptyString, sid::EmptyString, processID, threadID, nowTime);
 				}
 				else
 				{
 					auto iter = m_umapEvents[threadID].begin();
-					std::advance(iter, nIndex);
+					std::advance(iter, index);
 					m_umapEvents[threadID].erase(iter);
 				}
 			}
@@ -251,7 +257,7 @@ namespace eastengine
 				return std::chrono::duration_cast<std::chrono::duration<float>>(std::chrono::high_resolution_clock::now() - m_startTime.value()).count();
 			}
 
-			constexpr bool TracerImpl::IsTracing() const noexcept
+			bool TracerImpl::IsTracing() const
 			{
 				return m_emState == State::eStart;
 			}
@@ -263,7 +269,7 @@ namespace eastengine
 
 				for (auto iter = m_umapEvents.begin(); iter != m_umapEvents.end(); ++iter)
 				{
-					std::vector<Event>& vecEvents = iter->second;
+					std::vector<Event>& vecEvents = iter.value();
 					std::for_each(vecEvents.begin(), vecEvents.end(), [&](Event& event)
 					{
 						Json data;
@@ -272,9 +278,8 @@ namespace eastengine
 						{
 						case Event::eBegin:
 							data["ph"] = "B";
-							data["name"] = event.title.c_str();
-							data["cat"] = event.category.c_str();
-
+							data["name"] = string::WideToMulti(event.title.c_str());
+							data["cat"] = string::WideToMulti(event.category.c_str());
 							break;
 						case Event::eEnd:
 							data["ph"] = "E";
@@ -298,19 +303,24 @@ namespace eastengine
 								std::visit([&](auto&& arg)
 								{
 									using T = std::decay_t<decltype(arg)>;
+									const std::string key = string::WideToMulti(args.key);
 									if constexpr (std::is_same_v<T, bool>)
 									{
-										argsData[args.strKey] = (arg == true) ? "true" : "false";
+										argsData[key] = (arg == true) ? "true" : "false";
 									}
 									else if constexpr (std::is_same_v<T, int32_t> ||
 										std::is_same_v<T, uint32_t> ||
 										std::is_same_v<T, int64_t> ||
 										std::is_same_v<T, uint64_t> ||
 										std::is_same_v<T, float> ||
-										std::is_same_v<T, double> ||
-										std::is_same_v<T, std::string>)
+										std::is_same_v<T, double>)
 									{
-										argsData[args.strKey] = arg;
+										argsData[key] = arg;
+									}
+									else if constexpr (std::is_same_v<T, std::wstring>)
+									{
+										const std::string value = string::WideToMulti(arg);
+										argsData[key] = value;
 									}
 									else
 									{
@@ -328,13 +338,13 @@ namespace eastengine
 
 				root["displayTimeUnit"] = "ms";
 
-				const std::string strFileExtension = file::GetFileExtension(m_strSaveFilePath);
-				if (strFileExtension.empty() == true)
+				const std::wstring fileExtension = file::GetFileExtension(m_saveFilePath);
+				if (fileExtension.empty() == true)
 				{
-					m_strSaveFilePath.append(".json");
+					m_saveFilePath.append(L".json");
 				}
 
-				std::ofstream stream(m_strSaveFilePath.c_str());
+				std::ofstream stream(m_saveFilePath.c_str());
 				stream << std::setw(4) << root << std::endl;
 
 				m_startTime.reset();
@@ -347,9 +357,9 @@ namespace eastengine
 				if (m_umapEventLinkers[nThreadID].empty() == true)
 					return nullptr;
 
-				const size_t nIndex = m_umapEventLinkers[nThreadID].top();
+				const size_t index = m_umapEventLinkers[nThreadID].top();
 
-				return &m_umapEvents[nThreadID][nIndex];
+				return &m_umapEvents[nThreadID][index];
 			}
 
 			TracerImpl s_tracerImpl;
@@ -364,70 +374,70 @@ namespace eastengine
 				s_tracerImpl.Start();
 			}
 
-			void End(const char* strSaveFilePath)
+			void End(const wchar_t* saveFilePath)
 			{
-				s_tracerImpl.End(strSaveFilePath);
+				s_tracerImpl.End(saveFilePath);
 			}
 
-			void BeginEvent(const char* strTitle, const char* strCategory, const char* strFile, int nLine)
+			void BeginEvent(const wchar_t* title, const wchar_t* category, const wchar_t* file, int line)
 			{
-				s_tracerImpl.BeginEvent(strTitle, strCategory);
+				s_tracerImpl.BeginEvent(title, category);
 
-				s_tracerImpl.PushArgs("File", strFile);
-				s_tracerImpl.PushArgs("Line", nLine);
+				s_tracerImpl.PushArgs(L"File", file);
+				s_tracerImpl.PushArgs(L"Line", line);
 			}
 
-			void EndEvent()
+			void EndEvent(bool isForceRecord)
 			{
-				s_tracerImpl.EndEvent();
-			}
-
-			template <>
-			void PushArgs(const char* strKey, bool value)
-			{
-				s_tracerImpl.PushArgs(strKey, value);
+				s_tracerImpl.EndEvent(isForceRecord);
 			}
 
 			template <>
-			void PushArgs(const char* strKey, int32_t value)
+			void PushArgs(const wchar_t* key, bool value)
 			{
-				s_tracerImpl.PushArgs(strKey, value);
+				s_tracerImpl.PushArgs(key, value);
 			}
 
 			template <>
-			void PushArgs(const char* strKey, uint32_t value)
+			void PushArgs(const wchar_t* key, int32_t value)
 			{
-				s_tracerImpl.PushArgs(strKey, value);
+				s_tracerImpl.PushArgs(key, value);
 			}
 
 			template <>
-			void PushArgs(const char* strKey, int64_t value)
+			void PushArgs(const wchar_t* key, uint32_t value)
 			{
-				s_tracerImpl.PushArgs(strKey, value);
+				s_tracerImpl.PushArgs(key, value);
 			}
 
 			template <>
-			void PushArgs(const char* strKey, uint64_t value)
+			void PushArgs(const wchar_t* key, int64_t value)
 			{
-				s_tracerImpl.PushArgs(strKey, value);
+				s_tracerImpl.PushArgs(key, value);
 			}
 
 			template <>
-			void PushArgs(const char* strKey, float value)
+			void PushArgs(const wchar_t* key, uint64_t value)
 			{
-				s_tracerImpl.PushArgs(strKey, value);
+				s_tracerImpl.PushArgs(key, value);
 			}
 
 			template <>
-			void PushArgs(const char* strKey, double value)
+			void PushArgs(const wchar_t* key, float value)
 			{
-				s_tracerImpl.PushArgs(strKey, value);
+				s_tracerImpl.PushArgs(key, value);
 			}
 
 			template <>
-			void PushArgs(const char* strKey, const char* value)
+			void PushArgs(const wchar_t* key, double value)
 			{
-				s_tracerImpl.PushArgs(strKey, value);
+				s_tracerImpl.PushArgs(key, value);
+			}
+
+			template <>
+			void PushArgs(const wchar_t* key, const wchar_t* value)
+			{
+				s_tracerImpl.PushArgs(key, value);
 			}
 
 			float TracingTime()
@@ -440,14 +450,15 @@ namespace eastengine
 				return s_tracerImpl.IsTracing();
 			}
 
-			Profiler::Profiler(const char* strTitle, const char* strCategory, const char* strFile, int nLine)
+			Profiler::Profiler(const wchar_t* title, const wchar_t* category, const wchar_t* file, int line, bool isForceRecord)
+				: m_isForceRecord(isForceRecord)
 			{
-				BeginEvent(strTitle, strCategory, strFile, nLine);
+				BeginEvent(title, category, file, line);
 			}
 
 			Profiler::~Profiler()
 			{
-				EndEvent();
+				EndEvent(m_isForceRecord);
 			}
 		}
 	}

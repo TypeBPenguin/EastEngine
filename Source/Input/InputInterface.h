@@ -1,6 +1,6 @@
 #pragma once
 
-namespace eastengine
+namespace est
 {
 	namespace input
 	{

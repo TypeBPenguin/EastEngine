@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="소스 파일">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="헤더 파일">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="리소스 파일">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Client">
+      <UniqueIdentifier>{ada0201d-d39a-4b79-96c1-0d1077087026}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Server">
+      <UniqueIdentifier>{c501cde5-2e79-4607-a9d6-2d4ff698da08}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Interface">
+      <UniqueIdentifier>{a185881f-f256-4776-9315-f9378358a96b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Buffer">
+      <UniqueIdentifier>{e65bbefc-4d40-4e30-8b21-ee0c672cdb16}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Buffer\Manager">
+      <UniqueIdentifier>{0c428acd-b061-4c97-9b60-ed461f40c249}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Buffer\IO">
+      <UniqueIdentifier>{f7063878-f9e3-448a-a43b-169fe0c467a8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Buffer\Packet">
+      <UniqueIdentifier>{93029bb4-24e7-4322-acc7-fd07a6b73230}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Server\UserSession">
+      <UniqueIdentifier>{ab032032-bf17-4dcb-8cc7-1aa576ccde03}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="NetworkInterface.h">
+      <Filter>Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="NetworkServer.h">
+      <Filter>Server</Filter>
+    </ClInclude>
+    <ClInclude Include="NetworkClient.h">
+      <Filter>Client</Filter>
+    </ClInclude>
+    <ClInclude Include="NetworkUserSession.h">
+      <Filter>Server\UserSession</Filter>
+    </ClInclude>
+    <ClInclude Include="IOBufferManager.h">
+      <Filter>Buffer\Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="IOBuffer.h">
+      <Filter>Buffer\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="PacketBuffer.h">
+      <Filter>Buffer\Packet</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="NetworkInterface.cpp">
+      <Filter>Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="NetworkServer.cpp">
+      <Filter>Server</Filter>
+    </ClCompile>
+    <ClCompile Include="NetworkClient.cpp">
+      <Filter>Client</Filter>
+    </ClCompile>
+    <ClCompile Include="NetworkUserSession.cpp">
+      <Filter>Server\UserSession</Filter>
+    </ClCompile>
+    <ClCompile Include="IOBufferManager.cpp">
+      <Filter>Buffer\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="IOBuffer.cpp">
+      <Filter>Buffer\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="PacketBuffer.cpp">
+      <Filter>Buffer\Packet</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

@@ -1,10 +1,10 @@
 #pragma once
 
-namespace eastengine
+namespace est
 {
 	namespace CrashHandler
 	{
-		bool Initialize(const char* strPath);
+		bool Initialize(const wchar_t* path);
 		void Release();
 
 		void ForceCrash();

@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "SceneManager.h"
 
-namespace eastengine
+namespace est
 {
 	class SceneManager::Impl
 	{
@@ -13,18 +13,17 @@ namespace eastengine
 		void Update(float elapsedTime);
 
 	public:
-		void AddScene(IScene* pScene);
-		void RemoveScene(IScene* pScene);
-		void RemoveScene(const string::StringID& strSceneName);
+		void AddScene(std::unique_ptr<IScene>&& pScene);
+		void RemoveScene(const string::StringID& sceneName);
 
-		void ChangeScene(const string::StringID& strSceneName);
+		void ChangeScene(const string::StringID& sceneName);
 
-		IScene* GetScene(const string::StringID& strSceneName);
+		IScene* GetScene(const string::StringID& sceneName) const;
 
 	private:
-		std::unordered_map<string::StringID, IScene*> m_umapScene;
-		IScene* m_pCurScene{ nullptr };
-		IScene* m_pChangeScene{ nullptr };
+		std::unordered_map<string::StringID, std::unique_ptr<IScene>> m_umapScene;
+		string::StringID m_curSceneID;
+		string::StringID m_changeSceneID;
 	};
 
 	SceneManager::Impl::Impl()
@@ -33,111 +32,109 @@ namespace eastengine
 
 	SceneManager::Impl::~Impl()
 	{
-		if (m_pCurScene != nullptr)
+		IScene* pScene = GetScene(m_curSceneID);
+		if (pScene != nullptr)
 		{
-			m_pCurScene->Exit();
+			std::queue<gameobject::ActorPtr> savedPrevSceneActors;
+			pScene->Exit(savedPrevSceneActors);
 		}
 
-		m_pCurScene = nullptr;
-		m_pChangeScene = nullptr;
+		m_curSceneID.clear();
+		m_changeSceneID.clear();
 
-		std::for_each(m_umapScene.begin(), m_umapScene.end(), DeleteSTLMapObject());
 		m_umapScene.clear();
 	}
 
 	void SceneManager::Impl::Update(float elapsedTime)
 	{
-		TRACER_EVENT(__FUNCTION__);
-		if (m_pChangeScene != nullptr)
+		TRACER_EVENT(__FUNCTIONW__);
+		if (m_changeSceneID.empty() == false)
 		{
-			if (m_pCurScene != nullptr)
+			std::queue<gameobject::ActorPtr> savedPrevSceneActors;
+
+			IScene* pCurScene = GetScene(m_curSceneID);
+			if (pCurScene != nullptr)
 			{
-				TRACER_BEGINEVENT("Exit");
-				TRACER_PUSHARGS("Scene Name", m_pCurScene->GetName().c_str());
-				m_pCurScene->Exit();
+				TRACER_BEGINEVENT(L"Exit");
+				TRACER_PUSHARGS(L"Scene Name", m_curSceneID.c_str());
+				pCurScene->Exit(savedPrevSceneActors);
 				TRACER_ENDEVENT();
 			}
 
-			m_pCurScene = m_pChangeScene;
+			m_curSceneID = m_changeSceneID;
 
-			if (m_pCurScene != nullptr)
+			pCurScene = GetScene(m_curSceneID);
+			if (pCurScene != nullptr)
 			{
-				TRACER_BEGINEVENT("Enter");
-				TRACER_PUSHARGS("Scene Name", m_pCurScene->GetName().c_str());
-				m_pCurScene->Enter();
+				TRACER_BEGINEVENT(L"Enter");
+				TRACER_PUSHARGS(L"Scene Name", m_curSceneID.c_str());
+				pCurScene->Enter(savedPrevSceneActors);
 				TRACER_ENDEVENT();
 			}
 
-			m_pChangeScene = nullptr;
+			m_changeSceneID.clear();
 		}
 
-		if (m_pCurScene != nullptr)
+		IScene* pCurScene = GetScene(m_curSceneID);
+		if (pCurScene != nullptr)
 		{
-			TRACER_PUSHARGS("Scene Name", m_pCurScene->GetName().c_str());
-			m_pCurScene->Update(elapsedTime);
+			TRACER_PUSHARGS(L"Scene Name", m_curSceneID.c_str());
+			pCurScene->Update(elapsedTime);
 		}
 	}
 
-	void SceneManager::Impl::AddScene(IScene* pScene)
+	void SceneManager::Impl::AddScene(std::unique_ptr<IScene>&& pScene)
 	{
 		if (pScene == nullptr)
 			return;
 
-		RemoveScene(pScene);
+		RemoveScene(pScene->GetName());
 
-		m_umapScene.emplace(pScene->GetName(), pScene);
+		const string::StringID sceneName = pScene->GetName();
+		m_umapScene.emplace(sceneName, std::move(pScene));
 	}
 
-	void SceneManager::Impl::RemoveScene(IScene* pScene)
+	void SceneManager::Impl::RemoveScene(const string::StringID& sceneName)
 	{
-		RemoveScene(pScene->GetName().c_str());
-	}
-
-	void SceneManager::Impl::RemoveScene(const string::StringID& strSceneName)
-	{
-		auto iter = m_umapScene.find(strSceneName);
+		auto iter = m_umapScene.find(sceneName);
 		if (iter == m_umapScene.end())
 			return;
 
-		bool isSame = m_pCurScene == iter->second;
-		SafeDelete(iter->second);
+		const bool isSame = m_curSceneID == sceneName;
 		m_umapScene.erase(iter);
 
 		if (isSame == true)
 		{
 			if (m_umapScene.empty() == true)
 			{
-				m_pCurScene = nullptr;
+				m_curSceneID.clear();
 			}
 			else
 			{
-				m_pCurScene = m_umapScene.begin()->second;
+				m_curSceneID = m_umapScene.begin()->second->GetName();
 			}
 		}
 	}
 
-	void SceneManager::Impl::ChangeScene(const string::StringID& strSceneName)
+	void SceneManager::Impl::ChangeScene(const string::StringID& sceneName)
 	{
-		if (m_pCurScene != nullptr)
-		{
-			if (m_pCurScene->GetName() == strSceneName)
-				return;
-		}
+		if (m_curSceneID.empty() == false && m_curSceneID == sceneName)
+			return;
 
-		auto iter = m_umapScene.find(strSceneName);
+		auto iter = m_umapScene.find(sceneName);
 		if (iter == m_umapScene.end())
 			return;
 
-		m_pChangeScene = iter->second;
+		m_changeSceneID = sceneName;
 	}
 
-	IScene* SceneManager::Impl::GetScene(const string::StringID& strSceneName)
+	IScene* SceneManager::Impl::GetScene(const string::StringID& sceneName) const
 	{
-		auto iter = m_umapScene.find(strSceneName);
+		auto iter = m_umapScene.find(sceneName);
 		if (iter == m_umapScene.end())
 			return nullptr;
 
-		return iter->second;
+		return iter->second.get();
 	}
 
 	SceneManager::SceneManager()
@@ -154,28 +151,23 @@ namespace eastengine
 		m_pImpl->Update(elapsedTime);
 	}
 
-	void SceneManager::AddScene(IScene* pScene)
+	void SceneManager::AddScene(std::unique_ptr<IScene>&& pScene)
 	{
-		m_pImpl->AddScene(pScene);
+		m_pImpl->AddScene(std::move(pScene));
 	}
 
-	void SceneManager::RemoveScene(IScene* pScene)
+	void SceneManager::RemoveScene(const string::StringID& sceneName)
 	{
-		m_pImpl->RemoveScene(pScene->GetName());
+		m_pImpl->RemoveScene(sceneName);
 	}
 
-	void SceneManager::RemoveScene(const string::StringID& strSceneName)
+	void SceneManager::ChangeScene(const string::StringID& sceneName)
 	{
-		m_pImpl->RemoveScene(strSceneName);
-	}
-
-	void SceneManager::ChangeScene(const string::StringID& strSceneName)
-	{
-		m_pImpl->ChangeScene(strSceneName);
+		m_pImpl->ChangeScene(sceneName);
 	}
 	
-	IScene* SceneManager::GetScene(const string::StringID& strSceneName)
+	IScene* SceneManager::GetScene(const string::StringID& sceneName) const
 	{
-		return m_pImpl->GetScene(strSceneName);
+		return m_pImpl->GetScene(sceneName);
 	}
 }

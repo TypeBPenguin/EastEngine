@@ -1,18 +1,5 @@
 #pragma once
 
-namespace eastengine
-{
-	namespace gameobject
-	{
-		class IActor;
-	}
-
-	namespace string
-	{
-		class StringID;
-	}
-}
-
 class Minion
 {
 public:
@@ -23,9 +10,9 @@ public:
 	void Update(uint32_t eventID, float elapsedTime, float processTime);
 
 private:
-	eastengine::gameobject::IActor* m_pActor{ nullptr };
+	est::gameobject::ActorPtr m_pActor;
 
-	std::string m_path;
+	std::wstring m_path;
 
 	enum AttackType
 	{

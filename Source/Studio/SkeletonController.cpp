@@ -17,7 +17,7 @@
 #include "imgui.h"
 #include "imguiConvertor.h"
 
-using namespace eastengine;
+using namespace est;
 
 SkeletonController::SkeletonController()
 	: m_pSelectedBone(nullptr)
@@ -121,7 +121,7 @@ bool SkeletonController::Process(float elapsedTime)
 	const math::int2 n2MousePoint(input::mouse::GetX(), input::mouse::GetY());
 	const math::uint2 n2ScreenSize = graphics::GetDevice()->GetScreenSize();
 	const math::Matrix& matView = pCamera->GetViewMatrix(nThreadID);
-	const math::Matrix& matProjection = pCamera->GetProjMatrix(nThreadID);
+	const math::Matrix& matProjection = pCamera->GetProjectionMatrix(nThreadID);
 
 	const collision::Ray rayScreen = collision::Ray::CreateFromScreenCoordinates(n2MousePoint, n2ScreenSize, matView, matProjection);
 

@@ -2,7 +2,7 @@
 
 #include "Math.h"
 
-namespace eastengine
+namespace est
 {
 	namespace collision
 	{
@@ -55,7 +55,7 @@ namespace eastengine
 		struct Sphere
 		{
 			math::float3 Center;		// Center of the sphere.
-			float Radius;				// Radius of the sphere.
+			float Radius{ 0.f };				// Radius of the sphere.
 
 			// Creators
 			Sphere();
@@ -232,11 +232,12 @@ namespace eastengine
 			math::float3 Origin;            // Origin of the frustum (and projection).
 			math::Quaternion Orientation;       // Quaternion representing rotation.
 
-			float RightSlope;           // Positive X slope (X/Z).
-			float LeftSlope;            // Negative X slope.
-			float TopSlope;             // Positive Y slope (Y/Z).
-			float BottomSlope;          // Negative Y slope.
-			float Near, Far;            // Z of the near plane and far plane.
+			float RightSlope{ 0.f };           // Positive X slope (X/Z).
+			float LeftSlope{ 0.f };            // Negative X slope.
+			float TopSlope{ 0.f };             // Positive Y slope (Y/Z).
+			float BottomSlope{ 0.f };          // Negative Y slope.
+			float Near{ 0.f };
+			float Far{ 0.f };					// Z of the near plane and far plane.
 
 			// Creators
 			Frustum();
@@ -304,6 +305,7 @@ namespace eastengine
 
 			Ray();
 			Ray(const math::float3& pos, const math::float3& dir);
+			Ray(int mouseX, int mouseY, const math::uint2& screenSize, const math::Matrix& viewMatrix, const math::Matrix& projectionMatrix);
 
 			// Comparison operators
 			bool operator == (const Ray& r) const;
@@ -344,9 +346,9 @@ namespace eastengine
 
 namespace std
 {
-	template<> struct less<eastengine::collision::Ray>
+	template<> struct less<est::collision::Ray>
 	{
-		bool operator()(const eastengine::collision::Ray& R1, const eastengine::collision::Ray& R2) const
+		bool operator()(const est::collision::Ray& R1, const est::collision::Ray& R2) const
 		{
 			if (R1.position.x != R2.position.x) return R1.position.x < R2.position.x;
 			if (R1.position.y != R2.position.y) return R1.position.y < R2.position.y;

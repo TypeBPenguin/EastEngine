@@ -6,15 +6,15 @@
 #include "ComponentModel.h"
 #include "ComponentPhysics.h"
 
-#include "Model/ModelLoader.h"
+#include "Graphics/Model/ModelLoader.h"
 
-namespace StrID
+namespace sid
 {
 	RegisterStringID(Sector);
 	RegisterStringID(Sector_RigidBody);
 }
 
-namespace eastengine
+namespace est
 {
 	namespace gameobject
 	{
@@ -24,53 +24,62 @@ namespace eastengine
 			, m_n2Coordinate(nCoordinateX, nCoordinateY)
 			, m_isVisibleTile(true)
 		{
-			math::float3 f3Pos((float)(nCoordinateX)* fRadius * 1.5f * 1.05f, 1.f, ((float)(nCoordinateY)+(float)(nCoordinateX) * -0.5f) * fRadius * 2.f * 1.05f);
+			const math::float3 position((float)(nCoordinateX)* fRadius * 1.5f * 1.05f, 1.f, ((float)(nCoordinateY)+(float)(nCoordinateX) * -0.5f) * fRadius * 2.f * 1.05f);
 
-			string::StringID strName;
-			strName.Format("%s_%d/%d", StrID::Sector.c_str(), nCoordinateX, nCoordinateY);
+			string::StringID name;
+			name.Format(L"%s_%d/%d", sid::Sector.c_str(), nCoordinateX, nCoordinateY);
 
-			m_pActor = IActor::Create(strName);
-			m_pActor->SetPosition(f3Pos);
+			m_pActor = CreateActor(name);
+			m_pActor->SetPosition(position);
 
 			ComponentModel* pCompModel = static_cast<ComponentModel*>(m_pActor->CreateComponent(IComponent::eModel));
 
 			if (pCompModel != nullptr)
 			{
-				graphics::MaterialInfo materialInfo;
-				materialInfo.name = StrID::Sector;
-				//materialInfo.rasterizerStateKey = graphics::Device::GetInstance()->GetRasterizerStateKey(graphics::EmRasterizerState::eWireFrame);
+				graphics::IMaterial::Data materialData;
+				materialData.name = sid::Sector;
+				//materialData.rasterizerStateKey = graphics::Device::GetInstance()->GetRasterizerStateKey(graphics::EmRasterizerState::eWireFrame);
 
 				graphics::ModelLoader loader;
-				loader.InitHexagon(StrID::Sector, &materialInfo, fRadius);
+				loader.InitHexagon(sid::Sector, &materialData, fRadius);
 
-				auto pModelInst = graphics::IModel::CreateInstance(loader);
-				pCompModel->Initialize(pModelInst);
+				graphics::ModelInstancePtr pModelInst = graphics::CreateModelInstance(loader);
+				pCompModel->Add(0, std::move(pModelInst));
 
 				ComponentPhysics* pCompPhysics = static_cast<ComponentPhysics*>(m_pActor->CreateComponent(IComponent::ePhysics));
-
 				if (pCompPhysics != nullptr)
 				{
-					physics::RigidBodyProperty prop;
-					prop.fRestitution = 0.75f;
-					prop.strName = StrID::Sector_RigidBody;
-					prop.fMass = 0.f;
-					prop.nCollisionFlag = physics::CollisionFlag::eStaticObject;
-					prop.shapeInfo.SetTriangleMesh();
-					prop.f3OriginPos = f3Pos;
-					pCompPhysics->Init(pModelInst, prop);
+					graphics::IModelNode* pModelNode = pModelInst->GetModel()->GetNode(0);
+
+					const graphics::VertexPos* pVertices = nullptr;
+					size_t numVertices = 0;
+					pModelNode->GetRawVertices(&pVertices, numVertices);
+
+					const uint32_t* pIndices = nullptr;
+					size_t numIndices = 0;
+					pModelNode->GetRawIndices(&pIndices, numIndices);
+
+					physics::RigidActorProperty rigidActorProperty;
+					rigidActorProperty.material.restitution = 0.75f;
+					rigidActorProperty.shape.SetTriangleMeshGeometry(math::float3::One, math::Quaternion::Identity, reinterpret_cast<const math::float3*>(pVertices), static_cast<uint32_t>(numVertices), pIndices, static_cast<uint32_t>(numIndices), physics::IGeometry::MeshFlag::eNone);
+
+					rigidActorProperty.rigidAcotr.name = sid::Sector_RigidBody;
+					rigidActorProperty.rigidAcotr.type = physics::IActor::eRigidStatic;
+					rigidActorProperty.rigidAcotr.globalTransform.position = position;
+
+					pCompPhysics->CreateRigidActor(rigidActorProperty);
 				}
 			}
 
-			m_vecNearSector.resize(EmSector::eCount);
+			m_nearSector.resize(EmSector::eCount);
 		}
 
 		Sector::~Sector()
 		{
-			IActor::Destroy(&m_pActor);
-
+			m_pActor.reset();
 			m_umapActor.clear();
 
-			m_vecNearSector.clear();
+			m_nearSector.clear();
 		}
 
 		void Sector::Enter(IActor* pActor)
@@ -105,7 +114,7 @@ namespace eastengine
 			if (EmSector::eCount >= emSectorDir)
 				return false;
 
-			Sector* pTarget = m_vecNearSector[emSectorDir];
+			Sector* pTarget = m_nearSector[emSectorDir];
 			if (pTarget == nullptr)
 				return false;
 

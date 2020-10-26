@@ -5,7 +5,7 @@
 #include "Keyboard.h"
 #include "GamePad.h"
 
-namespace eastengine
+namespace est
 {
 	namespace input
 	{
@@ -72,7 +72,7 @@ namespace eastengine
 
 		void Device::Impl::Update(float elapsedTime)
 		{
-			TRACER_EVENT("InputDevice::Update");
+			TRACER_EVENT(L"InputDevice::Update");
 			m_mouse.Update();
 			m_keyboard.Update();
 			m_gamePad.Update(elapsedTime);

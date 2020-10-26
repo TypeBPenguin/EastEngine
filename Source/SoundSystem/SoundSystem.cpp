@@ -6,7 +6,7 @@
 
 #include "SoundObject.h"
 
-namespace eastengine
+namespace est
 {
 	namespace sound
 	{
@@ -22,14 +22,14 @@ namespace eastengine
 		public:
 			void SetListenerAttributes(const ListenerAttributes& listenerAttributes) { m_listenerAttributes = listenerAttributes; }
 
-			ChannelID Play2D(const std::string& strSoundFilePath, float fVolume = 1.f, int mode = eLoopOff | eHardware);
-			ChannelID Play3D(const std::string& strSoundFilePath, const math::float3& f3Position, const math::float3& f3Velocity, float fVolume = 1.f, int mode = eLoopOff | eHardware);
+			ChannelID Play2D(const std::wstring& soundFilePath, float volume = 1.f, int mode = eLoopOff);
+			ChannelID Play3D(const std::wstring& soundFilePath, const math::float3& f3Position, const math::float3& f3Velocity, float volume = 1.f, int mode = eLoopOff);
 			void Stop(const ChannelID& channelID, float fFadeOutTime);
 			void Resume(const ChannelID& channelID);
 			void Pause(const ChannelID& channelID);
 
 		private:
-			std::shared_ptr<Sound> CreateSound(const std::string& strSoundFilePath, int mode);
+			std::shared_ptr<Sound> CreateSound(const std::wstring& soundFilePath, int mode);
 			Channel* CreateChannel(const std::shared_ptr<Sound>& pSound, bool isPause);
 
 			ChannelID AllocateChannelID() { return { m_nChannelID_allocator++ }; }
@@ -42,7 +42,7 @@ namespace eastengine
 
 			uint64_t m_nChannelID_allocator{ 0 };
 
-			std::map<std::string, std::unordered_map<int, std::shared_ptr<Sound>>> m_mapModeSounds;
+			std::map<std::wstring, std::unordered_map<int, std::shared_ptr<Sound>>> m_mapModeSounds;
 			std::unordered_map<ChannelID, std::unique_ptr<Channel>> m_umapChannels;
 
 			struct StopChannel
@@ -65,7 +65,7 @@ namespace eastengine
 			FMOD_RESULT fm_result = FMOD::System_Create(&m_pFmodSystem);
 			if (fm_result != FMOD_OK)
 			{
-				LOG_ERROR("fmod system create failed, %s", FMOD_ErrorString(fm_result));
+				LOG_ERROR(L"fmod system create failed, %s", FMOD_ErrorString(fm_result));
 				return;
 			}
 
@@ -90,12 +90,12 @@ namespace eastengine
 			if (m_pFmodSystem == nullptr)
 				return;
 
-			TRACER_EVENT(__FUNCTION__);
+			TRACER_EVENT(__FUNCTIONW__);
 
 			thread::SRWWriteLock writeLock(&m_srwLock);
 
 			{
-				TRACER_EVENT("RequestStopChannels");
+				TRACER_EVENT(L"RequestStopChannels");
 				m_vecReqStopChannels.erase(std::remove_if(m_vecReqStopChannels.begin(), m_vecReqStopChannels.end(), [&](const StopChannel& stopChannel)
 				{
 					auto iter = m_umapChannels.find(stopChannel.id);
@@ -105,11 +105,11 @@ namespace eastengine
 					Channel* pChannel = iter->second.get();
 					FMOD::Channel* pFmodChannel = pChannel->GetInterface();
 
-					float fVolume = 0.f;
-					pFmodChannel->getVolume(&fVolume);
+					float volume = 0.f;
+					pFmodChannel->getVolume(&volume);
 
 					// FadeOutTime ¿Ω«‚ ∆‰¿ÃµÂæ∆øÙ »ƒ ¡æ∑· ±∏«ˆ«œµµ∑œ «œº¿ »Â»Â
-					if (fVolume < 0.01f)
+					if (volume < 0.01f)
 					{
 						pFmodChannel->stop();
 						m_umapChannels.erase(iter);
@@ -117,15 +117,15 @@ namespace eastengine
 					}
 					else
 					{
-						fVolume -= 0.5f;
-						pFmodChannel->setVolume(fVolume);
+						volume -= 0.5f;
+						pFmodChannel->setVolume(volume);
 						return false;
 					}
 				}), m_vecReqStopChannels.end());
 			}
 
 			{
-				TRACER_EVENT("GarbageCollect_Channel");
+				TRACER_EVENT(L"GarbageCollect_Channel");
 				for (auto iter = m_umapChannels.begin(); iter != m_umapChannels.end();)
 				{
 					Channel* pChannel = iter->second.get();
@@ -141,7 +141,7 @@ namespace eastengine
 			}
 
 			{
-				TRACER_EVENT("GarbageCollect_Sound");
+				TRACER_EVENT(L"GarbageCollect_Sound");
 
 				const float DestroyWaitTime = 60.f;
 
@@ -181,7 +181,7 @@ namespace eastengine
 			}
 
 			{
-				TRACER_EVENT("FMOD System Update");
+				TRACER_EVENT(L"FMOD System Update");
 
 				const FMOD_VECTOR* pPosition = reinterpret_cast<const FMOD_VECTOR*>(&m_listenerAttributes.f3Position);
 				const FMOD_VECTOR* pVelocity = reinterpret_cast<const FMOD_VECTOR*>(&m_listenerAttributes.f3Velocity);
@@ -193,19 +193,19 @@ namespace eastengine
 			}
 		}
 
-		ChannelID System::Impl::Play2D(const std::string& strSoundFilePath, float fVolume, int mode)
+		ChannelID System::Impl::Play2D(const std::wstring& soundFilePath, float volume, int mode)
 		{
 			if (m_pFmodSystem == nullptr)
 				return { eInvalidChannelID };
 
-			TRACER_EVENT(__FUNCTION__);
+			TRACER_EVENT(__FUNCTIONW__);
 
 			mode ^= e3D;
 			mode |= e2D;
 
 			thread::SRWWriteLock writeLock(&m_srwLock);
 
-			std::shared_ptr<Sound> pSound = CreateSound(strSoundFilePath, mode);
+			std::shared_ptr<Sound> pSound = CreateSound(soundFilePath, mode);
 			if (pSound == nullptr)
 				return { eInvalidChannelID };
 
@@ -214,24 +214,24 @@ namespace eastengine
 				return { eInvalidChannelID };
 
 			FMOD::Channel* pFmodChannel = pChannel->GetInterface();
-			pFmodChannel->setVolume(fVolume);
+			pFmodChannel->setVolume(volume);
 
 			return pChannel->GetID();
 		}
 
-		ChannelID System::Impl::Play3D(const std::string& strSoundFilePath, const math::float3& f3Position, const math::float3& f3Velocity, float fVolume, int mode)
+		ChannelID System::Impl::Play3D(const std::wstring& soundFilePath, const math::float3& f3Position, const math::float3& f3Velocity, float volume, int mode)
 		{
 			if (m_pFmodSystem == nullptr)
 				return { eInvalidChannelID };
 
-			TRACER_EVENT(__FUNCTION__);
+			TRACER_EVENT(__FUNCTIONW__);
 
 			mode ^= e2D;
 			mode |= e3D;
 
 			thread::SRWWriteLock writeLock(&m_srwLock);
 
-			std::shared_ptr<Sound> pSound = CreateSound(strSoundFilePath, mode);
+			std::shared_ptr<Sound> pSound = CreateSound(soundFilePath, mode);
 			if (pSound == nullptr)
 				return { eInvalidChannelID };
 
@@ -240,7 +240,7 @@ namespace eastengine
 				return { eInvalidChannelID };
 
 			FMOD::Channel* pFmodChannel = pChannel->GetInterface();
-			pFmodChannel->setVolume(fVolume);
+			pFmodChannel->setVolume(volume);
 
 			const FMOD_VECTOR* pPosition = reinterpret_cast<const FMOD_VECTOR*>(&f3Position);
 			const FMOD_VECTOR* pVelocity = reinterpret_cast<const FMOD_VECTOR*>(&f3Velocity);
@@ -255,7 +255,7 @@ namespace eastengine
 			if (m_pFmodSystem == nullptr)
 				return;
 
-			TRACER_EVENT(__FUNCTION__);
+			TRACER_EVENT(__FUNCTIONW__);
 
 			thread::SRWWriteLock writeLock(&m_srwLock);
 
@@ -275,7 +275,7 @@ namespace eastengine
 			if (m_pFmodSystem == nullptr)
 				return;
 
-			TRACER_EVENT(__FUNCTION__);
+			TRACER_EVENT(__FUNCTIONW__);
 
 			auto iter = m_umapChannels.find(channelID);
 			if (iter != m_umapChannels.end())
@@ -289,7 +289,7 @@ namespace eastengine
 			if (m_pFmodSystem == nullptr)
 				return;
 
-			TRACER_EVENT(__FUNCTION__);
+			TRACER_EVENT(__FUNCTIONW__);
 
 			auto iter = m_umapChannels.find(channelID);
 			if (iter != m_umapChannels.end())
@@ -298,13 +298,13 @@ namespace eastengine
 			}
 		}
 
-		std::shared_ptr<Sound> System::Impl::CreateSound(const std::string& strSoundFilePath, int mode)
+		std::shared_ptr<Sound> System::Impl::CreateSound(const std::wstring& soundFilePath, int mode)
 		{
-			TRACER_EVENT(__FUNCTION__);
+			TRACER_EVENT(__FUNCTIONW__);
 
 			std::shared_ptr<Sound> pSound;
 
-			auto iter_mode = m_mapModeSounds.find(strSoundFilePath);
+			auto iter_mode = m_mapModeSounds.find(soundFilePath);
 			if (iter_mode != m_mapModeSounds.end())
 			{
 				auto iter_sound = iter_mode->second.find(mode);
@@ -316,15 +316,17 @@ namespace eastengine
 
 			if (pSound == nullptr)
 			{
-				if (file::IsExists(strSoundFilePath) == false)
+				if (file::IsExists(soundFilePath) == false)
 					return nullptr;
 
+				const std::string multiString = string::WideToMulti(soundFilePath);
+
 				FMOD::Sound* pFmodSound = nullptr;
-				const FMOD_RESULT fm_result = m_pFmodSystem->createSound(strSoundFilePath.c_str(), mode, nullptr, &pFmodSound);
+				const FMOD_RESULT fm_result = m_pFmodSystem->createSound(multiString.c_str(), mode, nullptr, &pFmodSound);
 				if (fm_result != FMOD_OK)
 					return nullptr;
 
-				pSound = std::make_shared<Sound>(strSoundFilePath, pFmodSound, mode);
+				pSound = std::make_shared<Sound>(soundFilePath, pFmodSound, mode);
 
 				if (iter_mode != m_mapModeSounds.end())
 				{
@@ -332,7 +334,7 @@ namespace eastengine
 				}
 				else
 				{
-					auto iter_sound = m_mapModeSounds.emplace(strSoundFilePath, std::unordered_map<int, std::shared_ptr<Sound>>());
+					auto iter_sound = m_mapModeSounds.emplace(soundFilePath, std::unordered_map<int, std::shared_ptr<Sound>>());
 					iter_sound.first->second.emplace(mode, pSound);
 				}
 			}
@@ -344,13 +346,13 @@ namespace eastengine
 
 		Channel* System::Impl::CreateChannel(const std::shared_ptr<Sound>& pSound, bool isPause)
 		{
-			TRACER_EVENT(__FUNCTION__);
+			TRACER_EVENT(__FUNCTIONW__);
 
 			FMOD::Channel* pFmodChannel = nullptr;
-			const FMOD_RESULT result = m_pFmodSystem->playSound(FMOD_CHANNEL_FREE, pSound->GetInterface(), isPause, &pFmodChannel);
+			const FMOD_RESULT result = m_pFmodSystem->playSound(pSound->GetInterface(), nullptr, isPause, &pFmodChannel);
 			if (result != FMOD_OK)
 			{
-				LOG_ERROR("Failed to FMOD PlaySound : ErrorCode[%d]", result);
+				LOG_ERROR(L"Failed to FMOD PlaySound : ErrorCode[%d]", result);
 				return nullptr;
 			}
 
@@ -370,14 +372,14 @@ namespace eastengine
 		{
 		}
 
-		ChannelID System::Play2D(const std::string& strSoundFilePath, float fVolume, int mode)
+		ChannelID System::Play2D(const std::wstring& soundFilePath, float volume, int mode)
 		{
-			return m_pImpl->Play2D(strSoundFilePath, fVolume, mode);
+			return m_pImpl->Play2D(soundFilePath, volume, mode);
 		}
 
-		ChannelID System::Play3D(const std::string& strSoundFilePath, const math::float3& f3Position, const math::float3& f3Velocity, float fVolume, int mode)
+		ChannelID System::Play3D(const std::wstring& soundFilePath, const math::float3& f3Position, const math::float3& f3Velocity, float volume, int mode)
 		{
-			return m_pImpl->Play3D(strSoundFilePath, f3Position, f3Velocity, fVolume, mode);
+			return m_pImpl->Play3D(soundFilePath, f3Position, f3Velocity, volume, mode);
 		}
 
 		void System::Stop(const ChannelID& channelID, float fFadeOutTime)

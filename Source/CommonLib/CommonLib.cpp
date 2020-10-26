@@ -5,11 +5,11 @@
 
 my_exception::my_exception(const char* expression, const char *fileName, unsigned int lineNo)
 	: std::runtime_error(expression)
+	, m_message(est::string::Format("[%s<%d>] : %s\n", fileName, lineNo, expression))
 {
-	m_strMsg = eastengine::string::Format("[%s<%d>] : %s\n", fileName, lineNo, expression);
 }
 
 const char* my_exception::what() const throw()
 {
-	return m_strMsg.c_str();
+	return m_message.c_str();
 }

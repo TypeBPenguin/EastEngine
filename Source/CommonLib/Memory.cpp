@@ -3,58 +3,58 @@
 
 #include "Log.h"
 
-namespace eastengine
+namespace est
 {
 	namespace memory
 	{
-		void Move(void* pDestination, std::size_t nDestinationSize, const void* pSource, std::size_t nSourceSize)
+		void Move(void* pDestination, size_t destinationSize, const void* pSource, size_t sourceSize)
 		{
 			if (pDestination == nullptr || pSource == nullptr)
 				return;
 
-			if (nDestinationSize < nSourceSize)
+			if (destinationSize < sourceSize)
 			{
-				if (nSourceSize != _TRUNCATE)
+				if (sourceSize != _TRUNCATE)
 				{
-					LOG_WARNING("а╤╫иго╩О, memory::Move(), BufferSize : %d < SourceSize : %d", nDestinationSize, nSourceSize);
+					LOG_WARNING(L"а╤╫иго╩О, memory::Move(), BufferSize : %d < SourceSize : %d", destinationSize, sourceSize);
 				}
-				nSourceSize = nDestinationSize;
+				sourceSize = destinationSize;
 			}
 
-			memmove_s(pDestination, nDestinationSize, pSource, nSourceSize);
+			memmove_s(pDestination, destinationSize, pSource, sourceSize);
 		}
 
-		void Copy(void* pDestination, std::size_t nDestinationSize, const void* pSource, std::size_t nSourceSize)
+		void Copy(void* pDestination, size_t destinationSize, const void* pSource, size_t sourceSize)
 		{
 			if (pDestination == nullptr || pSource == nullptr)
 				return;
 
-			if (nDestinationSize < nSourceSize)
+			if (destinationSize < sourceSize)
 			{
-				if (nSourceSize != _TRUNCATE)
+				if (sourceSize != _TRUNCATE)
 				{
-					LOG_WARNING("а╤╫иго╩О, memory::Copy(), BufferSize : %d < SourceSize : %d", nDestinationSize, nSourceSize);
+					LOG_WARNING(L"а╤╫иго╩О, memory::Copy(), BufferSize : %d < SourceSize : %d", destinationSize, sourceSize);
 				}
-				nSourceSize = nDestinationSize;
+				sourceSize = destinationSize;
 			}
 
-			memcpy_s(pDestination, nDestinationSize, pSource, nSourceSize);
+			memcpy_s(pDestination, destinationSize, pSource, sourceSize);
 		}
 
-		void Fill(void* pDestination, std::size_t nDestinationSize, int nValue)
+		void Fill(void* pDestination, size_t destinationSize, int nValue)
 		{
 			if (pDestination == nullptr)
 				return;
 
-			FillMemory(pDestination, nDestinationSize, nValue);
+			FillMemory(pDestination, destinationSize, nValue);
 		}
 
-		void Clear(void* pDestination, std::size_t nDestinationSize)
+		void Clear(void* pDestination, size_t destinationSize)
 		{
 			if (pDestination == nullptr)
 				return;
 
-			ZeroMemory(pDestination, nDestinationSize);
+			ZeroMemory(pDestination, destinationSize);
 		}
 	}
 }

@@ -34,6 +34,12 @@
     <Filter Include="Actor\Minion">
       <UniqueIdentifier>{8d7a0d73-fe63-4412-be2f-4fb32d938346}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Scene\Cellular Automata">
+      <UniqueIdentifier>{bea4a08a-988f-4348-a6cf-741429c62596}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="NodeGraphEditor">
+      <UniqueIdentifier>{c7cfb8b9-70b9-4e14-8a65-8b4a35cec714}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -60,6 +66,12 @@
     <ClInclude Include="Minion.h">
       <Filter>Actor\Minion</Filter>
     </ClInclude>
+    <ClInclude Include="SceneCellularAutomata.h">
+      <Filter>Scene\Cellular Automata</Filter>
+    </ClInclude>
+    <ClInclude Include="NodeGraphEditor.h">
+      <Filter>NodeGraphEditor</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -82,6 +94,12 @@
     </ClCompile>
     <ClCompile Include="Minion.cpp">
       <Filter>Actor\Minion</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneCellularAutomata.cpp">
+      <Filter>Scene\Cellular Automata</Filter>
+    </ClCompile>
+    <ClCompile Include="NodeGraphEditor.cpp">
+      <Filter>NodeGraphEditor</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -2,7 +2,7 @@
 
 #include "Sector.h"
 
-namespace eastengine
+namespace est
 {
 	namespace gameobject
 	{
@@ -20,10 +20,10 @@ namespace eastengine
 					int nLeftUp;
 				};
 
-				int nSectorsCount[6];
+				int nSectorsCount[6]{};
 			};
 
-			float fRadius;
+			float fRadius{ 1.f };
 
 			SectorInitInfo() : fRadius(1.f)
 			{
@@ -36,9 +36,9 @@ namespace eastengine
 
 		struct EnterLeaveSectorInfo
 		{
-			Sector* pEnterSector = nullptr;
-			Sector* pLeaveSector = nullptr;
-			IActor* pActor = nullptr;
+			Sector* pEnterSector{ nullptr };
+			Sector* pLeaveSector{ nullptr };
+			IActor* pActor{ nullptr };
 		};
 
 		class SectorMgr

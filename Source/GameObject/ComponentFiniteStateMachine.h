@@ -3,7 +3,7 @@
 #include "CommonLib/FiniteStateMachine.h"
 #include "ComponentInterface.h"
 
-namespace eastengine
+namespace est
 {
 	namespace gameobject
 	{
@@ -15,9 +15,6 @@ namespace eastengine
 
 		public:
 			virtual void Update(float elapsedTime) override;
-
-			virtual bool LoadFile(file::Stream& file);
-			virtual bool SaveFile(file::Stream& file);
 
 		public:
 			FiniteStateMachine& CreateStateMachine(uint32_t id, const string::StringID& name);

@@ -5,12 +5,12 @@
 
 #include <shellapi.h>
 
-namespace eastengine
+namespace est
 {
 	namespace Config
 	{
 		SCommandLine::SCommandLine()
-			: m_bInit(false)
+			: m_isInitialize(false)
 		{
 		}
 
@@ -21,12 +21,12 @@ namespace eastengine
 
 		bool SCommandLine::Init()
 		{
-			if (m_bInit == true)
+			if (m_isInitialize == true)
 				return true;
 
-			m_bInit = true;
+			m_isInitialize = true;
 
-			wchar_t* strCommandLine = GetCommandLineW();
+			wchar_t* strCommandLine = GetCommandLine();
 			int numArgs = 0;
 			wchar_t** argv = CommandLineToArgvW(strCommandLine, &numArgs);
 
@@ -40,25 +40,23 @@ namespace eastengine
 
 		void SCommandLine::Release()
 		{
-			if (m_bInit == false)
+			if (m_isInitialize == false)
 				return;
 
-			m_bInit = false;
+			m_isInitialize = false;
 		}
 
-		bool SCommandLine::GetCommandLine(const char* strCommandLine, std::string* pValue)
+		bool SCommandLine::GetCommand(const wchar_t* commandLine, std::wstring* pValue)
 		{
-			if (m_bInit == false)
+			if (m_isInitialize == false)
 				return false;
 
-			std::wstring wstrCommandLine = string::MultiToWide(strCommandLine);
-
-			auto iter = m_umapCommandLine.find(wstrCommandLine);
+			auto iter = m_umapCommandLine.find(commandLine);
 			if (iter != m_umapCommandLine.end())
 			{
 				if (pValue != nullptr)
 				{
-					*pValue = string::WideToMulti(iter->second);
+					*pValue = iter->second;
 				}
 
 				return true;

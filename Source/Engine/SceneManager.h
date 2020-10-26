@@ -4,7 +4,7 @@
 
 #include "Scene.h"
 
-namespace eastengine
+namespace est
 {
 	class SceneManager : public Singleton<SceneManager>
 	{
@@ -17,13 +17,12 @@ namespace eastengine
 		void Update(float elapsedTime);
 
 	public:
-		void AddScene(IScene* pScene);
-		void RemoveScene(IScene* pScene);
-		void RemoveScene(const string::StringID& strSceneName);
+		void AddScene(std::unique_ptr<IScene>&& pScene);
+		void RemoveScene(const string::StringID& sceneName);
 		
-		void ChangeScene(const string::StringID& strSceneName);
+		void ChangeScene(const string::StringID& sceneName);
 
-		IScene* GetScene(const string::StringID& strSceneName);
+		IScene* GetScene(const string::StringID& sceneName) const;
 
 	private:
 		class Impl;

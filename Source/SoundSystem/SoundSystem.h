@@ -17,7 +17,7 @@ namespace FMOD
 	class Geometry;
 }
 
-namespace eastengine
+namespace est
 {
 	namespace sound
 	{
@@ -34,9 +34,9 @@ namespace eastengine
 		public:
 			void SetListenerAttributes(const ListenerAttributes& listenerAttributes);
 
-			ChannelID Play2D(const std::string& strSoundFilePath, float fVolume = 1.f, int mode = eLoopOff | eHardware);
-			ChannelID Play3D(const std::string& strSoundFilePath, const math::float3& f3Position, const math::float3& f3Velocity, float fVolume = 1.f, int mode = eLoopOff | eHardware);
-			void Stop(const ChannelID& channelID, float fFadeOutTime);
+			ChannelID Play2D(const std::wstring& soundFilePath, float volume = 1.f, int mode = eLoopOff);
+			ChannelID Play3D(const std::wstring& soundFilePath, const math::float3& position, const math::float3& velocity, float volume = 1.f, int mode = eLoopOff);
+			void Stop(const ChannelID& channelID, float fadeOutTime);
 			void Resume(const ChannelID& channelID);
 			void Pause(const ChannelID& channelID);
 
@@ -50,9 +50,9 @@ namespace eastengine
 namespace std
 {
 	template <>
-	struct hash<eastengine::sound::ChannelID>
+	struct hash<est::sound::ChannelID>
 	{
-		std::uint64_t operator()(const eastengine::sound::ChannelID& key) const
+		std::uint64_t operator()(const est::sound::ChannelID& key) const
 		{
 			return key;
 		}

@@ -1,0 +1,590 @@
+#ifdef DX12
+#include "../DescriptorTablesDX12.hlsl"
+#endif
+
+#ifdef USE_ALPHABLENDING
+
+#include "Common.hlsl"
+
+#else
+
+#include "../Converter.hlsl"
+
+#endif
+
+#ifdef USE_INSTANCING
+
+#define eMaxInstancingCount 64
+
+struct TransformData
+{
+	float4 matrix1;
+	float4 matrix2;
+	float4 matrix3;
+};
+
+struct MotionData
+{
+	uint nVTFID;
+	uint nDummy0;
+	uint nDummy1;
+	uint nDummy2;
+};
+
+struct SkinningInstancingData
+{
+	TransformData transformData;
+	MotionData motionData;
+};
+
+struct SkinnedInfo
+{
+	float4 pos;
+	float3 normal;
+};
+
+float4x4 ComputeWorldMatrix(in TransformData transformData)
+{
+	return DecodeMatrix(transformData.matrix1, transformData.matrix2, transformData.matrix3);
+}
+
+#ifdef USE_SKINNING
+cbuffer cbSkinningInstancingData : register(b0)
+{
+	SkinningInstancingData g_Instances[eMaxInstancingCount];
+	SkinningInstancingData g_InstancesPrev[eMaxInstancingCount];
+};
+#else
+cbuffer cbStaticInstancingData : register(b1)
+{
+	float4x4 g_Instances[eMaxInstancingCount];
+	float4x4 g_InstancesPrev[eMaxInstancingCount];
+};
+#endif	// USE_SKINNING
+
+#endif	// USE_INSTANCING
+
+cbuffer cbObjectData : register(b2)
+{
+	float4x4 g_matWorld;
+	float4x4 g_matPrevWorld;
+
+	float4 g_f4AlbedoColor;
+	float4 g_f4EmissiveColor;
+
+	float4 g_f4PaddingRoughMetEmi;
+	float4 g_f4SurSpecTintAniso;
+	float4 g_f4SheenTintClearcoatGloss;
+
+	float g_fStippleTransparencyFactor = 0.f;
+	uint g_nVTFID;
+	uint g_prevVTFID;
+
+	float g_padding = 0.f;
+}
+
+cbuffer cbVSConstants : register(b3)
+{
+	float4x4 g_matView;
+	float4x4 g_matViewProj;
+	float4x4 g_matPrevViewProj;
+
+#ifdef DX12
+	uint g_nTexVTFIndex;
+	uint g_nTexPrevVTFIndex;
+	float2 VSConstants_padding;
+#endif
+
+	//#ifdef USE_TESSELLATION
+	//	float4 g_FrustumNormals[4];
+	//	float3 g_FrustumOrigin;
+	//
+	//	float g_fTessellationFactor;
+	//#endif
+};
+
+#ifdef DX11
+
+#define TexAlbedo(uv)			g_texAlbedo.Sample(g_samplerState, uv)
+#define TexMask(uv)				g_texMask.Sample(g_samplerState, uv)
+#define TexNormal(uv)			g_texNormalMap.Sample(g_samplerState, uv)
+#define TexRoughness(uv)		g_texRoughness.Sample(g_samplerState, uv)
+#define TexMetallic(uv)			g_texMetallic.Sample(g_samplerState, uv)
+#define TexEmissive(uv)			g_texEmissive.Sample(g_samplerState, uv)
+#define TexEmissiveColor(uv)	g_texEmissiveColor.Sample(g_samplerState, uv)
+#define TexSubsurface(uv)		g_texSurface.Sample(g_samplerState, uv)
+#define TexSpecular(uv)			g_texSpecular.Sample(g_samplerState, uv)
+#define TexSpecularTint(uv)		g_texSpecularTint.Sample(g_samplerState, uv)
+#define TexAnisotropic(uv)		g_texAnisotropic.Sample(g_samplerState, uv)
+#define TexSheen(uv)			g_texSheen.Sample(g_samplerState, uv)
+#define TexSheenTint(uv)		g_texSheenTint.Sample(g_samplerState, uv)
+#define TexClearcoat(uv)		g_texClearcoat.Sample(g_samplerState, uv)
+#define TexClearcoatGloss(uv)	g_texClearcoatGloss.Sample(g_samplerState, uv)
+
+SamplerState g_samplerState : register(s0);
+
+#ifdef USE_TEX_ALBEDO
+Texture2D g_texAlbedo : register(t0);
+#endif	// USE_TEX_ALBEDO
+
+#ifdef USE_TEX_MASK
+Texture2D g_texMask : register(t1);
+#endif	// USE_TEX_MASK
+
+#ifdef USE_TEX_NORMAL
+Texture2D g_texNormalMap : register(t2);
+#endif	// USE_TEX_NORMAL
+
+#ifdef USE_TEX_ROUGHNESS
+Texture2D g_texRoughness : register(t3);
+#endif	// USE_TEX_ROUGHNESS
+
+#ifdef USE_TEX_METALLIC
+Texture2D g_texMetallic : register(t4);
+#endif	// USE_TEX_METALLIC
+
+#ifdef USE_TEX_EMISSIVE
+Texture2D g_texEmissive : register(t5);
+#endif	// USE_TEX_EMISSIVE
+
+#ifdef USE_TEX_EMISSIVECOLOR
+Texture2D g_texEmissiveColor : register(t6);
+#endif	// USE_TEX_EMISSIVECOLOR
+
+#ifdef USE_TEX_SUBSURFACE
+Texture2D g_texSurface : register(t7);
+#endif	// USE_TEX_SUBSURFACE
+
+#ifdef USE_TEX_SPECULAR
+Texture2D g_texSpecular : register(t8);
+#endif	// USE_TEX_SPECULAR
+
+#ifdef USE_TEX_SPECULARTINT
+Texture2D g_texSpecularTint : register(t9);
+#endif	// USE_TEX_SPECULARTINT
+
+#ifdef USE_TEX_ANISOTROPIC
+Texture2D g_texAnisotropic : register(t10);
+#endif	// USE_TEX_ANISOTROPIC
+
+#ifdef USE_TEX_SHEEN
+Texture2D g_texSheen : register(t11);
+#endif	// USE_TEX_SHEEN
+
+#ifdef USE_TEX_SHEENTINT
+Texture2D g_texSheenTint : register(t12);
+#endif	// USE_TEX_SHEENTINT
+
+#ifdef USE_TEX_CLEARCOAT
+Texture2D g_texClearcoat : register(t13);
+#endif	// USE_TEX_CLEARCOAT
+
+#ifdef USE_TEX_CLEARCOATGLOSS
+Texture2D g_texClearcoatGloss : register(t14);
+#endif	// USE_TEX_CLEARCOATGLOSS
+
+#elif DX12
+
+#define TexAlbedo(uv)			Tex2DTable[g_nTexAlbedoIndex].Sample(SamplerTable[g_nSamplerStateIndex], uv)
+#define TexMask(uv)				Tex2DTable[g_nTexMaskIndex].Sample(SamplerTable[g_nSamplerStateIndex], uv)
+#define TexNormal(uv)			Tex2DTable[g_nTexNormalMapIndex].Sample(SamplerTable[g_nSamplerStateIndex], uv)
+#define TexRoughness(uv)		Tex2DTable[g_nTexRoughnessIndex].Sample(SamplerTable[g_nSamplerStateIndex], uv)
+#define TexMetallic(uv)			Tex2DTable[g_nTexMetallicIndex].Sample(SamplerTable[g_nSamplerStateIndex], uv)
+#define TexEmissive(uv)			Tex2DTable[g_nTexEmissiveIndex].Sample(SamplerTable[g_nSamplerStateIndex], uv)
+#define TexEmissiveColor(uv)	Tex2DTable[g_nTexEmissiveColorIndex].Sample(SamplerTable[g_nSamplerStateIndex], uv)
+#define TexSubsurface(uv)		Tex2DTable[g_nTexSubsurfaceIndex].Sample(SamplerTable[g_nSamplerStateIndex], uv)
+#define TexSpecular(uv)			Tex2DTable[g_nTexSpecularIndex].Sample(SamplerTable[g_nSamplerStateIndex], uv)
+#define TexSpecularTint(uv)		Tex2DTable[g_nTexSpecularTintIndex].Sample(SamplerTable[g_nSamplerStateIndex], uv)
+#define TexAnisotropic(uv)		Tex2DTable[g_nTexAnisotropicIndex].Sample(SamplerTable[g_nSamplerStateIndex], uv)
+#define TexSheen(uv)			Tex2DTable[g_nTexSheenIndex].Sample(SamplerTable[g_nSamplerStateIndex], uv)
+#define TexSheenTint(uv)		Tex2DTable[g_nTexSheenTintIndex].Sample(SamplerTable[g_nSamplerStateIndex], uv)
+#define TexClearcoat(uv)		Tex2DTable[g_nTexClearcoatIndex].Sample(SamplerTable[g_nSamplerStateIndex], uv)
+#define TexClearcoatGloss(uv)	Tex2DTable[g_nTexClearcoatGlossIndex].Sample(SamplerTable[g_nSamplerStateIndex], uv)
+
+cbuffer cbSRVIndicesConstants : register(b4)
+{
+	uint g_nTexAlbedoIndex;
+	uint g_nTexMaskIndex;
+	uint g_nTexNormalMapIndex;
+	uint g_nTexRoughnessIndex;
+	uint g_nTexMetallicIndex;
+	uint g_nTexEmissiveIndex;
+	uint g_nTexEmissiveColorIndex;
+	uint g_nTexSubsurfaceIndex;
+	uint g_nTexSpecularIndex;
+	uint g_nTexSpecularTintIndex;
+	uint g_nTexAnisotropicIndex;
+	uint g_nTexSheenIndex;
+	uint g_nTexSheenTintIndex;
+	uint g_nTexClearcoatIndex;
+	uint g_nTexClearcoatGlossIndex;
+
+	uint g_nSamplerStateIndex;
+};
+
+#endif
+
+#ifdef USE_SKINNING
+#define VTF_WIDTH 1024
+
+#ifdef DX11
+
+Texture2D g_texVTF : register(t15);
+Texture2D g_texPrevVTF : register(t16);
+
+#define TexVTF	g_texVTF
+#define TexPrevVTF	g_texPrevVTF
+
+#elif DX12
+
+#define TexVTF	Tex2DTable[g_nTexVTFIndex]
+#define TexPrevVTF	Tex2DTable[g_nTexPrevVTFIndex]
+
+#endif
+
+float4x4 LoadBoneMatrix(in Texture2D vtfTex, in uint nVTFID, in uint bone)
+{
+	// 4*bone is since each bone is 4 texels to form a float4x4 
+	uint baseIndex = (nVTFID + bone) * 4;
+
+	// Now turn linear offset into 2D coords
+	uint baseU = baseIndex % VTF_WIDTH;
+	uint baseV = baseIndex / VTF_WIDTH;
+
+	float4 mat1 = vtfTex.Load(uint3(baseU, baseV, 0));
+	float4 mat2 = vtfTex.Load(uint3(baseU + 1, baseV, 0));
+	float4 mat3 = vtfTex.Load(uint3(baseU + 2, baseV, 0));
+
+	return DecodeMatrix(mat1, mat2, mat3);
+}
+
+void ComputeSkinning(in float4 position
+#ifndef USE_WRITEDEPTH
+	, in float3 normal
+#endif
+	, in float4 blendWeight
+	, in uint4 blendIndices
+	, in Texture2D vtfTex
+	, in uint nVTFID
+	, inout float4 pos_out
+#ifndef USE_WRITEDEPTH
+	, inout float3 normal_out
+#endif
+)
+{
+	pos_out = (float4)0;
+
+#ifndef USE_WRITEDEPTH
+	normal_out = (float3)0;
+#endif
+
+	float4x4 m;
+
+	[unroll]
+	for (int i = 0; i < 4; ++i)
+	{
+		m = LoadBoneMatrix(vtfTex, nVTFID, blendIndices[i]);
+		pos_out += mul(position, m) * blendWeight[i];
+
+#ifndef USE_WRITEDEPTH
+		normal_out += mul(normal, (float3x3)m) * blendWeight[i];
+#endif
+	}
+}
+#endif // USE_SKINNING
+
+struct PS_INPUT
+{
+	float4 pos		: SV_Position;	// 위치
+#ifndef USE_WRITEDEPTH
+
+	float2 tex		: TEXCOORD0;	// UV
+	float3 normal	: NORMAL;		// 노말
+
+	float3 tangent	: TANGENT;		// 탄젠트
+	float3 binormal	: BINORMAL;
+
+#ifdef USE_ALPHABLENDING
+	float4 posW		: TEXCOORD1;
+	float4 posWV	: TEXCOORD2;
+#endif
+
+#ifdef USE_MOTION_BLUR
+	float4 currPositionCS : TEXCOORD3;
+	float4 prevPositionCS : TEXCOORD4;
+#endif
+#endif
+};
+
+#ifndef USE_WRITEDEPTH
+#ifdef USE_ALPHABLENDING
+
+struct PS_OUTPUT
+{
+	float4 color : SV_Target0;
+};
+
+#else
+
+struct PS_OUTPUT
+{
+	float4 normals : SV_Target0;
+	float4 colors : SV_Target1;
+	float4 disneyBRDF : SV_Target2;
+
+#ifdef USE_MOTION_BLUR
+	half2 velocity : SV_Target3;
+#endif
+};
+
+#endif
+#endif
+
+PS_INPUT VS(in float4 inPos : POSITION
+	, in float2 inTex : TEXCOORD
+	, in float3 inNormal : NORMAL
+#ifdef USE_SKINNING
+	, in float4 inBlendWeight : BLENDWEIGHT
+	, in uint4 inBlendIndices : BLENDINDICES
+#endif	// USE_SKINNING
+
+#ifdef USE_INSTANCING
+	, in uint InstanceID : SV_InstanceID
+#endif	// USE_INSTANCING
+)
+{
+	PS_INPUT output = (PS_INPUT)0;
+	inPos.w = 1.f;
+
+#ifdef USE_SKINNING
+#ifdef USE_INSTANCING
+
+	float4x4 matWorld = ComputeWorldMatrix(g_Instances[InstanceID].transformData);
+	uint nVTFID = g_Instances[InstanceID].motionData.nVTFID;
+
+#ifdef USE_MOTION_BLUR
+	float4x4 matPrevWorld = ComputeWorldMatrix(g_InstancesPrev[InstanceID].transformData);
+	uint prevVTFID = g_InstancesPrev[InstanceID].motionData.nVTFID;
+#endif
+
+#else	// USE_INSTANCING
+
+	float4x4 matWorld = g_matWorld;
+	uint nVTFID = g_nVTFID;
+
+#ifdef USE_MOTION_BLUR
+	float4x4 matPrevWorld = g_matPrevWorld;
+	uint prevVTFID = g_prevVTFID;
+#endif
+
+#endif	// USE_INSTANCING
+
+	inBlendWeight.w = 1.f - (inBlendWeight.x + inBlendWeight.y + inBlendWeight.z);
+#ifndef USE_WRITEDEPTH
+	ComputeSkinning(inPos, inNormal, inBlendWeight, inBlendIndices, TexVTF, nVTFID, output.pos, output.normal);
+#else
+	ComputeSkinning(inPos, inBlendWeight, inBlendIndices, TexVTF, nVTFID, output.pos);
+#endif
+
+#ifdef USE_MOTION_BLUR
+	float4 prevPos;
+	float3 prevNormal;
+	ComputeSkinning(inPos, inNormal, inBlendWeight, inBlendIndices, TexPrevVTF, prevVTFID, prevPos, prevNormal);
+#endif
+
+#else	// USE_SKINNING
+#ifdef USE_INSTANCING
+
+	float4x4 matWorld = g_Instances[InstanceID];
+#ifdef USE_MOTION_BLUR
+	float4x4 matPrevWorld = g_InstancesPrev[InstanceID];
+#endif
+
+#else	// USE_INSTANCING
+
+	float4x4 matWorld = g_matWorld;
+#ifdef USE_MOTION_BLUR
+	float4x4 matPrevWorld = g_matPrevWorld;
+#endif
+
+#endif	// USE_INSTANCING
+
+	output.pos = inPos;
+
+#ifndef USE_WRITEDEPTH
+	output.normal = inNormal;
+#endif
+
+#ifdef USE_MOTION_BLUR
+	float4 prevPos = inPos;
+#endif
+
+#endif	// USE_SKINNING
+
+	output.pos = mul(output.pos, matWorld);
+
+#ifndef USE_WRITEDEPTH
+
+	output.tex = inTex;
+	output.normal = normalize(mul(output.normal, (float3x3)matWorld));
+
+#ifdef USE_ALPHABLENDING
+	output.posW = output.pos;
+	output.posWV = mul(output.pos, g_matView);
+#endif
+	output.pos = mul(output.pos, g_matViewProj);
+
+#ifdef USE_MOTION_BLUR
+	output.currPositionCS = output.pos;
+	output.prevPositionCS = mul(prevPos, matPrevWorld);
+	output.prevPositionCS = mul(output.prevPositionCS, g_matPrevViewProj);
+#endif
+
+	output.tangent = CalcTangent(output.normal);
+	output.binormal = CalcBinormal(output.normal, output.tangent);
+#else
+	output.pos = mul(output.pos, g_matViewProj);
+	output.pos.z = output.pos.z * output.pos.w;
+#endif
+
+	return output;
+}
+
+#ifndef USE_WRITEDEPTH
+PS_OUTPUT PS(PS_INPUT input)
+{
+	PS_OUTPUT output = (PS_OUTPUT)0;
+
+	if (g_fStippleTransparencyFactor > 0.f)
+	{
+		float2 screenPos = 0.f;
+		screenPos = (floor(input.pos * g_fStippleTransparencyFactor.xxxx) * 0.5f).xy;
+
+		float checker = -frac(screenPos.r + screenPos.g);
+		clip(checker);
+	}
+
+	float alpha = 1.f;
+
+#ifdef USE_TEX_ALBEDO
+	float4 texAlbedo = TexAlbedo(input.tex);
+	float4 albedo = saturate(g_f4AlbedoColor * pow(abs(texAlbedo), 2.2f));
+	alpha = texAlbedo.a;
+#else
+	float4 albedo = g_f4AlbedoColor;
+	alpha = albedo.a;
+#endif
+
+#ifdef USE_TEX_MASK
+	albedo.w = saturate(albedo.w * TexMask(input.tex).x * 2.f);
+	clip(albedo.w - 0.1f);
+#elif USE_ALBEDO_ALPHA_IS_MASK_MAP
+	clip(albedo.w - 0.1f);
+#elif USE_ALPHABLENDING
+	clip(alpha - 0.1f);
+#endif
+
+#ifdef USE_TEX_NORMAL
+	float3 normal = TexNormal(input.tex).xyz;
+	normal = normalize(2.f * normal - 1.f);
+	normal = normalize((normal.x * input.tangent) + (normal.y * input.binormal) + (input.normal));
+#else
+	float3 normal = input.normal;
+#endif
+
+#ifdef USE_ALPHABLENDING
+	// 검증 필요
+	float3 dir = normalize(input.posW.xyz - g_f3CameraPos);
+	float fdot = dot(normal, dir);
+	if (fdot > 0.f)
+	{
+		normal = -normal;
+	}
+#endif
+
+	float3 RM = float3(g_f4PaddingRoughMetEmi.yz, 0.f);
+#ifdef USE_TEX_ROUGHNESS
+	RM.x = TexRoughness(input.tex).x;
+#endif
+
+#ifdef USE_TEX_METALLIC
+	RM.y = TexMetallic(input.tex).x;
+#endif
+
+	float emissiveIntensity = g_f4PaddingRoughMetEmi.w;
+#ifdef USE_TEX_EMISSIVE
+	emissiveIntensity = TexEmissive(input.tex).x;
+#endif
+
+#ifdef USE_TEX_EMISSIVECOLOR
+	float3 emissiveColor = TexEmissiveColor(input.tex).xyz;
+#else
+	float3 emissiveColor = g_f4EmissiveColor.xyz;
+#endif
+
+	float3 SST = g_f4SurSpecTintAniso.xyz;
+	float3 AST = float3(g_f4SurSpecTintAniso.w, g_f4SheenTintClearcoatGloss.xy);
+	float3 CG = float3(g_f4SheenTintClearcoatGloss.zw, 0.f);
+
+#ifdef USE_TEX_SUBSURFACE
+	SST.x = TexSurface(input.tex).x;
+#endif
+#ifdef USE_TEX_SPECULAR
+	SST.y = TexSpecular(input.tex).x;
+#endif
+#ifdef USE_TEX_SPECULARTINT
+	SST.z = TexSpecularTint(input.tex).x;
+#endif
+#ifdef USE_TEX_ANISOTROPIC
+	AST.x = TexAnisotropic(input.tex).x;
+#endif
+
+	float4 STCG = g_f4SheenTintClearcoatGloss;
+#ifdef USE_TEX_SHEEN
+	AST.y = TexSheen(input.tex).x;
+#endif
+#ifdef USE_TEX_SHEENTINT
+	AST.z = TexSheenTint(input.tex).x;
+#endif
+#ifdef USE_TEX_CLEARCOAT
+	CG.x = TexClearcoat(input.tex).x;
+#endif
+#ifdef USE_TEX_CLEARCOATGLOSS
+	CG.y = TexClearcoatGloss(input.tex).x;
+#endif
+
+#ifdef USE_ALPHABLENDING
+	output.color = CalcColor(input.posW.xyz, input.posWV,
+		normal, input.tangent, input.binormal,
+		saturate(albedo.xyz), emissiveColor, emissiveIntensity,
+		RM.x, RM.y,
+		SST.x, SST.y, SST.z,
+		AST.x, AST.y, AST.z,
+		CG.x, CG.y);
+
+	output.color.w = alpha;
+#else
+	output.normals.xy = CompressNormal(normal);
+	output.normals.zw = CompressNormal(input.tangent);
+
+	output.colors.x = Pack3PNForFP32(saturate(albedo.xyz));
+	output.colors.y = 0.f;	// padding
+	output.colors.z = Pack3PNForFP32(emissiveColor);
+	output.colors.w = emissiveIntensity;
+
+	output.disneyBRDF.x = Pack3PNForFP32(RM);
+	output.disneyBRDF.y = Pack3PNForFP32(SST);
+	output.disneyBRDF.z = Pack3PNForFP32(AST);
+	output.disneyBRDF.w = Pack3PNForFP32(CG);
+
+#ifdef USE_MOTION_BLUR
+	output.velocity = (input.currPositionCS.xy / input.currPositionCS.w) - (input.prevPositionCS.xy / input.prevPositionCS.w);
+	output.velocity *= 0.5f;
+	output.velocity.y *= -1.f;
+#endif
+
+#endif
+
+	return output;
+}
+#endif

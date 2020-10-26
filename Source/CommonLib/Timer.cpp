@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "Timer.h"
 
-namespace eastengine
+namespace est
 {
 	class Stopwatch::Impl
 	{
@@ -75,7 +75,9 @@ namespace eastengine
 		void Tick();
 
 		double GetGameTime() const;
-		float GetElapsedTime() const { return static_cast<float>(m_dDeltaTime); };
+		float GetElapsedTime() const { return static_cast<float>(m_elapsedTime); };
+
+		void SetLimitElapsedTime(double limitElapsedTime) { m_limitElapsedTime = limitElapsedTime; }
 
 	public:
 		void StartTimeAction(std::function<void(uint32_t, float, float)> funcCallback, uint32_t timerID, uint32_t interval, uint32_t lifeTime = TimeAction::eUnlimitedTime);
@@ -83,21 +85,22 @@ namespace eastengine
 
 	private:
 		bool m_isStopped{ false };
-		double m_dDeltaTime{ 0.0 };
+		double m_elapsedTime{ 0.0 };
+		double m_limitElapsedTime{ std::numeric_limits<double>::max() };
+		double m_gameTime{ 0.0 };
 
 		std::chrono::high_resolution_clock::time_point m_baseTime;
 		std::chrono::high_resolution_clock::time_point m_stopTime;
 		std::chrono::high_resolution_clock::time_point m_prevTime;
 		std::chrono::high_resolution_clock::time_point m_curTime;
 
-		std::chrono::milliseconds m_pausedTime;
+		std::chrono::milliseconds m_pausedTime{};
 
 		std::vector<TimeAction> m_timeActions;
 	};
 
 	Timer::Impl::Impl()
 	{
-		Reset();
 	}
 
 	Timer::Impl::~Impl()
@@ -151,17 +154,24 @@ namespace eastengine
 		std::chrono::duration<double> diffTime = std::chrono::duration_cast<std::chrono::duration<double>>(m_stopTime - curTime);
 		if (std::abs(diffTime.count()) <= std::numeric_limits<double>::epsilon())
 		{
-			m_dDeltaTime = 0.0;
+			m_elapsedTime = 0.0;
 			return;
 		}
 
 		m_curTime = curTime;
 
-		m_dDeltaTime = std::chrono::duration_cast<std::chrono::duration<double>>(m_curTime - m_prevTime).count();
+		m_elapsedTime = std::clamp(std::chrono::duration_cast<std::chrono::duration<double>>(m_curTime - m_prevTime).count(), 0.0, m_limitElapsedTime);
 
 		m_prevTime = m_curTime;
 
-		m_dDeltaTime = std::max(m_dDeltaTime, 0.0);
+		if (m_isStopped == true)
+		{
+			m_gameTime = std::chrono::duration_cast<std::chrono::duration<double>>((m_stopTime - m_pausedTime) - m_baseTime).count();
+		}
+		else
+		{
+			m_gameTime = std::chrono::duration_cast<std::chrono::duration<double>>((m_curTime - m_pausedTime) - m_baseTime).count();;
+		}
 
 		const float elapsedTime = GetElapsedTime();
 		m_timeActions.erase(std::remove_if(m_timeActions.begin(), m_timeActions.end(), [elapsedTime](TimeAction& timeActions)
@@ -175,10 +185,7 @@ namespace eastengine
 
 	double Timer::Impl::GetGameTime() const
 	{
-		if (m_isStopped)
-			return std::chrono::duration_cast<std::chrono::duration<double>>((m_stopTime - m_pausedTime) - m_baseTime).count();
-
-		return std::chrono::duration_cast<std::chrono::duration<double>>((m_curTime - m_pausedTime) - m_baseTime).count();
+		return m_gameTime;
 	}
 
 	void Timer::Impl::StartTimeAction(std::function<void(uint32_t, float, float)> funcCallback, uint32_t timerID, uint32_t interval, uint32_t lifeTime)
@@ -285,6 +292,11 @@ namespace eastengine
 	float Timer::GetElapsedTime() const
 	{
 		return m_pImpl->GetElapsedTime();
+	}
+
+	void Timer::SetLimitElapsedTime(double limitElapsedTime)
+	{
+		m_pImpl->SetLimitElapsedTime(limitElapsedTime);
 	}
 
 	void Timer::StartTimeAction(std::function<void(uint32_t, float, float)> funcCallback, uint32_t timerID, uint32_t interval, uint32_t lifeTime)

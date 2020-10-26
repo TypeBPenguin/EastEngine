@@ -1,50 +1,50 @@
 #include "stdafx.h"
 #include "ComponentInterface.h"
 
-namespace eastengine
+namespace est
 {
 	namespace gameobject
 	{
-		const char* IComponent::ToString(Type emType)
+		const wchar_t* IComponent::ToString(Type emType)
 		{
 			switch (emType)
 			{
 			case eTimer:
-				return "Timer";
+				return L"Timer";
 			case eBehaviorTree:
-				return "BehaviorTree";
+				return L"BehaviorTree";
 			case ePhysics:
-				return "Physics";
+				return L"Physics";
 			case eModel:
-				return "Model";
+				return L"Model";
 			case eCamera:
-				return "Camera";
+				return L"Camera";
 			case eLight:
-				return "Light";
+				return L"Light";
 			default:
 				return nullptr;
 			}
 		}
 
-		IComponent::Type IComponent::GetType(const char* strType)
+		IComponent::Type IComponent::GetType(const wchar_t* strType)
 		{
-			if (string::IsEquals(strType, "BehaviorTree"))
+			if (string::IsEquals(strType, L"BehaviorTree"))
 			{
 				return IComponent::eBehaviorTree;
 			}
-			else if (string::IsEquals(strType, "Timer"))
+			else if (string::IsEquals(strType, L"Timer"))
 			{
 				return IComponent::eTimer;
 			}
-			else if (string::IsEquals(strType, "Physics"))
+			else if (string::IsEquals(strType, L"Physics"))
 			{
 				return IComponent::ePhysics;
 			}
-			else if (string::IsEquals(strType, "Model"))
+			else if (string::IsEquals(strType, L"Model"))
 			{
 				return IComponent::eModel;
 			}
-			else if (string::IsEquals(strType, "Camera"))
+			else if (string::IsEquals(strType, L"Camera"))
 			{
 				return IComponent::eCamera;
 			}
@@ -60,40 +60,6 @@ namespace eastengine
 
 		IComponent::~IComponent()
 		{
-			std::for_each(m_umapChild.begin(), m_umapChild.end(), DeleteSTLMapObject());
-			m_umapChild.clear();
-		}
-
-		IComponent* IComponent::AddComponent(IComponent* pComponent)
-		{
-			auto iter = m_umapChild.find(pComponent->GetComponentType());
-			if (iter != m_umapChild.end())
-			{
-				SafeDelete(pComponent);
-				return nullptr;
-			}
-
-			m_umapChild.insert(std::make_pair(pComponent->GetComponentType(), pComponent));
-
-			return pComponent;
-		}
-
-		void IComponent::DelComponent(Type emComponentType)
-		{
-			auto iter = m_umapChild.find(emComponentType);
-			if (iter == m_umapChild.end())
-				return;
-
-			m_umapChild.erase(iter);
-		}
-
-		IComponent* IComponent::GetComponent(Type emComponentType)
-		{
-			auto iter = m_umapChild.find(emComponentType);
-			if (iter == m_umapChild.end())
-				return nullptr;
-
-			return iter->second;
 		}
 	}
 }

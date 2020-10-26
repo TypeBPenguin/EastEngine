@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "SoundDefine.h"
 
-namespace eastengine
+namespace est
 {
 	namespace sound
 	{
@@ -11,8 +11,6 @@ namespace eastengine
 		static_assert(Mode::eLoopBIDI == FMOD_LOOP_BIDI, "FMOD mode mismatch");
 		static_assert(Mode::e2D == FMOD_2D, "FMOD mode mismatch");
 		static_assert(Mode::e3D == FMOD_3D, "FMOD mode mismatch");
-		static_assert(Mode::eHardware == FMOD_HARDWARE, "FMOD mode mismatch");
-		static_assert(Mode::eSoftware == FMOD_SOFTWARE, "FMOD mode mismatch");
 		static_assert(Mode::eCreateStream == FMOD_CREATESTREAM, "FMOD mode mismatch");
 		static_assert(Mode::eCreateSample == FMOD_CREATESAMPLE, "FMOD mode mismatch");
 		static_assert(Mode::eCreateCompressedSample == FMOD_CREATECOMPRESSEDSAMPLE, "FMOD mode mismatch");
@@ -32,7 +30,6 @@ namespace eastengine
 		static_assert(Mode::e3D_LinearSquareRolloff == FMOD_3D_LINEARSQUAREROLLOFF, "FMOD mode mismatch");
 		static_assert(Mode::e3D_CustomRolloff == FMOD_3D_CUSTOMROLLOFF, "FMOD mode mismatch");
 		static_assert(Mode::e3D_IgnoreGeometry == FMOD_3D_IGNOREGEOMETRY, "FMOD mode mismatch");
-		static_assert(Mode::eUnicode == FMOD_UNICODE, "FMOD mode mismatch");
 		static_assert(Mode::eIgnoreTags == FMOD_IGNORETAGS, "FMOD mode mismatch");
 		static_assert(Mode::eLowMem == FMOD_LOWMEM, "FMOD mode mismatch");
 		static_assert(Mode::eLoadSecondaryRam == FMOD_LOADSECONDARYRAM, "FMOD mode mismatch");

@@ -2,7 +2,7 @@
 
 #include "GameObject.h"
 
-namespace eastengine
+namespace est
 {
 	namespace gameobject
 	{
@@ -22,15 +22,15 @@ namespace eastengine
 			virtual void SetVisible(bool bVisible) override { m_isVisible = bVisible; }
 			virtual bool IsVisible() const override { return m_isVisible; }
 
-			virtual graphics::ITexture* GetTexture() const override { return m_pTexture; }
-			virtual void SetTexture(graphics::ITexture* pTexture) override;
+			virtual graphics::TexturePtr GetTexture() const override { return m_pTexture; }
+			virtual void SetTexture(const graphics::TexturePtr& pTexture) override;
 
 		public:
 			void SetDestroy(bool isDestroy) { m_isDestroy = isDestroy; }
 			bool IsDestroy() const { return m_isDestroy; }
 
 		public:
-			void Init(const SkyboxProperty& property);
+			void Initialize(const SkyboxProperty& skyProperty);
 
 		private:
 			string::StringID m_strName;
@@ -40,10 +40,10 @@ namespace eastengine
 
 			SkyboxProperty m_property;
 
-			graphics::IVertexBuffer* m_pVertexBuffer{ nullptr };
-			graphics::IIndexBuffer* m_pIndexBuffer{ nullptr };
+			graphics::VertexBufferPtr m_pVertexBuffer{ nullptr };
+			graphics::IndexBufferPtr m_pIndexBuffer{ nullptr };
 
-			graphics::ITexture* m_pTexture{ nullptr };
+			graphics::TexturePtr m_pTexture{ nullptr };
 		};
 	}
 }

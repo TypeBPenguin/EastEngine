@@ -2,7 +2,7 @@
 
 #include "InputInterface.h"
 
-namespace eastengine
+namespace est
 {
 	namespace input
 	{
@@ -194,10 +194,10 @@ namespace eastengine
 				void RefreshCapabilities();
 
 				bool ThrottleRetry(float elapsedTime);
-				void ClearSlot(float fTime)
+				void ClearSlot(float time)
 				{
 					m_isConnected = false;
-					m_fLastReadTime = fTime;
+					m_fLastReadTime = time;
 					m_fVibrationTime = 0.f;
 					m_fMaxVibrationTime = 0.f;
 				}

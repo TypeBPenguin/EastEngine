@@ -2,10 +2,12 @@
 
 #include "CommonLib/PhantomType.h"
 
-#include "Physics/RigidBody.h"
+#include "Graphics/Interface/GraphicsInterface.h"
+#include "Physics/PhysicsInterface.h"
+
 #include "ComponentInterface.h"
 
-namespace eastengine
+namespace est
 {
 	namespace graphics
 	{
@@ -25,8 +27,6 @@ namespace eastengine
 
 		class IGameObject
 		{
-		private:
-
 		public:
 			enum : uint64_t
 			{
@@ -34,6 +34,8 @@ namespace eastengine
 			};
 			struct tHandle { static constexpr uint64_t DefaultValue() { return eInvalidHandle; } };
 			using Handle = PhantomType<tHandle, uint64_t>;
+
+			inline static const Handle InvalidHandle{ eInvalidHandle };
 
 		protected:
 			IGameObject(const Handle& handle);
@@ -49,6 +51,8 @@ namespace eastengine
 			const Handle m_handle;
 		};
 
+		struct GameObjectDeleter { void operator()(IGameObject* pGameObject); };
+
 		class IActor : public IGameObject
 		{
 		protected:
@@ -57,13 +61,6 @@ namespace eastengine
 
 		public:
 			virtual ObjectType GetType() const override { return ObjectType::eActor; }
-
-		public:
-			static IActor* CreateByFile(const char* strFilePath);
-			static IActor* Create(const string::StringID& strName);
-			static void Destroy(IActor** ppActor);
-
-			static bool SaveFile(IActor* pActor, const char* strFilePath);
 
 		public:
 			virtual void Update(float elapsedTime) = 0;
@@ -75,52 +72,48 @@ namespace eastengine
 
 		public:
 			virtual const string::StringID& GetName() const = 0;
-			virtual void SetName(const string::StringID& strActorName) = 0;
+			virtual void SetName(const string::StringID& actorName) = 0;
 
-			virtual const math::Matrix* GetWorldMatrixPtr() const = 0;
-			virtual const math::Matrix& GetWorldMatrix() const = 0;
-			virtual const math::Matrix& CalcWorldMatrix() = 0;
+			virtual const math::Matrix& GetWorldMatrix() = 0;
 
 			virtual const math::float3& GetPosition() const = 0;
-			virtual void SetPosition(const math::float3& f3Pos) = 0;
+			virtual void SetPosition(const math::float3& position) = 0;
 			virtual const math::float3& GetPrevPosition() const = 0;
 
 			virtual const math::float3& GetScale() const = 0;
-			virtual void SetScale(const math::float3& f3Scale) = 0;
+			virtual void SetScale(const math::float3& scale) = 0;
 			virtual const math::float3& GetPrevScale() const = 0;
 
 			virtual const math::Quaternion& GetRotation() const = 0;
-			virtual void SetRotation(const math::Quaternion& quat) = 0;
+			virtual void SetRotation(const math::Quaternion& rotation) = 0;
 			virtual const math::Quaternion& GetPrevRotation() const = 0;
-
-			virtual const math::float3& GetVelocity() const = 0;
-			virtual void SetVelocity(const math::float3& f3Velocity) = 0;
 
 			virtual void SetVisible(bool bVisible) = 0;
 			virtual bool IsVisible() const = 0;
 		};
+		using ActorPtr = std::unique_ptr<IActor, GameObjectDeleter>;
 
 		struct TerrainProperty
 		{
-			math::int2 n2Size{ 1024, 1024 };
+			math::int2 size{ 1024, 1024 };
 
-			math::int2 n2Patches{ 64, 64 };
+			math::int2 patches{ 64, 64 };
 
-			float fHeightScale{ 300.f };
+			float heightScale{ 300.f };
 
 			math::Transform transform;
 
-			std::string strTexHeightMap;
-			std::string strTexColorMap;
+			std::wstring texHeightMap;
+			std::wstring texColorMap;
 
 			// 터레인 디테일맵 여러개 사용할 수 있는 구조로 바꿔야함
-			std::string strTexDetailMap;
-			std::string strTexDetailNormalMap;
+			std::wstring texDetailMap;
+			std::wstring texDetailNormalMap;
 
-			float fRoughness{ 1.f };
-			float fMetallic{ 0.f };
+			float roughness{ 1.f };
+			float metallic{ 0.f };
 
-			physics::RigidBodyProperty rigidBodyProperty;
+			physics::RigidActorProperty rigidActorProperty;
 		};
 
 		class ITerrain : public IGameObject
@@ -130,11 +123,6 @@ namespace eastengine
 			virtual ~ITerrain() = default;
 
 		public:
-			static ITerrain* Create(const string::StringID& strName, const TerrainProperty& terrainProperty);
-			static ITerrain* CreateAsync(const string::StringID& strName, const TerrainProperty& terrainProperty);
-			static void Destroy(ITerrain** ppTerrain);
-
-		public:
 			virtual ObjectType GetType() const override { return ObjectType::eTerrain; }
 
 		public:
@@ -142,7 +130,7 @@ namespace eastengine
 
 		public:
 			virtual const string::StringID& GetName() const = 0;
-			virtual void SetName(const string::StringID& strActorName) = 0;
+			virtual void SetName(const string::StringID& actorName) = 0;
 
 			virtual void SetVisible(bool bVisible) = 0;
 			virtual bool IsVisible() const = 0;
@@ -154,12 +142,12 @@ namespace eastengine
 
 			virtual bool IsBuildComplete() const = 0;
 		};
+		using TerrainPtr = std::unique_ptr<ITerrain, GameObjectDeleter>;
 
 		struct SkyboxProperty
 		{
-			std::string strTexSky;
-
-			float fBoxSize = 1000.f;
+			std::wstring texSkymap;
+			float boxSize{ 1000.f };
 		};
 
 		class ISkybox : public IGameObject
@@ -169,10 +157,6 @@ namespace eastengine
 			virtual ~ISkybox() = default;
 
 		public:
-			static ISkybox* Create(const string::StringID& strName, const SkyboxProperty& property);
-			static void Destroy(ISkybox** ppSkybox);
-
-		public:
 			virtual ObjectType GetType() const override { return ObjectType::eSky; }
 
 		public:
@@ -180,23 +164,29 @@ namespace eastengine
 
 		public:
 			virtual const string::StringID& GetName() const = 0;
-			virtual void SetName(const string::StringID& strActorName) = 0;
+			virtual void SetName(const string::StringID& actorName) = 0;
 
 			virtual void SetVisible(bool bVisible) = 0;
 			virtual bool IsVisible() const = 0;
 
-			virtual graphics::ITexture* GetTexture() const = 0;
-			virtual void SetTexture(graphics::ITexture* pTexture) = 0;
+			virtual graphics::TexturePtr GetTexture() const = 0;
+			virtual void SetTexture(const graphics::TexturePtr& pTexture) = 0;
 		};
+		using SkyboxPtr = std::unique_ptr<ISkybox, GameObjectDeleter>;
+
+		ActorPtr CreateActor(const string::StringID& name);
+		SkyboxPtr CreateSkybox(const string::StringID& name, const SkyboxProperty& skyProperty);
+		TerrainPtr CreateTerrain(const string::StringID& name, const TerrainProperty& terrainProperty);
+		TerrainPtr CreateTerrainAsync(const string::StringID& name, const TerrainProperty& terrainProperty);
 	}
 }
 
 namespace std
 {
 	template <>
-	struct hash<eastengine::gameobject::IGameObject::Handle>
+	struct hash<est::gameobject::IGameObject::Handle>
 	{
-		uint64_t operator()(const eastengine::gameobject::IGameObject::Handle& key) const
+		uint64_t operator()(const est::gameobject::IGameObject::Handle& key) const
 		{
 			return key;
 		}

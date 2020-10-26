@@ -4,29 +4,26 @@
 #include "CommonLib/BehaviorTree.h"
 #include "CommonLib/FileUtil.h"
 
-#include "GraphicsInterface/Camera.h"
+#include "Graphics/Interface/Camera.h"
+#include "Graphics/Interface/imguiHelper.h"
+
+#include "Graphics/Model/ModelInterface.h"
+#include "Graphics/Model/GeometryModel.h"
+#include "Graphics/Model/ModelManager.h"
+
 #include "Input/InputInterface.h"
 
-#include "Model/ModelInterface.h"
-#include "Model/ModelLoader.h"
-#include "Model/MotionLoader.h"
-#include "Model/GeometryModel.h"
-#include "Model/ModelManager.h"
-
-#include "GameObject/GameObject.h"
-#include "GameObject/GameObjectManager.h"
 #include "GameObject/ComponentModel.h"
 #include "GameObject/ComponentPhysics.h"
 
 #include "SoundSystem/SoundInterface.h"
 
-#include "GraphicsInterface/imguiHelper.h"
-
 #include "Minion.h"
+#include "NodeGraphEditor.h"
 
-using namespace eastengine;
+using namespace est;
 
-namespace StrID
+namespace sid
 {
 	RegisterStringID(Studio);
 	RegisterStringID(Studio_Ground);
@@ -49,13 +46,15 @@ const char* IBL_Type[] =
 };
 
 SceneNewStudio::SceneNewStudio()
-	: IScene(StrID::Studio)
+	: IScene(sid::Studio)
 {
 }
 
 SceneNewStudio::~SceneNewStudio()
 {
 }
+
+const est::string::StringID SceneNewStudio::Name{ sid::Studio };
 
 void TestBehaviorTree()
 {
@@ -83,126 +82,126 @@ void TestBehaviorTree()
 
 	BehaviorTree bTree;
 	BehaviorTree::IDecoratorNode* pRoot = bTree.GetRoot();
-	auto pCoolDown = pRoot->SetCooldown("CoolDown", 3.f);
-	auto pMain = pCoolDown->SetSequence("Main");
+	auto pCoolDown = pRoot->SetCooldown(L"CoolDown", 3.f);
+	auto pMain = pCoolDown->SetSequence(L"Main");
 
-	auto pRandomSelector = pMain->AddRandomSelector("RandomSelector");
-	pMain->AddAction("Day", [&]()
+	auto pRandomSelector = pMain->AddRandomSelector(L"RandomSelector");
+	pMain->AddAction(L"Day", [&]()
 	{
-		LOG_ERROR("Day Result : nmoney[%d], hungry[%d], sleepy[%d], food[%d]", bear.money, bear.hungry, bear.sleepy, bear.food);
+		LOG_ERROR(L"Day Result : nmoney[%d], hungry[%d], sleepy[%d], food[%d]", bear.money, bear.hungry, bear.sleepy, bear.food);
 		return true;
 	});
 
 	{
-		auto pEatSomeFood = pRandomSelector->AddSequence("EatSomeFood");
-		pEatSomeFood->AddAction("CheckHungry", [&]()
+		auto pEatSomeFood = pRandomSelector->AddSequence(L"EatSomeFood");
+		pEatSomeFood->AddAction(L"CheckHungry", [&]()
 		{
 			if (bear.IsHungry() == true)
 			{
-				LOG_MESSAGE("곰은 배가 고파요");
+				LOG_MESSAGE(L"곰은 배가 고파요");
 				return true;
 			}
 			else
 			{
-				LOG_WARNING("곰은 배고프지 않아요");
+				LOG_WARNING(L"곰은 배고프지 않아요");
 				return false;
 			}
 		});
 
-		auto pCheckFood = pEatSomeFood->AddSelector("CheckFood");
-		pCheckFood->AddAction("CheckFood", [&]()
+		auto pCheckFood = pEatSomeFood->AddSelector(L"CheckFood");
+		pCheckFood->AddAction(L"CheckFood", [&]()
 		{
 			if (bear.IsHasFood() == true)
 			{
-				LOG_MESSAGE("곰은 음식을 가지고 있어요");
+				LOG_MESSAGE(L"곰은 음식을 가지고 있어요");
 				return true;
 			}
 			else
 			{
-				LOG_WARNING("곰은 음식이 없어요");
+				LOG_WARNING(L"곰은 음식이 없어요");
 				return false;
 			}
 		});
 
-		auto pBuyFood = pCheckFood->AddSequence("BuyFood");
-		pBuyFood->AddAction("CheckMoney", [&]()
+		auto pBuyFood = pCheckFood->AddSequence(L"BuyFood");
+		pBuyFood->AddAction(L"CheckMoney", [&]()
 		{
 			if (bear.CanIBuyFood(5) == true)
 			{
-				LOG_MESSAGE("곰은 돈이 있어요");
+				LOG_MESSAGE(L"곰은 돈이 있어요");
 				return true;
 			}
 			else
 			{
-				LOG_WARNING("곰은 돈이 없어요");
+				LOG_WARNING(L"곰은 돈이 없어요");
 				return false;
 			}
 		});
-		pBuyFood->AddAction("BuyFood", [&]()
+		pBuyFood->AddAction(L"BuyFood", [&]()
 		{
-			LOG_MESSAGE("곰은 음식을 샀어요");
+			LOG_MESSAGE(L"곰은 음식을 샀어요");
 			bear.BuyFood(5);
 			return true;
 		});
 
-		pEatSomeFood->AddAction("EatFood", [&]()
+		pEatSomeFood->AddAction(L"EatFood", [&]()
 		{
-			LOG_MESSAGE("곰은 음식을 먹었어요");
+			LOG_MESSAGE(L"곰은 음식을 먹었어요");
 			bear.Eat();
 			return true;
 		});
 	}
 	{
-		auto pSleep = pRandomSelector->AddSequence("Sleep");
-		pSleep->AddAction("IsSleep", [&]()
+		auto pSleep = pRandomSelector->AddSequence(L"Sleep");
+		pSleep->AddAction(L"IsSleep", [&]()
 		{
 			if (bear.IsSleepy() == true)
 			{
-				LOG_MESSAGE("곰은 졸려요");
+				LOG_MESSAGE(L"곰은 졸려요");
 				return true;
 			}
 			else
 			{
-				LOG_WARNING("곰은 졸리지 않아요");
+				LOG_WARNING(L"곰은 졸리지 않아요");
 				return false;
 			}
 		});
 
-		auto pSleeping = pSleep->AddConditionalLoop("SleepingLoop");
-		pSleeping->SetAction("Sleeping", [&]()
+		auto pSleeping = pSleep->AddConditionalLoop(L"SleepingLoop");
+		pSleeping->SetAction(L"Sleeping", [&]()
 		{
 			if (bear.IsWakeup() == false)
 			{
-				LOG_MESSAGE("곰은 잠자고 있어요");
+				LOG_MESSAGE(L"곰은 잠자고 있어요");
 				bear.Sleep();
 				return true;
 			}
 			else
 			{
-				LOG_WARNING("곰은 잠에서 깨어났어요");
+				LOG_WARNING(L"곰은 잠에서 깨어났어요");
 				return false;
 			}
 		});
 	}
 	{
-		auto pWork = pRandomSelector->AddSequence("Work");
-		pWork->AddAction("CanIWork", [&]()
+		auto pWork = pRandomSelector->AddSequence(L"Work");
+		pWork->AddAction(L"CanIWork", [&]()
 		{
 			if (bear.IsSleepy() == false)
 			{
-				LOG_MESSAGE("곰은 일 할수 있어요");
+				LOG_MESSAGE(L"곰은 일 할수 있어요");
 				return true;
 			}
 			else
 			{
-				LOG_MESSAGE("곰은 졸려서 일 할수 없어요");
+				LOG_MESSAGE(L"곰은 졸려서 일 할수 없어요");
 				return false;
 			}
 		});
 
-		pWork->AddAction("Work", [&]()
+		pWork->AddAction(L"Work", [&]()
 		{
-			LOG_MESSAGE("곰은 일을 했어요");
+			LOG_MESSAGE(L"곰은 일을 했어요");
 			bear.Work();
 			return true;
 		});
@@ -218,13 +217,23 @@ void TestBehaviorTree()
 	}
 }
 
-void SceneNewStudio::Enter()
+void SceneNewStudio::Enter(const std::queue<gameobject::ActorPtr>& savedPrevSceneActors)
 {
-	const math::uint2& n2ScreenSize = graphics::GetScreenSize();
+	graphics::Camera* pCamera = graphics::GetCamera();
 
-	const float fAspect = static_cast<float>(n2ScreenSize.x) / static_cast<float>(n2ScreenSize.y);
-	graphics::Camera::GetInstance()->SetProjection(n2ScreenSize.x, n2ScreenSize.y, math::PIDIV4, 0.1f, 1000.f, graphics::GetAPI() == graphics::eVulkan);
-	graphics::Camera::GetInstance()->SetView({ 0.f, 2.f, -10.f }, { 0.f, 0.f, 0.f }, { 0.f, 1.f, 0.f });
+	graphics::Camera::DescView cameraView;
+	cameraView.position = { 0.f, 10.f, -10.f };
+	cameraView.lookat = { 0.f, 0.f, 0.f };
+	cameraView.up = math::float3::Up;
+	pCamera->SetView(cameraView);
+
+	//graphics::FirstPersonCameraMan::DescMove descMove;
+	//descMove.rotateSpeed = 5.f;
+	//pCamera->SetFirstPersonCameraMan(descMove);
+
+	graphics::ThirdPersonCameraMan::DescMove descMove;
+	descMove.rotateSpeed = 5.f;
+	pCamera->SetThirdPersonCameraMan(descMove);
 
 	{
 		const math::float3 f3LightPosition(0.f, 500.f, -500.f);
@@ -232,13 +241,15 @@ void SceneNewStudio::Enter()
 		graphics::DirectionalLightData lightData;
 		lightData.direction = math::float3::Zero - f3LightPosition;
 		lightData.direction.Normalize();
-		m_pLights.emplace_back(graphics::CreateDirectionalLight("MainLight", false, lightData));
+		graphics::DirectionalLightPtr pDirectionalLight = graphics::CreateDirectionalLight(L"MainLight", false, lightData);
+		pDirectionalLight->SetEnableShadow(true);
+		m_pLights.emplace_back(pDirectionalLight);
 
 		graphics::PointLightData pointLightData;
 		pointLightData.lightIntensity = 1000.f;
 		pointLightData.position.y = 10.f;
 		pointLightData.color = math::float3(1.f, 0.f, 0.f);
-		m_pLights.emplace_back(graphics::CreatePointLight("PointLight", false, pointLightData));
+		m_pLights.emplace_back(graphics::CreatePointLight(L"PointLight", false, pointLightData));
 
 		graphics::SpotLightData spotLightData;
 		spotLightData.lightIntensity = 1000.f;
@@ -247,64 +258,85 @@ void SceneNewStudio::Enter()
 		spotLightData.direction = math::float3(0.f, -1.f, 0.f);
 		spotLightData.angle = 30.f;
 		spotLightData.color = math::float3(0.f, 1.f, 0.f);
-		m_pLights.emplace_back(graphics::CreateSpotLight("SpotLight", false, spotLightData));
+		m_pLights.emplace_back(graphics::CreateSpotLight(L"SpotLight", false, spotLightData));
 	}
 
-	std::string strPath = file::GetPath(file::eTexture);
+	std::wstring path;
+	//{
+	//	path = string::Format(L"%sTexture\\IBL\\%s\\%s", file::GetEngineDataPath(), IBL_Type[1], IBL_Type[1]);
+	//
+	//	graphics::IImageBasedLight* pImageBasedLight = graphics::GetImageBasedLight();
+	//
+	//	std::wstring strDiffuseHDR = path;
+	//	strDiffuseHDR.append(L"DiffuseHDR.dds");
+	//	graphics::ITexture* pDiffuseHDR = graphics::CreateTextureAsync(strDiffuseHDR.c_str());
+	//	pImageBasedLight->SetDiffuseHDR(pDiffuseHDR);
+	//	graphics::ReleaseResource(&pDiffuseHDR);
+	//
+	//	std::wstring strSpecularHDR = path;
+	//	strSpecularHDR.append(L"SpecularHDR.dds");
+	//	graphics::ITexture* pSpecularHDR = graphics::CreateTextureAsync(strSpecularHDR.c_str());
+	//	pImageBasedLight->SetSpecularHDR(pSpecularHDR);
+	//	graphics::ReleaseResource(&pSpecularHDR);
+	//
+	//	std::wstring strSpecularBRDF = path;
+	//	strSpecularBRDF.append(L"Brdf.dds");
+	//	graphics::ITexture* pSpecularBRDF = graphics::CreateTextureAsync(strSpecularBRDF.c_str());
+	//	pImageBasedLight->SetSpecularBRDF(pSpecularBRDF);
+	//	graphics::ReleaseResource(&pSpecularBRDF);
+	//
+	//	std::wstring strEnvIBLPath = path;
+	//	strEnvIBLPath.append(L"EnvHDR.dds");
+	//	graphics::ITexture* pEnvironmentHDR = graphics::CreateTextureAsync(strEnvIBLPath.c_str());
+	//	pImageBasedLight->SetEnvironmentHDR(pEnvironmentHDR);
+	//	graphics::ReleaseResource(&pEnvironmentHDR);
+	//
+	//	std::vector<graphics::VertexPosTexNor> vertices;
+	//	std::vector<uint32_t> indices;
+	//
+	//	graphics::geometry::CreateSphere(vertices, indices, 1.f, 32u);
+	//
+	//	graphics::IVertexBuffer* pVertexBuffer = graphics::CreateVertexBuffer(reinterpret_cast<const uint8_t*>(vertices.data()), static_cast<uint32_t>(vertices.size()), sizeof(graphics::VertexPosTexNor), false);
+	//	graphics::IIndexBuffer* pIndexBuffer = graphics::CreateIndexBuffer(reinterpret_cast<const uint8_t*>(indices.data()), static_cast<uint32_t>(indices.size()), sizeof(uint32_t), false);
+	//
+	//	pImageBasedLight->SetEnvironmentSphere(pVertexBuffer, pIndexBuffer);
+	//
+	//	graphics::ReleaseResource(&pVertexBuffer);
+	//	graphics::ReleaseResource(&pIndexBuffer);
+	//}
+
 	{
-		strPath = string::Format("%sIBL\\%s\\%s", file::GetPath(file::eTexture), IBL_Type[1], IBL_Type[1]);
+		gameobject::ActorPtr pActor = gameobject::CreateActor(sid::Studio_Ground);
 
-		graphics::IImageBasedLight* pImageBasedLight = graphics::GetImageBasedLight();
-
-		std::string strDiffuseHDR = strPath;
-		strDiffuseHDR.append("DiffuseHDR.dds");
-		graphics::ITexture* pDiffuseHDR = graphics::CreateTextureAsync(strDiffuseHDR.c_str());
-		pImageBasedLight->SetDiffuseHDR(pDiffuseHDR);
-		graphics::ReleaseResource(&pDiffuseHDR);
-
-		std::string strSpecularHDR = strPath;
-		strSpecularHDR.append("SpecularHDR.dds");
-		graphics::ITexture* pSpecularHDR = graphics::CreateTextureAsync(strSpecularHDR.c_str());
-		pImageBasedLight->SetSpecularHDR(pSpecularHDR);
-		graphics::ReleaseResource(&pSpecularHDR);
-
-		std::string strSpecularBRDF = strPath;
-		strSpecularBRDF.append("Brdf.dds");
-		graphics::ITexture* pSpecularBRDF = graphics::CreateTextureAsync(strSpecularBRDF.c_str());
-		pImageBasedLight->SetSpecularBRDF(pSpecularBRDF);
-		graphics::ReleaseResource(&pSpecularBRDF);
-
-		std::string strEnvIBLPath = strPath;
-		strEnvIBLPath.append("EnvHDR.dds");
-		graphics::ITexture* pEnvironmentHDR = graphics::CreateTextureAsync(strEnvIBLPath.c_str());
-		pImageBasedLight->SetEnvironmentHDR(pEnvironmentHDR);
-		graphics::ReleaseResource(&pEnvironmentHDR);
-
-		std::vector<graphics::VertexPosTexNor> vertices;
-		std::vector<uint32_t> indices;
-
-		graphics::geometry::CreateSphere(vertices, indices, 1.f, 32u);
-
-		graphics::IVertexBuffer* pVertexBuffer = graphics::CreateVertexBuffer(reinterpret_cast<const uint8_t*>(vertices.data()), static_cast<uint32_t>(vertices.size()), sizeof(graphics::VertexPosTexNor), false);
-		graphics::IIndexBuffer* pIndexBuffer = graphics::CreateIndexBuffer(reinterpret_cast<const uint8_t*>(indices.data()), static_cast<uint32_t>(indices.size()), sizeof(uint32_t), false);
-
-		pImageBasedLight->SetEnvironmentSphere(pVertexBuffer, pIndexBuffer);
-
-		graphics::ReleaseResource(&pVertexBuffer);
-		graphics::ReleaseResource(&pIndexBuffer);
-	}
-
-	{
-		auto pActor = gameobject::GameObjectManager::GetInstance()->CreateActor(StrID::Studio_Ground);
-
-		graphics::MaterialInfo material;
-		material.name = StrID::Studio_Ground;
+		graphics::IMaterial::Data material;
+		material.name = sid::Studio_Ground;
 
 		graphics::ModelLoader loader;
-		loader.InitPlane(StrID::Studio_Ground, 1.f, 1.f, 100, 100, &material);
+		loader.InitPlane(sid::Studio_Ground, 1.f, 1.f, 100, 100, &material);
+		loader.SetEnableThreadLoad(false);
 
 		auto pCompModel = static_cast<gameobject::ComponentModel*>(pActor->CreateComponent(gameobject::IComponent::eModel));
-		pCompModel->Initialize(&loader);
+		pCompModel->Add(0, loader);
+		graphics::IModelInstance* pModelInstance = pCompModel->GetModelInstance(0);
+
+		const graphics::VertexPos* pVertices = nullptr;
+		size_t numVertices = 0;
+		pModelInstance->GetModel()->GetNode(0)->GetRawVertices(&pVertices, numVertices);
+
+		const uint32_t* pIndices = nullptr;
+		size_t numIndices = 0;
+		pModelInstance->GetModel()->GetNode(0)->GetRawIndices(&pIndices, numIndices);
+
+		auto pCompPhysics = static_cast<gameobject::ComponentPhysics*>(pActor->CreateComponent(gameobject::IComponent::ePhysics));
+		physics::RigidActorProperty rigidProperty;
+		rigidProperty.material.restitution = 0.75f;
+		rigidProperty.material.staticFriction = 0.25f;
+		rigidProperty.material.dynamicFriction = 0.25f;
+		rigidProperty.shape.SetTriangleMeshGeometry(math::float3::One, math::Quaternion::Identity, reinterpret_cast<const math::float3*>(pVertices), static_cast<uint32_t>(numVertices), pIndices, static_cast<uint32_t>(numIndices), physics::IGeometry::MeshFlag::eNone);
+		rigidProperty.shape.flags = physics::IShape::eSimulationShape | physics::IShape::eSceneQueryShape;
+		rigidProperty.rigidAcotr.name = "Plane";
+		rigidProperty.rigidAcotr.type = physics::IActor::eRigidStatic;
+		pCompPhysics->CreateRigidActor(rigidProperty);
 
 		//auto pModelInst = pCompModel->GetModelInstance();
 
@@ -312,7 +344,7 @@ void SceneNewStudio::Enter()
 		//
 		//physics::RigidBodyProperty prop;
 		//prop.fRestitution = 0.75f;
-		//prop.strName = StrID::Studio_Ground;
+		//prop.strName = sid::Studio_Ground;
 		//prop.fMass = 0.f;
 		//prop.nCollisionFlag = physics::CollisionFlag::eStaticObject;
 		//prop.shapeInfo.SetTriangleMesh();
@@ -326,219 +358,239 @@ void SceneNewStudio::Enter()
 		}
 
 		m_pSectorMgr = CreateSectorMgr(sectorInitInfo);*/
+
+		m_actors.emplace_back(std::move(pActor));
 	}
 
-	//graphics::IMaterial* pMaterial_override = nullptr;
-	//for (int j = 0; j < 5; ++j)
-	//{
-	//	for (int i = 0; i < 50; ++i)
-	//	{
-	//		/*graphics::MaterialInfo materialInfo;
-	//		materialInfo.name.Format("TestBox%d", (i % 10) + 1);
-	//		materialInfo.strPath = file::GetPath(file::eTexture);
-	//
-	//		materialInfo.strTextureNameArray[graphics::EmMaterial::eAlbedo].Format("Pattern\\pattern_%02d\\%s", (i % 10) + 1, "diffus.tga");
-	//		materialInfo.strTextureNameArray[graphics::EmMaterial::eNormal].Format("Pattern\\pattern_%02d\\%s", (i % 10) + 1, "Normal.tga");
-	//		materialInfo.strTextureNameArray[graphics::EmMaterial::eSpecularColor].Format("Pattern\\pattern_%02d\\%s", (i % 10) + 1, "specular.tga");
-	//		*/
-	//		graphics::MaterialInfo materialInfo;
-	//		materialInfo.name = "TestBox";
-	//		materialInfo.strPath = file::GetPath(file::eTexture);
-	//
-	//		materialInfo.strTextureNameArray[graphics::EmMaterial::eAlbedo].Format("Pattern\\pattern_01\\%s", "diffus.tga");
-	//		materialInfo.strTextureNameArray[graphics::EmMaterial::eNormal].Format("Pattern\\pattern_01\\%s", "Normal.tga");
-	//		materialInfo.strTextureNameArray[graphics::EmMaterial::eSpecular].Format("Pattern\\pattern_01\\%s", "specular.tga");
-	//
-	//		//materialInfo.f4PaddingRoughMetEmi.y = 0.1f * ((i % 10) + 1);
-	//		//materialInfo.f4PaddingRoughMetEmi.z = 1.f - 0.1f * ((i % 10) + 1);
-	//
-	//		materialInfo.f4PaddingRoughMetEmi.y = 0.5f;
-	//		materialInfo.f4PaddingRoughMetEmi.z = 0.5f;
-	//
-	//		//materialInfo.rasterizerStateDesc = graphics::GetDevice()->GetRasterizerStateDesc(graphics::EmRasterizerState::eNone);
-	//		//materialInfo.colorAlbedo = math::Color(math::Random(0.f, 1.f), math::Random(0.f, 1.f), math::Random(0.f, 1.f), 1.f);
-	//
-	//		gameobject::IActor* pActor = gameobject::GameObjectManager::GetInstance()->CreateActor("TestBox");
-	//
-	//		math::float3 f3Pos;
-	//		f3Pos.x = -4.f + (i % 5) * 3.f;
-	//		//f3Pos.y = 100.5f + (j * 3.f);
-	//		f3Pos.y = 0.5f + (j * 3.f);
-	//		f3Pos.z = -4.f + (i / 5) * 3.f;
-	//
-	//		pActor->SetPosition(f3Pos);
-	//
-	//		gameobject::ComponentModel* pCompModel = static_cast<gameobject::ComponentModel*>(pActor->CreateComponent(gameobject::IComponent::eModel));
-	//
-	//		graphics::ModelLoader loader;
-	//		//loader.InitBox(string::Format("TestBox%d", (i % 10) + 1).c_str(), &materialInfo);
-	//		loader.InitBox("TestBox", &materialInfo);
-	//		pCompModel->Initialize(&loader);
-	//		auto pModelInst = pCompModel->GetModelInstance();
-	//
-	//		if (i % 2 == 0)
-	//		{
-	//			if (pMaterial_override == nullptr)
-	//			{
-	//				graphics::MaterialInfo materialInfo2;
-	//				materialInfo2.strName = "TestBox";
-	//				materialInfo2.strPath = file::GetPath(file::eTexture);
-	//
-	//				materialInfo2.strTextureNameArray[graphics::EmMaterial::eAlbedo].Format("Pattern\\pattern_02\\%s", "diffus.tga");
-	//				materialInfo2.strTextureNameArray[graphics::EmMaterial::eNormal].Format("Pattern\\pattern_02\\%s", "Normal.tga");
-	//				materialInfo2.strTextureNameArray[graphics::EmMaterial::eSpecular].Format("Pattern\\pattern_02\\%s", "specular.tga");
-	//
-	//				pMaterial_override = graphics::CreateMaterial(&materialInfo2);
-	//				pMaterial_override->DecreaseReference();
-	//			}
-	//			pModelInst->ChangeMaterial("EastEngine_Box", 0, pMaterial_override);
-	//		}
-	//
-	//		//gameobject::ComponentPhysics* pCompPhysics = static_cast<gameobject::ComponentPhysics*>(pActor->CreateComponent(gameobject::IComponent::ePhysics));
-	//		//
-	//		//physics::RigidBodyProperty prop;
-	//		//prop.fRestitution = 0.5f;
-	//		//prop.strName.Format("TestBox_RigidBody%d", i).c_str();
-	//		//
-	//		//prop.shapeInfo.SetBox(math::float3(1.f));
-	//		////prop.shapeInfo.SetCapsule(math::Random(0.5f, 1.f), math::Random(1.f, 2.f));
-	//		//prop.nCollisionFlag = physics::CollisionFlag::eCharacterObject;
-	//		//prop.f3OriginPos = f3Pos;
-	//		//pCompPhysics->Initialize(prop);
-	//	}
-	//}
+	std::shared_ptr<graphics::IMaterial> pMaterial_override;
+	for (int j = 0; j < 5; ++j)
+	{
+		for (int i = 0; i < 50; ++i)
+		{
+			/*graphics::IMaterial::Data materialData;
+			materialData.name.Format(L"TestBox%d", (i % 10) + 1);
+			materialData.path = file::GetPath(file::eTexture);
+	
+			materialData.textureNameArray[graphics::IMaterial::eAlbedo].Format(L"Pattern\\pattern_%02d\\%s", (i % 10) + 1, "diffus.tga");
+			materialData.textureNameArray[graphics::IMaterial::eNormal].Format(L"Pattern\\pattern_%02d\\%s", (i % 10) + 1, "Normal.tga");
+			materialData.textureNameArray[graphics::IMaterial::eSpecularColor].Format(L"Pattern\\pattern_%02d\\%s", (i % 10) + 1, "specular.tga");
+			*/
+			graphics::IMaterial::Data materialData;
+			materialData.name = "TestBox";
+			//materialData.path = file::GetEngineDataPath();
+	
+			//materialData.textureNameArray[graphics::IMaterial::eAlbedo].Format(L"Texture\\Pattern\\pattern_01\\%s", L"diffus.tga");
+			//materialData.textureNameArray[graphics::IMaterial::eNormal].Format(L"Texture\\Pattern\\pattern_01\\%s", L"Normal.tga");
+			//materialData.textureNameArray[graphics::IMaterial::eSpecular].Format(L"Texture\\Pattern\\pattern_01\\%s", L"specular.tga");
+	
+			//materialData.f4PaddingRoughMetEmi.y = 0.1f * ((i % 10) + 1);
+			//materialData.f4PaddingRoughMetEmi.z = 1.f - 0.1f * ((i % 10) + 1);
+	
+			materialData.f4PaddingRoughMetEmi.y = 0.75f;
+			materialData.f4PaddingRoughMetEmi.z = 0.2f;
+	
+			//materialData.rasterizerStateDesc = graphics::GetDevice()->GetRasterizerStateDesc(graphics::EmRasterizerState::eNone);
+			//materialData.colorAlbedo = math::Color(math::RandomReal(0.f, 1.f), math::RandomReal(0.f, 1.f), math::RandomReal(0.f, 1.f), 1.f);
+			materialData.colorAlbedo = math::Color(1.f, 0.f, 0.f, 1.f);
+	
+			gameobject::ActorPtr pActor = gameobject::CreateActor(L"TestBox");
+	
+			math::float3 position;
+			position.x = -4.f + (i % 5) * 3.f;
+			position.y = 100.5f + (j * 3.f);
+			//position.y = 0.5f + (j * 3.f);
+			position.z = -4.f + (i / 5) * 3.f;
+	
+			pActor->SetPosition(position);
+	
+			gameobject::ComponentModel* pCompModel = static_cast<gameobject::ComponentModel*>(pActor->CreateComponent(gameobject::IComponent::eModel));
+	
+			const math::float3 halfExtents(math::float3::One);
+	
+			graphics::ModelLoader loader;
+			loader.InitBox(L"TestBox", &materialData, halfExtents);
+			loader.SetEnableThreadLoad(false);
+			pCompModel->Add(0, loader);
+	
+			auto pCompPhysics = static_cast<gameobject::ComponentPhysics*>(pActor->CreateComponent(gameobject::IComponent::ePhysics));
+			physics::RigidActorProperty rigidProperty;
+			rigidProperty.material.restitution = 0.75f;
+			rigidProperty.material.staticFriction = 0.25f;
+			rigidProperty.material.dynamicFriction = 0.25f;
+			//rigidProperty.shape.SetTriangleMeshGeometry(math::float3::One, math::Quaternion::Identity, reinterpret_cast<const math::float3*>(pVertices), numVertices, pIndices, numIndices, physics::IGeometry::MeshFlag::eNone);
+			rigidProperty.shape.SetBoxGeometry(halfExtents);
+			rigidProperty.shape.flags = physics::IShape::eSimulationShape | physics::IShape::eSceneQueryShape;
+			rigidProperty.rigidAcotr.name.Format(L"TestBox%d", (i % 10) + 1);
+			rigidProperty.rigidAcotr.type = physics::IActor::eRigidDynamic;
+			rigidProperty.rigidAcotr.globalTransform.position = position;
+			physics::IRigidDynamic* pRigidDynamic = static_cast<physics::IRigidDynamic*>(pCompPhysics->CreateRigidActor(rigidProperty));
+	
+			//if (i % 2 == 0)
+			//{
+			//	if (pMaterial_override == nullptr)
+			//	{
+			//		graphics::IMaterial::Data materialData2;
+			//		materialData2.name = "TestBox";
+			//		materialData2.path = file::GetEngineDataPath();
+			//
+			//		materialData2.textureNameArray[graphics::IMaterial::eAlbedo].Format(L"Texture\\Pattern\\pattern_02\\%s", L"diffus.tga");
+			//		materialData2.textureNameArray[graphics::IMaterial::eNormal].Format(L"Texture\\Pattern\\pattern_02\\%s", L"Normal.tga");
+			//		materialData2.textureNameArray[graphics::IMaterial::eSpecular].Format(L"Texture\\Pattern\\pattern_02\\%s", L"specular.tga");
+			//
+			//		pMaterial_override = graphics::CreateMaterial(&materialData2);
+			//	}
+			//	pModelInstance->ChangeMaterial(L"est_Box", 0, pMaterial_override);
+			//}
+	
+			//gameobject::ComponentPhysics* pCompPhysics = static_cast<gameobject::ComponentPhysics*>(pActor->CreateComponent(gameobject::IComponent::ePhysics));
+			//
+			//physics::RigidBodyProperty prop;
+			//prop.fRestitution = 0.5f;
+			//prop.strName.Format(L"TestBox_RigidBody%d", i).c_str();
+			//
+			//prop.shapeInfo.SetBox(math::float3(1.f));
+			////prop.shapeInfo.SetCapsule(math::Random(0.5f, 1.f), math::Random(1.f, 2.f));
+			//prop.nCollisionFlag = physics::CollisionFlag::eCharacterObject;
+			//prop.f3OriginPos = f3Pos;
+			//pCompPhysics->Initialize(prop);
+	
+			m_actors.emplace_back(std::move(pActor));
+		}
+	}
 
 	if (false)
 	{
 		gameobject::TerrainProperty terrain;
 
-		terrain.strTexHeightMap = file::GetPath(file::eTexture);
-		terrain.strTexHeightMap.append("heightmap.r16");
+		terrain.texHeightMap = file::GetEngineDataPath();
+		terrain.texHeightMap.append(L"Texture\\heightmap.r16");
 
-		terrain.strTexColorMap = file::GetPath(file::eTexture);
-		terrain.strTexColorMap.append("ColorMap2.bmp");
+		terrain.texColorMap = file::GetEngineDataPath();
+		terrain.texColorMap.append(L"Texture\\ColorMap2.bmp");
 
-		terrain.fHeightScale = 300.f;
+		terrain.heightScale = 300.f;
 
-		terrain.n2Size = { 1025, 1025 };
-		terrain.n2Patches = { 64, 64 };
+		terrain.size = { 1025, 1025 };
+		terrain.patches = { 64, 64 };
 
-		terrain.rigidBodyProperty.fRestitution = 0.25f;
-		terrain.rigidBodyProperty.fFriction = 0.75f;
+		terrain.rigidActorProperty.material.restitution = 0.25f;
+		terrain.rigidActorProperty.material.staticFriction = 0.75f;
+		terrain.rigidActorProperty.material.dynamicFriction = 0.75f;
 
-		terrain.strTexDetailMap = file::GetPath(file::eTexture);
-		terrain.strTexDetailMap.append("dirt01d.tga");
+		terrain.texDetailMap = file::GetEngineDataPath();
+		terrain.texDetailMap.append(L"Texture\\dirt01d.dds");
 
-		terrain.strTexDetailNormalMap = file::GetPath(file::eTexture);
-		terrain.strTexDetailNormalMap.append("dirt01n.tga");
+		terrain.texDetailNormalMap = file::GetEngineDataPath();
+		terrain.texDetailNormalMap.append(L"Texture\\dirt01n.dds");
 
 		terrain.transform.position = { -500.f, 0.f, -500.f };
 
-		gameobject::ITerrain::Create("BaseTerrain", terrain);
+		gameobject::TerrainPtr pTerrain = gameobject::CreateTerrain(L"BaseTerrain", terrain);
 
 		// 백그라운드 로딩은 이렇게 쓰면됨
-		//gameobject::ITerrain::CreateAsync("BaseTerrain", terrain);
+		//gameobject::TerrainPtr pTerrain = gameobject::CreateTerrainAsync(L"BaseTerrainAsync", terrain);
+		m_terrains.emplace_back(std::move(pTerrain));
 	}
 
-	auto CreateActor = [](const string::StringID& strActorName, const char* strModelFilePath,
+	auto CreateActor = [&](const string::StringID& strActorName, const wchar_t* modelFilePath,
 		const math::float3& f3Position,
 		graphics::ModelLoader::LoadType emModelType = graphics::ModelLoader::eEast)
 	{
-		gameobject::IActor* pActor = gameobject::IActor::Create(strActorName);
+		gameobject::ActorPtr pActor = gameobject::CreateActor(strActorName);
 
 		pActor->SetPosition(f3Position);
 
 		graphics::ModelLoader loader;
 
-		string::StringID strFileName = file::GetFileName(strModelFilePath).c_str();
+		string::StringID strFileName = file::GetFileName(modelFilePath).c_str();
 		switch (emModelType)
 		{
 		case graphics::ModelLoader::LoadType::eFbx:
 		case graphics::ModelLoader::LoadType::eObj:
-			loader.InitFBX(strFileName, strModelFilePath, 0.01f);
+			loader.InitFBX(strFileName, modelFilePath, 0.01f);
 			break;
 		case graphics::ModelLoader::LoadType::eXps:
-			loader.InitXPS(strFileName, strModelFilePath);
+			loader.InitXPS(strFileName, modelFilePath);
 			break;
 		case graphics::ModelLoader::LoadType::eEast:
-			loader.InitEast(strFileName, strModelFilePath);
+			loader.InitEast(strFileName, modelFilePath);
 			break;
 		}
 		loader.SetEnableThreadLoad(false);
 
 		gameobject::ComponentModel* pModel = static_cast<gameobject::ComponentModel*>(pActor->CreateComponent(gameobject::IComponent::eModel));
-		pModel->Initialize(&loader);
+		pModel->Add(0, loader);
 
-		return pActor;
+		return m_actors.emplace_back(std::move(pActor)).get();
 	};
 
-	for (int i = 0; i < 1; ++i)
+	for (int i = 0; i < 100; ++i)
 	{
 		string::StringID name;
-		name.Format("UnityChan%d", i);
+		name.Format(L"UnityChan%d", i);
 
-		strPath = file::GetDataPath();
-		strPath.append("Actor\\UnityChan\\unitychan.emod");
+		path = file::GetEngineDataPath();
+		path.append(L"Model\\UnityChan\\unitychan.emod");
 
 		math::float3 pos;
 		pos.x = -10.f + (2.f * (i % 10));
 		pos.z = 0.f + (2.f * (i / 10));
 
-		gameobject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
+		gameobject::IActor* pActor = CreateActor(name, path.c_str(), pos);
 		gameobject::ComponentModel* pModel = static_cast<gameobject::ComponentModel*>(pActor->CreateComponent(gameobject::IComponent::eModel));
-		graphics::IModelInstance* pModelInstance = pModel->GetModelInstance();
+		graphics::IModelInstance* pModelInstance = pModel->GetModelInstance(0);
 
 		//if (false)
 		{
-			const std::vector<const char*> vecAnim =
+			const std::vector<const wchar_t*> vecAnim =
 			{
-				"Actor\\UnityChan\\Animations\\unitychan_WAIT00.fbx",
-				"Actor\\UnityChan\\Animations\\unitychan_WAIT01.fbx",
-				"Actor\\UnityChan\\Animations\\unitychan_WAIT02.fbx",
-				"Actor\\UnityChan\\Animations\\unitychan_WAIT03.fbx",
-				"Actor\\UnityChan\\Animations\\unitychan_WAIT04.fbx",
+				L"Model\\UnityChan\\Animations\\unitychan_WAIT00.fbx",
+				L"Model\\UnityChan\\Animations\\unitychan_WAIT01.fbx",
+				L"Model\\UnityChan\\Animations\\unitychan_WAIT02.fbx",
+				L"Model\\UnityChan\\Animations\\unitychan_WAIT03.fbx",
+				L"Model\\UnityChan\\Animations\\unitychan_WAIT04.fbx",
 			};
 
-			std::string strPathMotion(file::GetDataPath());
-			//strPathMotion.append("Actor\\UnityChan\\Animations\\unitychan_WAIT00.fbx");
-			strPathMotion.append(vecAnim[math::Random(0llu, vecAnim.size() - 1)]);
+			std::wstring pathMotion(file::GetEngineDataPath());
+			//pathMotion.append(L"Actor\\UnityChan\\Animations\\unitychan_WAIT00.fbx");
+			pathMotion.append(vecAnim[math::Random(0llu, vecAnim.size() - 1)]);
 
 			string::StringID strMotionName;
-			strMotionName.Format("%s", file::GetFileName(strPathMotion).c_str());
+			strMotionName.Format(L"%s", file::GetFileName(pathMotion).c_str());
 			graphics::MotionLoader motionLoader;
-			motionLoader.InitFBX(strMotionName, strPathMotion.c_str(), 0.01f);
-			graphics::IMotion* pMotion = graphics::IMotion::Create(motionLoader);
+			motionLoader.InitFBX(strMotionName, pathMotion.c_str(), 0.01f);
+			graphics::MotionPtr pMotion = graphics::CreateMotion(motionLoader);
 
 			graphics::MotionPlaybackInfo playback;
 			playback.speed = math::RandomReal(0.5f, 1.5f);
 			playback.loopCount = graphics::MotionPlaybackInfo::eMaxLoopCount;
 			//playback.weight = math::Random(0.1f, 0.5f);
 			playback.weight = 1.f;
-			pModel->PlayMotion(graphics::MotionLayers::eLayer1, pMotion, &playback);
+			pModel->PlayMotion(0, graphics::MotionLayers::eLayer1, pMotion, &playback);
 		}
 
 		//{
-		//	std::vector<const char*> vecAnim =
+		//	std::vector<const wchar_t*> vecAnim =
 		//	{
-		//		"Actor\\UnityChan\\Animations\\unitychan_RUN00_F.fbx",
-		//		"Actor\\UnityChan\\Animations\\unitychan_JUMP00.fbx",
-		//		"Actor\\UnityChan\\Animations\\unitychan_LOSE00.fbx",
-		//		"Actor\\UnityChan\\Animations\\unitychan_REFLESH00.fbx",
-		//		"Actor\\UnityChan\\Animations\\unitychan_SLIDE00.fbx",
-		//		"Actor\\UnityChan\\Animations\\unitychan_UMATOBI00.fbx",
-		//		"Actor\\UnityChan\\Animations\\unitychan_WIN00.fbx",
+		//		L"Actor\\UnityChan\\Animations\\unitychan_RUN00_F.fbx",
+		//		L"Actor\\UnityChan\\Animations\\unitychan_JUMP00.fbx",
+		//		L"Actor\\UnityChan\\Animations\\unitychan_LOSE00.fbx",
+		//		L"Actor\\UnityChan\\Animations\\unitychan_REFLESH00.fbx",
+		//		L"Actor\\UnityChan\\Animations\\unitychan_SLIDE00.fbx",
+		//		L"Actor\\UnityChan\\Animations\\unitychan_UMATOBI00.fbx",
+		//		L"Actor\\UnityChan\\Animations\\unitychan_WIN00.fbx",
 		//	};
 
-		//	std::string strPathMotion(file::GetDataPath());
-		//	//strPathMotion.append("Actor\\UnityChan\\Animations\\unitychan_ARpose1.fbx");
-		//	//strPathMotion.append("Actor\\UnityChan\\Animations\\unitychan_RUN00_F.fbx");
-		//	strPathMotion.append(vecAnim[math::Random(0u, vecAnim.size() - 1)]);
+		//	std::wstring pathMotion(file::GetEngineDataPath());
+		//	//pathMotion.append(L"Actor\\UnityChan\\Animations\\unitychan_ARpose1.fbx");
+		//	//pathMotion.append(L"Actor\\UnityChan\\Animations\\unitychan_RUN00_F.fbx");
+		//	pathMotion.append(vecAnim[math::Random(0u, vecAnim.size() - 1)]);
 
 		//	string::StringID strMotionName;
-		//	strMotionName.Format("%s", file::GetFileName(strPathMotion).c_str());
+		//	strMotionName.Format(L"%s", file::GetFileName(pathMotion).c_str());
 		//	graphics::MotionLoader motionLoader;
-		//	motionLoader.InitFBX(strMotionName, strPathMotion.c_str(), 0.01f);
-		//	graphics::IMotion* pMotion = graphics::IMotion::Create(motionLoader);
+		//	motionLoader.InitFBX(strMotionName, pathMotion.c_str(), 0.01f);
+		//	graphics::IMotion* pMotion = graphics::CreateMotion(motionLoader);
 
 		//	graphics::MotionPlaybackInfo playback;
 		//	playback.speed = math::Random(0.5f, 1.5f);
@@ -553,268 +605,266 @@ void SceneNewStudio::Enter()
 		//pCompPhysics->m_pRagDoll->BuildBipadRagDoll(pModelInstance->GetSkeleton(), ragdollPos, math::Quaternion::Identity, 0.8f);
 		//pCompPhysics->m_pRagDoll->Start();
 
-		if (false)
+		//if (false)
 		{
-			strPath = file::GetDataPath();
-			strPath.append("Model\\ElementalSwordIce\\LP.emod");
+			path = file::GetEngineDataPath();
+			path.append(L"Model\\ElementalSwordIce\\LP.emod");
 
-			graphics::IModelInstance* pModelInstance_Attach = nullptr;
 			graphics::ModelLoader loader;
-			loader.InitEast(file::GetFileName(strPath).c_str(), strPath.c_str());
+			loader.InitEast(file::GetFileName(path).c_str(), path.c_str());
 
-			pModelInstance_Attach = graphics::IModel::CreateInstance(loader, false);
+			graphics::ModelInstancePtr pModelInstance_Attach = graphics::CreateModelInstance(loader, false);
 
 			math::float3 f3Pos = { 0.08f, 0.225f, -0.02f };
 			math::Quaternion quat = math::Quaternion::CreateFromYawPitchRoll(math::ToRadians(90.f), math::ToRadians(180.f), 0.f);
 
-			pModelInstance->Attachment(pModelInstance_Attach, "Character1_LeftHand", math::Matrix::Compose(math::float3::One, quat, f3Pos));
+			pModelInstance->Attachment(0, std::move(pModelInstance_Attach), "Character1_LeftHand", math::Matrix::Compose(math::float3::One, quat, f3Pos));
 		}
 	}
 
 	{
 		string::StringID name;
-		name.Format("KimJiYoon");
+		name.Format(L"KimJiYoon");
 
 		math::float3 pos;
 		pos.x = 2.f;
 
-		strPath = file::GetDataPath();
-		strPath.append("Model\\KimJiYoon\\KimJiYoon.emod");
+		path = file::GetEngineDataPath();
+		path.append(L"Model\\KimJiYoon\\KimJiYoon.emod");
 
-		gameobject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
+		gameobject::IActor* pActor = CreateActor(name, path.c_str(), pos);
 		gameobject::ComponentModel* pModel = static_cast<gameobject::ComponentModel*>(pActor->CreateComponent(gameobject::IComponent::eModel));
 
 		//if (false)
 		{
-			std::string strPathMotion(file::GetDataPath());
-			strPathMotion.append("Model\\KimJiYoon\\AR_Idle_CC.fbx");
+			std::wstring pathMotion(file::GetEngineDataPath());
+			pathMotion.append(L"Model\\KimJiYoon\\AR_Idle_CC.fbx");
 
 			string::StringID strMotionName;
-			strMotionName.Format("%s", file::GetFileName(strPathMotion).c_str());
+			strMotionName.Format(L"%s", file::GetFileName(pathMotion).c_str());
 			graphics::MotionLoader motionLoader;
-			motionLoader.InitFBX(strMotionName, strPathMotion.c_str(), 0.01f);
-			graphics::IMotion* pMotion = graphics::IMotion::Create(motionLoader);
+			motionLoader.InitFBX(strMotionName, pathMotion.c_str(), 0.01f);
+			graphics::MotionPtr pMotion = graphics::CreateMotion(motionLoader);
 
 			graphics::MotionPlaybackInfo playback;
 			playback.speed = 1.f;
 			playback.loopCount = graphics::MotionPlaybackInfo::eMaxLoopCount;
 			playback.weight = 1.f;
-			pModel->PlayMotion(graphics::MotionLayers::eLayer1, pMotion, &playback);
+			pModel->PlayMotion(0, graphics::MotionLayers::eLayer1, pMotion, &playback);
 		}
 	}
 
 	for (int i = 0; i < 2; ++i)
 	{
 		string::StringID name;
-		name.Format("2B_NierAutomata_%d", i);
+		name.Format(L"2B_NierAutomata_%d", i);
 
 		math::float3 pos;
 		pos.x = -2.f + (i * -2.f);
 
-		strPath = file::GetDataPath();
-		strPath.append("Model\\2B_NierAutomata\\2B_NierAutomata.emod");
+		path = file::GetEngineDataPath();
+		path.append(L"Model\\2B_NierAutomata\\2B_NierAutomata.emod");
 
-		gameobject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
+		gameobject::IActor* pActor = CreateActor(name, path.c_str(), pos);
 		gameobject::ComponentModel* pModel = static_cast<gameobject::ComponentModel*>(pActor->CreateComponent(gameobject::IComponent::eModel));
 
-		graphics::IModelInstance* pModelInstance = pModel->GetModelInstance();
+		graphics::IModelInstance* pModelInstance = pModel->GetModelInstance(0);
 
 		if (i == 1)
 		{
-			graphics::IModelNode* pNode = pModelInstance->GetModel()->GetNode("Generic_Item.mesh");
+			graphics::IModelNode* pNode = pModelInstance->GetModel()->GetNode(L"Generic_Item.mesh");
 
 			auto SetMaterialVisible = [&](const string::StringID& strMaterialName)
 			{
-				uint32_t nMaterialID = 0;
-				graphics::IMaterial* pMaterial = pNode->GetMaterial(strMaterialName, nMaterialID);
+				uint32_t materialID = 0;
+				graphics::MaterialPtr pMaterial = pNode->GetMaterial(strMaterialName, materialID);
 
-				graphics::IMaterial* pMaterialClone = graphics::CloneMaterial(pMaterial);
+				graphics::MaterialPtr pMaterialClone = graphics::CloneMaterial(pMaterial.get());
 				pMaterialClone->SetVisible(false);
 
-				pModelInstance->ChangeMaterial("Generic_Item.mesh", nMaterialID, pMaterialClone);
-				pMaterialClone->DecreaseReference();
+				pModelInstance->ChangeMaterial(L"Generic_Item.mesh", materialID, pMaterialClone);
 			};
 
-			SetMaterialVisible("Skirt");
-			SetMaterialVisible("Eyepatch");
+			SetMaterialVisible(L"Skirt");
+			SetMaterialVisible(L"Eyepatch");
 		}
 	}
 
 	//if (false)
 	{
 		string::StringID name;
-		name.Format("Delia");
+		name.Format(L"Delia");
 
 		math::float3 pos;
 		pos.x = 4.f;
 
-		strPath = file::GetDataPath();
-		strPath.append("Model\\Delia\\Delia.emod");
+		path = file::GetEngineDataPath();
+		path.append(L"Model\\Delia\\Delia.emod");
 
-		gameobject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
+		gameobject::IActor* pActor = CreateActor(name, path.c_str(), pos);
 	}
 
 	//if (false)
 	{
 		string::StringID name;
-		name.Format("Misaki");
+		name.Format(L"Misaki");
 
 		math::float3 pos;
 		pos.x = 6.f;
 
-		strPath = file::GetDataPath();
-		strPath.append("Model\\Misaki\\Misaki.emod");
+		path = file::GetEngineDataPath();
+		path.append(L"Model\\Misaki\\Misaki.emod");
 
-		gameobject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
+		gameobject::IActor* pActor = CreateActor(name, path.c_str(), pos);
 	}
 
 	//if (false)
 	{
 		string::StringID name;
-		name.Format("Naotora");
+		name.Format(L"Naotora");
 
 		math::float3 pos;
 		pos.x = 8.f;
 
-		strPath = file::GetDataPath();
-		strPath.append("Model\\Naotora\\Naotora.emod");
+		path = file::GetEngineDataPath();
+		path.append(L"Model\\Naotora\\Naotora.emod");
 
-		gameobject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
+		gameobject::IActor* pActor = CreateActor(name, path.c_str(), pos);
 	}
 
 	//if (false)
 	{
 		string::StringID name;
-		name.Format("Naotora_ShirtDress");
+		name.Format(L"Naotora_ShirtDress");
 
 		math::float3 pos;
 		pos.x = 10.f;
 
-		strPath = file::GetDataPath();
-		strPath.append("Model\\Naotora_ShirtDress\\Naotora_ShirtDress.emod");
+		path = file::GetEngineDataPath();
+		path.append(L"Model\\Naotora_ShirtDress\\Naotora_ShirtDress.emod");
 
-		gameobject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
+		gameobject::IActor* pActor = CreateActor(name, path.c_str(), pos);
 	}
 
 	//if (false)
 	{
 		string::StringID name;
-		name.Format("Bugeikloth");
+		name.Format(L"Bugeikloth");
 
 		math::float3 pos;
 		pos.z = 10.f;
 
-		strPath = file::GetDataPath();
-		strPath.append("Model\\Bugeikloth\\Bugeikloth.emod");
+		path = file::GetEngineDataPath();
+		path.append(L"Model\\Bugeikloth\\Bugeikloth.emod");
 
-		gameobject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
+		gameobject::IActor* pActor = CreateActor(name, path.c_str(), pos);
 	}
 
 	//if (false)
 	{
 		string::StringID name;
-		name.Format("DarkKnight_Female");
+		name.Format(L"DarkKnight_Female");
 
 		math::float3 pos;
 		pos.x = -4.f;
 		pos.z = 2.f;
 
-		strPath = file::GetDataPath();
-		strPath.append("Model\\Dark Knight_Female\\DarkKnight_Female.emod");
+		path = file::GetEngineDataPath();
+		path.append(L"Model\\Dark Knight_Female\\DarkKnight_Female.emod");
 
-		//gameobject::IActor* pActor = CreateActor(name, strPath.c_str(), pos, graphics::EmModelLoader::eXps);
-		gameobject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
+		//gameobject::IActor* pActor = CreateActor(name, path.c_str(), pos, graphics::EmModelLoader::eXps);
+		gameobject::IActor* pActor = CreateActor(name, path.c_str(), pos);
 	}
 
 	//if (false)
 	{
 		string::StringID name;
-		name.Format("DarkKnight_Transformed_Female");
+		name.Format(L"DarkKnight_Transformed_Female");
 
 		math::float3 pos;
 		pos.x = -2.f;
 		pos.z = 2.f;
 
-		strPath = file::GetDataPath();
-		strPath.append("Model\\Dark Knight Transformed_Female\\DarkKnight_Transformed_Female.emod");
+		path = file::GetEngineDataPath();
+		path.append(L"Model\\Dark Knight Transformed_Female\\DarkKnight_Transformed_Female.emod");
 
-		//gameobject::IActor* pActor = CreateActor(name, strPath.c_str(), pos, graphics::EmModelLoader::eXps);
-		gameobject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
+		//gameobject::IActor* pActor = CreateActor(name, path.c_str(), pos, graphics::EmModelLoader::eXps);
+		gameobject::IActor* pActor = CreateActor(name, path.c_str(), pos);
 	}
 
 	//if (false)
 	{
 		string::StringID name;
-		name.Format("Paladin_Female");
+		name.Format(L"Paladin_Female");
 
 		math::float3 pos;
 		pos.x = 0.f;
 		pos.z = 2.f;
 
-		strPath = file::GetDataPath();
-		strPath.append("Model\\Paladin_Female\\Paladin_Female.emod");
+		path = file::GetEngineDataPath();
+		path.append(L"Model\\Paladin_Female\\Paladin_Female.emod");
 
-		gameobject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
+		gameobject::IActor* pActor = CreateActor(name, path.c_str(), pos);
 	}
 
 	//if (false)
 	{
 		string::StringID name;
-		name.Format("Paladin_Transformed_Female");
+		name.Format(L"Paladin_Transformed_Female");
 
 		math::float3 pos;
 		pos.x = 2.f;
 		pos.z = 2.f;
 
-		strPath = file::GetDataPath();
-		strPath.append("Model\\Paladin Transformed_Female\\Paladin_Transformed_Female.emod");
+		path = file::GetEngineDataPath();
+		path.append(L"Model\\Paladin Transformed_Female\\Paladin_Transformed_Female.emod");
 
-		//gameobject::IActor* pActor = CreateActor(name, strPath.c_str(), pos, graphics::EmModelLoader::eXps);
-		gameobject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
+		//gameobject::IActor* pActor = CreateActor(name, path.c_str(), pos, graphics::EmModelLoader::eXps);
+		gameobject::IActor* pActor = CreateActor(name, path.c_str(), pos);
 	}
 
 	//if (false)
 	{
 		string::StringID name;
-		name.Format("Evie_Temptress");
+		name.Format(L"Evie_Temptress");
 
 		math::float3 pos;
 		pos.x = 4.f;
 		pos.z = 2.f;
 
-		strPath = file::GetDataPath();
-		strPath.append("Model\\Evie_Temptress\\Evie_Temptress.emod");
+		path = file::GetEngineDataPath();
+		path.append(L"Model\\Evie_Temptress\\Evie_Temptress.emod");
 
-		gameobject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
+		gameobject::IActor* pActor = CreateActor(name, path.c_str(), pos);
 	}
 
 	//if (false)
 	{
 		string::StringID name;
-		name.Format("Lynn_DancingBlade");
+		name.Format(L"Lynn_DancingBlade");
 
 		math::float3 pos;
 		pos.x = 6.f;
 		pos.z = 2.f;
 
-		strPath = file::GetDataPath();
-		strPath.append("Model\\Lynn_DancingBlade\\Lynn_DancingBlade.emod");
+		path = file::GetEngineDataPath();
+		path.append(L"Model\\Lynn_DancingBlade\\Lynn_DancingBlade.emod");
 
-		gameobject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
+		gameobject::IActor* pActor = CreateActor(name, path.c_str(), pos);
 	}
 
 	{
 		string::StringID name;
-		name.Format("ElementalSwordIce");
+		name.Format(L"ElementalSwordIce");
 
 		math::float3 pos;
 		pos.y = 1.f;
 		pos.z -= 2.f;
 
-		strPath = file::GetDataPath();
-		strPath.append("Model\\ElementalSwordIce\\LP.emod");
+		path = file::GetEngineDataPath();
+		path.append(L"Model\\ElementalSwordIce\\LP.emod");
 
-		gameobject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
+		gameobject::IActor* pActor = CreateActor(name, path.c_str(), pos);
 	}
 
 	{
@@ -823,18 +873,18 @@ void SceneNewStudio::Enter()
 
 	// Sound
 	{
-		strPath = file::GetPath(file::eSound);
-		strPath += "Canada, Ho!.mp3";
-		sound::Play2D(strPath, 0.1f);
+		path = file::GetEngineDataPath();
+		path += L"Sound\\Canada, Ho!.mp3";
+		sound::Play2D(path, 0.1f);
 	}
 }
 
-void SceneNewStudio::Exit()
+void SceneNewStudio::Exit(std::queue<gameobject::ActorPtr>& saveSceneActors_out)
 {
 	m_pMinion.reset();
 	for (auto& pLight : m_pLights)
 	{
-		graphics::ReleaseResource(&pLight);
+		graphics::ReleaseResource(pLight);
 	}
 	m_pLights.clear();
 }
@@ -850,27 +900,27 @@ void SceneNewStudio::Update(float elapsedTime)
 
 	RenderImGui(elapsedTime);
 
-	static float fTime = 0.f;
-	fTime += elapsedTime;
+	static float time = 0.f;
+	time += elapsedTime;
 
 	static int nFrame = 0;
 	++nFrame;
 
-	if (fTime >= 1.f)
+	if (time >= 1.f)
 	{
-		const float fFrame = static_cast<float>(nFrame) / fTime;
+		const float fFrame = static_cast<float>(nFrame) / time;
 		const float fMS = 1.f / fFrame;
-		LOG_MESSAGE("%.2f[%f]", fFrame, fMS);
+		LOG_MESSAGE(L"%.2f[%f]", fFrame, fMS);
 
-		fTime -= 1.f;
+		time -= 1.f;
 		nFrame = 0;
 	}
 }
 
 void SceneNewStudio::ProcessInput(float elapsedTime)
 {
-	graphics::Camera* pCamera = graphics::Camera::GetInstance();
-	if (pCamera == nullptr)
+	graphics::Camera* pCamera = graphics::GetCamera();
+	if (pCamera == nullptr || pCamera->GetCameraMan() == nullptr)
 		return;
 
 	float dx = static_cast<float>(input::mouse::GetMoveX());
@@ -878,158 +928,344 @@ void SceneNewStudio::ProcessInput(float elapsedTime)
 	float dz = static_cast<float>(input::mouse::GetMoveWheel());
 	bool isMoveAxisX = math::IsZero(dx) == false;
 	bool isMoveAxisY = math::IsZero(dy) == false;
-	if (input::mouse::IsButtonPressed(input::mouse::eRight))
+
+	if (dynamic_cast<graphics::FirstPersonCameraMan*>(pCamera->GetCameraMan()) != nullptr)
 	{
-		if (isMoveAxisX == true)
+		graphics::FirstPersonCameraMan* pCameraMan = static_cast<graphics::FirstPersonCameraMan*>(pCamera->GetCameraMan());
+		if (input::mouse::IsButtonPressed(input::mouse::eRight))
 		{
-			pCamera->RotateAxisY(dx * 0.1f);
+			if (isMoveAxisX == true)
+			{
+				pCameraMan->RotateAxisY(dx * 0.1f);
+			}
+
+			if (isMoveAxisY == true)
+			{
+				pCameraMan->RotateAxisX(dy * 0.1f);
+			}
 		}
 
-		if (isMoveAxisY == true)
+		if (input::mouse::IsButtonPressed(input::mouse::eMiddle))
 		{
-			pCamera->RotateAxisX(dy * 0.1f);
-		}
-	}
+			if (isMoveAxisX == true)
+			{
+				pCameraMan->MoveSideward(dx * 0.025f);
+			}
 
-	if (input::mouse::IsButtonPressed(input::mouse::eMiddle))
-	{
-		if (isMoveAxisX == true)
-		{
-			pCamera->MoveSideward(dx * 0.025f);
-		}
-
-		if (isMoveAxisY == true)
-		{
-			pCamera->MoveUpward(-dy * 0.05f);
-		}
-	}
-
-	if (input::mouse::IsButtonPressed(input::mouse::eLeft))
-	{
-		if (isMoveAxisX == true)
-		{
-			pCamera->RotateAxisY(dx * 0.025f);
+			if (isMoveAxisY == true)
+			{
+				pCameraMan->MoveUpward(-dy * 0.05f);
+			}
 		}
 
-		if (isMoveAxisY == true)
+		if (input::mouse::IsButtonPressed(input::mouse::eLeft))
 		{
-			pCamera->MoveForward(-dy * 0.05f);
+			if (isMoveAxisX == true)
+			{
+				pCameraMan->RotateAxisY(dx * 0.025f);
+			}
+
+			if (isMoveAxisY == true)
+			{
+				pCameraMan->MoveForward(-dy * 0.05f);
+			}
+		}
+
+		if (dz != 0.f)
+		{
+			pCameraMan->MoveForward(dz * 0.01f);
+		}
+
+		if (input::keyboard::IsKeyPressed(input::keyboard::eW))
+		{
+			pCameraMan->MoveForward(1.f);
+		}
+
+		if (input::keyboard::IsKeyPressed(input::keyboard::eS))
+		{
+			pCameraMan->MoveForward(-1.f);
+		}
+
+		if (input::keyboard::IsKeyPressed(input::keyboard::eA))
+		{
+			pCameraMan->MoveSideward(-1.f);
+		}
+
+		if (input::keyboard::IsKeyPressed(input::keyboard::eD))
+		{
+			pCameraMan->MoveSideward(1.f);
+		}
+
+		if (input::keyboard::IsKeyPressed(input::keyboard::eE))
+		{
+			pCameraMan->MoveUpward(1.f);
+		}
+
+		if (input::keyboard::IsKeyPressed(input::keyboard::eQ))
+		{
+			pCameraMan->MoveUpward(-1.f);
+		}
+
+		if (input::keyboard::IsKeyPressed(input::keyboard::eUp))
+		{
+			pCameraMan->MoveAxisZ(1.f);
+		}
+
+		if (input::keyboard::IsKeyPressed(input::keyboard::eDown))
+		{
+			pCameraMan->MoveAxisZ(-1.f);
+		}
+
+		if (input::keyboard::IsKeyPressed(input::keyboard::eLeft))
+		{
+			pCameraMan->MoveAxisX(-1.f);
+		}
+
+		if (input::keyboard::IsKeyPressed(input::keyboard::eRight))
+		{
+			pCameraMan->MoveAxisX(1.f);
+		}
+
+		if (input::keyboard::IsKeyPressed(input::keyboard::eLeftBracket))
+		{
+			pCameraMan->MoveAxisY(-1.f);
+		}
+
+		if (input::keyboard::IsKeyPressed(input::keyboard::eRightBracket))
+		{
+			pCameraMan->MoveAxisY(1.f);
 		}
 	}
-
-	if (dz != 0.f)
+	else if (dynamic_cast<graphics::ThirdPersonCameraMan*>(pCamera->GetCameraMan()))
 	{
-		pCamera->MoveForward(dz * 0.01f);
-	}
+		graphics::ThirdPersonCameraMan* pCameraMan = static_cast<graphics::ThirdPersonCameraMan*>(pCamera->GetCameraMan());
+		if (input::mouse::IsButtonPressed(input::mouse::eRight))
+		{
+			if (isMoveAxisX == true)
+			{
+				pCameraMan->RotateAxisY(dx * 0.1f);
+			}
 
-	if (input::keyboard::IsKeyPressed(input::keyboard::eW))
-	{
-		pCamera->MoveForward(1.f);
-	}
+			if (isMoveAxisY == true)
+			{
+				pCameraMan->RotateAxisX(dy * 0.1f);
+			}
+		}
 
-	if (input::keyboard::IsKeyPressed(input::keyboard::eS))
-	{
-		pCamera->MoveForward(-1.f);
-	}
-
-	if (input::keyboard::IsKeyPressed(input::keyboard::eA))
-	{
-		pCamera->MoveSideward(-1.f);
-	}
-
-	if (input::keyboard::IsKeyPressed(input::keyboard::eD))
-	{
-		pCamera->MoveSideward(1.f);
-	}
-
-	if (input::keyboard::IsKeyPressed(input::keyboard::eE))
-	{
-		pCamera->MoveUpward(1.f);
-	}
-
-	if (input::keyboard::IsKeyPressed(input::keyboard::eQ))
-	{
-		pCamera->MoveUpward(-1.f);
+		if (dz != 0.f)
+		{
+			pCameraMan->MoveDistance(-dz * 0.01f);
+		}
 	}
 
 	if (input::gamepad::IsConnected() == true)
 	{
-		auto LogButton = [](const char* strButtonName, const input::gamepad::ButtonState& emButtonState)
+		auto LogButton = [](const wchar_t* buttonName, const input::gamepad::ButtonState& emButtonState)
 		{
 			if (emButtonState == input::gamepad::ButtonState::ePressed)
 			{
-				LOG_MESSAGE("%s Pressed", strButtonName);
+				LOG_MESSAGE(L"%s Pressed", buttonName);
 			}
 			else if (emButtonState == input::gamepad::ButtonState::eUp)
 			{
-				LOG_MESSAGE("%s Up", strButtonName);
+				LOG_MESSAGE(L"%s Up", buttonName);
 			}
 			else if (emButtonState == input::gamepad::ButtonState::eDown)
 			{
-				LOG_MESSAGE("%s Down", strButtonName);
+				LOG_MESSAGE(L"%s Down", buttonName);
 			}
 		};
 
-		LogButton("A", input::gamepad::A());
-		LogButton("B", input::gamepad::B());
-		LogButton("X", input::gamepad::X());
-		LogButton("Y", input::gamepad::Y());
+		LogButton(L"A", input::gamepad::A());
+		LogButton(L"B", input::gamepad::B());
+		LogButton(L"X", input::gamepad::X());
+		LogButton(L"Y", input::gamepad::Y());
 
-		LogButton("LeftStick", input::gamepad::LeftStick());
-		LogButton("RightStick", input::gamepad::RightStick());
+		LogButton(L"LeftStick", input::gamepad::LeftStick());
+		LogButton(L"RightStick", input::gamepad::RightStick());
 
-		LogButton("LeftShoulder", input::gamepad::LeftShoulder());
-		LogButton("RightShoulder", input::gamepad::RightShoulder());
+		LogButton(L"LeftShoulder", input::gamepad::LeftShoulder());
+		LogButton(L"RightShoulder", input::gamepad::RightShoulder());
 
-		LogButton("Back", input::gamepad::Back());
-		LogButton("Start", input::gamepad::Start());
+		LogButton(L"Back", input::gamepad::Back());
+		LogButton(L"Start", input::gamepad::Start());
 
-		LogButton("DPadUp", input::gamepad::DPadUp());
-		LogButton("DPadDown", input::gamepad::DPadDown());
-		LogButton("DPadLeft", input::gamepad::DPadLeft());
-		LogButton("DPadRight", input::gamepad::DPadRight());
+		LogButton(L"DPadUp", input::gamepad::DPadUp());
+		LogButton(L"DPadDown", input::gamepad::DPadDown());
+		LogButton(L"DPadLeft", input::gamepad::DPadLeft());
+		LogButton(L"DPadRight", input::gamepad::DPadRight());
 
-		auto LogStick = [](const char* strStickName, float fValue)
+		auto LogStick = [](const wchar_t* stickName, float fValue)
 		{
 			if (math::IsZero(fValue) == false)
 			{
-				LOG_MESSAGE("%s : %f", strStickName, fValue);
+				LOG_MESSAGE(L"%s : %f", stickName, fValue);
 			}
 		};
 
-		LogStick("LeftThumbStickX", input::gamepad::LeftThumbStickX());
-		LogStick("LeftThumbStickY", input::gamepad::LeftThumbStickY());
-		LogStick("RightThumbStickX", input::gamepad::RightThumbStickX());
-		LogStick("RightThumbStickY", input::gamepad::RightThumbStickY());
-		LogStick("LeftTrigger", input::gamepad::LeftTrigger());
-		LogStick("RightTrigger", input::gamepad::RightTrigger());
+		LogStick(L"LeftThumbStickX", input::gamepad::LeftThumbStickX());
+		LogStick(L"LeftThumbStickY", input::gamepad::LeftThumbStickY());
+		LogStick(L"RightThumbStickX", input::gamepad::RightThumbStickX());
+		LogStick(L"RightThumbStickY", input::gamepad::RightThumbStickY());
+		LogStick(L"LeftTrigger", input::gamepad::LeftTrigger());
+		LogStick(L"RightTrigger", input::gamepad::RightTrigger());
 
-		//static float fTime = 0.f;
-		//if (fTime >= 5.f)
+		//static float time = 0.f;
+		//if (time >= 5.f)
 		//{
 		//	pPlayer->SetVibration(0.5f, 0.5f, 1.f);
-		//	fTime -= 5.f;
+		//	time -= 5.f;
 		//}
-		//fTime += elapsedTime;
+		//time += elapsedTime;
 	}
 	else
 	{
-		//static float fTime = 0.f;
-		//if (fTime >= 1.f)
+		//static float time = 0.f;
+		//if (time >= 1.f)
 		//{
-		//	LOG_MESSAGE("DisConnected");
-		//	fTime -= 1.f;
+		//	LOG_MESSAGE(L"DisConnected");
+		//	time -= 1.f;
 		//}
 		//
-		//fTime += elapsedTime;
+		//time += elapsedTime;
+	}
+
+	if (input::keyboard::IsKeyPressed(input::keyboard::eLeftControl) == true && input::mouse::IsButtonDown(input::mouse::eLeft) == true)
+	{
+		m_selectedActor = gameobject::IGameObject::eInvalidHandle;
+
+		const math::uint2 screenSize = graphics::GetScreenSize();
+		const int mouseX = input::mouse::GetX();
+		const int mouseY = input::mouse::GetY();
+
+		const collision::Ray ray(mouseX, mouseY, screenSize, pCamera->GetViewMatrix(), pCamera->GetProjectionMatrix());
+
+		physics::HitActorShape hitActorShape;
+		if (physics::scene::Raycast(ray.position, ray.direction, pCamera->GetFarClip(), nullptr, &hitActorShape, {}, {}) == true)
+		{
+			if (hitActorShape.pActor != nullptr)
+			{
+				gameobject::IGameObject* pGameObject = static_cast<gameobject::IGameObject*>(hitActorShape.pActor->GetUserData());
+				if (pGameObject != nullptr && pGameObject->GetType() == gameobject::ObjectType::eActor)
+				{
+					m_selectedActor = pGameObject->GetHandle();
+				}
+			}
+		}
 	}
 }
 
-void ShowConfig()
+void SceneNewStudio::RenderImGui(float elapsedTime)
+{
+	ShowConfig();
+
+	static bool isShowDebug = true;
+	{
+		ImGui::SetNextWindowSize(ImVec2(200, 100), ImGuiCond_FirstUseEver);
+		ImGui::Begin("Debug Info", &isShowDebug);
+
+		float fps = MainSystem::GetInstance()->GetFPS();
+		float ms = 1.f / fps * 1000.f;
+		ImGui::Text("FPS : %.2f (%.2f ms)", fps, ms);
+
+		if (ImGui::CollapsingHeader("Tracer") == true)
+		{
+			const bool isTracing = performance::tracer::IsTracing();
+			ImGui::Text("State : %s", isTracing == true ? "Tracing" : "Idle");
+
+			if (isTracing == true)
+			{
+				ImGui::Text("Time : %.2f", performance::tracer::TracingTime());
+
+				if (ImGui::Button("End") == true)
+				{
+					wchar_t path[512]{};
+					OPENFILENAME ofn;
+					memory::Clear(&ofn, sizeof(ofn));
+
+					ofn.lStructSize = sizeof(OPENFILENAME);
+					ofn.hwndOwner = graphics::GetHwnd();
+					ofn.lpstrFilter = L"Json(*.json)\0*.json\0";
+					ofn.lpstrFile = path;
+					ofn.nMaxFile = 255;
+					if (GetSaveFileName(&ofn) != 0)
+					{
+						TRACER_END(path);
+					}
+				}
+			}
+			else
+			{
+				if (ImGui::Button("Start") == true)
+				{
+					TRACER_START();
+				}
+			}
+		}
+
+		if (ImGui::CollapsingHeader("Detail") == true)
+		{
+			graphics::DebugInfo& debugInfo = graphics::GetDebugInfo();
+			ImGui::Checkbox("Collection", &debugInfo.isEnableCollection);
+
+			const graphics::DebugInfo& prevDebugInfo = graphics::GetPrevDebugInfo();
+
+			if (ImGui::TreeNode("OcclusionCulling"))
+			{
+				ImGui::PushID("OcclusionCulling");
+
+				const graphics::DebugInfo::OcclusionCulling& occlusionCulling = prevDebugInfo.occlusionCulling;
+				ImGui::Text("RenderTryCount : %u", occlusionCulling.renderTryCount.load());
+				ImGui::Text("RenderCompleteCount : %u", occlusionCulling.renderCompleteCount.load());
+				ImGui::Text("VisibleCount : %u", occlusionCulling.visibleCount.load());
+				ImGui::Text("OccludedCount : %u", occlusionCulling.occludedCount.load());
+				ImGui::Text("ViewCulledCount : %u", occlusionCulling.viewCulledCount.load());
+
+				ImGui::PopID();
+
+				ImGui::TreePop();
+			}
+		}
+
+		ImGui::End();
+	}
+
+	static bool isShowSwapChainBuffer = true;
+	{
+		const math::uint2& screenSize = graphics::GetScreenSize();
+
+		ImVec2 size(static_cast<float>(screenSize.x), static_cast<float>(screenSize.y));
+		size.x /= 2.f;
+		size.y /= 2.f;
+
+		ImGui::SetNextWindowPos(ImVec2(size.x * 0.5f, 0), ImGuiCond_FirstUseEver);
+		ImGui::SetNextWindowSize(size, ImGuiCond_FirstUseEver);
+		ImGui::Begin("SwapChainBuffer", &isShowSwapChainBuffer, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove);
+
+		ImTextureID textureID;
+		if (imguiHelper::GetBackBufferSwapchainTextureID(&textureID) == true)
+		{
+			ImGui::Image(textureID, size);
+		}
+
+		ImGui::End();
+	}
+
+	static bool isShowSoundWindow = true;
+	ShowSoundWindow(isShowSoundWindow);
+
+	static bool isShowActorMenu = true;
+	ShowActorWindow(isShowActorMenu);
+
+	ShowGizmo();
+	ShowNodeEditer();
+}
+
+void SceneNewStudio::ShowConfig()
 {
 	static bool isShowMainMenu = true;
 
-	ImGui::SetNextWindowSize(ImVec2(400, 800), ImGuiSetCond_FirstUseEver);
+	ImGui::SetNextWindowSize(ImVec2(400, 800), ImGuiCond_FirstUseEver);
 	ImGui::Begin("Config", &isShowMainMenu);
 
 	graphics::Options& graphicsOptions = graphics::GetOptions();
@@ -1073,13 +1309,13 @@ void ShowConfig()
 
 			if (ImGui::Button("SaveBuffer") == true)
 			{
-				char path[512]{};
+				wchar_t path[512]{};
 				OPENFILENAME ofn;
 				memory::Clear(&ofn, sizeof(ofn));
 
 				ofn.lStructSize = sizeof(OPENFILENAME);
 				ofn.hwndOwner = graphics::GetHwnd();
-				ofn.lpstrFilter = "Bmp(*.bmp)\0*.bmp\0";
+				ofn.lpstrFilter = L"Bmp(*.bmp)\0*.bmp\0";
 				ofn.lpstrFile = path;
 				ofn.nMaxFile = 255;
 				if (GetSaveFileName(&ofn) != 0)
@@ -1126,11 +1362,6 @@ void ShowConfig()
 			ImGui::TreePop();
 		}
 
-		if (ImGui::TreeNode("Motion Blur"))
-		{
-			ImGui::TreePop();
-		}
-
 		if (ImGui::TreeNode("ColorGrading"))
 		{
 			ImGui::PushID("ColorGrading");
@@ -1156,8 +1387,8 @@ void ShowConfig()
 
 			ImGui::Combo("Presets", reinterpret_cast<int*>(&bloomFilterConfig.emPreset), presets.data(), static_cast<int>(presets.size()));
 
-			ImGui::DragFloat("Threshold", &bloomFilterConfig.fThreshold, 0.001f, 0.f, 10.f);
-			ImGui::DragFloat("StrengthMultiplier", &bloomFilterConfig.fStrengthMultiplier, 0.001f, 0.f, 10.f);
+			ImGui::DragFloat("Threshold", &bloomFilterConfig.threshold, 0.001f, 0.f, 10.f);
+			ImGui::DragFloat("StrengthMultiplier", &bloomFilterConfig.strengthMultiplier, 0.001f, 0.f, 10.f);
 			ImGui::Checkbox("IsEnableLuminance", &bloomFilterConfig.isEnableLuminance);
 
 			ImGui::PopID();
@@ -1171,7 +1402,21 @@ void ShowConfig()
 
 			ImGui::Checkbox("Apply", &graphicsOptions.OnSSS);
 
-			ImGui::DragFloat("Width", &graphicsOptions.sssConfig.fWidth, 0.001f, 0.f, 100.f);
+			ImGui::DragFloat("Width", &graphicsOptions.sssConfig.width, 0.001f, 0.f, 100.f);
+
+			ImGui::PopID();
+
+			ImGui::TreePop();
+		}
+
+		if (ImGui::TreeNode("SSR"))
+		{
+			ImGui::PushID("SSR");
+
+			ImGui::Checkbox("Apply", &graphicsOptions.OnSSR);
+
+			ImGui::DragFloat("BlurSigma", &graphicsOptions.ssrConfig.blurSigma, 0.001f, 0.5f, 10.f);
+			ImGui::DragInt("SampleCount", &graphicsOptions.ssrConfig.sampleCount, 0.1f, 4, 128);
 
 			ImGui::PopID();
 
@@ -1216,8 +1461,8 @@ void ShowConfig()
 
 			ImGui::Checkbox("Apply", &graphicsOptions.OnDOF);
 
-			const float fNear = graphics::Camera::GetInstance()->GetNearClip();
-			const float fFar = graphics::Camera::GetInstance()->GetFarClip();
+			const float fNear = graphics::GetCamera()->GetNearClip();
+			const float fFar = graphics::GetCamera()->GetFarClip();
 
 			graphics::Options::DepthOfFieldConfig& depthOfFieldConfig = graphicsOptions.depthOfFieldConfig;
 
@@ -1295,6 +1540,35 @@ void ShowConfig()
 			ImGui::TreePop();
 		}
 
+		if (ImGui::TreeNode("MotionBlur"))
+		{
+			ImGui::PushID("MotionBlur");
+
+			ImGui::Checkbox("Apply", &graphicsOptions.OnMotionBlur);
+
+			const std::array<const char*, graphics::Options::MotionBlurConfig::ModeCount> MotionBlurModes =
+			{
+				"DepthBuffer_4Samples",
+				"DepthBuffer_8Samples",
+				"DepthBuffer_12Samples",
+				"VelocityBuffer_4Samples",
+				"VelocityBuffer_8Samples",
+				"VelocityBuffer_12Samples",
+				"DualVelocityBuffer_4Samples",
+				"DualVelocityBuffer_8Samples",
+				"DualVelocityBuffer_12Samples",
+			};
+
+			graphics::Options::MotionBlurConfig& motionBlurConfig = graphicsOptions.motionBlurConfig;
+			ImGui::Combo("Modes", reinterpret_cast<int*>(&motionBlurConfig.emMode), MotionBlurModes.data(), static_cast<int>(MotionBlurModes.size()));
+
+			ImGui::DragFloat("Amount", &motionBlurConfig.blurAmount, 0.01f, 0.1f, 5.f, "%.2f");
+
+			ImGui::PopID();
+
+			ImGui::TreePop();
+		}
+
 		if (ImGui::TreeNode("Tessellation"))
 		{
 			ImGui::PushID("Tessellation");
@@ -1320,42 +1594,122 @@ void ShowConfig()
 
 	if (ImGui::CollapsingHeader("Skybox") == true)
 	{
-		static int nSelectedIndex = 0;
-		if (ImGui::Combo("Env", &nSelectedIndex, IBL_Type, _countof(IBL_Type)) == true)
+		static int selectedIndex = 0;
+		if (ImGui::Combo("Env", &selectedIndex, IBL_Type, _countof(IBL_Type)) == true)
 		{
-			const std::string strPath = string::Format("%sIBL\\%s\\%s", file::GetPath(file::eTexture), IBL_Type[nSelectedIndex], IBL_Type[nSelectedIndex]);
+			const std::wstring iblTypeString = string::MultiToWide(IBL_Type[selectedIndex]);
+			const std::wstring path = string::Format(L"%sTexture\\IBL\\%s\\%s", file::GetEngineDataPath(), iblTypeString.c_str(), iblTypeString.c_str());
 
 			graphics::IImageBasedLight* pImageBasedLight = graphics::GetImageBasedLight();
 
-			std::string strDiffuseHDR = strPath;
-			strDiffuseHDR.append("DiffuseHDR.dds");
-			graphics::ITexture* pDiffuseHDR = graphics::CreateTextureAsync(strDiffuseHDR.c_str());
+			std::wstring strDiffuseHDR = path;
+			strDiffuseHDR.append(L"DiffuseHDR.dds");
+			graphics::TexturePtr pDiffuseHDR = graphics::CreateTextureAsync(strDiffuseHDR.c_str());
 			pImageBasedLight->SetDiffuseHDR(pDiffuseHDR);
-			graphics::ReleaseResource(&pDiffuseHDR);
+			graphics::ReleaseResource(pDiffuseHDR);
 
-			std::string strSpecularHDR = strPath;
-			strSpecularHDR.append("SpecularHDR.dds");
-			graphics::ITexture* pSpecularHDR = graphics::CreateTextureAsync(strSpecularHDR.c_str());
+			std::wstring strSpecularHDR = path;
+			strSpecularHDR.append(L"SpecularHDR.dds");
+			graphics::TexturePtr pSpecularHDR = graphics::CreateTextureAsync(strSpecularHDR.c_str());
 			pImageBasedLight->SetSpecularHDR(pSpecularHDR);
-			graphics::ReleaseResource(&pSpecularHDR);
+			graphics::ReleaseResource(pSpecularHDR);
 
-			std::string strSpecularBRDF = strPath;
-			strSpecularBRDF.append("Brdf.dds");
-			graphics::ITexture* pSpecularBRDF = graphics::CreateTextureAsync(strSpecularBRDF.c_str());
+			std::wstring strSpecularBRDF = path;
+			strSpecularBRDF.append(L"Brdf.dds");
+			graphics::TexturePtr pSpecularBRDF = graphics::CreateTextureAsync(strSpecularBRDF.c_str());
 			pImageBasedLight->SetSpecularBRDF(pSpecularBRDF);
-			graphics::ReleaseResource(&pSpecularBRDF);
+			graphics::ReleaseResource(pSpecularBRDF);
 
-			std::string strEnvIBLPath = strPath;
-			strEnvIBLPath.append("EnvHDR.dds");
-			graphics::ITexture* pEnvironmentHDR = graphics::CreateTextureAsync(strEnvIBLPath.c_str());
+			std::wstring strEnvIBLPath = path;
+			strEnvIBLPath.append(L"EnvHDR.dds");
+			graphics::TexturePtr pEnvironmentHDR = graphics::CreateTextureAsync(strEnvIBLPath.c_str());
 			pImageBasedLight->SetEnvironmentHDR(pEnvironmentHDR);
-			graphics::ReleaseResource(&pEnvironmentHDR);
+			graphics::ReleaseResource(pEnvironmentHDR);
 		}
 	}
 
 	if (ImGui::CollapsingHeader("Light") == true)
 	{
-		/*gameobject::Sun* pActor = static_cast<gameobject::Sun*>(gameobject::ActorManager::GetInstance()->GetActor(StrID::EastEngine_Sun));
+		if (ImGui::CollapsingHeader("Directional") == true)
+		{
+			const size_t directionalLightCount = graphics::GetLightCount(graphics::ILight::Type::eDirectional);
+			for (size_t i = 0; i < directionalLightCount; ++i)
+			{
+				graphics::LightPtr pLight = graphics::GetLight(graphics::ILight::Type::eDirectional, i);
+				if (pLight == nullptr)
+					continue;
+
+				graphics::IDirectionalLight* pDirectionalLight = static_cast<graphics::IDirectionalLight*>(pLight.get());
+
+				const std::string lightName = string::WideToMulti(pDirectionalLight->GetName().c_str());
+				if (ImGui::TreeNode(lightName.c_str()))
+				{
+					ImGui::PushID(lightName.c_str());
+
+					float intensity = pDirectionalLight->GetIntensity();
+					if (ImGui::DragFloat("Intensity", &intensity, 0.01f) == true)
+					{
+						pDirectionalLight->SetIntensity(intensity);
+					}
+
+					float ambientIntensity = pDirectionalLight->GetAmbientIntensity();
+					if (ImGui::DragFloat("AmbientIntensity", &ambientIntensity, 0.01f) == true)
+					{
+						pDirectionalLight->SetAmbientIntensity(ambientIntensity);
+					}
+
+					float reflectionIntensity = pDirectionalLight->GetReflectionIntensity();
+					if (ImGui::DragFloat("ReflectionIntensity", &reflectionIntensity, 0.01f) == true)
+					{
+						pDirectionalLight->SetReflectionIntensity(reflectionIntensity);
+					}
+
+					ImVec3 color = *reinterpret_cast<const ImVec3*>(&pDirectionalLight->GetColor());
+					if (ImGui::ColorEdit3("Diffuse", &color.x) == true)
+					{
+						pDirectionalLight->SetColor(*reinterpret_cast<math::float3*>(&color));
+					}
+
+					ImVec3 direction = *reinterpret_cast<const ImVec3*>(&pDirectionalLight->GetDirection());
+					if (ImGui::DragFloat3("Direction", &direction.x, 0.01f) == true)
+					{
+						math::float3 _direction = *reinterpret_cast<math::float3*>(&direction);
+						_direction.Normalize();
+						pDirectionalLight->SetDirection(_direction);
+					}
+
+					bool isEnableShadow = pDirectionalLight->IsEnableShadow();
+					if (ImGui::Checkbox("IsEnableShadow", &isEnableShadow) == true)
+					{
+						pDirectionalLight->SetEnableShadow(isEnableShadow);
+					}
+
+					graphics::CascadedShadows& cascadedShadows = pDirectionalLight->GetCascadedShadows();
+					graphics::CascadedShadowsConfig config = cascadedShadows.GetConfig();
+
+					ImGui::DragInt("Cascades Count", reinterpret_cast<int*>(&config.numCascades), 0.01f, 1, graphics::CascadedShadowsConfig::eMaxCascades);
+
+					ImGui::InputInt("Resolution", reinterpret_cast<int*>(&config.resolution));
+
+					int pcfBlurSize = static_cast<int>(config.pcfBlurSize);
+					if (ImGui::InputInt("PCF Blur Size", &pcfBlurSize, 2) == true)
+					{
+						config.pcfBlurSize = static_cast<uint32_t>(std::max(pcfBlurSize, 1));
+					}
+
+					ImGui::DragFloat("Cascade Distance", &config.cascadeDistance, 0.1f, 32.f, 2048.f);
+
+					ImGui::DragFloat("Depth Bias", &config.depthBias, 0.0000001f, 0.f, 1.f, "%.6f");
+
+					cascadedShadows.SetConfig(config);
+
+					ImGui::PopID();
+
+					ImGui::TreePop();
+				}
+			}
+		}
+		/*gameobject::Sun* pActor = static_cast<gameobject::Sun*>(gameobject::ActorManager::GetInstance()->GetActor(sid::est_Sun));
 		auto pLight = pActor->GetLight();
 		{
 		static float f = pLight->GetIntensity();
@@ -1399,37 +1753,410 @@ void ShowConfig()
 
 	if (ImGui::CollapsingHeader("Camera") == true)
 	{
-		graphics::Camera* pCamera = graphics::Camera::GetInstance();
+		graphics::Camera* pCamera = graphics::GetCamera();
 
-		math::float3 f3CameraPos = pCamera->GetPosition();
-		if (ImGui::DragFloat3("Camera Position", reinterpret_cast<float*>(&f3CameraPos.x), 0.01f, -1000000.f, 1000000.f) == true)
+		math::float3 cameraPosition = pCamera->GetPosition();
+		if (ImGui::DragFloat3("Position", reinterpret_cast<float*>(&cameraPosition.x), 0.01f, -1000000.f, 1000000.f) == true)
 		{
-			pCamera->SetPosition(f3CameraPos);
+			pCamera->SetPosition(cameraPosition);
 		}
 
-		math::float3 f3CameraLookat = pCamera->GetLookat();
-		if (ImGui::DragFloat3("Camera Lookat", reinterpret_cast<float*>(&f3CameraLookat.x), 0.01f, -1000000.f, 1000000.f) == true)
+		math::float3 cameraLookat = pCamera->GetLookat();
+		if (ImGui::DragFloat3("Lookat", reinterpret_cast<float*>(&cameraLookat.x), 0.01f, -1000000.f, 1000000.f) == true)
 		{
-			pCamera->SetLookat(f3CameraLookat);
+			pCamera->SetLookat(cameraLookat);
 		}
 
-		math::float3 f3Up = pCamera->GetUp();
-		if (ImGui::DragFloat3("Camera Up", reinterpret_cast<float*>(&f3Up.x), 0.01f, -1.f, 1.f) == true)
+		math::float3 cameraUp = pCamera->GetUp();
+		if (ImGui::DragFloat3("Up", reinterpret_cast<float*>(&cameraUp.x), 0.01f, -1.f, 1.f) == true)
 		{
-			pCamera->SetUp(f3Up);
+			pCamera->SetUp(cameraUp);
+		}
+
+		if (ImGui::TreeNode("CameraMan"))
+		{
+			ImGui::PushID("CameraMan");
+
+			enum CameraMan
+			{
+				eNone = 0,
+				eFirstPerson,
+				eThirdPerson,
+			};
+
+			static int selectedIndex = -1;
+			if (selectedIndex == -1)
+			{
+				graphics::ICameraMan* pCameraMan = pCamera->GetCameraMan();
+				if (pCameraMan == nullptr)
+				{
+					selectedIndex = CameraMan::eNone;
+				}
+				else if (dynamic_cast<graphics::FirstPersonCameraMan*>(pCameraMan) != nullptr)
+				{
+					selectedIndex = CameraMan::eFirstPerson;
+				}
+				else if (dynamic_cast<graphics::ThirdPersonCameraMan*>(pCameraMan) != nullptr)
+				{
+					selectedIndex = CameraMan::eThirdPerson;
+				}
+				else
+				{
+					throw_line("unknown camera man");
+				}
+			}
+
+			if (ImGui::RadioButton("None", &selectedIndex, CameraMan::eNone) == true)
+			{
+				pCamera->SetCameraMan(nullptr);
+			}
+
+			if (ImGui::RadioButton("FirstPerson", &selectedIndex, CameraMan::eFirstPerson) == true)
+			{
+				pCamera->SetFirstPersonCameraMan();
+			}
+
+			if (ImGui::RadioButton("ThirdPerson", &selectedIndex, CameraMan::eThirdPerson) == true)
+			{
+				pCamera->SetThirdPersonCameraMan();
+			}
+
+			switch (selectedIndex)
+			{
+			case CameraMan::eNone:
+				break;
+			case CameraMan::eFirstPerson:
+			{
+				graphics::FirstPersonCameraMan* pCameraMan = static_cast<graphics::FirstPersonCameraMan*>(pCamera->GetCameraMan());
+				graphics::FirstPersonCameraMan::DescMove descMove = pCameraMan->GetDescMove();
+
+				const bool isChanged1 = ImGui::DragFloat("MoveSpeed", &descMove.moveSpeed, 0.01f, 1.f, 100.f);
+				const bool isChanged2 = ImGui::DragFloat("RotateSpeed", &descMove.rotateSpeed, 0.01f, 1.f, 100.f);
+
+				if (isChanged1 == true || isChanged2 == true)
+				{
+					pCameraMan->SetDescMove(descMove);
+				}
+
+				math::float3 MoveByDirection = pCameraMan->GetMoveByDirection();
+				if (ImGui::DragFloat3("MoveByDirection", reinterpret_cast<float*>(&MoveByDirection.x), 0.01f, 0, 10000.f) == true)
+				{
+					const math::float3 diff = MoveByDirection - pCameraMan->GetMoveByDirection();
+					pCameraMan->MoveForward(diff.z);
+					pCameraMan->MoveSideward(diff.x);
+					pCameraMan->MoveUpward(diff.y);
+				}
+
+				math::float3 MoveByAxis = pCameraMan->GetMoveByAxis();
+				if (ImGui::DragFloat3("MoveByAxis", reinterpret_cast<float*>(&MoveByAxis.x), 0.01f, 0, 10000.f) == true)
+				{
+					const math::float3 diff = MoveByAxis - pCameraMan->GetMoveByAxis();
+					pCameraMan->MoveAxisX(diff.x);
+					pCameraMan->MoveAxisY(diff.y);
+					pCameraMan->MoveAxisZ(diff.z);
+				}
+
+				math::float3 RotateByAxis = pCameraMan->GetRotateByAxis();
+				if (ImGui::DragFloat3("RotateByAxis", reinterpret_cast<float*>(&RotateByAxis.x), 0.f) == true)
+				{
+					const math::float3 diff = RotateByAxis - pCameraMan->GetRotateByAxis();
+					pCameraMan->RotateAxisX(diff.x);
+					pCameraMan->RotateAxisY(diff.y);
+					pCameraMan->RotateAxisZ(diff.z);
+				}
+
+				math::float3 Rotation = pCameraMan->GetRotation();
+				if (ImGui::DragFloat3("Rotation", reinterpret_cast<float*>(&Rotation.x), 0.f) == true)
+				{
+					pCameraMan->SetRotation(Rotation);
+				}
+			}
+			break;
+			case CameraMan::eThirdPerson:
+			{
+				graphics::ThirdPersonCameraMan* pCameraMan = static_cast<graphics::ThirdPersonCameraMan*>(pCamera->GetCameraMan());
+				graphics::ThirdPersonCameraMan::DescMove descMove = pCameraMan->GetDescMove();
+
+				const bool isChanged1 = ImGui::DragFloat("MoveSpeed", &descMove.moveSpeed, 0.01f, 1.f, 100.f);
+				const bool isChanged2 = ImGui::DragFloat("RotateSpeed", &descMove.rotateSpeed, 0.01f, 1.f, 100.f);
+				const bool isChanged3 = ImGui::DragFloatRange2("ClampDistance", &descMove.minDistance, &descMove.maxDistance, 0.01f, 1.f, 10000.f);
+
+				if (isChanged1 == true || isChanged2 == true || isChanged3 == true)
+				{
+					pCameraMan->SetDescMove(descMove);
+				}
+
+				math::float3 TargetPosition = pCameraMan->GetTargetPosition();
+				if (ImGui::DragFloat3("TargetPosition", reinterpret_cast<float*>(&TargetPosition.x), 0.01f, -10000.f, 10000.f) == true)
+				{
+					pCameraMan->SetTargetPosition(TargetPosition);
+				}
+
+				float distance = pCameraMan->GetDistance();
+				ImGui::DragFloat("Distance", &distance, 0.f, descMove.minDistance, descMove.maxDistance);
+
+				float moveDistance = pCameraMan->GetMoveDistance();
+				if (ImGui::DragFloat("MoveDistance", &moveDistance, 0.01f, -1000.f, 1000.f) == true)
+				{
+					const float diff = moveDistance - pCameraMan->GetMoveDistance();
+					pCameraMan->MoveDistance(diff);
+				}
+
+				math::float3 RotateByAxis = pCameraMan->GetRotateByAxis();
+				if (ImGui::DragFloat3("RotateByAxis", reinterpret_cast<float*>(&RotateByAxis.x), 0.f) == true)
+				{
+					const math::float3 diff = RotateByAxis - pCameraMan->GetRotateByAxis();
+					pCameraMan->RotateAxisX(diff.x);
+					pCameraMan->RotateAxisY(diff.y);
+					pCameraMan->RotateAxisZ(diff.z);
+				}
+
+				math::float3 Rotation = pCameraMan->GetRotation();
+				ImGui::DragFloat3("Rotation", reinterpret_cast<float*>(&Rotation.x), 0.f);
+			}
+			break;
+			}
+
+			ImGui::PopID();
+
+			ImGui::TreePop();
+		}
+	}
+
+	if (ImGui::CollapsingHeader("Physics") == true)
+	{
+		static bool isEnableShootObject = false;
+		ImGui::Checkbox("ShootObject", &isEnableShootObject);
+
+		if (isEnableShootObject == true)
+		{
+			static physics::RigidActorProperty rigidProperty;
+			static bool isFirst = false;
+			if (isFirst == false)
+			{
+				rigidProperty.material.dynamicFriction = 0.25f;
+				rigidProperty.material.staticFriction = 0.25f;
+				rigidProperty.material.restitution = 0.5f;
+
+				rigidProperty.shape.flags = physics::IShape::eSimulationShape | physics::IShape::eSceneQueryShape;
+				rigidProperty.shape.SetSphereGeometry(0.5f);
+				rigidProperty.rigidAcotr.type = physics::IActor::eRigidDynamic;
+
+				isFirst = true;
+			}
+
+			enum ShootingObjectGeometryType
+			{
+				eST_eSphere = 0,
+				eST_eBox,
+				eST_Capsule,
+				eST_Random,
+				eST_Count,
+			};
+
+			static ShootingObjectGeometryType emShootingObjectGeometryType = eST_eSphere;
+			const std::array<const char*, eST_Count> ShootingObjectGeometryTypeName = { "Sphere", "Box", "Capsule", "Random" };
+
+			if (ImGui::TreeNode("Property"))
+			{
+				ImGui::PushID("Property");
+
+				if (ImGui::TreeNode("Material"))
+				{
+					ImGui::DragFloat("DynamicFriction", &rigidProperty.material.dynamicFriction, 0.01f, 0.f, std::numeric_limits<float>::max());
+					ImGui::DragFloat("StaticFriction", &rigidProperty.material.staticFriction, 0.01f, 0.f, std::numeric_limits<float>::max());
+					ImGui::DragFloat("Restitution", &rigidProperty.material.restitution, 0.01f, 0.01f, 1.f);
+
+					ImGui::TreePop();
+				}
+
+				if (ImGui::TreeNode("Shape"))
+				{
+					ImGui::DragFloat("ContactOffset", &rigidProperty.shape.contactOffset, 0.01f, std::min(0.f, rigidProperty.shape.restOffset), std::numeric_limits<float>::max());
+					ImGui::DragFloat("RestOffset", &rigidProperty.shape.restOffset, 0.01f, -std::numeric_limits<float>::max(), rigidProperty.shape.contactOffset);
+
+					static float radius = 0.5;
+					static math::float3 halfExtents = math::float3::One;
+					static float halfHeight = 0.5f;
+
+					const std::array<const char*, graphics::MotionLayers::eLayerCount> layers = { "Layer1", "Layer2", "Layer3", "Layer4", };
+					if (ImGui::Combo("GeometryType", reinterpret_cast<int*>(&emShootingObjectGeometryType), ShootingObjectGeometryTypeName.data(), static_cast<int>(ShootingObjectGeometryTypeName.size())) == true)
+					{
+						switch (emShootingObjectGeometryType)
+						{
+						case ShootingObjectGeometryType::eST_eSphere:
+						{
+							radius = 0.5f;
+							rigidProperty.shape.SetSphereGeometry(radius);
+						}
+						break;
+						case ShootingObjectGeometryType::eST_eBox:
+						{
+							halfExtents = math::float3::One;
+							rigidProperty.shape.SetBoxGeometry(halfExtents);
+						}
+						break;
+						case ShootingObjectGeometryType::eST_Capsule:
+						{
+							radius = 0.5f;
+							halfHeight = 0.5f;
+							rigidProperty.shape.SetCapsuleGeometry(radius, halfHeight);
+						}
+						break;
+						}
+					}
+
+					switch (emShootingObjectGeometryType)
+					{
+					case ShootingObjectGeometryType::eST_eSphere:
+					{
+						if (ImGui::DragFloat("Radius", &radius, 0.01f, 0.01f, 9999.f) == true)
+						{
+							rigidProperty.shape.SetSphereGeometry(radius);
+						}
+					}
+					break;
+					case ShootingObjectGeometryType::eST_eBox:
+					{
+						if (ImGui::DragFloat3("HalfExtents", reinterpret_cast<float*>(&halfExtents), 0.01f, 0.01f, 9999.f) == true)
+						{
+							rigidProperty.shape.SetBoxGeometry(halfExtents);
+						}
+					}
+					break;
+					case ShootingObjectGeometryType::eST_Capsule:
+					{
+						bool isChanged = false;
+						isChanged |= ImGui::DragFloat("Radius", &radius, 0.01f, 0.01f, 9999.f) == true;
+						isChanged |= ImGui::DragFloat("HalfHeight", &halfHeight, 0.01f, 0.01f, 9999.f);
+
+						if (isChanged == true)
+						{
+							rigidProperty.shape.SetCapsuleGeometry(radius, halfHeight);
+						}
+					}
+					break;
+					}
+
+					ImGui::TreePop();
+				}
+
+				if (ImGui::TreeNode("Rigid"))
+				{
+					if (ImGui::TreeNode("CenterMassLocalPose"))
+					{
+						ImGui::DragFloat4("Rotation", reinterpret_cast<float*>(&rigidProperty.rigidAcotr.dynamicProperty.centerMassLocalPose.rotation), 0.01f, -std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
+						ImGui::DragFloat3("Position", reinterpret_cast<float*>(&rigidProperty.rigidAcotr.dynamicProperty.centerMassLocalPose.position), 0.01f, -std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
+					}
+					ImGui::DragFloat("Mass", &rigidProperty.rigidAcotr.dynamicProperty.mass, 0.01f, 0.f, std::numeric_limits<float>::max());
+					ImGui::DragFloat3("MassSpaceInertiaTensor", reinterpret_cast<float*>(&rigidProperty.rigidAcotr.dynamicProperty.massSpaceInertiaTensor), 0.01f, 0.f, std::numeric_limits<float>::max());
+
+					ImGui::DragFloat("LinearDamping", &rigidProperty.rigidAcotr.dynamicProperty.linearDamping, 0.01f, 0.f, std::numeric_limits<float>::max());
+					ImGui::DragFloat("AngularDamping", &rigidProperty.rigidAcotr.dynamicProperty.angularDamping, 0.01f, 0.f, std::numeric_limits<float>::max());
+					ImGui::DragFloat("MaxAngularVelocity", &rigidProperty.rigidAcotr.dynamicProperty.maxAngularVelocity, 0.01f, 0.f, std::numeric_limits<float>::max());
+					ImGui::DragFloat("SleepThreshold", &rigidProperty.rigidAcotr.dynamicProperty.sleepThreshold, 0.01f, 0.f, std::numeric_limits<float>::max());
+					ImGui::DragFloat("StabilizationThreshold", &rigidProperty.rigidAcotr.dynamicProperty.stabilizationThreshold, 0.01f, 0.f, std::numeric_limits<float>::max());
+					ImGui::DragFloat("ContactReportThreshold", &rigidProperty.rigidAcotr.dynamicProperty.contactReportThreshold, 0.01f, 0.f, std::numeric_limits<float>::max());
+
+					ImGui::TreePop();
+				}
+
+				ImGui::PopID();
+
+				ImGui::TreePop();
+			}
+
+			static float shootingSpeed = 50.f;
+			ImGui::DragFloat("ShootingSpeed", &shootingSpeed, 0.01f, 0.01f, 9999.f);
+
+			if (input::keyboard::IsKeyDown(input::keyboard::eSpace) == true)
+			{
+				static size_t shootingObjectID = 0;
+				string::StringID shootingObjectName;
+				shootingObjectName.Format(L"ShootingModel_%d", shootingObjectID++);
+
+				graphics::Camera* pCamera = graphics::GetCamera();
+
+				const math::float3& position = pCamera->GetPosition();
+
+				math::float3 velocity = pCamera->GetDirection();
+				velocity.Normalize();
+				velocity *= shootingSpeed;
+
+				gameobject::ActorPtr pShootingObject = gameobject::CreateActor(shootingObjectName);
+				gameobject::ComponentModel* pCompModel = static_cast<gameobject::ComponentModel*>(pShootingObject->CreateComponent(gameobject::IComponent::eModel));
+
+				graphics::IMaterial::Data materialData;
+				materialData.name = shootingObjectName;
+
+				materialData.f4PaddingRoughMetEmi.y = math::RandomReal(0.f, 1.f);
+				materialData.f4PaddingRoughMetEmi.z = math::RandomReal(0.f, 1.f);
+				materialData.colorAlbedo = math::Color(math::RandomReal(0.f, 1.f), math::RandomReal(0.f, 1.f), math::RandomReal(0.f, 1.f), 1.f);
+
+				graphics::ModelLoader loader;
+				switch (emShootingObjectGeometryType)
+				{
+				case ShootingObjectGeometryType::eST_eSphere:
+				{
+					const physics::SphereGeometry* pSphereGeometry = static_cast<const physics::SphereGeometry*>(rigidProperty.shape.pGeometry.get());
+					loader.InitSphere(shootingObjectName, &materialData, pSphereGeometry->radius * 2.f);
+				}
+				break;
+				case ShootingObjectGeometryType::eST_eBox:
+				{
+					const physics::BoxGeometry* pBoxGeometry = static_cast<const physics::BoxGeometry*>(rigidProperty.shape.pGeometry.get());
+					loader.InitBox(shootingObjectName, &materialData, pBoxGeometry->halfExtents);
+				}
+				break;
+				case ShootingObjectGeometryType::eST_Capsule:
+				{
+					const physics::CapsuleGeometry* pCapsuleGeometry = static_cast<const physics::CapsuleGeometry*>(rigidProperty.shape.pGeometry.get());
+					loader.InitCapsule(shootingObjectName, &materialData, pCapsuleGeometry->radius, pCapsuleGeometry->halfHeight * 2.f);
+				}
+				break;
+				case ShootingObjectGeometryType::eST_Random:
+				{
+					const ShootingObjectGeometryType emSelectedGeometryType = static_cast<ShootingObjectGeometryType>(math::Random(static_cast<int>(eST_eSphere), static_cast<int>(eST_Capsule)));
+					switch (emSelectedGeometryType)
+					{
+					case ShootingObjectGeometryType::eST_eSphere:
+						loader.InitSphere(shootingObjectName, &materialData, 1.f);
+						rigidProperty.shape.SetSphereGeometry(0.5f);
+						break;
+					case ShootingObjectGeometryType::eST_eBox:
+						loader.InitBox(shootingObjectName, &materialData, math::float3::One);
+						rigidProperty.shape.SetBoxGeometry(math::float3::One);
+						break;
+					case ShootingObjectGeometryType::eST_Capsule:
+						loader.InitCapsule(shootingObjectName, &materialData, 0.5f, 1.f);
+						rigidProperty.shape.SetCapsuleGeometry(0.5f, 0.5f);
+						break;
+					}
+				}
+				break;
+				}
+
+				loader.SetEnableThreadLoad(false);
+				pCompModel->Add(0, loader);
+
+				auto pCompPhysics = static_cast<gameobject::ComponentPhysics*>(pShootingObject->CreateComponent(gameobject::IComponent::ePhysics));
+				rigidProperty.rigidAcotr.name = shootingObjectName;
+				rigidProperty.rigidAcotr.globalTransform.position = position;
+
+				physics::IRigidDynamic* pRigidDynamic = static_cast<physics::IRigidDynamic*>(pCompPhysics->CreateRigidActor(rigidProperty));
+				pCompPhysics->SetLinearVelocity(velocity);
+
+				m_actors.emplace_back(std::move(pShootingObject));
+			}
 		}
 	}
 
 	ImGui::End();
 }
 
-void ShowModelList()
+void SceneNewStudio::ShowMotion(bool& isShowMotionMenu, gameobject::ComponentModel* pCompModel)
 {
-}
-
-void ShowMotion(bool& isShowMotionMenu, gameobject::ComponentModel* pCompModel)
-{
-	ImGui::SetNextWindowSize(ImVec2(400, 600), ImGuiSetCond_FirstUseEver);
+	ImGui::SetNextWindowSize(ImVec2(400, 600), ImGuiCond_FirstUseEver);
 	ImGui::Begin("Motion System", &isShowMotionMenu);
 
 	ImGui::PushID("MotionSystem");
@@ -1437,60 +2164,67 @@ void ShowMotion(bool& isShowMotionMenu, gameobject::ComponentModel* pCompModel)
 	if (ImGui::Button("Load Motion") == true)
 	{
 		const size_t bufferSize = 8192;
-		char path[bufferSize]{};
+		wchar_t path[bufferSize]{};
 
 		OPENFILENAME ofn;
 		memory::Clear(&ofn, sizeof(ofn));
 
 		ofn.lStructSize = sizeof(OPENFILENAME);
 		ofn.hwndOwner = graphics::GetHwnd();
-		ofn.lpstrFilter = "Motion File(*.fbx;*.emot)\0*.fbx;*.emot\0FBX File(*.fbx)\0*.fbx\0EastMotion File(*.emot)\0*.emot\0";
+		ofn.lpstrFilter = L"Motion File(*.fbx;*.emot)\0*.fbx;*.emot\0FBX File(*.fbx)\0*.fbx\0EastMotion File(*.emot)\0*.emot\0";
 		ofn.lpstrFile = path;
 		ofn.nMaxFile = bufferSize;
 		ofn.Flags = OFN_ALLOWMULTISELECT | OFN_EXPLORER;
 		if (GetOpenFileName(&ofn) != 0)
 		{
-			char* ptr = path;
+			wchar_t* ptr = path;
 			ptr[ofn.nFileOffset - 1] = 0;
 
-			const std::string directory = ptr;
+			const std::wstring directory = ptr;
 			ptr += ofn.nFileOffset;
 
-			std::vector<std::string> files;
+			std::vector<std::wstring> files;
 			while (*ptr)
 			{
-				files.emplace_back(directory + "\\" + ptr);
+				files.emplace_back(directory + L"\\" + ptr);
 				ptr += (lstrlen(ptr) + 1);
 			}
 
 			for (auto& filePath : files)
 			{
-				const std::string strFileExtension = file::GetFileExtension(filePath);
-				if (string::IsEqualsNoCase(strFileExtension.c_str(), ".fbx") == true)
+				const std::wstring strFileExtension = file::GetFileExtension(filePath);
+				if (string::IsEqualsNoCase(strFileExtension.c_str(), L".fbx") == true)
 				{
 					graphics::MotionLoader loader;
 					loader.InitFBX(file::GetFileName(filePath).c_str(), filePath.c_str());
-					graphics::IMotion::Create(loader);
+					graphics::CreateMotion(loader);
 				}
-				else if (string::IsEqualsNoCase(strFileExtension.c_str(), ".emot") == true)
+				else if (string::IsEqualsNoCase(strFileExtension.c_str(), L".emot") == true)
 				{
 					graphics::MotionLoader loader;
 					loader.InitEast(file::GetFileName(filePath).c_str(), filePath.c_str());
-					graphics::IMotion::Create(loader);
+					graphics::CreateMotion(loader);
 				}
 			}
 		}
 	}
 
-	const size_t nMotionCount = graphics::ModelManager::GetInstance()->GetMotionCount();
+	const size_t motionCount = graphics::ModelManager::GetInstance()->GetMotionCount();
 
-	std::vector<const char*> vecMotionNames;
-	vecMotionNames.reserve(nMotionCount);
+	std::vector<std::string> motionNamesMulti;
+	motionNamesMulti.reserve(motionCount);
 
-	for (size_t i = 0; i < nMotionCount; ++i)
+	for (size_t i = 0; i < motionCount; ++i)
 	{
-		graphics::IMotion* pMotion = graphics::ModelManager::GetInstance()->GetMotion(i);
-		vecMotionNames.emplace_back(pMotion->GetName().c_str());
+		graphics::MotionPtr pMotion = graphics::ModelManager::GetInstance()->GetMotion(i);
+		motionNamesMulti.emplace_back(string::WideToMulti(pMotion->GetName().c_str()));
+	}
+
+	std::vector<const char*> motionNames;
+	motionNames.reserve(motionCount);
+	for (auto& name : motionNamesMulti)
+	{
+		motionNames.emplace_back(name.c_str());
 	}
 
 	{
@@ -1502,13 +2236,13 @@ void ShowMotion(bool& isShowMotionMenu, gameobject::ComponentModel* pCompModel)
 		static bool isMotionInverse = false;
 		static bool isFreezeAtLastFrame = false;
 
-		static int nSelectedIndex = 0;
-		if (vecMotionNames.empty() == false)
+		static int selectedIndex = 0;
+		if (motionNames.empty() == false)
 		{
 			int prevSelectedIndex = -1;
-			if (ImGui::ListBox("Motion List", &nSelectedIndex, &vecMotionNames.front(), static_cast<int>(vecMotionNames.size()), 6) == true)
+			if (ImGui::ListBox("Motion List", &selectedIndex, &motionNames.front(), static_cast<int>(motionNames.size()), 6) == true)
 			{
-				if (prevSelectedIndex == nSelectedIndex)
+				if (prevSelectedIndex == selectedIndex)
 				{
 					graphics::MotionPlaybackInfo playback;
 					playback.speed = fMotionSpeed;
@@ -1518,31 +2252,31 @@ void ShowMotion(bool& isShowMotionMenu, gameobject::ComponentModel* pCompModel)
 					playback.isInverse = isMotionInverse;
 					playback.isFreezeAtLastFrame = isFreezeAtLastFrame;
 
-					graphics::IMotion* pMotion = nullptr;
-					if (0 <= nSelectedIndex && nSelectedIndex < static_cast<int>(vecMotionNames.size()))
+					graphics::MotionPtr pMotion;
+					if (0 <= selectedIndex && selectedIndex < static_cast<int>(motionNames.size()))
 					{
-						pMotion = graphics::ModelManager::GetInstance()->GetMotion(nSelectedIndex);
+						pMotion = graphics::ModelManager::GetInstance()->GetMotion(selectedIndex);
 					}
 
 					if (pMotion != nullptr)
 					{
-						pCompModel->PlayMotion(emLayer, pMotion, &playback);
+						pCompModel->PlayMotion(0, emLayer, pMotion, &playback);
 					}
 				}
 
-				prevSelectedIndex = nSelectedIndex;
+				prevSelectedIndex = selectedIndex;
 			}
 		}
 
-		graphics::IMotion* pMotion = nullptr;
-		if (0 <= nSelectedIndex && nSelectedIndex < static_cast<int>(vecMotionNames.size()))
+		graphics::MotionPtr pMotion = nullptr;
+		if (0 <= selectedIndex && selectedIndex < static_cast<int>(motionNames.size()))
 		{
-			pMotion = graphics::ModelManager::GetInstance()->GetMotion(nSelectedIndex);
+			pMotion = graphics::ModelManager::GetInstance()->GetMotion(selectedIndex);
 		}
 
 		if (pMotion != nullptr)
 		{
-			const std::array<char*, graphics::MotionLayers::eLayerCount> layers = { "Layer1", "Layer2", "Layer3", "Layer4", };
+			const std::array<const char*, graphics::MotionLayers::eLayerCount> layers = { "Layer1", "Layer2", "Layer3", "Layer4", };
 
 			ImGui::Combo("Layer", reinterpret_cast<int*>(&emLayer), layers.data(), static_cast<int>(layers.size()));
 
@@ -1566,14 +2300,14 @@ void ShowMotion(bool& isShowMotionMenu, gameobject::ComponentModel* pCompModel)
 				playback.isInverse = isMotionInverse;
 				playback.isFreezeAtLastFrame = isFreezeAtLastFrame;
 
-				pCompModel->PlayMotion(emLayer, pMotion, &playback);
+				pCompModel->PlayMotion(0, emLayer, pMotion, &playback);
 			}
 
 			ImGui::Separator();
 		}
 	}
 
-	graphics::IMotionSystem* pMotionSystem = pCompModel->GetModelInstance()->GetMotionSystem();
+	graphics::IMotionSystem* pMotionSystem = pCompModel->GetModelInstance(0)->GetMotionSystem();
 	if (pMotionSystem != nullptr)
 	{
 		for (int i = 0; i < graphics::MotionLayers::eLayerCount; ++i)
@@ -1587,16 +2321,18 @@ void ShowMotion(bool& isShowMotionMenu, gameobject::ComponentModel* pCompModel)
 
 			ImGui::Text(strLayer.c_str());
 
-			graphics::IMotion* pMotionPlaying = pPlayer->GetMotion();
+			graphics::MotionPtr pMotionPlaying = pPlayer->GetMotion();
 			if (pMotionPlaying != nullptr)
 			{
+				const std::string motionName = string::WideToMulti(pMotionPlaying->GetName().c_str());
+
 				char buf[128]{};
-				string::Copy(buf, sizeof(buf), pMotionPlaying->GetName().c_str());
+				string::Copy(buf, sizeof(buf), motionName.c_str());
 				ImGui::InputText("Name", buf, sizeof(buf), ImGuiInputTextFlags_::ImGuiInputTextFlags_ReadOnly);
 
 				if (ImGui::Button("Stop") == true)
 				{
-					pCompModel->StopMotion(emLayer, 0.3f);
+					pCompModel->StopMotion(0, emLayer, 0.3f);
 				}
 
 				ImGui::SameLine();
@@ -1649,13 +2385,15 @@ void ShowMotion(bool& isShowMotionMenu, gameobject::ComponentModel* pCompModel)
 	ImGui::End();
 }
 
-void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nIndex)
+void SceneNewStudio::ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int index)
 {
-	ImGui::SetNextWindowSize(ImVec2(400, 800), ImGuiSetCond_FirstUseEver);
-	ImGui::Begin(string::Format("%d. %s Info", nIndex, pMaterial->GetName().c_str()).c_str(), &isShowMaterial);
+	ImGui::SetNextWindowSize(ImVec2(400, 800), ImGuiCond_FirstUseEver);
+	ImGui::Begin(string::Format("%d. %s Info", index, pMaterial->GetName().c_str()).c_str(), &isShowMaterial);
+
+	const std::string materialName = string::WideToMulti(pMaterial->GetName().c_str());
 
 	static char bufName[128]{};
-	string::Copy(bufName, pMaterial->GetName().c_str());
+	string::Copy(bufName, materialName.c_str());
 
 	ImGui::PushID(bufName);
 
@@ -1664,20 +2402,22 @@ void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nInd
 		pMaterial->SetName(bufName);
 	}
 
+	const std::string materialPath = string::WideToMulti(pMaterial->GetName().c_str());
+
 	char buf[1024]{};
-	string::Copy(buf, pMaterial->GetPath().c_str());
+	string::Copy(buf, materialPath.c_str());
 	ImGui::InputText("Path", buf, sizeof(buf), ImGuiInputTextFlags_ReadOnly);
 
-	float fTessellationFactor = pMaterial->GetTessellationFactor();
-	if (ImGui::DragFloat("TessellationFactor", &fTessellationFactor, 0.01f, 1.f, 512.f) == true)
+	float tessellationFactor = pMaterial->GetTessellationFactor();
+	if (ImGui::DragFloat("TessellationFactor", &tessellationFactor, 0.01f, 1.f, 512.f) == true)
 	{
-		pMaterial->SetTessellationFactor(fTessellationFactor);
+		pMaterial->SetTessellationFactor(tessellationFactor);
 	}
 
-	float fStippleTransparencyFactor = pMaterial->GetStippleTransparencyFactor();
-	if (ImGui::DragFloat("StippleTransparencyFactor", &fStippleTransparencyFactor, 0.01f, 0.f, 1.f) == true)
+	float stippleTransparencyFactor = pMaterial->GetStippleTransparencyFactor();
+	if (ImGui::DragFloat("StippleTransparencyFactor", &stippleTransparencyFactor, 0.01f, 0.f, 1.f) == true)
 	{
-		pMaterial->SetStippleTransparencyFactor(fStippleTransparencyFactor);
+		pMaterial->SetStippleTransparencyFactor(stippleTransparencyFactor);
 	}
 
 	const char* strSamplerState[graphics::EmSamplerState::TypeCount] =
@@ -1761,38 +2501,39 @@ void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nInd
 		pMaterial->SetVisible(isVisible);
 	}
 
-	auto TextureInfo = [&](graphics::EmMaterial::Type emType, int nIndex)
+	auto TextureInfo = [&](graphics::IMaterial::Type emType, int index)
 	{
-		if (ImGui::Button(string::Format("%d.Texture", nIndex).c_str()) == true)
+		if (ImGui::Button(string::Format("%d.Texture", index).c_str()) == true)
 		{
-			char path[512]{};
+			wchar_t path[512]{};
 
 			OPENFILENAME ofn;
 			memory::Clear(&ofn, sizeof(ofn));
 
 			ofn.lStructSize = sizeof(OPENFILENAME);
 			ofn.hwndOwner = graphics::GetHwnd();
-			ofn.lpstrFilter = "Every File(*.*)\0*.*\0Text File\0*.txt;*.doc\0";
+			ofn.lpstrFilter = L"Every File(*.*)\0*.*\0Text File\0*.txt;*.doc\0";
 			ofn.lpstrFile = path;
 			ofn.nMaxFile = 256;
 			if (GetOpenFileName(&ofn) != 0)
 			{
-				graphics::ITexture* pTexture = graphics::CreateTextureAsync(ofn.lpstrFile);
+				graphics::TexturePtr pTexture = graphics::CreateTextureAsync(ofn.lpstrFile);
 				pMaterial->SetTextureName(emType, file::GetFileName(ofn.lpstrFile).c_str());
 				pMaterial->SetTexture(emType, pTexture);
 			}
 		}
 
-		const string::StringID& strName = pMaterial->GetTextureName(emType);
+		const std::string name = string::WideToMulti(pMaterial->GetTextureName(emType).c_str());
+
 		char buf[1024]{};
-		string::Copy(buf, strName.c_str());
+		string::Copy(buf, name.c_str());
 		ImGui::SameLine();
 		ImGui::InputText("", buf, sizeof(buf), ImGuiInputTextFlags_ReadOnly);
 
-		graphics::ITexture* pTexture = pMaterial->GetTexture(emType);
+		graphics::TexturePtr pTexture = pMaterial->GetTexture(emType);
 		if (pTexture != nullptr)
 		{
-			if (ImGui::Button(string::Format("%d.Clear", nIndex).c_str()) == true)
+			if (ImGui::Button(string::Format("%d.Clear", index).c_str()) == true)
 			{
 				pMaterial->SetTextureName(emType, "");
 				pMaterial->SetTexture(emType, nullptr);
@@ -1805,7 +2546,7 @@ void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nInd
 
 				bool& isShow = umapIsShowBigTexture[pTexture->GetName()];
 
-				ImTextureID textureID = imguiHelper::GetTextureID(pTexture);
+				ImTextureID textureID = imguiHelper::GetTextureID(pTexture.get());
 				if (ImGui::ImageButton(textureID, ImVec2(64.f, 64.f)) == true)
 				{
 					isShow = !isShow;
@@ -1817,8 +2558,10 @@ void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nInd
 					f2Size.x = std::min(f2Size.x, 512.f);
 					f2Size.y = std::min(f2Size.y, 512.f);
 
-					ImGui::SetNextWindowSize(f2Size, ImGuiSetCond_FirstUseEver);
-					ImGui::Begin(pTexture->GetName().c_str(), &isShow, ImGuiWindowFlags_AlwaysAutoResize);
+					const std::string textureName = string::WideToMulti(pTexture->GetName().c_str());
+
+					ImGui::SetNextWindowSize(f2Size, ImGuiCond_FirstUseEver);
+					ImGui::Begin(textureName.c_str(), &isShow, ImGuiWindowFlags_AlwaysAutoResize);
 					ImGui::Image(textureID, f2Size);
 					ImGui::End();
 				}
@@ -1838,9 +2581,9 @@ void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nInd
 		{
 			pMaterial->SetAlbedoColor(*reinterpret_cast<math::Color*>(&color));
 
-			LOG_MESSAGE("%.2f, %.2f, %.2f", pMaterial->GetAlbedoColor().r, pMaterial->GetAlbedoColor().g, pMaterial->GetAlbedoColor().b);
+			LOG_MESSAGE(L"%.2f, %.2f, %.2f", pMaterial->GetAlbedoColor().r, pMaterial->GetAlbedoColor().g, pMaterial->GetAlbedoColor().b);
 		}
-		TextureInfo(graphics::EmMaterial::eAlbedo, 1);
+		TextureInfo(graphics::IMaterial::eAlbedo, 1);
 		bool isAlbedoAlphaChannelMaskMap = pMaterial->IsAlbedoAlphaChannelMaskMap();
 		if (ImGui::Checkbox("Is Albedo Alpha Channel a Mask Map ?", &isAlbedoAlphaChannelMaskMap) == true)
 		{
@@ -1851,7 +2594,7 @@ void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nInd
 	ImGui::Separator();
 	{
 		ImGui::Text("Normal");
-		TextureInfo(graphics::EmMaterial::eNormal, 2);
+		TextureInfo(graphics::IMaterial::eNormal, 2);
 	}
 
 	ImGui::Separator();
@@ -1874,7 +2617,7 @@ void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nInd
 	{
 		ImGui::Text("Roughness");
 
-		if (pMaterial->GetTexture(graphics::EmMaterial::eRoughness) == nullptr)
+		if (pMaterial->GetTexture(graphics::IMaterial::eRoughness) == nullptr)
 		{
 			float fRoughness = pMaterial->GetRoughness();
 			if (ImGui::DragFloat("Roughness", &fRoughness, 0.001f, 0.f, 1.f) == true)
@@ -1882,14 +2625,14 @@ void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nInd
 				pMaterial->SetRoughness(fRoughness);
 			}
 		}
-		TextureInfo(graphics::EmMaterial::eRoughness, 4);
+		TextureInfo(graphics::IMaterial::eRoughness, 4);
 	}
 
 	ImGui::Separator();
 	{
 		ImGui::Text("Metallic");
 
-		if (pMaterial->GetTexture(graphics::EmMaterial::eMetallic) == nullptr)
+		if (pMaterial->GetTexture(graphics::IMaterial::eMetallic) == nullptr)
 		{
 			float fMetallic = pMaterial->GetMetallic();
 			if (ImGui::DragFloat("Metallic", &fMetallic, 0.001f, 0.f, 1.f) == true)
@@ -1898,14 +2641,14 @@ void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nInd
 			}
 		}
 
-		TextureInfo(graphics::EmMaterial::eMetallic, 5);
+		TextureInfo(graphics::IMaterial::eMetallic, 5);
 	}
 
 	ImGui::Separator();
 	{
 		ImGui::Text("Subsurface");
 
-		if (pMaterial->GetTexture(graphics::EmMaterial::eSubsurface) == nullptr)
+		if (pMaterial->GetTexture(graphics::IMaterial::eSubsurface) == nullptr)
 		{
 			float fSubsurface = pMaterial->GetSubsurface();
 			if (ImGui::DragFloat("Subsurface", &fSubsurface, 0.001f, 0.f, 1.f) == true)
@@ -1914,14 +2657,14 @@ void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nInd
 			}
 		}
 
-		TextureInfo(graphics::EmMaterial::eSubsurface, 6);
+		TextureInfo(graphics::IMaterial::eSubsurface, 6);
 	}
 
 	ImGui::Separator();
 	{
 		ImGui::Text("Anisotropic");
 
-		if (pMaterial->GetTexture(graphics::EmMaterial::eAnisotropic) == nullptr)
+		if (pMaterial->GetTexture(graphics::IMaterial::eAnisotropic) == nullptr)
 		{
 			float fAnisotropic = pMaterial->GetAnisotropic();
 			if (ImGui::DragFloat("Anisotropic", &fAnisotropic, 0.001f, 0.f, 1.f) == true)
@@ -1930,14 +2673,14 @@ void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nInd
 			}
 		}
 
-		TextureInfo(graphics::EmMaterial::eAnisotropic, 7);
+		TextureInfo(graphics::IMaterial::eAnisotropic, 7);
 	}
 
 	ImGui::Separator();
 	{
 		ImGui::Text("Sheen");
 
-		if (pMaterial->GetTexture(graphics::EmMaterial::eSheen) == nullptr)
+		if (pMaterial->GetTexture(graphics::IMaterial::eSheen) == nullptr)
 		{
 			float fSheen = pMaterial->GetSheen();
 			if (ImGui::DragFloat("Sheen", &fSheen, 0.001f, 0.f, 1.f) == true)
@@ -1946,14 +2689,14 @@ void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nInd
 			}
 		}
 
-		TextureInfo(graphics::EmMaterial::eSheen, 8);
+		TextureInfo(graphics::IMaterial::eSheen, 8);
 	}
 
 	ImGui::Separator();
 	{
 		ImGui::Text("SheenTint");
 
-		if (pMaterial->GetTexture(graphics::EmMaterial::eSheenTint) == nullptr)
+		if (pMaterial->GetTexture(graphics::IMaterial::eSheenTint) == nullptr)
 		{
 			float fSheenTint = pMaterial->GetSheenTint();
 			if (ImGui::DragFloat("SheenTint", &fSheenTint, 0.001f, 0.f, 1.f) == true)
@@ -1962,14 +2705,14 @@ void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nInd
 			}
 		}
 
-		TextureInfo(graphics::EmMaterial::eSheenTint, 9);
+		TextureInfo(graphics::IMaterial::eSheenTint, 9);
 	}
 
 	ImGui::Separator();
 	{
 		ImGui::Text("Clearcoat");
 
-		if (pMaterial->GetTexture(graphics::EmMaterial::eClearcoat) == nullptr)
+		if (pMaterial->GetTexture(graphics::IMaterial::eClearcoat) == nullptr)
 		{
 			float fClearcoat = pMaterial->GetClearcoat();
 			if (ImGui::DragFloat("Clearcoat", &fClearcoat, 0.001f, 0.f, 1.f) == true)
@@ -1978,14 +2721,14 @@ void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nInd
 			}
 		}
 
-		TextureInfo(graphics::EmMaterial::eClearcoat, 10);
+		TextureInfo(graphics::IMaterial::eClearcoat, 10);
 	}
 
 	ImGui::Separator();
 	{
 		ImGui::Text("ClearcoatGloss");
 
-		if (pMaterial->GetTexture(graphics::EmMaterial::eClearcoatGloss) == nullptr)
+		if (pMaterial->GetTexture(graphics::IMaterial::eClearcoatGloss) == nullptr)
 		{
 			float fClearcoatGloss = pMaterial->GetClearcoatGloss();
 			if (ImGui::DragFloat("ClearcoatGloss", &fClearcoatGloss, 0.001f, 0.f, 1.f) == true)
@@ -1994,7 +2737,7 @@ void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nInd
 			}
 		}
 
-		TextureInfo(graphics::EmMaterial::eClearcoatGloss, 11);
+		TextureInfo(graphics::IMaterial::eClearcoatGloss, 11);
 	}
 
 	ImGui::Separator();
@@ -2005,7 +2748,7 @@ void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nInd
 		{
 			pMaterial->SetEmissiveColor(*reinterpret_cast<math::Color*>(&color));
 		}
-		TextureInfo(graphics::EmMaterial::eEmissiveColor, 12);
+		TextureInfo(graphics::IMaterial::eEmissiveColor, 12);
 
 		float fEmissiveIntensity = pMaterial->GetEmissive();
 		if (ImGui::DragFloat("Emissive Intensity", &fEmissiveIntensity, 0.01f, 0.f, 10000.f) == true)
@@ -2021,39 +2764,46 @@ void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nInd
 	ImGui::End();
 }
 
-void ShowSoundWindow(bool& isShowSoundMenu)
+void SceneNewStudio::ShowSoundWindow(bool& isShowSoundMenu)
 {
-	ImGui::SetNextWindowSize(ImVec2(400, 600), ImGuiSetCond_FirstUseEver);
+	ImGui::SetNextWindowSize(ImVec2(400, 600), ImGuiCond_FirstUseEver);
 	ImGui::Begin("Sound System", &isShowSoundMenu);
 
 	ImGui::PushID("SoundSystem");
 
-	static std::vector<std::string> vecFiles;
-	if (vecFiles.empty() == true)
+	static std::vector<std::wstring> files;
+	if (files.empty() == true)
 	{
-		const std::string strSoundPath = file::GetPath(file::eSound);
-		file::GetFiles(strSoundPath, ".*", vecFiles);
+		std::wstring soundPath = file::GetEngineDataPath();
+		soundPath += L"Sound\\";
+		file::GetFiles(soundPath, L".*", files);
 	}
 
-	static std::vector<const char*> vecFilePaths;
-	if (vecFilePaths.empty() == true)
+	static std::vector<std::string> soundFilePaths;
+	std::vector<const char*> filePaths;
+	if (soundFilePaths.empty() == true)
 	{
-		vecFilePaths.reserve(vecFiles.size());
+		soundFilePaths.reserve(files.size());
 
-		for (auto& filePath : vecFiles)
+		for (auto& filePath : files)
 		{
-			vecFilePaths.emplace_back(filePath.c_str());
+			soundFilePaths.emplace_back(string::WideToMulti(filePath).c_str());
+		}
+
+		for (auto& filePath : soundFilePaths)
+		{
+			filePaths.emplace_back(filePath.c_str());
 		}
 	}
 
-	static int nSelectedIndex = 0;
-	if (vecFiles.empty() == false)
+	static int selectedIndex = 0;
+	if (filePaths.empty() == false)
 	{
 		static sound::ChannelID channelID(sound::ChannelID::Default());
-		if (ImGui::ListBox("Sound List", &nSelectedIndex, &vecFilePaths.front(), static_cast<int>(vecFilePaths.size()), 6) == true)
+		if (ImGui::ListBox("Sound List", &selectedIndex, &filePaths.front(), static_cast<int>(filePaths.size()), 6) == true)
 		{
 			sound::Stop(channelID, 1.f);
-			channelID = sound::Play2D(vecFilePaths[nSelectedIndex]);
+			channelID = sound::Play2D(files[selectedIndex]);
 		}
 	}
 
@@ -2062,117 +2812,47 @@ void ShowSoundWindow(bool& isShowSoundMenu)
 	ImGui::End();
 }
 
-void SceneNewStudio::RenderImGui(float elapsedTime)
+void SceneNewStudio::ShowActorWindow(bool& isShowActorMenu)
 {
-	ShowConfig();
-
-	static bool isShowDebug = true;
+	if (isShowActorMenu == true)
 	{
-		ImGui::SetNextWindowSize(ImVec2(200, 100), ImGuiSetCond_FirstUseEver);
-		ImGui::Begin("Debug Info", &isShowDebug);
+		ImGui::SetNextWindowSize(ImVec2(200, 200), ImGuiCond_FirstUseEver);
 
-		float fps = MainSystem::GetInstance()->GetFPS();
-		float ms = 1.f / fps * 1000.f;
-		ImGui::Text("FPS : %.2f (%.2f ms)", fps, ms);
-
-		if (ImGui::CollapsingHeader("Tracer") == true)
-		{
-			const bool isTracing = performance::tracer::IsTracing();
-			ImGui::Text("State : %s", isTracing == true ? "Tracing" : "Idle");
-
-			if (isTracing == true)
-			{
-				ImGui::Text("Time : %.2f", performance::tracer::TracingTime());
-
-				if (ImGui::Button("End") == true)
-				{
-					char path[512]{};
-					OPENFILENAME ofn;
-					memory::Clear(&ofn, sizeof(ofn));
-
-					ofn.lStructSize = sizeof(OPENFILENAME);
-					ofn.hwndOwner = graphics::GetHwnd();
-					ofn.lpstrFilter = "Json(*.json)\0*.json\0";
-					ofn.lpstrFile = path;
-					ofn.nMaxFile = 255;
-					if (GetSaveFileName(&ofn) != 0)
-					{
-						TRACER_END(path);
-					}
-				}
-			}
-			else
-			{
-				if (ImGui::Button("Start") == true)
-				{
-					TRACER_START();
-				}
-			}
-		}
-
-		if (ImGui::CollapsingHeader("Detail") == true)
-		{
-			graphics::DebugInfo& debugInfo = graphics::GetDebugInfo();
-			ImGui::Checkbox("Collection", &debugInfo.isEnableCollection);
-
-			const graphics::DebugInfo& prevDebugInfo = graphics::GetPrevDebugInfo();
-
-			if (ImGui::TreeNode("OcclusionCulling"))
-			{
-				ImGui::PushID("OcclusionCulling");
-
-				const graphics::DebugInfo::OcclusionCulling& occlusionCulling = prevDebugInfo.occlusionCulling;
-				ImGui::Text("RenderTryCount : %u", occlusionCulling.renderTryCount.load());
-				ImGui::Text("RenderCompleteCount : %u", occlusionCulling.renderCompleteCount.load());
-				ImGui::Text("VisibleCount : %u", occlusionCulling.visibleCount.load());
-				ImGui::Text("OccludedCount : %u", occlusionCulling.occludedCount.load());
-				ImGui::Text("ViewCulledCount : %u", occlusionCulling.viewCulledCount.load());
-
-				ImGui::PopID();
-
-				ImGui::TreePop();
-			}
-		}
-
-		ImGui::End();
-	}
-
-	static bool isShowSoundWindow = true;
-	ShowSoundWindow(isShowSoundWindow);
-
-	static bool isShowActorWindow = true;
-	if (isShowActorWindow == true)
-	{
-		ImGui::SetNextWindowSize(ImVec2(200, 200), ImGuiSetCond_FirstUseEver);
-		ImGui::Begin("Actor", &isShowActorWindow);
+		ImGui::Begin("Actor", &isShowActorMenu);
 
 		ImGui::PushID("Actor");
 
-		const size_t nActorCount = gameobject::GameObjectManager::GetInstance()->GetActorCount();
+		const size_t actorCount = m_actors.size();
 
-		std::vector<const char*> vecActorName;
-		vecActorName.reserve(nActorCount);
+		std::vector<std::string> actorNames;
+		actorNames.reserve(actorCount);
 
-		gameobject::GameObjectManager::GetInstance()->ExecuteFunction([&](const gameobject::IActor* pActor)
+		for (auto& pActor : m_actors)
 		{
-			vecActorName.emplace_back(pActor->GetName().c_str());
-		});
+			actorNames.emplace_back(string::WideToMulti(pActor->GetName().c_str()));
+		}
 
-		static int nSelectedIndex = 0;
-		if (vecActorName.empty() == false)
+		static int selectedIndex = 0;
+		if (actorNames.empty() == false)
 		{
-			if (nSelectedIndex >= vecActorName.size())
+			if (selectedIndex >= actorNames.size())
 			{
-				nSelectedIndex = 0;
+				selectedIndex = 0;
 			}
 
-			ImGui::ListBox("List", &nSelectedIndex, &vecActorName.front(), static_cast<int>(vecActorName.size()), 4);
+			std::vector<const char*> names;
+			for (auto& name : actorNames)
+			{
+				names.emplace_back(name.c_str());
+			}
+
+			ImGui::ListBox("List", &selectedIndex, &names.front(), static_cast<int>(names.size()), 4);
 		}
 
 		gameobject::IActor* pActor = nullptr;
-		if (0 <= nSelectedIndex && nSelectedIndex < static_cast<int>(vecActorName.size()))
+		if (0 <= selectedIndex && selectedIndex < static_cast<int>(actorNames.size()))
 		{
-			pActor = gameobject::GameObjectManager::GetInstance()->GetActor(nSelectedIndex);
+			pActor = m_actors[selectedIndex].get();
 		}
 
 		if (ImGui::Button("Add") == true)
@@ -2203,7 +2883,7 @@ void SceneNewStudio::RenderImGui(float elapsedTime)
 			{
 				if (string::Length(buf) > 1)
 				{
-					gameobject::IActor::Create(buf);
+					gameobject::CreateActor(buf);
 				}
 				ImGui::CloseCurrentPopup();
 			}
@@ -2222,7 +2902,18 @@ void SceneNewStudio::RenderImGui(float elapsedTime)
 		{
 			if (ImGui::Button("OK", ImVec2(120, 0)))
 			{
-				gameobject::IActor::Destroy(&pActor);
+				if (pActor != nullptr)
+				{
+					auto iter = std::find_if(m_actors.begin(), m_actors.end(), [pActor](const gameobject::ActorPtr& pFindActor)
+						{
+							return pFindActor.get() == pActor;
+						});
+
+					if (iter != m_actors.end())
+					{
+						m_actors.erase(iter);
+					}
+				}
 				ImGui::CloseCurrentPopup();
 			}
 
@@ -2243,60 +2934,14 @@ void SceneNewStudio::RenderImGui(float elapsedTime)
 			ImGui::EndPopup();
 		}
 
-		if (ImGui::Button("Load") == true)
-		{
-			char path[512]{};
-			OPENFILENAME ofn;
-			memory::Clear(&ofn, sizeof(ofn));
-
-			ofn.lStructSize = sizeof(OPENFILENAME);
-			ofn.hwndOwner = graphics::GetHwnd();
-			ofn.lpstrFilter = "EastActor(*.eact)\0*.eact\0";
-			ofn.lpstrFile = path;
-			ofn.nMaxFile = 255;
-			if (GetOpenFileName(&ofn) != 0)
-			{
-				if (gameobject::IActor::CreateByFile(ofn.lpstrFile) == nullptr)
-				{
-					LOG_ERROR("로드 실패 : %s", path);
-				}
-			}
-		}
-
-		ImGui::SameLine();
-
-		if (ImGui::Button("Save") == true && pActor != nullptr)
-		{
-			char path[512]{};
-			OPENFILENAME ofn;
-			memory::Clear(&ofn, sizeof(ofn));
-
-			ofn.lStructSize = sizeof(OPENFILENAME);
-			ofn.hwndOwner = graphics::GetHwnd();
-			ofn.lpstrFilter = "EastActor(*.eact)\0*.eact\0";
-			ofn.lpstrFile = path;
-			ofn.nMaxFile = 255;
-			if (GetSaveFileName(&ofn) != 0)
-			{
-				const std::string strFileExtension = file::GetFileExtension(path);
-				if (strFileExtension.empty() == true)
-				{
-					string::Concat(path, sizeof(path), ".eact");
-				}
-
-				if (string::IsEqualsNoCase(file::GetFileExtension(path).c_str(), ".eact") == true)
-				{
-					gameobject::IActor::SaveFile(pActor, path);
-				}
-			}
-		}
-
 		if (ImGui::CollapsingHeader("Common"))
 		{
 			if (pActor != nullptr)
 			{
+				const std::string actorName = string::WideToMulti(pActor->GetName().c_str());
+
 				static char buf[128]{};
-				string::Copy(buf, pActor->GetName().c_str());
+				string::Copy(buf, actorName.c_str());
 
 				ImGui::PushID(buf);
 
@@ -2345,28 +2990,34 @@ void SceneNewStudio::RenderImGui(float elapsedTime)
 
 				ImGui::Separator();
 
-				std::vector<const char*> vecComponents;
+				std::vector<std::string> componentNamesMulti;
 				for (int i = 0; i < gameobject::IComponent::TypeCount; ++i)
 				{
 					gameobject::IComponent::Type emType = static_cast<gameobject::IComponent::Type>(i);
 					if (pActor->GetComponent(emType) == nullptr)
 					{
-						const char* strComponentName = gameobject::IComponent::ToString(emType);
-						if (strComponentName != nullptr)
+						const wchar_t* componentName = gameobject::IComponent::ToString(emType);
+						if (componentName != nullptr)
 						{
-							vecComponents.emplace_back(strComponentName);
+							componentNamesMulti.emplace_back(string::WideToMulti(componentName));
 						}
 					}
 				}
 
 				static int nCurItem = 0;
-				if (vecComponents.empty() == false)
+				if (componentNamesMulti.empty() == false)
 				{
+					std::vector<const char*> componentNames;
+					for (auto& name : componentNamesMulti)
+					{
+						componentNames.emplace_back(name.c_str());
+					}
+
 					ImGui::PushID("Component");
 
 					static gameobject::IComponent::Type emType = gameobject::IComponent::TypeCount;
-					nCurItem = std::min(nCurItem, static_cast<int>(vecComponents.size() - 1));
-					if (ImGui::Combo("Add Component", &nCurItem, &vecComponents.front(), static_cast<int>(vecComponents.size())) == true)
+					nCurItem = std::min(nCurItem, static_cast<int>(componentNames.size() - 1));
+					if (ImGui::Combo("Add Component", &nCurItem, &componentNames.front(), static_cast<int>(componentNames.size())) == true)
 					{
 						emType = static_cast<gameobject::IComponent::Type>(nCurItem);
 						if (emType != gameobject::IComponent::TypeCount)
@@ -2436,11 +3087,11 @@ void SceneNewStudio::RenderImGui(float elapsedTime)
 						ImGui::PushID("Model");
 
 						gameobject::ComponentModel* pCompModel = static_cast<gameobject::ComponentModel*>(pComponent);
-						if (pCompModel->GetModel() != nullptr)
+						if (pCompModel->GetModelInstance(0) != nullptr)
 						{
-							if (pCompModel->IsLoadComplete() == true)
+							if (pCompModel->IsLoadComplete(0) == true)
 							{
-								graphics::IModel* pModel = pCompModel->GetModel();
+								graphics::IModel* pModel = pCompModel->GetModelInstance(0)->GetModel();
 
 								bool isVisibleModel = pModel->IsVisible();
 								if (ImGui::Checkbox("Visible", &isVisibleModel) == true)
@@ -2489,28 +3140,28 @@ void SceneNewStudio::RenderImGui(float elapsedTime)
 								{
 									if (ImGui::Button("Save") == true)
 									{
-										char path[512]{};
+										wchar_t path[512]{};
 										OPENFILENAME ofn;
 										memory::Clear(&ofn, sizeof(ofn));
 
 										ofn.lStructSize = sizeof(OPENFILENAME);
 										ofn.hwndOwner = graphics::GetHwnd();
-										ofn.lpstrFilter = "EastModel(*.emod)\0*.emod\0";
+										ofn.lpstrFilter = L"EastModel(*.emod)\0*.emod\0";
 										ofn.lpstrFile = path;
 										ofn.nMaxFile = 255;
 										if (GetSaveFileName(&ofn) != 0)
 										{
-											const std::string strFileExtension = file::GetFileExtension(path);
+											const std::wstring strFileExtension = file::GetFileExtension(path);
 											if (strFileExtension.empty() == true)
 											{
-												string::Concat(path, sizeof(path), ".emod");
+												string::Concat(path, sizeof(path), L".emod");
 											}
 
-											if (string::IsEqualsNoCase(file::GetFileExtension(path).c_str(), ".emod") == true)
+											if (string::IsEqualsNoCase(file::GetFileExtension(path).c_str(), L".emod") == true)
 											{
-												if (graphics::IModel::SaveFile(pModel, path) == false)
+												if (graphics::SaveFile(pModel, path) == false)
 												{
-													LOG_ERROR("저장 실패 : %s", path);
+													LOG_ERROR(L"저장 실패 : %s", path);
 												}
 											}
 										}
@@ -2530,8 +3181,10 @@ void SceneNewStudio::RenderImGui(float elapsedTime)
 										}
 									}
 
+									const std::string modelName = string::WideToMulti(pModel->GetName().c_str());
+
 									static char bufName[128]{};
-									string::Copy(bufName, pModel->GetName().c_str());
+									string::Copy(bufName, modelName.c_str());
 
 									ImGui::PushID(bufName);
 
@@ -2540,8 +3193,10 @@ void SceneNewStudio::RenderImGui(float elapsedTime)
 										pModel->ChangeName(bufName);
 									}
 
+									const std::string modelPath = string::WideToMulti(pModel->GetFilePath().c_str());
+
 									static char bufPath[512]{};
-									string::Copy(bufPath, pModel->GetFilePath().c_str());
+									string::Copy(bufPath, modelPath.c_str());
 									ImGui::InputText("Path", bufPath, sizeof(bufPath), ImGuiInputTextFlags_::ImGuiInputTextFlags_ReadOnly);
 
 									int nModelNode = 0;
@@ -2551,7 +3206,8 @@ void SceneNewStudio::RenderImGui(float elapsedTime)
 									{
 										graphics::IModelNode* pModelNode = pModel->GetNode(j);
 
-										if (ImGui::TreeNode(pModelNode->GetName().c_str()))
+										const std::string modelNodeName = string::WideToMulti(pModelNode->GetName().c_str());
+										if (ImGui::TreeNode(modelNodeName.c_str()))
 										{
 											uint32_t nVertexCount = 0;
 											if (pModelNode->GetVertexBuffer() != nullptr)
@@ -2560,12 +3216,12 @@ void SceneNewStudio::RenderImGui(float elapsedTime)
 											}
 											ImGui::Text("VertexCount : %u", nVertexCount);
 
-											uint32_t nIndexCount = 0;
+											uint32_t indexCount = 0;
 											if (pModelNode->GetIndexBuffer() != nullptr)
 											{
-												nIndexCount = pModelNode->GetIndexBuffer()->GetIndexCount();
+												indexCount = pModelNode->GetIndexBuffer()->GetIndexCount();
 											}
-											ImGui::Text("IndexCount : %u", nIndexCount);
+											ImGui::Text("IndexCount : %u", indexCount);
 
 											bool isVisibleModelNode = pModelNode->IsVisible();
 											if (ImGui::Checkbox(string::Format("%d. Model Visible", nModelNode).c_str(), &isVisibleModelNode) == true)
@@ -2580,21 +3236,22 @@ void SceneNewStudio::RenderImGui(float elapsedTime)
 											uint32_t nMaterialCount = pModelNode->GetMaterialCount();
 											for (uint32_t k = 0; k < nMaterialCount; ++k)
 											{
-												graphics::IMaterial* pMaterial = pModelNode->GetMaterial(k);
+												graphics::MaterialPtr pMaterial = pModelNode->GetMaterial(k);
 
-												std::string strMtrlName = string::Format("%d. %s", nMaterialIndex, pMaterial->GetName().c_str());
+												const std::string materialName = string::WideToMulti(pMaterial->GetName().c_str());
+												std::string mtrlName = string::Format("%d. %s", nMaterialIndex, materialName.c_str());
 
 												static std::unordered_map<std::string, bool> umapIsShowMaterial;
-												bool& isShow = umapIsShowMaterial[strMtrlName];
+												bool& isShow = umapIsShowMaterial[mtrlName];
 
-												if (ImGui::Button(strMtrlName.c_str()) == true)
+												if (ImGui::Button(mtrlName.c_str()) == true)
 												{
 													isShow = !isShow;
 												}
 
 												if (isShow == true)
 												{
-													ShowMaterial(isShow, pMaterial, nMaterialIndex);
+													ShowMaterial(isShow, pMaterial.get(), nMaterialIndex);
 												}
 
 												++nMaterialIndex;
@@ -2620,59 +3277,59 @@ void SceneNewStudio::RenderImGui(float elapsedTime)
 						}
 						else
 						{
-							static float fScaleFactor = 1.f;
+							static float scaleFactor = 1.f;
 
 							if (ImGui::Button("Load Model") == true)
 							{
-								char path[512]{};
+								wchar_t path[512]{};
 
 								OPENFILENAME ofn;
 								memory::Clear(&ofn, sizeof(ofn));
 
 								ofn.lStructSize = sizeof(OPENFILENAME);
 								ofn.hwndOwner = graphics::GetHwnd();
-								ofn.lpstrFilter = "Model File(*.fbx;*.obj;*.emod)\0*.fbx;*.obj;*.emod\0FBX File(*.fbx)\0*.fbx\0Obj File(*.obj)\0*.obj\0EastModel File(*.emod)\0*.emod\0";
+								ofn.lpstrFilter = L"Model File(*.fbx;*.obj;*.emod)\0*.fbx;*.obj;*.emod\0FBX File(*.fbx)\0*.fbx\0Obj File(*.obj)\0*.obj\0EastModel File(*.emod)\0*.emod\0";
 								ofn.lpstrFile = path;
 								ofn.nMaxFile = 256;
 								if (GetOpenFileName(&ofn) != 0)
 								{
-									const std::string strFileExtension = file::GetFileExtension(ofn.lpstrFile);
-									if (string::IsEqualsNoCase(strFileExtension.c_str(), ".fbx") == true)
+									const std::wstring strFileExtension = file::GetFileExtension(ofn.lpstrFile);
+									if (string::IsEqualsNoCase(strFileExtension.c_str(), L".fbx") == true)
 									{
 										string::StringID strName;
-										strName.Format("%s(%f)", file::GetFileName(ofn.lpstrFile).c_str(), fScaleFactor);
+										strName.Format(L"%s(%f)", file::GetFileName(ofn.lpstrFile).c_str(), scaleFactor);
 
 										graphics::ModelLoader loader;
-										loader.InitFBX(strName, ofn.lpstrFile, fScaleFactor);
+										loader.InitFBX(strName, ofn.lpstrFile, scaleFactor);
 										loader.SetEnableThreadLoad(true);
 
-										pCompModel->Initialize(&loader);
+										pCompModel->Add(0, loader);
 									}
-									else if (string::IsEqualsNoCase(strFileExtension.c_str(), ".obj") == true)
+									else if (string::IsEqualsNoCase(strFileExtension.c_str(), L".obj") == true)
 									{
 										string::StringID strName;
-										strName.Format("%s(%f)", file::GetFileName(ofn.lpstrFile).c_str(), fScaleFactor);
+										strName.Format(L"%s(%f)", file::GetFileName(ofn.lpstrFile).c_str(), scaleFactor);
 
 										graphics::ModelLoader loader;
-										loader.InitObj(strName, ofn.lpstrFile, fScaleFactor);
+										loader.InitObj(strName, ofn.lpstrFile, scaleFactor);
 										loader.SetEnableThreadLoad(true);
 
-										pCompModel->Initialize(&loader);
+										pCompModel->Add(0, loader);
 									}
-									else if (string::IsEqualsNoCase(strFileExtension.c_str(), ".emod") == true)
+									else if (string::IsEqualsNoCase(strFileExtension.c_str(), L".emod") == true)
 									{
 										graphics::ModelLoader loader;
 										loader.InitEast(file::GetFileName(ofn.lpstrFile).c_str(), ofn.lpstrFile);
 										loader.SetEnableThreadLoad(true);
 
-										pCompModel->Initialize(&loader);
+										pCompModel->Add(0, loader);
 									}
 								}
 							}
 
 							ImGui::SameLine();
 
-							ImGui::DragFloat("ScaleFactor", &fScaleFactor, 0.0001f, 0.0001f, 10000.f, "%.4f");
+							ImGui::DragFloat("ScaleFactor", &scaleFactor, 0.0001f, 0.0001f, 10000.f, "%.4f");
 
 							if (ImGui::Button("Geometry Model") == true)
 							{
@@ -2683,20 +3340,27 @@ void SceneNewStudio::RenderImGui(float elapsedTime)
 							{
 								ImGui::PushID("Geometry");
 
-								static std::vector<const char*> vecGeometryModel;
-								if (vecGeometryModel.empty() == true)
+								static std::vector<std::string> geometryModels;
+								if (geometryModels.empty() == true)
 								{
 									for (int j = graphics::ModelLoader::eCube; j < graphics::ModelLoader::eCapsule; ++j)
 									{
-										const char* strName = graphics::ModelLoader::GetGeometryTypeToString(static_cast<graphics::ModelLoader::GeometryType>(j));
-										vecGeometryModel.emplace_back(strName);
+										const wchar_t* name = graphics::ModelLoader::GetGeometryTypeToString(static_cast<graphics::ModelLoader::GeometryType>(j));
+										geometryModels.emplace_back(string::WideToMulti(name));
 									}
 								}
 
-								static int nSelectedGeometryIndex = 0;
-								ImGui::Combo("Type", &nSelectedGeometryIndex, &vecGeometryModel.front(), static_cast<int>(vecGeometryModel.size()));
+								std::vector<const char*> geometryModelNames;
+								for (auto& name : geometryModels)
+								{
+									geometryModelNames.emplace_back(name.c_str());
+								}
 
-								graphics::ModelLoader::GeometryType emType = graphics::ModelLoader::GetGeometryType(vecGeometryModel[nSelectedGeometryIndex]);
+								static int selectedGeometryIndex = 0;
+								ImGui::Combo("Type", &selectedGeometryIndex, &geometryModelNames.front(), static_cast<int>(geometryModelNames.size()));
+
+								const std::wstring modelName = string::MultiToWide(geometryModelNames[selectedGeometryIndex]);
+								graphics::ModelLoader::GeometryType emType = graphics::ModelLoader::GetGeometryType(modelName.c_str());
 								switch (emType)
 								{
 								case graphics::ModelLoader::eCube:
@@ -2714,7 +3378,7 @@ void SceneNewStudio::RenderImGui(float elapsedTime)
 										graphics::ModelLoader loader;
 										loader.InitCube(buf, nullptr, fSize);
 
-										pCompModel->Initialize(&loader);
+										pCompModel->Add(0, loader);
 
 										ImGui::CloseCurrentPopup();
 									}
@@ -2729,15 +3393,15 @@ void SceneNewStudio::RenderImGui(float elapsedTime)
 									static char buf[128] = "Box";
 									ImGui::InputText("Name", buf, sizeof(buf));
 
-									static math::float3 f3Size(math::float3::One);
-									ImGui::DragFloat3("Box Size", reinterpret_cast<float*>(&f3Size.x), 0.01f, 0.01f, 1000000.f);
+									static math::float3 halfExtents(math::float3::One);
+									ImGui::DragFloat3("Box Size", reinterpret_cast<float*>(&halfExtents.x), 0.01f, 0.01f, 1000000.f);
 
 									if (ImGui::Button("Confirm") == true)
 									{
 										graphics::ModelLoader loader;
-										loader.InitBox(buf, nullptr, f3Size);
+										loader.InitBox(buf, nullptr, halfExtents);
 
-										pCompModel->Initialize(&loader);
+										pCompModel->Add(0, loader);
 
 										ImGui::CloseCurrentPopup();
 									}
@@ -2763,7 +3427,7 @@ void SceneNewStudio::RenderImGui(float elapsedTime)
 										graphics::ModelLoader loader;
 										loader.InitSphere(buf, nullptr, fDiameter, nTessellation);
 
-										pCompModel->Initialize(&loader);
+										pCompModel->Add(0, loader);
 
 										ImGui::CloseCurrentPopup();
 									}
@@ -2789,7 +3453,7 @@ void SceneNewStudio::RenderImGui(float elapsedTime)
 										graphics::ModelLoader loader;
 										loader.InitGeoSphere(buf, nullptr, fDiameter, nTessellation);
 
-										pCompModel->Initialize(&loader);
+										pCompModel->Add(0, loader);
 
 										ImGui::CloseCurrentPopup();
 									}
@@ -2818,7 +3482,7 @@ void SceneNewStudio::RenderImGui(float elapsedTime)
 										graphics::ModelLoader loader;
 										loader.InitCylinder(buf, nullptr, fHeight, fDiameter, nTessellation);
 
-										pCompModel->Initialize(&loader);
+										pCompModel->Add(0, loader);
 
 										ImGui::CloseCurrentPopup();
 									}
@@ -2847,7 +3511,7 @@ void SceneNewStudio::RenderImGui(float elapsedTime)
 										graphics::ModelLoader loader;
 										loader.InitCone(buf, nullptr, fDiameter, fHeight, nTessellation);
 
-										pCompModel->Initialize(&loader);
+										pCompModel->Add(0, loader);
 
 										ImGui::CloseCurrentPopup();
 									}
@@ -2876,7 +3540,7 @@ void SceneNewStudio::RenderImGui(float elapsedTime)
 										graphics::ModelLoader loader;
 										loader.InitTorus(buf, nullptr, fDiameter, fThickness, nTessellation);
 
-										pCompModel->Initialize(&loader);
+										pCompModel->Add(0, loader);
 
 										ImGui::CloseCurrentPopup();
 									}
@@ -2899,7 +3563,7 @@ void SceneNewStudio::RenderImGui(float elapsedTime)
 										graphics::ModelLoader loader;
 										loader.InitTetrahedron(buf, nullptr, fSize);
 
-										pCompModel->Initialize(&loader);
+										pCompModel->Add(0, loader);
 
 										ImGui::CloseCurrentPopup();
 									}
@@ -2922,7 +3586,7 @@ void SceneNewStudio::RenderImGui(float elapsedTime)
 										graphics::ModelLoader loader;
 										loader.InitOctahedron(buf, nullptr, fSize);
 
-										pCompModel->Initialize(&loader);
+										pCompModel->Add(0, loader);
 
 										ImGui::CloseCurrentPopup();
 									}
@@ -2945,7 +3609,7 @@ void SceneNewStudio::RenderImGui(float elapsedTime)
 										graphics::ModelLoader loader;
 										loader.InitDodecahedron(buf, nullptr, fSize);
 
-										pCompModel->Initialize(&loader);
+										pCompModel->Add(0, loader);
 
 										ImGui::CloseCurrentPopup();
 									}
@@ -2968,7 +3632,7 @@ void SceneNewStudio::RenderImGui(float elapsedTime)
 										graphics::ModelLoader loader;
 										loader.InitIcosahedron(buf, nullptr, fSize);
 
-										pCompModel->Initialize(&loader);
+										pCompModel->Add(0, loader);
 
 										ImGui::CloseCurrentPopup();
 									}
@@ -2994,7 +3658,7 @@ void SceneNewStudio::RenderImGui(float elapsedTime)
 										graphics::ModelLoader loader;
 										loader.InitTeapot(buf, nullptr, fSize, nTessellation);
 
-										pCompModel->Initialize(&loader);
+										pCompModel->Add(0, loader);
 
 										ImGui::CloseCurrentPopup();
 									}
@@ -3017,7 +3681,7 @@ void SceneNewStudio::RenderImGui(float elapsedTime)
 										graphics::ModelLoader loader;
 										loader.InitHexagon(buf, nullptr, fRadius);
 
-										pCompModel->Initialize(&loader);
+										pCompModel->Add(0, loader);
 
 										ImGui::CloseCurrentPopup();
 									}
@@ -3043,7 +3707,7 @@ void SceneNewStudio::RenderImGui(float elapsedTime)
 										graphics::ModelLoader loader;
 										loader.InitCapsule(buf, nullptr, fRadius, fHeight);
 
-										pCompModel->Initialize(&loader);
+										pCompModel->Add(0, loader);
 
 										ImGui::CloseCurrentPopup();
 									}
@@ -3083,4 +3747,64 @@ void SceneNewStudio::RenderImGui(float elapsedTime)
 
 		ImGui::End();
 	}
+}
+
+void SceneNewStudio::ShowGizmo()
+{
+	if (m_selectedActor != gameobject::IGameObject::InvalidHandle)
+	{
+		graphics::Camera* pCamera = graphics::GetCamera();
+
+		auto iter = std::find_if(m_actors.begin(), m_actors.end(), [&](const est::gameobject::ActorPtr& pActor)
+			{
+				return pActor->GetHandle() == m_selectedActor;
+			});
+
+		if (iter != m_actors.end())
+		{
+			gameobject::IActor* pActor = iter->get();
+			gameobject::ComponentPhysics* pCompPhysics = static_cast<gameobject::ComponentPhysics*>(pActor->CreateComponent(gameobject::IComponent::ePhysics));
+			if (pCompPhysics != nullptr)
+			{
+				ImGuiIO& io = ImGui::GetIO();
+				ImGuizmo::BeginFrame();
+				ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
+				const math::Matrix& viewMatrix = pCamera->GetViewMatrix();
+				const math::Matrix& projectionMatrix = pCamera->GetProjectionMatrix();
+
+				const ImGuizmo::OPERATION operation = ImGuizmo::OPERATION::TRANSLATE;
+				const ImGuizmo::MODE mode = ImGuizmo::MODE::LOCAL;
+
+				math::Matrix matrix = pActor->GetWorldMatrix();
+				math::Matrix deltaMatrix;
+
+				bool isEnableSnap = false;
+
+				ImGuizmo::Manipulate(reinterpret_cast<const float*>(&viewMatrix), reinterpret_cast<const float*>(&projectionMatrix),
+					operation, mode, reinterpret_cast<float*>(&matrix), reinterpret_cast<float*>(&deltaMatrix), nullptr, nullptr);
+
+				if (deltaMatrix != math::Matrix::Identity)
+				{
+					const math::Transform transform(matrix);
+					switch (operation)
+					{
+					case ImGuizmo::OPERATION::TRANSLATE:
+						pCompPhysics->SetGlobalPosition(transform.position);
+						break;
+					case ImGuizmo::OPERATION::ROTATE:
+						pCompPhysics->SetGlobalRotation(transform.rotation);
+						break;
+					case ImGuizmo::OPERATION::SCALE:
+						pActor->SetScale(transform.scale);
+						break;
+					}
+				}
+			}
+		}
+	}
+}
+
+void SceneNewStudio::ShowNodeEditer()
+{
+	NodeEditorShow();
 }

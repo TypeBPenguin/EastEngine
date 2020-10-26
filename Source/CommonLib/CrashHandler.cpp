@@ -4,12 +4,11 @@
 #include "StringUtil.h"
 #include "FileUtil.h"
 
-#include <new.h>
 #include <tchar.h>
 #include <csignal>
 #include <DbgHelp.h>
 
-namespace eastengine
+namespace est
 {
 	namespace CrashHandler
 	{
@@ -18,34 +17,30 @@ namespace eastengine
 			eCrashDumpMemory = 5 * 1024 * 1024,
 		};
 
-		static char* s_crashDumpBuffer = nullptr;
-		std::string s_strMiniDumpPath;
+		static std::unique_ptr<char[]> s_crashDumpBuffer = nullptr;
+		std::wstring s_miniDumpPath;
 
 		void SetProcessExceptionHandlers();
 		void SetThreadExceptionHandlers();
 
-		bool Initialize(const char* strPath)
+		bool Initialize(const wchar_t* path)
 		{
 			if (s_crashDumpBuffer == nullptr)
 			{
-				s_crashDumpBuffer = new char[eCrashDumpMemory];
+				s_crashDumpBuffer = std::make_unique<char[]>(eCrashDumpMemory);
 
 				SetProcessExceptionHandlers();
 				SetThreadExceptionHandlers();
 			}
 
-			s_strMiniDumpPath = strPath;
+			s_miniDumpPath = path;
 
 			return true;
 		}
 
 		void Release()
 		{
-			if (s_crashDumpBuffer != nullptr)
-			{
-				delete s_crashDumpBuffer;
-				s_crashDumpBuffer = 0;
-			}
+			s_crashDumpBuffer.reset();
 		}
 
 		void ForceCrash()
@@ -140,8 +135,8 @@ namespace eastengine
 			std::tm tmTime;
 			localtime_s(&tmTime, &curTime);
 			
-			std::string strDumpPath = string::Format("%s%s_[%d%02d%02d-%02d%02d%02d]_CrashMiniDump.dmp", 
-				s_strMiniDumpPath.c_str(), 
+			std::wstring dumpPath = string::Format(L"%s%s_[%d%02d%02d-%02d%02d%02d]_CrashMiniDump.dmp", 
+				s_miniDumpPath.c_str(), 
 				file::GetProgramFileName(),
 				tmTime.tm_year + 1900,
 				tmTime.tm_mon + 1, 
@@ -151,11 +146,11 @@ namespace eastengine
 				tmTime.tm_sec
 				);
 
-			CreateDirectory(s_strMiniDumpPath.c_str(), nullptr);
+			CreateDirectory(s_miniDumpPath.c_str(), nullptr);
 
 			// Create the minidump file
 			HANDLE hFile = CreateFile(
-				strDumpPath.c_str(),
+				dumpPath.c_str(),
 				GENERIC_WRITE,
 				0,
 				nullptr,

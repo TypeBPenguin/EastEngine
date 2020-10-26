@@ -3,70 +3,121 @@
 
 #include "Math.h"
 
-#include <boost/tokenizer.hpp>
-#include <atlstr.h>
+#include <algorithm>
 
-namespace eastengine
+namespace est
 {
 	namespace string
 	{
-		std::vector<std::string> Tokenizer(const char* string, const char* strDelimiter)
-		{
-			if (string == nullptr)
-				return std::vector<std::string>();
-
-			std::string str = string;
-			return Tokenizer(str, strDelimiter);
-		}
-
-		std::vector<std::string> Tokenizer(const std::string& string, const char* strDelimiter)
+		std::vector<std::string> Tokenizer(const std::string& string, char delimiter)
 		{
 			if (string.empty() == true)
 				return std::vector<std::string>();
 
-			boost::char_separator<char> sep(strDelimiter);
-			boost::tokenizer<boost::char_separator<char>> tokens(string, sep);
+			std::vector<std::string> tokens;
 
-			return std::vector<std::string>(tokens.begin(), tokens.end());
+			std::istringstream iss(string);
+			std::string token;
+			while (getline(iss, token, delimiter))
+			{
+				tokens.emplace_back(token);
+			}
+			return tokens;
 		}
 
-		char* ToUpper(char* string, uint32_t nLength)
+		std::vector<std::wstring> Tokenizer(const std::wstring& string, wchar_t delimiter)
+		{
+			if (string.empty() == true)
+				return std::vector<std::wstring>();
+
+			std::vector<std::wstring> tokens;
+
+			std::wistringstream iss(string);
+			std::wstring token;
+			while (getline(iss, token, delimiter))
+			{
+				tokens.emplace_back(token);
+			}
+			return tokens;
+		}
+
+		char* ToUpper(char* string, size_t length)
 		{
 			if (string == nullptr)
 				return nullptr;
 
-			_strupr_s(string, nLength);
+			_strupr_s(string, length);
 
 			return string;
 		}
 
-		char* ToLower(char* string, uint32_t nLength)
+		wchar_t* ToUpper(wchar_t* string, size_t length)
 		{
 			if (string == nullptr)
 				return nullptr;
 
-			_strlwr_s(string, nLength);
+			_wcsupr_s(string, length);
 
 			return string;
 		}
 
-		//template <> std::string ToString(int8_t value) { return std::to_string(value); }
-		//template <> std::string ToString(int16_t value) { return std::to_string(value); }
-		//template <> std::string ToString(int32_t value) { return std::to_string(value); }
-		//template <> std::string ToString(int64_t value) { return std::to_string(value); }
-		//template <> std::string ToString(uint8_t value) { return std::to_string(value); }
-		//template <> std::string ToString(uint16_t value) { return std::to_string(value); }
-		//template <> std::string ToString(uint32_t value) { return std::to_string(value); }
-		//template <> std::string ToString(uint64_t value) { return std::to_string(value); }
-		//template <> std::string ToString(float value) { return std::to_string(value); }
-		//template <> std::string ToString(double value) { return std::to_string(value); }
-		//template <> std::string ToString(long double value) { return std::to_string(value); }
+#pragma warning(push)
+#pragma warning(disable:4244)
+		void ToUpper(std::string& string)
+		{
+			std::transform(string.begin(), string.end(), string.begin(), ::toupper);
+		}
+
+		void ToUpper(std::wstring& string)
+		{
+			std::transform(string.begin(), string.end(), string.begin(), ::toupper);
+		}
+#pragma warning(pop)
+
+		char* ToLower(char* string, size_t length)
+		{
+			if (string == nullptr)
+				return nullptr;
+
+			_strlwr_s(string, length);
+
+			return string;
+		}
+
+		wchar_t* ToLower(wchar_t* string, size_t length)
+		{
+			if (string == nullptr)
+				return nullptr;
+
+			_wcslwr_s(string, length);
+
+			return string;
+		}
+
+#pragma warning(push)
+#pragma warning(disable:4244)
+		void ToLower(std::string& string)
+		{
+			std::transform(string.begin(), string.end(), string.begin(), ::tolower);
+		}
+
+		void ToLower(std::wstring& string)
+		{
+			std::transform(string.begin(), string.end(), string.begin(), ::tolower);
+		}
+#pragma warning(pop)
 
 		template <> int32_t ToValue(const char* string) { if (string == nullptr) return 0; return std::stoi(string); }
 		template <> int64_t ToValue(const char* string) { if (string == nullptr) return 0; return std::stoll(string); }
 		template <> float ToValue(const char* string) { if (string == nullptr) return 0.f; return std::stof(string); }
 		template <> double ToValue(const char* string) { if (string == nullptr) return 0.0; return std::stod(string); }
 		template <> long double ToValue(const char* string) { if (string == nullptr) return 0.0l; return std::stold(string); }
+
+		template <> int32_t ToValue(const wchar_t* string) { if (string == nullptr) return 0; return std::stoi(string); }
+		template <> int64_t ToValue(const wchar_t* string) { if (string == nullptr) return 0; return std::stoll(string); }
+		template <> float ToValue(const wchar_t* string) { if (string == nullptr) return 0.f; return std::stof(string); }
+		template <> double ToValue(const wchar_t* string) { if (string == nullptr) return 0.0; return std::stod(string); }
+		template <> long double ToValue(const wchar_t* string) { if (string == nullptr) return 0.0l; return std::stold(string); }
 
 		std::string Format(const char* format, ...)
 		{
@@ -83,9 +134,24 @@ namespace eastengine
 			return { buf.get() };
 		}
 
-		std::string RandomString(uint32_t nLength, bool isOnlyAlphabet)
+		std::wstring Format(const wchar_t* format, ...)
 		{
-			std::string strRandom(nLength, 0);
+			va_list args;
+			va_start(args, format);
+			uint32_t size = std::vswprintf(nullptr, 0, format, args) + 1;
+			va_end(args);
+
+			std::unique_ptr<wchar_t[]> buf = std::make_unique<wchar_t[]>(size);
+			va_start(args, format);
+			std::vswprintf(buf.get(), size, format, args);
+			va_end(args);
+
+			return { buf.get() };
+		}
+
+		std::string RandomString(uint32_t length, bool isOnlyAlphabet)
+		{
+			std::string randomString(length, 0);
 
 			if (isOnlyAlphabet == true)
 			{
@@ -108,7 +174,7 @@ namespace eastengine
 					return CharacterSet[math::Random<int>(0, sizeof(CharacterSet) - 1)];
 				};
 
-				std::generate_n(strRandom.begin(), nLength, CharRandomOnlyAlphabet);
+				std::generate_n(randomString.begin(), length, CharRandomOnlyAlphabet);
 			}
 			else
 			{
@@ -133,10 +199,66 @@ namespace eastengine
 					return CharacterSet[math::Random<int>(0, sizeof(CharacterSet) - 1)];
 				};
 
-				std::generate_n(strRandom.begin(), nLength, CharRandom);
+				std::generate_n(randomString.begin(), length, CharRandom);
 			}
 
-			return strRandom;
+			return randomString;
+		}
+
+		std::wstring RandomStringW(uint32_t length, bool isOnlyAlphabet)
+		{
+			std::wstring randomString(length, 0);
+
+			if (isOnlyAlphabet == true)
+			{
+				auto CharRandomOnlyAlphabet = []() -> wchar_t
+				{
+					static const wchar_t CharacterSet[] =
+					{
+						'A','B','C','D','E','F',
+						'G','H','I','J','K',
+						'L','M','N','O','P',
+						'Q','R','S','T','U',
+						'V','W','X','Y','Z',
+						'a','b','c','d','e','f',
+						'g','h','i','j','k',
+						'l','m','n','o','p',
+						'q','r','s','t','u',
+						'v','w','x','y','z'
+					};
+
+					return CharacterSet[math::Random<int>(0, sizeof(CharacterSet) - 1)];
+				};
+
+				std::generate_n(randomString.begin(), length, CharRandomOnlyAlphabet);
+			}
+			else
+			{
+				auto CharRandom = []() -> wchar_t
+				{
+					static const wchar_t CharacterSet[] =
+					{
+						'0','1','2','3','4',
+						'5','6','7','8','9',
+						'A','B','C','D','E','F',
+						'G','H','I','J','K',
+						'L','M','N','O','P',
+						'Q','R','S','T','U',
+						'V','W','X','Y','Z',
+						'a','b','c','d','e','f',
+						'g','h','i','j','k',
+						'l','m','n','o','p',
+						'q','r','s','t','u',
+						'v','w','x','y','z'
+					};
+
+					return CharacterSet[math::Random<int>(0, sizeof(CharacterSet) - 1)];
+				};
+
+				std::generate_n(randomString.begin(), length, CharRandom);
+			}
+
+			return randomString;
 		}
 
 		std::string WideToMulti(const wchar_t* strWide, DWORD dwCodePage)

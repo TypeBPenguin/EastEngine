@@ -13,4 +13,6 @@
 #define NOMINMAX
 
 #include "Engine/System.h"
+#include "GameObject/GameObject.h"
+
 #include <commdlg.h>

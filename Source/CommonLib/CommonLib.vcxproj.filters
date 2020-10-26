@@ -25,9 +25,6 @@
     <Filter Include="File">
       <UniqueIdentifier>{a349faec-d12c-49cd-9903-9501d9d67e45}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ClassIdenfier">
-      <UniqueIdentifier>{f345d0f7-9906-44d8-8419-1ea196ba1b9d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Log">
       <UniqueIdentifier>{67901970-4a02-4b9d-aeec-a8c9bd8c99c6}</UniqueIdentifier>
     </Filter>
@@ -54,9 +51,6 @@
     </Filter>
     <Filter Include="Memory">
       <UniqueIdentifier>{ec81b44a-3675-476f-93a4-5d149a6d6535}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Colony">
-      <UniqueIdentifier>{705dee3a-9830-4b1f-bb69-b621b0a5bd0b}</UniqueIdentifier>
     </Filter>
     <Filter Include="CrashHandler">
       <UniqueIdentifier>{9d3ff15c-7c8e-4146-bf1a-c519b6d4fd21}</UniqueIdentifier>
@@ -91,6 +85,15 @@
     <Filter Include="Binary">
       <UniqueIdentifier>{810bbd89-1aae-4a38-99b2-0097b0b1df42}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Memory\ObjectPool">
+      <UniqueIdentifier>{38e2c7ee-c00a-4b85-9370-f58e523919f1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Container\Colony">
+      <UniqueIdentifier>{705dee3a-9830-4b1f-bb69-b621b0a5bd0b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="JobSystem">
+      <UniqueIdentifier>{ec223acc-a080-451e-afab-f66b273e5a76}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -107,9 +110,6 @@
     </ClInclude>
     <ClInclude Include="StringUtil.h">
       <Filter>String</Filter>
-    </ClInclude>
-    <ClInclude Include="ClassIdentifier.h">
-      <Filter>ClassIdenfier</Filter>
     </ClInclude>
     <ClInclude Include="Math.h">
       <Filter>Math</Filter>
@@ -148,7 +148,7 @@
       <Filter>Memory</Filter>
     </ClInclude>
     <ClInclude Include="plf_colony.h">
-      <Filter>Colony</Filter>
+      <Filter>Container\Colony</Filter>
     </ClInclude>
     <ClInclude Include="ErrorDefine.h">
       <Filter>헤더 파일</Filter>
@@ -188,6 +188,12 @@
     </ClInclude>
     <ClInclude Include="Binary.h">
       <Filter>Binary</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectPool.h">
+      <Filter>Memory\ObjectPool</Filter>
+    </ClInclude>
+    <ClInclude Include="JobSystem.h">
+      <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -253,6 +259,9 @@
     </ClCompile>
     <ClCompile Include="Binary.cpp">
       <Filter>Binary</Filter>
+    </ClCompile>
+    <ClCompile Include="JobSystem.cpp">
+      <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

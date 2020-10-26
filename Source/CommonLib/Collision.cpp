@@ -4,7 +4,7 @@
 #include <DirectXMath.h>
 #include <DirectXCollision.h>
 
-namespace eastengine
+namespace est
 {
 	namespace collision
 	{
@@ -501,6 +501,7 @@ namespace eastengine
 		{
 			using namespace DirectX;
 
+			Out = {};
 			Out.Center = box.Center;
 			XMVECTOR vExtents = box.Extents;
 			Out.Radius = XMVectorGetX(XMVector3Length(vExtents));
@@ -511,6 +512,7 @@ namespace eastengine
 			using namespace DirectX;
 
 			// Bounding box orientation is irrelevant because a sphere is rotationally invariant
+			Out = {};
 			Out.Center = box.Center;
 			XMVECTOR vExtents = box.Extents;
 			Out.Radius = XMVectorGetX(XMVector3Length(vExtents));
@@ -2072,6 +2074,7 @@ namespace eastengine
 
 		void OBB::CreateFromAABB(_Out_ OBB& Out, _In_ const AABB& box)
 		{
+			Out = {};
 			Out.Center = box.Center;
 			Out.Extents = box.Extents;
 			Out.Orientation = math::Quaternion::Identity;
@@ -3607,6 +3610,7 @@ namespace eastengine
 				Points[i] = XMVector4Transform(HomogenousPoints[i], matInverse);
 			}
 
+			Out = {};
 			Out.Origin = math::float3::Zero;
 			Out.Orientation = math::Quaternion::Identity;
 
@@ -3631,6 +3635,24 @@ namespace eastengine
 
 		Ray::Ray() : position(0.f, 0.f, 0.f), direction(0.f, 0.f, 1.f) {}
 		Ray::Ray(const math::float3& pos, const math::float3& dir) : position(pos), direction(dir) {}
+		Ray::Ray(int mouseX, int mouseY, const math::uint2& screenSize, const math::Matrix& viewMatrix, const math::Matrix& projectionMatrix)
+		{
+			math::float3 v;
+			v.x = (((2.f * static_cast<float>(mouseX)) / static_cast<float>(screenSize.x)) - 1.f) / projectionMatrix._11;
+			v.y = -(((2.f * static_cast<float>(mouseY)) / static_cast<float>(screenSize.y)) - 1.f) / projectionMatrix._22;
+			v.z = 1.f;
+
+			const math::Matrix invViewMatrix = viewMatrix.Invert();
+
+			position.x = invViewMatrix._41;
+			position.y = invViewMatrix._42;
+			position.z = invViewMatrix._43;
+
+			direction.x = (v.x * invViewMatrix._11) + (v.y * invViewMatrix._21) + invViewMatrix._31;
+			direction.y = (v.x * invViewMatrix._12) + (v.y * invViewMatrix._22) + invViewMatrix._32;
+			direction.z = (v.x * invViewMatrix._13) + (v.y * invViewMatrix._23) + invViewMatrix._33;
+			direction.Normalize();
+		}
 
 		bool Ray::operator == (const Ray& r) const
 		{

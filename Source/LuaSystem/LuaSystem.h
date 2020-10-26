@@ -2,9 +2,7 @@
 
 #include "CommonLib/Singleton.h"
 
-#include "LuaThread.h"
-
-namespace eastengine
+namespace est
 {
 	namespace Lua
 	{
@@ -20,9 +18,7 @@ namespace eastengine
 
 			void SetEnableJIT(bool isEnableJIT);
 
-			bool CompileLua(const char* strFile);
-
-			std::shared_ptr<LuaThread> GetThread();
+			bool CompileLua(const wchar_t* filePath);
 
 		private:
 			class Impl;

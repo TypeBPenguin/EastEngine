@@ -3,7 +3,7 @@
 
 #include "Log.h"
 
-namespace eastengine
+namespace est
 {
 	FiniteStateMachine::FiniteStateMachine(uint32_t id, const string::StringID& name)
 		: m_id(id)
@@ -172,16 +172,16 @@ namespace eastengine
 				State* pTransitState = GetState(stateID);
 				if (pTransitState != nullptr)
 				{
-					LOG_ERROR("The transition to an unrelated state : Machine[%d, %s], CurState[%d, %s], TransitionState[%d, %s]", m_id, m_name.c_str(), m_curStateID, pState->GetName().c_str(), stateID, pTransitState->GetName().c_str());
+					LOG_ERROR(L"The transition to an unrelated state : Machine[%d, %s], CurState[%d, %s], TransitionState[%d, %s]", m_id, m_name.c_str(), m_curStateID, pState->GetName().c_str(), stateID, pTransitState->GetName().c_str());
 				}
 				else
 				{
-					LOG_ERROR("The transition target does not exist : Machine[%d, %s], CurState[%d, %s], TransitionState[%d]", m_id, m_name.c_str(), m_curStateID, pState->GetName().c_str(), stateID);
+					LOG_ERROR(L"The transition target does not exist : Machine[%d, %s], CurState[%d, %s], TransitionState[%d]", m_id, m_name.c_str(), m_curStateID, pState->GetName().c_str(), stateID);
 				}
 
 				if (m_defaultStateID == eInvalidStateID)
 				{
-					LOG_ERROR("Please set default stateID");
+					LOG_ERROR(L"Please set default stateID");
 				}
 				else
 				{
@@ -194,11 +194,11 @@ namespace eastengine
 			State* pTransitState = GetState(stateID);
 			if (pTransitState == nullptr)
 			{
-				LOG_ERROR("The transition target does not exist : Machine[%d, %s], TransitionState[%d]", m_id, m_name.c_str(), stateID);
+				LOG_ERROR(L"The transition target does not exist : Machine[%d, %s], TransitionState[%d]", m_id, m_name.c_str(), stateID);
 
 				if (m_defaultStateID == eInvalidStateID)
 				{
-					LOG_ERROR("Please set default stateID");
+					LOG_ERROR(L"Please set default stateID");
 				}
 				else
 				{
@@ -243,7 +243,7 @@ namespace eastengine
 				if (pTransitState != nullptr)
 				{
 					m_stateTime = 0.f;
-					pTransitState->Enter(this, eInvalidStateID, StrID::EmptyString);
+					pTransitState->Enter(this, eInvalidStateID, sid::EmptyString);
 				}
 			}
 

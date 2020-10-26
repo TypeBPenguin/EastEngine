@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Model/ModelInterface.h"
+#include "Graphics/Model/ModelInterface.h"
 
-namespace eastengine
+namespace est
 {
 	namespace physics
 	{
@@ -17,7 +17,7 @@ namespace eastengine
 		private:
 			struct BodyPart
 			{
-				string::StringID strName;
+				string::StringID name;
 				physics::RigidBody* pRigidBody = nullptr;
 				graphics::IModelInstance* pPhysicsModelInstance = nullptr;
 				graphics::ISkeletonInstance::IBone* pBone = nullptr;
@@ -30,8 +30,8 @@ namespace eastengine
 				math::Matrix matOrigin;
 				math::Matrix matBodyOrigin;
 
-				BodyPart(const string::StringID& strName, physics::RigidBody* pRigidBody, graphics::IModelInstance* pPhysicsModelInstance, graphics::ISkeletonInstance::IBone* pBone)
-					: strName(strName)
+				BodyPart(const string::StringID& name, physics::RigidBody* pRigidBody, graphics::IModelInstance* pPhysicsModelInstance, graphics::ISkeletonInstance::IBone* pBone)
+					: name(name)
 					, pRigidBody(pRigidBody)
 					, pPhysicsModelInstance(pPhysicsModelInstance)
 					, pBone(pBone)
@@ -41,15 +41,15 @@ namespace eastengine
 
 			struct Joint
 			{
-				string::StringID strName;
+				string::StringID name;
 				physics::ConstraintInterface* pConstraint = nullptr;
 				graphics::IModelInstance* pPhysicsModelInstance = nullptr;
 
 				BodyPart* pBodyPartA = nullptr;
 				BodyPart* pBodyPartB = nullptr;
 
-				Joint(const string::StringID& strName, physics::ConstraintInterface* pConstraint, graphics::IModelInstance* pPhysicsModelInstance = nullptr)
-					: strName(strName)
+				Joint(const string::StringID& name, physics::ConstraintInterface* pConstraint, graphics::IModelInstance* pPhysicsModelInstance = nullptr)
+					: name(name)
 					, pConstraint(pConstraint)
 					, pPhysicsModelInstance(pPhysicsModelInstance)
 				{

@@ -5,7 +5,7 @@
 
 #include <strsafe.h>
 
-namespace eastengine
+namespace est
 {
 	namespace file
 	{
@@ -20,9 +20,9 @@ namespace eastengine
 
 		struct HDirMonitor
 		{
-			OVERLAPPED ol;
-			HANDLE hDir = nullptr;
-			HANDLE hDirOPPort = nullptr;
+			OVERLAPPED ol{};
+			HANDLE hDir{ INVALID_HANDLE_VALUE };
+			HANDLE hDirOPPort{ INVALID_HANDLE_VALUE };
 			unsigned char buffer[sizeof(FILE_NOTIFY_INFORMATION) * 1024 * 32]{};
 			LPARAM lParam{ 0 };
 			DWORD dwNotifyFilter{ 0 };
@@ -43,13 +43,13 @@ namespace eastengine
 			void Update();
 
 		public:
-			void AddDirectoryMonitor(const char* strDirectory, DirectoryMonitorCallback funcCallback, DWORD notifyFilter = Filter::eFileName | Filter::eDirName | Filter::eAttributes | Filter::eSize | Filter::eLastWrite | Filter::eCreation);
+			void AddDirectoryMonitor(const wchar_t* directory, DirectoryMonitorCallback funcCallback, DWORD notifyFilter = Filter::eFileName | Filter::eDirName | Filter::eAttributes | Filter::eSize | Filter::eLastWrite | Filter::eCreation);
 
 		private:
 			std::vector<HDirMonitor*> m_vecHDirMonitor;
 		};
 
-		void CALLBACK HandleDirectoryMonitorCallback(const char* strPath, DWORD dwAction, LPARAM lParam)
+		void CALLBACK HandleDirectoryMonitorCallback(const wchar_t* strPath, DWORD dwAction, LPARAM lParam)
 		{
 
 		}
@@ -86,7 +86,7 @@ namespace eastengine
 
 		void DirectoryMonitor::Impl::Update()
 		{
-			TRACER_EVENT("DirectoryMonitor::Update");
+			TRACER_EVENT(L"DirectoryMonitor::Update");
 			const size_t nSize = m_vecHDirMonitor.size();
 			for (size_t i = 0; i < nSize; ++i)
 			{
@@ -116,8 +116,7 @@ namespace eastengine
 							if (pFni->Action != 0)
 							{
 								StringCbCopyNW(temp, sizeof(temp), pFni->FileName, pFni->FileNameLength);
-								pMonitor->callback(string::WideToMulti(temp, CP_ACP).c_str(),
-									pFni->Action, pMonitor->lParam);
+								pMonitor->callback(temp, pFni->Action, pMonitor->lParam);
 							}
 						} while (pFni->NextEntryOffset > 0);
 
@@ -127,10 +126,10 @@ namespace eastengine
 			}
 		}
 
-		void DirectoryMonitor::Impl::AddDirectoryMonitor(const char* strDirectory, DirectoryMonitorCallback funcCallback, DWORD notifyFilter)
+		void DirectoryMonitor::Impl::AddDirectoryMonitor(const wchar_t* directory, DirectoryMonitorCallback funcCallback, DWORD notifyFilter)
 		{
 			HDirMonitor* pMonitor = new HDirMonitor;
-			pMonitor->hDir = CreateFile(strDirectory, FILE_LIST_DIRECTORY | GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+			pMonitor->hDir = CreateFile(directory, FILE_LIST_DIRECTORY | GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
 				nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED, nullptr);
 
 			if (pMonitor->hDir != INVALID_HANDLE_VALUE)
@@ -169,9 +168,9 @@ namespace eastengine
 			m_pImpl->Update();
 		}
 
-		void DirectoryMonitor::AddDirectoryMonitor(const char* strDirectory, DirectoryMonitorCallback funcCallback, DWORD notifyFilter)
+		void DirectoryMonitor::AddDirectoryMonitor(const wchar_t* directory, DirectoryMonitorCallback funcCallback, DWORD notifyFilter)
 		{
-			m_pImpl->AddDirectoryMonitor(strDirectory, funcCallback, notifyFilter);
+			m_pImpl->AddDirectoryMonitor(directory, funcCallback, notifyFilter);
 		}
 	}
 }

@@ -1,10 +1,10 @@
 #include "stdafx.h"
 #include "Scene.h"
 
-namespace eastengine
+namespace est
 {
-	IScene::IScene(const string::StringID& strName)
-		: m_strName(strName)
+	IScene::IScene(const string::StringID& name)
+		: m_name(name)
 	{
 	}
 

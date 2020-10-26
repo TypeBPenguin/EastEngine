@@ -3,7 +3,6 @@
 
 #include "CommonLib/FileUtil.h"
 
-#include "GameObject/GameObject.h"
 #include "GameObject/ComponentBehaviorTree.h"
 #include "GameObject/ComponentFiniteStateMachine.h"
 #include "GameObject/ComponentModel.h"
@@ -11,9 +10,9 @@
 
 #include "Input/InputInterface.h"
 
-using namespace eastengine;
+using namespace est;
 
-namespace StrID
+namespace sid
 {
 	RegisterStringID(Minion);
 	RegisterStringID(Action);
@@ -74,7 +73,7 @@ struct EventMotionPlay : public FiniteStateMachine::IEvent
 
 Minion::Minion()
 {
-	auto ProcessEvent = [&](FiniteStateMachine* pStateMachine, const eastengine::FiniteStateMachine::IEvent* const* ppEvent, size_t eventCount)
+	auto ProcessEvent = [&](FiniteStateMachine* pStateMachine, const est::FiniteStateMachine::IEvent* const* ppEvent, size_t eventCount)
 	{
 		for (size_t i = 0; i < eventCount; ++i)
 		{
@@ -95,16 +94,16 @@ Minion::Minion()
 				{
 					const string::StringID& motionName = pMotionPlay->motionName;
 
-					std::string motionPath;
+					std::wstring motionPath;
 					motionPath.reserve(m_path.size() * 2);
 					motionPath = m_path;
-					motionPath += "Animations\\";
+					motionPath += L"Animations\\";
 					motionPath += motionName.c_str();
 
 					graphics::MotionLoader motionLoader;
 					motionLoader.InitEast(motionName, motionPath.c_str());
 
-					pModel->PlayMotion(graphics::MotionLayers::eLayer1, motionLoader, &pMotionPlay->playbackInfo);
+					pModel->PlayMotion(0, graphics::MotionLayers::eLayer1, motionLoader, &pMotionPlay->playbackInfo);
 				}
 			}
 			break;
@@ -112,15 +111,15 @@ Minion::Minion()
 		}
 	};
 
-	m_path = file::GetDataPath();
-	m_path += "Model\\Minion\\Melee\\";
+	m_path = file::GetEngineDataPath();
+	m_path += L"Model\\Minion\\Melee\\";
 
-	m_pActor = gameobject::IActor::Create(StrID::Minion);
+	m_pActor = gameobject::CreateActor(sid::Minion);
 
 	gameobject::ComponentModel* pModel = static_cast<gameobject::ComponentModel*>(m_pActor->CreateComponent(gameobject::IComponent::eModel));
 	graphics::ModelLoader modelLoader;
-	modelLoader.InitEast("Minion_Lane_Melee_Core_Dawn", (m_path + "Minion_Lane_Melee_Core_Dawn.emod").c_str());
-	pModel->Initialize(&modelLoader);
+	modelLoader.InitEast("Minion_Lane_Melee_Core_Dawn", (m_path + L"Minion_Lane_Melee_Core_Dawn.emod").c_str());
+	pModel->Add(0, modelLoader);
 
 	gameobject::ComponentTimer* pTimer = static_cast<gameobject::ComponentTimer*>(m_pActor->CreateComponent(gameobject::IComponent::eTimer));
 	pTimer->StartTimeAction([&](uint32_t eventID, float elapsedTime, float processTime)
@@ -129,7 +128,7 @@ Minion::Minion()
 	}, 0, 0);
 
 	gameobject::ComponentFiniteStateMachine* pFiniteStateMachine = static_cast<gameobject::ComponentFiniteStateMachine*>(m_pActor->CreateComponent(gameobject::IComponent::eFiniteStateMachine));
-	FiniteStateMachine& fsmAction = pFiniteStateMachine->CreateStateMachine(FSM::eAction, StrID::Action);
+	FiniteStateMachine& fsmAction = pFiniteStateMachine->CreateStateMachine(FSM::eAction, sid::Action);
 	
 	std::unique_ptr<EventMotionPlay> pEventMotionPlay = std::make_unique<EventMotionPlay>(0.f, "NonCombat_Idle.emot", graphics::eLayer1);
 	pEventMotionPlay->playbackInfo.loopCount = graphics::MotionPlaybackInfo::eMaxLoopCount;
@@ -144,7 +143,7 @@ Minion::Minion()
 		.AddEnterEvent(std::move(pEventMotionPlay))
 		.SetEnterState([&](FiniteStateMachine* pStateMachine, uint32_t prevStateID, const string::StringID& prevStateName)
 	{
-		LOG_MESSAGE("%s -> Idle", prevStateName.c_str());
+		LOG_MESSAGE(L"%s -> Idle", prevStateName.c_str());
 	})
 		.SetUpdateState([&](FiniteStateMachine* pStateMachine, float elapsedTime, float stateTime)
 	{
@@ -179,7 +178,7 @@ Minion::Minion()
 		.AddEnterEvent(std::move(pEventMotionPlay))
 		.SetEnterState([&](FiniteStateMachine* pStateMachine, uint32_t prevStateID, const string::StringID& prevStateName)
 	{
-		LOG_MESSAGE("%s -> Combat_Idle", prevStateName.c_str());
+		LOG_MESSAGE(L"%s -> Combat_Idle", prevStateName.c_str());
 	})
 		.AddUpdateEvent(std::make_unique<EventTransitionState>(3.f, FSM_Action::eIdle))
 		.SetUpdateState([&](FiniteStateMachine* pStateMachine, float elapsedTime, float stateTime)
@@ -212,7 +211,7 @@ Minion::Minion()
 		.SetEventState(ProcessEvent)
 		.SetEnterState([&](FiniteStateMachine* pStateMachine, uint32_t prevStateID, const string::StringID& prevStateName)
 	{
-		LOG_MESSAGE("%s -> Attack", prevStateName.c_str());
+		LOG_MESSAGE(L"%s -> Attack", prevStateName.c_str());
 		m_isRequestAttack = false;
 
 		gameobject::ComponentModel* pModel = static_cast<gameobject::ComponentModel*>(m_pActor->CreateComponent(gameobject::IComponent::eModel));
@@ -221,88 +220,88 @@ Minion::Minion()
 		{
 			m_emAttackType = static_cast<AttackType>(math::Random<int>(AttackType::eNormal, AttackType::eSetB));
 
-			std::string motionName = "Attack_A";
+			std::wstring motionName = L"Attack_A";
 			switch (m_emAttackType)
 			{
 			case AttackType::eNormal:
 				m_emAttackStep = AttackStep::eStep0;
 				m_emMaxAttackStep = AttackStep::eStep3;
-				motionName += ".emot";
+				motionName += L".emot";
 				break;
 			case AttackType::eSetA:
 				m_emAttackStep = AttackStep::eStep0;
 				m_emMaxAttackStep = AttackStep::eStep4;
-				motionName += "_SetA.emot";
+				motionName += L"_SetA.emot";
 				break;
 			case AttackType::eSetB:
 				m_emAttackStep = AttackStep::eStep0;
 				m_emMaxAttackStep = AttackStep::eStep4;
-				motionName += "_SetB.emot";
+				motionName += L"_SetB.emot";
 				break;
 			default:
 				assert(false);
 				break;
 			}
 
-			const std::string motionPath = m_path + "Animations\\" + motionName;
+			const std::wstring motionPath = m_path + L"Animations\\" + motionName;
 
 			graphics::MotionLoader motionLoader;
 			motionLoader.InitEast(motionName.c_str(), motionPath.c_str());
-			pModel->PlayMotion(graphics::MotionLayers::eLayer1, motionLoader);
+			pModel->PlayMotion(0, graphics::MotionLayers::eLayer1, motionLoader);
 		}
 		else
 		{
 			m_emAttackStep = static_cast<AttackStep>(m_emAttackStep + 1);
 
-			std::string motionName = "Attack_";
+			std::wstring motionName = L"Attack_";
 			switch (m_emAttackStep)
 			{
 			case AttackStep::eStep0:
-				motionName += "A";
+				motionName += L"A";
 				break;
 			case AttackStep::eStep1:
-				motionName += "B";
+				motionName += L"B";
 				break;
 			case AttackStep::eStep2:
-				motionName += "C";
+				motionName += L"C";
 				break;
 			case AttackStep::eStep3:
-				motionName += "D";
+				motionName += L"D";
 				break;
 			case AttackStep::eStep4:
-				motionName += "E";
+				motionName += L"E";
 				break;
 			}
 
 			switch (m_emAttackType)
 			{
 			case AttackType::eNormal:
-				motionName += ".emot";
+				motionName += L".emot";
 				break;
 			case AttackType::eSetA:
-				motionName += "_SetA.emot";
+				motionName += L"_SetA.emot";
 				break;
 			case AttackType::eSetB:
-				motionName += "_SetB.emot";
+				motionName += L"_SetB.emot";
 				break;
 			default:
 				assert(false);
 				break;
 			}
 
-			LOG_MESSAGE("Motion : %s", motionName.c_str());
-			const std::string motionPath = m_path + "Animations\\" + motionName.c_str();
+			LOG_MESSAGE(L"Motion : %s", motionName.c_str());
+			const std::wstring motionPath = m_path + L"Animations\\" + motionName.c_str();
 
 			graphics::MotionLoader motionLoader;
 			motionLoader.InitEast(motionName.c_str(), motionPath.c_str());
-			pModel->PlayMotion(graphics::MotionLayers::eLayer1, motionLoader);
+			pModel->PlayMotion(0, graphics::MotionLayers::eLayer1, motionLoader);
 		}
 	})
 		.SetUpdateState([&](FiniteStateMachine* pStateMachine, float elapsedTime, float stateTime)
 	{
 		gameobject::ComponentModel* pModel = static_cast<gameobject::ComponentModel*>(m_pActor->CreateComponent(gameobject::IComponent::eModel));
-		graphics::IMotionPlayer* pPlayer = pModel->GetModelInstance()->GetMotionSystem()->GetPlayer(graphics::eLayer1);
-		graphics::IMotion* pMotion = pPlayer->GetMotion();
+		graphics::IMotionPlayer* pPlayer = pModel->GetModelInstance(0)->GetMotionSystem()->GetPlayer(graphics::eLayer1);
+		const graphics::MotionPtr pMotion = pPlayer->GetMotion();
 		if (pMotion != nullptr)
 		{
 			const float motionEndTime = pMotion->GetEndTime();
@@ -361,7 +360,7 @@ Minion::Minion()
 		.AddEnterEvent(std::move(pEventMotionPlay))
 		.SetEnterState([&](FiniteStateMachine* pStateMachine, uint32_t prevStateID, const string::StringID& prevStateName)
 	{
-		LOG_MESSAGE("%s -> Move", prevStateName.c_str());
+		LOG_MESSAGE(L"%s -> Move", prevStateName.c_str());
 	})
 		.SetUpdateState([&](FiniteStateMachine* pStateMachine, float elapsedTime, float stateTime)
 	{
@@ -400,7 +399,7 @@ Minion::Minion()
 		.AddEnterEvent(std::move(pEventMotionPlay))
 		.SetEnterState([&](FiniteStateMachine* pStateMachine, uint32_t prevStateID, const string::StringID& prevStateName)
 	{
-		LOG_MESSAGE("%s -> CombatMove", prevStateName.c_str());
+		LOG_MESSAGE(L"%s -> CombatMove", prevStateName.c_str());
 	})
 		.AddUpdateEvent(std::move(pEventMotionPlay2))
 		.AddUpdateEvent(std::make_unique<EventTransitionState>(3.f, FSM_Action::eCombat_Idle))
@@ -432,14 +431,14 @@ Minion::Minion()
 		.AddEnterEvent(std::make_unique<EventMotionPlay>(0.f, "HitReact_Front.emot", graphics::eLayer1))
 		.SetEnterState([&](FiniteStateMachine* pStateMachine, uint32_t prevStateID, const string::StringID& prevStateName)
 	{
-		LOG_MESSAGE("%s -> Hit", prevStateName.c_str());
+		LOG_MESSAGE(L"%s -> Hit", prevStateName.c_str());
 	})
 		.SetUpdateState([&](FiniteStateMachine* pStateMachine, float elapsedTime, float stateTime)
 	{
 		gameobject::ComponentModel* pModel = static_cast<gameobject::ComponentModel*>(m_pActor->CreateComponent(gameobject::IComponent::eModel));
 		if (pModel != nullptr)
 		{
-			graphics::IMotionPlayer* pMotionPlayer = pModel->GetModelInstance()->GetMotionSystem()->GetPlayer(graphics::eLayer1);
+			graphics::IMotionPlayer* pMotionPlayer = pModel->GetModelInstance(0)->GetMotionSystem()->GetPlayer(graphics::eLayer1);
 			if (pMotionPlayer->IsPlaying() == false)
 			{
 				pStateMachine->Transition(FSM_Action::eCombat_Idle);
@@ -463,7 +462,7 @@ Minion::Minion()
 		gameobject::ComponentModel* pModel = static_cast<gameobject::ComponentModel*>(m_pActor->CreateComponent(gameobject::IComponent::eModel));
 		if (pModel != nullptr)
 		{
-			graphics::IMotionPlayer* pMotionPlayer = pModel->GetModelInstance()->GetMotionSystem()->GetPlayer(graphics::eLayer1);
+			graphics::IMotionPlayer* pMotionPlayer = pModel->GetModelInstance(0)->GetMotionSystem()->GetPlayer(graphics::eLayer1);
 			if (pMotionPlayer->IsPlaying() == false)
 			{
 				pStateMachine->Transition(FSM_Action::eCombat_Idle);
@@ -489,7 +488,7 @@ Minion::Minion()
 		gameobject::ComponentModel* pModel = static_cast<gameobject::ComponentModel*>(m_pActor->CreateComponent(gameobject::IComponent::eModel));
 		if (pModel != nullptr)
 		{
-			graphics::IMotionPlayer* pMotionPlayer = pModel->GetModelInstance()->GetMotionSystem()->GetPlayer(graphics::eLayer1);
+			graphics::IMotionPlayer* pMotionPlayer = pModel->GetModelInstance(0)->GetMotionSystem()->GetPlayer(graphics::eLayer1);
 			if (pMotionPlayer->IsPlaying() == false)
 			{
 				pStateMachine->Transition(FSM_Action::eCombat_Idle);
@@ -512,7 +511,7 @@ Minion::Minion()
 		gameobject::ComponentModel* pModel = static_cast<gameobject::ComponentModel*>(m_pActor->CreateComponent(gameobject::IComponent::eModel));
 		if (pModel != nullptr)
 		{
-			graphics::IMotionPlayer* pMotionPlayer = pModel->GetModelInstance()->GetMotionSystem()->GetPlayer(graphics::eLayer1);
+			graphics::IMotionPlayer* pMotionPlayer = pModel->GetModelInstance(0)->GetMotionSystem()->GetPlayer(graphics::eLayer1);
 			if (pMotionPlayer->IsPlaying() == false)
 			{
 				pStateMachine->Transition(FSM_Action::eCombat_Idle);
@@ -529,7 +528,7 @@ Minion::Minion()
 
 Minion::~Minion()
 {
-	gameobject::IActor::Destroy(&m_pActor);
+	m_pActor.reset();
 }
 
 void Minion::Update(uint32_t eventID, float elapsedTime, float processTime)

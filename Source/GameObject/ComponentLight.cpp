@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "ComponentLight.h"
 
-namespace eastengine
+namespace est
 {
 	namespace gameobject
 	{

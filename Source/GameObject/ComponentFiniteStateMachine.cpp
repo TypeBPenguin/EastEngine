@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "ComponentFiniteStateMachine.h"
 
-namespace eastengine
+namespace est
 {
 	namespace gameobject
 	{
@@ -20,16 +20,6 @@ namespace eastengine
 			{
 				iter.value().Update(elapsedTime);
 			}
-		}
-
-		bool ComponentFiniteStateMachine::LoadFile(file::Stream& file)
-		{
-			return true;
-		}
-
-		bool ComponentFiniteStateMachine::SaveFile(file::Stream& file)
-		{
-			return true;
 		}
 
 		FiniteStateMachine& ComponentFiniteStateMachine::CreateStateMachine(uint32_t id, const string::StringID& name)

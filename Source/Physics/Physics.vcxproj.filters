@@ -16,23 +16,38 @@
     <Filter Include="PhysicsSystem">
       <UniqueIdentifier>{7329569a-b29b-48a3-95de-d075ce038ebf}</UniqueIdentifier>
     </Filter>
-    <Filter Include="PhysicsSystem\RigidBody">
-      <UniqueIdentifier>{5d0b6a4a-6e97-4953-94c7-2b6a36be873d}</UniqueIdentifier>
+    <Filter Include="Shape">
+      <UniqueIdentifier>{e303f54d-91ff-48dd-8912-5f87ecbb0fad}</UniqueIdentifier>
     </Filter>
-    <Filter Include="PhysicsSystem\MathConvertor">
-      <UniqueIdentifier>{3f2592ba-931d-4366-956b-da0647b6b2a9}</UniqueIdentifier>
+    <Filter Include="Interface">
+      <UniqueIdentifier>{49cf7652-e7b8-4fc5-8548-06e14654b4c7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="PhysicsSystem\Constraint">
-      <UniqueIdentifier>{345074e2-315a-4a0d-8483-a96eea40a8b1}</UniqueIdentifier>
+    <Filter Include="Material">
+      <UniqueIdentifier>{262150da-6e9d-431d-a0fb-6193c3f7eb12}</UniqueIdentifier>
     </Filter>
-    <Filter Include="PhysicsSystem\ActionController">
-      <UniqueIdentifier>{baeb84de-847b-43c4-bd4c-a3c00f14881e}</UniqueIdentifier>
+    <Filter Include="RigidBody">
+      <UniqueIdentifier>{74bf80f9-d274-489f-a9c4-fc3edda60702}</UniqueIdentifier>
     </Filter>
-    <Filter Include="PhysicsSystem\GhostObject">
-      <UniqueIdentifier>{bb8c92ac-4362-44f0-8ab5-fcc3f054607a}</UniqueIdentifier>
+    <Filter Include="Define">
+      <UniqueIdentifier>{a30b15fb-5834-493c-8361-54055af39cd0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="PhysicsSystem\DebugHelper">
-      <UniqueIdentifier>{02358179-ccca-4044-bcc8-16e614230efb}</UniqueIdentifier>
+    <Filter Include="Util">
+      <UniqueIdentifier>{db2055f4-8837-4403-a23c-9be0d97bdecd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Articulation">
+      <UniqueIdentifier>{53a68fe8-1d8a-4179-bcab-262465340328}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Joint">
+      <UniqueIdentifier>{3a1848be-8191-4eb8-8e70-966174ea51d3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Constraint">
+      <UniqueIdentifier>{7e5e56bb-5e52-4f67-96ac-2d96e7094259}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Aggregate">
+      <UniqueIdentifier>{ee6f4458-6afd-43a5-802f-f04ddf033bf8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="BVHStructure">
+      <UniqueIdentifier>{e7becb09-203a-4785-ba23-76df25f68f0e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -45,58 +60,82 @@
     <ClInclude Include="targetver.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="RigidBody.h">
-      <Filter>PhysicsSystem\RigidBody</Filter>
-    </ClInclude>
-    <ClInclude Include="MathConvertor.h">
-      <Filter>PhysicsSystem\MathConvertor</Filter>
-    </ClInclude>
     <ClInclude Include="PhysicsSystem.h">
       <Filter>PhysicsSystem</Filter>
     </ClInclude>
     <ClInclude Include="PhysicsDefine.h">
-      <Filter>PhysicsSystem</Filter>
+      <Filter>Define</Filter>
+    </ClInclude>
+    <ClInclude Include="PhysicsInterface.h">
+      <Filter>Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="RigidBody.h">
+      <Filter>RigidBody</Filter>
+    </ClInclude>
+    <ClInclude Include="PhysicsUtil.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="PhysicsMaterial.h">
+      <Filter>Material</Filter>
+    </ClInclude>
+    <ClInclude Include="PhysicsShape.h">
+      <Filter>Shape</Filter>
+    </ClInclude>
+    <ClInclude Include="Articulation.h">
+      <Filter>Articulation</Filter>
+    </ClInclude>
+    <ClInclude Include="Joint.h">
+      <Filter>Joint</Filter>
     </ClInclude>
     <ClInclude Include="Constraint.h">
-      <Filter>PhysicsSystem\Constraint</Filter>
+      <Filter>Constraint</Filter>
     </ClInclude>
-    <ClInclude Include="GhostObject.h">
-      <Filter>PhysicsSystem\GhostObject</Filter>
+    <ClInclude Include="Aggregate.h">
+      <Filter>Aggregate</Filter>
     </ClInclude>
-    <ClInclude Include="KinematicCharacterController.h">
-      <Filter>PhysicsSystem\ActionController</Filter>
-    </ClInclude>
-    <ClInclude Include="DebugHelper.h">
-      <Filter>PhysicsSystem\DebugHelper</Filter>
+    <ClInclude Include="BVHStructure.h">
+      <Filter>BVHStructure</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="RigidBody.cpp">
-      <Filter>PhysicsSystem\RigidBody</Filter>
-    </ClCompile>
-    <ClCompile Include="MathConvertor.cpp">
-      <Filter>PhysicsSystem\MathConvertor</Filter>
-    </ClCompile>
     <ClCompile Include="PhysicsSystem.cpp">
       <Filter>PhysicsSystem</Filter>
     </ClCompile>
     <ClCompile Include="PhysicsDefine.cpp">
-      <Filter>PhysicsSystem</Filter>
+      <Filter>Define</Filter>
+    </ClCompile>
+    <ClCompile Include="PhysicsInterface.cpp">
+      <Filter>Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="RigidBody.cpp">
+      <Filter>RigidBody</Filter>
+    </ClCompile>
+    <ClCompile Include="PhysicsUtil.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="PhysicsMaterial.cpp">
+      <Filter>Material</Filter>
+    </ClCompile>
+    <ClCompile Include="PhysicsShape.cpp">
+      <Filter>Shape</Filter>
+    </ClCompile>
+    <ClCompile Include="Articulation.cpp">
+      <Filter>Articulation</Filter>
+    </ClCompile>
+    <ClCompile Include="Joint.cpp">
+      <Filter>Joint</Filter>
     </ClCompile>
     <ClCompile Include="Constraint.cpp">
-      <Filter>PhysicsSystem\Constraint</Filter>
+      <Filter>Constraint</Filter>
     </ClCompile>
-    <ClCompile Include="GhostObject.cpp">
-      <Filter>PhysicsSystem\GhostObject</Filter>
+    <ClCompile Include="Aggregate.cpp">
+      <Filter>Aggregate</Filter>
     </ClCompile>
-    <ClCompile Include="KinematicCharacterController.cpp">
-      <Filter>PhysicsSystem\ActionController</Filter>
-    </ClCompile>
-    <ClCompile Include="DebugHelper.cpp">
-      <Filter>PhysicsSystem\DebugHelper</Filter>
+    <ClCompile Include="BVHStructure.cpp">
+      <Filter>BVHStructure</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

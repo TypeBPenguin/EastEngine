@@ -4,7 +4,7 @@
 
 #include "Singleton.h"
 
-namespace eastengine
+namespace est
 {
 	namespace thread
 	{

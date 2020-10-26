@@ -3,7 +3,7 @@
 
 #include "Lock.h"
 
-namespace eastengine
+namespace est
 {
 	namespace Log
 	{
@@ -28,7 +28,7 @@ namespace eastengine
 				}
 			}
 
-			void Push(const std::string& message, WORD textColor = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY)
+			void Push(const std::wstring& message, WORD textColor = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY)
 			{
 				{
 					std::lock_guard<std::mutex> lock(m_mutex);
@@ -43,11 +43,11 @@ namespace eastengine
 		private:
 			struct LogMessage
 			{
-				std::string message;
+				std::wstring message;
 				WORD color{ FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY };
 
 				LogMessage() = default;
-				LogMessage(const std::string& message, WORD color)
+				LogMessage(const std::wstring& message, WORD color)
 					: message(message)
 					, color(color)
 				{
@@ -59,10 +59,11 @@ namespace eastengine
 				{
 				}
 
-				void operator = (const LogMessage& source)
+				LogMessage& operator = (LogMessage&& source) noexcept
 				{
-					message = source.message;
-					color = source.color;
+					message = std::move(source.message);
+					color = std::move(source.color);
+					return *this;
 				}
 			};
 
@@ -72,7 +73,7 @@ namespace eastengine
 				SetConsoleTextAttribute(m_hConsole, message.color | m_wBackgroundAttributes);
 
 				DWORD len = 0;
-				WriteConsoleA(m_hConsole, message.message.c_str(), static_cast<DWORD>(message.message.length()), &len, nullptr);
+				WriteConsole(m_hConsole, message.message.c_str(), static_cast<DWORD>(message.message.length()), &len, nullptr);
 
 				SetConsoleTextAttribute(m_hConsole, m_wDefaultConsoleTextAttributes);
 			}
@@ -107,7 +108,7 @@ namespace eastengine
 							if (m_isStop == true)
 								break;
 
-							message = m_queueMessages.front();
+							message = std::move(m_queueMessages.front());
 							m_queueMessages.pop();
 						}
 
@@ -118,8 +119,8 @@ namespace eastengine
 
 		private:
 			HANDLE m_hConsole{ nullptr };
-			WORD m_wDefaultConsoleTextAttributes;
-			WORD m_wBackgroundAttributes;
+			WORD m_wDefaultConsoleTextAttributes{ 0 };
+			WORD m_wBackgroundAttributes{ 0 };
 
 			std::thread m_thread;
 
@@ -132,95 +133,95 @@ namespace eastengine
 
 		SLog s_consoleLog;
 
-		const char s_strMessage[] = "[Message] ";
-		const char s_strWarning[] = "[Warning] ";
-		const char s_strError[] = "[Error] ";
-		const char s_strInfo1[] = " -> [";
-		const char s_strInfo2[] = " <";
-		const char s_strInfo3[] = ">]\n";
+		const wchar_t s_strMessage[] = L"[Message] ";
+		const wchar_t s_strWarning[] = L"[Warning] ";
+		const wchar_t s_strError[] = L"[Error] ";
+		const wchar_t s_strInfo1[] = L" -> [";
+		const wchar_t s_strInfo2[] = L" <";
+		const wchar_t s_strInfo3[] = L">]\n";
 
-		void Message(const char* file, int line, const char* msg, ...)
+		void Message(const wchar_t* file, int line, const wchar_t* msg, ...)
 		{
 			va_list args;
 			va_start(args, msg);
-			int size = std::vsnprintf(nullptr, 0, msg, args) + 1;
+			int size = std::vswprintf(nullptr, 0, msg, args) + 1;
 			va_end(args);
 
-			std::unique_ptr<char[]> buf = std::make_unique<char[]>(size);
+			std::unique_ptr<wchar_t[]> buf = std::make_unique<wchar_t[]>(size);
 			va_start(args, msg);
-			std::vsnprintf(buf.get(), size, msg, args);
+			std::vswprintf(buf.get(), size, msg, args);
 			va_end(args);
 
 			const size_t nInfoLength = sizeof(s_strMessage) + sizeof(s_strInfo1) + sizeof(s_strInfo2) + sizeof(s_strInfo3);
-			std::string strLine = std::to_string(line);
+			std::wstring lineString = std::to_wstring(line);
 
-			std::string strBuffer;
-			strBuffer.resize(static_cast<size_t>(size) + nInfoLength + strlen(file) + strLine.size());
+			std::wstring strBuffer;
+			strBuffer.resize(static_cast<size_t>(size) + nInfoLength + wcslen(file) + lineString.size());
 
 			strBuffer = s_strMessage;
 			strBuffer.append(buf.get());
 			strBuffer.append(s_strInfo1);
 			strBuffer.append(file);
 			strBuffer.append(s_strInfo2);
-			strBuffer.append(strLine);
+			strBuffer.append(lineString);
 			strBuffer.append(s_strInfo3);
 
 			s_consoleLog.Push(strBuffer);
 		}
 
-		void Warning(const char* file, int line, const char* msg, ...)
+		void Warning(const wchar_t* file, int line, const wchar_t* msg, ...)
 		{
 			va_list args;
 			va_start(args, msg);
-			int size = std::vsnprintf(nullptr, 0, msg, args) + 1;
+			int size = std::vswprintf(nullptr, 0, msg, args) + 1;
 			va_end(args);
 
-			std::unique_ptr<char[]> buf = std::make_unique<char[]>(size);
+			std::unique_ptr<wchar_t[]> buf = std::make_unique<wchar_t[]>(size);
 			va_start(args, msg);
-			std::vsnprintf(buf.get(), size, msg, args);
+			std::vswprintf(buf.get(), size, msg, args);
 			va_end(args);
 
 			const size_t nInfoLength = sizeof(s_strWarning) + sizeof(s_strInfo1) + sizeof(s_strInfo2) + sizeof(s_strInfo3);
-			std::string strLine = std::to_string(line);
+			std::wstring lineString = std::to_wstring(line);
 
-			std::string strBuffer;
-			strBuffer.resize(static_cast<size_t>(size) + nInfoLength + strlen(file) + strLine.size());
+			std::wstring strBuffer;
+			strBuffer.resize(static_cast<size_t>(size) + nInfoLength + wcslen(file) + lineString.size());
 
 			strBuffer = s_strWarning;
 			strBuffer.append(buf.get());
 			strBuffer.append(s_strInfo1);
 			strBuffer.append(file);
 			strBuffer.append(s_strInfo2);
-			strBuffer.append(strLine);
+			strBuffer.append(lineString);
 			strBuffer.append(s_strInfo3);
 
 			s_consoleLog.Push(strBuffer, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
 		}
 
-		void Error(const char* file, int line, const char* msg, ...)
+		void Error(const wchar_t* file, int line, const wchar_t* msg, ...)
 		{
 			va_list args;
 			va_start(args, msg);
-			int size = std::vsnprintf(nullptr, 0, msg, args) + 1;
+			int size = std::vswprintf(nullptr, 0, msg, args) + 1;
 			va_end(args);
 
-			std::unique_ptr<char[]> buf = std::make_unique<char[]>(size);
+			std::unique_ptr<wchar_t[]> buf = std::make_unique<wchar_t[]>(size);
 			va_start(args, msg);
-			std::vsnprintf(buf.get(), size, msg, args);
+			std::vswprintf(buf.get(), size, msg, args);
 			va_end(args);
 
 			const size_t nInfoLength = sizeof(s_strError) + sizeof(s_strInfo1) + sizeof(s_strInfo2) + sizeof(s_strInfo3);
-			std::string strLine = std::to_string(line);
+			std::wstring lineString = std::to_wstring(line);
 
-			std::string strBuffer;
-			strBuffer.resize(static_cast<size_t>(size) + nInfoLength + strlen(file) + strLine.size());
+			std::wstring strBuffer;
+			strBuffer.resize(static_cast<size_t>(size) + nInfoLength + wcslen(file) + lineString.size());
 
 			strBuffer = s_strError;
 			strBuffer.append(buf.get());
 			strBuffer.append(s_strInfo1);
 			strBuffer.append(file);
 			strBuffer.append(s_strInfo2);
-			strBuffer.append(strLine);
+			strBuffer.append(lineString);
 			strBuffer.append(s_strInfo3);
 
 			s_consoleLog.Push(strBuffer, FOREGROUND_RED | FOREGROUND_INTENSITY);

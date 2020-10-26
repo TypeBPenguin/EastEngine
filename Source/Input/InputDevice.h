@@ -4,7 +4,7 @@
 
 #include "InputInterface.h"
 
-namespace eastengine
+namespace est
 {
 	namespace input
 	{

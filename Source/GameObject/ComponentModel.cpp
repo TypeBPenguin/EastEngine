@@ -1,16 +1,9 @@
 #include "stdafx.h"
 #include "ComponentModel.h"
 
-#include "CommonLib/FileStream.h"
-#include "CommonLib/FileUtil.h"
-
-#include "Model/MotionSystem.h"
-#include "Model/Model.h"
-#include "Model/ModelLoader.h"
-
 #include "GameObject.h"
 
-namespace eastengine
+namespace est
 {
 	namespace gameobject
 	{
@@ -21,112 +14,101 @@ namespace eastengine
 
 		ComponentModel::~ComponentModel()
 		{
-			graphics::IModel::DestroyInstance(&m_pModelInst);
-		}
-
-		void ComponentModel::Initialize(graphics::IModelInstance* pModelInst)
-		{
-			m_pModelInst = pModelInst;
-		}
-
-		void ComponentModel::Initialize(const graphics::ModelLoader* pLoader)
-		{
-			if (pLoader != nullptr)
-			{
-				m_pModelInst = graphics::IModel::CreateInstance(*pLoader, pLoader->IsEnableThreadLoad());
-			}
+			m_models.clear();
 		}
 
 		void ComponentModel::Update(float elapsedTime)
 		{
-			if (m_pModelInst != nullptr)
+			for (auto& modelData : m_models)
 			{
-				m_pModelInst->Update(elapsedTime, m_pOwner->GetWorldMatrix());
-			}
-
-			for (auto iter : m_umapChild)
-			{
-				iter.second->Update(elapsedTime);
+				modelData.pModelInstnace->Update(elapsedTime, m_pOwner->GetWorldMatrix());
 			}
 		}
 
-		bool ComponentModel::LoadFile(file::Stream& file)
+		void ComponentModel::Add(uint32_t id, graphics::ModelInstancePtr pModelInstnace)
 		{
-			std::string strBuf;
-			file >> strBuf;
+			Remove(id);
 
-			std::string strFullPath(file::GetFilePath(file.GetFilePath()));
-			strFullPath.append(strBuf);
-			strFullPath.append(".emod");
-
-			graphics::ModelLoader loader;
-			loader.InitEast(strBuf.c_str(), strFullPath.c_str());
-			//loader.SetEnableThreadLoad(true);
-
-			Initialize(&loader);
-
-			return true;
+			m_models.emplace_back(id, std::move(pModelInstnace));
 		}
 
-		bool ComponentModel::SaveFile(file::Stream& file)
+		void ComponentModel::Add(uint32_t id, const graphics::ModelLoader& loader)
 		{
-			graphics::IModel* pModel = m_pModelInst->GetModel();
-
-			file << pModel->GetName().c_str();
-
-			std::string strFullPath(file::GetFilePath(file.GetFilePath()));
-			strFullPath.append(pModel->GetName().c_str());
-			strFullPath.append(".emod");
-
-			graphics::IModel::SaveFile(pModel, strFullPath.c_str());
-
-			return true;
+			Add(id, graphics::CreateModelInstance(loader, loader.IsEnableThreadLoad()));
 		}
 
-		graphics::IModel* ComponentModel::GetModel()
+		void ComponentModel::Remove(uint32_t id)
 		{
-			if (m_pModelInst == nullptr)
-				return nullptr;
+			auto iter = std::find_if(m_models.begin(), m_models.end(), [id](const ModelData& modelData)
+			{
+				return modelData.id == id;
+			});
 
-			if (m_pModelInst->GetModel() != nullptr)
-				return m_pModelInst->GetModel();
+			if (iter != m_models.end())
+			{
+				m_models.erase(iter);
+			}
+		}
+
+		graphics::IModelInstance* ComponentModel::GetModelInstance(uint32_t id) const
+		{
+			auto iter = std::find_if(m_models.begin(), m_models.end(), [id](const ModelData& modelData)
+			{
+				return modelData.id == id;
+			});
+
+			if (iter != m_models.end())
+				return iter->pModelInstnace.get();
 
 			return nullptr;
 		}
 
-		bool ComponentModel::IsLoadComplete()
+		bool ComponentModel::IsLoadComplete(uint32_t id) const
 		{
-			if (m_pModelInst == nullptr)
+			graphics::IModelInstance* ModelInstance = GetModelInstance(id);
+			if (ModelInstance == nullptr)
 				return false;
 
-			return m_pModelInst->IsLoadComplete();
+			return ModelInstance->IsLoadComplete();
 		}
 
-		bool ComponentModel::PlayMotion(graphics::MotionLayers emLayer, graphics::IMotion* pMotion, const graphics::MotionPlaybackInfo* pPlayback)
+		bool ComponentModel::PlayMotion(uint32_t id, graphics::MotionLayers emLayer, const graphics::MotionPtr& pMotion, const graphics::MotionPlaybackInfo* pPlayback)
 		{
-			if (m_pModelInst == nullptr || m_pModelInst->GetMotionSystem() == nullptr)
+			graphics::IModelInstance* ModelInstance = GetModelInstance(id);
+			if (ModelInstance == nullptr)
 				return false;
 
-			m_pModelInst->GetMotionSystem()->Play(emLayer, pMotion, pPlayback);
+			if (ModelInstance->GetMotionSystem() == nullptr)
+				return false;
+
+			ModelInstance->GetMotionSystem()->Play(emLayer, pMotion, pPlayback);
 
 			return true;
 		}
 
-		bool ComponentModel::PlayMotion(graphics::MotionLayers emLayer, const graphics::MotionLoader& loader, const graphics::MotionPlaybackInfo* pPlayback)
+		bool ComponentModel::PlayMotion(uint32_t id, graphics::MotionLayers emLayer, const graphics::MotionLoader& loader, const graphics::MotionPlaybackInfo* pPlayback)
 		{
-			graphics::IMotion* pMotion = graphics::IMotion::Create(loader);
+			graphics::IModelInstance* ModelInstance = GetModelInstance(id);
+			if (ModelInstance == nullptr)
+				return false;
+
+			graphics::MotionPtr pMotion = graphics::CreateMotion(loader);
 			if (pMotion == nullptr)
 				return false;
 
-			return PlayMotion(emLayer, pMotion, pPlayback);
+			return PlayMotion(id, emLayer, pMotion, pPlayback);
 		}
 
-		void ComponentModel::StopMotion(graphics::MotionLayers emLayer, float fStopTime)
+		void ComponentModel::StopMotion(uint32_t id, graphics::MotionLayers emLayer, float fStopTime)
 		{
-			if (m_pModelInst == nullptr || m_pModelInst->GetMotionSystem() == nullptr)
+			graphics::IModelInstance* ModelInstance = GetModelInstance(id);
+			if (ModelInstance == nullptr)
 				return;
 
-			m_pModelInst->GetMotionSystem()->Stop(emLayer, fStopTime);
+			if (ModelInstance->GetMotionSystem() == nullptr)
+				return;
+
+			ModelInstance->GetMotionSystem()->Stop(emLayer, fStopTime);
 		}
 	}
 }

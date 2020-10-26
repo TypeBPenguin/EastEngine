@@ -2,19 +2,12 @@
 
 #include "CommonLib/Singleton.h"
 
-#include "RigidBody.h"
-#include "Constraint.h"
+#include "PhysicsDefine.h"
 
-class btBroadphaseInterface;
-class btDiscreteDynamicsWorld;
-
-namespace eastengine
+namespace est
 {
 	namespace physics
 	{
-		class RigidBody;
-		class ConstraintInterface;
-
 		class System : public Singleton<System>
 		{
 			friend Singleton<System>;
@@ -23,14 +16,10 @@ namespace eastengine
 			virtual ~System();
 
 		public:
-			void Update(float fElapsedtime);
+			bool Initialize(const Initializer& initializer);
 
 		public:
-			void AddRigidBody(RigidBody* pRigidBody);
-			void AddRigidBody(RigidBody* pRigidBody, short group, short mask);
-			void AddConstraint(ConstraintInterface* pConstraint, bool isEanbleCollisionBetweenLinkedBodies = true);
-			btDiscreteDynamicsWorld* GetDynamicsWorld();
-			btBroadphaseInterface* GetBoradphaseInterface();
+			void Update(float elapsedtime);
 
 		private:
 			class Impl;

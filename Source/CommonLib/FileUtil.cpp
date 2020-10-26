@@ -3,18 +3,18 @@
 
 #include "StringUtil.h"
 
-namespace eastengine
+namespace est
 {
 	namespace file
 	{
-		std::string GetFileName(const std::string& strPath)
+		std::string GetFileName(const std::string& path)
 		{
-			return PathFindFileNameA(strPath.c_str());
+			return PathFindFileNameA(path.c_str());
 		}
 
-		std::string GetFileNameWithoutExtension(const std::string& strPath)
+		std::string GetFileNameWithoutExtension(const std::string& path)
 		{
-			const std::string strName = GetFileName(strPath);
+			const std::string strName = GetFileName(path);
 			const size_t pos = strName.find_last_of(".");
 			if (pos != std::string::npos)
 				return strName.substr(0, pos);
@@ -22,14 +22,14 @@ namespace eastengine
 			return strName;
 		}
 
-		std::wstring GetFileName(const std::wstring& strPath)
+		std::wstring GetFileName(const std::wstring& path)
 		{
-			return PathFindFileNameW(strPath.c_str());
+			return PathFindFileNameW(path.c_str());
 		}
 
-		std::wstring GetFileNameWithoutExtension(const std::wstring& strPath)
+		std::wstring GetFileNameWithoutExtension(const std::wstring& path)
 		{
-			const std::wstring strName = GetFileName(strPath);
+			const std::wstring strName = GetFileName(path);
 			const size_t pos = strName.find_last_of(L".");
 			if (pos != std::wstring::npos)
 				return strName.substr(0, pos);
@@ -37,211 +37,132 @@ namespace eastengine
 			return strName;
 		}
 
-		std::string GetFileExtension(const std::string& strPath)
+		std::string GetFileExtension(const std::string& path)
 		{
-			const char* str = PathFindExtensionA(strPath.c_str());
+			const char* str = PathFindExtensionA(path.c_str());
 			if (str != nullptr)
 				return str;
 
 			return "";
 		}
 
-		std::wstring GetFileExtension(const std::wstring& strPath)
+		std::wstring GetFileExtension(const std::wstring& path)
 		{
-			const wchar_t* str = PathFindExtensionW(strPath.c_str());
+			const wchar_t* str = PathFindExtensionW(path.c_str());
 			if (str != nullptr)
 				return str;
 
 			return L"";
 		}
 
-		std::string GetFilePath(const std::string& strPath)
+		std::string GetFilePath(const std::string& path)
 		{
-			const size_t pos = strPath.find_last_of("\\");
+			const size_t pos = path.find_last_of("\\");
 			if (pos != std::string::npos)
-				return strPath.substr(0, pos + 1);
+				return path.substr(0, pos + 1);
 
-			return strPath;
+			return path;
 		}
 
-		std::wstring GetFilePath(const std::wstring& strPath)
+		std::wstring GetFilePath(const std::wstring& path)
 		{
-			const size_t pos = strPath.find_last_of(L"\\");
+			const size_t pos = path.find_last_of(L"\\");
 			if (pos != std::wstring::npos)
-				return strPath.substr(0, pos + 1);
+				return path.substr(0, pos + 1);
 
-			return strPath;
+			return path;
 		}
 
-		bool IsExists(const std::string& strPath)
+		bool IsExists(const std::string& path)
 		{
-			return std::experimental::filesystem::exists(strPath);
+			return std::filesystem::exists(path);
 		}
 
-		void GetFiles(const std::string& strDirectoryPath, const std::string& strExtension, std::vector<std::string>& vecFiles_out)
+		bool IsExists(const std::wstring& path)
 		{
-			const std::experimental::filesystem::path path(strDirectoryPath);
+			return std::filesystem::exists(path);
+		}
 
-			std::experimental::filesystem::directory_iterator iter_start(path);
-			std::experimental::filesystem::directory_iterator iter_end;
+		void GetFiles(const std::string& directoryPath, const std::string& extension, std::vector<std::string>& files_out)
+		{
+			const std::filesystem::path path(directoryPath);
+
+			std::filesystem::directory_iterator iter_start(path);
+			std::filesystem::directory_iterator iter_end;
 
 			for (; iter_start != iter_end; ++iter_start)
 			{
-				if (std::experimental::filesystem::is_directory(iter_start->status()) == true)
+				if (std::filesystem::is_directory(iter_start->status()) == true)
 				{
-					const std::string strSubDirectory = iter_start->path().generic_string();
-					GetFiles(strSubDirectory, strExtension, vecFiles_out);
+					const std::string subDirectory = iter_start->path().generic_string();
+					GetFiles(subDirectory, extension, files_out);
 				}
-				else if (strExtension.empty() == true || strExtension == ".*" || iter_start->path().extension() == strExtension)
+				else if (extension.empty() == true || extension == ".*" || iter_start->path().extension() == extension)
 				{
-					vecFiles_out.emplace_back(iter_start->path().generic_string());
+					files_out.emplace_back(iter_start->path().generic_string());
 				}
 			}
 		}
 
-		const char* GetPath(EmPath emPath)
+		void GetFiles(const std::wstring& directoryPath, const std::wstring& extension, std::vector<std::wstring>& files_out)
 		{
-			switch (emPath)
+			const std::filesystem::path path(directoryPath);
+
+			std::filesystem::directory_iterator iter_start(path);
+			std::filesystem::directory_iterator iter_end;
+
+			for (; iter_start != iter_end; ++iter_start)
 			{
-			case EmPath::eFont:
-			{
-				static std::string strPath;
-
-				if (strPath.empty() == false)
-					return strPath.c_str();
-
-				strPath = GetDataPath();
-				strPath.append("Font\\");
-
-				return strPath.c_str();
+				if (std::filesystem::is_directory(iter_start->status()) == true)
+				{
+					const std::wstring subDirectory = iter_start->path();
+					GetFiles(subDirectory, extension, files_out);
+				}
+				else if (extension.empty() == true || extension == L".*" || iter_start->path().extension() == extension)
+				{
+					files_out.emplace_back(iter_start->path());
+				}
 			}
-			break;
-			case EmPath::eFx:
-			{
-				static std::string strPath;
-
-				if (strPath.empty() == false)
-					return strPath.c_str();
-
-				strPath = GetDataPath();
-				strPath.append("Fx\\");
-
-				return strPath.c_str();
-			}
-			break;
-			case EmPath::eLua:
-			{
-				static std::string strPath;
-
-				if (strPath.empty() == false)
-					return strPath.c_str();
-
-				strPath = GetDataPath();
-				strPath.append("Lua\\");
-
-				return strPath.c_str();
-			}
-			break;
-			case EmPath::eTexture:
-			{
-				static std::string strPath;
-
-				if (strPath.empty() == false)
-					return strPath.c_str();
-
-				strPath = GetDataPath();
-				strPath.append("Texture\\");
-
-				return strPath.c_str();
-			}
-			break;
-			case EmPath::eUI:
-			{
-				static std::string strPath;
-
-				if (strPath.empty() == false)
-					return strPath.c_str();
-
-				strPath = GetDataPath();
-				strPath.append("UI\\");
-
-				return strPath.c_str();
-			}
-			break;
-			case EmPath::eXML:
-			{
-				static std::string strPath;
-
-				if (strPath.empty() == false)
-					return strPath.c_str();
-
-				strPath = GetDataPath();
-				strPath.append("XML\\");
-
-				return strPath.c_str();
-			}
-			break;
-			case EmPath::eSound:
-			{
-				static std::string strPath;
-
-				if (strPath.empty() == false)
-					return strPath.c_str();
-
-				strPath = GetDataPath();
-				strPath.append("Sound\\");
-
-				return strPath.c_str();
-			}
-			break;
-			}
-
-			return GetBinPath();
 		}
 
-		const char* GetDataPath()
+		const wchar_t* GetEngineDataPath()
 		{
-			static std::string strPath;
+			static std::wstring path;
+			if (path.empty() == false)
+				return path.c_str();
 
-			if (strPath.empty() == false)
-				return strPath.c_str();
-
-			strPath = GetBinPath();
-			strPath.append("Data\\");
-
-			return strPath.c_str();
+			path = string::MultiToWide(EST_DATA_PATH);
+			return path.c_str();
 		}
 
-		const char* GetBinPath()
+		const wchar_t* GetBinPath()
 		{
-			static std::string strPath;
+			static std::wstring path;
+			if (path.empty() == false)
+				return path.c_str();
 
-			if (strPath.empty() == false)
-				return strPath.c_str();
-
-			char strModulePath[MAX_PATH];
+			wchar_t strModulePath[MAX_PATH]{};
 			GetModuleFileName(NULL, strModulePath, MAX_PATH);	// 실행파일경로
 
 			// 실행파일명 제거
-			strPath = strModulePath;
-			strPath = GetFilePath(strPath);
+			path = strModulePath;
+			path = GetFilePath(path);
 
-			return strPath.c_str();
+			return path.c_str();
 		}
 
-		const char* GetProgramFileName()
+		const wchar_t* GetProgramFileName()
 		{
-			static std::string strPath;
+			static std::wstring path;
+			if (path.empty() == false)
+				return path.c_str();
 
-			if (strPath.empty() == false)
-				return strPath.c_str();
-
-			char strModulePath[MAX_PATH];
+			wchar_t strModulePath[MAX_PATH]{};
 			GetModuleFileName(NULL, strModulePath, MAX_PATH);	// 실행파일경로
 
-			strPath = GetFileNameWithoutExtension(strModulePath);
+			path = GetFileNameWithoutExtension(strModulePath);
 
-			return strPath.c_str();
+			return path.c_str();
 		}
 	}
 }

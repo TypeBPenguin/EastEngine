@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "Mouse.h"
 
-namespace eastengine
+namespace est
 {
 	namespace input
 	{
@@ -47,7 +47,7 @@ namespace eastengine
 
 		void MouseInstance::Update()
 		{
-			TRACER_EVENT("MouseInstance::Update");
+			TRACER_EVENT(L"MouseInstance::Update");
 			memory::Copy(&m_OldMouseState, sizeof(m_OldMouseState), &m_CurMouseState, sizeof(m_CurMouseState));
 
 			HRESULT hr = m_pMouse->GetDeviceState(sizeof(m_CurMouseState), reinterpret_cast<void**>(&m_CurMouseState));

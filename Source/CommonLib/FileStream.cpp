@@ -4,7 +4,7 @@
 #include "FileUtil.h"
 #include "StringUtil.h"
 
-namespace eastengine
+namespace est
 {
 	namespace file
 	{
@@ -21,7 +21,7 @@ namespace eastengine
 			Close();
 		}
 
-		bool Stream::Open(const char* fileName, OpenMode emMode)
+		bool Stream::Open(const wchar_t* fileName, OpenMode emMode)
 		{
 			m_emOpenMode = emMode;
 
@@ -40,7 +40,7 @@ namespace eastengine
 			if (m_file.bad())
 				return false;
 
-			m_fileSize = std::experimental::filesystem::file_size(fileName);
+			m_fileSize = std::filesystem::file_size(fileName);
 
 			m_path = fileName;
 
@@ -60,21 +60,6 @@ namespace eastengine
 		void Stream::Clear()
 		{
 			m_file.clear();
-		}
-
-		size_t Stream::GetFileSize() const
-		{
-			return m_fileSize;
-		}
-
-		const std::string& Stream::GetFilePath() const
-		{
-			return m_path;
-		}
-
-		uint32_t Stream::GetOpenMode() const
-		{
-			return m_emOpenMode;
 		}
 
 		BinaryReader Stream::GetBinaryReader()

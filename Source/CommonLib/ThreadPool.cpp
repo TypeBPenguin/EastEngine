@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "ThreadPool.h"
 
-namespace eastengine
+namespace est
 {
 	namespace thread
 	{

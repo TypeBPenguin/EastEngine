@@ -2,7 +2,7 @@
 
 #include "InputInterface.h"
 
-namespace eastengine
+namespace est
 {
 	namespace input
 	{
@@ -28,10 +28,10 @@ namespace eastengine
 			bool IsOldKeyDown(keyboard::KeyCode emKeyCode) const { return (m_oldKeyState[emKeyCode] & 0x80) != 0; }
 
 		private:
-			struct IDirectInputDevice8A* m_pKeyboard;		// 키보드 디바이스
-			std::array<byte, 256> m_oldKeyState;	// 각 키들의 이전 상태
-			std::array<byte, 256> m_curKeyState;	// 각 키들의 현재 상태
-			byte* m_pCurKeyState;
+			struct IDirectInputDevice8A* m_pKeyboard{ nullptr };		// 키보드 디바이스
+			std::array<byte, 256> m_oldKeyState{ 0 };	// 각 키들의 이전 상태
+			std::array<byte, 256> m_curKeyState{ 0 };	// 각 키들의 현재 상태
+			byte* m_pCurKeyState{ nullptr };
 		};
 	}
 }

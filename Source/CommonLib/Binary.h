@@ -3,7 +3,7 @@
 #include "Memory.h"
 #include "StringUtil.h"
 
-namespace eastengine
+namespace est
 {
 	class BinaryWriter
 	{

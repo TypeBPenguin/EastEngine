@@ -14,7 +14,6 @@
 #include "CommonLib/CommonLib.h"
 
 #include <list>
-#include <boost/unordered_map.hpp>
 
 #include "fmod.hpp"
 #include "fmod_errors.h"

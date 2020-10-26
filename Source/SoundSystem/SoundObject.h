@@ -2,14 +2,14 @@
 
 #include "SoundDefine.h"
 
-namespace eastengine
+namespace est
 {
 	namespace sound
 	{
 		class Sound
 		{
 		public:
-			Sound(const std::string& strFilePath, FMOD::Sound* pSound, int mode);
+			Sound(const std::wstring& filePath, FMOD::Sound* pSound, int mode);
 			~Sound();
 
 		public:
@@ -22,7 +22,7 @@ namespace eastengine
 			int GetMode() const { return m_mode; }
 
 		private:
-			std::string m_strFilePath;
+			std::wstring m_filePath;
 
 			FMOD::Sound* m_pInterface{ nullptr };
 			int m_mode{ 0 };
@@ -44,7 +44,7 @@ namespace eastengine
 			};
 
 		public:
-			void Callback(FMOD_CHANNEL_CALLBACKTYPE type, void* pCommanddata1, void* pCommanddata2);
+			void Callback(FMOD_CHANNELCONTROL_CALLBACK_TYPE type, void* pCommanddata1, void* pCommanddata2);
 			void Resume();
 			void Pause();
 			void Mute();

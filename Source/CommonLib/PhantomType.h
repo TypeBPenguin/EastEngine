@@ -1,6 +1,6 @@
 #pragma once
 
-namespace eastengine
+namespace est
 {
 	template <typename PHANTOM_TYPE, typename VALUE>
 	struct PhantomType
@@ -9,6 +9,7 @@ namespace eastengine
 		VALUE value{ PHANTOM_TYPE::DefaultValue() };
 
 	public:
+		PhantomType() = default;
 		explicit PhantomType(const VALUE& value)
 			: value(value)
 		{

@@ -1,18 +1,31 @@
 #include "stdafx.h"
 #include "GameObject.h"
 
-#include "CommonLib/FileStream.h"
-
-#include "Actor.h"
-#include "Terrain.h"
-#include "Skybox.h"
-
 #include "GameObjectManager.h"
 
-namespace eastengine
+namespace est
 {
 	namespace gameobject
 	{
+		void GameObjectDeleter::operator()(IGameObject* pGameObject)
+		{
+			switch (pGameObject->GetType())
+			{
+			case eActor:
+				GameObjectManager::GetInstance()->RemoveActor(static_cast<IActor*>(pGameObject));
+				break;
+			case eTerrain:
+				GameObjectManager::GetInstance()->RemoveTerrain(static_cast<ITerrain*>(pGameObject));
+				break;
+			case eSky:
+				GameObjectManager::GetInstance()->RemoveSkybox(static_cast<ISkybox*>(pGameObject));
+				break;
+			default:
+				LOG_ERROR(L"failed to remove gameobject, unknown object type : %d", pGameObject->GetType());
+				break;
+			}
+		}
+
 		IGameObject::IGameObject(const Handle& handle)
 			: m_handle(handle)
 		{
@@ -23,120 +36,9 @@ namespace eastengine
 		{
 		}
 
-		IActor* IActor::CreateByFile(const char* strFilePath)
-		{
-			file::Stream file;
-			if (file.Open(strFilePath, file::eReadBinary) == false)
-			{
-				LOG_WARNING("Can't open to file : %s", strFilePath);
-				return nullptr;
-			}
-
-			std::string strBuf;
-			file >> strBuf;
-
-			IActor* pActor = GameObjectManager::GetInstance()->CreateActor(strBuf.c_str());
-
-			uint32_t nComponentSize = 0;
-			file >> nComponentSize;
-
-			for (uint32_t i = 0; i < nComponentSize; ++i)
-			{
-				strBuf.clear();
-				file >> strBuf;
-
-				IComponent::Type emType = IComponent::GetType(strBuf.c_str());
-				if (emType != IComponent::TypeCount)
-				{
-					IComponent* pComponent = pActor->CreateComponent(emType);
-					pComponent->LoadFile(file);
-				}
-			}
-
-			file.Close();
-
-			return pActor;
-		}
-
-		IActor* IActor::Create(const string::StringID& strName)
-		{
-			return GameObjectManager::GetInstance()->CreateActor(strName);
-		}
-
-		void IActor::Destroy(IActor** ppActor)
-		{
-			if (ppActor == nullptr || *ppActor == nullptr)
-				return;
-
-			Actor* pActor = static_cast<Actor*>(*ppActor);
-			pActor->SetDestroy(true);
-
-			*ppActor = nullptr;
-		}
-
-		bool IActor::SaveFile(IActor* pActor, const char* strFilePath)
-		{
-			file::Stream file;
-			if (file.Open(strFilePath, file::eWriteBinary) == false)
-			{
-				LOG_WARNING("Can't open to file : %s", strFilePath);
-				return false;
-			}
-
-			file << pActor->GetName().c_str();
-
-			uint32_t nCount = 0;
-			for (int i = 0; i < IComponent::TypeCount; ++i)
-			{
-				IComponent* pComponent = pActor->GetComponent(static_cast<IComponent::Type>(i));
-				if (pComponent != nullptr)
-				{
-					++nCount;
-				}
-			}
-
-			file << nCount;
-
-			for (int i = 0; i < IComponent::TypeCount; ++i)
-			{
-				IComponent* pComponent = pActor->GetComponent(static_cast<IComponent::Type>(i));
-				if (pComponent != nullptr)
-				{
-					file << IComponent::ToString(pComponent->GetComponentType());
-
-					pComponent->SaveFile(file);
-				}
-			}
-
-			file.Close();
-
-			return true;
-		}
-
 		ITerrain::ITerrain(const Handle& handle)
 			: IGameObject(handle)
 		{
-		}
-
-		ITerrain* ITerrain::Create(const string::StringID& strName, const TerrainProperty& terrainProperty)
-		{
-			return GameObjectManager::GetInstance()->CreateTerrain(strName, terrainProperty);
-		}
-
-		ITerrain* ITerrain::CreateAsync(const string::StringID& strName, const TerrainProperty& terrainProperty)
-		{
-			return GameObjectManager::GetInstance()->CreateTerrainAsync(strName, terrainProperty);
-		}
-
-		void ITerrain::Destroy(ITerrain** ppTerrain)
-		{
-			if (ppTerrain == nullptr || *ppTerrain == nullptr)
-				return;
-
-			Terrain* pTerrain = static_cast<Terrain*>(*ppTerrain);
-			pTerrain->SetDestroy(true);
-
-			*ppTerrain = nullptr;
 		}
 
 		ISkybox::ISkybox(const Handle& handle)
@@ -144,20 +46,24 @@ namespace eastengine
 		{
 		}
 
-		ISkybox* ISkybox::Create(const string::StringID& strName, const SkyboxProperty& property)
+		ActorPtr CreateActor(const string::StringID& name)
 		{
-			return GameObjectManager::GetInstance()->CreateSkybox(strName, property);
+			return GameObjectManager::GetInstance()->CreateActor(name);
 		}
 
-		void ISkybox::Destroy(ISkybox** ppSkybox)
+		SkyboxPtr CreateSkybox(const string::StringID& name, const SkyboxProperty& skyProperty)
 		{
-			if (ppSkybox == nullptr || *ppSkybox == nullptr)
-				return;
+			return GameObjectManager::GetInstance()->CreateSkybox(name, skyProperty);
+		}
 
-			Skybox* pSkybox = static_cast<Skybox*>(*ppSkybox);
-			pSkybox->SetDestroy(true);
+		TerrainPtr CreateTerrain(const string::StringID& name, const TerrainProperty& terrainProperty)
+		{
+			return GameObjectManager::GetInstance()->CreateTerrain(name, terrainProperty);
+		}
 
-			*ppSkybox = nullptr;
+		TerrainPtr CreateTerrainAsync(const string::StringID& name, const TerrainProperty& terrainProperty)
+		{
+			return GameObjectManager::GetInstance()->CreateTerrainAsync(name, terrainProperty);
 		}
 	}
 }

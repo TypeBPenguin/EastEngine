@@ -17,5 +17,4 @@
 #include <queue>
 #include <stack>
 
-#include <luabind/luabind.hpp>
 #include <lua.hpp>

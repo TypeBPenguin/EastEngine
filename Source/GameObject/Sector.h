@@ -2,7 +2,7 @@
 
 #include "GameObject.h"
 
-namespace eastengine
+namespace est
 {
 	namespace gameobject
 	{
@@ -64,19 +64,19 @@ namespace eastengine
 			bool IsVisibleTile() { return m_isVisibleTile; }
 			void SetVisibleTile(bool bVisibleTile) { m_isVisibleTile = bVisibleTile; }
 
-			void SetNearSector(EmSector::Dir emSectorDir, Sector* pSector) { if (pSector == nullptr) return; m_vecNearSector[emSectorDir] = pSector; }
+			void SetNearSector(EmSector::Dir emSectorDir, Sector* pSector) { if (pSector == nullptr) return; m_nearSector[emSectorDir] = pSector; }
 
 		public:
 			const math::int2& GetCoordinate() { return m_n2Coordinate; }
 
 		private:
 			SectorMgr* m_pSectorMgr{ nullptr };
-			IActor* m_pActor{ nullptr };
+			ActorPtr m_pActor{ nullptr };
 
 			float m_fRadius{ 0.f };
 			math::int2 m_n2Coordinate;
 
-			std::vector<Sector*> m_vecNearSector;
+			std::vector<Sector*> m_nearSector;
 			tsl::robin_map<IGameObject::Handle, IActor*> m_umapActor;
 
 			bool m_isVisibleTile{ false };
@@ -87,9 +87,9 @@ namespace eastengine
 namespace std
 {
 	template <>
-	struct hash<eastengine::gameobject::SectorKey>
+	struct hash<est::gameobject::SectorKey>
 	{
-		std::size_t operator()(const eastengine::gameobject::SectorKey& key) const
+		std::size_t operator()(const est::gameobject::SectorKey& key) const
 		{
 			return std::hash<uint64_t>{}((static_cast<uint64_t>(key.x) << 32) | key.y);
 		}

@@ -2,7 +2,9 @@
 
 #include "Singleton.h"
 
-namespace eastengine
+#define ENABLE_TRACING
+
+namespace est
 {
 	namespace performance
 	{
@@ -11,31 +13,48 @@ namespace eastengine
 			void RefreshState();
 
 			void Start();
-			void End(const char* strSaveFilePath);
+			void End(const wchar_t* saveFilePath);
 
-			void BeginEvent(const char* strTitle, const char* strCategory, const char* strFile, int nLine);
-			void EndEvent();
+			void BeginEvent(const wchar_t* title, const wchar_t* category, const wchar_t* file, int line);
+			void EndEvent(bool isForceRecord);
 
 			template <typename T>
-			void PushArgs(const char* strKey, T value);
+			void PushArgs(const wchar_t* key, T value);
 
 			float TracingTime();
 			bool IsTracing();
 
-			struct Profiler
+			class Profiler
 			{
-				Profiler(const char* strTitle, const char* strCategory, const char* strFile, int nLine);
+			public:
+				Profiler(const wchar_t* title, const wchar_t* category, const wchar_t* file, int line, bool isForceRecord);
 				~Profiler();
+
+			private:
+				bool m_isForceRecord{ false };
 			};
 		}
 	}
 }
 
-#define TRACER_START()				eastengine::performance::tracer::Start()
-#define TRACER_END(filePath)		eastengine::performance::tracer::End(filePath)
-#define TRACER_PROFILER(title, function, file, line)	eastengine::performance::tracer::Profiler profiler_##line(title, function, file, line)
-#define TRACER_PROFILER_DEFINE(title, function, file, line)	TRACER_PROFILER(title, function, file, line)
-#define TRACER_EVENT(title)			TRACER_PROFILER_DEFINE(title, __FUNCTION__, __FILE__, __LINE__)
-#define TRACER_BEGINEVENT(title)	eastengine::performance::tracer::BeginEvent(title, __FUNCTION__, __FILE__, __LINE__)
-#define TRACER_ENDEVENT()			eastengine::performance::tracer::EndEvent()
-#define TRACER_PUSHARGS(key, value)	eastengine::performance::tracer::PushArgs(key, value)
+#ifdef ENABLE_TRACING
+#define TRACER_START()				est::performance::tracer::Start()
+#define TRACER_END(filePath)		est::performance::tracer::End(filePath)
+#define TRACER_PROFILER(title, function, file, line, isForceRecord)	est::performance::tracer::Profiler profiler_##line(title, function, file, line, isForceRecord)
+#define TRACER_PROFILER_DEFINE(title, function, file, line, isForceRecord)	TRACER_PROFILER(title, function, file, line, isForceRecord)
+#define TRACER_EVENT(title)			TRACER_PROFILER_DEFINE(title, L"", __FILEW__, __LINE__, false)
+#define TRACER_EVENT_FORCE_RECORD(title)			TRACER_PROFILER_DEFINE(title, L"", __FILEW__, __LINE__, true)
+#define TRACER_BEGINEVENT(title)	est::performance::tracer::BeginEvent(title, L"", __FILEW__, __LINE__)
+#define TRACER_ENDEVENT()			est::performance::tracer::EndEvent(false)
+#define TRACER_PUSHARGS(key, value)	est::performance::tracer::PushArgs(key, value)
+#else
+#define TRACER_START()
+#define TRACER_END(filePath)
+#define TRACER_PROFILER(title, function, file, line, isForceRecord)
+#define TRACER_PROFILER_DEFINE(title, function, file, line, isForceRecord)
+#define TRACER_EVENT(title)
+#define TRACER_EVENT_FORCE_RECORD(title)
+#define TRACER_BEGINEVENT(title)
+#define TRACER_ENDEVENT()
+#define TRACER_PUSHARGS(key, value)
+#endif

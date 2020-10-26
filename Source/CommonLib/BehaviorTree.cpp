@@ -4,15 +4,15 @@
 #include "Math.h"
 #include "Log.h"
 
-namespace eastengine
+namespace est
 {
-	namespace StrID
+	namespace sid
 	{
 		RegisterStringID(Root);
 	}
 
 	BehaviorTree::BehaviorTree()
-		: m_pRoot(std::make_unique<Root>(StrID::Root))
+		: m_pRoot(std::make_unique<Root>(sid::Root))
 	{
 	}
 
@@ -440,7 +440,7 @@ namespace eastengine
 	{
 		if (m_func == nullptr)
 		{
-			LOG_ERROR("Action Node Function is nullptr : %s", GetName().c_str());
+			LOG_ERROR(L"Action Node Function is nullptr : %s", GetName().c_str());
 		}
 	}
 
@@ -452,7 +452,7 @@ namespace eastengine
 	{
 		if (m_func == nullptr)
 		{
-			LOG_ERROR("Action Node Function is nullptr : %s", GetName().c_str());
+			LOG_ERROR(L"Action Node Function is nullptr : %s", GetName().c_str());
 			return State::eFail;
 		}
 

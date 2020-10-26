@@ -6,7 +6,7 @@
 #include "Keyboard.h"
 #include "GamePad.h"
 
-namespace eastengine
+namespace est
 {
 	namespace input
 	{

@@ -3,7 +3,7 @@
 
 #include "SoundSystem.h"
 
-namespace eastengine
+namespace est
 {
 	namespace sound
 	{
@@ -12,14 +12,14 @@ namespace eastengine
 			System::GetInstance()->SetListenerAttributes(listenerAttributes);
 		}
 
-		ChannelID Play2D(const std::string& strSoundFilePath, float fVolume, int mode)
+		ChannelID Play2D(const std::wstring& soundFilePath, float volume, int mode)
 		{
-			return System::GetInstance()->Play2D(strSoundFilePath, fVolume, mode);
+			return System::GetInstance()->Play2D(soundFilePath, volume, mode);
 		}
 
-		ChannelID Play3D(const std::string& strSoundFilePath, const math::float3& f3Position, const math::float3& f3Velocity, float fVolume, int mode)
+		ChannelID Play3D(const std::wstring& soundFilePath, const math::float3& position, const math::float3& f3Velocity, float volume, int mode)
 		{
-			return System::GetInstance()->Play3D(strSoundFilePath, f3Position, f3Velocity, fVolume, mode);
+			return System::GetInstance()->Play3D(soundFilePath, position, f3Velocity, volume, mode);
 		}
 
 		void Stop(const ChannelID& channelID, float fFadeOutTime)

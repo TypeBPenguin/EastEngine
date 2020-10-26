@@ -4,7 +4,7 @@
 #include "imgui.h"
 #include "imguiConvertor.h"
 
-using namespace eastengine;
+using namespace est;
 
 const float NODE_SLOT_RADIUS = 4.f;
 const math::float2 NODE_WINDOW_PADDING(8.f, 8.f);
@@ -12,7 +12,7 @@ const math::float2 NODE_WINDOW_PADDING(8.f, 8.f);
 static inline ImVec2 operator+(const ImVec2& lhs, const ImVec2& rhs) { return ImVec2(lhs.x + rhs.x, lhs.y + rhs.y); }
 static inline ImVec2 operator-(const ImVec2& lhs, const ImVec2& rhs) { return ImVec2(lhs.x - rhs.x, lhs.y - rhs.y); }
 
-void MaterialNode::InOutSlot::Render(ImDrawList* pDrawList, const eastengine::math::float2& f2Offset)
+void MaterialNode::InOutSlot::Render(ImDrawList* pDrawList, const est::math::float2& f2Offset)
 {
 	isActive = false;
 	isHovered = false;
@@ -75,7 +75,7 @@ void MaterialNode::InOutSlot::Render(ImDrawList* pDrawList, const eastengine::ma
 	}
 }
 
-void MaterialNode::InOutSlot::RenderBackground(ImDrawList* pDrawList, const eastengine::math::float2& f2Offset)
+void MaterialNode::InOutSlot::RenderBackground(ImDrawList* pDrawList, const est::math::float2& f2Offset)
 {
 	math::float2 f2RectMin(f2Offset + f2Pos);
 	f2RectMin.y -= f2Size.y;
@@ -141,7 +141,7 @@ void MaterialNode::InOutSlot::RenderBackground(ImDrawList* pDrawList, const east
 	pDrawList->AddCircleFilled(math::Convert(f2Offset + f2LinkerPos), NODE_SLOT_RADIUS, ImColor(150, 150, 150, 150));
 }
 
-void MaterialNode::RenderNode(ImDrawList* pDrawList, const eastengine::math::float2& f2Offset)
+void MaterialNode::RenderNode(ImDrawList* pDrawList, const est::math::float2& f2Offset)
 {
 	ImGui::Text("%s", m_strName.c_str());
 
@@ -168,7 +168,7 @@ void MaterialNode::RenderNode(ImDrawList* pDrawList, const eastengine::math::flo
 	}
 }
 
-void MaterialNode::RenderNodeBackground(ImDrawList* pDrawList, const eastengine::math::float2& f2Offset)
+void MaterialNode::RenderNodeBackground(ImDrawList* pDrawList, const est::math::float2& f2Offset)
 {
 	if (m_vecInputSlot.empty() == false)
 	{
@@ -187,10 +187,10 @@ void MaterialNode::RenderNodeBackground(ImDrawList* pDrawList, const eastengine:
 	}
 }
 
-void MaterialNode::Update(ImDrawList* pDrawList, const eastengine::math::float2& f2Offset)
+void MaterialNode::Update(ImDrawList* pDrawList, const est::math::float2& f2Offset)
 {
 	ImGui::PushID(m_nID);
-	eastengine::math::float2 f2NodeRectMin(f2Offset + m_f2Pos);
+	est::math::float2 f2NodeRectMin(f2Offset + m_f2Pos);
 
 	// Display node contents first
 	pDrawList->ChannelsSetCurrent(1); // Foreground
@@ -247,7 +247,7 @@ void MaterialNode::Update(ImDrawList* pDrawList, const eastengine::math::float2&
 	ImGui::PopID();
 }
 
-void MaterialNodeManager::ValueFloatNode::RenderNode(ImDrawList* pDrawList, const eastengine::math::float2& f2Offset)
+void MaterialNodeManager::ValueFloatNode::RenderNode(ImDrawList* pDrawList, const est::math::float2& f2Offset)
 {
 	ImGui::Text("%s", m_strName.c_str());
 
@@ -280,7 +280,7 @@ void MaterialNodeManager::ValueFloatNode::RenderNode(ImDrawList* pDrawList, cons
 	}
 }
 
-void MaterialNodeManager::ValueFloatNode::RenderNodeBackground(ImDrawList* pDrawList, const eastengine::math::float2& f2Offset)
+void MaterialNodeManager::ValueFloatNode::RenderNodeBackground(ImDrawList* pDrawList, const est::math::float2& f2Offset)
 {
 	math::float2 f2NodeRectMin(f2Offset + m_f2Pos);
 	f2NodeRectMin.x += m_f2Size.x * 0.1f;
@@ -298,7 +298,7 @@ void MaterialNodeManager::ValueFloatNode::RenderNodeBackground(ImDrawList* pDraw
 	MaterialNode::RenderNodeBackground(pDrawList, f2Offset);
 }
 
-void MaterialNodeManager::ValueFloat2Node::RenderNode(ImDrawList* pDrawList, const eastengine::math::float2& f2Offset)
+void MaterialNodeManager::ValueFloat2Node::RenderNode(ImDrawList* pDrawList, const est::math::float2& f2Offset)
 {
 	ImGui::Text("%s", m_strName.c_str());
 
@@ -333,7 +333,7 @@ void MaterialNodeManager::ValueFloat2Node::RenderNode(ImDrawList* pDrawList, con
 	}
 }
 
-void MaterialNodeManager::ValueFloat2Node::RenderNodeBackground(ImDrawList* pDrawList, const eastengine::math::float2& f2Offset)
+void MaterialNodeManager::ValueFloat2Node::RenderNodeBackground(ImDrawList* pDrawList, const est::math::float2& f2Offset)
 {
 	math::float2 f2NodeRectMin(f2Offset + m_f2Pos);
 	f2NodeRectMin.x += m_f2Size.x * 0.075f;
@@ -382,7 +382,7 @@ void MaterialNodeManager::Update(bool& isOpend)
 	}
 
 	bool isMouseDragging = ImGui::IsMouseDragging(0);
-	//LOG_MESSAGE("IsMouseDragging[%d], SelectedID[%d, %d], HoveredID[%d, %d]", isMouseDragging, m_nSelectedNodeID, m_nSelectedNodeSlotIndex, m_nHoveredNodeID, m_nHoveredNodeSlotIndex);
+	//LOG_MESSAGE(L"IsMouseDragging[%d], SelectedID[%d, %d], HoveredID[%d, %d]", isMouseDragging, m_nSelectedNodeID, m_nSelectedNodeSlotIndex, m_nHoveredNodeID, m_nHoveredNodeSlotIndex);
 
 	m_nHoveredNodeIDInList = -1;
 	m_nHoveredNodeIDInScene = -1;

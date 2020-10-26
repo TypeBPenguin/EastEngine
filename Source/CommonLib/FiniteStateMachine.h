@@ -2,7 +2,7 @@
 
 #include "StringTable.h"
 
-namespace eastengine
+namespace est
 {
 	class FiniteStateMachine
 	{

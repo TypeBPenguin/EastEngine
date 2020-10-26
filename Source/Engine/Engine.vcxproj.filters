@@ -25,6 +25,9 @@
     <Filter Include="Engine\FPS">
       <UniqueIdentifier>{09a62c16-87cb-434d-a3c9-dbac7cce942b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Engine\Util">
+      <UniqueIdentifier>{0f1f35b0-09cb-4e79-9716-d56396e01b03}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -45,6 +48,9 @@
     <ClCompile Include="SceneManager.cpp">
       <Filter>Engine\Scene</Filter>
     </ClCompile>
+    <ClCompile Include="EngineUtil.cpp">
+      <Filter>Engine\Util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -64,6 +70,9 @@
     </ClInclude>
     <ClInclude Include="SceneManager.h">
       <Filter>Engine\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineUtil.h">
+      <Filter>Engine\Util</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

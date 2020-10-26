@@ -4,7 +4,7 @@
 
 #include "Binary.h"
 
-namespace eastengine
+namespace est
 {
 	namespace file
 	{
@@ -29,7 +29,7 @@ namespace eastengine
 			~Stream();
 
 		public:
-			bool Open(const char* fileName, OpenMode emMode = OpenMode::eNone);
+			bool Open(const wchar_t* fileName, OpenMode emMode = OpenMode::eNone);
 			void Close();
 
 			bool Eof() const;
@@ -37,9 +37,9 @@ namespace eastengine
 			void Clear();
 
 		public:
-			size_t GetFileSize() const;
-			const std::string& GetFilePath() const;
-			uint32_t GetOpenMode() const;
+			size_t GetFileSize() const { return m_fileSize; }
+			const std::wstring& GetFilePath() const { return m_path; }
+			uint32_t GetOpenMode() const { return m_emOpenMode; }
 
 		public:
 			BinaryReader GetBinaryReader();
@@ -192,7 +192,7 @@ namespace eastengine
 
 		private:
 			std::fstream m_file;
-			std::string m_path;
+			std::wstring m_path;
 			OpenMode m_emOpenMode{ eNone };
 			size_t m_fileSize{ 0 };
 

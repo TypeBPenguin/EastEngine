@@ -4,7 +4,7 @@
 
 struct ImDrawList;
 
-namespace eastengine
+namespace est
 {
 	namespace physics
 	{
@@ -44,15 +44,15 @@ private:
 		Axis emAxis = Axis::eX;
 		Type emType = Type::ePosition;
 
-		eastengine::graphics::IVertexBuffer* pVertexBuffer = nullptr;
-		eastengine::graphics::IIndexBuffer* pIndexBuffer = nullptr;
-		eastengine::physics::RigidBody* pRigidBody = nullptr;
+		est::graphics::IVertexBuffer* pVertexBuffer = nullptr;
+		est::graphics::IIndexBuffer* pIndexBuffer = nullptr;
+		est::physics::RigidBody* pRigidBody = nullptr;
 
-		eastengine::math::Matrix matTransform;
+		est::math::Matrix matTransform;
 	};
 
 	std::array<std::array<Controller, Axis::AxisCount>, Type::TypeCount> m_controllers;
-	eastengine::graphics::ISkeletonInstance::IBone* m_pSelectedBone;
+	est::graphics::ISkeletonInstance::IBone* m_pSelectedBone;
 
 	bool m_isBoneMoveMode;
 	bool m_isShowControllerUI;

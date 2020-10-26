@@ -2,7 +2,7 @@
 
 #include "GameObject.h"
 
-namespace eastengine
+namespace est
 {
 	namespace gameobject
 	{
@@ -27,20 +27,20 @@ namespace eastengine
 			bool IsDestroy() const { return m_isDestroy; }
 
 		public:
-			bool Init(const TerrainProperty& terrainProperty, bool isEnableThreadLoad);
+			bool Initialize(const TerrainProperty& terrainProperty, bool isEnableThreadLoad);
 
 		public:
 			virtual float GetHeight(float fPosX, float fPosZ) const override;
-			virtual float GetHeightMin() const override { return m_fHeightMin; }
-			virtual float GetHeightMax() const override { return m_fHeightMax; }
+			virtual float GetHeightMin() const override { return m_heightMin; }
+			virtual float GetHeightMax() const override { return m_heightMax; }
 
 			virtual bool IsBuildComplete() const override { return m_isBuildComplete; }
 
 		private:
 			bool init();
-			bool loadHeightMap(const char* strFilePath);
-			bool loadColorMap(const char* strFilePath);
-			bool loadRawHeightmap(const char* strFilePath);
+			bool loadHeightMap(const wchar_t* strFilePath);
+			bool loadColorMap(const wchar_t* strFilePath);
+			bool loadRawHeightmap(const wchar_t* strFilePath);
 			bool initTerrain();
 
 			std::optional<float> CheckHeightOfTriangle(float x, float z, const math::float3& v0, const math::float3& v1, const math::float3& v2) const;
@@ -49,6 +49,7 @@ namespace eastengine
 			string::StringID m_strName;
 
 			math::Matrix m_matWorld;
+			math::Matrix m_matPrevWorld;
 
 			bool m_isDestroy{ false };
 			bool m_isVisible{ true };
@@ -63,12 +64,12 @@ namespace eastengine
 			};
 			std::vector<HeightMapVertex> m_vecHeightMap;
 
-			graphics::IVertexBuffer* m_pHeightField{ nullptr };
+			graphics::VertexBufferPtr m_pHeightField{ nullptr };
 
-			graphics::ITexture* m_pTexHeightMap{ nullptr };
-			graphics::ITexture* m_pTexColorMap{ nullptr };
-			graphics::ITexture* m_pTexDetailMap{ nullptr };
-			graphics::ITexture* m_pTexDetailNormalMap{ nullptr };
+			graphics::TexturePtr m_pTexHeightMap{ nullptr };
+			graphics::TexturePtr m_pTexColorMap{ nullptr };
+			graphics::TexturePtr m_pTexDetailMap{ nullptr };
+			graphics::TexturePtr m_pTexDetailNormalMap{ nullptr };
 
 			// 아래의 정점 정보는 RigidBody가 삭제되기 전까지 내용을 유지해야함
 			// 아니면 댕글링 빠바방
@@ -76,14 +77,14 @@ namespace eastengine
 			// 여러 RigidBody를 만들어 사용하는 경우가 있기 때문에
 			struct RigidBodyData
 			{
-				std::vector<math::float3> vecVertices;
-				std::vector<uint32_t> vecIndices;
+				std::vector<math::float3> vertices;
+				std::vector<uint32_t> indices;
 			};
 			RigidBodyData m_rigidBodyData;
-			physics::RigidBody* m_pPhysics{ nullptr };
+			std::unique_ptr<physics::IRigidActor> m_pPhysics;
 
-			float m_fHeightMax{ std::numeric_limits<float>::max() };
-			float m_fHeightMin{ std::numeric_limits<float>::min() };
+			float m_heightMax{ std::numeric_limits<float>::max() };
+			float m_heightMin{ std::numeric_limits<float>::min() };
 		};
 	}
 }

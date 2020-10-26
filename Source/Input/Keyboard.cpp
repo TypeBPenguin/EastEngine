@@ -1,15 +1,12 @@
 #include "stdafx.h"
 #include "Keyboard.h"
 
-namespace eastengine
+namespace est
 {
 	namespace input
 	{
 		KeyboardInstance::KeyboardInstance()
-			: m_pKeyboard(nullptr)
 		{
-			m_oldKeyState.fill(0);
-			m_curKeyState.fill(0);
 		}
 
 		KeyboardInstance::~KeyboardInstance()
@@ -44,7 +41,7 @@ namespace eastengine
 
 		void KeyboardInstance::Update()
 		{
-			TRACER_EVENT("KeyboardInstance::Update");
+			TRACER_EVENT(L"KeyboardInstance::Update");
 			memory::Copy(&m_oldKeyState, sizeof(m_oldKeyState), &m_curKeyState, sizeof(m_curKeyState));
 
 			HRESULT hr = m_pKeyboard->GetDeviceState(sizeof(m_curKeyState), reinterpret_cast<void**>(&m_curKeyState));

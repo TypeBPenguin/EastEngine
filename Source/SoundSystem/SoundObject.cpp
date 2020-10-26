@@ -1,12 +1,12 @@
 #include "stdafx.h"
 #include "SoundObject.h"
 
-namespace eastengine
+namespace est
 {
 	namespace sound
 	{
-		Sound::Sound(const std::string& strFilePath, FMOD::Sound* pSound, int mode)
-			: m_strFilePath(strFilePath)
+		Sound::Sound(const std::wstring& filePath, FMOD::Sound* pSound, int mode)
+			: m_filePath(filePath)
 			, m_pInterface(pSound)
 			, m_mode(mode)
 		{
@@ -18,15 +18,15 @@ namespace eastengine
 			m_pInterface->release();
 		}
 
-		FMOD_RESULT F_CALLBACK ChannelCallback(FMOD_CHANNEL* pFmodChannel, FMOD_CHANNEL_CALLBACKTYPE type, void* pCommanddata1, void* pCommanddata2)
+		FMOD_RESULT F_CALLBACK ChannelCallback(FMOD_CHANNELCONTROL* pChannelcontrol, FMOD_CHANNELCONTROL_TYPE controltype, FMOD_CHANNELCONTROL_CALLBACK_TYPE callbacktype, void* pCommanddata1, void* pCommanddata2)
 		{
-			FMOD::Channel* pInterface = reinterpret_cast<FMOD::Channel*>(pFmodChannel);
+			FMOD::ChannelControl* pInterface = reinterpret_cast<FMOD::ChannelControl*>(pChannelcontrol);
 
 			Channel* pChannel = nullptr;
 			const FMOD_RESULT result = pInterface->getUserData(reinterpret_cast<void**>(&pChannel));
 			if (result == FMOD_OK && pChannel != nullptr)
 			{
-				pChannel->Callback(type, pCommanddata1, pCommanddata2);
+				pChannel->Callback(callbacktype, pCommanddata1, pCommanddata2);
 			}
 
 			return FMOD_OK;
@@ -47,27 +47,27 @@ namespace eastengine
 			m_pInterface = nullptr;
 		}
 
-		void Channel::Callback(FMOD_CHANNEL_CALLBACKTYPE type, void* pCommanddata1, void* pCommanddata2)
+		void Channel::Callback(FMOD_CHANNELCONTROL_CALLBACK_TYPE type, void* pCommanddata1, void* pCommanddata2)
 		{
 			switch (type)
 			{
-			case FMOD_CHANNEL_CALLBACKTYPE_END:
+			case FMOD_CHANNELCONTROL_CALLBACK_END:
 			{
 				/* Called when a sound ends. */
 				m_state = eEnd;
 			}
 			break;
-			case FMOD_CHANNEL_CALLBACKTYPE_VIRTUALVOICE:
+			case FMOD_CHANNELCONTROL_CALLBACK_VIRTUALVOICE:
 			{
 				/* Called when a voice is swapped out or swapped in. */
 			}
 			break;
-			case FMOD_CHANNEL_CALLBACKTYPE_SYNCPOINT:
+			case FMOD_CHANNELCONTROL_CALLBACK_SYNCPOINT:
 			{
 				/* Called when a syncpoint is encountered.  Can be from wav file markers. */
 			}
 			break;
-			case FMOD_CHANNEL_CALLBACKTYPE_OCCLUSION:
+			case FMOD_CHANNELCONTROL_CALLBACK_OCCLUSION:
 			{
 				/* Called when the channel has its geometry occlusion value calculated.  Can be used to clamp or change the value. */
 			}

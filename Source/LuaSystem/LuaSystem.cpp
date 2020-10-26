@@ -1,9 +1,7 @@
 #include "stdafx.h"
 #include "LuaSystem.h"
 
-#include "LuaThread.h"
-
-namespace eastengine
+namespace est
 {
 	namespace Lua
 	{
@@ -18,15 +16,11 @@ namespace eastengine
 
 			void SetEnableJIT(bool isEnableJIT);
 
-			bool CompileLua(const char* strFile);
-
-			std::shared_ptr<LuaThread> GetThread();
+			bool CompileLua(const wchar_t* filePath);
 
 		private:
 			bool m_isInitialized{ false };
 			lua_State* m_pLuaState{ nullptr };
-
-			std::vector<std::shared_ptr<LuaThread>> m_vecLuaThread;
 
 			std::unordered_map<string::StringID, std::string> m_umapCompiledLua;
 
@@ -39,8 +33,6 @@ namespace eastengine
 
 		System::Impl::~Impl()
 		{
-			m_vecLuaThread.clear();
-
 			lua_close(m_pLuaState);
 		}
 
@@ -55,12 +47,7 @@ namespace eastengine
 			// 표준 라이브러리 로드
 			luaL_openlibs(m_pLuaState);
 
-			// Lua state에 LuaBind 연결
-			luabind::open(m_pLuaState);
-
 			SetEnableJIT(isEnableJIT);
-
-			m_vecLuaThread.reserve(32);
 
 			m_isInitialized = true;
 
@@ -79,30 +66,31 @@ namespace eastengine
 			}
 		}
 
-		bool System::Impl::CompileLua(const char* strFile)
+		bool System::Impl::CompileLua(const wchar_t* filePath)
 		{
-			int nError = luaL_loadfile(m_pLuaState, strFile);
+			const std::string multiPath = string::WideToMulti(filePath);
+			int nError = luaL_loadfile(m_pLuaState, multiPath.c_str());
 			if (nError != 0)
 			{
-				LOG_ERROR("Can't Load Lua Script : %s", strFile);
+				LOG_ERROR(L"Can't Load Lua Script : %s", filePath);
 				return false;
 			}
 
-			//luaL_dofile(m_pLuaState, strFile);
+			//luaL_dofile(m_pLuaState, filePath);
 
-			/*StringID strFileName = Alofile::GetFileName(strFile);
-			auto iter = m_umapCompiledLua.find(strFileName);
+			/*StringID filePathName = Alofile::GetFileName(filePath);
+			auto iter = m_umapCompiledLua.find(filePathName);
 			if (iter != m_umapCompiledLua.end())
 			{
-			LOG_ERROR("Already compiled file : %s", strFileName.c_str());
+			LOG_ERROR(L"Already compiled file : %s", filePathName.c_str());
 			return false;
 			}
 
 			std::string strCompile;
-			int nError = luaL_loadfile(m_pLuaState, strFile);
+			int nError = luaL_loadfile(m_pLuaState, filePath);
 			if (nError != 0)
 			{
-			LOG_ERROR("Can't Load Lua Script : %s", strFile);
+			LOG_ERROR(L"Can't Load Lua Script : %s", filePath);
 			return false;
 			}
 
@@ -122,38 +110,9 @@ namespace eastengine
 			strCompile = std::string(lua_tostring(m_pLuaState, -1), lua_strlen(m_pLuaState, -1));
 			lua_settop(m_pLuaState, nTop);
 
-			m_umapCompiledLua.insert(std::make_pair(StringID(strFileName.c_str()), strCompile));*/
+			m_umapCompiledLua.insert(std::make_pair(StringID(filePathName.c_str()), strCompile));*/
 
 			return true;
-		}
-
-		std::shared_ptr<LuaThread> System::Impl::GetThread()
-		{
-			size_t nSize = m_vecLuaThread.size();
-			size_t nUseCount = 0;
-			while (m_vecLuaThread.empty() == false)
-			{
-				std::shared_ptr<LuaThread> pThread = m_vecLuaThread[m_nIndex];
-
-				if (pThread->IsIdle() == true)
-				{
-					pThread->SetIdle(false);
-					return m_vecLuaThread[m_nIndex++];
-				}
-
-				++nUseCount;
-				m_nIndex = ++m_nIndex % nSize;
-
-				if (nUseCount >= m_vecLuaThread.size())
-					break;
-			}
-
-			std::shared_ptr<LuaThread> pNewThread = std::make_shared<LuaThread>(m_pLuaState);
-			pNewThread->SetIdle(false);
-
-			m_vecLuaThread.push_back(pNewThread);
-
-			return pNewThread;
 		}
 
 		System::System()
@@ -175,14 +134,9 @@ namespace eastengine
 			m_pImpl->SetEnableJIT(isEnableJIT);
 		}
 
-		bool System::CompileLua(const char* strFile)
+		bool System::CompileLua(const wchar_t* filePath)
 		{
-			return m_pImpl->CompileLua(strFile);
-		}
-
-		std::shared_ptr<LuaThread> System::GetThread()
-		{
-			return m_pImpl->GetThread();
+			return m_pImpl->CompileLua(filePath);
 		}
 	}
 }

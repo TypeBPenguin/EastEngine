@@ -1,0 +1,329 @@
+#ifdef DX12
+#include "../DescriptorTablesDX12.hlsl"
+#endif
+
+#include "../Converter.hlsl"
+
+#ifdef DX11
+
+SamplerState SamplerLinearBorder : register(s1);
+
+#ifndef DEPTH
+SamplerState SamplerLinearWrap : register(s0);
+SamplerState SamplerAnisotropicBorder : register(s2);
+#endif
+
+Texture2D g_texHeightField : register(t0);
+
+#ifndef DEPTH
+Texture2D g_texColor : register(t1);
+
+Texture2D g_texDetail : register(t2);
+Texture2D g_texDetailNormal : register(t3);
+#endif
+
+#define TexHeightField(uv)		g_texHeightField.SampleLevel(SamplerLinearBorder, uv, 0)
+#define TexColor(uv)			g_texColor.Sample(SamplerAnisotropicBorder, uv)
+
+#define TexDetail(uv)			g_texDetail.Sample(SamplerLinearWrap, uv)
+#define TexDetailNormal(uv)		g_texDetailNormal.Sample(SamplerLinearWrap, uv)
+
+#elif DX12
+
+SamplerState SamplerLinearWrap : register(s0, space100);
+SamplerState SamplerLinearBorder : register(s1, space100);
+SamplerState SamplerAnisotropicBorder : register(s2, space100);
+
+#define TexHeightField(uv)		Tex2DTable[g_nTexHeightFieldIndex].SampleLevel(SamplerLinearBorder, uv, 0)
+#define TexColor(uv)			Tex2DTable[g_nTexColor].Sample(SamplerAnisotropicBorder, uv)
+
+#define TexDetail(uv)			Tex2DTable[g_nTexDetail].Sample(SamplerLinearWrap, uv)
+#define TexDetailNormal(uv)		Tex2DTable[g_nTexDetailNormal].Sample(SamplerLinearWrap, uv)
+
+#else
+
+#error "Only support Dx11, Dx12"
+
+#endif
+
+cbuffer cbContents : register(b0)
+{
+	float g_UseDynamicLOD;
+	float g_FrustumCullInHS;
+	float g_DynamicTessFactor;
+	float g_StaticTessFactor;
+
+	float4x4 g_ModelViewProjectionMatrix;
+	float4x4 g_PrevModelViewProjectionMatrix;
+	float4x4 g_matWorld;
+
+	float3 g_CameraPosition;
+	float padding0;
+
+	float3 g_CameraDirection;
+	float padding1;
+
+	float2 g_f2PatchSize;
+	float2 g_f2HeightFieldSize;
+
+#ifdef DX12
+
+	uint g_nTexHeightFieldIndex;
+	uint g_nTexColor;
+	uint g_nTexDetail;
+	uint g_nTexDetailNormal;
+
+#endif
+};
+
+struct DUMMY
+{
+	float Dummmy	: DUMMY;
+};
+
+struct HSIn_Heightfield
+{
+	float2 origin	: ORIGIN;
+};
+
+struct PatchData
+{
+	float Edges[4]	: SV_TessFactor;
+	float Inside[2]	: SV_InsideTessFactor;
+
+	float2 origin	: ORIGIN;
+};
+
+struct PSIn_Diffuse
+{
+	float4 position					: SV_Position;
+
+#ifndef DEPTH
+	centroid float2 texcoord		: TEXCOORD0;
+	centroid float3 normal			: NORMAL;
+	centroid float3 tangent			: TANGENT;
+	centroid float2 texcoord_detail	: TEXCOORD1;
+#endif
+
+#ifdef USE_MOTION_BLUR
+	centroid float4 currPositionCS : TEXCOORD2;
+	centroid float4 prevPositionCS : TEXCOORD3;
+#endif
+};
+
+// calculating tessellation factor. It is either constant or hyperbolic depending on g_UseDynamicLOD switch
+float CalculateTessellationFactor(float distance)
+{
+	return lerp(g_StaticTessFactor, g_DynamicTessFactor * (1.f / (0.015f * distance)), g_UseDynamicLOD);
+}
+
+// to avoid vertex swimming while tessellation varies, one can use mipmapping for displacement maps
+// it's not always the best choice, but it effificiently suppresses high frequencies at zero cost
+float CalculateMIPLevelForDisplacementTextures(float distance)
+{
+	return log2(128 / CalculateTessellationFactor(distance));
+}
+
+HSIn_Heightfield PassThroughVS(float4 PatchParams : POSITION)
+{
+	HSIn_Heightfield output;
+	output.origin = PatchParams.xy;
+
+	return output;
+}
+
+PatchData PatchConstantHS(InputPatch<HSIn_Heightfield, 1> inputPatch)
+{
+	PatchData output;
+
+	output.origin = inputPatch[0].origin;
+
+	float2 texcoord0to1 = (inputPatch[0].origin + g_f2PatchSize / 2.0) / g_f2HeightFieldSize;
+	texcoord0to1.y = 1 - texcoord0to1.y;
+
+	float height = 0.f;
+	bool in_frustum = false;
+	if (g_FrustumCullInHS == 1)
+	{
+		height = TexHeightField(texcoord0to1).w;
+
+		// conservative frustum culling
+		float3 patch_center = 0.f;
+		patch_center.x = inputPatch[0].origin.x + g_f2PatchSize.x * 0.5f;
+		patch_center.y = height;
+		patch_center.z = inputPatch[0].origin.y + g_f2PatchSize.y * 0.5f;
+
+		float3 camera_to_patch_vector = patch_center - g_CameraPosition;
+		float3 patch_to_camera_direction_vector = g_CameraDirection * dot(camera_to_patch_vector, g_CameraDirection) - camera_to_patch_vector;
+		float3 patch_center_realigned = patch_center + normalize(patch_to_camera_direction_vector) * min(2 * g_f2PatchSize.x, length(patch_to_camera_direction_vector));
+		float4 patch_screenspace_center = mul(float4(patch_center_realigned, 1.f), g_ModelViewProjectionMatrix);
+
+		if (((patch_screenspace_center.x / patch_screenspace_center.w > -1.f) && (patch_screenspace_center.x / patch_screenspace_center.w < 1.f)
+			&& (patch_screenspace_center.z / patch_screenspace_center.w > -1.f) && (patch_screenspace_center.z / patch_screenspace_center.w < 1.f)
+			&& (patch_screenspace_center.w >= 0.f)) || (length(patch_center - g_CameraPosition) < 2.f * g_f2PatchSize.x))
+		{
+			in_frustum = true;
+		}
+	}
+	else
+	{
+		in_frustum = true;
+	}
+
+	if (in_frustum == true)
+	{
+		float inside_tessellation_factor = 0.f;
+
+		float3 pos;
+		pos.x = inputPatch[0].origin.x;
+		pos.y = height;
+		pos.z = inputPatch[0].origin.y + g_f2PatchSize.y * 0.5f;
+
+		float3 posW = mul(float4(pos, 1.f), g_matWorld).xyz;
+
+		float distance_to_camera = length(g_CameraPosition - posW);
+		float tesselation_factor = CalculateTessellationFactor(distance_to_camera);
+		output.Edges[0] = tesselation_factor;
+		inside_tessellation_factor += tesselation_factor;
+
+		pos.x = inputPatch[0].origin.x + g_f2PatchSize.x * 0.5f;
+		pos.z = inputPatch[0].origin.y;
+
+		posW = mul(float4(pos, 1.f), g_matWorld).xyz;
+
+		distance_to_camera = length(g_CameraPosition - posW);
+		tesselation_factor = CalculateTessellationFactor(distance_to_camera);
+		output.Edges[1] = tesselation_factor;
+		inside_tessellation_factor += tesselation_factor;
+
+		pos.x = inputPatch[0].origin.x + g_f2PatchSize.x;
+		pos.z = inputPatch[0].origin.y + g_f2PatchSize.y * 0.5f;
+
+		posW = mul(float4(pos, 1.f), g_matWorld).xyz;
+
+		distance_to_camera = length(g_CameraPosition - posW);
+		tesselation_factor = CalculateTessellationFactor(distance_to_camera);
+		output.Edges[2] = tesselation_factor;
+		inside_tessellation_factor += tesselation_factor;
+
+		pos.x = inputPatch[0].origin.x + g_f2PatchSize.x * 0.5f;
+		pos.z = inputPatch[0].origin.y + g_f2PatchSize.y;
+
+		posW = mul(float4(pos, 1.f), g_matWorld).xyz;
+
+		distance_to_camera = length(g_CameraPosition - posW);
+		tesselation_factor = CalculateTessellationFactor(distance_to_camera);
+		output.Edges[3] = tesselation_factor;
+		inside_tessellation_factor += tesselation_factor;
+		output.Inside[0] = output.Inside[1] = inside_tessellation_factor * 0.25;
+	}
+	else
+	{
+		output.Edges[0] = -1;
+		output.Edges[1] = -1;
+		output.Edges[2] = -1;
+		output.Edges[3] = -1;
+		output.Inside[0] = -1;
+		output.Inside[1] = -1;
+	}
+
+	return output;
+}
+
+[domain("quad")]
+[partitioning("fractional_odd")]
+[outputtopology("triangle_ccw")]
+[outputcontrolpoints(1)]
+[patchconstantfunc("PatchConstantHS")]
+DUMMY PatchHS(InputPatch<HSIn_Heightfield, 1> inputPatch)
+{
+	return (DUMMY)0;
+}
+
+[domain("quad")]
+PSIn_Diffuse HeightFieldPatchDS(PatchData input,
+	float2 uv : SV_DomainLocation,
+	OutputPatch<DUMMY, 1> inputPatch)
+{
+	PSIn_Diffuse output;
+	float2 texcoord0to1 = (input.origin + uv * g_f2PatchSize) / g_f2HeightFieldSize;
+	texcoord0to1.y = 1 - texcoord0to1.y;
+
+	// fetching base heightmap,normal and moving vertices along y axis
+	float4 base_texvalue = TexHeightField(texcoord0to1);
+	float3 base_normal = base_texvalue.xyz;
+	base_normal.z = -base_normal.z;
+
+	float3 vertexPosition = 0.f;
+	vertexPosition.xz = input.origin + uv * g_f2PatchSize;
+	vertexPosition.y = base_texvalue.w;
+
+#ifndef DEPTH
+	// writing output params
+	output.position = mul(float4(vertexPosition, 1.f), g_ModelViewProjectionMatrix);
+	output.texcoord = texcoord0to1;
+	output.texcoord_detail = texcoord0to1 * g_f2HeightFieldSize;
+	output.normal = base_normal;
+	output.tangent = normalize(cross(float3(-1.f, 0.f, 0.f), base_normal));
+
+#ifdef USE_MOTION_BLUR
+	output.currPositionCS = output.position;
+	output.prevPositionCS = mul(float4(vertexPosition, 1.f), g_PrevModelViewProjectionMatrix);
+#endif
+#else
+	output.position = mul(float4(vertexPosition, 1.f), g_ModelViewProjectionMatrix);
+	output.position.z *= output.position.w;
+#endif
+
+	return output;
+}
+
+struct PS_OUTPUT
+{
+	float4 normals : SV_Target0;
+	float4 colors : SV_Target1;
+	float4 disneyBRDF : SV_Target2;
+
+#ifdef USE_MOTION_BLUR
+	half2 velocity : SV_Target3;
+#endif
+};
+
+#ifndef DEPTH
+PS_OUTPUT HeightFieldPatchPS(PSIn_Diffuse input)
+{
+	float3 albedo = saturate(pow(abs(TexDetail(input.texcoord_detail).rgb), 2.2f) * 2.f);
+	albedo = saturate(albedo * TexColor(input.texcoord).rgb);
+
+	float3 binormal = normalize(cross(input.tangent, input.normal));
+
+	float4 detailNormal = TexDetailNormal(input.texcoord_detail);
+	float3 normal = normalize(2.f * detailNormal.xyz - 1.f);
+	normal = normalize((normal.x * input.tangent) + (normal.y * binormal) + input.normal);
+
+	PS_OUTPUT output = (PS_OUTPUT)0.f;
+	output.normals.xy = CompressNormal(normal);
+	output.normals.zw = CompressNormal(input.tangent);
+
+	float3 RM = float3(1.f, 0.f, 0.f);
+	float3 specular = lerp(0.3f, albedo, RM.y);
+
+	output.colors.x = Pack3PNForFP32(albedo);
+	output.colors.y = Pack3PNForFP32(specular);
+
+	output.disneyBRDF.x = Pack3PNForFP32(RM);
+
+#ifdef USE_MOTION_BLUR
+	output.velocity = (input.currPositionCS.xy / input.currPositionCS.w) - (input.prevPositionCS.xy / input.prevPositionCS.w);
+	output.velocity *= 0.5f;
+	output.velocity.y *= -1.f;
+#endif
+
+	return output;
+}
+#else
+float4 HeightFieldPatchPS(PSIn_Diffuse input) : SV_Target0
+{
+	return float4(input.position.xyz / input.position.w, 1.f);
+}
+#endif

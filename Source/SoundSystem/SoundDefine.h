@@ -2,7 +2,7 @@
 
 #include "CommonLib/PhantomType.h"
 
-namespace eastengine
+namespace est
 {
 	namespace sound
 	{
@@ -14,8 +14,6 @@ namespace eastengine
 			eLoopBIDI = 0x00000004,					/* For bidirectional looping sounds. (only works on software mixed static sounds). */
 			e2D = 0x00000008,						/* Ignores any 3d processing. (DEFAULT). */
 			e3D = 0x00000010,						/* Makes the sound positionable in 3D.  Overrides FMOD_2D. */
-			eHardware = 0x00000020,					/* Attempts to make sounds use hardware acceleration. (DEFAULT).  Note on platforms that don't support FMOD_HARDWARE (only 3DS, PS Vita, PSP, Wii and Wii U support FMOD_HARDWARE), this will be internally treated as FMOD_SOFTWARE. */
-			eSoftware = 0x00000040,					/* Makes the sound be mixed by the FMOD CPU based software mixer.  Overrides FMOD_HARDWARE.  Use this for FFT, DSP, compressed sample support, 2D multi-speaker support and other software related features. */
 			eCreateStream = 0x00000080,				/* Decompress at runtime, streaming from the source provided (ie from disk).  Overrides FMOD_CREATESAMPLE and FMOD_CREATECOMPRESSEDSAMPLE.  Note a stream can only be played once at a time due to a stream only having 1 stream buffer and file handle.  Open multiple streams to have them play concurrently. */
 			eCreateSample = 0x00000100,				/* Decompress at loadtime, decompressing or decoding whole file into memory as the target sample format (ie PCM).  Fastest for FMOD_SOFTWARE based playback and most flexible.  */
 			eCreateCompressedSample = 0x00000200,	/* Load MP2/MP3/IMAADPCM/CELT/Vorbis/AT9 or XMA into memory and leave it compressed.  CELT/Vorbis/AT9 encoding only supported in the FSB file format.  During playback the FMOD software mixer will decode it in realtime as a 'compressed sample'.  Can only be used in combination with FMOD_SOFTWARE.  Overrides FMOD_CREATESAMPLE.  If the sound data is not one of the supported formats, it will behave as if it was created with FMOD_CREATESAMPLE and decode the sound into PCM. */
@@ -35,7 +33,6 @@ namespace eastengine
 			e3D_LinearSquareRolloff = 0x00400000,	/* This sound will follow a linear-square rolloff model where mindistance = full volume, maxdistance = silence.  Rolloffscale is ignored. */
 			e3D_CustomRolloff = 0x04000000,			/* This sound will follow a rolloff model defined by Sound::set3DCustomRolloff / Channel::set3DCustomRolloff.  */
 			e3D_IgnoreGeometry = 0x40000000,		/* Is not affect by geometry occlusion.  If not specified in Sound::setMode, or Channel::setMode, the flag is cleared and it is affected by geometry again. */
-			eUnicode = 0x01000000,					/* Filename is double-byte unicode. */
 			eIgnoreTags = 0x02000000,				/* Skips id3v2/asf/etc tag checks when opening a sound, to reduce seek/read overhead when opening files (helps with CD performance). */
 			eLowMem = 0x08000000,					/* Removes some features from samples to give a lower memory overhead, like Sound::getName.  See remarks. */
 			eLoadSecondaryRam = 0x20000000,			/* Load sound into the secondary RAM of supported platform. On PS3, sounds will be loaded into RSX/VRAM. */

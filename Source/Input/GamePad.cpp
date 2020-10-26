@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "GamePad.h"
 
-namespace eastengine
+namespace est
 {
 	namespace input
 	{
@@ -278,7 +278,7 @@ namespace eastengine
 
 		void GamePadInstance::Update(float elapsedTime)
 		{
-			TRACER_EVENT("GamePadInstance::Update");
+			TRACER_EVENT(L"GamePadInstance::Update");
 			for (auto& player : m_players)
 			{
 				player.Update(elapsedTime);

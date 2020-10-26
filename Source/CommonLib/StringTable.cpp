@@ -4,120 +4,92 @@
 #include "Lock.h"
 #include "Log.h"
 
-namespace StrID
+namespace sid
 {
-	const eastengine::string::StringID EmptyString("");
-	const eastengine::string::StringID None("None");
+	const est::string::StringID EmptyString(L"");
+	const est::string::StringID None(L"None");
 }
 
-namespace eastengine
+namespace est
 {
 	namespace string
 	{
 		struct StringData
 		{
-			const char* pString{ nullptr };
-			size_t nLength = 0;
-
-			StringData* pNext{ nullptr };
+			wchar_t* pString{ nullptr };
+			size_t length{ 0 };
 
 			~StringData()
 			{
-				delete[] pString;
+				free(pString);
 			}
+
+			std::unique_ptr<StringData> pNext;
 		};
 
 		struct StringTable
 		{
 			static const size_t TABLE_SIZE{ 4096 * 512 };
 
-			std::vector<StringData*> tables;
-			size_t nCount{ 0 };
+			std::vector<std::unique_ptr<StringData>> tables{ TABLE_SIZE };
+			size_t count{ 0 };
 
 			thread::SRWLock srwLock;
 
-			StringTable()
-			{
-				tables.resize(TABLE_SIZE);
-			}
+			size_t GetCount() const { return count; }
 
-			~StringTable()
-			{
-				for (size_t i = 0; i < TABLE_SIZE; ++i)
-				{
-					StringData* pData = tables[i];
-
-					while (pData != nullptr)
-					{
-						StringData* pNext = pData->pNext;
-
-						if (pData != nullptr)
-						{
-							delete pData;
-							pData = nullptr;
-						}
-
-						pData = pNext;
-					}
-				}
-				tables.clear();
-			}
-
-			size_t GetCount() const { return nCount; }
-
-			const StringData* Register(const char* str, size_t nLength)
+			const StringData* Register(const wchar_t* str, size_t length)
 			{
 				if (str == nullptr)
-					return StrID::EmptyString.Key();
+					return sid::EmptyString.Key();
 
 				const uint64_t key = Hash(str);
 
 				thread::SRWWriteLock writeLock(&srwLock);
-
-				const StringData* pStringData = tables[key % TABLE_SIZE];
-				if (pStringData != nullptr)
 				{
-					while (pStringData != nullptr)
+					const StringData* pStringData = tables[key % TABLE_SIZE].get();
+					if (pStringData != nullptr)
 					{
-						if (pStringData->nLength == nLength && string::IsEquals(pStringData->pString, str) == true)
-							return pStringData;
+						while (pStringData != nullptr)
+						{
+							if (pStringData->length == length && string::IsEquals(pStringData->pString, str) == true)
+								return pStringData;
 
-						pStringData = pStringData->pNext;
+							pStringData = pStringData->pNext.get();
+						}
 					}
 				}
 
-				StringData* pNewStringData = new StringData;
-				char* pNewString = new char[nLength + 1];
-				string::Copy(pNewString, nLength + 1, str);
+				std::unique_ptr<StringData> pNewStringData = std::make_unique<StringData>();
+				pNewStringData->pString = static_cast<wchar_t*>(malloc(sizeof(wchar_t) * (length + 1)));
+				string::Copy(pNewStringData->pString, length + 1, str);
 
-				pNewStringData->pString = pNewString;
-				pNewStringData->nLength = nLength;
+				pNewStringData->length = length;
 
-				pNewStringData->pNext = tables[key % TABLE_SIZE];
-				tables[key % TABLE_SIZE] = pNewStringData;
+				pNewStringData->pNext = std::move(tables[key % TABLE_SIZE]);
+				tables[key % TABLE_SIZE] = std::move(pNewStringData);
 
-				++nCount;
-				return pNewStringData;
+				++count;
+				return tables[key % TABLE_SIZE].get();
 			}
 
-			const StringData* Register(const char* str)
+			const StringData* Register(const wchar_t* str)
 			{
 				if (str == nullptr)
-					return StrID::EmptyString.Key();
+					return sid::EmptyString.Key();
 
-				const size_t nLength = string::Length(str);
+				const size_t length = string::Length(str);
 
-				return Register(str, nLength);
+				return Register(str, length);
 			}
 
-			uint64_t Hash(const char* pString) const
+			uint64_t Hash(const wchar_t* pString) const
 			{
 				uint64_t v = 1;
-				while (char c = *pString++)
+				while (wchar_t c = *pString++)
 				{
 					v = (v << 6) + (v << 16) - v + c;
 				}
-
 				return v;
 			}
 		};
@@ -131,7 +103,7 @@ namespace eastengine
 		{ 
 			if (s_pStringTable != nullptr)
 			{
-				LOG_MESSAGE("StringTable is Already Init");
+				LOG_WARNING(L"StringTable is Already Init");
 				return true;
 			}
 
@@ -149,14 +121,13 @@ namespace eastengine
 			s_pStringTable = nullptr;
 		}
 
-		const StringData* Register(const char* str, size_t nLength)
+		const StringData* Register(const wchar_t* str, size_t length)
 		{
 			if (s_pStringTable == nullptr)
 			{
 				Init();
 			}
-
-			return s_pStringTable->Register(str, nLength);
+			return s_pStringTable->Register(str, length);
 		}
 
 		const StringData* Register(const char* str)
@@ -166,6 +137,16 @@ namespace eastengine
 				Init();
 			}
 
+			const std::wstring wideString = string::MultiToWide(str);
+			return s_pStringTable->Register(wideString.c_str());
+		}
+
+		const StringData* Register(const wchar_t* str)
+		{
+			if (s_pStringTable == nullptr)
+			{
+				Init();
+			}
 			return s_pStringTable->Register(str);
 		}
 
@@ -174,7 +155,7 @@ namespace eastengine
 			if (s_pStringTable == nullptr)
 				return 0;
 
-			return s_pStringTable->nCount;
+			return s_pStringTable->count;
 		}
 
 		StringID::StringID()
@@ -182,6 +163,11 @@ namespace eastengine
 		}
 
 		StringID::StringID(const char* str)
+			: m_pStringData(Register(str))
+		{
+		}
+
+		StringID::StringID(const wchar_t* str)
 			: m_pStringData(Register(str))
 		{
 		}
@@ -212,20 +198,20 @@ namespace eastengine
 			return *this;
 		}
 
-		bool StringID::operator == (const char* rValue) const
+		bool StringID::operator == (const wchar_t* rValue) const
 		{
 			return string::IsEquals(c_str(), rValue);
 		}
 
-		bool StringID::operator != (const char* rValue) const
+		bool StringID::operator != (const wchar_t* rValue) const
 		{
 			return string::IsEquals(c_str(), rValue) == false;
 		}
 
-		const char* StringID::c_str() const
+		const wchar_t* StringID::c_str() const
 		{
 			if (m_pStringData == nullptr)
-				return "";
+				return L"";
 
 			return m_pStringData->pString;
 		}
@@ -235,7 +221,7 @@ namespace eastengine
 			if (m_pStringData == nullptr)
 				return 0;
 
-			return m_pStringData->nLength;
+			return m_pStringData->length;
 		}
 
 		bool StringID::empty() const
@@ -243,7 +229,7 @@ namespace eastengine
 			if (m_pStringData == nullptr)
 				return true;
 
-			return m_pStringData->nLength == 0;
+			return m_pStringData->length == 0;
 		}
 
 		void StringID::clear()
@@ -251,16 +237,16 @@ namespace eastengine
 			m_pStringData = nullptr;
 		}
 
-		StringID& StringID::Format(const char* format, ...)
+		StringID& StringID::Format(const wchar_t* format, ...)
 		{
 			va_list args;
 			va_start(args, format);
-			std::size_t size = std::vsnprintf(nullptr, 0, format, args) + 1;
+			uint32_t size = std::vswprintf(nullptr, 0, format, args) + 1;
 			va_end(args);
 
-			std::unique_ptr<char[]> buf = std::make_unique<char[]>(size);
+			std::unique_ptr<wchar_t[]> buf = std::make_unique<wchar_t[]>(size);
 			va_start(args, format);
-			std::vsnprintf(buf.get(), size, format, args);
+			std::vswprintf(buf.get(), size, format, args);
 			va_end(args);
 
 			m_pStringData = Register(buf.get(), size);

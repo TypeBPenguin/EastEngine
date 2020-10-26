@@ -12,9 +12,6 @@
     <Filter Include="LuaSystem">
       <UniqueIdentifier>{deb26806-ed78-4849-b5c0-23d990598238}</UniqueIdentifier>
     </Filter>
-    <Filter Include="LuaThread">
-      <UniqueIdentifier>{dfa6cb79-707f-4ca6-96cb-edf3c2bdbe24}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -29,9 +26,6 @@
     <ClInclude Include="LuaSystem.h">
       <Filter>LuaSystem</Filter>
     </ClInclude>
-    <ClInclude Include="LuaThread.h">
-      <Filter>LuaThread</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -39,9 +33,6 @@
     </ClCompile>
     <ClCompile Include="LuaSystem.cpp">
       <Filter>LuaSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="LuaThread.cpp">
-      <Filter>LuaThread</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

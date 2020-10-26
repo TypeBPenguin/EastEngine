@@ -2,7 +2,7 @@
 
 #include "Singleton.h"
 
-namespace eastengine
+namespace est
 {
 	class Stopwatch
 	{
@@ -72,6 +72,7 @@ namespace eastengine
 		double GetGameTime() const;
 
 		float GetElapsedTime() const;
+		void SetLimitElapsedTime(double limitElapsedTime);
 
 	public:
 		// Callback Function Parameter : timerID(uint32_t), elapsedTime(float), processTime(float)

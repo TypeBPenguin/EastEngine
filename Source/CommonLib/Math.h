@@ -2,25 +2,26 @@
 
 #include <xmmintrin.h>
 #include <random>
+#include <cmath>
 
 struct D3D11_VIEWPORT;
 
-namespace eastengine
+namespace est
 {
 	namespace math
 	{
-		const float PI = 3.1415926535897932384626433832795f;
-		const float PI2 = 6.283185307179586476925286766559f;
-		const float DIVPI = 0.31830988618379067153776752674503f;
-		const float DIVPI2 = 0.15915494309189533576888376337251f;
-		const float PIDIV2 = 1.5707963267948966192313216916398f;
-		const float PIDIV4 = 0.78539816339744830961566084581988f;
+		constexpr float PI = 3.1415926535897932384626433832795f;
+		constexpr float PI2 = 6.283185307179586476925286766559f;
+		constexpr float DIVPI = 0.31830988618379067153776752674503f;
+		constexpr float DIVPI2 = 0.15915494309189533576888376337251f;
+		constexpr float PIDIV2 = 1.5707963267948966192313216916398f;
+		constexpr float PIDIV4 = 0.78539816339744830961566084581988f;
 
 		extern std::random_device random_device;
 		extern std::mt19937_64 mt19937_64;
 
-		float ToRadians(float fDegrees);
-		float ToDegrees(float fRadians);
+		constexpr float ToRadians(float degrees) { return degrees * (PI / 180.f); }
+		constexpr float ToDegrees(float radians) { return radians * (180.f / PI); }
 
 		bool NearEqual(float S1, float S2, float Epsilon);
 		float ModAngle(float Value);
@@ -40,8 +41,30 @@ namespace eastengine
 		float ACos(float Value);
 		float ACosEst(float Value);
 
+		template <typename T1, typename T2>
+		inline constexpr T1 Lerp(T1 x, T1 y, T2 s)
+		{
+			return x + (T1)(s * (T2)(y - x));
+		}
+
+		inline float Smoothstep(float min, float max, float x)
+		{
+			// Scale, bias and saturate x to 0..1 range
+			x = std::clamp((x - min) / (max - min), 0.f, 1.f);
+			// Evaluate polynomial
+			return x * x * (3.f - 2.f * x);
+		}
+
+		inline double Smoothstep(double min, double max, double x)
+		{
+			// Scale, bias and saturate x to 0..1 range
+			x = std::clamp((x - min) / (max - min), 0.0, 1.0);
+			// Evaluate polynomial
+			return x * x * (3.0 - 2.0 * x);
+		}
+
 		template <typename T>
-		inline bool IsZero(T value)
+		inline constexpr bool IsZero(T value)
 		{
 			if (std::abs(value) <= std::numeric_limits<T>::epsilon())
 				return true;
@@ -50,7 +73,7 @@ namespace eastengine
 		}
 
 		template <typename T>
-		inline bool IsEqual(T value1, T value2)
+		inline constexpr bool IsEqual(T value1, T value2)
 		{
 			return IsZero(value1 - value2);
 		}
@@ -108,7 +131,7 @@ namespace eastengine
 					uint8_t z;
 					uint8_t w;
 				};
-				uint32_t v;
+				uint32_t v{ 0 };
 			};
 
 			UByte4() = default;
@@ -124,8 +147,8 @@ namespace eastengine
 
 		struct int2
 		{
-			int32_t x;
-			int32_t y;
+			int32_t x{ 0 };
+			int32_t y{ 0 };
 
 			int2();
 			explicit int2(int x);
@@ -156,9 +179,9 @@ namespace eastengine
 
 		struct int3
 		{
-			int32_t x;
-			int32_t y;
-			int32_t z;
+			int32_t x{ 0 };
+			int32_t y{ 0 };
+			int32_t z{ 0 };
 
 			int3();
 			explicit int3(int x);
@@ -190,10 +213,10 @@ namespace eastengine
 
 		struct int4
 		{
-			int32_t x;
-			int32_t y;
-			int32_t z;
-			int32_t w;
+			int32_t x{ 0 };
+			int32_t y{ 0 };
+			int32_t z{ 0 };
+			int32_t w{ 0 };
 
 			int4();
 			explicit int4(int x);
@@ -226,8 +249,8 @@ namespace eastengine
 
 		struct uint2
 		{
-			uint32_t x;
-			uint32_t y;
+			uint32_t x{ 0 };
+			uint32_t y{ 0 };
 
 			uint2();
 			explicit uint2(uint32_t x);
@@ -257,9 +280,9 @@ namespace eastengine
 
 		struct uint3
 		{
-			uint32_t x;
-			uint32_t y;
-			uint32_t z;
+			uint32_t x{ 0 };
+			uint32_t y{ 0 };
+			uint32_t z{ 0 };
 
 			uint3();
 			explicit uint3(uint32_t x);
@@ -290,10 +313,10 @@ namespace eastengine
 
 		struct uint4
 		{
-			uint32_t x;
-			uint32_t y;
-			uint32_t z;
-			uint32_t w;
+			uint32_t x{ 0 };
+			uint32_t y{ 0 };
+			uint32_t z{ 0 };
+			uint32_t w{ 0 };
 
 			uint4();
 			explicit uint4(uint32_t x);
@@ -327,8 +350,8 @@ namespace eastengine
 		// 2D vector
 		struct float2
 		{
-			float x;
-			float y;
+			float x{ 0.f };
+			float y{ 0.f };
 
 			float2();
 			explicit float2(float x);
@@ -339,7 +362,7 @@ namespace eastengine
 
 			operator __m128() const;
 
-			float operator [] (int nIndex) const { return reinterpret_cast<const float*>(this)[nIndex]; }
+			float operator [] (int index) const { return reinterpret_cast<const float*>(this)[index]; }
 
 			// Comparison operators
 			bool operator == (const float2& V) const;
@@ -438,9 +461,9 @@ namespace eastengine
 		// 3D vector
 		struct float3
 		{
-			float x;
-			float y;
-			float z;
+			float x{ 0.f };
+			float y{ 0.f };
+			float z{ 0.f };
 
 			float3();
 			explicit float3(float x);
@@ -451,7 +474,7 @@ namespace eastengine
 
 			operator __m128() const;
 
-			float operator [] (int nIndex) const { return reinterpret_cast<const float*>(this)[nIndex]; }
+			float operator [] (int index) const { return reinterpret_cast<const float*>(this)[index]; }
 
 			// Comparison operators
 			bool operator == (const float3& V) const;
@@ -560,10 +583,10 @@ namespace eastengine
 		// 4D vector
 		struct float4
 		{
-			float x;
-			float y;
-			float z;
-			float w;
+			float x{ 0.f };
+			float y{ 0.f };
+			float z{ 0.f };
+			float w{ 0.f };
 
 			float4();
 			explicit float4(float x);
@@ -574,7 +597,7 @@ namespace eastengine
 
 			operator __m128() const;
 
-			float operator [] (int nIndex) const { return reinterpret_cast<const float*>(this)[nIndex]; }
+			float operator [] (int index) const { return reinterpret_cast<const float*>(this)[index]; }
 
 			// Comparison operators
 			bool operator == (const float4& V) const;
@@ -818,10 +841,10 @@ namespace eastengine
 		// Plane
 		struct Plane
 		{
-			float x;
-			float y;
-			float z;
-			float w;
+			float x{ 0.f };
+			float y{ 0.f };
+			float z{ 0.f };
+			float w{ 1.f };
 
 			Plane();
 			Plane(float x, float y, float z, float w);
@@ -869,10 +892,10 @@ namespace eastengine
 		// Quaternion
 		struct Quaternion
 		{
-			float x;
-			float y;
-			float z;
-			float w;
+			float x{ 0.f };
+			float y{ 0.f };
+			float z{ 0.f };
+			float w{ 1.f };
 
 			Quaternion();
 			Quaternion(float x, float y, float z, float w);
@@ -955,6 +978,8 @@ namespace eastengine
 			Transform(const Matrix& matrix);
 
 			Matrix Compose() const;
+
+			static void Lerp(const Transform& v1, const Transform& v2, float lerpPerccent, Transform& result);
 		};
 
 		//------------------------------------------------------------------------------
@@ -970,7 +995,7 @@ namespace eastengine
 					uint8_t b;  // Blue:    0/255 to 255/255
 					uint8_t a;  // Alpha:   0/255 to 255/255
 				};
-				uint32_t c;
+				uint32_t c{ 0x0000ff };
 			};
 
 			RGBA();
@@ -986,10 +1011,10 @@ namespace eastengine
 
 		struct Color
 		{
-			float r;
-			float g;
-			float b;
-			float a;
+			float r{ 0.f };
+			float g{ 0.f };
+			float b{ 0.f };
+			float a{ 1.f };
 
 			Color();
 			Color(float r, float g, float b);
@@ -1298,6 +1323,76 @@ namespace eastengine
 			void Unproject(const float3& p, const Matrix& proj, const Matrix& view, const Matrix& world, float3& result) const;
 		};
 
+		namespace bezier
+		{
+			// Performs a cubic bezier interpolation between four control points,
+			// returning the value at the specified time (t ranges 0 to 1).
+			// This template implementation can be used to interpolate XMVECTOR,
+			// float, or any other types that define suitable * and + operators.
+			template<typename T>
+			T CubicInterpolate(T const& p1, T const& p2, T const& p3, T const& p4, float t)
+			{
+				return p1 * (1 - t) * (1 - t) * (1 - t) +
+					p2 * 3 * t * (1 - t) * (1 - t) +
+					p3 * 3 * t * t * (1 - t) +
+					p4 * t * t * t;
+			}
+
+
+			// Computes the tangent of a cubic bezier curve at the specified time.
+			// Template supports XMVECTOR, float, or any other types with * and + operators.
+			template<typename T>
+			T CubicTangent(T const& p1, T const& p2, T const& p3, T const& p4, float t)
+			{
+				return p1 * (-1 + 2 * t - t * t) +
+					p2 * (1 - 4 * t + 3 * t * t) +
+					p3 * (2 * t - 3 * t * t) +
+					p4 * (t * t);
+			}
+
+
+			// Creates vertices for a patch that is tessellated at the specified level.
+			// Calls the specified outputVertex function for each generated vertex,
+			// passing the position, normal, and texture coordinate as parameters.
+			void CreatePatchVertices(_In_reads_(16) float3 patch[16], size_t tessellation, bool isMirrored, std::function<void(const float3&, const float3&, const float3&)> outputVertex);
+
+
+			// Creates indices for a patch that is tessellated at the specified level.
+			// Calls the specified outputIndex function for each generated index value.
+			template<typename TOutputFunc>
+			void CreatePatchIndices(size_t tessellation, bool isMirrored, TOutputFunc outputIndex)
+			{
+				size_t stride = tessellation + 1;
+
+				for (size_t i = 0; i < tessellation; i++)
+				{
+					for (size_t j = 0; j < tessellation; j++)
+					{
+						// Make a list of six index values (two triangles).
+						std::array<size_t, 6> indices =
+						{
+							i * stride + j,
+							(i + 1) * stride + j,
+							(i + 1) * stride + j + 1,
+
+							i * stride + j,
+							(i + 1) * stride + j + 1,
+							i * stride + j + 1,
+						};
+
+						// If this patch is mirrored, reverse indices to fix the winding order.
+						if (isMirrored)
+						{
+							std::reverse(indices.begin(), indices.end());
+						}
+
+						// Output these index values.
+						std::for_each(indices.begin(), indices.end(), outputIndex);
+					}
+				}
+			}
+		}
+
 #include "Math.inl"
 	}
 }
@@ -1306,17 +1401,17 @@ namespace eastengine
 // Support for SimpleMath and Standard C++ Library containers
 namespace std
 {
-	template<> struct less<eastengine::math::float2>
+	template<> struct less<est::math::float2>
 	{
-		bool operator()(const eastengine::math::float2& V1, const eastengine::math::float2& V2) const
+		bool operator()(const est::math::float2& V1, const est::math::float2& V2) const
 		{
 			return ((V1.x < V2.x) || ((V1.x == V2.x) && (V1.y < V2.y)));
 		}
 	};
 
-	template<> struct less<eastengine::math::float3>
+	template<> struct less<est::math::float3>
 	{
-		bool operator()(const eastengine::math::float3& V1, const eastengine::math::float3& V2) const
+		bool operator()(const est::math::float3& V1, const est::math::float3& V2) const
 		{
 			return ((V1.x < V2.x)
 				|| ((V1.x == V2.x) && (V1.y < V2.y))
@@ -1324,9 +1419,9 @@ namespace std
 		}
 	};
 
-	template<> struct less<eastengine::math::float4>
+	template<> struct less<est::math::float4>
 	{
-		bool operator()(const eastengine::math::float4& V1, const eastengine::math::float4& V2) const
+		bool operator()(const est::math::float4& V1, const est::math::float4& V2) const
 		{
 			return ((V1.x < V2.x)
 				|| ((V1.x == V2.x) && (V1.y < V2.y))
@@ -1335,9 +1430,9 @@ namespace std
 		}
 	};
 
-	template<> struct less<eastengine::math::Matrix>
+	template<> struct less<est::math::Matrix>
 	{
-		bool operator()(const eastengine::math::Matrix& M1, const eastengine::math::Matrix& M2) const
+		bool operator()(const est::math::Matrix& M1, const est::math::Matrix& M2) const
 		{
 			if (M1._11 != M2._11) return M1._11 < M2._11;
 			if (M1._12 != M2._12) return M1._12 < M2._12;
@@ -1360,9 +1455,9 @@ namespace std
 		}
 	};
 
-	template<> struct less<eastengine::math::Plane>
+	template<> struct less<est::math::Plane>
 	{
-		bool operator()(const eastengine::math::Plane& P1, const eastengine::math::Plane& P2) const
+		bool operator()(const est::math::Plane& P1, const est::math::Plane& P2) const
 		{
 			return ((P1.x < P2.x)
 				|| ((P1.x == P2.x) && (P1.y < P2.y))
@@ -1371,9 +1466,9 @@ namespace std
 		}
 	};
 
-	template<> struct less<eastengine::math::Quaternion>
+	template<> struct less<est::math::Quaternion>
 	{
-		bool operator()(const eastengine::math::Quaternion& Q1, const eastengine::math::Quaternion& Q2) const
+		bool operator()(const est::math::Quaternion& Q1, const est::math::Quaternion& Q2) const
 		{
 			return ((Q1.x < Q2.x)
 				|| ((Q1.x == Q2.x) && (Q1.y < Q2.y))
@@ -1382,9 +1477,9 @@ namespace std
 		}
 	};
 
-	template<> struct less<eastengine::math::Color>
+	template<> struct less<est::math::Color>
 	{
-		bool operator()(const eastengine::math::Color& C1, const eastengine::math::Color& C2) const
+		bool operator()(const est::math::Color& C1, const est::math::Color& C2) const
 		{
 			return ((C1.r < C2.r)
 				|| ((C1.r == C2.r) && (C1.g < C2.g))
@@ -1393,9 +1488,9 @@ namespace std
 		}
 	};
 
-	template<> struct less<eastengine::math::Viewport>
+	template<> struct less<est::math::Viewport>
 	{
-		bool operator()(const eastengine::math::Viewport& vp1, const eastengine::math::Viewport& vp2) const
+		bool operator()(const est::math::Viewport& vp1, const est::math::Viewport& vp2) const
 		{
 			if (vp1.x != vp2.x) return (vp1.x < vp2.x);
 			if (vp1.y != vp2.y) return (vp1.y < vp2.y);

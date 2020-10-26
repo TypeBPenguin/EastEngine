@@ -3,11 +3,11 @@
 
 #include "CommonLib/FileUtil.h"
 
-#include "GraphicsInterface/Camera.h"
+#include "Graphics/Interface/Camera.h"
 
-#include "Model/GeometryModel.h"
+#include "Graphics/Model/GeometryModel.h"
 
-namespace eastengine
+namespace est
 {
 	namespace gameobject
 	{
@@ -20,19 +20,19 @@ namespace eastengine
 
 		Skybox::~Skybox()
 		{
-			graphics::ReleaseResource(&m_pVertexBuffer);
-			graphics::ReleaseResource(&m_pIndexBuffer);
-			graphics::ReleaseResource(&m_pTexture);
+			graphics::ReleaseResource(m_pVertexBuffer);
+			graphics::ReleaseResource(m_pIndexBuffer);
+			graphics::ReleaseResource(m_pTexture);
 		}
 
-		void Skybox::Init(const SkyboxProperty& property)
+		void Skybox::Initialize(const SkyboxProperty& skyProperty)
 		{
-			m_property = property;
+			m_property = skyProperty;
 
 			std::vector<graphics::VertexPosTexNor> vertices;
 			std::vector<uint32_t> indices;
 
-			if (graphics::geometry::CreateBox(vertices, indices, math::float3(property.fBoxSize, property.fBoxSize, property.fBoxSize), false, true) == false)
+			if (graphics::geometry::CreateBox(vertices, indices, math::float3(skyProperty.boxSize), false, true) == false)
 			{
 				assert(false);
 				return;
@@ -47,7 +47,7 @@ namespace eastengine
 			m_pVertexBuffer = graphics::CreateVertexBuffer(reinterpret_cast<uint8_t*>(vertices.data()), static_cast<uint32_t>(vertices.size()), sizeof(graphics::VertexPosTexNor), false);
 			m_pIndexBuffer = graphics::CreateIndexBuffer(reinterpret_cast<uint8_t*>(indices.data()), static_cast<uint32_t>(indices.size()), sizeof(uint32_t), false);
 
-			m_pTexture = graphics::CreateTexture(property.strTexSky.c_str());
+			m_pTexture = graphics::CreateTexture(skyProperty.texSkymap.c_str());
 		}
 
 		void Skybox::Update(float elapsedTime)
@@ -76,19 +76,10 @@ namespace eastengine
 			}
 		}
 
-		void Skybox::SetTexture(graphics::ITexture* pTexture)
+		void Skybox::SetTexture(const graphics::TexturePtr& pTexture)
 		{
-			if (m_pTexture != nullptr)
-			{
-				graphics::ReleaseResource(&m_pTexture);
-			}
-
+			graphics::ReleaseResource(m_pTexture);
 			m_pTexture = pTexture;
-
-			if (m_pTexture != nullptr)
-			{
-				m_pTexture->IncreaseReference();
-			}
 		}
 	}
 }

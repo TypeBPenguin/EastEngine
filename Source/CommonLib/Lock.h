@@ -1,6 +1,6 @@
 #pragma once
 
-namespace eastengine
+namespace est
 {
 	namespace thread
 	{
@@ -81,7 +81,7 @@ namespace eastengine
 			}
 
 		private:
-			SRWLock * m_pLock{ nullptr };
+			SRWLock* m_pLock{ nullptr };
 		};
 	}
 }

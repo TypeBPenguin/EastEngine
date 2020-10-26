@@ -1,12 +1,7 @@
 #pragma once
 
-namespace eastengine
+namespace est
 {
-	namespace file
-	{
-		class Stream;
-	}
-
 	namespace gameobject
 	{
 		class IActor;
@@ -27,8 +22,8 @@ namespace eastengine
 				TypeCount,
 			};
 
-			static const char* ToString(Type emType);
-			static Type GetType(const char* strType);
+			static const wchar_t* ToString(Type emType);
+			static Type GetType(const wchar_t* strType);
 
 		public:
 			IComponent(IActor* pOwner, Type emCompType);
@@ -37,22 +32,12 @@ namespace eastengine
 		public:
 			virtual void Update(float elapsedTime) = 0;
 
-			virtual bool LoadFile(file::Stream& file) { return true; }
-			virtual bool SaveFile(file::Stream& file) { return true; }
-
-		public:
-			IComponent* AddComponent(IComponent* pComponent);
-			IComponent* GetComponent(Type emComponentType);
-			void DelComponent(Type emComponentType);
-
 		public:
 			IActor* GetOwner() const { return m_pOwner; }
 			Type GetComponentType() const { return m_emCompType; }
 
 		protected:
-			IActor* m_pOwner;
-
-			std::unordered_map<Type, IComponent*> m_umapChild;
+			IActor* m_pOwner{ nullptr };
 
 		private:
 			Type m_emCompType;

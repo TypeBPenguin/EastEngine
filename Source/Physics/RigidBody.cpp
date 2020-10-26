@@ -1,599 +1,520 @@
 #include "stdafx.h"
 #include "RigidBody.h"
 
+#include "PhysicsUtil.h"
 #include "PhysicsSystem.h"
-#include "DebugHelper.h"
-#include "MathConvertor.h"
+#include "PhysicsMaterial.h"
+#include "PhysicsShape.h"
 
-namespace eastengine
+#include "Articulation.h"
+
+namespace est
 {
 	namespace physics
 	{
-		class RigidBody::Impl
-		{
-		public:
-			Impl();
-			~Impl();
-
-		public:
-			bool Initislize(const RigidBodyProperty& physicsProperty);
-
-		public:
-			void Update(float elapsedTime);
-			void UpdateBoundingBox(const math::Matrix& matWorld);
-
-			bool IsCollision(RigidBody* pRigidBody);
-			bool RayTest(const math::float3& f3From, const math::float3& f3To, math::float3* pHitPoint_out = nullptr, math::float3* pHitNormal_out = nullptr) const;
-
-			void AddCollisionResult(const RigidBody* pRigidBody, const math::float3& f3OpponentPoint, const math::float3& f3MyPoint);
-
-			void ClearCollisionResults();
-
-			void SetEnableTriangleDrawCallback(bool isEnableTriangleDrawCallback);
-
-		public:
-			const string::StringID& GetName() const;
-			void SetName(const string::StringID& strName);
-
-			const RigidBodyProperty& GetRigidBodyProperty() const;
-
-			void SetWorldMatrix(const math::Matrix& mat);
-			math::Matrix GetWorldMatrix() const;
-
-			math::Quaternion GetOrientation() const;
-			math::float3 GetCenterOfMassPosition() const;
-
-			void SetLinearVelocity(const math::float3& f3Velocity);
-
-			void SetDamping(float fLinearDamping, float fAngularDamping);
-			void SetDeactivationTime(float fTime);
-			void SetSleepingThresholds(float fLinear, float fAngular);
-			void SetAngularFactor(float fFactor);
-
-			void SetActiveState(ActiveStateType emActiveState);
-			void SetGravity(bool isEnable);
-			void SetGravity(const math::float3& f3Gravity);
-
-			const collision::AABB& GetAABB() const { return m_boundingBox; }
-			const collision::Sphere& GetBoundingSphere() const { return m_boundingSphere; }
-			const collision::OBB& GetOBB() const { return m_boundingOrientedBox; }
-
-			btRigidBody* GetInterface() { return m_pRigidBody.get(); }
-
-		private:
-			btDiscreteDynamicsWorld* m_pDynamicsWorld{ nullptr };
-
-			std::unique_ptr<btRigidBody> m_pRigidBody;
-			std::unique_ptr<btCollisionShape> m_pCollisionShape;
-			std::unique_ptr<btMotionState> m_pMotionState;
-
-			std::variant<btTriangleMesh*, btTriangleIndexVertexArray*> m_varTriangleMesh;
-
-			RigidBodyProperty m_rigidBodyProperty;
-
-			math::Matrix m_matWorld;
-
-			collision::AABB m_boundingBox;
-			collision::Sphere m_boundingSphere;
-			collision::OBB m_boundingOrientedBox;
-
-			std::vector<CollisionResult> m_vecCollisionResults;
-			bool m_isEnableTriangleDrawCallback{ false };
-		};
-
-		RigidBody::Impl::Impl()
-		{
+#define ImplActorFunc(Actor, m_pActor)													\
+		void Actor::SetName(const string::StringID& name)								\
+		{																				\
+			m_name = name;																\
+																						\
+			const std::string multiName = string::WideToMulti(m_name.c_str());			\
+			m_pActor->setName(multiName.c_str());										\
+		}																				\
+																						\
+		const string::StringID& Actor::GetName() const									\
+		{																				\
+			return m_name;																\
+		}																				\
+																						\
+		void Actor::SetUserData(void* pUserData)										\
+		{																				\
+			m_pUserData = pUserData;													\
+		}																				\
+																						\
+		void* Actor::GetUserData() const												\
+		{																				\
+			return m_pUserData;															\
+		}																				\
+																						\
+		Bounds Actor::GetWorldBounds(float inflation) const								\
+		{																				\
+			const physx::PxBounds3 bounds = m_pActor->getWorldBounds(inflation);		\
+			return Convert<const Bounds>(bounds);										\
+		}																				\
+																						\
+		void Actor::SetActorFlag(ActorFlag flag, bool isEnable)							\
+		{																				\
+			m_pActor->setActorFlag(Convert<physx::PxActorFlag::Enum>(flag), isEnable);	\
+		}																				\
+																						\
+		void Actor::SetActorFlags(ActorFlags flags)										\
+		{																				\
+			m_pActor->setActorFlags(Convert<physx::PxActorFlags>(flags));				\
+		}																				\
+																						\
+		Actor::ActorFlags Actor::GetActorFlags() const									\
+		{																				\
+			const physx::PxActorFlags flags = m_pActor->getActorFlags();				\
+			return Convert<const ActorFlags>(flags);									\
+		}																				\
+																						\
+		void Actor::SetDominanceGroup(DominanceGroup dominanceGroup)					\
+		{																				\
+			m_pActor->setDominanceGroup(dominanceGroup.group);							\
+		}																				\
+																						\
+		Actor::DominanceGroup Actor::GetDominanceGroup() const							\
+		{																				\
+			return m_pActor->getDominanceGroup();										\
 		}
 
-		RigidBody::Impl::~Impl()
-		{
-			if (m_pDynamicsWorld != nullptr)
-			{
-				m_pDynamicsWorld->removeRigidBody(m_pRigidBody.get());
-				m_pDynamicsWorld = nullptr;
-			}
-
-			btTriangleMesh** pp1 = std::get_if<btTriangleMesh*>(&m_varTriangleMesh);
-			if (pp1 != nullptr)
-			{
-				SafeDelete(*pp1);
-			}
-
-			btTriangleIndexVertexArray** pp2 = std::get_if<btTriangleIndexVertexArray*>(&m_varTriangleMesh);
-			if (pp2 != nullptr)
-			{
-				SafeDelete(*pp2);
-			}
-
-			m_pCollisionShape.reset();
-			m_pMotionState.reset();
-			m_pRigidBody.reset();
+#define ImplRigidActorFunc(RigidActor, m_pRigidActor)																																																	\
+		void RigidActor::SetGlobalTransform(const Transform& pose, bool isEnableAutoWake)																																								\
+		{																																																												\
+			m_pRigidActor->setGlobalPose(Convert<const physx::PxTransform>(pose), isEnableAutoWake);																																					\
+		}																																																												\
+																																																														\
+		Transform RigidActor::GetGlobalTransform() const																																																\
+		{																																																												\
+			const physx::PxTransform transform = m_pRigidActor->getGlobalPose();																																										\
+			return Convert<const Transform>(transform);																																																	\
+		}																																																												\
+																																																														\
+		void RigidActor::AttachShape(const std::shared_ptr<IShape>& pShape)																																												\
+		{																																																												\
+			auto iter = std::find(m_pShapes.begin(), m_pShapes.end(), pShape);																																											\
+			if (iter == m_pShapes.end())																																																				\
+			{																																																											\
+				if (m_pRigidActor->attachShape(*util::GetInterface(pShape.get())) == false)																																			\
+				{																																																										\
+					LOG_ERROR(L"failed to attach shape");																																																\
+				}																																																										\
+				else																																																									\
+				{																																																										\
+					m_pShapes.emplace_back(pShape);																																																		\
+				}																																																										\
+			}																																																											\
+		}																																																												\
+																																																														\
+		void RigidActor::DetachShape(const std::shared_ptr<IShape>& pShape, bool isEnableWakeOnLostTouch)																																				\
+		{																																																												\
+			auto iter = std::find(m_pShapes.begin(), m_pShapes.end(), pShape);																																											\
+			if (iter != m_pShapes.end())																																																				\
+			{																																																											\
+				m_pRigidActor->detachShape(*util::GetInterface(pShape.get()), isEnableWakeOnLostTouch);																																\
+				m_pShapes.erase(iter);																																																					\
+			}																																																											\
+		}																																																												\
+																																																														\
+		uint32_t RigidActor::GetNumShapes() const																																																		\
+		{																																																												\
+			return static_cast<uint32_t>(m_pShapes.size());																																																\
+		}																																																												\
+																																																														\
+		uint32_t RigidActor::GetShapes(std::shared_ptr<IShape>* ppUserBuffer, uint32_t bufferSize, uint32_t startIndex) const																															\
+		{																																																												\
+			const uint32_t numShapes = GetNumShapes();																																																	\
+			uint32_t result = 0;																																																						\
+			for (uint32_t i = 0; i < bufferSize; ++i)																																																	\
+			{																																																											\
+				if (startIndex + i < numShapes)																																																			\
+				{																																																										\
+					ppUserBuffer[startIndex + i] = m_pShapes[i];																																														\
+					++result;																																																							\
+				}																																																										\
+			}																																																											\
+			return result;																																																								\
+		}																																																												\
+																																																														\
+		std::shared_ptr<IShape> RigidActor::GetShape(uint32_t index) const																																												\
+		{																																																												\
+			if (index >= GetNumShapes())																																																				\
+				return nullptr;																																																							\
+																																																														\
+			return m_pShapes[index];																																																					\
 		}
 
-		bool RigidBody::Impl::Initislize(const RigidBodyProperty& rigidBodyProperty)
-		{
-			m_pCollisionShape = CreateShape(rigidBodyProperty.shapeInfo);
-			if (m_pCollisionShape == nullptr)
-				return false;
-
-			if (rigidBodyProperty.GetShapeType() == ShapeType::eTriangleMesh)
-			{
-				const Shape::TriangleMesh* pShapeInfo = std::get_if<Shape::TriangleMesh>(&rigidBodyProperty.shapeInfo.element);
-				if (pShapeInfo == nullptr)
-					return false;
-
-				if (pShapeInfo->pVertices != nullptr && pShapeInfo->pIndices != nullptr)
-				{
-					btBvhTriangleMeshShape* pTriangleMeshShape = static_cast<btBvhTriangleMeshShape*>(m_pCollisionShape.get());
-					btTriangleIndexVertexArray* p1 = static_cast<btTriangleIndexVertexArray*>(pTriangleMeshShape->getMeshInterface());
-
-					m_varTriangleMesh.emplace<btTriangleIndexVertexArray*>(p1);
-				}
-				else if (pShapeInfo->pVertices != nullptr)
-				{
-					btBvhTriangleMeshShape* pTriangleMeshShape = static_cast<btBvhTriangleMeshShape*>(m_pCollisionShape.get());
-					btTriangleMesh* p1 = static_cast<btTriangleMesh*>(pTriangleMeshShape->getMeshInterface());
-
-					m_varTriangleMesh.emplace<btTriangleMesh*>(p1);
-				}
-			}
-
-			m_pDynamicsWorld = System::GetInstance()->GetDynamicsWorld();
-
-			m_rigidBodyProperty = rigidBodyProperty;
-
-			btTransform offsetTransform = math::ConvertToBt(rigidBodyProperty.matOffset);
-
-			btTransform bodyTransform;
-			bodyTransform.setIdentity();
-			bodyTransform.setOrigin(math::ConvertToBt(rigidBodyProperty.f3OriginPos));
-			bodyTransform.setRotation(math::ConvertToBt(rigidBodyProperty.originQuat));
-
-			btVector3 localInertia(0.f, 0.f, 0.f);
-			// IneritaTensor¸¦ °è»ê
-			if ((rigidBodyProperty.nCollisionFlag & CollisionFlag::eStaticObject) == 0 &&
-				(rigidBodyProperty.nCollisionFlag & CollisionFlag::eKinematicObject) == 0)
-			{
-				m_pCollisionShape->calculateLocalInertia(m_rigidBodyProperty.fMass, localInertia);
-			}
-
-			m_pMotionState = std::make_unique<btDefaultMotionState>(offsetTransform * bodyTransform);
-			btRigidBody::btRigidBodyConstructionInfo rbInfo(m_rigidBodyProperty.fMass, m_pMotionState.get(), m_pCollisionShape.get(), localInertia);
-			rbInfo.m_restitution = m_rigidBodyProperty.fRestitution;
-			rbInfo.m_friction = m_rigidBodyProperty.fFriction;
-			rbInfo.m_linearDamping = m_rigidBodyProperty.fLinearDamping;
-			rbInfo.m_angularDamping = m_rigidBodyProperty.fAngularDamping;
-
-			m_pRigidBody = std::make_unique<btRigidBody>(rbInfo);
-			m_pRigidBody->setUserPointer(this);
-			m_pRigidBody->setCollisionFlags(rigidBodyProperty.nCollisionFlag);
-
-			SetName(rigidBodyProperty.strName);
-
-			return true;
+#define ImplRigidBodyFunc(RigidBody, m_pRigidBody)																							\
+		void RigidBody::SetCenterMassLocalPose(const Transform& pose)																		\
+		{																																	\
+			m_pRigidBody->setCMassLocalPose(Convert<const physx::PxTransform>(pose));														\
+		}																																	\
+																																			\
+		Transform RigidBody::GetCenterMassLocalPose()																						\
+		{																																	\
+			const physx::PxTransform transform = m_pRigidBody->getCMassLocalPose();															\
+			return Convert<const Transform>(transform);																						\
+		}																																	\
+																																			\
+		void RigidBody::SetMass(float mass)																									\
+		{																																	\
+			m_pRigidBody->setMass(mass);																									\
+		}																																	\
+																																			\
+		float RigidBody::GetMass() const																									\
+		{																																	\
+			return m_pRigidBody->getMass();																									\
+		}																																	\
+																																			\
+		float RigidBody::GetInvMass() const																									\
+		{																																	\
+			return m_pRigidBody->getInvMass();																								\
+		}																																	\
+																																			\
+		void RigidBody::SetMassSpaceInertiaTensor(const math::float3& m)																	\
+		{																																	\
+			m_pRigidBody->setMassSpaceInertiaTensor(Convert<const physx::PxVec3>(m));														\
+		}																																	\
+																																			\
+		math::float3 RigidBody::GetMassSpaceInertiaTensor() const																			\
+		{																																	\
+			const physx::PxVec3 tensor = m_pRigidBody->getMassSpaceInertiaTensor();															\
+			return Convert<const math::float3>(tensor);																						\
+		}																																	\
+																																			\
+		math::float3 RigidBody::GetMassSpaceInvInertiaTensor() const																		\
+		{																																	\
+			const physx::PxVec3 invTensor = m_pRigidBody->getMassSpaceInertiaTensor();														\
+			return Convert<const math::float3>(invTensor);																					\
+		}																																	\
+																																			\
+		void RigidBody::SetLinearVelocity(const math::float3& linearVelocity, bool isEnableAutoWake)										\
+		{																																	\
+			m_pRigidBody->setLinearVelocity(Convert<const physx::PxVec3>(linearVelocity), isEnableAutoWake);								\
+		}																																	\
+																																			\
+		math::float3 RigidBody::GetLinearVelocity() const																					\
+		{																																	\
+			const physx::PxVec3 linearVelocity = m_pRigidBody->getLinearVelocity();															\
+			return Convert<const math::float3>(linearVelocity);																				\
+		}																																	\
+																																			\
+		void RigidBody::SetAngularVelocity(const math::float3& angularVelocity, bool isEnableAutoWake)										\
+		{																																	\
+			m_pRigidBody->setAngularVelocity(Convert<const physx::PxVec3>(angularVelocity), isEnableAutoWake);								\
+		}																																	\
+																																			\
+		math::float3 RigidBody::GetAngularVelocity() const																					\
+		{																																	\
+			const physx::PxVec3 angularVelocity = m_pRigidBody->getAngularVelocity();														\
+			return Convert<const math::float3>(angularVelocity);																			\
+		}																																	\
+																																			\
+		void RigidBody::AddForce(const math::float3& force, ForceMode mode, bool isEnableAutoWake)											\
+		{																																	\
+			m_pRigidBody->addForce(Convert<const physx::PxVec3>(force), Convert<physx::PxForceMode::Enum>(mode), isEnableAutoWake);			\
+		}																																	\
+																																			\
+		void RigidBody::ClearForce(ForceMode mode)																							\
+		{																																	\
+			m_pRigidBody->clearForce(Convert<physx::PxForceMode::Enum>(mode));																\
+		}																																	\
+																																			\
+		void RigidBody::AddTorque(const math::float3& torque, ForceMode mode, bool isEnableAutoWake)										\
+		{																																	\
+			m_pRigidBody->addTorque(Convert<const physx::PxVec3>(torque), Convert<physx::PxForceMode::Enum>(mode), isEnableAutoWake);		\
+		}																																	\
+																																			\
+		void RigidBody::ClearTorque(ForceMode mode)																							\
+		{																																	\
+			m_pRigidBody->clearTorque(Convert<physx::PxForceMode::Enum>(mode));																\
+		}																																	\
+																																			\
+		void RigidBody::SetFlag(Flag flag, bool isEnable)																					\
+		{																																	\
+			m_pRigidBody->setRigidBodyFlag(Convert<const physx::PxRigidBodyFlag::Enum>(flag), isEnable);									\
+		}																																	\
+																																			\
+		void RigidBody::SetFlags(Flags flags)																								\
+		{																																	\
+			m_pRigidBody->setRigidBodyFlags(Convert<const physx::PxRigidBodyFlags>(flags));													\
+		}																																	\
+																																			\
+		RigidBody::Flags RigidBody::GetFlags() const																						\
+		{																																	\
+			const physx::PxRigidBodyFlags flags = m_pRigidBody->getRigidBodyFlags();														\
+			return Convert<const RigidBody::Flags>(flags);																					\
+		}																																	\
+																																			\
+		void RigidBody::SetMinCCDAdvanceCoefficient(float advanceCoefficient)																\
+		{																																	\
+			m_pRigidBody->setMinCCDAdvanceCoefficient(advanceCoefficient);																	\
+		}																																	\
+																																			\
+		float RigidBody::GetMinCCDAdvanceCoefficient() const																				\
+		{																																	\
+			return m_pRigidBody->getMinCCDAdvanceCoefficient();																				\
+		}																																	\
+																																			\
+		void RigidBody::SetMaxDepenetrationVelocity(float biasClamp)																		\
+		{																																	\
+			m_pRigidBody->setMaxDepenetrationVelocity(biasClamp);																			\
+		}																																	\
+																																			\
+		float RigidBody::GetMaxDepenetrationVelocity() const																				\
+		{																																	\
+			return m_pRigidBody->getMaxDepenetrationVelocity();																				\
+		}																																	\
+																																			\
+		void RigidBody::SetMaxContactImpulse(float maxImpulse)																				\
+		{																																	\
+			m_pRigidBody->setMaxContactImpulse(maxImpulse);																					\
+		}																																	\
+																																			\
+		float RigidBody::GetMaxContactImpulse() const																						\
+		{																																	\
+			return m_pRigidBody->getMaxContactImpulse();																					\
 		}
 
-		void RigidBody::Impl::Update(float elapsedTime)
+		///////////////////////////////////////////////////////////////////////////////////
+
+		RigidStatic::RigidStatic(physx::PxRigidStatic* pRigidStatic)
+			: m_pRigidStatic(pRigidStatic)
 		{
-			m_matWorld = math::Convert(m_pRigidBody->getWorldTransform());
-
-			UpdateBoundingBox(m_matWorld);
-
-			if (m_rigidBodyProperty.funcCollisionCallback != nullptr && m_vecCollisionResults.empty() == false)
-			{
-				m_rigidBodyProperty.funcCollisionCallback(m_vecCollisionResults);
-			}
-
-			if (m_rigidBodyProperty.funcTriangleDrawCallback != nullptr && m_isEnableTriangleDrawCallback == true)
-			{
-				if (m_rigidBodyProperty.shapeInfo.emShapeType == ShapeType::eTriangleMesh ||
-					m_rigidBodyProperty.shapeInfo.emShapeType == ShapeType::eTerrain)
-				{
-					btConcaveShape* pShape = static_cast<btConcaveShape*>(m_pCollisionShape.get());
-
-					btVector3 aabbMin(btScalar(-1e30), btScalar(-1e30), btScalar(-1e30));
-					btVector3 aabbMax(btScalar(1e30), btScalar(1e30), btScalar(1e30));
-
-					std::vector<math::float3> triangles;
-					if (m_rigidBodyProperty.shapeInfo.emShapeType == ShapeType::eTriangleMesh)
-					{
-					}
-					else if (m_rigidBodyProperty.shapeInfo.emShapeType == ShapeType::eTerrain)
-					{
-						const Shape::Terrain* pShapeInfo = std::get_if<Shape::Terrain>(&m_rigidBodyProperty.shapeInfo.element);
-						if (pShapeInfo != nullptr)
-						{
-							triangles.reserve(pShapeInfo->nHeightArarySize * 6);
-						}
-					}
-
-					DebugTriangleDrawCallback callback(&triangles);
-					pShape->processAllTriangles(&callback, aabbMin, aabbMax);
-
-					m_rigidBodyProperty.funcTriangleDrawCallback(triangles.data(), triangles.size());
-				}
-			}
+			m_pRigidStatic->userData = this;
 		}
 
-		void RigidBody::Impl::UpdateBoundingBox(const math::Matrix& matWorld)
+		RigidStatic::~RigidStatic()
 		{
-			btVector3 vMin, vMax;
-			m_pRigidBody->getAabb(vMin, vMax);
+			Remove(GetScene());
 
-			math::float3 f3Min = math::Convert(vMin);
-			math::float3 f3Max = math::Convert(vMax);
-
-			collision::AABB::CreateFromPoints(m_boundingBox, f3Min, f3Max);
-			m_boundingBox.Extents = math::float3::Max(m_boundingBox.Extents, math::float3(0.01f));
-			collision::Sphere::CreateFromAABB(m_boundingSphere, m_boundingBox);
-			collision::OBB::CreateFromAABB(m_boundingOrientedBox, m_boundingBox);
+			m_pRigidStatic->release();
+			m_pRigidStatic->userData = nullptr;
+			m_pRigidStatic = nullptr;
 		}
 
-		bool RigidBody::Impl::IsCollision(RigidBody* pRigidBody)
+		ImplActorFunc(RigidStatic, m_pRigidStatic);
+		ImplRigidActorFunc(RigidStatic, m_pRigidStatic);
+
+		void RigidStatic::Remove(physx::PxScene* pScene, bool isEnableWakeOnLostTouch)
 		{
-			auto iter = std::find_if(m_vecCollisionResults.begin(), m_vecCollisionResults.end(), [pRigidBody](const CollisionResult& result)
+			if (m_isValid == true)
 			{
-				return result.pOpponentObject == pRigidBody;
-			});
-
-			if (iter != m_vecCollisionResults.end())
-				return true;
-
-			struct CustomResultCallBack : public btCollisionWorld::ContactResultCallback
-			{
-				bool isCollision = false;
-
-				virtual btScalar addSingleResult(btManifoldPoint& cp, const btCollisionObjectWrapper* pCollisionObj0, int nPartID0, int nIndex0, const btCollisionObjectWrapper* pCollisionObj1, int nPartID1, int nIndex1) override
-				{
-					isCollision = true;
-
-					return 0.f;
-				}
-			};
-
-			CustomResultCallBack result;
-
-			m_pDynamicsWorld->contactPairTest(m_pRigidBody.get(), pRigidBody->GetInterface(), result);
-
-			return result.isCollision;
-		}
-
-		bool RigidBody::Impl::RayTest(const math::float3& f3From, const math::float3& f3To, math::float3* pHitPoint_out, math::float3* pHitNormal_out) const
-		{
-			btVector3 rayFromWorld = math::ConvertToBt(f3From);
-			btVector3 rayToWorld = math::ConvertToBt(f3To);
-
-			btTransform	rayFromTrans;
-			rayFromTrans.setIdentity();
-			rayFromTrans.setOrigin(rayFromWorld);
-
-			btTransform	rayToTrans;
-			rayToTrans.setIdentity();
-			rayToTrans.setOrigin(rayToWorld);
-
-			btCollisionWorld::ClosestRayResultCallback resultCallback(rayFromWorld, rayToWorld);
-
-			m_pDynamicsWorld->rayTestSingle(rayFromTrans, rayToTrans,
-				m_pRigidBody.get(),
-				m_pCollisionShape.get(),
-				m_pRigidBody->getWorldTransform(),
-				resultCallback);
-
-			if (resultCallback.hasHit() == true)
-			{
-				if (pHitPoint_out != nullptr)
-				{
-					*pHitPoint_out = math::Convert(resultCallback.m_hitPointWorld);
-				}
-
-				if (pHitNormal_out != nullptr)
-				{
-					*pHitNormal_out = math::Convert(resultCallback.m_hitNormalWorld);
-				}
-
-				return true;
-			}
-			else
-			{
-				if (pHitPoint_out != nullptr)
-				{
-					*pHitPoint_out = math::float3::Zero;
-				}
-
-				if (pHitNormal_out != nullptr)
-				{
-					*pHitNormal_out = math::float3::Zero;
-				}
-
-				return false;
+				pScene->removeActor(*GetInterface(), isEnableWakeOnLostTouch);
+				m_isValid = false;
 			}
 		}
 
-		void RigidBody::Impl::AddCollisionResult(const RigidBody* pRigidBody, const math::float3& f3OpponentPoint, const math::float3& f3MyPoint)
+		RigidDynamic::RigidDynamic(physx::PxRigidDynamic* pRigidDynamic)
+			: m_pRigidDynamic(pRigidDynamic)
 		{
-			if (m_rigidBodyProperty.funcCollisionCallback != nullptr)
+			m_pRigidDynamic->userData = this;
+		}
+
+		RigidDynamic::~RigidDynamic()
+		{
+			Remove(GetScene());
+
+			m_pRigidDynamic->release();
+			m_pRigidDynamic->userData = nullptr;
+			m_pRigidDynamic = nullptr;
+		}
+		ImplActorFunc(RigidDynamic, m_pRigidDynamic);
+		ImplRigidActorFunc(RigidDynamic, m_pRigidDynamic);
+		ImplRigidBodyFunc(RigidDynamic, m_pRigidDynamic);
+
+		void RigidDynamic::SetKinematicTarget(const Transform& destination)
+		{
+			m_pRigidDynamic->setKinematicTarget(Convert<const physx::PxTransform>(destination));
+		}
+
+		bool RigidDynamic::GetKinematicTarget(Transform& target_out)
+		{
+			return m_pRigidDynamic->getKinematicTarget(Convert<physx::PxTransform>(target_out));
+		}
+
+		void RigidDynamic::SetLinearDamping(float linearDamp)
+		{
+			m_pRigidDynamic->setLinearDamping(linearDamp);
+		}
+
+		float RigidDynamic::GetLinearDamping() const
+		{
+			return m_pRigidDynamic->getLinearDamping();
+		}
+
+		void RigidDynamic::SetAngularDamping(float angularDamp)
+		{
+			m_pRigidDynamic->setAngularDamping(angularDamp);
+		}
+
+		float RigidDynamic::GetAngularDamping() const
+		{
+			return m_pRigidDynamic->getAngularDamping();
+		}
+
+		void RigidDynamic::SetMaxAngularVelocity(float maxAngularVelocity)
+		{
+			m_pRigidDynamic->setMaxAngularVelocity(maxAngularVelocity);
+		}
+
+		float RigidDynamic::GetMaxAngularVelocity() const
+		{
+			return m_pRigidDynamic->getMaxAngularVelocity();
+		}
+
+		bool RigidDynamic::IsSleeping() const
+		{
+			return m_pRigidDynamic->isSleeping();
+		}
+
+		void RigidDynamic::SetSleepThreshold(float threshold)
+		{
+			m_pRigidDynamic->setSleepThreshold(threshold);
+		}
+
+		float RigidDynamic::GetSleepThreshold() const
+		{
+			return m_pRigidDynamic->getSleepThreshold();
+		}
+
+		void RigidDynamic::SetStabilizationThreshold(float threshold)
+		{
+			m_pRigidDynamic->setStabilizationThreshold(threshold);
+		}
+
+		float RigidDynamic::GetStabilizationThreshold() const
+		{
+			return m_pRigidDynamic->getStabilizationThreshold();
+		}
+
+		void RigidDynamic::SetLockFlag(LockFlag flag, bool isEnable)
+		{
+			m_pRigidDynamic->setRigidDynamicLockFlag(Convert<physx::PxRigidDynamicLockFlag::Enum>(flag), isEnable);
+		}
+
+		void RigidDynamic::SetLockFlags(LockFlags flags)
+		{
+			m_pRigidDynamic->setRigidDynamicLockFlags(Convert<physx::PxRigidDynamicLockFlags>(flags));
+		}
+
+		void RigidDynamic::SetWakeCounter(float wakeCounterValue)
+		{
+			m_pRigidDynamic->setWakeCounter(wakeCounterValue);
+		}
+
+		float RigidDynamic::GetWakeCounter() const
+		{
+			return m_pRigidDynamic->getWakeCounter();
+		}
+
+		void RigidDynamic::WakeUp()
+		{
+			m_pRigidDynamic->wakeUp();
+		}
+
+		void RigidDynamic::PutToSleep()
+		{
+			m_pRigidDynamic->putToSleep();
+		}
+
+		void RigidDynamic::SetSolverIterationCounts(uint32_t minPositionIters, uint32_t minVelocityIters)
+		{
+			m_pRigidDynamic->setSolverIterationCounts(minPositionIters, minVelocityIters);
+		}
+
+		void RigidDynamic::GetSolverIterationCounts(uint32_t& minPositionIters, uint32_t& minVelocityIters) const
+		{
+			m_pRigidDynamic->getSolverIterationCounts(minPositionIters, minVelocityIters);
+		}
+
+		void RigidDynamic::SetContactReportThreshold(float threshold)
+		{
+			m_pRigidDynamic->setContactReportThreshold(threshold);
+		}
+
+		float RigidDynamic::GetContactReportThreshold() const
+		{
+			return m_pRigidDynamic->getContactReportThreshold();
+		}
+
+		void RigidDynamic::Remove(physx::PxScene* pScene, bool isEnableWakeOnLostTouch)
+		{
+			if (m_isValid == true)
 			{
-				m_vecCollisionResults.emplace_back(pRigidBody, f3OpponentPoint, f3MyPoint);
+				pScene->removeActor(*GetInterface(), isEnableWakeOnLostTouch);
+				m_isValid = false;
 			}
 		}
 
-		void RigidBody::Impl::ClearCollisionResults()
+		ArticulationLink::ArticulationLink(physx::PxArticulationLink* pArticulationLink)
+			: m_pArticulationLink(pArticulationLink)
 		{
-			m_vecCollisionResults.clear();
+			m_pArticulationLink->userData = this;
 		}
 
-		void RigidBody::Impl::SetEnableTriangleDrawCallback(bool isEnableTriangleDrawCallback)
+		ArticulationLink::~ArticulationLink()
 		{
-			m_isEnableTriangleDrawCallback = isEnableTriangleDrawCallback;
+			Remove(GetScene());
+
+			m_pArticulationLink->release();
+			m_pArticulationLink->userData = nullptr;
+			m_pArticulationLink = nullptr;
+		}
+		ImplActorFunc(ArticulationLink, m_pArticulationLink);
+		ImplRigidActorFunc(ArticulationLink, m_pArticulationLink);
+		ImplRigidBodyFunc(ArticulationLink, m_pArticulationLink);
+
+		IArticulation* ArticulationLink::GetArticulation() const
+		{
+			return static_cast<IArticulation*>(m_pArticulationLink->getArticulation().userData);
 		}
 
-		const string::StringID& RigidBody::Impl::GetName() const
+		IArticulationJointBase* ArticulationLink::GetInboundJoint()
 		{
-			return m_rigidBodyProperty.strName;
-		}
-
-		void RigidBody::Impl::SetName(const string::StringID& strName)
-		{
-			m_rigidBodyProperty.strName = strName;
-		}
-
-		const RigidBodyProperty& RigidBody::Impl::GetRigidBodyProperty() const
-		{
-			return m_rigidBodyProperty;
-		}
-
-		void RigidBody::Impl::SetWorldMatrix(const math::Matrix& mat)
-		{
-			math::float3 f3Pos, vScale;
-			math::Quaternion quat;
-
-			mat.Decompose(vScale, quat, f3Pos);
-			btTransform transform = math::ConvertToBt(f3Pos, quat);
-			m_pMotionState->setWorldTransform(transform);
-			m_pRigidBody->setWorldTransform(transform);
-			m_pCollisionShape->setLocalScaling(math::ConvertToBt(vScale));
-		}
-
-		math::Matrix RigidBody::Impl::GetWorldMatrix() const
-		{
-			return math::Convert(m_pRigidBody->getWorldTransform());
-		}
-
-		math::Quaternion RigidBody::Impl::GetOrientation() const
-		{
-			return math::Convert(m_pRigidBody->getOrientation());
-		}
-
-		math::float3 RigidBody::Impl::GetCenterOfMassPosition() const
-		{
-			return math::Convert(m_pRigidBody->getCenterOfMassPosition());
-		}
-
-		void RigidBody::Impl::SetLinearVelocity(const math::float3& f3Velocity)
-		{
-			if (math::IsZero(f3Velocity.LengthSquared()) == true)
-				return;
-
-			if (m_pRigidBody->isActive() == false)
-			{
-				m_pRigidBody->setLinearVelocity(math::ConvertToBt(f3Velocity));
-				m_pRigidBody->activate();
-			}
-			else
-			{
-				auto btVelocity = m_pRigidBody->getLinearVelocity();
-				btVelocity += math::ConvertToBt(f3Velocity);
-
-				m_pRigidBody->setLinearVelocity(btVelocity);
-			}
-		}
-
-		void RigidBody::Impl::SetDamping(float fLinearDamping, float fAngularDamping)
-		{
-			m_pRigidBody->setDamping(fLinearDamping, fAngularDamping);
-		}
-
-		void RigidBody::Impl::SetDeactivationTime(float fTime)
-		{
-			m_pRigidBody->setDeactivationTime(fTime);
-		}
-
-		void RigidBody::Impl::SetSleepingThresholds(float fLinear, float fAngular)
-		{
-			m_pRigidBody->setSleepingThresholds(fLinear, fAngular);
-		}
-
-		void RigidBody::Impl::SetAngularFactor(float fFactor)
-		{
-			m_pRigidBody->setAngularFactor(fFactor);
-		}
-
-		void RigidBody::Impl::SetActiveState(ActiveStateType emActiveState)
-		{
-			m_pRigidBody->setActivationState((int)(emActiveState));
-		}
-
-		void RigidBody::Impl::SetGravity(bool isEnable)
-		{
-			if (isEnable == true)
-			{
-				m_pRigidBody->setGravity(m_pDynamicsWorld->getGravity());
-			}
-			else
-			{
-				const btVector3 zeroVector(0.f, 0.f, 0.f);
-				m_pRigidBody->setGravity(zeroVector);
-			}
-
-			m_pRigidBody->applyGravity();
-		}
-
-		void RigidBody::Impl::SetGravity(const math::float3& f3Gravity)
-		{
-			m_pRigidBody->setGravity(math::ConvertToBt(f3Gravity));
-			m_pRigidBody->applyGravity();
-		}
-
-		RigidBody::RigidBody()
-			: m_pImpl{ std::make_unique<Impl>() }
-		{
-		}
-
-		RigidBody::~RigidBody()
-		{
-		}
-
-		RigidBody* RigidBody::Create(const RigidBodyProperty& rigidBodyProperty)
-		{
-			if (rigidBodyProperty.GetShapeType() == ShapeType::eEmpty)
+			if (m_pArticulationLink->getInboundJoint() == nullptr)
 				return nullptr;
 
-			RigidBody* pRigidBody = new RigidBody;
-			if (pRigidBody->Initislize(rigidBodyProperty) == false)
+			if (m_pInboundJoint == nullptr)
 			{
-				SafeDelete(pRigidBody);
+				physx::PxArticulationJointBase* pInboundJoint = m_pArticulationLink->getInboundJoint();
+				if (pInboundJoint == nullptr)
+					return nullptr;
 
-				return nullptr;
+				physx::PxArticulationJointReducedCoordinate* p = dynamic_cast<physx::PxArticulationJointReducedCoordinate*>(pInboundJoint);
+				if (p != nullptr)
+				{
+					m_pInboundJoint = std::make_unique<ArticulationJointReducedCoordinate>(p);
+				}
+				else
+				{
+					physx::PxArticulationJoint* p2 = dynamic_cast<physx::PxArticulationJoint*>(pInboundJoint);
+					if (p2 != nullptr)
+					{
+						m_pInboundJoint = std::make_unique<ArticulationJoint>(p2);
+					}
+				}
 			}
-
-			System::GetInstance()->AddRigidBody(pRigidBody);
-			
-			return pRigidBody;
+			return m_pInboundJoint.get();
 		}
 
-		void RigidBody::Update(float elapsedTime)
+		uint32_t ArticulationLink::GetNumChildren() const
 		{
-			m_pImpl->Update(elapsedTime);
+			return m_pArticulationLink->getNbChildren();
 		}
 
-		void RigidBody::UpdateBoundingBox(const math::Matrix& matWorld)
+		uint32_t ArticulationLink::GetChildren(IArticulationLink** ppUserBuffer, uint32_t bufferSize, uint32_t startIndex) const
 		{
-			m_pImpl->UpdateBoundingBox(matWorld);
+			std::vector<physx::PxArticulationLink*> pInterfaces(bufferSize);
+			const uint32_t result = m_pArticulationLink->getChildren(pInterfaces.data(), bufferSize, startIndex);
+
+			for (uint32_t i = 0; i < bufferSize; ++i)
+			{
+				if (pInterfaces[i] != nullptr)
+				{
+					ppUserBuffer[i] = static_cast<IArticulationLink*>(pInterfaces[i]->userData);
+				}
+			}
+			return result;
 		}
 
-		bool RigidBody::IsCollision(RigidBody* pRigidBody)
+		void ArticulationLink::Remove(physx::PxScene* pScene, bool isEnableWakeOnLostTouch)
 		{
-			return m_pImpl->IsCollision(pRigidBody);
-		}
-
-		bool RigidBody::RayTest(const math::float3& f3From, const math::float3& f3To, math::float3* pHitPoint_out, math::float3* pHitNormal_out) const
-		{
-			return m_pImpl->RayTest(f3From, f3To, pHitPoint_out, pHitNormal_out);
-		}
-
-		void RigidBody::AddCollisionResult(const RigidBody* pRigidBody, const math::float3& f3OpponentPoint, const math::float3& f3MyPoint)
-		{
-			m_pImpl->AddCollisionResult(pRigidBody, f3OpponentPoint, f3MyPoint);
-		}
-
-		void RigidBody::ClearCollisionResults()
-		{
-			m_pImpl->ClearCollisionResults();
-		}
-
-		void RigidBody::SetEnableTriangleDrawCallback(bool isEnableTriangleDrawCallback)
-		{
-			m_pImpl->SetEnableTriangleDrawCallback(isEnableTriangleDrawCallback);
-		}
-
-		const string::StringID& RigidBody::GetName() const
-		{
-			return m_pImpl->GetName();
-		}
-
-		void RigidBody::SetName(const string::StringID& strName)
-		{
-			m_pImpl->SetName(strName);
-		}
-
-		const RigidBodyProperty& RigidBody::GetRigidBodyProperty() const
-		{
-			return m_pImpl->GetRigidBodyProperty();
-		}
-
-		void RigidBody::SetWorldMatrix(const math::Matrix& mat)
-		{
-			m_pImpl->SetWorldMatrix(mat);
-		}
-
-		math::Matrix RigidBody::GetWorldMatrix() const
-		{
-			return m_pImpl->GetWorldMatrix();
-		}
-
-		math::Quaternion RigidBody::GetOrientation() const
-		{
-			return m_pImpl->GetOrientation();
-		}
-
-		math::float3 RigidBody::GetCenterOfMassPosition() const
-		{
-			return m_pImpl->GetCenterOfMassPosition();
-		}
-
-		void RigidBody::SetLinearVelocity(const math::float3& f3Velocity)
-		{
-			m_pImpl->SetLinearVelocity(f3Velocity);
-		}
-
-		void RigidBody::SetDamping(float fLinearDamping, float fAngularDamping)
-		{
-			m_pImpl->SetDamping(fLinearDamping, fAngularDamping);
-		}
-
-		void RigidBody::SetDeactivationTime(float fTime)
-		{
-			m_pImpl->SetDeactivationTime(fTime);
-		}
-
-		void RigidBody::SetSleepingThresholds(float fLinear, float fAngular)
-		{
-			m_pImpl->SetSleepingThresholds(fLinear, fAngular);
-		}
-
-		void RigidBody::SetAngularFactor(float fFactor)
-		{
-			m_pImpl->SetAngularFactor(fFactor);
-		}
-
-		void RigidBody::SetActiveState(ActiveStateType emActiveState)
-		{
-			m_pImpl->SetActiveState(emActiveState);
-		}
-
-		void RigidBody::SetGravity(bool isEnable)
-		{
-			m_pImpl->SetGravity(isEnable);
-		}
-
-		void RigidBody::SetGravity(const math::float3& f3Gravity)
-		{
-			m_pImpl->SetGravity(f3Gravity);
-		}
-
-		const collision::AABB& RigidBody::GetAABB() const
-		{
-			return m_pImpl->GetAABB();
-		}
-
-		const collision::Sphere& RigidBody::GetBoundingSphere() const
-		{
-			return m_pImpl->GetBoundingSphere();
-		}
-
-		const collision::OBB& RigidBody::GetOBB() const
-		{
-			return m_pImpl->GetOBB();
-		}
-
-		btRigidBody* RigidBody::GetInterface()
-		{
-			return m_pImpl->GetInterface();
-		}
-		
-		bool RigidBody::Initislize(const RigidBodyProperty& physicsProperty)
-		{
-			return m_pImpl->Initislize(physicsProperty);
+			if (m_isValid == true)
+			{
+				pScene->removeActor(*GetInterface(), isEnableWakeOnLostTouch);
+				m_isValid = false;
+			}
 		}
 	}
 }

@@ -2,7 +2,7 @@
 
 #include "ComponentInterface.h"
 
-namespace eastengine
+namespace est
 {
 	namespace graphics
 	{

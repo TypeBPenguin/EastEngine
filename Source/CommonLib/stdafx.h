@@ -15,6 +15,8 @@
 #include <assert.h>
 #include <Windows.h>
 #include <fstream>
+#include <atlstr.h>
+#include <sstream>
 
 #include <mutex>
 #include <algorithm>

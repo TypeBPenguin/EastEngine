@@ -4,7 +4,7 @@
 
 #include "GameObject.h"
 
-namespace eastengine
+namespace est
 {
 	namespace gameobject
 	{
@@ -16,35 +16,39 @@ namespace eastengine
 			virtual ~GameObjectManager();
 
 		public:
+			void Release();
 			void Update(float elapsedTime);
 
 		public:
-			IActor* CreateActor(const string::StringID& strActorName);
+			ActorPtr CreateActor(const string::StringID& actorName);
+			void RemoveActor(IActor* pActor);
 
 			IActor* GetActor(const IGameObject::Handle& handle);
-			IActor* GetActor(size_t nIndex);
+			IActor* GetActor(size_t index);
 			size_t GetActorCount() const;
 
 			void ExecuteFunction(std::function<void(IActor*)> func);
 
 		public:
-			ISkybox* CreateSkybox(const string::StringID& strName, const SkyboxProperty& property);
-
-			ISkybox* GetSkybox(const IGameObject::Handle& handle);
-			ISkybox* GetSkybox(size_t nIndex);
-			size_t GetSkyboxCount() const;
-
-			void ExecuteFunction(std::function<void(ISkybox*)> func);
-
-		public:
-			ITerrain * CreateTerrain(const string::StringID& strTerrainName, const TerrainProperty& terrainProperty);
-			ITerrain* CreateTerrainAsync(const string::StringID& strTerrainName, const TerrainProperty& terrainProperty);
+			TerrainPtr CreateTerrain(const string::StringID& terrainName, const TerrainProperty& terrainProperty);
+			TerrainPtr CreateTerrainAsync(const string::StringID& terrainName, const TerrainProperty& terrainProperty);
+			void RemoveTerrain(ITerrain* pTerrain);
 
 			ITerrain* GetTerrain(const IGameObject::Handle& handle);
-			ITerrain* GetTerrain(size_t nIndex);
+			ITerrain* GetTerrain(size_t index);
 			size_t GetTerrainCount() const;
 
 			void ExecuteFunction(std::function<void(ITerrain*)> func);
+
+		public:
+			SkyboxPtr CreateSkybox(const string::StringID& skyboxName, const SkyboxProperty& skyProperty);
+			void RemoveSkybox(ISkybox* pSkybox);
+
+			ISkybox* GetSkybox(const IGameObject::Handle& handle);
+			ISkybox* GetSkybox(size_t index);
+			size_t GetSkyboxCount() const;
+
+			void ExecuteFunction(std::function<void(ISkybox*)> func);
 
 		private:
 			class Impl;

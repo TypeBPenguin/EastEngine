@@ -2,7 +2,7 @@
 
 #include "Singleton.h"
 
-namespace eastengine
+namespace est
 {
 	namespace Config
 	{
@@ -17,10 +17,10 @@ namespace eastengine
 			bool Init();
 			void Release();
 
-			bool GetCommandLine(const char* strCommandLine, std::string* pValue = nullptr);
+			bool GetCommand(const wchar_t* commandLine, std::wstring* pValue = nullptr);
 
 		private:
-			bool m_bInit;
+			bool m_isInitialize{ false };
 			std::unordered_map<std::wstring, std::wstring> m_umapCommandLine;
 		};
 	}

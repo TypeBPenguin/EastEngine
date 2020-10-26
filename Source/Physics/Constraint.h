@@ -1,193 +1,37 @@
 #pragma once
 
-#include "PhysicsDefine.h"
+#include "PhysicsInterface.h"
 
-class btTypedConstraint;
-class btGeneric6DofConstraint;
-class btDiscreteDynamicsWorld;
-
-namespace eastengine
+namespace est
 {
 	namespace physics
 	{
-		class RigidBody;
-
-		namespace EmConstraint
-		{
-			enum Type
-			{
-				eConeTwist = 0,
-				eContact,
-				eGear,
-				eGeneric6Dof,
-				eGeneric6DofSpring2,
-				eHinge,
-				ePoint2Point,
-				eSlider,
-			};
-		}
-
-		struct ConstraintProperty
-		{
-			EmConstraint::Type emType;
-
-			struct Generic6Dof
-			{
-				RigidBody* pRigidBodyA;
-				math::float3 f3OriginPosA;
-				math::Quaternion originQuatA;
-				RigidBody* pRigidBodyB;
-				math::float3 f3OriginPosB;
-				math::Quaternion originQuatB;
-				bool isEnableLinearRefrenceFrameA;
-				bool isEnableCollisionBetweenLinkedBodies;
-			};
-
-			union
-			{
-				Generic6Dof generic6Dof;
-			};
-
-			ConstraintProperty()
-			{
-			}
-
-			void SetGeneric6Dof(RigidBody* pRigidBodyA, const math::float3& f3OriginPosA, const math::Quaternion& originQuatA, RigidBody* pRigidBodyB, const math::float3& f3OriginPosB, const math::Quaternion& originQuatB, bool isEnableLinearRefrenceFrameA, bool isEnableCollisionBetweenLinkedBodies = true)
-			{
-				generic6Dof.pRigidBodyA = pRigidBodyA;
-				generic6Dof.f3OriginPosA = f3OriginPosA;
-				generic6Dof.originQuatA = originQuatA;
-				generic6Dof.pRigidBodyB = pRigidBodyB;
-				generic6Dof.f3OriginPosB = f3OriginPosB;
-				generic6Dof.originQuatB = originQuatB;
-				generic6Dof.isEnableLinearRefrenceFrameA = isEnableLinearRefrenceFrameA;
-				generic6Dof.isEnableCollisionBetweenLinkedBodies = isEnableCollisionBetweenLinkedBodies;
-				emType = EmConstraint::eGeneric6Dof;
-			}
-
-			void SetGeneric6Dof(RigidBody* pRigidBodyB, const math::float3& f3OriginPosB, const math::Quaternion& originQuatB, bool isEnableLinearRefrenceFrameA, bool isEnableCollisionBetweenLinkedBodies = true)
-			{
-				generic6Dof.pRigidBodyA = nullptr;
-				generic6Dof.f3OriginPosA = math::float3::Zero;
-				generic6Dof.originQuatA = math::Quaternion::Identity;
-				generic6Dof.pRigidBodyB = pRigidBodyB;
-				generic6Dof.f3OriginPosB = f3OriginPosB;
-				generic6Dof.originQuatB = originQuatB;
-				generic6Dof.isEnableLinearRefrenceFrameA = isEnableLinearRefrenceFrameA;
-				generic6Dof.isEnableCollisionBetweenLinkedBodies = isEnableCollisionBetweenLinkedBodies;
-				emType = EmConstraint::eGeneric6Dof;
-			}
-		};
-
-		class ConstraintInterface
+		class Constraint : public IConstraint
 		{
 		public:
-			ConstraintInterface(EmConstraint::Type emConstraintType);
-			virtual ~ConstraintInterface() = 0;
-
-			static ConstraintInterface* Create(const ConstraintProperty& constraintProperty);
-
-			virtual btTypedConstraint* GetInterface() = 0;
-
-		protected:
-			EmConstraint::Type m_emConstraintType;
-			btDiscreteDynamicsWorld* m_pDynamicsWorld;
-		};
-
-		class Generic6DofConstraint : public ConstraintInterface
-		{
-		private:
-			Generic6DofConstraint();
+			Constraint(physx::PxConstraint* pConstraint);
+			virtual ~Constraint();
 
 		public:
-			virtual ~Generic6DofConstraint();
+			virtual void GetActors(IRigidActor*& pActor0, IRigidActor*& pActor1) const override;
+			virtual void SetActors(IRigidActor* pActor0, IRigidActor* pActor1) override;
 
-			static Generic6DofConstraint* Create(const ConstraintProperty& constraintProperty);
+			virtual void SetFlags(Flags flags) override;
+			virtual void SetFlag(Flag flag, bool isEnable) override;
+			virtual Flags GetFlags() const override;
 
-			virtual btTypedConstraint* GetInterface() override;
-			
-		public:
-			void CalculateTransforms(const math::Matrix& transA, const math::Matrix& transB);
-			void CalculateTransforms();
+			virtual void GetForce(math::float3& linear, math::float3& angular) const override;
 
-			math::Matrix GetCalculatedTransformA() const;
-			math::Matrix GetCalculatedTransformB() const;
+			virtual bool IsValid() const override;
 
-			math::Matrix GetFrameOffSetA() const;
-			math::Matrix GetFrameOffSetB() const;
+			virtual void SetBreakForce(float linear, float angular) override;
+			virtual void GetBreakForce(float& linear, float& angular) const override;
 
-			math::Matrix GetFrameOffSetA();
-			math::Matrix GetFrameOffSetB();
-
-			void BuildJacobian();
-
-			void UpdateRHS(float fTimeStep);
-
-			// BuildJacobian must be called previously.
-			math::float3 GetAxis(int nAxis_index) const;
-
-			// CalculateTransforms() must be called previously.
-			float GetAngle(int nAxis_index) const;
-
-			// CalculateTransforms() must be called previously.
-			float GetRelativePivotPosition(int nAxis_index) const;
-
-			void SetFrames(const math::Matrix& frameA, const math::Matrix& frameB);
-
-			/*
-			Calculates angular correction and returns true if limit needs to be corrected.
-			CalculateTransforms() must be called previously.
-			*/
-			bool TestAngularLimitMotor(int nAxis_index);
-
-			void SetLinearLowerLimit(const math::float3& f3LinearLower);
-			void GetLinearLowerLimit(math::float3& f3LinearLower) const;
-
-			void SetLinearUpperLimit(const math::float3& f3LinearUpper);
-			void GetLinearUpperLimit(math::float3& f3LinearUpper) const;
-
-			void SetAngularLowerLimit(const math::float3& f3AngularLower);
-			void GetAngularLowerLimit(math::float3& f3AngularLower) const;
-
-			void SetAngularUpperLimit(const math::float3& f3AngularUpper);
-			void GetAngularUpperLimit(math::float3& f3AngularUpper) const;
-
-			//first 3 are linear, next 3 are angular
-			void SetLimit(int nAxis, float lo, float hi);
-
-			//! Test limit
-			/*!
-			- free means upper < lower,
-			- locked means upper == lower
-			- limited means upper > lower
-			- limitIndex: first 3 are linear, next 3 are angular
-			*/
-			bool IsLimited(int nLimitIndex) const;
-
-			void CalcAnchorPos(void);
-
-			// access for UseFrameOffSet
-			bool GetUseFrameOffSet() const;
-			void SetUseFrameOffSet(bool isFrameOffSetOnOff);
-
-			bool GetUseLinearReferenceFrameA() const;
-			void SetUseLinearReferenceFrameA(bool isLinearReferenceFrameA);
-
-			///override the default global value of a parameter (such as ERP or CFM), optionally provide the axis (0..5). 
-			///If no axis is provided, it uses the default axis for this constraint.
-			void SetParam(int nNum, float fValue, int nAxis = -1);
-
-			///return the local value of parameter
-			float GetParam(int nNum, int nAxis = -1) const;
-
-			void SetAxis(const math::float3& f3Axis1, const math::float3& f3Axis2);
-
-			int GetFlags() const;
-
-			int CalculateSerializeBufferSize() const;
+			virtual void SetMinResponseThreshold(float threshold) override;
+			virtual float GetMinResponseThreshold() const override;
 
 		private:
-			btGeneric6DofConstraint* m_pGeneric6DofConstraint;
+			physx::PxConstraint* m_pConstraint{ nullptr };
 		};
 	}
 }

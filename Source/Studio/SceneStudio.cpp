@@ -41,7 +41,7 @@
 #include "SkeletonController.h"
 #include "MaterialNodeManager.h"
 
-using namespace eastengine;
+using namespace est;
 
 extern LRESULT ImGui_ImplDX11_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -130,13 +130,13 @@ bool HandleMsg(HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
 	return false;
 }
 
-namespace StrID
+namespace sid
 {
 	RegisterStringID(Studio);
 	RegisterStringID(Studio_Ground);
 
 	RegisterStringID(None);
-	RegisterStringID(EastEngine_Sun);
+	RegisterStringID(est_Sun);
 }
 
 const std::array<const char*, 12> IBL_Type =
@@ -156,7 +156,7 @@ const std::array<const char*, 12> IBL_Type =
 };
 
 SceneStudio::SceneStudio()
-	: IScene(StrID::Studio)
+	: IScene(sid::Studio)
 	, m_pSkeletonController(nullptr)
 	, m_pMaterialNodeManager(nullptr)
 	, m_pSectorMgr(nullptr)
@@ -239,8 +239,8 @@ void SceneStudio::Enter()
 
 		gameobject::SkyboxProperty sky;
 
-		sky.strTexSky = strPath;
-		sky.strTexSky.append("EnvHDR.dds");
+		sky.texSkymap = strPath;
+		sky.texSkymap.append("EnvHDR.dds");
 
 		sky.fBoxSize = 1.f;
 
@@ -248,13 +248,13 @@ void SceneStudio::Enter()
 	}
 
 	{
-		auto pActor = gameobject::ActorManager::GetInstance()->CreateActor(StrID::Studio_Ground);
+		auto pActor = gameobject::ActorManager::GetInstance()->CreateActor(sid::Studio_Ground);
 	
 		graphics::MaterialInfo material;
-		material.strName = StrID::Studio_Ground;
+		material.strName = sid::Studio_Ground;
 
 		graphics::ModelLoader loader;
-		loader.InitPlane(StrID::Studio_Ground, 1.f, 1.f, 100, 100, &material);
+		loader.InitPlane(sid::Studio_Ground, 1.f, 1.f, 100, 100, &material);
 	
 		auto pCompModel = static_cast<gameobject::ComponentModel*>(pActor->CreateComponent(gameobject::IComponent::eModel));
 		pCompModel->Init(&loader);
@@ -265,7 +265,7 @@ void SceneStudio::Enter()
 	
 		physics::RigidBodyProperty prop;
 		prop.fRestitution = 0.75f;
-		prop.strName = StrID::Studio_Ground;
+		prop.strName = sid::Studio_Ground;
 		prop.fMass = 0.f;
 		prop.nCollisionFlag = physics::CollisionFlag::eStaticObject;
 		prop.shapeInfo.SetTriangleMesh();
@@ -287,11 +287,11 @@ void SceneStudio::Enter()
 		materialInfo.name = "TestDecal";
 		materialInfo.strPath = file::GetPath(file::eTexture);
 
-		materialInfo.strTextureNameArray[graphics::EmMaterial::eAlbedo] = "Albedo.tga";
-		materialInfo.strTextureNameArray[graphics::EmMaterial::eNormal] = "Normal.tga";
-		//materialInfo.strTextureNameArray[graphics::EmMaterial::eSpecularColor] = "Specular.tga";
-		materialInfo.strTextureNameArray[graphics::EmMaterial::eRoughness] = "Roughness.tga";
-		materialInfo.strTextureNameArray[graphics::EmMaterial::eMetallic] = "Metallic.tga";
+		materialInfo.textureNameArray[graphics::IMaterial::eAlbedo] = "Albedo.tga";
+		materialInfo.textureNameArray[graphics::IMaterial::eNormal] = "Normal.tga";
+		//materialInfo.textureNameArray[graphics::IMaterial::eSpecularColor] = "Specular.tga";
+		materialInfo.textureNameArray[graphics::IMaterial::eRoughness] = "Roughness.tga";
+		materialInfo.textureNameArray[graphics::IMaterial::eMetallic] = "Metallic.tga";
 
 		materialInfo.f4PaddingRoughMetEmi.y = 0.5f;
 		materialInfo.f4PaddingRoughMetEmi.z = 0.5f;
@@ -315,17 +315,17 @@ void SceneStudio::Enter()
 	//		materialInfo.name.Format("TestBox%d", (i % 10) + 1);
 	//		materialInfo.strPath = file::GetPath(file::eTexture);
 
-	//		materialInfo.strTextureNameArray[graphics::EmMaterial::eAlbedo].Format("Pattern\\pattern_%02d\\%s", (i % 10) + 1, "diffus.tga");
-	//		materialInfo.strTextureNameArray[graphics::EmMaterial::eNormal].Format("Pattern\\pattern_%02d\\%s", (i % 10) + 1, "Normal.tga");
-	//		materialInfo.strTextureNameArray[graphics::EmMaterial::eSpecularColor].Format("Pattern\\pattern_%02d\\%s", (i % 10) + 1, "specular.tga");
+	//		materialInfo.textureNameArray[graphics::IMaterial::eAlbedo].Format("Pattern\\pattern_%02d\\%s", (i % 10) + 1, "diffus.tga");
+	//		materialInfo.textureNameArray[graphics::IMaterial::eNormal].Format("Pattern\\pattern_%02d\\%s", (i % 10) + 1, "Normal.tga");
+	//		materialInfo.textureNameArray[graphics::IMaterial::eSpecularColor].Format("Pattern\\pattern_%02d\\%s", (i % 10) + 1, "specular.tga");
 	//		*/
 	//		graphics::MaterialInfo materialInfo;
 	//		materialInfo.name = "TestBox";
 	//		materialInfo.strPath = file::GetPath(file::eTexture);
 
-	//		materialInfo.strTextureNameArray[graphics::EmMaterial::eAlbedo].Format("Pattern\\pattern_01\\%s", "diffus.tga");
-	//		materialInfo.strTextureNameArray[graphics::EmMaterial::eNormal].Format("Pattern\\pattern_01\\%s", "Normal.tga");
-	//		materialInfo.strTextureNameArray[graphics::EmMaterial::eSpecularColor].Format("Pattern\\pattern_01\\%s", "specular.tga");
+	//		materialInfo.textureNameArray[graphics::IMaterial::eAlbedo].Format("Pattern\\pattern_01\\%s", "diffus.tga");
+	//		materialInfo.textureNameArray[graphics::IMaterial::eNormal].Format("Pattern\\pattern_01\\%s", "Normal.tga");
+	//		materialInfo.textureNameArray[graphics::IMaterial::eSpecularColor].Format("Pattern\\pattern_01\\%s", "specular.tga");
 
 	//		//materialInfo.f4PaddingRoughMetEmi.y = 0.1f * ((i % 10) + 1);
 	//		//materialInfo.f4PaddingRoughMetEmi.z = 1.f - 0.1f * ((i % 10) + 1);
@@ -361,13 +361,13 @@ void SceneStudio::Enter()
 	//				materialInfo2.strName = "TestBox";
 	//				materialInfo2.strPath = file::GetPath(file::eTexture);
 
-	//				materialInfo2.strTextureNameArray[graphics::EmMaterial::eAlbedo].Format("Pattern\\pattern_02\\%s", "diffus.tga");
-	//				materialInfo2.strTextureNameArray[graphics::EmMaterial::eNormal].Format("Pattern\\pattern_02\\%s", "Normal.tga");
-	//				materialInfo2.strTextureNameArray[graphics::EmMaterial::eSpecularColor].Format("Pattern\\pattern_02\\%s", "specular.tga");
+	//				materialInfo2.textureNameArray[graphics::IMaterial::eAlbedo].Format("Pattern\\pattern_02\\%s", "diffus.tga");
+	//				materialInfo2.textureNameArray[graphics::IMaterial::eNormal].Format("Pattern\\pattern_02\\%s", "Normal.tga");
+	//				materialInfo2.textureNameArray[graphics::IMaterial::eSpecularColor].Format("Pattern\\pattern_02\\%s", "specular.tga");
 
 	//				pMaterial_override = graphics::IMaterial::Create(&materialInfo2);
 	//			}
-	//			pModelInst->ChangeMaterial("EastEngine_Box", 0, pMaterial_override);
+	//			pModelInst->ChangeMaterial("est_Box", 0, pMaterial_override);
 	//		}
 
 	//		gameobject::ComponentPhysics* pCompPhysics = static_cast<gameobject::ComponentPhysics*>(pActor->CreateComponent(gameobject::IComponent::ePhysics));
@@ -410,7 +410,7 @@ void SceneStudio::Enter()
 
 			//graphics::ILight* pPointLight = graphics::ILight::CreatePointLight(strName, f3Position, lightColor, 100.f * (i + 1), 0.1f, 0.2f, &shadowConfig);
 
-			if (pSun->Init(StrID::EastEngine_Sun, pSpotLight, 1.f, math::float3::Zero, math::float3(0.f, 0.f, 0.f), math::float3(0.f, 9500.f, 0.f)) == true)
+			if (pSun->Init(sid::est_Sun, pSpotLight, 1.f, math::float3::Zero, math::float3(0.f, 0.f, 0.f), math::float3(0.f, 9500.f, 0.f)) == true)
 			{
 				pSun->GetActor()->SetPosition(f3Position);
 				m_vecSuns.push_back(pSun);
@@ -457,7 +457,7 @@ void SceneStudio::Enter()
 		const math::float3& f3Position,
 		graphics::EmModelLoader::LoadType emModelType = graphics::EmModelLoader::eEast)
 	{
-		gameobject::IActor* pActor = gameobject::IActor::Create(strActorName);
+		gameobject::IActor* pActor = gameobject::CreateActor(strActorName);
 
 		pActor->SetPosition(f3Position);
 
@@ -490,7 +490,7 @@ void SceneStudio::Enter()
 		string::StringID name;
 		name.Format("UnityChan%d", i);
 
-		strPath = file::GetDataPath();
+		strPath = file::GetEngineDataPath();
 		strPath.append("Actor\\UnityChan\\unitychan.emod");
 
 		math::float3 pos;
@@ -512,7 +512,7 @@ void SceneStudio::Enter()
 				"Actor\\UnityChan\\Animations\\unitychan_WAIT04.fbx",
 			};
 
-			std::string strPathMotion(file::GetDataPath());
+			std::string strPathMotion(file::GetEngineDataPath());
 			//strPathMotion.append("Actor\\UnityChan\\Animations\\unitychan_WAIT00.fbx");
 			strPathMotion.append(vecAnim[math::Random(0u, vecAnim.size() - 1)]);
 
@@ -520,7 +520,7 @@ void SceneStudio::Enter()
 			strMotionName.Format("%s", file::GetFileName(strPathMotion).c_str());
 			graphics::MotionLoader motionLoader;
 			motionLoader.InitFBX(strMotionName, strPathMotion.c_str(), 0.01f);
-			graphics::IMotion* pMotion = graphics::IMotion::Create(motionLoader);
+			graphics::IMotion* pMotion = graphics::CreateMotion(motionLoader);
 
 			graphics::MotionPlaybackInfo playback;
 			//playback.speed = math::Random(0.5f, 1.5f);
@@ -543,7 +543,7 @@ void SceneStudio::Enter()
 		//		"Actor\\UnityChan\\Animations\\unitychan_WIN00.fbx",
 		//	};
 
-		//	std::string strPathMotion(file::GetDataPath());
+		//	std::string strPathMotion(file::GetEngineDataPath());
 		//	//strPathMotion.append("Actor\\UnityChan\\Animations\\unitychan_ARpose1.fbx");
 		//	//strPathMotion.append("Actor\\UnityChan\\Animations\\unitychan_RUN00_F.fbx");
 		//	strPathMotion.append(vecAnim[math::Random(0u, vecAnim.size() - 1)]);
@@ -552,7 +552,7 @@ void SceneStudio::Enter()
 		//	strMotionName.Format("%s", file::GetFileName(strPathMotion).c_str());
 		//	graphics::MotionLoader motionLoader;
 		//	motionLoader.InitFBX(strMotionName, strPathMotion.c_str(), 0.01f);
-		//	graphics::IMotion* pMotion = graphics::IMotion::Create(motionLoader);
+		//	graphics::IMotion* pMotion = graphics::CreateMotion(motionLoader);
 
 		//	graphics::MotionPlaybackInfo playback;
 		//	playback.speed = math::Random(0.5f, 1.5f);
@@ -569,14 +569,14 @@ void SceneStudio::Enter()
 
 		if (false)
 		{
-			strPath = file::GetDataPath();
+			strPath = file::GetEngineDataPath();
 			strPath.append("Model\\ElementalSwordIce\\LP.emod");
 
 			graphics::IModelInstance* pModelInstance_Attach = nullptr;
 			graphics::ModelLoader loader;
 			loader.InitEast(file::GetFileName(strPath).c_str(), strPath.c_str());
 
-			pModelInstance_Attach = graphics::IModel::CreateInstance(loader, false);
+			pModelInstance_Attach = graphics::CreateModelInstance(loader, false);
 
 			math::float3 f3Pos = { 0.08f, 0.225f, -0.02f };
 			math::Quaternion quat = math::Quaternion::CreateFromYawPitchRoll(math::ToRadians(90.f), math::ToRadians(180.f), 0.f);
@@ -592,7 +592,7 @@ void SceneStudio::Enter()
 		math::float3 pos;
 		pos.x = 2.f;
 
-		strPath = file::GetDataPath();
+		strPath = file::GetEngineDataPath();
 		strPath.append("Model\\KimJiYoon\\KimJiYoon.emod");
 
 		gameobject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
@@ -600,14 +600,14 @@ void SceneStudio::Enter()
 
 		//if (false)
 		{
-			std::string strPathMotion(file::GetDataPath());
+			std::string strPathMotion(file::GetEngineDataPath());
 			strPathMotion.append("Model\\KimJiYoon\\AR_Idle_CC.fbx");
 
 			string::StringID strMotionName;
 			strMotionName.Format("%s", file::GetFileName(strPathMotion).c_str());
 			graphics::MotionLoader motionLoader;
 			motionLoader.InitFBX(strMotionName, strPathMotion.c_str(), 0.01f);
-			graphics::IMotion* pMotion = graphics::IMotion::Create(motionLoader);
+			graphics::IMotion* pMotion = graphics::CreateMotion(motionLoader);
 
 			graphics::MotionPlaybackInfo playback;
 			playback.speed = 1.f;
@@ -625,7 +625,7 @@ void SceneStudio::Enter()
 		math::float3 pos;
 		pos.x = -2.f + (i * -2.f);
 
-		strPath = file::GetDataPath();
+		strPath = file::GetEngineDataPath();
 		strPath.append("Model\\2B_NierAutomata\\2B_NierAutomata.emod");
 
 		gameobject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
@@ -639,13 +639,13 @@ void SceneStudio::Enter()
 
 			auto SetMaterialVisible = [&](const string::StringID& strMaterialName)
 			{
-				uint32_t nMaterialID = 0;
-				graphics::IMaterial* pMaterial = pNode->GetMaterial(strMaterialName, nMaterialID);
+				uint32_t materialID = 0;
+				graphics::IMaterial* pMaterial = pNode->GetMaterial(strMaterialName, materialID);
 
 				graphics::IMaterial* pMaterialClone = graphics::IMaterial::Clone(pMaterial);
 				pMaterialClone->SetVisible(false);
 
-				pModelInstance->ChangeMaterial("Generic_Item.mesh", nMaterialID, pMaterialClone);
+				pModelInstance->ChangeMaterial("Generic_Item.mesh", materialID, pMaterialClone);
 			};
 
 			//SetMaterialVisible("Skirt");
@@ -661,7 +661,7 @@ void SceneStudio::Enter()
 		math::float3 pos;
 		pos.x = 4.f;
 
-		strPath = file::GetDataPath();
+		strPath = file::GetEngineDataPath();
 		strPath.append("Model\\Delia\\Delia.emod");
 
 		gameobject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
@@ -675,7 +675,7 @@ void SceneStudio::Enter()
 		math::float3 pos;
 		pos.x = 6.f;
 
-		strPath = file::GetDataPath();
+		strPath = file::GetEngineDataPath();
 		strPath.append("Model\\Misaki\\Misaki.emod");
 
 		gameobject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
@@ -689,7 +689,7 @@ void SceneStudio::Enter()
 		math::float3 pos;
 		pos.x = 8.f;
 
-		strPath = file::GetDataPath();
+		strPath = file::GetEngineDataPath();
 		strPath.append("Model\\Naotora\\Naotora.emod");
 
 		gameobject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
@@ -703,7 +703,7 @@ void SceneStudio::Enter()
 		math::float3 pos;
 		pos.x = 10.f;
 
-		strPath = file::GetDataPath();
+		strPath = file::GetEngineDataPath();
 		strPath.append("Model\\Naotora_ShirtDress\\Naotora_ShirtDress.emod");
 
 		gameobject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
@@ -717,7 +717,7 @@ void SceneStudio::Enter()
 		math::float3 pos;
 		pos.z = 10.f;
 
-		strPath = file::GetDataPath();
+		strPath = file::GetEngineDataPath();
 		strPath.append("Model\\Bugeikloth\\Bugeikloth.emod");
 
 		gameobject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
@@ -732,7 +732,7 @@ void SceneStudio::Enter()
 		pos.x = -4.f;
 		pos.z = 2.f;
 
-		strPath = file::GetDataPath();
+		strPath = file::GetEngineDataPath();
 		strPath.append("Model\\Dark Knight_Female\\DarkKnight_Female.emod");
 
 		//gameobject::IActor* pActor = CreateActor(name, strPath.c_str(), pos, graphics::EmModelLoader::eXps);
@@ -748,7 +748,7 @@ void SceneStudio::Enter()
 		pos.x = -2.f;
 		pos.z = 2.f;
 
-		strPath = file::GetDataPath();
+		strPath = file::GetEngineDataPath();
 		strPath.append("Model\\Dark Knight Transformed_Female\\DarkKnight_Transformed_Female.emod");
 
 		//gameobject::IActor* pActor = CreateActor(name, strPath.c_str(), pos, graphics::EmModelLoader::eXps);
@@ -764,7 +764,7 @@ void SceneStudio::Enter()
 		pos.x = 0.f;
 		pos.z = 2.f;
 
-		strPath = file::GetDataPath();
+		strPath = file::GetEngineDataPath();
 		strPath.append("Model\\Paladin_Female\\Paladin_Female.emod");
 
 		gameobject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
@@ -779,7 +779,7 @@ void SceneStudio::Enter()
 		pos.x = 2.f;
 		pos.z = 2.f;
 
-		strPath = file::GetDataPath();
+		strPath = file::GetEngineDataPath();
 		strPath.append("Model\\Paladin Transformed_Female\\Paladin_Transformed_Female.emod");
 
 		//gameobject::IActor* pActor = CreateActor(name, strPath.c_str(), pos, graphics::EmModelLoader::eXps);
@@ -795,7 +795,7 @@ void SceneStudio::Enter()
 		pos.x = 4.f;
 		pos.z = 2.f;
 
-		strPath = file::GetDataPath();
+		strPath = file::GetEngineDataPath();
 		strPath.append("Model\\Evie_Temptress\\Evie_Temptress.emod");
 
 		gameobject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
@@ -810,7 +810,7 @@ void SceneStudio::Enter()
 		pos.x = 6.f;
 		pos.z = 2.f;
 
-		strPath = file::GetDataPath();
+		strPath = file::GetEngineDataPath();
 		strPath.append("Model\\Lynn_DancingBlade\\Lynn_DancingBlade.emod");
 
 		gameobject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
@@ -824,7 +824,7 @@ void SceneStudio::Enter()
 		pos.y = 1.f;
 		pos.z -= 2.f;
 
-		strPath = file::GetDataPath();
+		strPath = file::GetEngineDataPath();
 		strPath.append("Model\\ElementalSwordIce\\LP.emod");
 
 		gameobject::IActor* pActor = CreateActor(name, strPath.c_str(), pos);
@@ -885,7 +885,7 @@ void SceneStudio::Enter()
 		string::StringID name;
 		name.Format("Standard_Sphere_%s_%.1f", propertyName[z].c_str(), fValue);
 
-		gameobject::IActor* pActor = gameobject::IActor::Create(name);
+		gameobject::IActor* pActor = gameobject::CreateActor(name);
 		pActor->SetPosition({ -2.5f + (x * 0.6f), 0.25f, -4.f - (z * 0.75f) });
 
 		graphics::MaterialInfo materialInfo;
@@ -948,15 +948,15 @@ void SceneStudio::Enter()
 		string::StringID name;
 		name.Format("PBR_MetalPlates_%d", i);
 
-		gameobject::IActor* pActor = gameobject::IActor::Create(name);
+		gameobject::IActor* pActor = gameobject::CreateActor(name);
 		pActor->SetPosition({ -2.5f + (x * 0.6f), 0.25f, -13.f - (z * 0.75f) });
 
 		graphics::MaterialInfo materialInfo;
-		materialInfo.strPath = file::GetDataPath();
+		materialInfo.strPath = file::GetEngineDataPath();
 		materialInfo.strPath.append("Model\\MetalPlates\\");
-		materialInfo.strTextureNameArray[graphics::EmMaterial::eAlbedo] = "MetalPlates_Diffuse.tga";
-		materialInfo.strTextureNameArray[graphics::EmMaterial::eNormal].Format("MetalPlates_Normal_%02d.tga", i + 1);
-		materialInfo.strTextureNameArray[graphics::EmMaterial::eMetallic] = "MetalPlates_Metalness.tga";
+		materialInfo.textureNameArray[graphics::IMaterial::eAlbedo] = "MetalPlates_Diffuse.tga";
+		materialInfo.textureNameArray[graphics::IMaterial::eNormal].Format("MetalPlates_Normal_%02d.tga", i + 1);
+		materialInfo.textureNameArray[graphics::IMaterial::eMetallic] = "MetalPlates_Metalness.tga";
 		materialInfo.f4PaddingRoughMetEmi.y = 0.25f;
 		materialInfo.f4PaddingRoughMetEmi.z = 1.f;
 		materialInfo.f4SurSpecTintAniso.y = 1.f;
@@ -991,11 +991,11 @@ void SceneStudio::Exit()
 
 void SceneStudio::Update(float elapsedTime)
 {
-	TRACER_EVENT("SceneStudio::Update");
+	TRACER_EVENT(L"SceneStudio::Update");
 
 	ImGuiIO& io = ImGui::GetIO();
 
-	TRACER_BEGINEVENT("SceneStudio::Update", "SkeletonController");
+	TRACER_BEGINEVENT(L"SceneStudio::Update", "SkeletonController");
 	bool isProcessedMouseInput = m_pSkeletonController->Process(elapsedTime);
 	TRACER_ENDEVENT();
 
@@ -1003,7 +1003,7 @@ void SceneStudio::Update(float elapsedTime)
 	{
 		if (isProcessedMouseInput == false)
 		{
-			TRACER_BEGINEVENT("SceneStudio::Update", "SkeletonController");
+			TRACER_BEGINEVENT(L"SceneStudio::Update", "SkeletonController");
 			ProcessInput(elapsedTime);
 			TRACER_ENDEVENT();
 		}
@@ -1011,7 +1011,7 @@ void SceneStudio::Update(float elapsedTime)
 
 	if (m_pSectorMgr != nullptr)
 	{
-		TRACER_BEGINEVENT("SceneStudio::Update", "SkeletonController");
+		TRACER_BEGINEVENT(L"SceneStudio::Update", "SkeletonController");
 		m_pSectorMgr->Update(elapsedTime);
 		TRACER_ENDEVENT();
 	}
@@ -1108,15 +1108,15 @@ void SceneStudio::ProcessInput(float elapsedTime)
 		{
 			if (emButtonState == input::gamepad::ButtonState::ePressed)
 			{
-				LOG_MESSAGE("%s Pressed", strButtonName);
+				LOG_MESSAGE(L"%s Pressed", strButtonName);
 			}
 			else if (emButtonState == input::gamepad::ButtonState::eUp)
 			{
-				LOG_MESSAGE("%s Up", strButtonName);
+				LOG_MESSAGE(L"%s Up", strButtonName);
 			}
 			else if (emButtonState == input::gamepad::ButtonState::eDown)
 			{
-				LOG_MESSAGE("%s Down", strButtonName);
+				LOG_MESSAGE(L"%s Down", strButtonName);
 			}
 		};
 
@@ -1143,7 +1143,7 @@ void SceneStudio::ProcessInput(float elapsedTime)
 		{
 			if (math::IsZero(fValue) == false)
 			{
-				LOG_MESSAGE("%s : %f", strStickName, fValue);
+				LOG_MESSAGE(L"%s : %f", strStickName, fValue);
 			}
 		};
 
@@ -1154,24 +1154,24 @@ void SceneStudio::ProcessInput(float elapsedTime)
 		LogStick("LeftTrigger", input::gamepad::LeftTrigger());
 		LogStick("RightTrigger", input::gamepad::RightTrigger());
 
-		//static float fTime = 0.f;
-		//if (fTime >= 5.f)
+		//static float time = 0.f;
+		//if (time >= 5.f)
 		//{
 		//	pPlayer->SetVibration(0.5f, 0.5f, 1.f);
-		//	fTime -= 5.f;
+		//	time -= 5.f;
 		//}
-		//fTime += elapsedTime;
+		//time += elapsedTime;
 	}
 	else
 	{
-		static float fTime = 0.f;
-		if (fTime >= 1.f)
+		static float time = 0.f;
+		if (time >= 1.f)
 		{
-			LOG_MESSAGE("DisConnected");
-			fTime -= 1.f;
+			LOG_MESSAGE(L"DisConnected");
+			time -= 1.f;
 		}
 
-		fTime += elapsedTime;
+		time += elapsedTime;
 	}
 }
 
@@ -1218,9 +1218,9 @@ void SceneStudio::ShowConfig()
 			ShowGBuffer("Depth", graphics::GetDevice()->GetMainDepthStencil()->GetTexture());
 
 			//graphics::IGBuffers* pGBuffer = graphics::GetDevice()->GetGBuffers();
-			//ShowGBuffer("Normals : rg(normal), ba(tangent)", pGBuffer->GetGBuffer(graphics::EmGBuffer::eNormals)->GetTexture());
-			//ShowGBuffer("Colors : r(position), g(none), ba(emissive)", pGBuffer->GetGBuffer(graphics::EmGBuffer::eColors)->GetTexture());
-			//ShowGBuffer("DisneyBRDF", pGBuffer->GetGBuffer(graphics::EmGBuffer::eDisneyBRDF)->GetTexture());
+			//ShowGBuffer("Normals : rg(normal), ba(tangent)", pGBuffer->GetGBuffer(graphics::GBufferType::eNormals)->GetTexture());
+			//ShowGBuffer("Colors : r(position), g(none), ba(emissive)", pGBuffer->GetGBuffer(graphics::GBufferType::eColors)->GetTexture());
+			//ShowGBuffer("DisneyBRDF", pGBuffer->GetGBuffer(graphics::GBufferType::eDisneyBRDF)->GetTexture());
 
 			ImGui::PopID();
 
@@ -1366,8 +1366,8 @@ void SceneStudio::ShowConfig()
 			auto& settings = graphics::BloomFilter::GetInstance()->GetSettings();
 			ImGui::Combo("Presets", reinterpret_cast<int*>(&settings.emPreset), presets.data(), presets.size());
 
-			ImGui::DragFloat("Threshold", &settings.fThreshold, 0.001f, 0.f, 10.f);
-			ImGui::DragFloat("StrengthMultiplier", &settings.fStrengthMultiplier, 0.001f, 0.f, 10.f);
+			ImGui::DragFloat("Threshold", &settings.threshold, 0.001f, 0.f, 10.f);
+			ImGui::DragFloat("StrengthMultiplier", &settings.strengthMultiplier, 0.001f, 0.f, 10.f);
 			ImGui::Checkbox("IsEnableLuminance", &settings.isEnableLuminance);
 
 			ImGui::PopID();
@@ -1602,7 +1602,7 @@ void SceneStudio::ShowConfig()
 
 	if (ImGui::CollapsingHeader("Light") == true)
 	{
-		/*gameobject::Sun* pActor = static_cast<gameobject::Sun*>(gameobject::ActorManager::GetInstance()->GetActor(StrID::EastEngine_Sun));
+		/*gameobject::Sun* pActor = static_cast<gameobject::Sun*>(gameobject::ActorManager::GetInstance()->GetActor(sid::est_Sun));
 		auto pLight = pActor->GetLight();
 		{
 			static float f = pLight->GetIntensity();
@@ -1700,13 +1700,13 @@ void ShowMotion(bool& isShowMotionMenu, gameobject::ComponentModel* pCompModel)
 			{
 				graphics::MotionLoader loader;
 				loader.InitFBX(file::GetFileName(ofn.lpstrFile).c_str(), ofn.lpstrFile, 0.01f);
-				graphics::IMotion::Create(loader);
+				graphics::CreateMotion(loader);
 			}
 			else if (string::IsEqualsNoCase(strFileExtension.c_str(), ".emot") == true)
 			{
 				graphics::MotionLoader loader;
 				loader.InitEast(file::GetFileName(ofn.lpstrFile).c_str(), ofn.lpstrFile);
-				graphics::IMotion::Create(loader);
+				graphics::CreateMotion(loader);
 			}
 		}
 	}
@@ -1849,10 +1849,10 @@ void ShowMotion(bool& isShowMotionMenu, gameobject::ComponentModel* pCompModel)
 	ImGui::End();
 }
 
-void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nIndex)
+void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int index)
 {
 	ImGui::SetNextWindowSize(ImVec2(400, 800), ImGuiSetCond_FirstUseEver);
-	ImGui::Begin(string::Format("%d. %s Info", nIndex, pMaterial->GetName().c_str()).c_str(), &isShowMaterial);
+	ImGui::Begin(string::Format("%d. %s Info", index, pMaterial->GetName().c_str()).c_str(), &isShowMaterial);
 
 	static char bufName[128] = { 0 };
 	string::Copy(bufName, pMaterial->GetName().c_str());
@@ -1868,16 +1868,16 @@ void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nInd
 	string::Copy(buf, pMaterial->GetPath().c_str());
 	ImGui::InputText("Path", buf, sizeof(buf), ImGuiInputTextFlags_ReadOnly);
 
-	float fTessellationFactor = pMaterial->GetTessellationFactor();
-	if (ImGui::DragFloat("TessellationFactor", &fTessellationFactor, 0.01f, 1.f, 512.f) == true)
+	float tessellationFactor = pMaterial->GetTessellationFactor();
+	if (ImGui::DragFloat("TessellationFactor", &tessellationFactor, 0.01f, 1.f, 512.f) == true)
 	{
-		pMaterial->SetTessellationFactor(fTessellationFactor);
+		pMaterial->SetTessellationFactor(tessellationFactor);
 	}
 
-	float fStippleTransparencyFactor = pMaterial->GetStippleTransparencyFactor();
-	if (ImGui::DragFloat("StippleTransparencyFactor", &fStippleTransparencyFactor, 0.01f, 0.f, 1.f) == true)
+	float stippleTransparencyFactor = pMaterial->GetStippleTransparencyFactor();
+	if (ImGui::DragFloat("StippleTransparencyFactor", &stippleTransparencyFactor, 0.01f, 0.f, 1.f) == true)
 	{
-		pMaterial->SetStippleTransparencyFactor(fStippleTransparencyFactor);
+		pMaterial->SetStippleTransparencyFactor(stippleTransparencyFactor);
 	}
 
 	const char* strSamplerState[graphics::EmSamplerState::TypeCount] =
@@ -1961,9 +1961,9 @@ void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nInd
 		pMaterial->SetVisible(isVisible);
 	}
 
-	auto TextureInfo = [&](graphics::EmMaterial::Type emType, int nIndex)
+	auto TextureInfo = [&](graphics::IMaterial::Type emType, int index)
 	{
-		if (ImGui::Button(string::Format("%d.Texture", nIndex).c_str()) == true)
+		if (ImGui::Button(string::Format("%d.Texture", index).c_str()) == true)
 		{
 			char path[512] = { 0 };
 
@@ -1992,7 +1992,7 @@ void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nInd
 		std::shared_ptr<graphics::ITexture> pTexture = pMaterial->GetTexture(emType);
 		if (pTexture != nullptr)
 		{
-			if (ImGui::Button(string::Format("%d.Clear", nIndex).c_str()) == true)
+			if (ImGui::Button(string::Format("%d.Clear", index).c_str()) == true)
 			{
 				pMaterial->SetTextureName(emType, "");
 				pMaterial->SetTexture(emType, nullptr);
@@ -2038,9 +2038,9 @@ void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nInd
 		{
 			pMaterial->SetAlbedoColor(*reinterpret_cast<math::Color*>(&color));
 
-			LOG_MESSAGE("%.2f, %.2f, %.2f", pMaterial->GetAlbedoColor().r, pMaterial->GetAlbedoColor().g, pMaterial->GetAlbedoColor().b);
+			LOG_MESSAGE(L"%.2f, %.2f, %.2f", pMaterial->GetAlbedoColor().r, pMaterial->GetAlbedoColor().g, pMaterial->GetAlbedoColor().b);
 		}
-		TextureInfo(graphics::EmMaterial::eAlbedo, 1);
+		TextureInfo(graphics::IMaterial::eAlbedo, 1);
 		bool isAlbedoAlphaChannelMaskMap = pMaterial->IsAlbedoAlphaChannelMaskMap();
 		if (ImGui::Checkbox("Is Albedo Alpha Channel a Mask Map ?", &isAlbedoAlphaChannelMaskMap) == true)
 		{
@@ -2051,7 +2051,7 @@ void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nInd
 	ImGui::Separator();
 	{
 		ImGui::Text("Normal");
-		TextureInfo(graphics::EmMaterial::eNormal, 2);
+		TextureInfo(graphics::IMaterial::eNormal, 2);
 	}
 
 	ImGui::Separator();
@@ -2074,7 +2074,7 @@ void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nInd
 	{
 		ImGui::Text("Roughness");
 
-		if (pMaterial->GetTexture(graphics::EmMaterial::eRoughness) == nullptr)
+		if (pMaterial->GetTexture(graphics::IMaterial::eRoughness) == nullptr)
 		{
 			float fRoughness = pMaterial->GetRoughness();
 			if (ImGui::DragFloat("Roughness", &fRoughness, 0.001f, 0.f, 1.f) == true)
@@ -2082,14 +2082,14 @@ void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nInd
 				pMaterial->SetRoughness(fRoughness);
 			}
 		}
-		TextureInfo(graphics::EmMaterial::eRoughness, 4);
+		TextureInfo(graphics::IMaterial::eRoughness, 4);
 	}
 
 	ImGui::Separator();
 	{
 		ImGui::Text("Metallic");
 
-		if (pMaterial->GetTexture(graphics::EmMaterial::eMetallic) == nullptr)
+		if (pMaterial->GetTexture(graphics::IMaterial::eMetallic) == nullptr)
 		{
 			float fMetallic = pMaterial->GetMetallic();
 			if (ImGui::DragFloat("Metallic", &fMetallic, 0.001f, 0.f, 1.f) == true)
@@ -2098,14 +2098,14 @@ void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nInd
 			}
 		}
 
-		TextureInfo(graphics::EmMaterial::eMetallic, 5);
+		TextureInfo(graphics::IMaterial::eMetallic, 5);
 	}
 
 	ImGui::Separator();
 	{
 		ImGui::Text("Subsurface");
 
-		if (pMaterial->GetTexture(graphics::EmMaterial::eSubsurface) == nullptr)
+		if (pMaterial->GetTexture(graphics::IMaterial::eSubsurface) == nullptr)
 		{
 			float fSubsurface = pMaterial->GetSubsurface();
 			if (ImGui::DragFloat("Subsurface", &fSubsurface, 0.001f, 0.f, 1.f) == true)
@@ -2114,14 +2114,14 @@ void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nInd
 			}
 		}
 
-		TextureInfo(graphics::EmMaterial::eSubsurface, 6);
+		TextureInfo(graphics::IMaterial::eSubsurface, 6);
 	}
 
 	ImGui::Separator();
 	{
 		ImGui::Text("Anisotropic");
 
-		if (pMaterial->GetTexture(graphics::EmMaterial::eAnisotropic) == nullptr)
+		if (pMaterial->GetTexture(graphics::IMaterial::eAnisotropic) == nullptr)
 		{
 			float fAnisotropic = pMaterial->GetAnisotropic();
 			if (ImGui::DragFloat("Anisotropic", &fAnisotropic, 0.001f, 0.f, 1.f) == true)
@@ -2130,14 +2130,14 @@ void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nInd
 			}
 		}
 
-		TextureInfo(graphics::EmMaterial::eAnisotropic, 7);
+		TextureInfo(graphics::IMaterial::eAnisotropic, 7);
 	}
 
 	ImGui::Separator();
 	{
 		ImGui::Text("Sheen");
 
-		if (pMaterial->GetTexture(graphics::EmMaterial::eSheen) == nullptr)
+		if (pMaterial->GetTexture(graphics::IMaterial::eSheen) == nullptr)
 		{
 			float fSheen = pMaterial->GetSheen();
 			if (ImGui::DragFloat("Sheen", &fSheen, 0.001f, 0.f, 1.f) == true)
@@ -2146,14 +2146,14 @@ void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nInd
 			}
 		}
 
-		TextureInfo(graphics::EmMaterial::eSheen, 8);
+		TextureInfo(graphics::IMaterial::eSheen, 8);
 	}
 
 	ImGui::Separator();
 	{
 		ImGui::Text("SheenTint");
 
-		if (pMaterial->GetTexture(graphics::EmMaterial::eSheenTint) == nullptr)
+		if (pMaterial->GetTexture(graphics::IMaterial::eSheenTint) == nullptr)
 		{
 			float fSheenTint = pMaterial->GetSheenTint();
 			if (ImGui::DragFloat("SheenTint", &fSheenTint, 0.001f, 0.f, 1.f) == true)
@@ -2162,14 +2162,14 @@ void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nInd
 			}
 		}
 
-		TextureInfo(graphics::EmMaterial::eSheenTint, 9);
+		TextureInfo(graphics::IMaterial::eSheenTint, 9);
 	}
 
 	ImGui::Separator();
 	{
 		ImGui::Text("Clearcoat");
 
-		if (pMaterial->GetTexture(graphics::EmMaterial::eClearcoat) == nullptr)
+		if (pMaterial->GetTexture(graphics::IMaterial::eClearcoat) == nullptr)
 		{
 			float fClearcoat = pMaterial->GetClearcoat();
 			if (ImGui::DragFloat("Clearcoat", &fClearcoat, 0.001f, 0.f, 1.f) == true)
@@ -2178,14 +2178,14 @@ void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nInd
 			}
 		}
 
-		TextureInfo(graphics::EmMaterial::eClearcoat, 10);
+		TextureInfo(graphics::IMaterial::eClearcoat, 10);
 	}
 
 	ImGui::Separator();
 	{
 		ImGui::Text("ClearcoatGloss");
 
-		if (pMaterial->GetTexture(graphics::EmMaterial::eClearcoatGloss) == nullptr)
+		if (pMaterial->GetTexture(graphics::IMaterial::eClearcoatGloss) == nullptr)
 		{
 			float fClearcoatGloss = pMaterial->GetClearcoatGloss();
 			if (ImGui::DragFloat("ClearcoatGloss", &fClearcoatGloss, 0.001f, 0.f, 1.f) == true)
@@ -2194,7 +2194,7 @@ void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nInd
 			}
 		}
 
-		TextureInfo(graphics::EmMaterial::eClearcoatGloss, 11);
+		TextureInfo(graphics::IMaterial::eClearcoatGloss, 11);
 	}
 
 	ImGui::Separator();
@@ -2205,7 +2205,7 @@ void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nInd
 		{
 			pMaterial->SetEmissiveColor(*reinterpret_cast<math::Color*>(&color));
 		}
-		TextureInfo(graphics::EmMaterial::eEmissiveColor, 12);
+		TextureInfo(graphics::IMaterial::eEmissiveColor, 12);
 
 		float fEmissiveIntensity = pMaterial->GetEmissive();
 		if (ImGui::DragFloat("Emissive Intensity", &fEmissiveIntensity, 0.01f, 0.f, 10000.f) == true)
@@ -2223,7 +2223,7 @@ void ShowMaterial(bool& isShowMaterial, graphics::IMaterial* pMaterial, int nInd
 
 void SceneStudio::RenderUI()
 {
-	TRACER_EVENT("SceneStudio::RenderUI");
+	TRACER_EVENT(L"SceneStudio::RenderUI");
 
 	ImGui_ImplDX11_DeviceContextChange(graphics::GetDeferredContext(graphics::eRender)->GetInterface());
 	ImGui_ImplDX11_NewFrame();
@@ -2340,7 +2340,7 @@ void SceneStudio::RenderUI()
 			{
 				if (string::Length(buf) > 1)
 				{
-					gameobject::IActor::Create(buf);
+					gameobject::CreateActor(buf);
 				}
 				ImGui::CloseCurrentPopup();
 			}
@@ -2393,9 +2393,9 @@ void SceneStudio::RenderUI()
 			ofn.nMaxFile = 255;
 			if (GetOpenFileName(&ofn) != 0)
 			{
-				if (gameobject::IActor::CreateByFile(ofn.lpstrFile) == nullptr)
+				if (gameobject::CreateActorByFile(ofn.lpstrFile) == nullptr)
 				{
-					LOG_ERROR("로드 실패 : %s", path);
+					LOG_ERROR(L"로드 실패 : %s", path);
 				}
 			}
 		}
@@ -2645,9 +2645,9 @@ void SceneStudio::RenderUI()
 
 											if (string::IsEqualsNoCase(file::GetFileExtension(path).c_str(), ".emod") == true)
 											{
-												if (graphics::IModel::SaveFile(pModel, path) == false)
+												if (graphics::SaveFile(pModel, path) == false)
 												{
-													LOG_ERROR("저장 실패 : %s", path);
+													LOG_ERROR(L"저장 실패 : %s", path);
 												}
 											}
 										}
@@ -2697,12 +2697,12 @@ void SceneStudio::RenderUI()
 											}
 											ImGui::Text("VertexCount : %d", nVertexCount);
 
-											int nIndexCount = 0;
+											int indexCount = 0;
 											if (pModelNode->GetIndexBuffer() != nullptr)
 											{
-												nIndexCount = pModelNode->GetIndexBuffer()->GetIndexNum();
+												indexCount = pModelNode->GetIndexBuffer()->GetIndexNum();
 											}
-											ImGui::Text("IndexCount : %d", nIndexCount);
+											ImGui::Text("IndexCount : %d", indexCount);
 
 											bool isVisibleModelNode = pModelNode->IsVisible();
 											if (ImGui::Checkbox(string::Format("%d. Model Visible", nModelNode).c_str(), &isVisibleModelNode) == true)
@@ -2866,13 +2866,13 @@ void SceneStudio::RenderUI()
 									static char buf[128] = "Box";
 									ImGui::InputText("Name", buf, sizeof(buf));
 
-									static math::float3 f3Size(math::float3::One);
-									ImGui::DragFloat3("Box Size", reinterpret_cast<float*>(&f3Size.x), 0.01f, 0.01f, 1000000.f);
+									static math::float3 halfExtents(math::float3::One);
+									ImGui::DragFloat3("Box Size", reinterpret_cast<float*>(&halfExtents.x), 0.01f, 0.01f, 1000000.f);
 
 									if (ImGui::Button("Confirm") == true)
 									{
 										graphics::ModelLoader loader;
-										loader.InitBox(buf, nullptr, f3Size);
+										loader.InitBox(buf, nullptr, halfExtents);
 
 										pCompModel->Init(&loader);
 

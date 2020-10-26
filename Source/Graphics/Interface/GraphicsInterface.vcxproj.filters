@@ -1,0 +1,404 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="소스 파일">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="헤더 파일">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="리소스 파일">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Interface">
+      <UniqueIdentifier>{e842b31c-24e4-41e8-a3b7-17c374c186ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource">
+      <UniqueIdentifier>{c7e23ac0-e635-496a-853a-65f2afa197e3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader">
+      <UniqueIdentifier>{c062e964-509d-4a94-a425-1cc67fce981d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Window">
+      <UniqueIdentifier>{7589c903-fdf3-447f-aee5-c3030b5c912c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader\HLSL">
+      <UniqueIdentifier>{cf884df0-ea6f-45b9-9804-9711ae29bc67}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader\GLSL">
+      <UniqueIdentifier>{56ccc518-28f6-458b-bd49-f17f49501164}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader\GLSL\spv">
+      <UniqueIdentifier>{7f3e0808-7029-4af1-bb18-abc8b44b5e45}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Camera">
+      <UniqueIdentifier>{1043b573-f465-4e43-8194-1e45e1b592f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Define">
+      <UniqueIdentifier>{432687b7-93ff-480d-890a-3b772ab604f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Render">
+      <UniqueIdentifier>{3b5b1a18-57df-450b-8a18-40183ad2c7b3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Render\Instancing">
+      <UniqueIdentifier>{2964ac19-f751-480a-93ef-8d4659bcd150}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Render\Subset">
+      <UniqueIdentifier>{b2736a57-0bd6-4ba7-9385-8ee62e660cc8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Light">
+      <UniqueIdentifier>{90422cb0-6a28-4090-8b5e-b31883a26a6d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Interface\PostProcessing">
+      <UniqueIdentifier>{225d6a02-1594-496e-aac1-baf7e6d7bb8a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="imgui">
+      <UniqueIdentifier>{6c047727-3379-46b8-84f6-44cdb0047c48}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="imgui\Helper">
+      <UniqueIdentifier>{e8db76b5-917f-4d1a-a704-bec43faf67ef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="imgui\Win32">
+      <UniqueIdentifier>{31d75df5-49df-4868-b266-7057c5ca583a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Render\Interface">
+      <UniqueIdentifier>{4b36d37c-bedc-47e3-ad9f-42960b2d1581}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MaskedOcclusionCulling">
+      <UniqueIdentifier>{57c649b9-8cd7-4034-bd09-0e5c98dfb4a0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MaskedOcclusionCulling\Library">
+      <UniqueIdentifier>{67decb06-2f2a-497d-8feb-ed3ed49c404c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Light\Directional">
+      <UniqueIdentifier>{b6318773-44d1-4cc1-88dc-8fe064640a89}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Light\Point">
+      <UniqueIdentifier>{5c88b57f-b245-4c28-95ea-fd8a945524db}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Light\Spot">
+      <UniqueIdentifier>{e88d9667-62d3-4d50-bfb5-eac43b6a24e0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shadow">
+      <UniqueIdentifier>{977f91cf-0eef-40be-90a5-7c3a4f5d92c0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shadow\Cascades">
+      <UniqueIdentifier>{c1593f4e-9764-49e0-83bd-fa94e877b029}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="imgui\NodeEditor">
+      <UniqueIdentifier>{6dc27cb2-adc1-4bf1-8f5a-93cae79c1c53}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="imgui\Gizmo">
+      <UniqueIdentifier>{32326482-dfd4-495b-8575-7b6c90899e58}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="imgui\BlueprintUtilities">
+      <UniqueIdentifier>{02975ffb-6c3b-4d27-b6cb-8d3c58031382}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Vertex.h">
+      <Filter>Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Window.h">
+      <Filter>Window</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Define.h">
+      <Filter>Define</Filter>
+    </ClInclude>
+    <ClInclude Include="Instancing.h">
+      <Filter>Render\Instancing</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsInterface.h">
+      <Filter>Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderJob.h">
+      <Filter>Render\Subset</Filter>
+    </ClInclude>
+    <ClInclude Include="Light.h">
+      <Filter>Light</Filter>
+    </ClInclude>
+    <ClInclude Include="AssaoInterface.h">
+      <Filter>Interface\PostProcessing</Filter>
+    </ClInclude>
+    <ClInclude Include="imguiHelper.h">
+      <Filter>imgui\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer.h">
+      <Filter>Render\Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="CullingThreadpool.h">
+      <Filter>MaskedOcclusionCulling\Library</Filter>
+    </ClInclude>
+    <ClInclude Include="MaskedOcclusionCulling.h">
+      <Filter>MaskedOcclusionCulling\Library</Filter>
+    </ClInclude>
+    <ClInclude Include="OcclusionCulling.h">
+      <Filter>MaskedOcclusionCulling</Filter>
+    </ClInclude>
+    <ClInclude Include="LightManager.h">
+      <Filter>Light</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectionalLight.h">
+      <Filter>Light\Directional</Filter>
+    </ClInclude>
+    <ClInclude Include="PointLight.h">
+      <Filter>Light\Point</Filter>
+    </ClInclude>
+    <ClInclude Include="SpotLight.h">
+      <Filter>Light\Spot</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imgui_impl_win32.h">
+      <Filter>imgui\Win32</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imconfig.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imgui.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imgui_internal.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imstb_rectpack.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imstb_textedit.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imstb_truetype.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Shadow.h">
+      <Filter>Shadow</Filter>
+    </ClInclude>
+    <ClInclude Include="CascadedShadows.h">
+      <Filter>Shadow\Cascades</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\ImCurveEdit.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\ImGradient.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imnodes.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\crude_json.h">
+      <Filter>imgui\NodeEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imgui_bezier_math.h">
+      <Filter>imgui\NodeEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imgui_canvas.h">
+      <Filter>imgui\NodeEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imgui_extra_math.h">
+      <Filter>imgui\NodeEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imgui_node_editor.h">
+      <Filter>imgui\NodeEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imgui_node_editor_internal.h">
+      <Filter>imgui\NodeEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\ImGuizmo.h">
+      <Filter>imgui\Gizmo</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\ImSequencer.h">
+      <Filter>imgui\Gizmo</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\Builders.h">
+      <Filter>imgui\BlueprintUtilities</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\Drawing.h">
+      <Filter>imgui\BlueprintUtilities</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\Math2D.h">
+      <Filter>imgui\BlueprintUtilities</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\Widgets.h">
+      <Filter>imgui\BlueprintUtilities</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\Interop.h">
+      <Filter>imgui\BlueprintUtilities</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Vertex.cpp">
+      <Filter>Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="Resource.cpp">
+      <Filter>Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="Window.cpp">
+      <Filter>Window</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="Define.cpp">
+      <Filter>Define</Filter>
+    </ClCompile>
+    <ClCompile Include="Instancing.cpp">
+      <Filter>Render\Instancing</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsInterface.cpp">
+      <Filter>Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderJob.cpp">
+      <Filter>Render\Subset</Filter>
+    </ClCompile>
+    <ClCompile Include="Light.cpp">
+      <Filter>Light</Filter>
+    </ClCompile>
+    <ClCompile Include="AssaoInterface.cpp">
+      <Filter>Interface\PostProcessing</Filter>
+    </ClCompile>
+    <ClCompile Include="imguiHelper.cpp">
+      <Filter>imgui\Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer.cpp">
+      <Filter>Render\Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="CullingThreadpool.cpp">
+      <Filter>MaskedOcclusionCulling\Library</Filter>
+    </ClCompile>
+    <ClCompile Include="MaskedOcclusionCulling.cpp">
+      <Filter>MaskedOcclusionCulling\Library</Filter>
+    </ClCompile>
+    <ClCompile Include="MaskedOcclusionCullingAVX2.cpp">
+      <Filter>MaskedOcclusionCulling\Library</Filter>
+    </ClCompile>
+    <ClCompile Include="MaskedOcclusionCullingAVX512.cpp">
+      <Filter>MaskedOcclusionCulling\Library</Filter>
+    </ClCompile>
+    <ClCompile Include="OcclusionCulling.cpp">
+      <Filter>MaskedOcclusionCulling</Filter>
+    </ClCompile>
+    <ClCompile Include="LightManager.cpp">
+      <Filter>Light</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectionalLight.cpp">
+      <Filter>Light\Directional</Filter>
+    </ClCompile>
+    <ClCompile Include="PointLight.cpp">
+      <Filter>Light\Point</Filter>
+    </ClCompile>
+    <ClCompile Include="SpotLight.cpp">
+      <Filter>Light\Spot</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\imgui_impl_win32.cpp">
+      <Filter>imgui\Win32</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\imgui.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\imgui_demo.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\imgui_draw.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\imgui_widgets.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Shadow.cpp">
+      <Filter>Shadow</Filter>
+    </ClCompile>
+    <ClCompile Include="CascadedShadows.cpp">
+      <Filter>Shadow\Cascades</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\ImCurveEdit.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\ImGradient.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\imnodes.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\crude_json.cpp">
+      <Filter>imgui\NodeEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\imgui_canvas.cpp">
+      <Filter>imgui\NodeEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\imgui_node_editor.cpp">
+      <Filter>imgui\NodeEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\imgui_node_editor_api.cpp">
+      <Filter>imgui\NodeEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\ImGuizmo.cpp">
+      <Filter>imgui\Gizmo</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\ImSequencer.cpp">
+      <Filter>imgui\Gizmo</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\Builders.cpp">
+      <Filter>imgui\BlueprintUtilities</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\Drawing.cpp">
+      <Filter>imgui\BlueprintUtilities</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\Widgets.cpp">
+      <Filter>imgui\BlueprintUtilities</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="PixelShader.hlsl">
+      <Filter>Shader\HLSL</Filter>
+    </None>
+    <None Include="VertexShader.hlsl">
+      <Filter>Shader\HLSL</Filter>
+    </None>
+    <None Include="FragmentShader.frag">
+      <Filter>Shader\GLSL</Filter>
+    </None>
+    <None Include="VertexShader.vert">
+      <Filter>Shader\GLSL</Filter>
+    </None>
+    <None Include="frag.spv">
+      <Filter>Shader\GLSL\spv</Filter>
+    </None>
+    <None Include="vert.spv">
+      <Filter>Shader\GLSL\spv</Filter>
+    </None>
+    <None Include="CompilerSpecific.inl">
+      <Filter>MaskedOcclusionCulling\Library</Filter>
+    </None>
+    <None Include="MaskedOcclusionCullingCommon.inl">
+      <Filter>MaskedOcclusionCulling\Library</Filter>
+    </None>
+    <None Include="imgui\imgui_bezier_math.inl">
+      <Filter>imgui\NodeEditor</Filter>
+    </None>
+    <None Include="imgui\imgui_extra_math.inl">
+      <Filter>imgui\NodeEditor</Filter>
+    </None>
+    <None Include="imgui\imgui_node_editor_internal.inl">
+      <Filter>imgui\NodeEditor</Filter>
+    </None>
+    <None Include="imgui\Math2D.inl">
+      <Filter>imgui\BlueprintUtilities</Filter>
+    </None>
+  </ItemGroup>
+</Project>

@@ -1,14 +1,14 @@
 #include "stdafx.h"
 #include "GameObjectManager.h"
 
-#include "CommonLib/plf_colony.h"
 #include "CommonLib/Lock.h"
+#include "CommonLib/ObjectPool.h"
 
 #include "Actor.h"
 #include "Skybox.h"
 #include "Terrain.h"
 
-namespace eastengine
+namespace est
 {
 	namespace gameobject
 	{
@@ -19,283 +19,374 @@ namespace eastengine
 			~Impl();
 
 		public:
+			void Release();
 			void Update(float elapsedTime);
 
 		public:
-			IActor* CreateActor(const string::StringID& strActorName);
+			ActorPtr CreateActor(const string::StringID& actorName);
+			void RemoveActor(IActor* pActor);
 
 			IActor* GetActor(const IGameObject::Handle& handle);
-			IActor* GetActor(size_t nIndex);
-			size_t GetActorCount() const { return m_colonyActor.size(); }
+			IActor* GetActor(size_t index);
+			size_t GetActorCount() const { return m_actors.size(); }
 
 			void ExecuteFunction(std::function<void(IActor*)> func)
 			{
 				thread::SRWWriteLock writeLock(&m_srwLockObjects[eActor]);
-				std::for_each(m_colonyActor.begin(), m_colonyActor.end(), [&](Actor& actor)
+				std::for_each(m_actors.begin(), m_actors.end(), [&](Actor* pActor)
 				{
-					func(&actor);
+					func(pActor);
 				});
 			}
 
 		public:
-			ISkybox* CreateSkybox(const string::StringID& strName, const SkyboxProperty& property);
-
-			ISkybox* GetSkybox(const IGameObject::Handle& handle);
-			ISkybox* GetSkybox(size_t nIndex);
-			size_t GetSkyboxCount() const { return m_colonySkybox.size(); }
-
-			void ExecuteFunction(std::function<void(ISkybox*)> func)
-			{
-				thread::SRWWriteLock writeLock(&m_srwLockObjects[eSky]);
-				std::for_each(m_colonySkybox.begin(), m_colonySkybox.end(), [&](Skybox& skybox)
-				{
-					func(&skybox);
-				});
-			}
-
-		public:
-			ITerrain* CreateTerrain(const string::StringID& strTerrainName, const TerrainProperty& terrainProperty);
-			ITerrain* CreateTerrainAsync(const string::StringID& strTerrainName, const TerrainProperty& terrainProperty);
+			TerrainPtr CreateTerrain(const string::StringID& terrainName, const TerrainProperty& terrainProperty);
+			TerrainPtr CreateTerrainAsync(const string::StringID& terrainName, const TerrainProperty& terrainProperty);
+			void RemoveTerrain(ITerrain* pTerrain);
 
 			ITerrain* GetTerrain(const IGameObject::Handle& handle);
-			ITerrain* GetTerrain(size_t nIndex);
-			size_t GetTerrainCount() const { return m_colonyTerrain.size(); }
+			ITerrain* GetTerrain(size_t index);
+			size_t GetTerrainCount() const { return m_terrains.size(); }
 
 			void ExecuteFunction(std::function<void(ITerrain*)> func)
 			{
 				thread::SRWWriteLock writeLock(&m_srwLockObjects[eTerrain]);
-				std::for_each(m_colonyTerrain.begin(), m_colonyTerrain.end(), [&](Terrain& terrain)
+				std::for_each(m_terrains.begin(), m_terrains.end(), [&](Terrain* pTerrain)
 				{
-					func(&terrain);
+					func(pTerrain);
 				});
 			}
 
+		public:
+			SkyboxPtr CreateSkybox(const string::StringID& name, const SkyboxProperty& skyProperty);
+			void RemoveSkybox(ISkybox* pSkybox);
+
+			ISkybox* GetSkybox(const IGameObject::Handle& handle);
+			ISkybox* GetSkybox(size_t index);
+			size_t GetSkyboxCount() const { return m_skyboxs.size(); }
+
+			void ExecuteFunction(std::function<void(ISkybox*)> func)
+			{
+				thread::SRWWriteLock writeLock(&m_srwLockObjects[eSky]);
+				std::for_each(m_skyboxs.begin(), m_skyboxs.end(), [&](Skybox* pSkybox)
+					{
+						func(pSkybox);
+					});
+			}
+
 		private:
-			size_t m_nAllocateIndex{ 0 };
+			void Optimize();
 
-			plf::colony<Actor> m_colonyActor;
-			tsl::robin_map<IGameObject::Handle, Actor*> m_umapActors;
+		private:
+			size_t m_allocateIndex{ 0 };
+			float m_optimizeTime{ 0.f };
 
-			plf::colony<Skybox> m_colonySkybox;
-			tsl::robin_map<IGameObject::Handle, Skybox*> m_umapSkybox;
+			memory::ObjectPool<Actor, 128> m_poolActor;
+			std::vector<Actor*> m_actors;
+			tsl::robin_map<IGameObject::Handle, Actor*> m_rmapActors;
 
-			plf::colony<Terrain> m_colonyTerrain;
-			tsl::robin_map<IGameObject::Handle, Terrain*> m_umapTerrain;
+			memory::ObjectPool<Skybox, 4> m_poolSkybox;
+			std::vector<Skybox*> m_skyboxs;
+			tsl::robin_map<IGameObject::Handle, Skybox*> m_rmapSkyboxs;
 
+			memory::ObjectPool<Terrain, 4> m_poolTerrain;
+			std::vector<Terrain*> m_terrains;
+			tsl::robin_map<IGameObject::Handle, Terrain*> m_rmapTerrains;
+
+			std::array<bool, ObjectType::eTypeCount> m_isDirty{ false };
 			std::array<thread::SRWLock, ObjectType::eTypeCount> m_srwLockObjects;
 		};
 
 		GameObjectManager::Impl::Impl()
 		{
-			m_colonyActor.reserve(128);
-			m_colonySkybox.reserve(16);
-			m_colonyTerrain.reserve(16);
 		}
 
 		GameObjectManager::Impl::~Impl()
 		{
-			IGameObject::Handle h{0};
-			IGameObject::Handle h2 = std::move(h);
+		}
+
+		void GameObjectManager::Impl::Release()
+		{
+			{
+				thread::SRWWriteLock writeLock(&m_srwLockObjects[eActor]);
+				for (auto pActor : m_actors)
+				{
+					m_poolActor.Destroy(pActor);
+				}
+				m_actors.clear();
+				m_rmapActors.clear();
+				m_poolActor.ReleaseEmptyChunk(0);
+			}
+
+			{
+				thread::SRWWriteLock writeLock(&m_srwLockObjects[eSky]);
+				for (auto pSkybox : m_skyboxs)
+				{
+					m_poolSkybox.Destroy(pSkybox);
+				}
+				m_skyboxs.clear();
+				m_rmapSkyboxs.clear();
+				m_poolSkybox.ReleaseEmptyChunk(0);
+			}
+
+			{
+				thread::SRWWriteLock writeLock(&m_srwLockObjects[eTerrain]);
+				for (auto pTerrain : m_terrains)
+				{
+					m_poolTerrain.Destroy(pTerrain);
+				}
+				m_terrains.clear();
+				m_rmapTerrains.clear();
+				m_poolTerrain.ReleaseEmptyChunk(0);
+			}
 		}
 
 		void GameObjectManager::Impl::Update(float elapsedTime)
 		{
+			TRACER_EVENT(__FUNCTIONW__);
+
+			// Optimize, for cache friendly
+			{
+				m_optimizeTime += elapsedTime;
+
+				constexpr float OptimizeInterval = 10.f;
+				if (m_optimizeTime >= OptimizeInterval)
+				{
+					m_optimizeTime = 0.f;
+
+					Optimize();
+				}
+			}
+
 			// Sky
 			{
-				TRACER_EVENT("SkyboxUpdate");
+				TRACER_EVENT(L"Skybox");
 
 				thread::SRWWriteLock writeLock(&m_srwLockObjects[eSky]);
 
-				auto iter = m_colonySkybox.begin();
-				auto iter_end = m_colonySkybox.end();
-				while (iter != iter_end)
-				{
-					Skybox& skybox = *iter;
-
-					if (skybox.IsDestroy() == true)
+				m_skyboxs.erase(std::remove_if(m_skyboxs.begin(), m_skyboxs.end(), [&](Skybox* pSkybox)
 					{
-						iter = m_colonySkybox.erase(iter);
-						continue;
-					}
-					else
-					{
-						skybox.Update(elapsedTime);
-						++iter;
-					}
-				}
+						if (pSkybox->IsDestroy() == true)
+						{
+							m_poolSkybox.Destroy(pSkybox);
+							return true;
+						}
+						else
+						{
+							pSkybox->Update(elapsedTime);
+							return false;
+						}
+					}), m_skyboxs.end());
 			}
 
 			// Terrain
 			{
-				TRACER_EVENT("TerrainManager::Update");
+				TRACER_EVENT(L"Terrain");
 
 				thread::SRWWriteLock writeLock(&m_srwLockObjects[eTerrain]);
 
-				auto iter = m_colonyTerrain.begin();
-				auto iter_end = m_colonyTerrain.end();
-				while (iter != iter_end)
-				{
-					Terrain& terrain = *iter;
-
-					if (terrain.IsDestroy() == true)
+				m_terrains.erase(std::remove_if(m_terrains.begin(), m_terrains.end(), [&](Terrain* pTerrain)
 					{
-						iter = m_colonyTerrain.erase(iter);
-						continue;
-					}
-					else
-					{
-						terrain.Update(elapsedTime);
-						++iter;
-					}
-				}
+						if (pTerrain->IsDestroy() == true)
+						{
+							m_poolTerrain.Destroy(pTerrain);
+							return true;
+						}
+						else
+						{
+							pTerrain->Update(elapsedTime);
+							return false;
+						}
+					}), m_terrains.end());
 			}
 
 			// Actor
 			{
-				TRACER_EVENT("ActorUpdate");
+				TRACER_EVENT(L"Actor");
 
 				thread::SRWWriteLock writeLock(&m_srwLockObjects[eActor]);
 
-				auto iter = m_colonyActor.begin();
-				auto iter_end = m_colonyActor.end();
-				while (iter != iter_end)
-				{
-					Actor& actor = *iter;
-
-					if (actor.IsDestroy() == true)
+				m_actors.erase(std::remove_if(m_actors.begin(), m_actors.end(), [&](Actor* pActor)
 					{
-						iter = m_colonyActor.erase(iter);
-						continue;
-					}
-					else
-					{
-						actor.Update(elapsedTime);
-						++iter;
-					}
-				}
+						if (pActor->IsDestroy() == true)
+						{
+							m_poolActor.Destroy(pActor);
+							return true;
+						}
+						else
+						{
+							pActor->Update(elapsedTime);
+							return false;
+						}
+					}), m_actors.end());
 			}
 		}
 
-		IActor* GameObjectManager::Impl::CreateActor(const string::StringID& strActorName)
+		ActorPtr GameObjectManager::Impl::CreateActor(const string::StringID& actorName)
 		{
 			thread::SRWWriteLock writeLock(&m_srwLockObjects[eActor]);
 
-			IGameObject::Handle handle(m_nAllocateIndex++);
+			const IGameObject::Handle handle(m_allocateIndex++);
+			Actor* pActor = m_poolActor.Allocate(handle);
+			pActor->SetName(actorName);
 
-			auto iter = m_colonyActor.emplace(handle);
-			iter->SetName(strActorName);
+			m_actors.emplace_back(pActor);
+			m_rmapActors.emplace(handle, pActor);
 
-			m_umapActors.emplace(handle, &(*iter));
+			m_isDirty[ObjectType::eActor] = true;
 
-			return &(*iter);
+			return ActorPtr(pActor);
+		}
+
+		void GameObjectManager::Impl::RemoveActor(IActor* pActor)
+		{
+			static_cast<Actor*>(pActor)->SetDestroy(true);
 		}
 
 		IActor* GameObjectManager::Impl::GetActor(const IGameObject::Handle& handle)
 		{
 			thread::SRWReadLock readLock(&m_srwLockObjects[eActor]);
 
-			auto iter = m_umapActors.find(handle);
-			if (iter != m_umapActors.end())
+			auto iter = m_rmapActors.find(handle);
+			if (iter != m_rmapActors.end())
 				return iter->second;
 
 			return nullptr;
 		}
 
-		IActor* GameObjectManager::Impl::GetActor(size_t nIndex)
+		IActor* GameObjectManager::Impl::GetActor(size_t index)
 		{
 			thread::SRWReadLock readLock(&m_srwLockObjects[eActor]);
 
-			auto iter = m_colonyActor.begin();
-			m_colonyActor.advance(iter, nIndex);
+			if (index >= m_actors.size())
+				return nullptr;
 
-			return &(*iter);
+			return m_actors[index];
 		}
 
-		ISkybox* GameObjectManager::Impl::CreateSkybox(const string::StringID& strName, const SkyboxProperty& property)
-		{
-			thread::SRWWriteLock writeLock(&m_srwLockObjects[eSky]);
-
-			IGameObject::Handle handle(m_nAllocateIndex++);
-
-			auto iter = m_colonySkybox.emplace(handle);
-			iter->Init(property);
-			iter->SetName(strName);
-
-			m_umapSkybox.emplace(handle, &(*iter));
-
-			return &(*iter);
-		}
-
-		ISkybox* GameObjectManager::Impl::GetSkybox(const IGameObject::Handle& handle)
-		{
-			thread::SRWReadLock readLock(&m_srwLockObjects[eSky]);
-
-			auto iter = m_umapSkybox.find(handle);
-			if (iter != m_umapSkybox.end())
-				return iter->second;
-
-			return nullptr;
-		}
-
-		ISkybox* GameObjectManager::Impl::GetSkybox(size_t nIndex)
-		{
-			thread::SRWReadLock readLock(&m_srwLockObjects[eSky]);
-
-			auto iter = m_colonySkybox.begin();
-			m_colonySkybox.advance(iter, nIndex);
-
-			return &(*iter);
-		}
-
-		ITerrain* GameObjectManager::Impl::CreateTerrain(const string::StringID& strTerrainName, const TerrainProperty& terrainProperty)
+		TerrainPtr GameObjectManager::Impl::CreateTerrain(const string::StringID& terrainName, const TerrainProperty& terrainProperty)
 		{
 			thread::SRWWriteLock writeLock(&m_srwLockObjects[eTerrain]);
 
-			IGameObject::Handle handle(m_nAllocateIndex++);
+			const IGameObject::Handle handle(m_allocateIndex++);
+			Terrain* pTerrain = m_poolTerrain.Allocate(handle);
+			pTerrain->Initialize(terrainProperty, false);
 
-			auto iter = m_colonyTerrain.emplace(handle);
-			iter->Init(terrainProperty, false);
-			iter->SetName(strTerrainName);
+			pTerrain->SetName(terrainName);
 
-			m_umapTerrain.emplace(handle, &(*iter));
+			m_terrains.emplace_back(pTerrain);
+			m_rmapTerrains.emplace(handle, pTerrain);
 
-			return &(*iter);
+			m_isDirty[ObjectType::eTerrain] = true;
+
+			return TerrainPtr(pTerrain);
 		}
 
-		ITerrain* GameObjectManager::Impl::CreateTerrainAsync(const string::StringID& strTerrainName, const TerrainProperty& terrainProperty)
+		TerrainPtr GameObjectManager::Impl::CreateTerrainAsync(const string::StringID& terrainName, const TerrainProperty& terrainProperty)
 		{
 			thread::SRWWriteLock writeLock(&m_srwLockObjects[eTerrain]);
 
-			IGameObject::Handle handle(m_nAllocateIndex++);
+			const IGameObject::Handle handle(m_allocateIndex++);
+			Terrain* pTerrain = m_poolTerrain.Allocate(handle);
+			pTerrain->Initialize(terrainProperty, true);
+			pTerrain->SetName(terrainName);
 
-			auto iter = m_colonyTerrain.emplace(handle);
-			iter->Init(terrainProperty, true);
-			iter->SetName(strTerrainName);
+			m_terrains.emplace_back(pTerrain);
+			m_rmapTerrains.emplace(handle, pTerrain);
 
-			m_umapTerrain.emplace(handle, &(*iter));
+			m_isDirty[ObjectType::eTerrain] = true;
 
-			return &(*iter);
+			return TerrainPtr(pTerrain);
+		}
+
+		void GameObjectManager::Impl::RemoveTerrain(ITerrain* pTerrain)
+		{
+			static_cast<Terrain*>(pTerrain)->SetDestroy(true);
 		}
 
 		ITerrain* GameObjectManager::Impl::GetTerrain(const IGameObject::Handle& handle)
 		{
 			thread::SRWReadLock readLock(&m_srwLockObjects[eTerrain]);
 
-			auto iter = m_umapTerrain.find(handle);
-			if (iter != m_umapTerrain.end())
+			auto iter = m_rmapTerrains.find(handle);
+			if (iter != m_rmapTerrains.end())
 				return iter->second;
 
 			return nullptr;
 		}
 
-		ITerrain* GameObjectManager::Impl::GetTerrain(size_t nIndex)
+		ITerrain* GameObjectManager::Impl::GetTerrain(size_t index)
 		{
 			thread::SRWReadLock readLock(&m_srwLockObjects[eTerrain]);
 
-			auto iter = m_colonyTerrain.begin();
-			m_colonyTerrain.advance(iter, nIndex);
+			if (index >= m_terrains.size())
+				return nullptr;
 
-			return &(*iter);
+			return m_terrains[index];
+		}
+
+		SkyboxPtr GameObjectManager::Impl::CreateSkybox(const string::StringID& name, const SkyboxProperty& skyProperty)
+		{
+			thread::SRWWriteLock writeLock(&m_srwLockObjects[eSky]);
+
+			const IGameObject::Handle handle(m_allocateIndex++);
+			Skybox* pSkybox = m_poolSkybox.Allocate(handle);
+			pSkybox->Initialize(skyProperty);
+			pSkybox->SetName(name);
+
+			m_skyboxs.emplace_back(pSkybox);
+			m_rmapSkyboxs.emplace(handle, pSkybox);
+
+			m_isDirty[ObjectType::eSky] = true;
+
+			return SkyboxPtr(pSkybox);
+		}
+
+		void GameObjectManager::Impl::RemoveSkybox(ISkybox* pSkybox)
+		{
+			static_cast<Skybox*>(pSkybox)->SetDestroy(true);
+		}
+
+		ISkybox* GameObjectManager::Impl::GetSkybox(const IGameObject::Handle& handle)
+		{
+			thread::SRWReadLock readLock(&m_srwLockObjects[eSky]);
+
+			auto iter = m_rmapSkyboxs.find(handle);
+			if (iter != m_rmapSkyboxs.end())
+				return iter->second;
+
+			return nullptr;
+		}
+
+		ISkybox* GameObjectManager::Impl::GetSkybox(size_t index)
+		{
+			thread::SRWReadLock readLock(&m_srwLockObjects[eSky]);
+
+			if (index >= m_skyboxs.size())
+				return nullptr;
+
+			return m_skyboxs[index];
+		}
+
+		void GameObjectManager::Impl::Optimize()
+		{
+			if (m_isDirty[ObjectType::eActor] == true)
+			{
+				std::sort(m_actors.begin(), m_actors.end());
+				m_isDirty[ObjectType::eActor] = false;
+			}
+
+			if (m_isDirty[ObjectType::eSky] == true)
+			{
+				std::sort(m_skyboxs.begin(), m_skyboxs.end());
+				m_isDirty[ObjectType::eSky] = false;
+			}
+
+			if (m_isDirty[ObjectType::eTerrain] == true)
+			{
+				std::sort(m_terrains.begin(), m_terrains.end());
+				m_isDirty[ObjectType::eTerrain] = false;
+			}
 		}
 
 		GameObjectManager::GameObjectManager()
@@ -307,14 +398,24 @@ namespace eastengine
 		{
 		}
 
+		void GameObjectManager::Release()
+		{
+			m_pImpl->Release();
+		}
+
 		void GameObjectManager::Update(float elapsedTime)
 		{
 			m_pImpl->Update(elapsedTime);
 		}
 
-		IActor* GameObjectManager::CreateActor(const string::StringID& strActorName)
+		ActorPtr GameObjectManager::CreateActor(const string::StringID& actorName)
 		{
-			return m_pImpl->CreateActor(strActorName);
+			return m_pImpl->CreateActor(actorName);
+		}
+
+		void GameObjectManager::RemoveActor(IActor* pActor)
+		{
+			return m_pImpl->RemoveActor(pActor);
 		}
 
 		IActor* GameObjectManager::GetActor(const IGameObject::Handle& handle)
@@ -322,9 +423,9 @@ namespace eastengine
 			return m_pImpl->GetActor(handle);
 		}
 
-		IActor* GameObjectManager::GetActor(size_t nIndex)
+		IActor* GameObjectManager::GetActor(size_t index)
 		{
-			return m_pImpl->GetActor(nIndex);
+			return m_pImpl->GetActor(index);
 		}
 
 		size_t GameObjectManager::GetActorCount() const
@@ -337,39 +438,19 @@ namespace eastengine
 			m_pImpl->ExecuteFunction(func);
 		}
 
-		ISkybox* GameObjectManager::CreateSkybox(const string::StringID& strName, const SkyboxProperty& property)
+		TerrainPtr GameObjectManager::CreateTerrain(const string::StringID& terrainName, const TerrainProperty& terrainProperty)
 		{
-			return m_pImpl->CreateSkybox(strName, property);
+			return m_pImpl->CreateTerrain(terrainName, terrainProperty);
 		}
 
-		ISkybox* GameObjectManager::GetSkybox(const IGameObject::Handle& handle)
+		TerrainPtr GameObjectManager::CreateTerrainAsync(const string::StringID& terrainName, const TerrainProperty& terrainProperty)
 		{
-			return m_pImpl->GetSkybox(handle);
+			return m_pImpl->CreateTerrainAsync(terrainName, terrainProperty);
 		}
 
-		ISkybox* GameObjectManager::GetSkybox(size_t nIndex)
+		void GameObjectManager::RemoveTerrain(ITerrain* pTerrain)
 		{
-			return m_pImpl->GetSkybox(nIndex);
-		}
-
-		size_t GameObjectManager::GetSkyboxCount() const
-		{
-			return m_pImpl->GetSkyboxCount();
-		}
-
-		void GameObjectManager::ExecuteFunction(std::function<void(ISkybox*)> func)
-		{
-			m_pImpl->ExecuteFunction(func);
-		}
-
-		ITerrain* GameObjectManager::CreateTerrain(const string::StringID& strTerrainName, const TerrainProperty& terrainProperty)
-		{
-			return m_pImpl->CreateTerrain(strTerrainName, terrainProperty);
-		}
-
-		ITerrain* GameObjectManager::CreateTerrainAsync(const string::StringID& strTerrainName, const TerrainProperty& terrainProperty)
-		{
-			return m_pImpl->CreateTerrainAsync(strTerrainName, terrainProperty);
+			return m_pImpl->RemoveTerrain(pTerrain);
 		}
 
 		ITerrain* GameObjectManager::GetTerrain(const IGameObject::Handle& handle)
@@ -377,9 +458,9 @@ namespace eastengine
 			return m_pImpl->GetTerrain(handle);
 		}
 
-		ITerrain* GameObjectManager::GetTerrain(size_t nIndex)
+		ITerrain* GameObjectManager::GetTerrain(size_t index)
 		{
-			return m_pImpl->GetTerrain(nIndex);
+			return m_pImpl->GetTerrain(index);
 		}
 
 		size_t GameObjectManager::GetTerrainCount() const
@@ -388,6 +469,36 @@ namespace eastengine
 		}
 
 		void GameObjectManager::ExecuteFunction(std::function<void(ITerrain*)> func)
+		{
+			m_pImpl->ExecuteFunction(func);
+		}
+
+		SkyboxPtr GameObjectManager::CreateSkybox(const string::StringID& skyboxName, const SkyboxProperty& skyProperty)
+		{
+			return m_pImpl->CreateSkybox(skyboxName, skyProperty);
+		}
+
+		void GameObjectManager::RemoveSkybox(ISkybox* pSkybox)
+		{
+			return m_pImpl->RemoveSkybox(pSkybox);
+		}
+
+		ISkybox* GameObjectManager::GetSkybox(const IGameObject::Handle& handle)
+		{
+			return m_pImpl->GetSkybox(handle);
+		}
+
+		ISkybox* GameObjectManager::GetSkybox(size_t index)
+		{
+			return m_pImpl->GetSkybox(index);
+		}
+
+		size_t GameObjectManager::GetSkyboxCount() const
+		{
+			return m_pImpl->GetSkyboxCount();
+		}
+
+		void GameObjectManager::ExecuteFunction(std::function<void(ISkybox*)> func)
 		{
 			m_pImpl->ExecuteFunction(func);
 		}

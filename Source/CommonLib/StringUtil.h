@@ -1,109 +1,112 @@
 #pragma once
 
-namespace eastengine
+#include <string>
+
+namespace est
 {
 	namespace string
 	{
 		inline size_t Length(const char* string) { return strlen(string); }
+		inline size_t Length(const wchar_t* string) { return wcslen(string); }
 
-		inline bool Copy(char* strDestination, size_t size, const char* strSource, size_t nMaxCount = _TRUNCATE)
+		inline bool Copy(char* destination, size_t size, const char* source, size_t maxCount = _TRUNCATE)
 		{
-			if (strDestination == nullptr || strSource == nullptr)
+			if (destination == nullptr || source == nullptr)
 			{
 				assert(false);
 				return false;
 			}
 
-			if (nMaxCount != _TRUNCATE && size <= nMaxCount)
+			if (maxCount != _TRUNCATE && size <= maxCount)
 			{
 				assert(false);
-				nMaxCount = _TRUNCATE;
+				maxCount = _TRUNCATE;
 			}
 
-			strncpy_s(strDestination, size, strSource, nMaxCount);
+			strncpy_s(destination, size, source, maxCount);
 
 			return true;
 		}
 
 		template <size_t size>
-		inline bool Copy(char(&strDestination)[size], const char* strSource, size_t nMaxCount = _TRUNCATE)
+		inline bool Copy(char(&destination)[size], const char* source, size_t maxCount = _TRUNCATE)
 		{
-			return Copy(strDestination, size, strSource, nMaxCount);
+			return Copy(destination, size, source, maxCount);
 		}
 
-		inline bool Copy(wchar_t* strDestination, size_t size, const wchar_t* strSource, size_t nMaxCount = _TRUNCATE)
+		inline bool Copy(wchar_t* destination, size_t size, const wchar_t* source, size_t maxCount = _TRUNCATE)
 		{
-			if (strDestination == nullptr || strSource == nullptr)
+			if (destination == nullptr || source == nullptr)
 			{
 				assert(false);
 				return false;
 			}
 
-			if (nMaxCount != _TRUNCATE && size <= nMaxCount)
+			if (maxCount != _TRUNCATE && size <= maxCount)
 			{
 				assert(false);
-				nMaxCount = _TRUNCATE;
+				maxCount = _TRUNCATE;
 			}
 
-			wcsncpy_s(strDestination, size, strSource, nMaxCount);
+			wcsncpy_s(destination, size, source, maxCount);
 
 			return true;
 		}
 
 		template <size_t size>
-		inline bool Copy(wchar_t(&strDestination)[size], const wchar_t* strSource, size_t nMaxCount = _TRUNCATE)
+		inline bool Copy(wchar_t(&destination)[size], const wchar_t* source, size_t maxCount = _TRUNCATE)
 		{
-			return Copy(strDestination, size, strSource, nMaxCount);
+			return Copy(destination, size, source, maxCount);
 		}
 
-		inline bool Concat(char* strDestination, size_t size, const char* strSource, size_t nMaxCount = _TRUNCATE)
+		inline bool Concat(char* destination, size_t size, const char* source, size_t maxCount = _TRUNCATE)
 		{
-			if (strDestination == nullptr || strSource == nullptr)
+			if (destination == nullptr || source == nullptr)
 			{
 				assert(false);
 				return false;
 			}
 
-			if (nMaxCount != _TRUNCATE && size <= nMaxCount)
+			if (maxCount != _TRUNCATE && size <= maxCount)
 			{
 				assert(false);
-				nMaxCount = _TRUNCATE;
+				maxCount = _TRUNCATE;
 			}
 
-			strncat_s(strDestination, size, strSource, nMaxCount);
+			strncat_s(destination, size, source, maxCount);
 
 			return true;
 		}
 
 		template <size_t size>
-		inline bool Concat(char(&strDestination)[size], const char* strSource, size_t nMaxCount = _TRUNCATE)
+		inline bool Concat(char(&destination)[size], const char* source, size_t maxCount = _TRUNCATE)
 		{
-			return Concat(strDestination, size, strSource, nMaxCount);
+			return Concat(destination, size, source, maxCount);
 		}
 
-		inline bool Concat(wchar_t* strDestination, size_t size, const wchar_t* strSource, size_t nMaxCount = _TRUNCATE)
+		inline bool Concat(wchar_t* destination, size_t size, const wchar_t* source, size_t maxCount = _TRUNCATE)
 		{
-			if (strDestination == nullptr || strSource == nullptr)
+			if (destination == nullptr || source == nullptr)
 			{
 				assert(false);
 				return false;
 			}
 
-			if (nMaxCount != _TRUNCATE && size <= nMaxCount)
+			if (maxCount != _TRUNCATE && size <= maxCount)
 			{
 				assert(false);
-				nMaxCount = _TRUNCATE;
+				maxCount = _TRUNCATE;
 			}
 
-			wcsncat_s(strDestination, size, strSource, nMaxCount);
+			wcsncat_s(destination, size, source, maxCount);
 
 			return true;
 		}
 
 		template <size_t size>
-		inline bool Concat(wchar_t(&strDestination)[size], const wchar_t* strSource, size_t nMaxCount = _TRUNCATE)
+		inline bool Concat(wchar_t(&destination)[size], const wchar_t* source, size_t maxCount = _TRUNCATE)
 		{
-			return Concat(strDestination, size, strSource, nMaxCount);
+			return Concat(destination, size, source, maxCount);
 		}
 		
 		inline bool IsEquals(const char* str1, const char* str2, int* returnValue = nullptr)
@@ -186,34 +189,56 @@ namespace eastengine
 			}
 		}
 
-		std::vector<std::string> Tokenizer(const char* string, const char* strDelimiter);
-		std::vector<std::string> Tokenizer(const std::string& string, const char* strDelimiter);
+		std::vector<std::string> Tokenizer(const std::string& string, char delimiter);
+		std::vector<std::wstring> Tokenizer(const std::wstring& string, wchar_t delimiter);
 
-		char* ToUpper(char* string, uint32_t nLength);
+		char* ToUpper(char* string, size_t length);
 		template <typename T, size_t size>
 		char* ToUpper(char(&string)[size]) { return ToUpper(string, size); }
 
-		char* ToLower(char* string, uint32_t nLength);
+		wchar_t* ToUpper(wchar_t* string, size_t length);
+		template <typename T, size_t size>
+		wchar_t* ToUpper(wchar_t(&string)[size]) { return ToUpper(string, size); }
+
+		void ToUpper(std::string& string);
+		void ToUpper(std::wstring& string);
+
+		char* ToLower(char* string, size_t length);
 		template <typename T, size_t size>
 		char* ToLower(char(&string)[size]) { return ToLower(string, size); }
+
+		wchar_t* ToLower(wchar_t* string, size_t length);
+		template <typename T, size_t size>
+		wchar_t* ToLower(wchar_t(&string)[size]) { return ToLower(string, size); }
+
+		void ToLower(std::string& string);
+		void ToLower(std::wstring& string);
 
 		template <typename T>
 		std::string ToString(T value) { return std::to_string(value); }
 
 		template <typename T>
+		std::wstring ToStringW(T value) { return std::to_wstring(value); }
+
+		template <typename T>
 		T ToValue(const char* string);
 
+		template <typename T>
+		T ToValue(const wchar_t* string);
+
 		std::string Format(const char* format, ...);
-		std::string RandomString(uint32_t nLength, bool isOnlyAlphabet = true);
+		std::wstring Format(const wchar_t* format, ...);
+		std::string RandomString(uint32_t length, bool isOnlyAlphabet = true);
+		std::wstring RandomStringW(uint32_t length, bool isOnlyAlphabet = true);
 
-		std::string WideToMulti(const wchar_t* strWide, DWORD dwCodePage = CP_ACP);
-		std::string WideToMulti(const std::wstring& strWide, DWORD dwCodePage = CP_ACP);
-		std::wstring MultiToWide(const char* strMulti, DWORD dwCodePage = CP_ACP);
-		std::wstring MultiToWide(const std::string& strMulti, DWORD dwCodePage = CP_ACP);
+		std::string WideToMulti(const wchar_t* wideString, DWORD dwCodePage = CP_ACP);
+		std::string WideToMulti(const std::wstring& wideString, DWORD dwCodePage = CP_ACP);
+		std::wstring MultiToWide(const char* multiString, DWORD dwCodePage = CP_ACP);
+		std::wstring MultiToWide(const std::string& multiString, DWORD dwCodePage = CP_ACP);
 
-		std::string Utf8ToMulti(const wchar_t* strWide, DWORD dwCodePage = CP_UTF8);
-		std::string Utf8ToMulti(const std::wstring& strWide, DWORD dwCodePage = CP_UTF8);
-		std::wstring MultiToUtf8(const char* strMulti, DWORD dwCodePage = CP_UTF8);
-		std::wstring MultiToUtf8(const std::string& strMulti, DWORD dwCodePage = CP_UTF8);
+		std::string Utf8ToMulti(const wchar_t* wideString, DWORD dwCodePage = CP_UTF8);
+		std::string Utf8ToMulti(const std::wstring& wideString, DWORD dwCodePage = CP_UTF8);
+		std::wstring MultiToUtf8(const char* multiString, DWORD dwCodePage = CP_UTF8);
+		std::wstring MultiToUtf8(const std::string& multiString, DWORD dwCodePage = CP_UTF8);
 	};
 }

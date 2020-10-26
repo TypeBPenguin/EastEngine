@@ -4,30 +4,22 @@
 #include <DirectXMath.h>
 #include <DirectXPackedVector.h>
 
+using DirectX::operator*;
+using DirectX::operator+;
+
 #define STEREOSCALE 1.77777f
 #define INVSTEREOSCALE (1.f / STEREOSCALE)
 
-namespace eastengine
+namespace est
 {
 	namespace math
 	{
 		std::random_device random_device;
 		std::mt19937_64 mt19937_64(random_device());
 
-		float ToRadians(float fDegrees)
-		{
-			return DirectX::XMConvertToRadians(fDegrees);
-		}
-
-		float ToDegrees(float fRadians)
-		{
-			return DirectX::XMConvertToDegrees(fRadians);
-		}
-
 		bool NearEqual(float S1, float S2, float Epsilon)
 		{
-			float Delta = S1 - S2;
-			return (fabsf(Delta) <= Epsilon);
+			return (fabsf(S1 - S2) <= Epsilon);
 		}
 
 		float ModAngle(float Value)
@@ -3327,68 +3319,35 @@ namespace eastengine
 
 		float3 Quaternion::ToEularRadians() const
 		{
-			/*float m00 = 1.f - (2.f * ((y * y) + z * z));
-			float m01 = 2.f * (x * y + w * z);
+			const Matrix rotation = Matrix::CreateFromQuaternion(*this);
 
-			math::float3 result
-			(
-				std::atan2(2.f * (y * z + w * x), 1.f - (2.f * ((x * x) + (y * y)))),
-				std::atan2(-2.f * (x * z - w * y), std::sqrt((m00 * m00) + (m01 * m01))),
-				std::atan2(m01, m00)
-			);
+			float3 YawPitchRoll;
 
-			return result;*/
-
-			double check = x * y + z * w;
-			if (check > 0.499)
+			const float forwardY = rotation._32;
+			if (forwardY <= -1.f)
 			{
-				return math::float3(2 * std::atan2(x, w), math::PI / 2, 0);
+				YawPitchRoll.x = -PI2;
 			}
-			else if (check < -0.499)
+			else if (forwardY >= 1.f)
 			{
-				return math::float3(-2 * std::atan2(x, w), -math::PI / 2, 0);
+				YawPitchRoll.x = PI2;
 			}
 			else
 			{
-				return math::float3
-				(
-					std::atan2(2 * x * w - 2 * y * z, 1 - 2 * x * x - 2 * z * z),
-					static_cast<float>(std::asin(2 * check)),
-					std::atan2(2 * y * w - 2 * x * z, 1 - 2 * y * y - 2 * z * z)
-				);
+				YawPitchRoll.x = asin(forwardY);
 			}
 
-			/*math::float3 v;
-
-			v.z = (float)std::atan2
-			(
-				2 * y * w - 2 * x * z,
-				1 - 2 * std::pow(y, 2) - 2 * std::pow(z, 2)
-			);
-
-			v.y = (float)std::asin
-			(
-				2 * x*y + 2 * z*w
-			);
-
-			v.x = (float)std::atan2
-			(
-				2 * x*w - 2 * y*z,
-				1 - 2 * std::pow(x, 2) - 2 * std::pow(z, 2)
-			);
-
-			if (x*y + z*w == 0.5)
+			if (forwardY > 0.9999f)
 			{
-				v.z = (float)(2 * std::atan2(x, w));
-				v.x = 0;
+				YawPitchRoll.y = 0.f;
+				YawPitchRoll.z = atan2f(rotation._13, rotation._11);
 			}
-			else if (x*y + z*w == -0.5)
+			else
 			{
-				v.z = (float)(-2 * std::atan2(x, w));
-				v.x = 0;
+				YawPitchRoll.y = atan2f(rotation._31, rotation._33);
+				YawPitchRoll.z = atan2f(rotation._12, rotation._22);
 			}
-
-			return v;*/
+			return YawPitchRoll;
 		}
 
 		float3 Quaternion::ToEularDegrees() const
@@ -3536,6 +3495,13 @@ namespace eastengine
 			return Matrix::Compose(scale, rotation, position);
 		}
 
+		void Transform::Lerp(const Transform& v1, const Transform& v2, float lerpPerccent, Transform& result)
+		{
+			math::float3::Lerp(v1.scale, v2.scale, lerpPerccent, result.scale);
+			math::Quaternion::Lerp(v1.rotation, v2.rotation, lerpPerccent, result.rotation);
+			math::float3::Lerp(v1.position, v2.position, lerpPerccent, result.position);
+		}
+
 		RGBA::RGBA() : b(0), g(0), r(0), a(255) {}
 		RGBA::RGBA(uint32_t Color) : c(Color) {}
 		RGBA::RGBA(float r, float g, float b, float a) { using namespace DirectX; XMStoreColor(reinterpret_cast<PackedVector::XMCOLOR*>(this), XMVectorSet(r, g, b, a)); }
@@ -3547,7 +3513,7 @@ namespace eastengine
 		*
 		****************************************************************************/
 
-		Color::Color() : r(0.f), g(0.f), b(0.f), a(0.f) {}
+		Color::Color() : r(0.f), g(0.f), b(0.f), a(1.f) {}
 		Color::Color(float r, float g, float b) : r(r), g(g), b(b), a(1.f) {}
 		Color::Color(float r, float g, float b, float a) : r(r), g(g), b(b), a(a) {}
 		Color::Color(const float3& clr) : r(clr.x), g(clr.y), b(clr.z), a(1.f) {}
@@ -4073,6 +4039,84 @@ namespace eastengine
 			XMMATRIX projMatrix = XMLoadFloat4x4(reinterpret_cast<const XMFLOAT4X4*>(&proj));
 			v = XMVector3Unproject(v, x, y, width, height, minDepth, maxDepth, projMatrix, viewMatrix, worldMatrix);
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&result), v);
+		}
+
+		namespace bezier
+		{
+			void CreatePatchVertices(_In_reads_(16) float3 patch[16], size_t tessellation, bool isMirrored, std::function<void(const float3&, const float3&, const float3&)> outputVertex)
+			{
+				using namespace DirectX;
+
+				for (size_t i = 0; i <= tessellation; i++)
+				{
+					float u = (float)i / tessellation;
+
+					for (size_t j = 0; j <= tessellation; j++)
+					{
+						float v = (float)j / tessellation;
+
+						// Perform four horizontal bezier interpolations
+						// between the control points of this patch.
+						XMVECTOR p1 = CubicInterpolate(patch[0], patch[1], patch[2], patch[3], u);
+						XMVECTOR p2 = CubicInterpolate(patch[4], patch[5], patch[6], patch[7], u);
+						XMVECTOR p3 = CubicInterpolate(patch[8], patch[9], patch[10], patch[11], u);
+						XMVECTOR p4 = CubicInterpolate(patch[12], patch[13], patch[14], patch[15], u);
+
+						// Perform a vertical interpolation between the results of the
+						// previous horizontal interpolations, to compute the position.
+						XMVECTOR position = CubicInterpolate(p1, p2, p3, p4, v);
+
+						// Perform another four bezier interpolations between the control
+						// points, but this time vertically rather than horizontally.
+						XMVECTOR q1 = CubicInterpolate(patch[0], patch[4], patch[8], patch[12], v);
+						XMVECTOR q2 = CubicInterpolate(patch[1], patch[5], patch[9], patch[13], v);
+						XMVECTOR q3 = CubicInterpolate(patch[2], patch[6], patch[10], patch[14], v);
+						XMVECTOR q4 = CubicInterpolate(patch[3], patch[7], patch[11], patch[15], v);
+
+						// Compute vertical and horizontal tangent vectors.
+						XMVECTOR tangent1 = CubicTangent(p1, p2, p3, p4, v);
+						XMVECTOR tangent2 = CubicTangent(q1, q2, q3, q4, u);
+
+						// Cross the two tangent vectors to compute the normal.
+						XMVECTOR normal = XMVector3Cross(tangent1, tangent2);
+
+						if (!XMVector3NearEqual(normal, XMVectorZero(), g_XMEpsilon))
+						{
+							normal = XMVector3Normalize(normal);
+
+							// If this patch is mirrored, we must invert the normal.
+							if (isMirrored)
+							{
+								normal = XMVectorNegate(normal);
+							}
+						}
+						else
+						{
+							// In a tidy and well constructed bezier patch, the preceding
+							// normal computation will always work. But the classic teapot
+							// model is not tidy or well constructed! At the top and bottom
+							// of the teapot, it contains degenerate geometry where a patch
+							// has several control points in the same place, which causes
+							// the tangent computation to fail and produce a zero normal.
+							// We 'fix' these cases by just hard-coding a normal that points
+							// either straight up or straight down, depending on whether we
+							// are on the top or bottom of the teapot. This is not a robust
+							// solution for all possible degenerate bezier patches, but hey,
+							// it's good enough to make the teapot work correctly!
+
+							normal = XMVectorSelect(g_XMIdentityR1, g_XMNegIdentityR1, XMVectorLess(position, XMVectorZero()));
+						}
+
+						// Compute the texture coordinate.
+						float mirroredU = isMirrored ? 1 - u : u;
+
+						XMVECTOR textureCoordinate = XMVectorSet(mirroredU, v, 0, 0);
+
+						// Output this vertex.
+						outputVertex(position, normal, textureCoordinate);
+					}
+				}
+			}
 		}
 	}
 }
