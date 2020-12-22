@@ -36,8 +36,8 @@ namespace est
 
 			virtual math::float2 GetTexelOffset() override { return { 1.f / static_cast<float>(m_copyConfig.nBufferSize), 1.f / static_cast<float>(m_copyConfig.nBufferSize) }; }
 
-			virtual const math::Matrix& GetViewMatrix() const override { return m_matView; }
-			virtual const math::Matrix& GetProjectionMatrix() const override { return m_matProjection; }
+			virtual const math::Matrix& GetViewMatrix() const override { return m_viewMatrix; }
+			virtual const math::Matrix& GetProjectionMatrix() const override { return m_projectionMatrix; }
 			virtual const math::Viewport& GetViewport() const override { return m_viewport; }
 			virtual const collision::Frustum& GetFrustum() const override { return m_frustum; }
 
@@ -49,8 +49,8 @@ namespace est
 			void RefreshShadowResource();
 
 		private:
-			math::Matrix m_matView;
-			math::Matrix m_matProjection;
+			math::Matrix m_viewMatrix;
+			math::Matrix m_projectionMatrix;
 
 			math::Viewport m_viewport;
 

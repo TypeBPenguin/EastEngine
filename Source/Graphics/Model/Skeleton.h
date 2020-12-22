@@ -95,7 +95,7 @@ namespace est
 				virtual const math::Matrix& GetGlobalMatrix() const override { return m_matGlobal; }
 
 			public:
-				void Update(const math::Matrix& matWorld, const math::Matrix* pUserOffsetMatrix);
+				void Update(const math::Matrix& worldMatrix, const math::Matrix* pUserOffsetMatrix);
 
 			protected:
 				const Skeleton::IBone* m_pOriginBone{ nullptr };
@@ -133,7 +133,7 @@ namespace est
 
 		public:
 			void Initialize(ISkeleton* pSkeleton);
-			void Update(const math::Matrix& matWorld);
+			void Update(const math::Matrix& worldMatrix);
 
 		private:
 			void CreateSkinnedData(ISkeleton* pSkeleton);

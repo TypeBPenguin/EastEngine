@@ -116,8 +116,8 @@ namespace est
 					job.pTexDetailMap = m_pTexDetailMap;
 					job.pTexDetailNormalMap = m_pTexDetailNormalMap;
 
-					job.matWorld = m_matWorld;
-					job.matPrevWorld = m_matPrevWorld;
+					job.worldMatrix = m_matWorld;
+					job.prevWorldMatrix = m_matPrevWorld;
 
 					// 컬링 방식, 그리려고하는 패치의 중점을 계산한뒤, World * View * Proj 를 곱해서 프로젝션 영역안에 있는지 판별하는 방식
 					// 근데, 패치의 중점만 있는지 없는지 판단하기 때문에 패치의 꼭지점이 프로젝션 영역 안에 있어도 컬링되고맘

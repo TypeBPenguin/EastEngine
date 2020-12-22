@@ -31,7 +31,7 @@ namespace est
 
 					math::Matrix matModelViewProjection;
 					math::Matrix matPrevModelViewProjectionMatrix;
-					math::Matrix matWorld;
+					math::Matrix worldMatrix;
 
 					math::float3 CameraPosition;
 					float padding0{ 0.f };
@@ -101,9 +101,9 @@ namespace est
 					pTerrainContents->DynamicTessFactor = terrain.fDynamicTessFactor;
 					pTerrainContents->StaticTessFactor = terrain.fStaticTessFactor;
 
-					pTerrainContents->matModelViewProjection = (terrain.matWorld * matViewProjection).Transpose();
-					pTerrainContents->matPrevModelViewProjectionMatrix = (terrain.matPrevWorld * matPrevViewProjection).Transpose();
-					pTerrainContents->matWorld = terrain.matWorld.Transpose();
+					pTerrainContents->matModelViewProjection = (terrain.worldMatrix * matViewProjection).Transpose();
+					pTerrainContents->matPrevModelViewProjectionMatrix = (terrain.prevWorldMatrix * matPrevViewProjection).Transpose();
+					pTerrainContents->worldMatrix = terrain.worldMatrix.Transpose();
 
 					pTerrainContents->CameraPosition = f3CameraPosition;
 					pTerrainContents->padding0 = 0.f;
@@ -216,27 +216,27 @@ namespace est
 				ID3D11DeviceContext* pDeviceContext = element.pDeviceContext;
 				pDeviceContext->ClearState();
 
-				const D3D11_VIEWPORT* pViewport = pDeviceInstance->GetViewport();
-				pDeviceContext->RSSetViewports(1, pViewport);
+				const math::Viewport& viewport = pDeviceInstance->GetViewport();
+				pDeviceContext->RSSetViewports(1, util::Convert(viewport));
 
 				if (graphicsOptions.OnWireframe == true)
 				{
-					ID3D11RasterizerState* pRasterizerState = pDeviceInstance->GetRasterizerState(EmRasterizerState::eWireframeCullNone);
+					ID3D11RasterizerState* pRasterizerState = pDeviceInstance->GetRasterizerState(RasterizerState::eWireframeCullNone);
 					pDeviceContext->RSSetState(pRasterizerState);
 				}
 				else
 				{
-					ID3D11RasterizerState* pRasterizerState = pDeviceInstance->GetRasterizerState(EmRasterizerState::eSolidCCW);
+					ID3D11RasterizerState* pRasterizerState = pDeviceInstance->GetRasterizerState(RasterizerState::eSolidCCW);
 					pDeviceContext->RSSetState(pRasterizerState);
 				}
 
-				ID3D11BlendState* pBlendState = pDeviceInstance->GetBlendState(EmBlendState::eOff);
+				ID3D11BlendState* pBlendState = pDeviceInstance->GetBlendState(BlendState::eOff);
 				pDeviceContext->OMSetBlendState(pBlendState, &math::float4::Zero.x, 0xffffffff);
 
-				ID3D11DepthStencilState* pDepthStencilState = pDeviceInstance->GetDepthStencilState(EmDepthStencilState::eRead_Write_On);
+				ID3D11DepthStencilState* pDepthStencilState = pDeviceInstance->GetDepthStencilState(DepthStencilState::eRead_Write_On);
 				pDeviceContext->OMSetDepthStencilState(pDepthStencilState, 0);
 
-				ID3D11SamplerState* pSamplerState = pDeviceInstance->GetSamplerState(EmSamplerState::eMinMagMipLinearBorder);
+				ID3D11SamplerState* pSamplerState = pDeviceInstance->GetSamplerState(SamplerState::eMinMagMipLinearBorder);
 				pDeviceContext->HSSetSamplers(shader::eSampler_SamplerLinearBorder, 1, &pSamplerState);
 				pDeviceContext->DSSetSamplers(shader::eSampler_SamplerLinearBorder, 1, &pSamplerState);
 
@@ -271,10 +271,10 @@ namespace est
 						pDeviceContext->OMSetRenderTargets(_countof(pRTV), pRTV, pGBuffer->GetDepthStencil()->GetDepthStencilView());
 					}
 
-					pSamplerState = pDeviceInstance->GetSamplerState(EmSamplerState::eMinMagMipLinearWrap);
+					pSamplerState = pDeviceInstance->GetSamplerState(SamplerState::eMinMagMipLinearWrap);
 					pDeviceContext->PSSetSamplers(shader::eSampler_SamplerLinearWrap, 1, &pSamplerState);
 
-					pSamplerState = pDeviceInstance->GetSamplerState(EmSamplerState::eAnisotropicBorder);
+					pSamplerState = pDeviceInstance->GetSamplerState(SamplerState::eAnisotropicBorder);
 					pDeviceContext->PSSetSamplers(shader::eSampler_SamplerAnisotropicBorder, 1, &pSamplerState);
 
 					pDeviceContext->VSSetShader(m_pso[emPSType].pVertexShader, nullptr, 0);
@@ -321,12 +321,12 @@ namespace est
 								{
 									pDeviceContext->OMSetRenderTargets(0, nullptr, pCascadedDepthStencil->GetDepthStencilView());
 
-									ID3D11RasterizerState* pRasterizerState = pDeviceInstance->GetRasterizerState(EmRasterizerState::eSolidCCW);
+									ID3D11RasterizerState* pRasterizerState = pDeviceInstance->GetRasterizerState(RasterizerState::eSolidCCW);
 									pDeviceContext->RSSetState(pRasterizerState);
 
 									for (uint32_t cascadeLevel = 0; cascadeLevel < cascadedShadowsConfig.numCascades; ++cascadeLevel)
 									{
-										pDeviceContext->RSSetViewports(1, cascadedShadows.GetViewport(cascadeLevel).Get11());
+										pDeviceContext->RSSetViewports(1, util::Convert(cascadedShadows.GetViewport(cascadeLevel)));
 
 										const math::Matrix& viewMatrix = cascadedShadows.GetViewMatrix(cascadeLevel);
 										const math::Matrix& projectionMatrix = cascadedShadows.GetProjectionMatrix(cascadeLevel);

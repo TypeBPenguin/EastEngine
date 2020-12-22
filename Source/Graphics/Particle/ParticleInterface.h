@@ -47,7 +47,7 @@ namespace est
 			bool isAirResistance{ false };
 			bool isRandomColor{ false };
 
-			EmBlendState::Type emBlendState{ EmBlendState::eOff };
+			BlendState::Type blendState{ BlendState::eOff };
 
 			std::wstring textureFilePath;
 			bool isEnableAsyncLoadTexture{ false };

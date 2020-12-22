@@ -46,7 +46,7 @@ namespace est
 			virtual ~IGraphicsAPI() = default;
 
 		public:
-			virtual void Initialize(uint32_t width, uint32_t height, bool isFullScreen, const string::StringID& applicationTitle, const string::StringID& applicationName) = 0;
+			virtual void Initialize(uint32_t width, uint32_t height, bool isFullScreen, const string::StringID& applicationTitle, const string::StringID& applicationName, std::function<HRESULT(HWND, uint32_t, WPARAM, LPARAM)> messageHandler) = 0;
 			virtual void Release() = 0;
 			virtual void Run(std::function<bool()> funcUpdate) = 0;
 			virtual void Cleanup(float elapsedTime) = 0;
@@ -57,11 +57,12 @@ namespace est
 			virtual APIs GetType() const = 0;
 			virtual HWND GetHwnd() const = 0;
 			virtual HINSTANCE GetHInstance() const = 0;
-			virtual void AddMessageHandler(const string::StringID& strName, std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler) = 0;
-			virtual void RemoveMessageHandler(const string::StringID& strName) = 0;
 
 			virtual const math::uint2& GetScreenSize() const = 0;
-			virtual Camera* GetCamera() const = 0;
+			virtual const math::Viewport& GetViewport() const = 0;
+			virtual const std::vector<DisplayModeDesc>& GetSupportedDisplayModeDesc() const = 0;
+			virtual size_t GetSelectedDisplayModeIndex() const = 0;
+
 			virtual IImageBasedLight* GetImageBasedLight() const = 0;
 			virtual IVTFManager* GetVTFManager() const = 0;
 
@@ -104,17 +105,15 @@ namespace est
 			virtual ~TGraphicsAPI() = default;
 
 		public:
-			virtual void Initialize(uint32_t width, uint32_t height, bool isFullScreen, const string::StringID& applicationTitle, const string::StringID& applicationName) override
+			virtual void Initialize(uint32_t width, uint32_t height, bool isFullScreen, const string::StringID& applicationTitle, const string::StringID& applicationName, std::function<HRESULT(HWND, uint32_t, WPARAM, LPARAM)> messageHandler) override
 			{
 				s_pLightManager = LightManager::GetInstance();
 
-				Device::GetInstance()->Initialize(width, height, isFullScreen, applicationTitle, applicationName);
+				Device::GetInstance()->Initialize(width, height, isFullScreen, applicationTitle, applicationName, messageHandler);
 				m_pTextureManager = std::make_unique<TextureManager>();
 
 				m_pImageBasedLight = std::make_unique<ImageBasedLight>();
 				Device::GetInstance()->SetImageBasedLight(m_pImageBasedLight.get());
-
-				s_pCamera = Camera::GetInstance();
 
 				Camera::DescProjection cameraProjection;
 				cameraProjection.width = width;
@@ -122,7 +121,7 @@ namespace est
 				cameraProjection.fov = math::PIDIV4;
 				cameraProjection.nearClip = 0.1f;
 				cameraProjection.farClip = 1000.f;
-				s_pCamera->SetProjection(cameraProjection);
+				GetCamera().SetProjection(cameraProjection);
 
 				s_pOcclusionCulling = OcclusionCulling::GetInstance();
 				s_pOcclusionCulling->Initialize(width, height);
@@ -135,9 +134,6 @@ namespace est
 
 				OcclusionCulling::DestroyInstance();
 				s_pOcclusionCulling = nullptr;
-
-				Camera::DestroyInstance();
-				s_pCamera = nullptr;
 
 				s_pLightManager->RemoveAll();
 				LightManager::DestroyInstance();
@@ -176,10 +172,10 @@ namespace est
 				GetDebugInfo() = DebugInfo();
 				GetDebugInfo().isEnableCollection = GetPrevDebugInfo().isEnableCollection;
 
-				s_pCamera->Update(elapsedTime);
+				GetCamera().Update(elapsedTime);
 
 				s_pOcclusionCulling->Enable(GetOptions().OnOcclusionCulling);
-				s_pOcclusionCulling->Update(s_pCamera);
+				s_pOcclusionCulling->Update(&GetCamera());
 
 				s_pOcclusionCulling->WakeThreads();
 				s_pOcclusionCulling->ClearBuffer();
@@ -223,30 +219,24 @@ namespace est
 				}
 			}
 
-			virtual void AddMessageHandler(const string::StringID& strName, std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler) override
-			{
-				if constexpr (APIType == APIs::eDX11 || APIType == APIs::eDX12)
-				{
-					Device::GetInstance()->AddMessageHandler(strName, funcHandler);
-				}
-			}
-
-			virtual void RemoveMessageHandler(const string::StringID& strName) override
-			{
-				if constexpr (APIType == APIs::eDX11 || APIType == APIs::eDX12)
-				{
-					Device::GetInstance()->RemoveMessageHandler(strName);
-				}
-			}
-
 			virtual const math::uint2& GetScreenSize() const override
 			{
 				return Device::GetInstance()->GetScreenSize();
 			}
 
-			virtual Camera* GetCamera() const override
+			virtual const math::Viewport& GetViewport() const override
 			{
-				return s_pCamera;
+				return Device::GetInstance()->GetViewport();
+			}
+
+			virtual const std::vector<DisplayModeDesc>& GetSupportedDisplayModeDesc() const override
+			{
+				return Device::GetInstance()->GetSupportedDisplayModeDesc();
+			}
+
+			virtual size_t GetSelectedDisplayModeIndex() const override
+			{
+				return Device::GetInstance()->GetSelectedDisplayModeIndex();
 			}
 
 			virtual IImageBasedLight* GetImageBasedLight() const override
@@ -413,12 +403,12 @@ namespace est
 				if (s_pOcclusionCulling->IsEnable() == true)
 				{
 					const MaterialPtr& pMaterial = renderJob.pMaterial;
-					if (pMaterial == nullptr || pMaterial->GetBlendState() == EmBlendState::eOff)
+					if (pMaterial == nullptr || pMaterial->GetBlendState() == BlendState::eOff)
 					{
 						const collision::Frustum& cameraFrustum = s_pOcclusionCulling->GetCameraFrustum();
 						if (cameraFrustum.Contains(renderJob.occlusionCullingData.aabb) != collision::EmContainment::eDisjoint)
 						{
-							s_pOcclusionCulling->RenderTriangles(renderJob.matWorld, renderJob.occlusionCullingData.pVertices, renderJob.occlusionCullingData.pIndices, renderJob.occlusionCullingData.indexCount);
+							s_pOcclusionCulling->RenderTriangles(renderJob.worldMatrix, renderJob.occlusionCullingData.pVertices, renderJob.occlusionCullingData.pIndices, renderJob.occlusionCullingData.indexCount);
 						}
 					}
 				}
@@ -500,7 +490,6 @@ namespace est
 			tsl::robin_map<IResource*, std::shared_ptr<IndexBuffer>> m_umapIndexBuffers;
 			tsl::robin_map<IResource*, std::shared_ptr<Material>> m_umapMaterials;
 			
-			Camera* s_pCamera{ nullptr };
 			LightManager* s_pLightManager{ nullptr };
 			OcclusionCulling* s_pOcclusionCulling{ nullptr };
 		};
@@ -524,7 +513,7 @@ namespace est
 
 		std::unique_ptr<IGraphicsAPI> s_pGraphicsAPI;
 
-		void Initialize(APIs emAPI, uint32_t width, uint32_t height, bool isFullScreen, bool isVSync, const string::StringID& applicationTitle, const string::StringID& applicationName)
+		void Initialize(APIs emAPI, uint32_t width, uint32_t height, bool isFullScreen, bool isVSync, const string::StringID& applicationTitle, const string::StringID& applicationName, std::function<HRESULT(HWND, uint32_t, WPARAM, LPARAM)> messageHandler)
 		{
 			if (s_pGraphicsAPI != nullptr)
 			{
@@ -552,7 +541,7 @@ namespace est
 
 			GetOptions().OnVSync = isVSync;
 
-			s_pGraphicsAPI->Initialize(width, height, isFullScreen, applicationTitle, applicationName);
+			s_pGraphicsAPI->Initialize(width, height, isFullScreen, applicationTitle, applicationName, messageHandler);
 
 			std::string fontPath = string::WideToMulti(file::GetEngineDataPath());
 			fontPath.append("Font\\ArialUni.ttf");
@@ -601,24 +590,24 @@ namespace est
 			return s_pGraphicsAPI->GetHInstance();
 		}
 
-		void AddMessageHandler(const string::StringID& strName, std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler)
-		{
-			s_pGraphicsAPI->AddMessageHandler(strName, funcHandler);
-		}
-
-		void RemoveMessageHandler(const string::StringID& strName)
-		{
-			s_pGraphicsAPI->RemoveMessageHandler(strName);
-		}
-
 		const math::uint2& GetScreenSize()
 		{
 			return s_pGraphicsAPI->GetScreenSize();
 		}
 
-		Camera* GetCamera()
+		const math::Viewport& GetViewport()
 		{
-			return s_pGraphicsAPI->GetCamera();
+			return s_pGraphicsAPI->GetViewport();
+		}
+
+		const std::vector<DisplayModeDesc>& GetSupportedDisplayModeDesc()
+		{
+			return s_pGraphicsAPI->GetSupportedDisplayModeDesc();
+		}
+
+		size_t GetSelectedDisplayModeIndex()
+		{
+			return s_pGraphicsAPI->GetSelectedDisplayModeIndex();
 		}
 
 		IImageBasedLight* GetImageBasedLight()
@@ -784,48 +773,6 @@ namespace est
 			default:
 				assert(false);
 				return {};
-			}
-		}
-
-		bool GetBackBufferSwapchainTextureID(ImTextureID* pTextureID)
-		{
-			using namespace graphics;
-
-			switch (GetAPI())
-			{
-			case APIs::eDX11:
-			{
-				dx11::RenderTarget* pRenderTarget = dx11::Device::GetInstance()->GetBackBufferSwapChainRenderTarget();
-				if (pRenderTarget == nullptr)
-				{
-					*pTextureID = 0;
-					return false;
-				}
-
-				*pTextureID = reinterpret_cast<ImTextureID>(pRenderTarget->GetShaderResourceView());
-				return true;
-			}
-			break;
-			case APIs::eDX12:
-			{
-				const uint32_t frameIndex = (dx12::Device::GetInstance()->GetFrameIndex() + 1) % dx12::eFrameBufferCount;
-				dx12::RenderTarget* pRenderTarget = dx12::Device::GetInstance()->GetBackBufferSwapChainRenderTarget(frameIndex);
-				if (pRenderTarget == nullptr)
-				{
-					*pTextureID = 0;
-					return false;
-				}
-
-				*pTextureID = *reinterpret_cast<const ImTextureID*>(&pRenderTarget->GetTexture()->GetGPUHandle(frameIndex));
-				return true;
-			}
-			break;
-			case APIs::eVulkan:
-				assert(false);
-				return false;
-			default:
-				assert(false);
-				return false;
 			}
 		}
 	}

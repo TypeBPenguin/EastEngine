@@ -14,6 +14,14 @@ namespace est
 			eVulkan,
 		};
 
+		enum ScreenShotFormat
+		{
+			eBMP = 0,
+			ePNG,
+			eJPEG,
+			eDDS,
+		};
+
 		enum ResourceFormat
 		{
 			eRF_UNKNOWN = 0,
@@ -165,7 +173,7 @@ namespace est
 			}
 		}
 
-		namespace EmRasterizerState
+		namespace RasterizerState
 		{
 			enum Type : uint8_t
 			{
@@ -180,7 +188,7 @@ namespace est
 			};
 		}
 
-		namespace EmDepthStencilState
+		namespace DepthStencilState
 		{
 			enum Type : uint8_t
 			{
@@ -193,7 +201,7 @@ namespace est
 			};
 		}
 
-		namespace EmBlendState
+		namespace BlendState
 		{
 			enum Type : uint8_t
 			{
@@ -211,7 +219,7 @@ namespace est
 			};
 		};
 
-		namespace EmSamplerState
+		namespace SamplerState
 		{
 			enum Type : uint8_t
 			{

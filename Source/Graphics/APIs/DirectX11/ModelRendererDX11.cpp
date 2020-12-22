@@ -25,7 +25,7 @@ namespace est
 	{
 		namespace dx11
 		{
-			namespace shader
+			namespace modelShader
 			{
 				static constexpr char VSFuncName[] = { "VS" };
 				static constexpr char PSFuncName[] = { "PS" };
@@ -44,15 +44,15 @@ namespace est
 
 				struct ObjectDataBuffer
 				{
-					math::Matrix matWorld;
-					math::Matrix matPrevWorld;
+					math::Matrix worldMatrix;
+					math::Matrix prevWorldMatrix;
 
 					math::Color f4AlbedoColor;
 					math::Color f4EmissiveColor;
 
-					math::float4 f4PaddingRoughMetEmi;
-					math::float4 f4SurSpecTintAniso;
-					math::float4 f4SheenTintClearcoatGloss;
+					math::float4 paddingRoughMetEmi;
+					math::float4 surSpecTintAniso;
+					math::float4 sheenTintClearcoatGloss;
 
 					float stippleTransparencyFactor{ 0.f };
 					uint32_t VTFID{ 0 };
@@ -64,8 +64,8 @@ namespace est
 				struct VSConstants
 				{
 					math::Matrix viewMatrix;
-					math::Matrix matViewProj;
-					math::Matrix matPrevViewProj;
+					math::Matrix viewProjectionMatrix;
+					math::Matrix prevViewPrjectionMatrix;
 				};
 
 				struct CommonContents
@@ -141,13 +141,13 @@ namespace est
 
 				enum Mask : uint32_t
 				{
-					eUseInstancing = 1 << MaterialMaskCount,
-					eUseSkinning = 1 << (MaterialMaskCount + 1),
-					eUseAlphaBlending = 1 << (MaterialMaskCount + 2),
-					eUseMotionBlur = 1 << (MaterialMaskCount + 3),
-					eUseWriteDepth = 1 << (MaterialMaskCount + 4),
+					eUseInstancing = 1 << shader::MaterialMaskCount,
+					eUseSkinning = 1 << (shader::MaterialMaskCount + 1),
+					eUseAlphaBlending = 1 << (shader::MaterialMaskCount + 2),
+					eUseMotionBlur = 1 << (shader::MaterialMaskCount + 3),
+					eUseWriteDepth = 1 << (shader::MaterialMaskCount + 4),
 
-					MaskCount = MaterialMaskCount + 5,
+					MaskCount = shader::MaterialMaskCount + 5,
 				};
 
 				const char* GetMaskName(uint32_t maskBit)
@@ -183,11 +183,11 @@ namespace est
 					return s_strMaskName[maskBit].c_str();
 				}
 
-				std::vector<D3D_SHADER_MACRO> GetMacros(const MaskKey& maskKey)
+				std::vector<D3D_SHADER_MACRO> GetMacros(const shader::MaskKey& maskKey)
 				{
 					std::vector<D3D_SHADER_MACRO> vecMacros;
 					vecMacros.push_back({ "DX11", "1" });
-					for (uint32_t i = 0; i < shader::MaskCount; ++i)
+					for (uint32_t i = 0; i < modelShader::MaskCount; ++i)
 					{
 						if ((maskKey & (1 << i)) != 0)
 						{
@@ -202,21 +202,21 @@ namespace est
 				void SetObjectData(ID3D11DeviceContext* pDeviceContext,
 					ConstantBuffer<ObjectDataBuffer>* pCB_ObjectDataBuffer,
 					const IMaterial* pMaterial,
-					const math::Matrix& matWorld, const math::Matrix& matPrevWorld,
+					const math::Matrix& worldMatrix, const math::Matrix& prevWorldMatrix,
 					uint32_t VTFID, uint32_t PrevVTFID)
 				{
 					ObjectDataBuffer* pObjectDataBuffer = pCB_ObjectDataBuffer->Map(pDeviceContext);
-					pObjectDataBuffer->matWorld = matWorld.Transpose();
-					pObjectDataBuffer->matPrevWorld = matPrevWorld.Transpose();
+					pObjectDataBuffer->worldMatrix = worldMatrix.Transpose();
+					pObjectDataBuffer->prevWorldMatrix = prevWorldMatrix.Transpose();
 
 					if (pMaterial != nullptr)
 					{
 						pObjectDataBuffer->f4AlbedoColor = pMaterial->GetAlbedoColor();
 						pObjectDataBuffer->f4EmissiveColor = pMaterial->GetEmissiveColor();
 
-						pObjectDataBuffer->f4PaddingRoughMetEmi = pMaterial->GetPaddingRoughMetEmi();
-						pObjectDataBuffer->f4SurSpecTintAniso = pMaterial->GetSurSpecTintAniso();
-						pObjectDataBuffer->f4SheenTintClearcoatGloss = pMaterial->GetSheenTintClearcoatGloss();
+						pObjectDataBuffer->paddingRoughMetEmi = pMaterial->GetPaddingRoughMetEmi();
+						pObjectDataBuffer->surSpecTintAniso = pMaterial->GetSurSpecTintAniso();
+						pObjectDataBuffer->sheenTintClearcoatGloss = pMaterial->GetSheenTintClearcoatGloss();
 
 						pObjectDataBuffer->stippleTransparencyFactor = pMaterial->GetStippleTransparencyFactor();
 						pObjectDataBuffer->VTFID = VTFID;
@@ -229,9 +229,9 @@ namespace est
 						pObjectDataBuffer->f4AlbedoColor = math::Color::White;
 						pObjectDataBuffer->f4EmissiveColor = math::Color::Black;
 
-						pObjectDataBuffer->f4PaddingRoughMetEmi = math::float4::Zero;
-						pObjectDataBuffer->f4SurSpecTintAniso = math::float4::Zero;
-						pObjectDataBuffer->f4SheenTintClearcoatGloss = math::float4::Zero;
+						pObjectDataBuffer->paddingRoughMetEmi = math::float4::Zero;
+						pObjectDataBuffer->surSpecTintAniso = math::float4::Zero;
+						pObjectDataBuffer->sheenTintClearcoatGloss = math::float4::Zero;
 
 						pObjectDataBuffer->stippleTransparencyFactor = 0.f;
 						pObjectDataBuffer->VTFID = VTFID;
@@ -256,10 +256,10 @@ namespace est
 					pSRV = pSpecularBRDF->GetShaderResourceView();
 					pDeviceContext->PSSetShaderResources(eSRV_SpecularBRDF, 1, &pSRV);
 
-					ID3D11SamplerState* pSamplerPointClamp = pDeviceInstance->GetSamplerState(EmSamplerState::eMinMagMipPointClamp);
+					ID3D11SamplerState* pSamplerPointClamp = pDeviceInstance->GetSamplerState(SamplerState::eMinMagMipPointClamp);
 					pDeviceContext->PSSetSamplers(eSampler_PointClamp, 1, &pSamplerPointClamp);
 
-					ID3D11SamplerState* pSamplerClamp = pDeviceInstance->GetSamplerState(EmSamplerState::eMinMagMipLinearClamp);
+					ID3D11SamplerState* pSamplerClamp = pDeviceInstance->GetSamplerState(SamplerState::eMinMagMipLinearClamp);
 					pDeviceContext->PSSetSamplers(eSampler_Clamp, 1, &pSamplerClamp);
 				}
 
@@ -419,7 +419,7 @@ namespace est
 				~Impl();
 
 			public:
-				void Render(const RenderElement& element, Group emGroup, const math::Matrix& matPrevViewProjection);
+				void Render(const RenderElement& element, Group emGroup, const math::Matrix& prevViewPrjectionMatrixection);
 				void Cleanup();
 
 			public:
@@ -468,13 +468,13 @@ namespace est
 
 				ID3D11SamplerState* m_pSamplerShadowPCF{ nullptr };
 
-				ConstantBuffer<shader::SkinningInstancingDataBuffer> m_skinningInstancingDataBuffer;
-				ConstantBuffer<shader::StaticInstancingDataBuffer> m_staticInstancingDataBuffer;
-				ConstantBuffer<shader::ObjectDataBuffer> m_objectDataBuffer;
-				ConstantBuffer<shader::VSConstants> m_vsConstants;
+				ConstantBuffer<modelShader::SkinningInstancingDataBuffer> m_skinningInstancingDataBuffer;
+				ConstantBuffer<modelShader::StaticInstancingDataBuffer> m_staticInstancingDataBuffer;
+				ConstantBuffer<modelShader::ObjectDataBuffer> m_objectDataBuffer;
+				ConstantBuffer<modelShader::VSConstants> m_vsConstants;
 
 				// for alphablend, common.hlsl
-				ConstantBuffer<shader::CommonContents> m_commonContentsBuffer;
+				ConstantBuffer<modelShader::CommonContents> m_commonContentsBuffer;
 
 				tsl::robin_map<shader::MaskKey, RenderState> m_umapRenderStates;
 
@@ -496,11 +496,11 @@ namespace est
 					std::vector<math::Matrix> instanceData;
 					std::vector<math::Matrix> prevInstanceData;
 
-					JobStaticBatch(const JobStatic* pJob, const math::Matrix& matWorld, const math::Matrix& matPrevWorld)
+					JobStaticBatch(const JobStatic* pJob, const math::Matrix& worldMatrix, const math::Matrix& prevWorldMatrix)
 						: pJob(pJob)
 					{
-						instanceData.emplace_back(matWorld);
-						prevInstanceData.emplace_back(matPrevWorld);
+						instanceData.emplace_back(worldMatrix);
+						prevInstanceData.emplace_back(prevWorldMatrix);
 					}
 				};
 
@@ -528,11 +528,11 @@ namespace est
 					std::vector<SkinningInstancingData> instanceData;
 					std::vector<SkinningInstancingData> prevInstanceData;
 
-					JobSkinnedBatch(const JobSkinned* pJob, const math::Matrix& matWorld, const math::Matrix& matPrevWorld, uint32_t VTFID, uint32_t PrevVTFID)
+					JobSkinnedBatch(const JobSkinned* pJob, const math::Matrix& worldMatrix, const math::Matrix& prevWorldMatrix, uint32_t VTFID, uint32_t PrevVTFID)
 						: pJob(pJob)
 					{
-						instanceData.emplace_back(matWorld, VTFID);
-						prevInstanceData.emplace_back(matPrevWorld, PrevVTFID);
+						instanceData.emplace_back(worldMatrix, VTFID);
+						prevInstanceData.emplace_back(prevWorldMatrix, PrevVTFID);
 					}
 				};
 
@@ -556,9 +556,9 @@ namespace est
 				ID3D11Device* pDevice = Device::GetInstance()->GetInterface();
 
 				CreateRenderState(pDevice, 0);
-				CreateRenderState(pDevice, shader::eUseInstancing);
-				CreateRenderState(pDevice, shader::eUseSkinning);
-				CreateRenderState(pDevice, shader::eUseSkinning | shader::eUseInstancing);
+				CreateRenderState(pDevice, modelShader::eUseInstancing);
+				CreateRenderState(pDevice, modelShader::eUseSkinning);
+				CreateRenderState(pDevice, modelShader::eUseSkinning | modelShader::eUseInstancing);
 
 				m_skinningInstancingDataBuffer.Create(pDevice, "SkinningInstancingDataBuffer");
 				m_staticInstancingDataBuffer.Create(pDevice, "StaticInstancingDataBuffer");
@@ -620,10 +620,10 @@ namespace est
 							RenderState& renderState = completeCreateRenderState.renderState;
 
 							ID3D11Device* pDevice = Device::GetInstance()->GetInterface();
-							CreateVertexShader(pDevice, maskKey, shader::VSFuncName, &renderState.pVertexShader, &renderState.pInputLayout);
-							if ((maskKey & shader::eUseWriteDepth) != shader::eUseWriteDepth)
+							CreateVertexShader(pDevice, maskKey, modelShader::VSFuncName, &renderState.pVertexShader, &renderState.pInputLayout);
+							if ((maskKey & modelShader::eUseWriteDepth) != modelShader::eUseWriteDepth)
 							{
-								CreatePixelShader(pDevice, maskKey, shader::PSFuncName, &renderState.pPixelShader);
+								CreatePixelShader(pDevice, maskKey, modelShader::PSFuncName, &renderState.pPixelShader);
 							}
 							m_completeCreateShaderAsyncMaskKeys.push(completeCreateRenderState);
 
@@ -663,7 +663,7 @@ namespace est
 				SafeRelease(m_pShaderBlob);
 			}
 
-			void ModelRenderer::Impl::Render(const RenderElement& element, Group emGroup, const math::Matrix& matPrevViewProjection)
+			void ModelRenderer::Impl::Render(const RenderElement& element, Group emGroup, const math::Matrix& prevViewPrjectionMatrixection)
 			{
 				TRACER_EVENT(__FUNCTIONW__);
 				DX_PROFILING(ModelRenderer);
@@ -732,10 +732,10 @@ namespace est
 				if (emGroup == Group::eAlphaBlend)
 				{
 					const IImageBasedLight* pImageBasedLight = pDeviceInstance->GetImageBasedLight();
-					shader::SetImageBasedLight(pDeviceInstance, pDeviceContext, pImageBasedLight);
+					modelShader::SetImageBasedLight(pDeviceInstance, pDeviceContext, pImageBasedLight);
 
-					shader::SetCommonContents_ForAlpha(pDeviceContext, &m_commonContentsBuffer, pLightResourceManager, pCamera->GetPosition());
-					pDeviceContext->PSSetConstantBuffers(shader::eCB_CommonContents, 1, &m_commonContentsBuffer.pBuffer);
+					modelShader::SetCommonContents_ForAlpha(pDeviceContext, &m_commonContentsBuffer, pLightResourceManager, pCamera->GetPosition());
+					pDeviceContext->PSSetConstantBuffers(modelShader::eCB_CommonContents, 1, &m_commonContentsBuffer.pBuffer);
 
 					std::vector<ID3D11ShaderResourceView*> cascadeShadowMaps;
 					const size_t directionalLightCount = pLightResourceManager->GetLightCount(ILight::Type::eDirectional);
@@ -751,36 +751,36 @@ namespace est
 							}
 						}
 					}
-					pDeviceContext->PSSetShaderResources(shader::eSRV_ShadowMap, static_cast<uint32_t>(cascadeShadowMaps.size()), cascadeShadowMaps.data());
+					pDeviceContext->PSSetShaderResources(modelShader::eSRV_ShadowMap, static_cast<uint32_t>(cascadeShadowMaps.size()), cascadeShadowMaps.data());
 
-					pDeviceContext->PSSetSamplers(shader::eSampler_ShadowPCF, 1, &m_pSamplerShadowPCF);
+					pDeviceContext->PSSetSamplers(modelShader::eSampler_ShadowPCF, 1, &m_pSamplerShadowPCF);
 
-					ID3D11SamplerState* pSamplerPointClamp = pDeviceInstance->GetSamplerState(EmSamplerState::eMinMagMipPointClamp);
-					pDeviceContext->PSSetSamplers(shader::eSampler_PointClamp, 1, &pSamplerPointClamp);
+					ID3D11SamplerState* pSamplerPointClamp = pDeviceInstance->GetSamplerState(SamplerState::eMinMagMipPointClamp);
+					pDeviceContext->PSSetSamplers(modelShader::eSampler_PointClamp, 1, &pSamplerPointClamp);
 
-					ID3D11SamplerState* pSamplerClamp = pDeviceInstance->GetSamplerState(EmSamplerState::eMinMagMipLinearClamp);
-					pDeviceContext->PSSetSamplers(shader::eSampler_Clamp, 1, &pSamplerClamp);
+					ID3D11SamplerState* pSamplerClamp = pDeviceInstance->GetSamplerState(SamplerState::eMinMagMipLinearClamp);
+					pDeviceContext->PSSetSamplers(modelShader::eSampler_Clamp, 1, &pSamplerClamp);
 				}
 
-				pDeviceContext->VSSetConstantBuffers(shader::eCB_ObjectData, 1, &m_objectDataBuffer.pBuffer);
-				pDeviceContext->PSSetConstantBuffers(shader::eCB_ObjectData, 1, &m_objectDataBuffer.pBuffer);
-				pDeviceContext->VSSetConstantBuffers(shader::eCB_VSConstants, 1, &m_vsConstants.pBuffer);
+				pDeviceContext->VSSetConstantBuffers(modelShader::eCB_ObjectData, 1, &m_objectDataBuffer.pBuffer);
+				pDeviceContext->PSSetConstantBuffers(modelShader::eCB_ObjectData, 1, &m_objectDataBuffer.pBuffer);
+				pDeviceContext->VSSetConstantBuffers(modelShader::eCB_VSConstants, 1, &m_vsConstants.pBuffer);
 				
 				if (emGroup == Group::eDeferred || emGroup == Group::eAlphaBlend)
 				{
-					const D3D11_VIEWPORT* pViewport = pDeviceInstance->GetViewport();
-					pDeviceContext->RSSetViewports(1, pViewport);
+					const math::Viewport& viewport = pDeviceInstance->GetViewport();
+					pDeviceContext->RSSetViewports(1, util::Convert(viewport));
 
 					pDeviceContext->OMSetRenderTargets(element.rtvCount, element.pRTVs, element.pDSV);
 
-					shader::VSConstants* pVSConstants = m_vsConstants.Map(pDeviceContext);
+					modelShader::VSConstants* pVSConstants = m_vsConstants.Map(pDeviceContext);
 					{
 						pVSConstants->viewMatrix = pCamera->GetViewMatrix().Transpose();
 
-						pVSConstants->matViewProj = pCamera->GetViewMatrix() * pCamera->GetProjectionMatrix();
-						pVSConstants->matViewProj = pVSConstants->matViewProj.Transpose();
+						pVSConstants->viewProjectionMatrix = pCamera->GetViewMatrix() * pCamera->GetProjectionMatrix();
+						pVSConstants->viewProjectionMatrix = pVSConstants->viewProjectionMatrix.Transpose();
 
-						pVSConstants->matPrevViewProj = matPrevViewProjection.Transpose();
+						pVSConstants->prevViewPrjectionMatrix = prevViewPrjectionMatrixection.Transpose();
 					}
 					m_vsConstants.Unmap(pDeviceContext);
 
@@ -816,26 +816,26 @@ namespace est
 								{
 									pDeviceContext->OMSetRenderTargets(0, nullptr, pCascadedDepthStencil->GetDepthStencilView());
 
-									ID3D11RasterizerState* pRasterizerState = pDeviceInstance->GetRasterizerState(EmRasterizerState::eSolidCCW);
+									ID3D11RasterizerState* pRasterizerState = pDeviceInstance->GetRasterizerState(RasterizerState::eSolidCCW);
 									pDeviceContext->RSSetState(pRasterizerState);
 
 									for (uint32_t cascadeLevel = 0; cascadeLevel < cascadedShadowsConfig.numCascades; ++cascadeLevel)
 									{
-										pDeviceContext->RSSetViewports(1, cascadedShadows.GetViewport(cascadeLevel).Get11());
+										pDeviceContext->RSSetViewports(1, util::Convert(cascadedShadows.GetViewport(cascadeLevel)));
 
 										const math::Matrix& viewMatrix = cascadedShadows.GetViewMatrix(cascadeLevel);
 										math::Matrix projectionMatrix = cascadedShadows.GetProjectionMatrix(cascadeLevel);
-										projectionMatrix._33 /= pCamera->GetFarClip();
-										projectionMatrix._43 /= pCamera->GetFarClip();
+										projectionMatrix._33 /= pCamera->GetProjection().farClip;
+										projectionMatrix._43 /= pCamera->GetProjection().farClip;
 
-										shader::VSConstants* pVSConstants = m_vsConstants.Map(pDeviceContext);
+										modelShader::VSConstants* pVSConstants = m_vsConstants.Map(pDeviceContext);
 										{
 											pVSConstants->viewMatrix = viewMatrix.Transpose();
 
-											pVSConstants->matViewProj = viewMatrix * projectionMatrix;
-											pVSConstants->matViewProj = pVSConstants->matViewProj.Transpose();
+											pVSConstants->viewProjectionMatrix = viewMatrix * projectionMatrix;
+											pVSConstants->viewProjectionMatrix = pVSConstants->viewProjectionMatrix.Transpose();
 
-											pVSConstants->matPrevViewProj = matPrevViewProjection.Transpose();
+											pVSConstants->prevViewPrjectionMatrix = prevViewPrjectionMatrixection.Transpose();
 										}
 										m_vsConstants.Unmap(pDeviceContext);
 
@@ -891,7 +891,7 @@ namespace est
 			void ModelRenderer::Impl::PushJob(const RenderJobStatic& job)
 			{
 				const MaterialPtr& pMaterial = job.pMaterial;
-				if (pMaterial == nullptr || pMaterial->GetBlendState() == EmBlendState::eOff)
+				if (pMaterial == nullptr || pMaterial->GetBlendState() == BlendState::eOff)
 				{
 					const thread::SRWWriteLock writeLock(&m_srwLock_static);
 					m_jobStatics[eDeferred].emplace_back(job);
@@ -907,7 +907,7 @@ namespace est
 			void ModelRenderer::Impl::PushJob(const RenderJobSkinned& job)
 			{
 				const MaterialPtr& pMaterial = job.pMaterial;
-				if (pMaterial == nullptr || pMaterial->GetBlendState() == EmBlendState::eOff)
+				if (pMaterial == nullptr || pMaterial->GetBlendState() == BlendState::eOff)
 				{
 					thread::SRWWriteLock writeLock(&m_srwLock_skinned);
 					m_jobSkinneds[eDeferred].emplace_back(job);
@@ -943,12 +943,12 @@ namespace est
 						auto iter = umapJobStaticBatch.find(job.data.pKey);
 						if (iter != umapJobStaticBatch.end())
 						{
-							iter.value().instanceData.emplace_back(job.data.matWorld.Transpose());
-							iter.value().prevInstanceData.emplace_back(job.data.matPrevWorld.Transpose());
+							iter.value().instanceData.emplace_back(job.data.worldMatrix.Transpose());
+							iter.value().prevInstanceData.emplace_back(job.data.prevWorldMatrix.Transpose());
 						}
 						else
 						{
-							umapJobStaticBatch.emplace(job.data.pKey, JobStaticBatch(&job, job.data.matWorld.Transpose(), job.data.matPrevWorld.Transpose()));
+							umapJobStaticBatch.emplace(job.data.pKey, JobStaticBatch(&job, job.data.worldMatrix.Transpose(), job.data.prevWorldMatrix.Transpose()));
 						}
 					}
 
@@ -980,21 +980,21 @@ namespace est
 
 							if (jobBatch.instanceData.size() > 1)
 							{
-								mask |= shader::eUseInstancing;
+								mask |= modelShader::eUseInstancing;
 							}
 
 							if (emGroup == Group::eAlphaBlend)
 							{
-								mask |= shader::eUseAlphaBlending;
+								mask |= modelShader::eUseAlphaBlending;
 							}
 							else if (emGroup == Group::eShadow)
 							{
-								mask |= shader::eUseWriteDepth;
+								mask |= modelShader::eUseWriteDepth;
 							}
 
 							if (isEnableVelocityMotionBlur == true)
 							{
-								mask |= shader::eUseMotionBlur;
+								mask |= modelShader::eUseMotionBlur;
 							}
 
 							shader::MaskKey maskKey(mask);
@@ -1019,21 +1019,21 @@ namespace est
 						pDeviceContext->IASetInputLayout(pRenderState->pInputLayout);
 						pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-						if ((iter->first & shader::eUseInstancing) == shader::eUseInstancing)
+						if ((iter->first & modelShader::eUseInstancing) == modelShader::eUseInstancing)
 						{
-							pDeviceContext->VSSetConstantBuffers(shader::eCB_StaticInstancingData, 1, &m_staticInstancingDataBuffer.pBuffer);
+							pDeviceContext->VSSetConstantBuffers(modelShader::eCB_StaticInstancingData, 1, &m_staticInstancingDataBuffer.pBuffer);
 
 							for (auto& pJobBatch : vecJobBatch)
 							{
 								const RenderJobStatic& job = pJobBatch->pJob->data;
 
-								shader::SetObjectData(pDeviceContext, &m_objectDataBuffer, job.pMaterial.get(), math::Matrix::Identity, math::Matrix::Identity, 0, 0);
+								modelShader::SetObjectData(pDeviceContext, &m_objectDataBuffer, job.pMaterial.get(), math::Matrix::Identity, math::Matrix::Identity, 0, 0);
 
 								if (emGroup == eDeferred || emGroup == eShadow)
 								{
-									shader::SetMaterial(pDeviceContext, job.pMaterial.get(), shader::eSampler_Material, false);
+									shader::SetMaterial(pDeviceContext, job.pMaterial.get(), modelShader::eSampler_Material, false);
 
-									shader::DrawInstance(pDeviceContext,
+									modelShader::DrawInstance(pDeviceContext,
 										&m_staticInstancingDataBuffer,
 										static_cast<const VertexBuffer*>(job.pVertexBuffer.get()),
 										static_cast<const IndexBuffer*>(job.pIndexBuffer.get()),
@@ -1044,9 +1044,9 @@ namespace est
 								else if (emGroup == eAlphaBlend)
 								{
 									// Pre
-									shader::SetMaterial(pDeviceContext, job.pMaterial.get(), shader::eSampler_Material, true);
+									shader::SetMaterial(pDeviceContext, job.pMaterial.get(), modelShader::eSampler_Material, true);
 
-									shader::DrawInstance(pDeviceContext,
+									modelShader::DrawInstance(pDeviceContext,
 										&m_staticInstancingDataBuffer,
 										static_cast<const VertexBuffer*>(job.pVertexBuffer.get()),
 										static_cast<const IndexBuffer*>(job.pIndexBuffer.get()),
@@ -1055,9 +1055,9 @@ namespace est
 										pJobBatch->prevInstanceData.data(), pJobBatch->prevInstanceData.size());
 
 									// Post
-									shader::SetMaterial(pDeviceContext, job.pMaterial.get(), shader::eSampler_Material, false);
+									shader::SetMaterial(pDeviceContext, job.pMaterial.get(), modelShader::eSampler_Material, false);
 
-									shader::DrawInstance(pDeviceContext,
+									modelShader::DrawInstance(pDeviceContext,
 										&m_staticInstancingDataBuffer,
 										static_cast<const VertexBuffer*>(job.pVertexBuffer.get()),
 										static_cast<const IndexBuffer*>(job.pIndexBuffer.get()),
@@ -1078,13 +1078,13 @@ namespace est
 							{
 								const RenderJobStatic& job = pJobBatch->pJob->data;
 
-								shader::SetObjectData(pDeviceContext, &m_objectDataBuffer, job.pMaterial.get(), job.matWorld, job.matPrevWorld, 0, 0);
+								modelShader::SetObjectData(pDeviceContext, &m_objectDataBuffer, job.pMaterial.get(), job.worldMatrix, job.prevWorldMatrix, 0, 0);
 
 								if (emGroup == eDeferred || emGroup == eShadow)
 								{
-									shader::SetMaterial(pDeviceContext, job.pMaterial.get(), shader::eSampler_Material, false);
+									shader::SetMaterial(pDeviceContext, job.pMaterial.get(), modelShader::eSampler_Material, false);
 
-									shader::Draw(pDeviceContext,
+									modelShader::Draw(pDeviceContext,
 										static_cast<const VertexBuffer*>(job.pVertexBuffer.get()),
 										static_cast<const IndexBuffer*>(job.pIndexBuffer.get()),
 										job.startIndex, job.indexCount);
@@ -1092,17 +1092,17 @@ namespace est
 								else if (emGroup == eAlphaBlend)
 								{
 									// Pre
-									shader::SetMaterial(pDeviceContext, job.pMaterial.get(), shader::eSampler_Material, true);
+									shader::SetMaterial(pDeviceContext, job.pMaterial.get(), modelShader::eSampler_Material, true);
 
-									shader::Draw(pDeviceContext,
+									modelShader::Draw(pDeviceContext,
 										static_cast<const VertexBuffer*>(job.pVertexBuffer.get()),
 										static_cast<const IndexBuffer*>(job.pIndexBuffer.get()),
 										job.startIndex, job.indexCount);
 
 									// Post
-									shader::SetMaterial(pDeviceContext, job.pMaterial.get(), shader::eSampler_Material, false);
+									shader::SetMaterial(pDeviceContext, job.pMaterial.get(), modelShader::eSampler_Material, false);
 
-									shader::Draw(pDeviceContext,
+									modelShader::Draw(pDeviceContext,
 										static_cast<const VertexBuffer*>(job.pVertexBuffer.get()),
 										static_cast<const IndexBuffer*>(job.pIndexBuffer.get()),
 										job.startIndex, job.indexCount);
@@ -1142,12 +1142,12 @@ namespace est
 						auto iter = umapJobSkinnedBatch.find(job.data.pKey);
 						if (iter != umapJobSkinnedBatch.end())
 						{
-							iter.value().instanceData.emplace_back(job.data.matWorld, job.data.VTFID);
-							iter.value().prevInstanceData.emplace_back(job.data.matPrevWorld, job.data.PrevVTFID);
+							iter.value().instanceData.emplace_back(job.data.worldMatrix, job.data.VTFID);
+							iter.value().prevInstanceData.emplace_back(job.data.prevWorldMatrix, job.data.PrevVTFID);
 						}
 						else
 						{
-							umapJobSkinnedBatch.emplace(job.data.pKey, JobSkinnedBatch(&job, job.data.matWorld, job.data.matPrevWorld, job.data.VTFID, job.data.PrevVTFID));
+							umapJobSkinnedBatch.emplace(job.data.pKey, JobSkinnedBatch(&job, job.data.worldMatrix, job.data.prevWorldMatrix, job.data.VTFID, job.data.PrevVTFID));
 						}
 					}
 
@@ -1179,24 +1179,24 @@ namespace est
 
 							if (jobBatch.instanceData.size() > 1)
 							{
-								mask |= shader::eUseInstancing;
+								mask |= modelShader::eUseInstancing;
 							}
 
 							if (emGroup == Group::eAlphaBlend)
 							{
-								mask |= shader::eUseAlphaBlending;
+								mask |= modelShader::eUseAlphaBlending;
 							}
 							else if (emGroup == Group::eShadow)
 							{
-								mask |= shader::eUseWriteDepth;
+								mask |= modelShader::eUseWriteDepth;
 							}
 
 							if (isEnableVelocityMotionBlur == true)
 							{
-								mask |= shader::eUseMotionBlur;
+								mask |= modelShader::eUseMotionBlur;
 							}
 
-							mask |= shader::eUseSkinning;
+							mask |= modelShader::eUseSkinning;
 
 							shader::MaskKey maskKey(mask);
 							umapJobSkinnedMaskBatch[maskKey].emplace_back(&jobBatch);
@@ -1208,7 +1208,7 @@ namespace est
 						{
 							pVTFTexture->GetShaderResourceView(),
 						};
-						pDeviceContext->VSSetShaderResources(shader::eSRV_VTF, _countof(pSRVs), pSRVs);
+						pDeviceContext->VSSetShaderResources(modelShader::eSRV_VTF, _countof(pSRVs), pSRVs);
 					}
 
 					if (isEnableVelocityMotionBlur == true)
@@ -1217,7 +1217,7 @@ namespace est
 						{
 							pPrevVTFTexture->GetShaderResourceView(),
 						};
-						pDeviceContext->VSSetShaderResources(shader::eSRV_PrevVTF, _countof(pSRVs), pSRVs);
+						pDeviceContext->VSSetShaderResources(modelShader::eSRV_PrevVTF, _countof(pSRVs), pSRVs);
 					}
 
 					for (auto iter = umapJobSkinnedMaskBatch.begin(); iter != umapJobSkinnedMaskBatch.end(); ++iter)
@@ -1234,21 +1234,21 @@ namespace est
 						pDeviceContext->IASetInputLayout(pRenderState->pInputLayout);
 						pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-						if ((iter->first & shader::eUseInstancing) == shader::eUseInstancing)
+						if ((iter->first & modelShader::eUseInstancing) == modelShader::eUseInstancing)
 						{
-							pDeviceContext->VSSetConstantBuffers(shader::eCB_SkinningInstancingData, 1, &m_skinningInstancingDataBuffer.pBuffer);
+							pDeviceContext->VSSetConstantBuffers(modelShader::eCB_SkinningInstancingData, 1, &m_skinningInstancingDataBuffer.pBuffer);
 
 							for (auto& pJobBatch : vecJobBatch)
 							{
 								const RenderJobSkinned& job = pJobBatch->pJob->data;
 
-								shader::SetObjectData(pDeviceContext, &m_objectDataBuffer, job.pMaterial.get(), math::Matrix::Identity, math::Matrix::Identity, 0, 0);
+								modelShader::SetObjectData(pDeviceContext, &m_objectDataBuffer, job.pMaterial.get(), math::Matrix::Identity, math::Matrix::Identity, 0, 0);
 
 								if (emGroup == eDeferred || emGroup == eShadow)
 								{
-									shader::SetMaterial(pDeviceContext, job.pMaterial.get(), shader::eSampler_Material, false);
+									shader::SetMaterial(pDeviceContext, job.pMaterial.get(), modelShader::eSampler_Material, false);
 
-									shader::DrawInstance(pDeviceContext,
+									modelShader::DrawInstance(pDeviceContext,
 										&m_skinningInstancingDataBuffer,
 										static_cast<const VertexBuffer*>(job.pVertexBuffer.get()),
 										static_cast<const IndexBuffer*>(job.pIndexBuffer.get()),
@@ -1259,9 +1259,9 @@ namespace est
 								else if (emGroup == eAlphaBlend)
 								{
 									// Pre
-									shader::SetMaterial(pDeviceContext, job.pMaterial.get(), shader::eSampler_Material, true);
+									shader::SetMaterial(pDeviceContext, job.pMaterial.get(), modelShader::eSampler_Material, true);
 
-									shader::DrawInstance(pDeviceContext,
+									modelShader::DrawInstance(pDeviceContext,
 										&m_skinningInstancingDataBuffer,
 										static_cast<const VertexBuffer*>(job.pVertexBuffer.get()),
 										static_cast<const IndexBuffer*>(job.pIndexBuffer.get()),
@@ -1270,9 +1270,9 @@ namespace est
 										pJobBatch->prevInstanceData.data(), pJobBatch->prevInstanceData.size());
 
 									// Post
-									shader::SetMaterial(pDeviceContext, job.pMaterial.get(), shader::eSampler_Material, false);
+									shader::SetMaterial(pDeviceContext, job.pMaterial.get(), modelShader::eSampler_Material, false);
 
-									shader::DrawInstance(pDeviceContext,
+									modelShader::DrawInstance(pDeviceContext,
 										&m_skinningInstancingDataBuffer,
 										static_cast<const VertexBuffer*>(job.pVertexBuffer.get()),
 										static_cast<const IndexBuffer*>(job.pIndexBuffer.get()),
@@ -1293,13 +1293,13 @@ namespace est
 							{
 								const RenderJobSkinned& job = pJobBatch->pJob->data;
 
-								shader::SetObjectData(pDeviceContext, &m_objectDataBuffer, job.pMaterial.get(), job.matWorld, job.matPrevWorld, job.VTFID, job.PrevVTFID);
+								modelShader::SetObjectData(pDeviceContext, &m_objectDataBuffer, job.pMaterial.get(), job.worldMatrix, job.prevWorldMatrix, job.VTFID, job.PrevVTFID);
 
 								if (emGroup == eDeferred || emGroup == eShadow)
 								{
-									shader::SetMaterial(pDeviceContext, job.pMaterial.get(), shader::eSampler_Material, false);
+									shader::SetMaterial(pDeviceContext, job.pMaterial.get(), modelShader::eSampler_Material, false);
 
-									shader::Draw(pDeviceContext,
+									modelShader::Draw(pDeviceContext,
 										static_cast<const VertexBuffer*>(job.pVertexBuffer.get()),
 										static_cast<const IndexBuffer*>(job.pIndexBuffer.get()),
 										job.startIndex, job.indexCount);
@@ -1307,17 +1307,17 @@ namespace est
 								else if (emGroup == eAlphaBlend)
 								{
 									// Pre
-									shader::SetMaterial(pDeviceContext, job.pMaterial.get(), shader::eSampler_Material, true);
+									shader::SetMaterial(pDeviceContext, job.pMaterial.get(), modelShader::eSampler_Material, true);
 
-									shader::Draw(pDeviceContext,
+									modelShader::Draw(pDeviceContext,
 										static_cast<const VertexBuffer*>(job.pVertexBuffer.get()),
 										static_cast<const IndexBuffer*>(job.pIndexBuffer.get()),
 										job.startIndex, job.indexCount);
 
 									// Post
-									shader::SetMaterial(pDeviceContext, job.pMaterial.get(), shader::eSampler_Material, false);
+									shader::SetMaterial(pDeviceContext, job.pMaterial.get(), modelShader::eSampler_Material, false);
 
-									shader::Draw(pDeviceContext,
+									modelShader::Draw(pDeviceContext,
 										static_cast<const VertexBuffer*>(job.pVertexBuffer.get()),
 										static_cast<const IndexBuffer*>(job.pIndexBuffer.get()),
 										job.startIndex, job.indexCount);
@@ -1349,7 +1349,7 @@ namespace est
 				{
 					pRenderState = nullptr;
 
-					const shader::MaskKey defaultMask(maskKey & shader::eUseSkinning | maskKey & shader::eUseInstancing);
+					const shader::MaskKey defaultMask(maskKey & modelShader::eUseSkinning | maskKey & modelShader::eUseInstancing);
 					iter = m_umapRenderStates.find(defaultMask);
 					if (iter != m_umapRenderStates.end())
 					{
@@ -1379,10 +1379,10 @@ namespace est
 				if (renderState.isValid == true)
 					return;
 
-				CreateVertexShader(pDevice, maskKey, shader::VSFuncName, &renderState.pVertexShader, &renderState.pInputLayout);
-				if ((maskKey & shader::eUseWriteDepth) != shader::eUseWriteDepth)
+				CreateVertexShader(pDevice, maskKey, modelShader::VSFuncName, &renderState.pVertexShader, &renderState.pInputLayout);
+				if ((maskKey & modelShader::eUseWriteDepth) != modelShader::eUseWriteDepth)
 				{
-					CreatePixelShader(pDevice, maskKey, shader::PSFuncName, &renderState.pPixelShader);
+					CreatePixelShader(pDevice, maskKey, modelShader::PSFuncName, &renderState.pPixelShader);
 					renderState.isValid = renderState.pInputLayout != nullptr && renderState.pVertexShader != nullptr && renderState.pPixelShader != nullptr;
 				}
 				else
@@ -1393,12 +1393,12 @@ namespace est
 
 			void ModelRenderer::Impl::CreateVertexShader(ID3D11Device* pDevice, const shader::MaskKey& maskKey, const char* functionName, ID3D11VertexShader** ppVertexShader_out, ID3D11InputLayout** ppInputLayout_out) const
 			{
-				const std::vector<D3D_SHADER_MACRO> vecMacros = shader::GetMacros(maskKey);
+				const std::vector<D3D_SHADER_MACRO> vecMacros = modelShader::GetMacros(maskKey);
 
 				const D3D11_INPUT_ELEMENT_DESC* pInputElements = nullptr;
 				size_t nElementCount = 0;
 
-				if ((maskKey & shader::eUseSkinning) == shader::eUseSkinning)
+				if ((maskKey & modelShader::eUseSkinning) == modelShader::eUseSkinning)
 				{
 					util::GetInputElementDesc(VertexPosTexNorWeiIdx::Format(), &pInputElements, &nElementCount);
 				}
@@ -1423,7 +1423,7 @@ namespace est
 
 			void ModelRenderer::Impl::CreatePixelShader(ID3D11Device* pDevice, const shader::MaskKey& maskKey, const char* functionName, ID3D11PixelShader** ppPixelShader_out) const
 			{
-				const std::vector<D3D_SHADER_MACRO> vecMacros = shader::GetMacros(maskKey);
+				const std::vector<D3D_SHADER_MACRO> vecMacros = modelShader::GetMacros(maskKey);
 
 				const std::string debugName = string::Format("ModelPixelShader : %u", maskKey);
 
@@ -1443,9 +1443,9 @@ namespace est
 			{
 			}
 
-			void ModelRenderer::Render(const RenderElement& element, Group emGroup, const math::Matrix& matPrevViewProjection)
+			void ModelRenderer::Render(const RenderElement& element, Group emGroup, const math::Matrix& prevViewPrjectionMatrixection)
 			{
-				m_pImpl->Render(element, emGroup, matPrevViewProjection);
+				m_pImpl->Render(element, emGroup, prevViewPrjectionMatrixection);
 			}
 
 			void ModelRenderer::Cleanup()

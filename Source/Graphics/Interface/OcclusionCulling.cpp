@@ -59,8 +59,8 @@ namespace est
 			const collision::Frustum& GetCameraFrustum() const { return m_cameraFrustum; }
 
 		public:
-			void RenderTriangles(const math::Matrix& matWorld, const VertexPos* pVertices, const uint32_t* pIndices, int indexCount);
-			Result TestTriangles(const math::Matrix& matWorld, const VertexPos* pVertices, const uint32_t* pIndices, int indexCount);
+			void RenderTriangles(const math::Matrix& worldMatrix, const VertexPos* pVertices, const uint32_t* pIndices, int indexCount);
+			Result TestTriangles(const math::Matrix& worldMatrix, const VertexPos* pVertices, const uint32_t* pIndices, int indexCount);
 
 		public:
 			Result TestRect(float xmin, float ymin, float xmax, float ymax, float wmin) const;
@@ -322,14 +322,14 @@ namespace est
 				m_emState = State::eSuspend;
 			}
 
-			SetFov(pCamera->GetFov());
-			SetNearClip(pCamera->GetNearClip());
+			SetFov(pCamera->GetProjection().fov);
+			SetNearClip(pCamera->GetProjection().nearClip);
 
 			m_cameraFrustum = pCamera->GetFrustum();
 			m_matViewProjection = pCamera->GetViewMatrix() * pCamera->GetProjectionMatrix();
 		}
 
-		void OcclusionCulling::Impl::RenderTriangles(const math::Matrix& matWorld, const VertexPos* pVertices, const uint32_t* pIndices, int indexCount)
+		void OcclusionCulling::Impl::RenderTriangles(const math::Matrix& worldMatrix, const VertexPos* pVertices, const uint32_t* pIndices, int indexCount)
 		{
 			if (IsEnable() == false)
 				return;
@@ -346,7 +346,7 @@ namespace est
 				return;
 			}
 
-			const math::Matrix matWVP = matWorld * m_matViewProjection;
+			const math::Matrix matWVP = worldMatrix * m_matViewProjection;
 
 			{
 				std::lock_guard<std::mutex> lock(m_mutex);
@@ -359,7 +359,7 @@ namespace est
 			m_condition.notify_all();
 		}
 
-		OcclusionCulling::Result OcclusionCulling::Impl::TestTriangles(const math::Matrix& matWorld, const VertexPos* pVertices, const uint32_t* pIndices, int indexCount)
+		OcclusionCulling::Result OcclusionCulling::Impl::TestTriangles(const math::Matrix& worldMatrix, const VertexPos* pVertices, const uint32_t* pIndices, int indexCount)
 		{
 			if (IsEnable() == false)
 				return OcclusionCulling::eVisible;
@@ -370,9 +370,9 @@ namespace est
 			if (m_emState == ePause)
 				return OcclusionCulling::eVisible;
 
-			const math::Matrix matWVP = matWorld * m_matViewProjection;
+			const math::Matrix matWVP = worldMatrix * m_matViewProjection;
 
-			m_pCullingThreadPool->SetMatrix(&matWorld._11);
+			m_pCullingThreadPool->SetMatrix(&worldMatrix._11);
 			m_pCullingThreadPool->SetVertexLayout({ sizeof(VertexPos), 4, 8 });
 			const Result emResult = static_cast<Result>(m_pCullingThreadPool->TestTriangles(reinterpret_cast<const float*>(pVertices), pIndices, indexCount / 3, MaskedOcclusionCulling::BACKFACE_CCW, MaskedOcclusionCulling::CLIP_PLANE_ALL));
 			if (GetDebugInfo().isEnableCollection == true)
@@ -679,16 +679,16 @@ namespace est
 			return m_pImpl->GetCameraFrustum();
 		}
 
-		void OcclusionCulling::RenderTriangles(const math::Matrix& matWorld, const VertexPos* pVertices, const uint32_t* pIndices, size_t indexCount)
+		void OcclusionCulling::RenderTriangles(const math::Matrix& worldMatrix, const VertexPos* pVertices, const uint32_t* pIndices, size_t indexCount)
 		{
 			assert(indexCount <= std::numeric_limits<int>::max());
-			m_pImpl->RenderTriangles(matWorld, pVertices, pIndices, static_cast<int>(indexCount));
+			m_pImpl->RenderTriangles(worldMatrix, pVertices, pIndices, static_cast<int>(indexCount));
 		}
 
-		OcclusionCulling::Result OcclusionCulling::TestTriangles(const math::Matrix& matWorld, const VertexPos* pVertices, const uint32_t* pIndices, size_t indexCount)
+		OcclusionCulling::Result OcclusionCulling::TestTriangles(const math::Matrix& worldMatrix, const VertexPos* pVertices, const uint32_t* pIndices, size_t indexCount)
 		{
 			assert(indexCount <= std::numeric_limits<int>::max());
-			return m_pImpl->TestTriangles(matWorld, pVertices, pIndices, static_cast<int>(indexCount));
+			return m_pImpl->TestTriangles(worldMatrix, pVertices, pIndices, static_cast<int>(indexCount));
 		}
 
 		OcclusionCulling::Result OcclusionCulling::TestRect(float xmin, float ymin, float xmax, float ymax, float wmin) const

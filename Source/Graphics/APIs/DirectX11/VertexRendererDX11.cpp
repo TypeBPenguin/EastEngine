@@ -28,8 +28,8 @@ namespace est
 					math::Color color;
 
 					VertexInstancingData() = default;
-					VertexInstancingData(const math::Matrix& matWorld, const math::Color& color)
-						: worldData(matWorld)
+					VertexInstancingData(const math::Matrix& worldMatrix, const math::Color& color)
+						: worldData(worldMatrix)
 						, color(color)
 					{
 					}
@@ -185,7 +185,7 @@ namespace est
 					JobVertexBatch(const RenderJobVertex& job)
 						: job(job)
 					{
-						instanceData.emplace_back(job.matWorld, job.color);
+						instanceData.emplace_back(job.worldMatrix, job.color);
 					}
 				};
 				tsl::robin_map<VertexBufferPtr, JobVertexBatch> m_umapJobVertexBatchs;
@@ -245,8 +245,8 @@ namespace est
 
 				pDeviceContext->ClearState();
 
-				const D3D11_VIEWPORT* pViewport = pDeviceInstance->GetViewport();
-				pDeviceContext->RSSetViewports(1, pViewport);
+				const math::Viewport& viewport = pDeviceInstance->GetViewport();
+				pDeviceContext->RSSetViewports(1, util::Convert(viewport));
 
 				pDeviceContext->OMSetRenderTargets(renderElement.rtvCount, renderElement.pRTVs, renderElement.pDSV);
 
@@ -255,13 +255,13 @@ namespace est
 				pDeviceContext->IASetInputLayout(m_pInputLayout);
 				pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-				ID3D11BlendState* pBlendState = pDeviceInstance->GetBlendState(EmBlendState::eOff);
+				ID3D11BlendState* pBlendState = pDeviceInstance->GetBlendState(BlendState::eOff);
 				pDeviceContext->OMSetBlendState(pBlendState, &math::float4::Zero.x, 0xffffffff);
 
-				ID3D11DepthStencilState* pDepthStencilState = pDeviceInstance->GetDepthStencilState(EmDepthStencilState::eRead_Write_Off);
+				ID3D11DepthStencilState* pDepthStencilState = pDeviceInstance->GetDepthStencilState(DepthStencilState::eRead_Write_Off);
 				pDeviceContext->OMSetDepthStencilState(pDepthStencilState, 0);
 
-				ID3D11RasterizerState* pRasterizerState = pDeviceInstance->GetRasterizerState(EmRasterizerState::eWireframeCullNone);
+				ID3D11RasterizerState* pRasterizerState = pDeviceInstance->GetRasterizerState(RasterizerState::eWireframeCullNone);
 				pDeviceContext->RSSetState(pRasterizerState);
 
 				const math::Matrix matViewProjection = pCamera->GetViewMatrix() * pCamera->GetProjectionMatrix();
@@ -279,7 +279,7 @@ namespace est
 						pDeviceContext->VSSetShader(m_pVertexShader[shader::eVertex], nullptr, 0);
 						pDeviceContext->VSSetConstantBuffers(shader::eCB_SingleContents, 1, &m_singleContents.pBuffer);
 
-						shader::SetSingleContents(pDeviceContext, &m_singleContents, batch.job.matWorld * matViewProjection, batch.job.color);
+						shader::SetSingleContents(pDeviceContext, &m_singleContents, batch.job.worldMatrix * matViewProjection, batch.job.color);
 						shader::Draw(pDeviceContext, pVertexBuffer, pIndexBuffer);
 					}
 					else
@@ -304,7 +304,7 @@ namespace est
 				auto iter = m_umapJobVertexBatchs.find(job.pVertexBuffer);
 				if (iter != m_umapJobVertexBatchs.end())
 				{
-					iter.value().instanceData.emplace_back(job.matWorld, job.color);
+					iter.value().instanceData.emplace_back(job.worldMatrix, job.color);
 				}
 				else
 				{

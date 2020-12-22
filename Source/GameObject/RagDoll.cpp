@@ -101,8 +101,8 @@ namespace est
 				graphics::IMaterial::Data materialData;
 				materialData.name = name;
 				materialData.colorAlbedo = math::Color::Red;
-				materialData.emRasterizerState = graphics::EmRasterizerState::eWireframeCullNone;
-				//materialData.emRasterizerState = graphics::EmRasterizerState::eSolidCCW;
+				materialData.rasterizerState = graphics::RasterizerState::eWireframeCullNone;
+				//materialData.emRasterizerState = graphics::RasterizerState::eSolidCCW;
 
 				graphics::ModelLoader modelLoader;
 				modelLoader.InitCapsule(name, &materialData, fRadius, fNewHeight);
@@ -183,7 +183,7 @@ namespace est
 				/*graphics::materialData materialData;
 				materialData.name = strJointName;
 				materialData.colorAlbedo = math::Color::Red;
-				materialData.emRasterizerState = graphics::EmRasterizerState::eWireframeCullNone;
+				materialData.emRasterizerState = graphics::RasterizerState::eWireframeCullNone;
 
 				graphics::ModelLoader modelLoader;
 				modelLoader.InitCapsule(strJointName, &materialData, fRadius, fHeight);
@@ -328,11 +328,11 @@ namespace est
 			{
 				pBodyPart->pRigidBody->Update(elapsedTime);
 			
-				math::Matrix matWorld = pBodyPart->pRigidBody->GetWorldMatrix();
+				math::Matrix worldMatrix = pBodyPart->pRigidBody->GetWorldMatrix();
 			
 				if (pBodyPart->pPhysicsModelInstance != nullptr)
 				{
-					pBodyPart->pPhysicsModelInstance->Update(elapsedTime, matWorld);
+					pBodyPart->pPhysicsModelInstance->Update(elapsedTime, worldMatrix);
 				}
 
 				//if (m_isRagDollState == true)
@@ -467,12 +467,12 @@ namespace est
 					pParent = pJoint->pBodyPartA;
 				}
 
-				const math::Matrix& matWorld = pBodyPart->pRigidBody->GetWorldMatrix();
+				const math::Matrix& worldMatrix = pBodyPart->pRigidBody->GetWorldMatrix();
 
 				math::float3 f3ScaleWorld;
 				math::float3 f3PosWorld;
 				math::Quaternion quatWorld;
-				matWorld.Decompose(f3ScaleWorld, quatWorld, f3PosWorld);
+				worldMatrix.Decompose(f3ScaleWorld, quatWorld, f3PosWorld);
 
 				math::float3 f3ScaleBodyOrigin;
 				math::float3 f3PosBodyOrigin;
@@ -692,8 +692,8 @@ namespace est
 					pBodyPart->pBone->GetGlobalMatrix().Decompose(f3ScaleBone, quatBone, f3Pos);
 				}
 
-				math::Matrix matWorld = math::Matrix::Compose(math::float3::One, quat, f3Pos);
-				pBodyPart->pRigidBody->SetWorldMatrix(matWorld);
+				math::Matrix worldMatrix = math::Matrix::Compose(math::float3::One, quat, f3Pos);
+				pBodyPart->pRigidBody->SetWorldMatrix(worldMatrix);
 			}
 		}
 	}

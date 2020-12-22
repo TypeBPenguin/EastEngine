@@ -214,19 +214,19 @@ namespace est
 
 			void RenderManager::Impl::Render()
 			{
-				Camera* pCamera = Camera::GetInstance();
+				Camera& camera = GetCamera();
 
-				m_pModelRenderer->Render(pCamera);
-				m_pDeferredRenderer->Render(pCamera);
+				m_pModelRenderer->Render(&camera);
+				m_pDeferredRenderer->Render(&camera);
 
 				//VkDevice device = Device::GetInstance()->GetInterface();
 				//const uint32_t frameIndex = Device::GetInstance()->GetFrameIndex();
-				//const VkViewport* pViewport = Device::GetInstance()->GetViewport();
+				//const math::Viewport& viewport = Device::GetInstance()->GetViewport();
 				//VkExtent2D extent = Device::GetInstance()->GetSwapChainExtent2D();
 				//
 				//VkCommandBuffer commandBuffer = Device::GetInstance()->GetCommandBuffer(frameIndex);
 				//
-				//Camera* pCamera = Camera::GetInstance();
+				//Camera& camera = GetCamera();
 				//
 				//VkRenderPassBeginInfo renderPassInfo{};
 				//renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -244,7 +244,7 @@ namespace est
 				//
 				//vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 				//
-				//vkCmdSetViewport(commandBuffer, 0, 1, pViewport);
+				//vkCmdSetViewport(commandBuffer, 0, 1, util::Convert(viewport));
 				//
 				//VkRect2D scissor{};
 				//scissor.extent = extent;
@@ -488,7 +488,7 @@ namespace est
 			//{
 			//	VkDevice device = Device::GetInstance()->GetInterface();
 			//	VkExtent2D extend = Device::GetInstance()->GetSwapChainExtent2D();
-			//	const VkViewport* pViewport = Device::GetInstance()->GetViewport();
+			//	const math::Viewport& viewport = Device::GetInstance()->GetViewport();
 
 			//	auto vertShaderCode = Device::GetInstance()->ReadFile("../Graphics/Interface/vert.spv");
 			//	auto fragShaderCode = Device::GetInstance()->ReadFile("../Graphics/Interface/frag.spv");

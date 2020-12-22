@@ -458,7 +458,7 @@ namespace est
 
 				const D3D12_STATIC_SAMPLER_DESC staticSamplerDesc[]
 				{
-					util::GetStaticSamplerDesc(EmSamplerState::eMinMagLinearMipPointClamp, 0, 100, D3D12_SHADER_VISIBILITY_PIXEL),
+					util::GetStaticSamplerDesc(SamplerState::eMinMagLinearMipPointClamp, 0, 100, D3D12_SHADER_VISIBILITY_PIXEL),
 				};
 
 				return util::CreateRootSignature(pDevice, static_cast<uint32_t>(vecRootParameters.size()), vecRootParameters.data(),
@@ -525,21 +525,21 @@ namespace est
 				psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 				psoDesc.SampleDesc = sampleDesc;
 				psoDesc.SampleMask = 0xffffffff;
-				psoDesc.RasterizerState = util::GetRasterizerDesc(EmRasterizerState::eSolidCullNone);
+				psoDesc.RasterizerState = util::GetRasterizerDesc(RasterizerState::eSolidCullNone);
 
 				switch (emPSType)
 				{
 				case shader::eExtract:
 				case shader::eExtractLuminance:
 				case shader::eDownsample:
-					psoDesc.BlendState = util::GetBlendDesc(EmBlendState::eOpacity);
+					psoDesc.BlendState = util::GetBlendDesc(BlendState::eOpacity);
 					break;
 				case shader::eUpsample:
 				case shader::eUpsampleLuminance:
-					psoDesc.BlendState = util::GetBlendDesc(EmBlendState::eAlphaBlend);
+					psoDesc.BlendState = util::GetBlendDesc(BlendState::eAlphaBlend);
 					break;
 				case shader::eApply:
-					psoDesc.BlendState = util::GetBlendDesc(EmBlendState::eAdditive);
+					psoDesc.BlendState = util::GetBlendDesc(BlendState::eAdditive);
 					break;
 				}
 
@@ -556,7 +556,7 @@ namespace est
 				}
 
 				psoDesc.DSVFormat = DXGI_FORMAT_UNKNOWN;
-				psoDesc.DepthStencilState = util::GetDepthStencilDesc(EmDepthStencilState::eRead_Write_Off);
+				psoDesc.DepthStencilState = util::GetDepthStencilDesc(DepthStencilState::eRead_Write_Off);
 
 				HRESULT hr = pDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&psoCache.pPipelineState));
 				if (FAILED(hr))

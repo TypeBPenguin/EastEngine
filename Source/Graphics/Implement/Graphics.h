@@ -7,7 +7,7 @@ namespace est
 {
 	namespace graphics
 	{
-		void Initialize(APIs emAPI, uint32_t width, uint32_t height, bool isFullScreen, bool isVSync, const string::StringID& applicationTitle, const string::StringID& applicationName);
+		void Initialize(APIs emAPI, uint32_t width, uint32_t height, bool isFullScreen, bool isVSync, const string::StringID& applicationTitle, const string::StringID& applicationName, std::function<HRESULT(HWND, uint32_t, WPARAM, LPARAM)> messageHandler);
 		void Release();
 		void Run(std::function<bool()> funcUpdate);
 		void Cleanup(float elapsedTime);
@@ -17,12 +17,12 @@ namespace est
 		APIs GetAPI();
 		HWND GetHwnd();
 		HINSTANCE GetHInstance();
-		void AddMessageHandler(const string::StringID& name, std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler);
-		void RemoveMessageHandler(const string::StringID& name);
 
 		const math::uint2& GetScreenSize();
+		const math::Viewport& GetViewport();
+		const std::vector<DisplayModeDesc>& GetSupportedDisplayModeDesc();
+		size_t GetSelectedDisplayModeIndex();
 
-		Camera* GetCamera();
 		IImageBasedLight* GetImageBasedLight();
 		IVTFManager* GetVTFManager();
 

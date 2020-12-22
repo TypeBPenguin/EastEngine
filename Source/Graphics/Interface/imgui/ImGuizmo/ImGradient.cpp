@@ -1,22 +1,23 @@
 #include "ImGradient.h"
-#include "imgui.h"
-#include "imgui_internal.h"
+#include "Graphics/Interface/imgui/imgui.h"
+#include "Graphics/Interface/imgui/imgui_internal.h"
 #include <stdint.h>
 #include <set>
 
 namespace ImGradient
 {
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
-   static inline ImVec2 operator*(const ImVec2& lhs, const float rhs) { return ImVec2(lhs.x*rhs, lhs.y*rhs); }
+   static inline ImVec2 operator*(const ImVec2& lhs, const float rhs) { return ImVec2(lhs.x * rhs, lhs.y * rhs); }
    static inline ImVec2 operator/(const ImVec2& lhs, const float rhs) { return ImVec2(lhs.x / rhs, lhs.y / rhs); }
    static inline ImVec2 operator+(const ImVec2& lhs, const ImVec2& rhs) { return ImVec2(lhs.x + rhs.x, lhs.y + rhs.y); }
    static inline ImVec2 operator-(const ImVec2& lhs, const ImVec2& rhs) { return ImVec2(lhs.x - rhs.x, lhs.y - rhs.y); }
-   static inline ImVec2 operator*(const ImVec2& lhs, const ImVec2& rhs) { return ImVec2(lhs.x*rhs.x, lhs.y*rhs.y); }
+   static inline ImVec2 operator*(const ImVec2& lhs, const ImVec2& rhs) { return ImVec2(lhs.x * rhs.x, lhs.y * rhs.y); }
    static inline ImVec2 operator/(const ImVec2& lhs, const ImVec2& rhs) { return ImVec2(lhs.x / rhs.x, lhs.y / rhs.y); }
 #endif
 
    static int DrawPoint(ImDrawList* draw_list, ImVec4 color, const ImVec2 size, bool editing, ImVec2 pos)
    {
+      int ret = 0;
       ImGuiIO& io = ImGui::GetIO();
 
       ImVec2 p1 = ImLerp(pos, ImVec2(pos + ImVec2(size.x - size.y, 0.f)), color.w) + ImVec2(3, 3);
@@ -39,7 +40,7 @@ namespace ImGradient
       return 0;
    }
 
-   bool Edit(Delegate &delegate, const ImVec2& size, int& selection)
+   bool Edit(Delegate& delegate, const ImVec2& size, int& selection)
    {
       bool ret = false;
       ImGuiIO& io = ImGui::GetIO();

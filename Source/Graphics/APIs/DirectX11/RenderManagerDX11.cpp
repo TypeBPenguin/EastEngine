@@ -116,8 +116,8 @@ namespace est
 
 				const GBuffer* pGBuffer = pDeviceInstance->GetGBuffer();
 
-				Camera* pCamera = Camera::GetInstance();
-				const math::Matrix matViewProjection = pCamera->GetViewMatrix() * pCamera->GetProjectionMatrix();
+				Camera& camera = GetCamera();
+				const math::Matrix matViewProjection = camera.GetViewMatrix() * camera.GetProjectionMatrix();
 
 				const Options& options = GetOptions();
 
@@ -126,7 +126,7 @@ namespace est
 				RenderElement renderElement;
 				renderElement.pDevice = pDevice;
 				renderElement.pDeviceContext = pImmediateContext;
-				renderElement.pCamera = pCamera;
+				renderElement.pCamera = &camera;
 
 				RenderTarget* pLastUsedRenderTarget{ nullptr };
 				{
@@ -216,7 +216,7 @@ namespace est
 						TRACER_EVENT(L"ASSAO");
 						const RenderTarget* pNormalMap = pGBuffer->GetRenderTarget(GBufferType::eNormals);
 						const DepthStencil* pDepth = pGBuffer->GetDepthStencil();
-						GetAssao()->Apply(pCamera, pNormalMap, pDepth, pLastUsedRenderTarget);
+						GetAssao()->Apply(&camera, pNormalMap, pDepth, pLastUsedRenderTarget);
 					}
 				}
 
@@ -251,7 +251,7 @@ namespace est
 
 						const RenderTarget* pSource = pLastUsedRenderTarget;
 						const DepthStencil* pDepth = pGBuffer->GetDepthStencil();
-						GetSSR()->Apply(pCamera, pSource, pGBuffer, pDepth, pSSR);
+						GetSSR()->Apply(&camera, pSource, pGBuffer, pDepth, pSSR);
 
 						pDeviceInstance->ReleaseRenderTargets(&pLastUsedRenderTarget);
 						pLastUsedRenderTarget = pSSR;
@@ -288,7 +288,7 @@ namespace est
 						TRACER_EVENT(L"OnColorGrading");
 						RenderTarget* pColorGrading = pDeviceInstance->GetRenderTarget(&swapchainDesc);
 						const RenderTarget* pSource = pLastUsedRenderTarget;
-						GetColorGrading()->Apply(pCamera, pSource, pColorGrading);
+						GetColorGrading()->Apply(&camera, pSource, pColorGrading);
 
 						pDeviceInstance->ReleaseRenderTargets(&pLastUsedRenderTarget);
 						pLastUsedRenderTarget = pColorGrading;
@@ -301,7 +301,7 @@ namespace est
 						const RenderTarget* pSource = pLastUsedRenderTarget;
 						const DepthStencil* pDepth = pGBuffer->GetDepthStencil();
 
-						GetDepthOfField()->Apply(pCamera, pSource, pDepth, pDepthOfField);
+						GetDepthOfField()->Apply(&camera, pSource, pDepth, pDepthOfField);
 
 						pDeviceInstance->ReleaseRenderTargets(&pLastUsedRenderTarget);
 						pLastUsedRenderTarget = pDepthOfField;
@@ -332,7 +332,7 @@ namespace est
 						case Options::MotionBlurConfig::eDepthBuffer_12Samples:
 						{
 							const DepthStencil* pDepth = pGBuffer->GetDepthStencil();
-							GetMotionBlur()->Apply(pCamera, m_matPrevViewProjection, pSource, pDepth, pMotionBlur);
+							GetMotionBlur()->Apply(&camera, m_matPrevViewProjection, pSource, pDepth, pMotionBlur);
 						}
 						break;
 						case Options::MotionBlurConfig::eVelocityBuffer_4Samples:
@@ -340,7 +340,7 @@ namespace est
 						case Options::MotionBlurConfig::eVelocityBuffer_12Samples:
 						{
 							const RenderTarget* pVelocity = pGBuffer->GetRenderTarget(GBufferType::eVelocity);
-							GetMotionBlur()->Apply(pCamera, pSource, pVelocity, pMotionBlur);
+							GetMotionBlur()->Apply(&camera, pSource, pVelocity, pMotionBlur);
 						}
 						break;
 						case Options::MotionBlurConfig::eDualVelocityBuffer_4Samples:
@@ -349,7 +349,7 @@ namespace est
 						{
 							const RenderTarget* pVelocity = pGBuffer->GetRenderTarget(GBufferType::eVelocity);
 							const RenderTarget* pPrevVelocity = pGBuffer->GetPrevVelocityBuffer();
-							GetMotionBlur()->Apply(pCamera, pSource, pVelocity, pPrevVelocity, pMotionBlur);
+							GetMotionBlur()->Apply(&camera, pSource, pVelocity, pPrevVelocity, pMotionBlur);
 						}
 						break;
 						default:

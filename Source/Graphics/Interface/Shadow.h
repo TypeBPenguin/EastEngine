@@ -28,8 +28,8 @@ namespace est
 
 			math::float2 GetTexelOffset() const { return { 1.f / static_cast<float>(m_config.resolution), 1.f / static_cast<float>(m_config.resolution) }; }
 
-			const math::Matrix& GetViewMatrix() const { return m_matView; }
-			const math::Matrix& GetProjectionMatrix() const { return m_matProjection; }
+			const math::Matrix& GetViewMatrix() const { return m_viewMatrix; }
+			const math::Matrix& GetProjectionMatrix() const { return m_projectionMatrix; }
 			const math::Viewport& GetViewport() const { return m_viewport; }
 			const collision::Frustum& GetFrustum() const { return m_frustum; }
 
@@ -40,8 +40,8 @@ namespace est
 			ShadowConfig m_config;
 
 			float m_calcDepthBias{ 0.001f };
-			math::Matrix m_matView;
-			math::Matrix m_matProjection;
+			math::Matrix m_viewMatrix;
+			math::Matrix m_projectionMatrix;
 			math::Viewport m_viewport;
 			collision::Frustum m_frustum;
 		};

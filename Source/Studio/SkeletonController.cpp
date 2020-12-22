@@ -174,7 +174,7 @@ bool SkeletonController::Process(float elapsedTime)
 						if (Config::IsEnable("VisibleSkeleton"_s))
 						{
 							graphics::RenderSubsetVertex aabb;
-							aabb.matWorld = math::Matrix::CreateScale(0.02f) * pBone->GetGlobalMatrix();
+							aabb.worldMatrix = math::Matrix::CreateScale(0.02f) * pBone->GetGlobalMatrix();
 							aabb.isWireframe = true;
 							aabb.isIgnoreDepth = true;
 							graphics::geometry::GetDebugModel(graphics::geometry::EmDebugModel::eBox, &aabb.pVertexBuffer, &aabb.pIndexBuffer);
@@ -242,7 +242,7 @@ bool SkeletonController::Process(float elapsedTime)
 	if (m_pSelectedBone != nullptr)
 	{
 		graphics::RenderSubsetVertex aabb;
-		aabb.matWorld = math::Matrix::CreateScale(0.02f) * m_pSelectedBone->GetGlobalMatrix();
+		aabb.worldMatrix = math::Matrix::CreateScale(0.02f) * m_pSelectedBone->GetGlobalMatrix();
 		aabb.isWireframe = true;
 		aabb.isIgnoreDepth = true;
 		aabb.color = math::Color::LightGreen;
@@ -283,17 +283,17 @@ bool SkeletonController::Process(float elapsedTime)
 					math::float3 f3EndPos(0.f, 0.08f, 0.f);
 					f3EndPos = math::float3::TransformNormal(f3EndPos, controller.matTransform * m_pSelectedBone->GetGlobalMatrix());
 
-					math::Matrix matWorld = controller.matTransform * m_pSelectedBone->GetGlobalMatrix() * math::Matrix::CreateTranslation(f3EndPos);
+					math::Matrix worldMatrix = controller.matTransform * m_pSelectedBone->GetGlobalMatrix() * math::Matrix::CreateTranslation(f3EndPos);
 					if (controller.pRigidBody != nullptr)
 					{
-						controller.pRigidBody->SetWorldMatrix(matWorld);
+						controller.pRigidBody->SetWorldMatrix(worldMatrix);
 						if (controller.pRigidBody->RayTest(rayScreen.position, rayScreen.direction * 100.f))
 						{
 							renderSubsetController.color = SelectedControllerColor[j];
 						}
 					}
 
-					renderSubsetController.matWorld = matWorld;
+					renderSubsetController.worldMatrix = worldMatrix;
 					graphics::RendererManager::GetInstance()->AddRender(renderSubsetController);
 
 					f3EndPos += f3StartPos;
@@ -308,17 +308,17 @@ bool SkeletonController::Process(float elapsedTime)
 				break;
 				case Type::eRotation:
 				{
-					math::Matrix matWorld = controller.matTransform * math::Matrix::CreateTranslation(m_pSelectedBone->GetGlobalMatrix().Translation());
+					math::Matrix worldMatrix = controller.matTransform * math::Matrix::CreateTranslation(m_pSelectedBone->GetGlobalMatrix().Translation());
 					if (controller.pRigidBody != nullptr)
 					{
-						controller.pRigidBody->SetWorldMatrix(matWorld);
+						controller.pRigidBody->SetWorldMatrix(worldMatrix);
 						if (controller.pRigidBody->RayTest(rayScreen.position, rayScreen.direction * 100.f))
 						{
 							renderSubsetController.color = SelectedControllerColor[j];
 						}
 					}
 
-					renderSubsetController.matWorld = matWorld;
+					renderSubsetController.worldMatrix = worldMatrix;
 					graphics::RendererManager::GetInstance()->AddRender(renderSubsetController);
 				}
 				break;

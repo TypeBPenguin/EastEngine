@@ -38,7 +38,7 @@ namespace est
 			{
 				graphics::IMaterial::Data materialData;
 				materialData.name = sid::Sector;
-				//materialData.rasterizerStateKey = graphics::Device::GetInstance()->GetRasterizerStateKey(graphics::EmRasterizerState::eWireFrame);
+				//materialData.rasterizerStateKey = graphics::Device::GetInstance()->GetRasterizerStateKey(graphics::RasterizerState::eWireFrame);
 
 				graphics::ModelLoader loader;
 				loader.InitHexagon(sid::Sector, &materialData, fRadius);

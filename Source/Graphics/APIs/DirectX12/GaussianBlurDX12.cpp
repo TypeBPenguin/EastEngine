@@ -216,7 +216,7 @@ namespace est
 
 				const D3D12_STATIC_SAMPLER_DESC staticSamplerDesc[]
 				{
-					util::GetStaticSamplerDesc(EmSamplerState::eAnisotropicWrap, 0, 100, D3D12_SHADER_VISIBILITY_PIXEL),
+					util::GetStaticSamplerDesc(SamplerState::eAnisotropicWrap, 0, 100, D3D12_SHADER_VISIBILITY_PIXEL),
 				};
 
 				return util::CreateRootSignature(pDevice, static_cast<uint32_t>(vecRootParameters.size()), vecRootParameters.data(),
@@ -283,8 +283,8 @@ namespace est
 				psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 				psoDesc.SampleDesc = sampleDesc;
 				psoDesc.SampleMask = 0xffffffff;
-				psoDesc.RasterizerState = util::GetRasterizerDesc(EmRasterizerState::eSolidCullNone);
-				psoDesc.BlendState = util::GetBlendDesc(EmBlendState::eOff);
+				psoDesc.RasterizerState = util::GetRasterizerDesc(RasterizerState::eSolidCullNone);
+				psoDesc.BlendState = util::GetBlendDesc(BlendState::eOff);
 				psoDesc.NumRenderTargets = 1;
 
 				if (GetOptions().OnHDR == true)
@@ -298,7 +298,7 @@ namespace est
 				}
 
 				psoDesc.DSVFormat = DXGI_FORMAT_UNKNOWN;
-				psoDesc.DepthStencilState = util::GetDepthStencilDesc(EmDepthStencilState::eRead_Write_Off);
+				psoDesc.DepthStencilState = util::GetDepthStencilDesc(DepthStencilState::eRead_Write_Off);
 
 				HRESULT hr = pDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&psoCache.pPipelineState));
 				if (FAILED(hr))

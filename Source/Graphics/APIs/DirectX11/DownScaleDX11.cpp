@@ -270,19 +270,19 @@ namespace est
 
 				pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-				ID3D11RasterizerState* pRasterizerState = pDeviceInstance->GetRasterizerState(EmRasterizerState::eSolidCCW);
+				ID3D11RasterizerState* pRasterizerState = pDeviceInstance->GetRasterizerState(RasterizerState::eSolidCCW);
 				pDeviceContext->RSSetState(pRasterizerState);
 
-				ID3D11BlendState* pBlendState = pDeviceInstance->GetBlendState(EmBlendState::eOff);
+				ID3D11BlendState* pBlendState = pDeviceInstance->GetBlendState(BlendState::eOff);
 				pDeviceContext->OMSetBlendState(pBlendState, &math::float4::Zero.x, 0xffffffff);
 
-				ID3D11DepthStencilState* pDepthStencilState = pDeviceInstance->GetDepthStencilState(EmDepthStencilState::eRead_Write_Off);
+				ID3D11DepthStencilState* pDepthStencilState = pDeviceInstance->GetDepthStencilState(DepthStencilState::eRead_Write_Off);
 				pDeviceContext->OMSetDepthStencilState(pDepthStencilState, 0);
 
-				ID3D11SamplerState* pSamplerPoint = pDeviceInstance->GetSamplerState(EmSamplerState::eMinMagMipPointWrap);
+				ID3D11SamplerState* pSamplerPoint = pDeviceInstance->GetSamplerState(SamplerState::eMinMagMipPointWrap);
 				pDeviceContext->PSSetSamplers(shader::eSampler_Point, 1, &pSamplerPoint);
 
-				ID3D11SamplerState* pSamplerLinear = pDeviceInstance->GetSamplerState(EmSamplerState::eMinMagMipLinearWrap);
+				ID3D11SamplerState* pSamplerLinear = pDeviceInstance->GetSamplerState(SamplerState::eMinMagMipLinearWrap);
 				pDeviceContext->PSSetSamplers(shader::eSampler_Linear, 1, &pSamplerLinear);
 				
 				pDeviceContext->VSSetShader(m_pVertexShader, nullptr, 0);

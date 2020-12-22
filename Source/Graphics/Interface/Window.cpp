@@ -1,35 +1,43 @@
 #include "stdafx.h"
 #include "Window.h"
 
+#include "WindowCursor.h"
+
 namespace est
 {
 	namespace graphics
 	{
-		struct WndMsg
-		{
-			HWND hWnd{ nullptr };
-			uint32_t msg{ 0 };
-			WPARAM wParam{ 0 };
-			LPARAM lParam{ 0 };
-		};
-		Concurrency::concurrent_queue<WndMsg> s_queueMsg;
+		std::function<HRESULT(HWND, uint32_t, WPARAM, LPARAM)> s_messageHandler;
 
 		LRESULT CALLBACK WndProc(HWND hWnd, uint32_t msg, WPARAM wParam, LPARAM lParam)
 		{
+			if (s_messageHandler != nullptr)
+			{
+				if (s_messageHandler(hWnd, msg, wParam, lParam))
+					return 0;
+			}
+
 			switch (msg)
 			{
 			case WM_SYSCOMMAND:
+			{
 				// Disable ALT application menu
 				if ((wParam & 0xfff0) == SC_KEYMENU)
 					return 0;
-
-				break;
+			}
+			break;
 			case WM_DESTROY:
 				PostQuitMessage(0);
 				return 0;
+			case WM_IME_SETCONTEXT:
+			{
+				// lParam = 0 으로 설정하고 DefWindowProc에 돌려준다.
+				// 이유는 lParam이 0이면 조합창, 후보창, 상태창등을 표시 하지 않도록 하기 위함이다.
+				lParam = 0;
+				return DefWindowProc(hWnd, msg, wParam, lParam); // 반드시 돌려줘야한다.
 			}
-
-			s_queueMsg.push({ hWnd, msg, wParam, lParam });
+			break;
+			}
 
 			return DefWindowProc(hWnd, msg, wParam, lParam);
 		}
@@ -40,18 +48,7 @@ namespace est
 
 		Window::~Window()
 		{
-		}
-
-		void Window::AddMessageHandler(const string::StringID& strName, std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler)
-		{
-			RemoveMessageHandler(strName);
-
-			m_umapHandlers.emplace(strName, funcHandler);
-		}
-
-		void Window::RemoveMessageHandler(const string::StringID& strName)
-		{
-			m_umapHandlers.erase(strName);
+			s_messageHandler = nullptr;
 		}
 
 		void Window::Run(std::function<bool()> funcUpdate)
@@ -60,85 +57,61 @@ namespace est
 
 			while (true)
 			{
-				if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+				TRACER_EVENT(L"MainLoop");
 				{
-					if (msg.message == WM_QUIT)
-						break;
-
-					TranslateMessage(&msg);
-					DispatchMessage(&msg);
-				}
-				else
-				{
-					if (m_isRunning == false)
-						break;
-
-					TRACER_EVENT(L"MainLoop");
+					TRACER_EVENT(L"WinMessage");
+					while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 					{
-						TRACER_EVENT(L"ProcessWindowMessage");
-						while (s_queueMsg.empty() == false)
-						{
-							WndMsg wndMsg{};
-							if (s_queueMsg.try_pop(wndMsg) == true)
-							{
-								for (auto& iter : m_umapHandlers)
-								{
-									iter.second(wndMsg.hWnd, wndMsg.msg, wndMsg.wParam, wndMsg.lParam);
-								}
-							}
-						}
-					}
+						if (msg.message == WM_QUIT)
+							return;
 
-					{
-						TRACER_EVENT(L"GraphicsUpdate");
-						Update();
-					}
-
-					{
-						TRACER_EVENT(L"SystemUpdate");
-						m_isRunning = funcUpdate();
-					}
-
-					{
-						TRACER_EVENT(L"GraphicsRender");
-						Render();
-					}
-
-					{
-						TRACER_EVENT(L"GraphicsPresent");
-						Present();
+						TranslateMessage(&msg);
+						DispatchMessage(&msg);
 					}
 				}
+
+				TRACER_EVENT(L"MainUpdate");
+				const bool isRunning = funcUpdate();
+				if (isRunning == false)
+					return;
 			}
 		}
 
-		void Window::InitializeWindow(uint32_t nWidth, uint32_t nHeight, bool isFullScreen, const string::StringID& applicationTitle, const string::StringID& applicationName)
+		void Window::Initialize(uint32_t width, uint32_t height, bool isFullScreen, const string::StringID& applicationTitle, const string::StringID& applicationName, std::function<HRESULT(HWND, uint32_t, WPARAM, LPARAM)> messageHandler)
 		{
+			if (m_hWnd != nullptr)
+				return;
+
+			s_messageHandler = messageHandler;
+
 			m_hInstance = GetModuleHandle(NULL);
-			m_n2ScreenSize = { nWidth, nHeight };
+			m_screenSize = { width, height };
 			m_isFullScreen = isFullScreen;
 			m_applicationTitle = applicationTitle;
 			m_applicationName = applicationName;
 
-			math::Rect rtWindowSize{};
-			if (m_isFullScreen == true)
-			{
-				HMONITOR hMonitor = MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTONEAREST);
-				MONITORINFO monitorInfo{};
-				GetMonitorInfo(hMonitor, &monitorInfo);
+			DWORD style = 0;
 
-				rtWindowSize.right = m_n2ScreenSize.x = monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left;
-				rtWindowSize.bottom = m_n2ScreenSize.y = monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top;
+			math::Rect rtWindowSize{};
+			if (isFullScreen)
+			{
+				const int screenWidth = GetSystemMetrics(SM_CXSCREEN);
+				const int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+
+				rtWindowSize.right = m_screenSize.x = screenWidth;
+				rtWindowSize.bottom = m_screenSize.y = screenHeight;
+				style = WS_POPUP | WS_CLIPCHILDREN;
 			}
 			else
 			{
-				int nPosX = static_cast<int>((GetSystemMetrics(SM_CXSCREEN) - m_n2ScreenSize.x) * 0.5f);
-				int nPosY = static_cast<int>((GetSystemMetrics(SM_CYSCREEN) - m_n2ScreenSize.y) * 0.5f);
+				const int posX = static_cast<int>((GetSystemMetrics(SM_CXSCREEN) - m_screenSize.x) * 0.5f);
+				const int posY = static_cast<int>((GetSystemMetrics(SM_CYSCREEN) - m_screenSize.y) * 0.5f);
 
-				rtWindowSize.right = m_n2ScreenSize.x;
-				rtWindowSize.bottom = m_n2ScreenSize.y;
+				rtWindowSize.right = m_screenSize.x;
+				rtWindowSize.bottom = m_screenSize.y;
 				::AdjustWindowRect(&rtWindowSize, WS_OVERLAPPEDWINDOW | WS_VISIBLE, false);
-				OffsetRect(&rtWindowSize, nPosX, nPosY);
+				OffsetRect(&rtWindowSize, posX, posY);
+				style = WS_SYSMENU | WS_CAPTION | WS_MINIMIZEBOX | WS_CLIPCHILDREN;
 			}
 
 			WNDCLASSEX wc{};
@@ -157,13 +130,13 @@ namespace est
 
 			if (RegisterClassEx(&wc) == false)
 			{
-				throw_line("failed to register class");
+				throw_line("failed register window class");
 			}
 
 			m_hWnd = CreateWindowEx(WS_EX_APPWINDOW,
 				m_applicationName.c_str(),
 				m_applicationTitle.c_str(),
-				WS_OVERLAPPEDWINDOW | WS_VISIBLE,
+				style,
 				rtWindowSize.left, rtWindowSize.top,
 				rtWindowSize.GetWidth(), rtWindowSize.GetHeight(),
 				nullptr, nullptr,
@@ -171,16 +144,43 @@ namespace est
 
 			if (m_hWnd == nullptr)
 			{
-				throw_line("failed to create window");
-			}
-
-			if (m_isFullScreen == true)
-			{
-				SetWindowLong(m_hWnd, GWL_STYLE, 0);
+				throw_line("failed create window");
 			}
 
 			ShowWindow(m_hWnd, SW_SHOW);
 			UpdateWindow(m_hWnd);
+
+			s_messageHandler = messageHandler;
+
+			m_pWindowCursor = std::make_unique<WindowCursor>();
+		}
+
+		bool Window::Resize(uint32_t width, uint32_t height, bool isFullScreen)
+		{
+			math::Rect rect = { 0, 0, static_cast<long>(width), static_cast<long>(height) };
+			LONG_PTR style = GetWindowLongPtr(m_hWnd, GWL_STYLE);
+
+			if (isFullScreen == true)
+			{
+				style &= ~(WS_SYSMENU | WS_CAPTION | WS_MINIMIZEBOX | WS_CLIPCHILDREN);
+				style |= WS_POPUP | WS_CLIPCHILDREN;
+			}
+			else
+			{
+				style &= ~(WS_POPUP | WS_CLIPCHILDREN);
+				style |= WS_SYSMENU | WS_CAPTION | WS_MINIMIZEBOX | WS_CLIPCHILDREN;
+
+				if (FAILED(AdjustWindowRectEx(&rect, WS_OVERLAPPEDWINDOW, false, WS_EX_OVERLAPPEDWINDOW)))
+					return false;
+			}
+
+			SetWindowLongPtr(m_hWnd, GWL_STYLE, style);
+
+			SetWindowPos(m_hWnd, HWND_TOP, 0, 0, rect.GetWidth(), rect.GetHeight(), m_isFullScreen == true ? NULL : SWP_NOMOVE);
+			ShowWindow(m_hWnd, SW_SHOW);
+			m_screenSize = { width, height };
+			m_isFullScreen = isFullScreen;
+			return true;
 		}
 	}
 }

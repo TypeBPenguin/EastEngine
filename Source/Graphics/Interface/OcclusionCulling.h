@@ -43,8 +43,8 @@ namespace est
 			const collision::Frustum& GetCameraFrustum() const;
 
 		public:
-			void RenderTriangles(const math::Matrix& matWorld, const VertexPos* pVertices, const uint32_t* pIndices, size_t indexCount);
-			Result TestTriangles(const math::Matrix& matWorld, const VertexPos* pVertices, const uint32_t* pIndices, size_t indexCount);
+			void RenderTriangles(const math::Matrix& worldMatrix, const VertexPos* pVertices, const uint32_t* pIndices, size_t indexCount);
+			Result TestTriangles(const math::Matrix& worldMatrix, const VertexPos* pVertices, const uint32_t* pIndices, size_t indexCount);
 		
 		public:
 			Result TestRect(float xmin, float ymin, float xmax, float ymax, float wmin) const;

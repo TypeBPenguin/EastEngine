@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "CascadedShadows.h"
 
+#include "GraphicsInterface.h"
+
 #include "Camera.h"
 #include "Light.h"
 
@@ -21,21 +23,19 @@ namespace est
 			if (pDirectionLight == nullptr)
 				return;
 
-			Camera* pCamera = Camera::GetInstance();
-			if (pCamera == nullptr)
-				return;
+			Camera& camera = GetCamera();
 			
-			const float farClip = pCamera->GetFarClip();
+			const float farClip = camera.GetProjection().farClip;
 
-			const math::Matrix matInvCameraView = pCamera->GetViewMatrix().Invert();
+			const math::Matrix matInvCameraView = camera.GetViewMatrix().Invert();
 
 			collision::Frustum frustum;
-			collision::Frustum::CreateFromMatrix(frustum, pCamera->GetProjectionMatrix());
+			collision::Frustum::CreateFromMatrix(frustum, camera.GetProjectionMatrix());
 
 			math::float3 corners[collision::CornerCount];
 			frustum.GetCorners(corners);
 
-			const float zOffset = (pCamera->GetLookat() - pCamera->GetPosition()).Length();
+			const float zOffset = (camera.GetLookat() - camera.GetPosition()).Length();
 
 			constexpr float increaseRate = 2.f;
 			float totalRate = 0.f;
@@ -113,8 +113,8 @@ namespace est
 				m_data.cascadeViewProjectionMatrix[i] = m_data.cascadeViewProjectionMatrix[i].Transpose();
 
 				math::Matrix projectionMatrix = m_matProjections[i];
-				projectionMatrix._33 /= pCamera->GetFarClip();
-				projectionMatrix._43 /= pCamera->GetFarClip();
+				projectionMatrix._33 /= camera.GetProjection().farClip;
+				projectionMatrix._43 /= camera.GetProjection().farClip;
 
 				m_data.cascadeViewLinearProjectionMatrix[i] = m_matViews[i] * projectionMatrix;
 				m_data.cascadeViewLinearProjectionMatrix[i] = m_data.cascadeViewLinearProjectionMatrix[i].Transpose();

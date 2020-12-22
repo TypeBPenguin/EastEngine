@@ -211,8 +211,8 @@ namespace est
 				ID3D11DeviceContext* pDeviceContext = renderElement.pDeviceContext;
 				pDeviceContext->ClearState();
 
-				const D3D11_VIEWPORT* pViewport = pDeviceInstance->GetViewport();
-				pDeviceContext->RSSetViewports(1, pViewport);
+				const math::Viewport& viewport = pDeviceInstance->GetViewport();
+				pDeviceContext->RSSetViewports(1, util::Convert(viewport));
 
 				pDeviceContext->OMSetRenderTargets(renderElement.rtvCount, renderElement.pRTVs, renderElement.pDSV);
 
@@ -221,13 +221,13 @@ namespace est
 
 				pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-				ID3D11RasterizerState* pRasterizerState = pDeviceInstance->GetRasterizerState(EmRasterizerState::eSolidCCW);
+				ID3D11RasterizerState* pRasterizerState = pDeviceInstance->GetRasterizerState(RasterizerState::eSolidCCW);
 				pDeviceContext->RSSetState(pRasterizerState);
 
-				ID3D11BlendState* pBlendState = pDeviceInstance->GetBlendState(EmBlendState::eOff);
+				ID3D11BlendState* pBlendState = pDeviceInstance->GetBlendState(BlendState::eOff);
 				pDeviceContext->OMSetBlendState(pBlendState, &math::float4::Zero.x, 0xffffffff);
 
-				ID3D11DepthStencilState* pDepthStencilState = pDeviceInstance->GetDepthStencilState(EmDepthStencilState::eRead_Write_Off);
+				ID3D11DepthStencilState* pDepthStencilState = pDeviceInstance->GetDepthStencilState(DepthStencilState::eRead_Write_Off);
 				pDeviceContext->OMSetDepthStencilState(pDepthStencilState, 0);
 
 				const GBuffer* pGBuffer = pDeviceInstance->GetGBuffer();
@@ -273,10 +273,10 @@ namespace est
 
 				pDeviceContext->PSSetSamplers(shader::eSampler_ShadowPCF, 1, &m_pSamplerShadowPCF);
 
-				ID3D11SamplerState* pSamplerPointClamp = pDeviceInstance->GetSamplerState(EmSamplerState::eMinMagMipPointClamp);
+				ID3D11SamplerState* pSamplerPointClamp = pDeviceInstance->GetSamplerState(SamplerState::eMinMagMipPointClamp);
 				pDeviceContext->PSSetSamplers(shader::eSampler_PointClamp, 1, &pSamplerPointClamp);
 
-				ID3D11SamplerState* pSamplerClamp = pDeviceInstance->GetSamplerState(EmSamplerState::eMinMagMipLinearClamp);
+				ID3D11SamplerState* pSamplerClamp = pDeviceInstance->GetSamplerState(SamplerState::eMinMagMipLinearClamp);
 				pDeviceContext->PSSetSamplers(shader::eSampler_Clamp, 1, &pSamplerClamp);
 
 				shader::SetDeferredCcontents(pDeviceContext, &m_deferredCcontents, pCamera);

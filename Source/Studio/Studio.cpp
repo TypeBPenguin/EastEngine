@@ -1,7 +1,6 @@
 #include "stdafx.h"
 
-#include "SceneNewStudio.h"
-#include "SceneCellularAutomata.h"
+#include "SceneStudio.h"
 
 namespace sid
 {
@@ -35,10 +34,9 @@ int main()
 			est::graphics::SetDefaultImageBaseLight();
 			{
 				std::vector<std::unique_ptr<est::IScene>> pScenes;
-				pScenes.emplace_back(std::make_unique<SceneNewStudio>());
-				pScenes.emplace_back(std::make_unique<SceneCellularAutomata>());
+				pScenes.emplace_back(std::make_unique<SceneStudio>());
 
-				est::MainSystem::GetInstance()->Run(std::move(pScenes), SceneNewStudio::Name);
+				est::MainSystem::GetInstance()->Run(std::move(pScenes), SceneStudio::Name);
 			}
 		}
 	}

@@ -3999,8 +3999,6 @@ namespace est
 			height(float(rct.bottom - rct.top)),
 			minDepth(0.f), maxDepth(1.f) {}
 
-		const D3D11_VIEWPORT* Viewport::Get11() const { return reinterpret_cast<const D3D11_VIEWPORT*>(this); }
-
 		//------------------------------------------------------------------------------
 		// Viewport operations
 		//------------------------------------------------------------------------------

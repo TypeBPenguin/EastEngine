@@ -145,8 +145,8 @@ namespace est
 				ID3D11DeviceContext* pDeviceContext = element.pDeviceContext;
 				pDeviceContext->ClearState();
 
-				const D3D11_VIEWPORT* pViewport = pDeviceInstance->GetViewport();
-				pDeviceContext->RSSetViewports(1, pViewport);
+				const math::Viewport& viewport = pDeviceInstance->GetViewport();
+				pDeviceContext->RSSetViewports(1, util::Convert(viewport));
 
 				pDeviceContext->OMSetRenderTargets(element.rtvCount, element.pRTVs, element.pDSV);
 
@@ -156,13 +156,13 @@ namespace est
 				pDeviceContext->IASetInputLayout(m_pInputLayout);
 				pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-				ID3D11RasterizerState* pRasterizerState = pDeviceInstance->GetRasterizerState(EmRasterizerState::eSolidCullNone);
+				ID3D11RasterizerState* pRasterizerState = pDeviceInstance->GetRasterizerState(RasterizerState::eSolidCullNone);
 				pDeviceContext->RSSetState(pRasterizerState);
 
-				ID3D11BlendState* pBlendState = pDeviceInstance->GetBlendState(EmBlendState::eOff);
+				ID3D11BlendState* pBlendState = pDeviceInstance->GetBlendState(BlendState::eOff);
 				pDeviceContext->OMSetBlendState(pBlendState, &math::float4::Zero.x, 0xffffffff);
 
-				ID3D11DepthStencilState* pDepthStencilState = pDeviceInstance->GetDepthStencilState(EmDepthStencilState::eRead_Write_Off);
+				ID3D11DepthStencilState* pDepthStencilState = pDeviceInstance->GetDepthStencilState(DepthStencilState::eRead_Write_Off);
 				pDeviceContext->OMSetDepthStencilState(pDepthStencilState, 0);
 
 				ID3D11ShaderResourceView* pSRV = pEnvironmentHDR->GetShaderResourceView();
@@ -172,7 +172,7 @@ namespace est
 				pDeviceContext->VSSetConstantBuffers(shader::eCB_EnvironmentContents, 1, &m_environmentContents.pBuffer);
 				pDeviceContext->PSSetConstantBuffers(shader::eCB_EnvironmentContents, 1, &m_environmentContents.pBuffer);
 
-				ID3D11SamplerState* pSamplers[] = { pDeviceInstance->GetSamplerState(EmSamplerState::eAnisotropicWrap) };
+				ID3D11SamplerState* pSamplers[] = { pDeviceInstance->GetSamplerState(SamplerState::eAnisotropicWrap) };
 				pDeviceContext->PSSetSamplers(shader::eSampler_Anisotropic, _countof(pSamplers), pSamplers);
 
 				ID3D11Buffer* pBuffers[] = { pVertexBuffer->GetBuffer(), };

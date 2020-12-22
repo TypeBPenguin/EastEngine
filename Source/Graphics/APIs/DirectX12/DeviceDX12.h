@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CommonLib/Singleton.h"
+#include "Graphics/Interface/GraphicsInterface.h"
 
 struct D3D12_VIEWPORT;
 
@@ -41,31 +42,34 @@ namespace est
 				virtual ~Device();
 
 			public:
-				void Initialize(uint32_t width, uint32_t height, bool isFullScreen, const string::StringID& applicationTitle, const string::StringID& applicationName);
-
+				void Initialize(uint32_t width, uint32_t height, bool isFullScreen, const string::StringID& applicationTitle, const string::StringID& applicationName, std::function<HRESULT(HWND, uint32_t, WPARAM, LPARAM)> messageHandler);
 				void Run(std::function<bool()> funcUpdate);
-
 				void Cleanup(float elapsedTime);
+
+			public:
+				bool Resize(uint32_t width, uint32_t height, bool isFullScreen, bool isEnableVSync, std::function<void(bool)> callback);
+				void ScreenShot(ScreenShotFormat format, const std::wstring& path, std::function<void(bool, const std::wstring&)> screenShotCallback);
 
 			public:
 				RenderTarget* GetRenderTarget(const D3D12_RESOURCE_DESC* pDesc, const math::Color& clearColor);
 				void ReleaseRenderTargets(RenderTarget** ppRenderTarget, uint32_t nSize = 1);
 
 				void ReleaseResource(ID3D12DeviceChild* pResource);
-				void ReleaseResourceRTV(uint32_t nDescriptorIndex);
-				void ReleaseResourceSRV(uint32_t nDescriptorIndex);
-				void ReleaseResourceDSV(uint32_t nDescriptorIndex);
-				void ReleaseResourceUAV(uint32_t nDescriptorIndex);
+				void ReleaseResourceRTV(uint32_t descriptorIndex);
+				void ReleaseResourceSRV(uint32_t descriptorIndex);
+				void ReleaseResourceDSV(uint32_t descriptorIndex);
+				void ReleaseResourceUAV(uint32_t descriptorIndex);
 
 			public:
 				HWND GetHwnd() const;
 				HINSTANCE GetHInstance() const;
-				void AddMessageHandler(const string::StringID& strName, std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler);
-				void RemoveMessageHandler(const string::StringID& strName);
 
 				const math::uint2& GetScreenSize() const;
-				const D3D12_VIEWPORT* GetViewport() const;
-				const math::Rect* GetScissorRect() const;
+				const math::Viewport& GetViewport() const;
+				const math::Rect& GetScissorRect() const;
+
+				const std::vector<DisplayModeDesc>& GetSupportedDisplayModeDesc() const;
+				size_t GetSelectedDisplayModeIndex() const;
 
 				ID3D12Device* GetInterface() const;
 				ID3D12CommandQueue* GetCommandQueue() const;

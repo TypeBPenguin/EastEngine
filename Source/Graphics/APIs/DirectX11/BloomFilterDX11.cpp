@@ -202,20 +202,20 @@ namespace est
 
 				pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-				ID3D11RasterizerState* pRasterizerState = pDeviceInstance->GetRasterizerState(EmRasterizerState::eSolidCCW);
+				ID3D11RasterizerState* pRasterizerState = pDeviceInstance->GetRasterizerState(RasterizerState::eSolidCCW);
 				pDeviceContext->RSSetState(pRasterizerState);
 
-				ID3D11DepthStencilState* pDepthStencilState = pDeviceInstance->GetDepthStencilState(EmDepthStencilState::eRead_Write_Off);
+				ID3D11DepthStencilState* pDepthStencilState = pDeviceInstance->GetDepthStencilState(DepthStencilState::eRead_Write_Off);
 				pDeviceContext->OMSetDepthStencilState(pDepthStencilState, 0);
 
-				ID3D11SamplerState* pSamplerLinearPoint = pDeviceInstance->GetSamplerState(EmSamplerState::eMinMagLinearMipPointClamp);
+				ID3D11SamplerState* pSamplerLinearPoint = pDeviceInstance->GetSamplerState(SamplerState::eMinMagLinearMipPointClamp);
 				pDeviceContext->PSSetSamplers(shader::eSampler_LinearPoint, 1, &pSamplerLinearPoint);
 
 				pDeviceContext->PSSetConstantBuffers(shader::eCB_BloomFilterContents, 1, &m_bloomFilterContents.pBuffer);
 
 				pDeviceContext->VSSetShader(m_pVertexShader, nullptr, 0);
 
-				ID3D11BlendState* pBlendState = pDeviceInstance->GetBlendState(EmBlendState::eOpacity);
+				ID3D11BlendState* pBlendState = pDeviceInstance->GetBlendState(BlendState::eOpacity);
 				pDeviceContext->OMSetBlendState(pBlendState, &math::float4::Zero.x, 0xffffffff);
 
 				const math::float2 f2InverseResolution(1.f / n2TargetSize.x, 1.f / n2TargetSize.y);
@@ -229,7 +229,7 @@ namespace est
 				RenderTarget* pMip4 = Sampling(pDeviceInstance, pDeviceContext, bloomFilterConfig, shader::eDownsample, false, n2TargetSize.x, n2TargetSize.y, 3, f2InverseResolution, pMip3, nullptr);
 				RenderTarget* pMip5 = Sampling(pDeviceInstance, pDeviceContext, bloomFilterConfig, shader::eDownsample, false, n2TargetSize.x, n2TargetSize.y, 4, f2InverseResolution, pMip4, nullptr);
 
-				pBlendState = pDeviceInstance->GetBlendState(EmBlendState::eAlphaBlend);
+				pBlendState = pDeviceInstance->GetBlendState(BlendState::eAlphaBlend);
 				pDeviceContext->OMSetBlendState(pBlendState, &math::float4::Zero.x, 0xffffffff);
 
 				emPSType = bloomFilterConfig.isEnableLuminance == true ? shader::eUpsampleLuminance : shader::eUpsample;
@@ -239,7 +239,7 @@ namespace est
 				pMip1 = Sampling(pDeviceInstance, pDeviceContext, bloomFilterConfig, emPSType, false, n2TargetSize.x, n2TargetSize.y, 1, f2InverseResolution, pMip2, pMip1);
 				pMip0 = Sampling(pDeviceInstance, pDeviceContext, bloomFilterConfig, emPSType, false, n2TargetSize.x, n2TargetSize.y, 0, f2InverseResolution, pMip1, pMip0);
 
-				pBlendState = pDeviceInstance->GetBlendState(EmBlendState::eAdditive);
+				pBlendState = pDeviceInstance->GetBlendState(BlendState::eAdditive);
 				pDeviceContext->OMSetBlendState(pBlendState, &math::float4::Zero.x, 0xffffffff);
 
 				Sampling(pDeviceInstance, pDeviceContext, bloomFilterConfig, shader::eApply, true, n2TargetSize.x, n2TargetSize.y, 0, f2InverseResolution, pMip0, pSourceAndResult);

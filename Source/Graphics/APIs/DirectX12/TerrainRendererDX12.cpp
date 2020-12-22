@@ -36,7 +36,7 @@ namespace est
 
 					math::Matrix matModelViewProjection;
 					math::Matrix matPrevModelViewProjectionMatrix;
-					math::Matrix matWorld;
+					math::Matrix worldMatrix;
 
 					math::float3 CameraPosition;
 					float padding0{ 0.f };
@@ -83,9 +83,9 @@ namespace est
 					pTerrainContents->DynamicTessFactor = terrain.fDynamicTessFactor;
 					pTerrainContents->StaticTessFactor = terrain.fStaticTessFactor;
 
-					pTerrainContents->matModelViewProjection = (terrain.matWorld * matViewProjection).Transpose();
-					pTerrainContents->matPrevModelViewProjectionMatrix = (terrain.matPrevWorld * matPrevViewProjection).Transpose();
-					pTerrainContents->matWorld = terrain.matWorld.Transpose();
+					pTerrainContents->matModelViewProjection = (terrain.worldMatrix * matViewProjection).Transpose();
+					pTerrainContents->matPrevModelViewProjectionMatrix = (terrain.prevWorldMatrix * matPrevViewProjection).Transpose();
+					pTerrainContents->worldMatrix = terrain.worldMatrix.Transpose();
 
 					pTerrainContents->CameraPosition = f3CameraPosition;
 					pTerrainContents->padding0 = 0.f;
@@ -213,8 +213,8 @@ namespace est
 
 				DescriptorHeap* pSRVDescriptorHeap = pDeviceInstance->GetSRVDescriptorHeap();
 
-				const D3D12_VIEWPORT* pViewport = pDeviceInstance->GetViewport();
-				const D3D12_RECT* pScissorRect = pDeviceInstance->GetScissorRect();
+				const math::Viewport& viewport= pDeviceInstance->GetViewport();
+				const math::Rect& scissorRect = pDeviceInstance->GetScissorRect();
 
 				const uint32_t frameIndex = pDeviceInstance->GetFrameIndex();
 
@@ -231,8 +231,8 @@ namespace est
 
 				pCommandList->SetGraphicsRootSignature(m_psoCaches[emPSType].pRootSignature);
 
-				pCommandList->RSSetViewports(1, pViewport);
-				pCommandList->RSSetScissorRects(1, pScissorRect);
+				pCommandList->RSSetViewports(1, util::Convert(viewport));
+				pCommandList->RSSetScissorRects(1, &scissorRect);
 				pCommandList->OMSetRenderTargets(renderElement.rtvCount, renderElement.rtvHandles, FALSE, renderElement.GetDSVHandle());
 
 				ID3D12DescriptorHeap* pDescriptorHeaps[] =
@@ -283,9 +283,9 @@ namespace est
 
 				const D3D12_STATIC_SAMPLER_DESC staticSamplerDesc[]
 				{
-					util::GetStaticSamplerDesc(EmSamplerState::eMinMagMipLinearWrap, shader::eSampler_SamplerLinearWrap, 100, D3D12_SHADER_VISIBILITY_PIXEL),
-					util::GetStaticSamplerDesc(EmSamplerState::eMinMagMipLinearBorder, shader::eSampler_SamplerLinearBorder, 100, D3D12_SHADER_VISIBILITY_ALL),
-					util::GetStaticSamplerDesc(EmSamplerState::eAnisotropicBorder, shader::eSampler_SamplerAnisotropicBorder, 100, D3D12_SHADER_VISIBILITY_PIXEL),
+					util::GetStaticSamplerDesc(SamplerState::eMinMagMipLinearWrap, shader::eSampler_SamplerLinearWrap, 100, D3D12_SHADER_VISIBILITY_PIXEL),
+					util::GetStaticSamplerDesc(SamplerState::eMinMagMipLinearBorder, shader::eSampler_SamplerLinearBorder, 100, D3D12_SHADER_VISIBILITY_ALL),
+					util::GetStaticSamplerDesc(SamplerState::eAnisotropicBorder, shader::eSampler_SamplerAnisotropicBorder, 100, D3D12_SHADER_VISIBILITY_PIXEL),
 				};
 
 				return util::CreateRootSignature(pDevice, static_cast<uint32_t>(vecRootParameters.size()), vecRootParameters.data(),
@@ -383,8 +383,8 @@ namespace est
 				psoDesc.pRootSignature = psoCache.pRootSignature;
 				psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH;
 				psoDesc.SampleMask = 0xffffffff;
-				psoDesc.RasterizerState = util::GetRasterizerDesc(EmRasterizerState::eSolidCCW);
-				psoDesc.BlendState = util::GetBlendDesc(EmBlendState::eOff);
+				psoDesc.RasterizerState = util::GetRasterizerDesc(RasterizerState::eSolidCCW);
+				psoDesc.BlendState = util::GetBlendDesc(BlendState::eOff);
 
 				if (emPSType == shader::eSolid_MotionBlur)
 				{
@@ -403,7 +403,7 @@ namespace est
 				}
 
 				psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
-				psoDesc.DepthStencilState = util::GetDepthStencilDesc(EmDepthStencilState::eRead_Write_On);
+				psoDesc.DepthStencilState = util::GetDepthStencilDesc(DepthStencilState::eRead_Write_On);
 
 				HRESULT hr = pDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&psoCache.pPipelineState));
 				if (FAILED(hr))

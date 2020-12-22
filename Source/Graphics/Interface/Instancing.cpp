@@ -15,8 +15,8 @@ namespace est
 		{
 		}
 		
-		SkinningInstancingData::SkinningInstancingData(const math::Matrix& matWorld, MotionInstancingData motionData)
-			: worldData(matWorld), motionData(motionData)
+		SkinningInstancingData::SkinningInstancingData(const math::Matrix& worldMatrix, MotionInstancingData motionData)
+			: worldData(worldMatrix), motionData(motionData)
 		{
 		}
 	}

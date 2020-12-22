@@ -91,10 +91,10 @@ namespace est
 				inline uint64_t Align(uint64_t nNum, uint64_t nAlignment) { return ((nNum + nAlignment - 1) / nAlignment) * nAlignment; }
 
 				void ReleaseResource(ID3D12DeviceChild* pResource);
-				void ReleaseResourceRTV(uint32_t& nDescriptorIndex);
-				void ReleaseResourceSRV(uint32_t& nDescriptorIndex);
-				void ReleaseResourceDSV(uint32_t& nDescriptorIndex);
-				void ReleaseResourceUAV(uint32_t& nDescriptorIndex);
+				void ReleaseResourceRTV(uint32_t& descriptorIndex);
+				void ReleaseResourceSRV(uint32_t& descriptorIndex);
+				void ReleaseResourceDSV(uint32_t& descriptorIndex);
+				void ReleaseResourceUAV(uint32_t& descriptorIndex);
 
 				void WaitForFence(ID3D12Fence* pFence, uint64_t nCompletionValue, HANDLE hWaitEvent);
 
@@ -103,13 +103,14 @@ namespace est
 				bool CompileShader(ID3DBlob* pShaderBlob, const D3D_SHADER_MACRO* pDefines, const wchar_t* sourceName, const char* strFunctionName, const char* strProfile, ID3DBlob** ppCompliedShaderBlob_out);
 				bool CreateConstantBuffer(ID3D12Device* pDevice, size_t nSize, ID3D12Resource** ppBuffer_out, const wchar_t* wdebugName = nullptr);
 
+				const D3D12_VIEWPORT* Convert(const math::Viewport& viewport);
 				int GetPixelSizeInBytes(DXGI_FORMAT val);
 
-				D3D12_STATIC_SAMPLER_DESC GetStaticSamplerDesc(EmSamplerState::Type emSamplerState, uint32_t nShaderRegister, uint32_t nRegisterSpace, D3D12_SHADER_VISIBILITY shaderVisibility);
-				D3D12_SAMPLER_DESC GetSamplerDesc(EmSamplerState::Type emSamplerState);
-				D3D12_RASTERIZER_DESC GetRasterizerDesc(EmRasterizerState::Type emRasterizerState);
-				D3D12_BLEND_DESC GetBlendDesc(EmBlendState::Type emBlendState);
-				D3D12_DEPTH_STENCIL_DESC GetDepthStencilDesc(EmDepthStencilState::Type emDepthStencilState);
+				D3D12_STATIC_SAMPLER_DESC GetStaticSamplerDesc(SamplerState::Type samplerState, uint32_t nShaderRegister, uint32_t nRegisterSpace, D3D12_SHADER_VISIBILITY shaderVisibility);
+				D3D12_SAMPLER_DESC GetSamplerDesc(SamplerState::Type samplerState);
+				D3D12_RASTERIZER_DESC GetRasterizerDesc(RasterizerState::Type rasterizerState);
+				D3D12_BLEND_DESC GetBlendDesc(BlendState::Type blendState);
+				D3D12_DEPTH_STENCIL_DESC GetDepthStencilDesc(DepthStencilState::Type depthStencilState);
 
 				ID3D12RootSignature* CreateRootSignature(ID3D12Device* pDevice, uint32_t numParameters,
 					_In_reads_opt_(numParameters) const D3D12_ROOT_PARAMETER* _pParameters,
@@ -140,14 +141,14 @@ namespace est
 					struct
 					{
 						uint32_t mask;
-						EmRasterizerState::Type emRasterizerState;
-						EmBlendState::Type emBlendState;
-						EmDepthStencilState::Type emDepthStencilState;
+						RasterizerState::Type rasterizerState;
+						BlendState::Type blendState;
+						DepthStencilState::Type depthStencilState;
 					};
 					uint64_t key;
 				};
 
-				PSOKey(uint32_t mask, EmRasterizerState::Type emRasterizerState, EmBlendState::Type emBlendState, EmDepthStencilState::Type emDepthStencilState);
+				PSOKey(uint32_t mask, RasterizerState::Type rasterizerState, BlendState::Type blendState, DepthStencilState::Type depthStencilState);
 
 				bool operator == (const PSOKey& other) const { return key == other.key; }
 				bool operator != (const PSOKey& other) const { return key != other.key; }

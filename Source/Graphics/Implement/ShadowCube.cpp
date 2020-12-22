@@ -126,7 +126,7 @@ namespace est
 				math::float3::Up,
 			};
 
-			m_matProjection = math::Matrix::CreatePerspectiveFieldOfView(math::PIDIV2, 1.f, 0.01f, m_fFarPlane);
+			m_projectionMatrix = math::Matrix::CreatePerspectiveFieldOfView(math::PIDIV2, 1.f, 0.01f, m_fFarPlane);
 
 			for (int i = 0; i < DirectionCount; ++i)
 			{
@@ -136,7 +136,7 @@ namespace est
 				//const math::float3& f3Target = m_pLight->GetPosition();
 				m_matViews[i] = math::Matrix::CreateLookAt(f3Pos, f3Target, f3Up[i]);
 
-				collision::Frustum::CreateFromMatrix(m_frustums[i], m_matProjection);
+				collision::Frustum::CreateFromMatrix(m_frustums[i], m_projectionMatrix);
 				m_frustums[i].Transform(m_matViews[i].Invert());
 			}
 

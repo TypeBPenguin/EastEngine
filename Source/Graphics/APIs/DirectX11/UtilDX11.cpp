@@ -119,48 +119,48 @@ namespace est
 
 						ID3D11SamplerState* pSamplerStates[] =
 						{
-							pDeviceInstance->GetSamplerState(EmSamplerState::eMinMagLinearMipPointWrap),
+							pDeviceInstance->GetSamplerState(SamplerState::eMinMagLinearMipPointWrap),
 						};
 						pDeviceContext->PSSetSamplers(materialSamplerSlot, _countof(pSamplerStates), pSamplerStates);
 
-						EmDepthStencilState::Type emDepthStencilState = pMaterial->GetDepthStencilState();
-						EmRasterizerState::Type emRasterizerState = pMaterial->GetRasterizerState();
+						DepthStencilState::Type depthStencilState = pMaterial->GetDepthStencilState();
+						RasterizerState::Type rasterizerState = pMaterial->GetRasterizerState();
 
 						if (isAlphaPrePass == true)
 						{
-							if (emDepthStencilState == EmDepthStencilState::eRead_Write_On)
+							if (depthStencilState == DepthStencilState::eRead_Write_On)
 							{
-								emRasterizerState = EmRasterizerState::eSolidCullNone;
-								emDepthStencilState = EmDepthStencilState::eRead_On_Write_Off;
+								rasterizerState = RasterizerState::eSolidCullNone;
+								depthStencilState = DepthStencilState::eRead_On_Write_Off;
 							}
-							else if (emDepthStencilState == EmDepthStencilState::eRead_Off_Write_On)
+							else if (depthStencilState == DepthStencilState::eRead_Off_Write_On)
 							{
-								emRasterizerState = EmRasterizerState::eSolidCullNone;
-								emDepthStencilState = EmDepthStencilState::eRead_Write_Off;
+								rasterizerState = RasterizerState::eSolidCullNone;
+								depthStencilState = DepthStencilState::eRead_Write_Off;
 							}
 						}
 
-						ID3D11RasterizerState* pRasterizerState = pDeviceInstance->GetRasterizerState(emRasterizerState);
+						ID3D11RasterizerState* pRasterizerState = pDeviceInstance->GetRasterizerState(rasterizerState);
 						pDeviceContext->RSSetState(pRasterizerState);
 
-						ID3D11DepthStencilState* pDepthStencilState = pDeviceInstance->GetDepthStencilState(emDepthStencilState);
+						ID3D11DepthStencilState* pDepthStencilState = pDeviceInstance->GetDepthStencilState(depthStencilState);
 						pDeviceContext->OMSetDepthStencilState(pDepthStencilState, 0);
 					}
 					else
 					{
-						ID3D11RasterizerState* pRasterizerState = pDeviceInstance->GetRasterizerState(EmRasterizerState::eSolidCCW);
+						ID3D11RasterizerState* pRasterizerState = pDeviceInstance->GetRasterizerState(RasterizerState::eSolidCCW);
 						pDeviceContext->RSSetState(pRasterizerState);
 
-						ID3D11BlendState* pBlendState = pDeviceInstance->GetBlendState(EmBlendState::eOff);
+						ID3D11BlendState* pBlendState = pDeviceInstance->GetBlendState(BlendState::eOff);
 						pDeviceContext->OMSetBlendState(pBlendState, &math::float4::Zero.x, 0xffffffff);
 
 						ID3D11SamplerState* pSamplerStates[] =
 						{
-							pDeviceInstance->GetSamplerState(EmSamplerState::eMinMagLinearMipPointWrap),
+							pDeviceInstance->GetSamplerState(SamplerState::eMinMagLinearMipPointWrap),
 						};
 						pDeviceContext->PSSetSamplers(materialSamplerSlot, _countof(pSamplerStates), pSamplerStates);
 
-						ID3D11DepthStencilState* pDepthStencilState = pDeviceInstance->GetDepthStencilState(EmDepthStencilState::eRead_Write_On);
+						ID3D11DepthStencilState* pDepthStencilState = pDeviceInstance->GetDepthStencilState(DepthStencilState::eRead_Write_On);
 						pDeviceContext->OMSetDepthStencilState(pDepthStencilState, 0);
 					}
 				}
@@ -534,6 +534,11 @@ namespace est
 					SetDebugName(*pBuffer_out, debugName);
 
 					return true;
+				}
+
+				const D3D11_VIEWPORT* Convert(const math::Viewport& viewport)
+				{
+					return reinterpret_cast<const D3D11_VIEWPORT*>(&viewport);
 				}
 
 				int GetPixelSizeInBytes(DXGI_FORMAT val)

@@ -3,8 +3,7 @@
 #include "GraphicsInterface.h"
 
 #include "imgui/imgui.h"
-#include "imgui/ImGuizmo.h"
-#include "imgui/imnodes.h"
+#include "imgui/ImGuizmo/ImGuizmo.h"
 
 namespace est
 {
@@ -26,6 +25,5 @@ namespace est
 		bool MessageHandler(HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam);
 
 		ImTextureID GetTextureID(const graphics::ITexture* pTexture);
-		bool GetBackBufferSwapchainTextureID(ImTextureID* pTextureID);
 	}
 }

@@ -56,10 +56,10 @@ namespace est
 			{
 				if (m_pTexture->GetState() == graphics::IResource::eComplete)
 				{
-					graphics::Camera* pCamera = graphics::Camera::GetInstance();
+					graphics::Camera& camera = graphics::GetCamera();
 
 					//math::Matrix matWorld = math::Matrix::CreateTranslation(pCamera->GetPosition());
-					math::Matrix matWorld = math::Matrix::CreateTranslation(pCamera->GetViewMatrix().Invert().Translation());
+					math::Matrix worldMatrix = math::Matrix::CreateTranslation(camera.GetViewMatrix().Invert().Translation());
 
 					// 스카이 렌더러 고치고 사용하시오.
 					assert(false);

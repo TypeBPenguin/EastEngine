@@ -66,8 +66,8 @@ cbuffer cbStaticInstancingData : register(b1)
 
 cbuffer cbObjectData : register(b2)
 {
-	float4x4 g_matWorld;
-	float4x4 g_matPrevWorld;
+	float4x4 g_worldMatrix;
+	float4x4 g_prevWorldMatrix;
 
 	float4 g_f4AlbedoColor;
 	float4 g_f4EmissiveColor;
@@ -85,9 +85,9 @@ cbuffer cbObjectData : register(b2)
 
 cbuffer cbVSConstants : register(b3)
 {
-	float4x4 g_matView;
-	float4x4 g_matViewProj;
-	float4x4 g_matPrevViewProj;
+	float4x4 g_viewMatrix;
+	float4x4 g_viewProjectionMatrix;
+	float4x4 g_prevViewPrjectionMatrix;
 
 #ifdef DX12
 	uint g_nTexVTFIndex;
@@ -359,21 +359,21 @@ PS_INPUT VS(in float4 inPos : POSITION
 #ifdef USE_SKINNING
 #ifdef USE_INSTANCING
 
-	float4x4 matWorld = ComputeWorldMatrix(g_Instances[InstanceID].transformData);
+	float4x4 worldMatrix = ComputeWorldMatrix(g_Instances[InstanceID].transformData);
 	uint nVTFID = g_Instances[InstanceID].motionData.nVTFID;
 
 #ifdef USE_MOTION_BLUR
-	float4x4 matPrevWorld = ComputeWorldMatrix(g_InstancesPrev[InstanceID].transformData);
+	float4x4 prevWorldMatrix = ComputeWorldMatrix(g_InstancesPrev[InstanceID].transformData);
 	uint prevVTFID = g_InstancesPrev[InstanceID].motionData.nVTFID;
 #endif
 
 #else	// USE_INSTANCING
 
-	float4x4 matWorld = g_matWorld;
+	float4x4 worldMatrix = g_worldMatrix;
 	uint nVTFID = g_nVTFID;
 
 #ifdef USE_MOTION_BLUR
-	float4x4 matPrevWorld = g_matPrevWorld;
+	float4x4 prevWorldMatrix = g_prevWorldMatrix;
 	uint prevVTFID = g_prevVTFID;
 #endif
 
@@ -395,16 +395,16 @@ PS_INPUT VS(in float4 inPos : POSITION
 #else	// USE_SKINNING
 #ifdef USE_INSTANCING
 
-	float4x4 matWorld = g_Instances[InstanceID];
+	float4x4 worldMatrix = g_Instances[InstanceID];
 #ifdef USE_MOTION_BLUR
-	float4x4 matPrevWorld = g_InstancesPrev[InstanceID];
+	float4x4 prevWorldMatrix = g_InstancesPrev[InstanceID];
 #endif
 
 #else	// USE_INSTANCING
 
-	float4x4 matWorld = g_matWorld;
+	float4x4 worldMatrix = g_worldMatrix;
 #ifdef USE_MOTION_BLUR
-	float4x4 matPrevWorld = g_matPrevWorld;
+	float4x4 prevWorldMatrix = g_prevWorldMatrix;
 #endif
 
 #endif	// USE_INSTANCING
@@ -421,29 +421,29 @@ PS_INPUT VS(in float4 inPos : POSITION
 
 #endif	// USE_SKINNING
 
-	output.pos = mul(output.pos, matWorld);
+	output.pos = mul(output.pos, worldMatrix);
 
 #ifndef USE_WRITEDEPTH
 
 	output.tex = inTex;
-	output.normal = normalize(mul(output.normal, (float3x3)matWorld));
+	output.normal = normalize(mul(output.normal, (float3x3)worldMatrix));
 
 #ifdef USE_ALPHABLENDING
 	output.posW = output.pos;
-	output.posWV = mul(output.pos, g_matView);
+	output.posWV = mul(output.pos, g_viewMatrix);
 #endif
-	output.pos = mul(output.pos, g_matViewProj);
+	output.pos = mul(output.pos, g_viewProjectionMatrix);
 
 #ifdef USE_MOTION_BLUR
 	output.currPositionCS = output.pos;
-	output.prevPositionCS = mul(prevPos, matPrevWorld);
-	output.prevPositionCS = mul(output.prevPositionCS, g_matPrevViewProj);
+	output.prevPositionCS = mul(prevPos, prevWorldMatrix);
+	output.prevPositionCS = mul(output.prevPositionCS, g_prevViewPrjectionMatrix);
 #endif
 
 	output.tangent = CalcTangent(output.normal);
 	output.binormal = CalcBinormal(output.normal, output.tangent);
 #else
-	output.pos = mul(output.pos, g_matViewProj);
+	output.pos = mul(output.pos, g_viewProjectionMatrix);
 	output.pos.z = output.pos.z * output.pos.w;
 #endif
 

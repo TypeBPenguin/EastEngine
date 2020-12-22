@@ -84,7 +84,8 @@ namespace est
 				void Render();
 
 			public:
-				const math::uint2& GetScreenSize() const { return m_n2ScreenSize; }
+				const math::uint2& GetScreenSize() const { return m_screenSize; }
+				const math::Viewport& GetViewport() const { return m_viewport; }
 
 				VkDevice GetInterface() const { return m_device; }
 				VkCommandPool GetCommandPool() const { return m_commandPool; }
@@ -95,12 +96,11 @@ namespace est
 
 				VkFormat GetSwapChainImageFormat() const { return m_swapChainImageFormat; }
 				VkExtent2D GetSwapChainExtent2D() const { return m_swapChainExtent; }
-				const VkViewport* GetViewport() const { return &m_viewport; }
 
 				VkSemaphore GetImageAvailableSemaphore() const { return m_imageAvailableSemaphore; }
 				VkSemaphore GetRenderFinishedSemaphore() const { return m_renderFinishedSemaphore; }
 
-				VkSampler GetSampler(EmSamplerState::Type emType) const { return m_samplers[emType]; }
+				VkSampler GetSampler(SamplerState::Type emType) const { return m_samplers[emType]; }
 
 			public:
 				GBuffer* GetGBuffer(int frameIndex) const { return m_pGBuffers[frameIndex].get(); }
@@ -110,6 +110,10 @@ namespace est
 				RenderManager* GetRenderManager() const { return m_pRenderManager.get(); }
 
 				const Texture* GetEmptyTexture() const { return m_pTextureEmpty.get(); }
+
+			public:
+				const std::vector<DisplayModeDesc>& GetSupportedDisplayModeDesc() const { return m_supportedDisplayModes; }
+				size_t GetSelectedDisplayModeIndex() const { return m_selectedDisplayModeIndex; }
 
 			private:
 				void InitializeWindow(uint32_t width, uint32_t height, bool isFullScreen, const string::StringID& applicationTitle, const string::StringID& applicationName);
@@ -169,15 +173,18 @@ namespace est
 				static void OnWindowResized(GLFWwindow* pWindow, int width, int height);
 
 			private:
-				math::uint2 m_n2ScreenSize{ 800, 600 };
+				math::uint2 m_screenSize{ 800, 600 };
 
 				string::StringID m_applicationTitle;
 				string::StringID m_applicationName;
 
+				size_t m_selectedDisplayModeIndex{ std::numeric_limits<size_t>::max() };
+				std::vector<DisplayModeDesc> m_supportedDisplayModes;
+
 				GLFWwindow* m_pWindow{ nullptr };
 
 			private:
-				VkViewport m_viewport{};
+				math::Viewport m_viewport{};
 
 				uint32_t m_frameIndex{ 0 };
 				uint32_t m_nFrameCount{ 0 };
@@ -198,7 +205,7 @@ namespace est
 				VkCommandPool m_commandPool{ nullptr };
 				std::vector<VkCommandBuffer> m_vecCommandBuffers;
 
-				std::array<VkSampler, EmSamplerState::TypeCount> m_samplers{ nullptr };
+				std::array<VkSampler, SamplerState::TypeCount> m_samplers{ nullptr };
 
 				VkSemaphore m_imageAvailableSemaphore{ nullptr };
 				VkSemaphore m_renderFinishedSemaphore{ nullptr };
@@ -400,8 +407,8 @@ namespace est
 				m_applicationTitle = applicationTitle;
 				m_applicationName = applicationName;
 
-				m_n2ScreenSize.x = width;
-				m_n2ScreenSize.y = height;
+				m_screenSize.x = width;
+				m_screenSize.y = height;
 
 				glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
@@ -449,12 +456,12 @@ namespace est
 				if (width == 0 || height == 0)
 					return;
 
-				if (width == static_cast<int>(m_n2ScreenSize.x) &&
-					height == static_cast<int>(m_n2ScreenSize.y))
+				if (width == static_cast<int>(m_screenSize.x) &&
+					height == static_cast<int>(m_screenSize.y))
 					return;
 
-				m_n2ScreenSize.x = static_cast<uint32_t>(width);
-				m_n2ScreenSize.y = static_cast<uint32_t>(height);
+				m_screenSize.x = static_cast<uint32_t>(width);
+				m_screenSize.y = static_cast<uint32_t>(height);
 
 				vkDeviceWaitIdle(m_device);
 
@@ -732,9 +739,9 @@ namespace est
 
 			void Device::Impl::CreateSampler()
 			{
-				for (int i = 0; i < EmSamplerState::TypeCount; ++i)
+				for (int i = 0; i < SamplerState::TypeCount; ++i)
 				{
-					EmSamplerState::Type emType = static_cast<EmSamplerState::Type>(i);
+					SamplerState::Type emType = static_cast<SamplerState::Type>(i);
 					VkSamplerCreateInfo samplerCreateInfo = util::GetSamplerCreateInfo(emType);
 
 					if (vkCreateSampler(m_device, &samplerCreateInfo, nullptr, &m_samplers[i]) != VK_SUCCESS)
@@ -1244,7 +1251,7 @@ namespace est
 				}
 				else
 				{
-					VkExtent2D actualExtent = { m_n2ScreenSize.x, m_n2ScreenSize.y };
+					VkExtent2D actualExtent = { m_screenSize.x, m_screenSize.y };
 					actualExtent.width = std::clamp(capabilities.minImageExtent.width, capabilities.maxImageExtent.width, actualExtent.width);
 					actualExtent.height = std::clamp(capabilities.minImageExtent.height, capabilities.maxImageExtent.height, actualExtent.height);
 
@@ -1321,7 +1328,7 @@ namespace est
 			{
 			}
 
-			void Device::Initialize(uint32_t width, uint32_t height, bool isFullScreen, const string::StringID& applicationTitle, const string::StringID& applicationName)
+			void Device::Initialize(uint32_t width, uint32_t height, bool isFullScreen, const string::StringID& applicationTitle, const string::StringID& applicationName, std::function<HRESULT(HWND, uint32_t, WPARAM, LPARAM)> messageHandler)
 			{
 				m_pImpl->Initialize(width, height, isFullScreen, applicationTitle, applicationName);
 			}
@@ -1339,6 +1346,21 @@ namespace est
 			const math::uint2& Device::GetScreenSize() const
 			{
 				return m_pImpl->GetScreenSize();
+			}
+
+			const math::Viewport& Device::GetViewport() const
+			{
+				return m_pImpl->GetViewport();
+			}
+
+			const std::vector<DisplayModeDesc>& Device::GetSupportedDisplayModeDesc() const
+			{
+				return m_pImpl->GetSupportedDisplayModeDesc();
+			}
+
+			size_t Device::GetSelectedDisplayModeIndex() const
+			{
+				return m_pImpl->GetSelectedDisplayModeIndex();
 			}
 
 			VkDevice Device::GetInterface() const
@@ -1376,11 +1398,6 @@ namespace est
 				return m_pImpl->GetSwapChainExtent2D();
 			}
 
-			const VkViewport* Device::GetViewport() const
-			{
-				return m_pImpl->GetViewport();
-			}
-
 			VkSemaphore Device::GetImageAvailableSemaphore() const
 			{
 				return m_pImpl->GetImageAvailableSemaphore();
@@ -1391,7 +1408,7 @@ namespace est
 				return m_pImpl->GetRenderFinishedSemaphore();
 			}
 
-			VkSampler Device::GetSampler(EmSamplerState::Type emType) const
+			VkSampler Device::GetSampler(SamplerState::Type emType) const
 			{
 				return m_pImpl->GetSampler(emType);
 			}

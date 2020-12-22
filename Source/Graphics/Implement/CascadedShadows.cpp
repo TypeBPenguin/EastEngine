@@ -104,7 +104,7 @@ namespace est
 
 		void CascadedShadows::Update()
 		{
-			Camera* pCamera = Camera::GetInstance();
+			Camera& camera = GetCamera();
 			if (pCamera == nullptr)
 				return;
 

@@ -1747,7 +1747,7 @@ namespace est
 				psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 				psoDesc.SampleDesc = sampleDesc;
 				psoDesc.SampleMask = 0xffffffff;
-				psoDesc.RasterizerState = util::GetRasterizerDesc(EmRasterizerState::eSolidCullNone);
+				psoDesc.RasterizerState = util::GetRasterizerDesc(RasterizerState::eSolidCullNone);
 
 				switch (emPSType)
 				{
@@ -1868,7 +1868,7 @@ namespace est
 				}
 
 				psoDesc.DSVFormat = DXGI_FORMAT_UNKNOWN;
-				psoDesc.DepthStencilState = util::GetDepthStencilDesc(EmDepthStencilState::eRead_Write_Off);
+				psoDesc.DepthStencilState = util::GetDepthStencilDesc(DepthStencilState::eRead_Write_Off);
 
 				HRESULT hr = pDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&psoCache.pPipelineState));
 				if (FAILED(hr))
@@ -1951,16 +1951,16 @@ namespace est
 				ID3D12GraphicsCommandList2* pCommandList = pDeviceInstance->GetCommandList(0);
 				pDeviceInstance->ResetCommandList(0, nullptr);
 
-				const D3D12_VIEWPORT* pViewport = Device::GetInstance()->GetViewport();
+				const math::Viewport& viewport= Device::GetInstance()->GetViewport();
 
 				AssaoInputsDX12 inputs;
 				inputs.ScissorLeft = 0;
 				inputs.ScissorTop = 0;
-				inputs.ScissorRight = static_cast<int>(pViewport->Width);
-				inputs.ScissorBottom = static_cast<int>(pViewport->Height);
+				inputs.ScissorRight = static_cast<int>(viewport.width);
+				inputs.ScissorBottom = static_cast<int>(viewport.height);
 				inputs.ProjectionMatrix = pCamera->GetProjectionMatrix();
-				inputs.ViewportWidth = static_cast<int>(pViewport->Width);
-				inputs.ViewportHeight = static_cast<int>(pViewport->Height);
+				inputs.ViewportWidth = static_cast<int>(viewport.width);
+				inputs.ViewportHeight = static_cast<int>(viewport.height);
 				inputs.MatricesRowMajorOrder = true;
 #if SSAO_ENABLE_NORMAL_WORLD_TO_VIEW_CONVERSION
 				inputs.NormalsWorldToViewspaceMatrix = pCamera->GetViewMatrix().Transpose();

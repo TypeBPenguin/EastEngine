@@ -2,6 +2,7 @@
 #include "DeviceDX11.h"
 
 #include "CommonLib/Lock.h"
+#include "CommonLib/Timer.h"
 
 #include "Graphics/Interface/Window.h"
 #include "Graphics/Interface/LightManager.h"
@@ -12,15 +13,11 @@
 #include "RenderManagerDX11.h"
 #include "VTFManagerDX11.h"
 #include "LightResourceManagerDX11.h"
+#include "ScreenGrab11.h"
 
 #include "Graphics/Interface/imguiHelper.h"
 #include "Graphics/Interface/imgui/imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
-
-namespace sid
-{
-	RegisterStringID(DeviceDX11);
-}
 
 namespace est
 {
@@ -30,22 +27,25 @@ namespace est
 		{
 			const float MipLODBias = -2.f;
 
-			class Device::Impl : public Window
+			class Device::Impl
 			{
 			public:
 				Impl();
-				virtual ~Impl();
+				~Impl();
 
 			private:
-				virtual void Update() override;
-				virtual void Render() override;
-				virtual void Present() override;
+				void Update();
+				void Render();
+				void Present();
 
 			public:
-				void Initialize(uint32_t width, uint32_t height, bool isFullScreen, const string::StringID& applicationTitle, const string::StringID& applicationName);
+				void Initialize(uint32_t width, uint32_t height, bool isFullScreen, const string::StringID& applicationTitle, const string::StringID& applicationName, std::function<HRESULT(HWND, uint32_t, WPARAM, LPARAM)> messageHandler);
 				void Release();
 
+				void Run(std::function<bool()> funcUpdate);
 				void Cleanup(float elapsedTime);
+
+				void OnScreenShot();
 
 			public:
 				RenderTarget* GetRenderTarget(const D3D11_TEXTURE2D_DESC* pDesc);
@@ -56,12 +56,12 @@ namespace est
 
 			public:
 				void MessageHandler(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam);
+				bool Resize(uint32_t width, uint32_t height, bool isFullScreen, bool isEnableVSync, std::function<void(bool)> callback);
+				bool OnResize(uint32_t width, uint32_t height, bool isFullScreen, bool isEnableVSync);
+				void ScreenShot(ScreenShotFormat format, const std::wstring& path, std::function<void(bool, const std::wstring&)> screenShotCallback);
 
 			public:
-				HWND GetHwnd() const { return m_hWnd; }
-				HINSTANCE GetHInstance() const { return m_hInstance; }
-				const math::uint2& GetScreenSize() const { return m_n2ScreenSize; }
-				const D3D11_VIEWPORT* GetViewport() const { return &m_viewport; }
+				const math::Viewport& GetViewport() const { return m_viewport; }
 				const GBuffer* GetGBuffer() const { return m_pGBuffer.get(); }
 				IImageBasedLight* GetImageBasedLight() const { return m_pImageBasedLight; }
 				void SetImageBasedLight(IImageBasedLight* pImageBasedLight) { m_pImageBasedLight = pImageBasedLight; }
@@ -73,14 +73,17 @@ namespace est
 				ID3D11DeviceContext* GetImmediateContext() const { return m_pImmediateContext; }
 
 				RenderTarget* GetSwapChainRenderTarget() const { return m_pSwapChainRenderTarget.get(); }
-				RenderTarget* GetBackBufferSwapChainRenderTarget() const { return m_pBackBufferSwapChain.get(); }
 
-				ID3D11RasterizerState* GetRasterizerState(EmRasterizerState::Type emType) const { return m_pRasterizerStates[emType]; }
-				ID3D11BlendState* GetBlendState(EmBlendState::Type emType) const { return m_pBlendStates[emType]; }
-				ID3D11SamplerState* GetSamplerState(EmSamplerState::Type emType) const { return m_pSamplerStates[emType]; }
-				ID3D11DepthStencilState* GetDepthStencilState(EmDepthStencilState::Type emType) const { return m_pDepthStencilStates[emType]; }
+				ID3D11RasterizerState* GetRasterizerState(RasterizerState::Type emType) const { return m_pRasterizerStates[emType]; }
+				ID3D11BlendState* GetBlendState(BlendState::Type emType) const { return m_pBlendStates[emType]; }
+				ID3D11SamplerState* GetSamplerState(SamplerState::Type emType) const { return m_pSamplerStates[emType]; }
+				ID3D11DepthStencilState* GetDepthStencilState(DepthStencilState::Type emType) const { return m_pDepthStencilStates[emType]; }
 
 				ID3DUserDefinedAnnotation* GetUserDefinedAnnotation() const { return m_pUserDefinedAnnotation; }
+
+			public:
+				const std::vector<DisplayModeDesc>& GetSupportedDisplayModeDesc() const { return m_supportedDisplayModes; }
+				size_t GetSelectedDisplayModeIndex() const { return m_selectedDisplayModeIndex; }
 
 			private:
 				void InitializeD3D();
@@ -93,20 +96,21 @@ namespace est
 			private:
 				bool m_isInitislized{ false };
 
-				size_t m_nVideoCardMemory{ 0 };
-				std::string m_strVideoCardDescription;
-				std::vector<DXGI_MODE_DESC> m_vecDisplayModes;
+				size_t m_videoCardMemory{ 0 };
+				std::wstring m_videoCardDescription;
+
+				size_t m_selectedDisplayModeIndex{ std::numeric_limits<size_t>::max() };
+				std::vector<DisplayModeDesc> m_supportedDisplayModes;
 
 				thread::SRWLock m_srwLock;
 
-				D3D11_VIEWPORT m_viewport{};
+				math::Viewport m_viewport{};
 
-				ID3D11Device* m_pDevice{ nullptr };
-				ID3D11DeviceContext* m_pImmediateContext{ nullptr };
-				IDXGISwapChain1* m_pSwapChain{ nullptr };
+				CComPtr<ID3D11Device> m_pDevice{ nullptr };
+				CComPtr<ID3D11DeviceContext> m_pImmediateContext{ nullptr };
+				CComPtr<IDXGISwapChain1> m_pSwapChain{ nullptr };
 
 				std::unique_ptr<RenderTarget> m_pSwapChainRenderTarget;
-				std::unique_ptr<RenderTarget> m_pBackBufferSwapChain;
 
 				template <typename T>
 				struct ResourcePool
@@ -128,15 +132,15 @@ namespace est
 					}
 				};
 
-				std::unordered_multimap<RenderTarget::Key, ResourcePool<RenderTarget>> m_ummapRenderTargetPool;
-				std::unordered_multimap<DepthStencil::Key, ResourcePool<DepthStencil>> m_ummapDepthStencilPool;
+				std::unordered_multimap<RenderTarget::Key, ResourcePool<RenderTarget>> m_renderTargetPool;
+				std::unordered_multimap<DepthStencil::Key, ResourcePool<DepthStencil>> m_depthStencilPool;
 
-				std::array<ID3D11RasterizerState*, EmRasterizerState::TypeCount> m_pRasterizerStates{ nullptr };
-				std::array<ID3D11BlendState*, EmBlendState::TypeCount> m_pBlendStates{ nullptr };
-				std::array<ID3D11SamplerState*, EmSamplerState::TypeCount> m_pSamplerStates{ nullptr };
-				std::array<ID3D11DepthStencilState*, EmDepthStencilState::TypeCount> m_pDepthStencilStates{ nullptr };
+				std::array<CComPtr<ID3D11RasterizerState>, RasterizerState::TypeCount> m_pRasterizerStates{ nullptr };
+				std::array<CComPtr<ID3D11BlendState>, BlendState::TypeCount> m_pBlendStates{ nullptr };
+				std::array<CComPtr<ID3D11SamplerState>, SamplerState::TypeCount> m_pSamplerStates{ nullptr };
+				std::array<CComPtr<ID3D11DepthStencilState>, DepthStencilState::TypeCount> m_pDepthStencilStates{ nullptr };
 
-				ID3DUserDefinedAnnotation* m_pUserDefinedAnnotation{ nullptr };
+				CComPtr<ID3DUserDefinedAnnotation> m_pUserDefinedAnnotation{ nullptr };
 
 				std::unique_ptr<GBuffer> m_pGBuffer;
 				IImageBasedLight* m_pImageBasedLight{ nullptr };
@@ -144,6 +148,26 @@ namespace est
 				std::unique_ptr<RenderManager> m_pRenderManager;
 				std::unique_ptr<VTFManager> m_pVTFManager;
 				std::unique_ptr<LightResourceManager> m_pLightResourceManager;
+
+				struct ScreenShotInfo
+				{
+					std::wstring path;
+					ScreenShotFormat format{ ScreenShotFormat::eJPEG };
+					std::function<void(bool, const std::wstring&)> callback;
+					bool isProcessed{ false };
+					bool isSuccess{ false };
+				};
+				ScreenShotInfo m_screeShot;
+
+				struct ResizeInfo
+				{
+					uint32_t width{ 0 };
+					uint32_t height{ 0 };
+					bool isFullScreen{ false };
+					bool isEnableVSync{ false };
+					std::function<void(bool)> callback;
+				};
+				std::unique_ptr<ResizeInfo> m_pResizeInfo;
 			};
 
 			Device::Impl::Impl()
@@ -173,7 +197,8 @@ namespace est
 					{
 						if (options.OnMotionBlur == true && options.motionBlurConfig.IsVelocityMotionBlur() == true)
 						{
-							m_pGBuffer->Resize(GBufferType::eVelocity, m_n2ScreenSize.x, m_n2ScreenSize.y);
+							const math::uint2& screenSize = Window::GetInstance()->GetScreenSize();
+							m_pGBuffer->Resize(GBufferType::eVelocity, screenSize.x, screenSize.y);
 						}
 						else
 						{
@@ -182,29 +207,26 @@ namespace est
 					}
 				}
 
-				const float f4ClearColor[] = { 0.f, 0.2f, 0.4f, 1.f };
-				m_pImmediateContext->ClearRenderTargetView(m_pSwapChainRenderTarget->GetRenderTargetView(), f4ClearColor);
+				const float clearColor[] = { 0.f, 0.2f, 0.4f, 1.f };
+				m_pImmediateContext->ClearRenderTargetView(m_pSwapChainRenderTarget->GetRenderTargetView(), clearColor);
 
 				m_pGBuffer->Clear(m_pImmediateContext);
 
 				m_pVTFManager->Bake();
 
 				m_pRenderManager->Render();
+
+				ImGui::Render();
+
+				ID3D11RenderTargetView* pRTV[] = { m_pSwapChainRenderTarget->GetRenderTargetView() };
+				m_pImmediateContext->OMSetRenderTargets(_countof(pRTV), pRTV, nullptr);
+				ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
+				OnScreenShot();
 			}
 
 			void Device::Impl::Present()
 			{
-				m_pRenderManager->Copy_RGB(m_pSwapChainRenderTarget.get(), m_pBackBufferSwapChain.get());
-
-				m_pImmediateContext->ClearState();
-
-				ImGui::Render();
-
-				RenderTarget* pSwapChainRenderTarget = GetSwapChainRenderTarget();
-				ID3D11RenderTargetView* pRTV[] = { pSwapChainRenderTarget->GetRenderTargetView() };
-				m_pImmediateContext->OMSetRenderTargets(_countof(pRTV), pRTV, nullptr);
-				ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-
 				DXGI_PRESENT_PARAMETERS presentParam{};
 				HRESULT hr = m_pSwapChain->Present1(GetOptions().OnVSync ? 1 : 0, 0, &presentParam);
 				if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
@@ -217,19 +239,36 @@ namespace est
 				{
 					throw_line("failed to swapchain present");
 				}
+
+				if (m_screeShot.isProcessed == true)
+				{
+					if (m_screeShot.callback != nullptr)
+					{
+						m_screeShot.callback(m_screeShot.isSuccess, m_screeShot.path);
+					}
+					m_screeShot = {};
+				}
+
+				Cleanup(Timer::GetInstance()->GetElapsedTime());
 			}
 
-			void Device::Impl::Initialize(uint32_t width, uint32_t height, bool isFullScreen, const string::StringID& applicationTitle, const string::StringID& applicationName)
+			void Device::Impl::Initialize(uint32_t width, uint32_t height, bool isFullScreen, const string::StringID& applicationTitle, const string::StringID& applicationName, std::function<HRESULT(HWND, uint32_t, WPARAM, LPARAM)> messageHandler)
 			{
 				if (m_isInitislized == true)
 					return;
 
-				AddMessageHandler(sid::DeviceDX11, [&](HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
-					{
-						MessageHandler(hWnd, nMsg, wParam, lParam);
-					});
+				auto DeviceMessageHandler = [&, messageHandler](HWND hWnd, uint32_t msg, WPARAM wParam, LPARAM lParam) -> HRESULT
+				{
+					MessageHandler(hWnd, msg, wParam, lParam);
+					if (messageHandler != nullptr)
+						return messageHandler(hWnd, msg, wParam, lParam);
 
-				InitializeWindow(width, height, isFullScreen, applicationTitle, applicationName);
+					return 0;
+				};
+
+				Window* pWindow = Window::GetInstance();
+				pWindow->Initialize(width, height, isFullScreen, applicationTitle, applicationName, DeviceMessageHandler);
+
 				InitializeD3D();
 				InitializeRasterizerState();
 				InitializeBlendState();
@@ -242,20 +281,14 @@ namespace est
 
 				IMGUI_CHECKVERSION();
 				ImGui::CreateContext();
-				ImGui_ImplWin32_Init(m_hWnd);
+				ImGui_ImplWin32_Init(pWindow->GetHwnd());
 				ImGui_ImplDX11_Init(m_pDevice, m_pImmediateContext);
-
-				imnodes::Initialize();
 
 				m_isInitislized = true;
 			}
 
 			void Device::Impl::Release()
 			{
-				RemoveMessageHandler(sid::DeviceDX11);
-
-				imnodes::Shutdown();
-
 				ImGui_ImplDX11_Shutdown();
 				ImGui_ImplWin32_Shutdown();
 				ImGui::DestroyContext();
@@ -273,24 +306,16 @@ namespace est
 					m_pSwapChain->SetFullscreenState(FALSE, nullptr);
 				}
 
-				std::for_each(m_pRasterizerStates.begin(), m_pRasterizerStates.end(), ReleaseSTLObject());
 				m_pRasterizerStates.fill(nullptr);
-
-				std::for_each(m_pBlendStates.begin(), m_pBlendStates.end(), ReleaseSTLObject());
 				m_pBlendStates.fill(nullptr);
-
-				std::for_each(m_pSamplerStates.begin(), m_pSamplerStates.end(), ReleaseSTLObject());
 				m_pSamplerStates.fill(nullptr);
-
-				std::for_each(m_pDepthStencilStates.begin(), m_pDepthStencilStates.end(), ReleaseSTLObject());
 				m_pDepthStencilStates.fill(nullptr);
 
-				SafeRelease(m_pUserDefinedAnnotation);
+				m_pUserDefinedAnnotation.Release();
 
-				m_ummapRenderTargetPool.clear();
-				m_ummapDepthStencilPool.clear();
+				m_renderTargetPool.clear();
+				m_depthStencilPool.clear();
 
-				m_pBackBufferSwapChain.reset();
 				m_pSwapChainRenderTarget.reset();
 
 				if (m_pImmediateContext != nullptr)
@@ -298,11 +323,43 @@ namespace est
 					m_pImmediateContext->ClearState();
 				}
 
-				SafeRelease(m_pSwapChain);
-				SafeRelease(m_pImmediateContext);
+				m_pSwapChain.Release();
+				m_pImmediateContext.Release();
 
 				util::ReportLiveObjects(m_pDevice);
-				SafeRelease(m_pDevice);
+				m_pDevice.Release();
+
+				Window::DestroyInstance();
+			}
+
+			void Device::Impl::Run(std::function<bool()> funcUpdate)
+			{
+				auto DeviceUpdate = [&]()
+				{
+					bool isRunning = false;
+					{
+						TRACER_EVENT(L"GraphicsUpdate");
+						Update();
+					}
+
+					{
+						TRACER_EVENT(L"SystemUpdate");
+						isRunning = funcUpdate();
+					}
+
+					{
+						TRACER_EVENT(L"GraphicsRender");
+						Render();
+					}
+
+					{
+						TRACER_EVENT(L"GraphicsPresent");
+						Present();
+					}
+
+					return isRunning;
+				};
+				Window::GetInstance()->Run(DeviceUpdate);
 			}
 
 			void Device::Impl::Cleanup(float elapsedTime)
@@ -312,15 +369,15 @@ namespace est
 				m_pRenderManager->Cleanup();
 				m_pLightResourceManager->Cleanup();
 
-				for (auto iter = m_ummapRenderTargetPool.begin(); iter != m_ummapRenderTargetPool.end();)
+				for (auto iter = m_renderTargetPool.begin(); iter != m_renderTargetPool.end();)
 				{
 					if (iter->second.isUsing == false)
 					{
 						iter->second.unusedTime += elapsedTime;
 
-						if (iter->second.unusedTime > 30.f)
+						if (iter->second.unusedTime > 5.f)
 						{
-							iter = m_ummapRenderTargetPool.erase(iter);
+							iter = m_renderTargetPool.erase(iter);
 							continue;
 						}
 					}
@@ -328,15 +385,15 @@ namespace est
 					++iter;
 				}
 
-				for (auto iter = m_ummapDepthStencilPool.begin(); iter != m_ummapDepthStencilPool.end();)
+				for (auto iter = m_depthStencilPool.begin(); iter != m_depthStencilPool.end();)
 				{
 					if (iter->second.isUsing == false)
 					{
 						iter->second.unusedTime += elapsedTime;
 
-						if (iter->second.unusedTime > 30.f)
+						if (iter->second.unusedTime > 5.f)
 						{
-							iter = m_ummapDepthStencilPool.erase(iter);
+							iter = m_depthStencilPool.erase(iter);
 							continue;
 						}
 					}
@@ -345,12 +402,70 @@ namespace est
 				}
 			}
 
+			void Device::Impl::OnScreenShot()
+			{
+				TRACER_EVENT(__FUNCTIONW__);
+				if (m_screeShot.path.empty() == false)
+				{
+					m_screeShot.isProcessed = true;
+
+					CComPtr<ID3D11Texture2D> pBackBufferTexture;
+					m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&pBackBufferTexture));
+
+					if (m_screeShot.format == ScreenShotFormat::eDDS)
+					{
+						m_screeShot.path += L".dds";
+
+						const HRESULT hr = DirectX::SaveDDSTextureToFile(m_pImmediateContext, pBackBufferTexture, m_screeShot.path.c_str());
+						m_screeShot.isSuccess = SUCCEEDED(hr);
+					}
+					else if (m_screeShot.format == ScreenShotFormat::eBMP)
+					{
+						m_screeShot.path += L".bmp";
+
+						const HRESULT hr = DirectX::SaveWICTextureToFile(m_pImmediateContext, pBackBufferTexture, GUID_ContainerFormatBmp, m_screeShot.path.c_str(), &GUID_WICPixelFormat16bppBGR565);
+						m_screeShot.isSuccess = SUCCEEDED(hr);
+					}
+					else
+					{
+						GUID formatGuid{};
+
+						switch (m_screeShot.format)
+						{
+						case ePNG:
+							formatGuid = GUID_ContainerFormatPng;
+							m_screeShot.path += L".png";
+							break;
+							//case eICO:
+							//	formatGuid = GUID_ContainerFormatIco;
+							//	m_screeShot.path += ".ico";
+							//	break;
+						case eJPEG:
+							formatGuid = GUID_ContainerFormatJpeg;
+							m_screeShot.path += L".jpg";
+							break;
+							//case eGIF:
+							//	formatGuid = GUID_ContainerFormatGif;
+							//	m_screeShot.path += ".gif";
+							//	break;
+							//case eWMP:
+							//	formatGuid = GUID_ContainerFormatWmp;
+							//	m_screeShot.path += ".wmp";
+							//	break;
+						}
+
+						const HRESULT hr = DirectX::SaveWICTextureToFile(m_pImmediateContext, pBackBufferTexture, formatGuid, m_screeShot.path.c_str());
+						m_screeShot.isSuccess = SUCCEEDED(hr);
+					}
+				}
+			}
+
 			RenderTarget* Device::Impl::GetRenderTarget(const D3D11_TEXTURE2D_DESC* pDesc)
 			{
 				thread::SRWWriteLock writeLock(&m_srwLock);
 
 				const RenderTarget::Key key = RenderTarget::BuildKey(pDesc);
-				auto iter_range = m_ummapRenderTargetPool.equal_range(key);
+				auto iter_range = m_renderTargetPool.equal_range(key);
 				for (auto iter = iter_range.first; iter != iter_range.second; ++iter)
 				{
 					ResourcePool<RenderTarget>& pool = iter->second;
@@ -368,7 +483,7 @@ namespace est
 					throw_line("failed to create render target");
 				}
 
-				auto iter_result = m_ummapRenderTargetPool.emplace(key, std::move(pool));
+				auto iter_result = m_renderTargetPool.emplace(key, std::move(pool));
 				return iter_result->second.pResource.get();
 			}
 
@@ -381,7 +496,7 @@ namespace est
 					if (ppRenderTarget[i] == nullptr)
 						continue;
 
-					auto iter_range = m_ummapRenderTargetPool.equal_range(ppRenderTarget[i]->GetKey());
+					auto iter_range = m_renderTargetPool.equal_range(ppRenderTarget[i]->GetKey());
 					for (auto iter = iter_range.first; iter != iter_range.second; ++iter)
 					{
 						if (iter->second.pResource.get() == ppRenderTarget[i])
@@ -399,7 +514,7 @@ namespace est
 				thread::SRWWriteLock writeLock(&m_srwLock);
 
 				const DepthStencil::Key key = DepthStencil::BuildKey(pDesc);
-				auto iter_range = m_ummapDepthStencilPool.equal_range(key);
+				auto iter_range = m_depthStencilPool.equal_range(key);
 				for (auto iter = iter_range.first; iter != iter_range.second; ++iter)
 				{
 					ResourcePool<DepthStencil>& pool = iter->second;
@@ -417,7 +532,7 @@ namespace est
 					throw_line("failed to create render target");
 				}
 
-				auto iter_result = m_ummapDepthStencilPool.emplace(key, std::move(pool));
+				auto iter_result = m_depthStencilPool.emplace(key, std::move(pool));
 				return iter_result->second.pResource.get();
 			}
 
@@ -428,7 +543,7 @@ namespace est
 
 				thread::SRWWriteLock writeLock(&m_srwLock);
 
-				auto iter_range = m_ummapDepthStencilPool.equal_range((*ppDepthStencil)->GetKey());
+				auto iter_range = m_depthStencilPool.equal_range((*ppDepthStencil)->GetKey());
 				for (auto iter = iter_range.first; iter != iter_range.second; ++iter)
 				{
 					if (iter->second.pResource.get() == (*ppDepthStencil))
@@ -448,69 +563,132 @@ namespace est
 				switch (nMsg)
 				{
 				case WM_SIZE:
-					if (m_pDevice != nullptr && wParam != SIZE_MINIMIZED)
-					{
-						uint32_t width = LOWORD(lParam);
-						uint32_t height = HIWORD(lParam);
-
-						Resize(width, height);
-					}
+					//if (m_pDevice != nullptr && wParam != SIZE_MINIMIZED)
+					//{
+					//	uint32_t width = LOWORD(lParam);
+					//	uint32_t height = HIWORD(lParam);
+					//
+					//	Resize(width, height);
+					//}
 					break;
 				}
 			}
 
+			bool Device::Impl::Resize(uint32_t width, uint32_t height, bool isFullScreen, bool isEnableVSync, std::function<void(bool)> callback)
+			{
+				const math::uint2& screenSize = Window::GetInstance()->GetScreenSize();
+				if (width == screenSize.x && height == screenSize.y && 
+					Window::GetInstance()->IsFullScreen() == isFullScreen &&
+					isEnableVSync == GetOptions().OnVSync)
+					return false;
+
+				m_pResizeInfo = std::make_unique<ResizeInfo>();
+				m_pResizeInfo->width = width;
+				m_pResizeInfo->height = height;
+				m_pResizeInfo->isFullScreen = isFullScreen;
+				m_pResizeInfo->isEnableVSync = isEnableVSync;
+				m_pResizeInfo->callback = callback;
+				return true;
+			}
+
+			bool Device::Impl::OnResize(uint32_t width, uint32_t height, bool isFullScreen, bool isEnableVSync)
+			{
+				const math::uint2& screenSize = Window::GetInstance()->GetScreenSize();
+				if (width == screenSize.x && height == screenSize.y)
+					return false;
+
+				if (Window::GetInstance()->Resize(width, height, isFullScreen) == false)
+					return false;
+
+				ImGui_ImplDX11_InvalidateDeviceObjects();
+
+				m_renderTargetPool.clear();
+				m_depthStencilPool.clear();
+
+				m_pSwapChainRenderTarget.reset();
+
+				m_pImmediateContext->ClearState();
+
+				HRESULT hr = m_pSwapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
+				if (FAILED(hr))
+				{
+					LOG_WARNING(L"Device Lost : Reason code 0x%08X", (hr == DXGI_ERROR_DEVICE_REMOVED) ? m_pDevice->GetDeviceRemovedReason() : hr);
+					throw_line("failed to resize device dx11");
+				}
+
+				ID3D11Texture2D* pBackBuffer = nullptr;
+				if (FAILED(m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&pBackBuffer))))
+				{
+					throw_line("failed to get back buffer");
+				}
+
+				m_pSwapChainRenderTarget = RenderTarget::Create(pBackBuffer);
+
+				D3D11_TEXTURE2D_DESC desc{};
+				pBackBuffer->GetDesc(&desc);
+
+				m_viewport.x = 0.0f;
+				m_viewport.y = 0.0f;
+				m_viewport.width = static_cast<float>(desc.Width);
+				m_viewport.height = static_cast<float>(desc.Height);
+				m_viewport.minDepth = 0.0f;
+				m_viewport.maxDepth = 1.0f;
+
+				GetOptions().OnVSync = isEnableVSync;
+
+				m_pGBuffer->Resize(width, height);
+
+				ImGui_ImplDX11_CreateDeviceObjects();
+			}
+
+			void Device::Impl::ScreenShot(ScreenShotFormat format, const std::wstring& path, std::function<void(bool, const std::wstring&)> screenShotCallback)
+			{
+				m_screeShot = {};
+				m_screeShot.format = format;
+				m_screeShot.path = path;
+				m_screeShot.callback = screenShotCallback;
+			}
+
 			void Device::Impl::InitializeD3D()
 			{
-				IDXGIFactory4* pDxgiFactory{ nullptr };
+				CComPtr<IDXGIFactory4> pDxgiFactory{ nullptr };
 				HRESULT hr = CreateDXGIFactory(IID_PPV_ARGS(&pDxgiFactory));
 				if (FAILED(hr))
 				{
 					throw_line("failed to create dxgi factory");
 				}
 
-				IDXGIAdapter1* pAdapter{ nullptr };
+				CComPtr<IDXGIAdapter1> pAdapter{ nullptr };
 				hr = pDxgiFactory->EnumAdapters1(0, &pAdapter);
 				if (FAILED(hr))
 				{
 					throw_line("failed to find adapters");
 				}
 
-				IDXGIOutput* pAdapterOutput{ nullptr };
+				CComPtr<IDXGIOutput> pAdapterOutput{ nullptr };
 				hr = pAdapter->EnumOutputs(0, &pAdapterOutput);
 				if (FAILED(hr))
 				{
 					throw_line("failed to find adapters");
 				}
 
-				uint32_t numModes = 0;
-				hr = pAdapterOutput->GetDisplayModeList(DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_ENUM_MODES_INTERLACED, &numModes, nullptr);
+				uint32_t numDisplayMode = 0;
+				hr = pAdapterOutput->GetDisplayModeList(DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_ENUM_MODES_INTERLACED, &numDisplayMode, nullptr);
 				if (FAILED(hr))
 				{
 					throw_line("unsupported display mode");
 				}
 
-				m_vecDisplayModes.clear();
-				m_vecDisplayModes.resize(numModes);
+				m_selectedDisplayModeIndex = std::numeric_limits<size_t>::max();
+				m_supportedDisplayModes.clear();
 
-				hr = pAdapterOutput->GetDisplayModeList(DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_ENUM_MODES_INTERLACED, &numModes, &m_vecDisplayModes.front());
+				std::vector<DXGI_MODE_DESC> displayModes;
+				displayModes.resize(numDisplayMode);
+
+				hr = pAdapterOutput->GetDisplayModeList(DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_ENUM_MODES_INTERLACED, &numDisplayMode, &displayModes.front());
 				if (FAILED(hr))
 				{
 					throw_line("unsupported display mode");
-				}
-
-				uint32_t numerator = 0;
-				uint32_t denominator = 0;
-				for (uint32_t i = 0; i < numModes; ++i)
-				{
-					if (m_vecDisplayModes[i].Width == m_n2ScreenSize.x)
-					{
-						if (m_vecDisplayModes[i].Height == m_n2ScreenSize.y)
-						{
-							numerator = m_vecDisplayModes[i].RefreshRate.Numerator;
-							denominator = m_vecDisplayModes[i].RefreshRate.Denominator;
-							break;
-						}
-					}
 				}
 
 				DXGI_ADAPTER_DESC adapterDesc{};
@@ -520,13 +698,13 @@ namespace est
 					throw_line("failed to get DXGI_ADPTER_DESC");
 				}
 
-				m_nVideoCardMemory = static_cast<size_t>(adapterDesc.DedicatedVideoMemory / 1024Ui64 / 1024Ui64);
+				m_videoCardMemory = static_cast<size_t>(adapterDesc.DedicatedVideoMemory / 1024Ui64 / 1024Ui64);
 
-				m_strVideoCardDescription = string::WideToMulti(adapterDesc.Description);
+				m_videoCardDescription = adapterDesc.Description;
 
 				D3D_FEATURE_LEVEL requestedLevels[] = { D3D_FEATURE_LEVEL_11_1, D3D_FEATURE_LEVEL_11_0 };
 
-				uint32_t creationFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
+				uint32_t creationFlags = 0;
 
 #if defined(DEBUG) || defined(_DEBUG)
 				creationFlags |= D3D11_CREATE_DEVICE_DEBUG;
@@ -541,6 +719,68 @@ namespace est
 					throw_line("failed to create device");
 				}
 
+				//{
+				//	CComPtr<ID3D10Multithread> pMultithread = nullptr;
+				//	hr = m_pImmediateContext->QueryInterface<ID3D10Multithread>(&pMultithread);
+				//	if (FAILED(hr))
+				//	{
+				//		throw_line("failed to get multithread object");
+				//	}
+				//	pMultithread->SetMultithreadProtected(TRUE);
+				//}
+
+				const math::uint2& screenSize = Window::GetInstance()->GetScreenSize();
+
+				m_supportedDisplayModes.reserve(numDisplayMode);
+
+				for (uint32_t i = 0; i < numDisplayMode; ++i)
+				{
+					if (displayModes[i].Width == 0 || displayModes[i].Height == 0)
+						continue;
+
+					auto iter = std::find_if(m_supportedDisplayModes.begin(), m_supportedDisplayModes.end(), [=](const DisplayModeDesc& displayModeDesc)
+						{
+							return displayModeDesc.width == displayModes[i].Width &&
+								displayModeDesc.height == displayModes[i].Height;
+						});
+
+					if (iter != m_supportedDisplayModes.end())
+					{
+						DisplayModeDesc& displayModeDesc = *iter;
+						const float refreshRate_old = static_cast<float>(displayModeDesc.refreshRate_numerator) / static_cast<float>(displayModeDesc.refreshRate_denominator);
+						const float refreshRate_new = static_cast<float>(displayModes[i].RefreshRate.Numerator) / static_cast<float>(displayModes[i].RefreshRate.Denominator);
+						if (refreshRate_new > refreshRate_old)
+						{
+							displayModeDesc.refreshRate_numerator = displayModes[i].RefreshRate.Numerator;
+							displayModeDesc.refreshRate_denominator = displayModes[i].RefreshRate.Denominator;
+						}
+						continue;
+					}
+
+					DisplayModeDesc displayModeDesc;
+					displayModeDesc.width = displayModes[i].Width;
+					displayModeDesc.height = displayModes[i].Height;
+					displayModeDesc.refreshRate_numerator = displayModes[i].RefreshRate.Numerator;
+					displayModeDesc.refreshRate_denominator = displayModes[i].RefreshRate.Denominator;
+					m_supportedDisplayModes.emplace_back(displayModeDesc);
+
+					if (displayModes[i].Width == screenSize.x &&
+						displayModes[i].Height == screenSize.y)
+					{
+						m_selectedDisplayModeIndex = m_supportedDisplayModes.size() - 1;
+					}
+				}
+
+				if (m_supportedDisplayModes.empty() == true)
+				{
+					throw_line("not exists support display");
+				}
+
+				if (m_selectedDisplayModeIndex == std::numeric_limits<size_t>::max())
+				{
+					m_selectedDisplayModeIndex = 0;
+				}
+
 				DXGI_SWAP_CHAIN_DESC1 swapChainDesc{};
 				swapChainDesc.Width = 0;
 				swapChainDesc.Height = 0;
@@ -551,20 +791,49 @@ namespace est
 				swapChainDesc.SampleDesc.Quality = 0;
 				swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT | DXGI_USAGE_SHADER_INPUT | DXGI_USAGE_BACK_BUFFER;
 				swapChainDesc.Scaling = DXGI_SCALING_STRETCH;
-				swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+				swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
 				swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 				DXGI_SWAP_CHAIN_FULLSCREEN_DESC swapChainFullScreenDesc{};
-				swapChainFullScreenDesc.Windowed = m_isFullScreen == false;
+				swapChainFullScreenDesc.Windowed = Window::GetInstance()->IsFullScreen() == false;
 				swapChainFullScreenDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+				swapChainFullScreenDesc.RefreshRate.Numerator = m_supportedDisplayModes[m_selectedDisplayModeIndex].refreshRate_numerator;
+				swapChainFullScreenDesc.RefreshRate.Denominator = m_supportedDisplayModes[m_selectedDisplayModeIndex].refreshRate_denominator;
 
-				swapChainFullScreenDesc.RefreshRate.Numerator = numerator;
-				swapChainFullScreenDesc.RefreshRate.Denominator = denominator;
-
-				hr = pDxgiFactory->CreateSwapChainForHwnd(m_pDevice, m_hWnd, &swapChainDesc, &swapChainFullScreenDesc, nullptr, &m_pSwapChain);
+				hr = pDxgiFactory->CreateSwapChainForHwnd(m_pDevice, Window::GetInstance()->GetHwnd(), &swapChainDesc, &swapChainFullScreenDesc, nullptr, &m_pSwapChain);
 				if (FAILED(hr))
 				{
 					throw_line("failed to create swapchain");
+				}
+
+				// Disagle Alt + Enter
+				{
+					CComPtr<IDXGIDevice> pDXGIDevice;
+					hr = m_pDevice->QueryInterface(__uuidof(IDXGIDevice), (void**)&pDXGIDevice);
+					if (FAILED(hr))
+					{
+						throw_line("failed to get IDXGIDevice");
+					}
+
+					CComPtr<IDXGIAdapter> pDXGIAdapter;
+					hr = pDXGIDevice->GetParent(__uuidof(IDXGIAdapter), (void**)&pDXGIAdapter);
+					if (FAILED(hr))
+					{
+						throw_line("failed to get IDXGIAdapter");
+					}
+
+					CComPtr<IDXGIFactory> pIDXGIFactory;
+					hr = pDXGIAdapter->GetParent(__uuidof(IDXGIFactory), (void**)&pIDXGIFactory);
+					if (FAILED(hr))
+					{
+						throw_line("failed to get IDXGIFactory");
+					}
+
+					hr = pIDXGIFactory->MakeWindowAssociation(Window::GetInstance()->GetHwnd(), DXGI_MWA_NO_WINDOW_CHANGES | DXGI_MWA_NO_ALT_ENTER);
+					if (FAILED(hr))
+					{
+						throw_line("failed to MakeWindowAssociation");
+					}
 				}
 
 				if (FAILED(m_pSwapChain->GetDesc1(&swapChainDesc)))
@@ -572,7 +841,7 @@ namespace est
 					throw_line("failed to get DXGI_SWAP_CHAIN_DESC1");
 				}
 
-				ID3D11Texture2D* pBackBuffer = nullptr;
+				CComPtr<ID3D11Texture2D> pBackBuffer = nullptr;
 				if (FAILED(m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&pBackBuffer))))
 				{
 					throw_line("failed to get back buffer");
@@ -582,13 +851,6 @@ namespace est
 
 				D3D11_TEXTURE2D_DESC desc{};
 				pBackBuffer->GetDesc(&desc);
-				m_pBackBufferSwapChain = RenderTarget::Create(&desc);
-
-				SafeRelease(pBackBuffer);
-
-				SafeRelease(pAdapterOutput);
-				SafeRelease(pAdapter);
-				SafeRelease(pDxgiFactory);
 
 				hr = m_pImmediateContext->QueryInterface(IID_PPV_ARGS(&m_pUserDefinedAnnotation));
 				if (FAILED(hr))
@@ -597,27 +859,42 @@ namespace est
 				}
 
 				// Setup the viewport for rendering.
-				m_viewport.TopLeftX = 0.0f;
-				m_viewport.TopLeftY = 0.0f;
-				m_viewport.Width = static_cast<float>(swapChainDesc.Width);
-				m_viewport.Height = static_cast<float>(swapChainDesc.Height);
-				m_viewport.MinDepth = 0.0f;
-				m_viewport.MaxDepth = 1.0f;
+				m_viewport.x = 0.0f;
+				m_viewport.y = 0.0f;
+				m_viewport.width = static_cast<float>(swapChainDesc.Width);
+				m_viewport.height = static_cast<float>(swapChainDesc.Height);
+				m_viewport.minDepth = 0.0f;
+				m_viewport.maxDepth = 1.0f;
 
-				m_n2ScreenSize.x = swapChainDesc.Width;
-				m_n2ScreenSize.y = swapChainDesc.Height;
+				m_pGBuffer = std::make_unique<GBuffer>(screenSize.x, screenSize.y);
 
-				m_pGBuffer = std::make_unique<GBuffer>(m_n2ScreenSize.x, m_n2ScreenSize.y);
+				CComPtr<ID3D11Debug> pDebug = nullptr;
+				if (SUCCEEDED(m_pDevice->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void**>(&pDebug))))
+				{
+					CComPtr<ID3D11InfoQueue> pQueue = nullptr;
+					if (SUCCEEDED(pDebug->QueryInterface(__uuidof(ID3D11InfoQueue), reinterpret_cast<void**>(&pQueue))))
+					{
+						D3D11_MESSAGE_ID hide[] =
+						{
+							D3D11_MESSAGE_ID_DEVICE_DRAW_RENDERTARGETVIEW_NOT_SET,
+						};
+
+						D3D11_INFO_QUEUE_FILTER filter{};
+						filter.DenyList.NumIDs = _countof(hide);
+						filter.DenyList.pIDList = hide;
+						pQueue->AddStorageFilterEntries(&filter);
+					}
+				}
 			}
 
 			void Device::Impl::InitializeRasterizerState()
 			{
-				auto CreateRasterizerState = [&](EmRasterizerState::Type emRasterizerState)
+				auto CreateRasterizerState = [&](RasterizerState::Type rasterizerState)
 				{
 					CD3D11_RASTERIZER_DESC desc(D3D11_DEFAULT);
-					switch (emRasterizerState)
+					switch (rasterizerState)
 					{
-					case EmRasterizerState::eSolidCCW:
+					case RasterizerState::eSolidCCW:
 						desc.AntialiasedLineEnable = false;
 						desc.FillMode = D3D11_FILL_SOLID;
 						desc.CullMode = D3D11_CULL_BACK;
@@ -629,7 +906,7 @@ namespace est
 						desc.ScissorEnable = false;
 						desc.SlopeScaledDepthBias = 0.f;
 						break;
-					case EmRasterizerState::eSolidCW:
+					case RasterizerState::eSolidCW:
 						desc.AntialiasedLineEnable = false;
 						desc.FillMode = D3D11_FILL_SOLID;
 						desc.CullMode = D3D11_CULL_FRONT;
@@ -641,7 +918,7 @@ namespace est
 						desc.ScissorEnable = false;
 						desc.SlopeScaledDepthBias = 0.f;
 						break;
-					case EmRasterizerState::eSolidCullNone:
+					case RasterizerState::eSolidCullNone:
 						desc.AntialiasedLineEnable = false;
 						desc.FillMode = D3D11_FILL_SOLID;
 						desc.CullMode = D3D11_CULL_NONE;
@@ -653,7 +930,7 @@ namespace est
 						desc.ScissorEnable = false;
 						desc.SlopeScaledDepthBias = 0.f;
 						break;
-					case EmRasterizerState::eWireframeCCW:
+					case RasterizerState::eWireframeCCW:
 						desc.AntialiasedLineEnable = false;
 						desc.FillMode = D3D11_FILL_WIREFRAME;
 						desc.CullMode = D3D11_CULL_BACK;
@@ -665,7 +942,7 @@ namespace est
 						desc.ScissorEnable = false;
 						desc.SlopeScaledDepthBias = 0.f;
 						break;
-					case EmRasterizerState::eWireframeCW:
+					case RasterizerState::eWireframeCW:
 						desc.AntialiasedLineEnable = false;
 						desc.FillMode = D3D11_FILL_WIREFRAME;
 						desc.CullMode = D3D11_CULL_FRONT;
@@ -677,7 +954,7 @@ namespace est
 						desc.ScissorEnable = false;
 						desc.SlopeScaledDepthBias = 0.f;
 						break;
-					case EmRasterizerState::eWireframeCullNone:
+					case RasterizerState::eWireframeCullNone:
 						desc.AntialiasedLineEnable = false;
 						desc.FillMode = D3D11_FILL_WIREFRAME;
 						desc.CullMode = D3D11_CULL_NONE;
@@ -693,32 +970,32 @@ namespace est
 						assert(false);
 					}
 
-					HRESULT hr = m_pDevice->CreateRasterizerState(&desc, &m_pRasterizerStates[emRasterizerState]);
+					HRESULT hr = m_pDevice->CreateRasterizerState(&desc, &m_pRasterizerStates[rasterizerState]);
 					if (FAILED(hr))
 					{
-						std::string str = string::Format("failed to create rasterizer state : %d", emRasterizerState);
+						std::string str = string::Format("failed to create rasterizer state : %d", rasterizerState);
 						throw_line(str.c_str());
 					}
 				};
 
-				for (int i = 0; i < EmRasterizerState::TypeCount; ++i)
+				for (int i = 0; i < RasterizerState::TypeCount; ++i)
 				{
-					EmRasterizerState::Type emType = static_cast<EmRasterizerState::Type>(i);
+					RasterizerState::Type emType = static_cast<RasterizerState::Type>(i);
 					CreateRasterizerState(emType);
 				}
 			}
 
 			void Device::Impl::InitializeBlendState()
 			{
-				auto CreateBlendState = [&](EmBlendState::Type emBlendState)
+				auto CreateBlendState = [&](BlendState::Type blendState)
 				{
 					CD3D11_BLEND_DESC desc(D3D11_DEFAULT);
 					desc.AlphaToCoverageEnable = false;
 					desc.IndependentBlendEnable = false;
 
-					switch (emBlendState)
+					switch (blendState)
 					{
-					case EmBlendState::eOff:
+					case BlendState::eOff:
 						// 알파 OFF
 						for (int i = 0; i < 8; ++i)
 						{
@@ -732,7 +1009,7 @@ namespace est
 							desc.RenderTarget[i].RenderTargetWriteMask = 0x0f;
 						}
 						break;
-					case EmBlendState::eLinear:
+					case BlendState::eLinear:
 						// 선형합성
 						for (int i = 0; i < 8; ++i)
 						{
@@ -746,7 +1023,7 @@ namespace est
 							desc.RenderTarget[i].RenderTargetWriteMask = 0x0f;
 						}
 						break;
-					case EmBlendState::eAdditive:
+					case BlendState::eAdditive:
 						// 가산합성
 						for (int i = 0; i < 8; ++i)
 						{
@@ -760,7 +1037,7 @@ namespace est
 							desc.RenderTarget[i].RenderTargetWriteMask = 0x0f;
 						}
 						break;
-					case EmBlendState::eSubTractive:
+					case BlendState::eSubTractive:
 						// 감산합성
 						for (int i = 0; i < 8; ++i)
 						{
@@ -774,7 +1051,7 @@ namespace est
 							desc.RenderTarget[i].RenderTargetWriteMask = 0x0f;
 						}
 						break;
-					case EmBlendState::eMultiplicative:
+					case BlendState::eMultiplicative:
 						// 곱셈합성
 						for (int i = 0; i < 8; ++i)
 						{
@@ -788,7 +1065,7 @@ namespace est
 							desc.RenderTarget[i].RenderTargetWriteMask = 0x0f;
 						}
 						break;
-					case EmBlendState::eSquared:
+					case BlendState::eSquared:
 						// 제곱합성
 						for (int i = 0; i < 8; ++i)
 						{
@@ -802,7 +1079,7 @@ namespace est
 							desc.RenderTarget[i].RenderTargetWriteMask = 0x0f;
 						}
 						break;
-					case EmBlendState::eNegative:
+					case BlendState::eNegative:
 						// 반전합성
 						for (int i = 0; i < 8; ++i)
 						{
@@ -816,7 +1093,7 @@ namespace est
 							desc.RenderTarget[i].RenderTargetWriteMask = 0x0f;
 						}
 						break;
-					case EmBlendState::eOpacity:
+					case BlendState::eOpacity:
 						// 불투명합성
 						for (int i = 0; i < 8; ++i)
 						{
@@ -830,7 +1107,7 @@ namespace est
 							desc.RenderTarget[i].RenderTargetWriteMask = 0x0f;
 						}
 						break;
-					case EmBlendState::eAlphaBlend:
+					case BlendState::eAlphaBlend:
 						for (int i = 0; i < 8; ++i)
 						{
 							desc.RenderTarget[i].BlendEnable = true;
@@ -847,33 +1124,33 @@ namespace est
 						assert(false);
 					}
 
-					HRESULT hr = m_pDevice->CreateBlendState(&desc, &m_pBlendStates[emBlendState]);
+					HRESULT hr = m_pDevice->CreateBlendState(&desc, &m_pBlendStates[blendState]);
 					if (FAILED(hr))
 					{
-						std::string str = string::Format("failed to create blend state : %d", emBlendState);
+						std::string str = string::Format("failed to create blend state : %d", blendState);
 						throw_line(str.c_str());
 					}
 				};
 
-				for (int i = 0; i < EmBlendState::TypeCount; ++i)
+				for (int i = 0; i < BlendState::TypeCount; ++i)
 				{
-					EmBlendState::Type emType = static_cast<EmBlendState::Type>(i);
+					BlendState::Type emType = static_cast<BlendState::Type>(i);
 					CreateBlendState(emType);
 				}
 			}
 
 			void Device::Impl::InitializeSamplerState()
 			{
-				auto CreateSamplerState = [&](EmSamplerState::Type emSamplerState)
+				auto CreateSamplerState = [&](SamplerState::Type samplerState)
 				{
 					CD3D11_SAMPLER_DESC desc(D3D11_DEFAULT);
-					switch (emSamplerState)
+					switch (samplerState)
 					{
-					case EmSamplerState::eMinMagMipLinearWrap:
-					case EmSamplerState::eMinMagMipLinearClamp:
-					case EmSamplerState::eMinMagMipLinearBorder:
-					case EmSamplerState::eMinMagMipLinearMirror:
-					case EmSamplerState::eMinMagMipLinearMirrorOnce:
+					case SamplerState::eMinMagMipLinearWrap:
+					case SamplerState::eMinMagMipLinearClamp:
+					case SamplerState::eMinMagMipLinearBorder:
+					case SamplerState::eMinMagMipLinearMirror:
+					case SamplerState::eMinMagMipLinearMirrorOnce:
 						desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 						desc.MipLODBias = MipLODBias;
 						desc.MaxAnisotropy = 1;
@@ -884,40 +1161,40 @@ namespace est
 						desc.BorderColor[3] = 0;
 						desc.MinLOD = 0;
 						desc.MaxLOD = D3D11_FLOAT32_MAX;
-						switch (emSamplerState)
+						switch (samplerState)
 						{
-						case EmSamplerState::eMinMagMipLinearWrap:
+						case SamplerState::eMinMagMipLinearWrap:
 							desc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 							desc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 							desc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
 							break;
-						case EmSamplerState::eMinMagMipLinearClamp:
+						case SamplerState::eMinMagMipLinearClamp:
 							desc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
 							desc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
 							desc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
 							break;
-						case EmSamplerState::eMinMagMipLinearBorder:
+						case SamplerState::eMinMagMipLinearBorder:
 							desc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
 							desc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
 							desc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
 							break;
-						case EmSamplerState::eMinMagMipLinearMirror:
+						case SamplerState::eMinMagMipLinearMirror:
 							desc.AddressU = D3D11_TEXTURE_ADDRESS_MIRROR;
 							desc.AddressV = D3D11_TEXTURE_ADDRESS_MIRROR;
 							desc.AddressW = D3D11_TEXTURE_ADDRESS_MIRROR;
 							break;
-						case EmSamplerState::eMinMagMipLinearMirrorOnce:
+						case SamplerState::eMinMagMipLinearMirrorOnce:
 							desc.AddressU = D3D11_TEXTURE_ADDRESS_MIRROR_ONCE;
 							desc.AddressV = D3D11_TEXTURE_ADDRESS_MIRROR_ONCE;
 							desc.AddressW = D3D11_TEXTURE_ADDRESS_MIRROR_ONCE;
 							break;
 						}
 						break;
-					case EmSamplerState::eMinMagLinearMipPointWrap:
-					case EmSamplerState::eMinMagLinearMipPointClamp:
-					case EmSamplerState::eMinMagLinearMipPointBorder:
-					case EmSamplerState::eMinMagLinearMipPointMirror:
-					case EmSamplerState::eMinMagLinearMipPointMirrorOnce:
+					case SamplerState::eMinMagLinearMipPointWrap:
+					case SamplerState::eMinMagLinearMipPointClamp:
+					case SamplerState::eMinMagLinearMipPointBorder:
+					case SamplerState::eMinMagLinearMipPointMirror:
+					case SamplerState::eMinMagLinearMipPointMirrorOnce:
 						desc.Filter = D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT;
 						desc.MipLODBias = MipLODBias;
 						desc.MaxAnisotropy = 1;
@@ -929,40 +1206,40 @@ namespace est
 						desc.MinLOD = 0.f;
 						desc.MaxLOD = D3D11_FLOAT32_MAX;
 
-						switch (emSamplerState)
+						switch (samplerState)
 						{
-						case EmSamplerState::eMinMagLinearMipPointWrap:
+						case SamplerState::eMinMagLinearMipPointWrap:
 							desc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 							desc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 							desc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
 							break;
-						case EmSamplerState::eMinMagLinearMipPointClamp:
+						case SamplerState::eMinMagLinearMipPointClamp:
 							desc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
 							desc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
 							desc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
 							break;
-						case EmSamplerState::eMinMagLinearMipPointBorder:
+						case SamplerState::eMinMagLinearMipPointBorder:
 							desc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
 							desc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
 							desc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
 							break;
-						case EmSamplerState::eMinMagLinearMipPointMirror:
+						case SamplerState::eMinMagLinearMipPointMirror:
 							desc.AddressU = D3D11_TEXTURE_ADDRESS_MIRROR;
 							desc.AddressV = D3D11_TEXTURE_ADDRESS_MIRROR;
 							desc.AddressW = D3D11_TEXTURE_ADDRESS_MIRROR;
 							break;
-						case EmSamplerState::eMinMagLinearMipPointMirrorOnce:
+						case SamplerState::eMinMagLinearMipPointMirrorOnce:
 							desc.AddressU = D3D11_TEXTURE_ADDRESS_MIRROR_ONCE;
 							desc.AddressV = D3D11_TEXTURE_ADDRESS_MIRROR_ONCE;
 							desc.AddressW = D3D11_TEXTURE_ADDRESS_MIRROR_ONCE;
 							break;
 						}
 						break;
-					case EmSamplerState::eAnisotropicWrap:
-					case EmSamplerState::eAnisotropicClamp:
-					case EmSamplerState::eAnisotropicBorder:
-					case EmSamplerState::eAnisotropicMirror:
-					case EmSamplerState::eAnisotropicMirrorOnce:
+					case SamplerState::eAnisotropicWrap:
+					case SamplerState::eAnisotropicClamp:
+					case SamplerState::eAnisotropicBorder:
+					case SamplerState::eAnisotropicMirror:
+					case SamplerState::eAnisotropicMirrorOnce:
 						desc.Filter = D3D11_FILTER_ANISOTROPIC;
 						desc.MipLODBias = MipLODBias;
 						desc.MaxAnisotropy = 16;
@@ -973,40 +1250,40 @@ namespace est
 						desc.BorderColor[3] = 0.f;
 						desc.MinLOD = 0.f;
 						desc.MaxLOD = D3D11_FLOAT32_MAX;
-						switch (emSamplerState)
+						switch (samplerState)
 						{
-						case EmSamplerState::eAnisotropicWrap:
+						case SamplerState::eAnisotropicWrap:
 							desc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 							desc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 							desc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
 							break;
-						case EmSamplerState::eAnisotropicClamp:
+						case SamplerState::eAnisotropicClamp:
 							desc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
 							desc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
 							desc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
 							break;
-						case EmSamplerState::eAnisotropicBorder:
+						case SamplerState::eAnisotropicBorder:
 							desc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
 							desc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
 							desc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
 							break;
-						case EmSamplerState::eAnisotropicMirror:
+						case SamplerState::eAnisotropicMirror:
 							desc.AddressU = D3D11_TEXTURE_ADDRESS_MIRROR;
 							desc.AddressV = D3D11_TEXTURE_ADDRESS_MIRROR;
 							desc.AddressW = D3D11_TEXTURE_ADDRESS_MIRROR;
 							break;
-						case EmSamplerState::eAnisotropicMirrorOnce:
+						case SamplerState::eAnisotropicMirrorOnce:
 							desc.AddressU = D3D11_TEXTURE_ADDRESS_MIRROR_ONCE;
 							desc.AddressV = D3D11_TEXTURE_ADDRESS_MIRROR_ONCE;
 							desc.AddressW = D3D11_TEXTURE_ADDRESS_MIRROR_ONCE;
 							break;
 						}
 						break;
-					case EmSamplerState::eMinMagMipPointWrap:
-					case EmSamplerState::eMinMagMipPointClamp:
-					case EmSamplerState::eMinMagMipPointBorder:
-					case EmSamplerState::eMinMagMipPointMirror:
-					case EmSamplerState::eMinMagMipPointMirrorOnce:
+					case SamplerState::eMinMagMipPointWrap:
+					case SamplerState::eMinMagMipPointClamp:
+					case SamplerState::eMinMagMipPointBorder:
+					case SamplerState::eMinMagMipPointMirror:
+					case SamplerState::eMinMagMipPointMirrorOnce:
 						desc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
 						desc.MipLODBias = MipLODBias;
 						desc.MaxAnisotropy = 1;
@@ -1017,29 +1294,29 @@ namespace est
 						desc.BorderColor[3] = 0;
 						desc.MinLOD = 0;
 						desc.MaxLOD = D3D11_FLOAT32_MAX;
-						switch (emSamplerState)
+						switch (samplerState)
 						{
-						case EmSamplerState::eMinMagMipPointWrap:
+						case SamplerState::eMinMagMipPointWrap:
 							desc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 							desc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 							desc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
 							break;
-						case EmSamplerState::eMinMagMipPointClamp:
+						case SamplerState::eMinMagMipPointClamp:
 							desc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
 							desc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
 							desc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
 							break;
-						case EmSamplerState::eMinMagMipPointBorder:
+						case SamplerState::eMinMagMipPointBorder:
 							desc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
 							desc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
 							desc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
 							break;
-						case EmSamplerState::eMinMagMipPointMirror:
+						case SamplerState::eMinMagMipPointMirror:
 							desc.AddressU = D3D11_TEXTURE_ADDRESS_MIRROR;
 							desc.AddressV = D3D11_TEXTURE_ADDRESS_MIRROR;
 							desc.AddressW = D3D11_TEXTURE_ADDRESS_MIRROR;
 							break;
-						case EmSamplerState::eMinMagMipPointMirrorOnce:
+						case SamplerState::eMinMagMipPointMirrorOnce:
 							desc.AddressU = D3D11_TEXTURE_ADDRESS_MIRROR_ONCE;
 							desc.AddressV = D3D11_TEXTURE_ADDRESS_MIRROR_ONCE;
 							desc.AddressW = D3D11_TEXTURE_ADDRESS_MIRROR_ONCE;
@@ -1050,29 +1327,29 @@ namespace est
 						assert(false);
 					}
 
-					HRESULT hr = m_pDevice->CreateSamplerState(&desc, &m_pSamplerStates[emSamplerState]);
+					HRESULT hr = m_pDevice->CreateSamplerState(&desc, &m_pSamplerStates[samplerState]);
 					if (FAILED(hr))
 					{
-						std::string str = string::Format("failed to create sampler state : %d", emSamplerState);
+						std::string str = string::Format("failed to create sampler state : %d", samplerState);
 						throw_line(str.c_str());
 					}
 				};
 
-				for (int i = 0; i < EmSamplerState::TypeCount; ++i)
+				for (int i = 0; i < SamplerState::TypeCount; ++i)
 				{
-					EmSamplerState::Type emType = static_cast<EmSamplerState::Type>(i);
+					SamplerState::Type emType = static_cast<SamplerState::Type>(i);
 					CreateSamplerState(emType);
 				}
 			}
 
 			void Device::Impl::InitializeDepthStencilState()
 			{
-				auto CreateDepthStencilState = [&](EmDepthStencilState::Type emDepthStencilState)
+				auto CreateDepthStencilState = [&](DepthStencilState::Type depthStencilState)
 				{
 					CD3D11_DEPTH_STENCIL_DESC desc(D3D11_DEFAULT);
-					switch (emDepthStencilState)
+					switch (depthStencilState)
 					{
-					case EmDepthStencilState::eRead_Write_On:
+					case DepthStencilState::eRead_Write_On:
 					{
 						// 스텐실 상태의 description을 작성합니다.
 						desc.DepthEnable = true;
@@ -1095,7 +1372,7 @@ namespace est
 						desc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 					}
 					break;
-					case EmDepthStencilState::eRead_Write_Off:
+					case DepthStencilState::eRead_Write_Off:
 					{
 						desc.DepthEnable = false;
 						desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
@@ -1117,7 +1394,7 @@ namespace est
 						desc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 					}
 					break;
-					case EmDepthStencilState::eRead_On_Write_Off:
+					case DepthStencilState::eRead_On_Write_Off:
 					{
 						desc.DepthEnable = true;
 						desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
@@ -1139,7 +1416,7 @@ namespace est
 						desc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 					}
 					break;
-					case EmDepthStencilState::eRead_Off_Write_On:
+					case DepthStencilState::eRead_Off_Write_On:
 					{
 						// 스텐실 상태의 description을 작성합니다.
 						desc.DepthEnable = true;
@@ -1166,77 +1443,23 @@ namespace est
 						assert(false);
 					}
 
-					HRESULT hr = m_pDevice->CreateDepthStencilState(&desc, &m_pDepthStencilStates[emDepthStencilState]);
+					HRESULT hr = m_pDevice->CreateDepthStencilState(&desc, &m_pDepthStencilStates[depthStencilState]);
 					if (FAILED(hr))
 					{
-						std::string str = string::Format("failed to create depth stencil state : %d", emDepthStencilState);
+						std::string str = string::Format("failed to create depth stencil state : %d", depthStencilState);
 						throw_line(str.c_str());
 					}
 				};
 
-				for (int i = 0; i < EmDepthStencilState::TypeCount; ++i)
+				for (int i = 0; i < DepthStencilState::TypeCount; ++i)
 				{
-					EmDepthStencilState::Type emType = static_cast<EmDepthStencilState::Type>(i);
+					DepthStencilState::Type emType = static_cast<DepthStencilState::Type>(i);
 					CreateDepthStencilState(emType);
 				}
 			}
 
 			void Device::Impl::Resize(uint32_t width, uint32_t height)
 			{
-				if (width == m_n2ScreenSize.x && height == m_n2ScreenSize.y)
-					return;
-
-				ImGui_ImplDX11_InvalidateDeviceObjects();
-
-				for (auto iter = m_ummapRenderTargetPool.begin(); iter != m_ummapRenderTargetPool.end();)
-				{
-					if (iter->second.isUsing == true)
-					{
-						++iter;
-					}
-					else
-					{
-						iter = m_ummapRenderTargetPool.erase(iter);
-					}
-				}
-				m_pBackBufferSwapChain.reset();
-				m_pSwapChainRenderTarget.reset();
-
-				HRESULT hr = m_pSwapChain->ResizeBuffers(0, width, height, DXGI_FORMAT_UNKNOWN, 0);
-				if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
-				{
-					LOG_WARNING(L"Device Lost : Reason code 0x%08X", (hr == DXGI_ERROR_DEVICE_REMOVED) ? m_pDevice->GetDeviceRemovedReason() : hr);
-
-					//HandleDeviceLost();
-
-					return;
-				}
-
-				ID3D11Texture2D* pBackBuffer = nullptr;
-				if (FAILED(m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&pBackBuffer))))
-				{
-					throw_line("failed to get back buffer");
-				}
-
-				m_pSwapChainRenderTarget = RenderTarget::Create(pBackBuffer);
-
-				D3D11_TEXTURE2D_DESC desc{};
-				pBackBuffer->GetDesc(&desc);
-				m_pBackBufferSwapChain = RenderTarget::Create(&desc);
-
-				m_viewport.TopLeftX = 0.0f;
-				m_viewport.TopLeftY = 0.0f;
-				m_viewport.Width = static_cast<float>(desc.Width);
-				m_viewport.Height = static_cast<float>(desc.Height);
-				m_viewport.MinDepth = 0.0f;
-				m_viewport.MaxDepth = 1.0f;
-
-				m_n2ScreenSize.x = desc.Width;
-				m_n2ScreenSize.y = desc.Height;
-
-				m_pGBuffer->Resize(m_n2ScreenSize.x, m_n2ScreenSize.y);
-
-				ImGui_ImplDX11_CreateDeviceObjects();
 			}
 
 			Device::Device()
@@ -1248,9 +1471,9 @@ namespace est
 			{
 			}
 
-			void Device::Initialize(uint32_t width, uint32_t height, bool isFullScreen, const string::StringID& applicationTitle, const string::StringID& applicationName)
+			void Device::Initialize(uint32_t width, uint32_t height, bool isFullScreen, const string::StringID& applicationTitle, const string::StringID& applicationName, std::function<HRESULT(HWND, uint32_t, WPARAM, LPARAM)> messageHandler)
 			{
-				m_pImpl->Initialize(width, height, isFullScreen, applicationTitle, applicationName);
+				m_pImpl->Initialize(width, height, isFullScreen, applicationTitle, applicationName, messageHandler);
 			}
 
 			void Device::Run(std::function<bool()> funcUpdate)
@@ -1261,6 +1484,16 @@ namespace est
 			void Device::Cleanup(float elapsedTime)
 			{
 				m_pImpl->Cleanup(elapsedTime);
+			}
+
+			bool Device::Resize(uint32_t width, uint32_t height, bool isFullScreen, bool isEnableVSync, std::function<void(bool)> callback)
+			{
+				m_pImpl->Resize(width, height, isFullScreen, isEnableVSync, callback);
+			}
+
+			void Device::ScreenShot(ScreenShotFormat format, const std::wstring& path, std::function<void(bool, const std::wstring&)> screenShotCallback)
+			{
+				m_pImpl->ScreenShot(format, path, screenShotCallback);
 			}
 
 			RenderTarget* Device::GetRenderTarget(const D3D11_TEXTURE2D_DESC* pDesc)
@@ -1285,32 +1518,32 @@ namespace est
 
 			HWND Device::GetHwnd() const
 			{
-				return m_pImpl->GetHwnd();
+				return Window::GetInstance()->GetHwnd();
 			}
 
 			HINSTANCE Device::GetHInstance() const
 			{
-				return m_pImpl->GetHInstance();
-			}
-
-			void Device::AddMessageHandler(const string::StringID& strName, std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler)
-			{
-				m_pImpl->AddMessageHandler(strName, funcHandler);
-			}
-
-			void Device::RemoveMessageHandler(const string::StringID& strName)
-			{
-				m_pImpl->RemoveMessageHandler(strName);
+				return Window::GetInstance()->GetInstanceHandle();
 			}
 
 			const math::uint2& Device::GetScreenSize() const
 			{
-				return m_pImpl->GetScreenSize();
+				return Window::GetInstance()->GetScreenSize();
 			}
 
-			const D3D11_VIEWPORT* Device::GetViewport() const
+			const math::Viewport& Device::GetViewport() const
 			{
 				return m_pImpl->GetViewport();
+			}
+
+			const std::vector<DisplayModeDesc>& Device::GetSupportedDisplayModeDesc() const
+			{
+				return m_pImpl->GetSupportedDisplayModeDesc();
+			}
+
+			size_t Device::GetSelectedDisplayModeIndex() const
+			{
+				return m_pImpl->GetSelectedDisplayModeIndex();
 			}
 
 			const GBuffer* Device::GetGBuffer() const
@@ -1358,27 +1591,22 @@ namespace est
 				return m_pImpl->GetSwapChainRenderTarget();
 			}
 
-			RenderTarget* Device::GetBackBufferSwapChainRenderTarget() const
-			{
-				return m_pImpl->GetBackBufferSwapChainRenderTarget();
-			}
-
-			ID3D11RasterizerState* Device::GetRasterizerState(EmRasterizerState::Type emType) const
+			ID3D11RasterizerState* Device::GetRasterizerState(RasterizerState::Type emType) const
 			{
 				return m_pImpl->GetRasterizerState(emType);
 			}
 
-			ID3D11BlendState* Device::GetBlendState(EmBlendState::Type emType) const
+			ID3D11BlendState* Device::GetBlendState(BlendState::Type emType) const
 			{
 				return m_pImpl->GetBlendState(emType);
 			}
 
-			ID3D11SamplerState* Device::GetSamplerState(EmSamplerState::Type emType) const
+			ID3D11SamplerState* Device::GetSamplerState(SamplerState::Type emType) const
 			{
 				return m_pImpl->GetSamplerState(emType);
 			}
 
-			ID3D11DepthStencilState* Device::GetDepthStencilState(EmDepthStencilState::Type emType) const
+			ID3D11DepthStencilState* Device::GetDepthStencilState(DepthStencilState::Type emType) const
 			{
 				return m_pImpl->GetDepthStencilState(emType);
 			}

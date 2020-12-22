@@ -124,8 +124,8 @@ namespace est
 				const uint32_t frameIndex = pDeviceInstance->GetFrameIndex();
 				DescriptorHeap* pSRVDescriptorHeap = pDeviceInstance->GetSRVDescriptorHeap();
 
-				const D3D12_VIEWPORT* pViewport = pDeviceInstance->GetViewport();
-				const D3D12_RECT* pScissorRect = pDeviceInstance->GetScissorRect();
+				const math::Viewport& viewport= pDeviceInstance->GetViewport();
+				const math::Rect& scissorRect = pDeviceInstance->GetScissorRect();
 
 				const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[] =
 				{
@@ -143,8 +143,8 @@ namespace est
 				util::ChangeResourceState(pCommandList, pSource, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 				util::ChangeResourceState(pCommandList, pResult, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
-				pCommandList->RSSetViewports(1, pViewport);
-				pCommandList->RSSetScissorRects(1, pScissorRect);
+				pCommandList->RSSetViewports(1, util::Convert(viewport));
+				pCommandList->RSSetScissorRects(1, &scissorRect);
 				pCommandList->OMSetRenderTargets(_countof(rtvHandles), rtvHandles, FALSE, nullptr);
 
 				pCommandList->SetGraphicsRootSignature(m_psoCache.pRootSignature);
@@ -177,7 +177,7 @@ namespace est
 
 				const D3D12_STATIC_SAMPLER_DESC staticSamplerDesc[]
 				{
-					util::GetStaticSamplerDesc(EmSamplerState::eAnisotropicWrap, 0, 100, D3D12_SHADER_VISIBILITY_PIXEL),
+					util::GetStaticSamplerDesc(SamplerState::eAnisotropicWrap, 0, 100, D3D12_SHADER_VISIBILITY_PIXEL),
 				};
 
 				return util::CreateRootSignature(pDevice, static_cast<uint32_t>(vecRootParameters.size()), vecRootParameters.data(),
@@ -246,8 +246,8 @@ namespace est
 				psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 				psoDesc.SampleDesc = sampleDesc;
 				psoDesc.SampleMask = 0xffffffff;
-				psoDesc.RasterizerState = util::GetRasterizerDesc(EmRasterizerState::eSolidCullNone);
-				psoDesc.BlendState = util::GetBlendDesc(EmBlendState::eOff);
+				psoDesc.RasterizerState = util::GetRasterizerDesc(RasterizerState::eSolidCullNone);
+				psoDesc.BlendState = util::GetBlendDesc(BlendState::eOff);
 				psoDesc.NumRenderTargets = 1;
 
 				if (GetOptions().OnHDR == true)
@@ -261,7 +261,7 @@ namespace est
 				}
 
 				psoDesc.DSVFormat = DXGI_FORMAT_UNKNOWN;
-				psoDesc.DepthStencilState = util::GetDepthStencilDesc(EmDepthStencilState::eRead_Write_Off);
+				psoDesc.DepthStencilState = util::GetDepthStencilDesc(DepthStencilState::eRead_Write_Off);
 
 				HRESULT hr = pDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_psoCache.pPipelineState));
 				if (FAILED(hr))

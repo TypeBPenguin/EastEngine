@@ -141,7 +141,7 @@ namespace est
 		{
 		}
 
-		void SkeletonInstance::BoneInstance::Update(const math::Matrix& matWorld, const math::Matrix* pUserOffsetMatrix)
+		void SkeletonInstance::BoneInstance::Update(const math::Matrix& worldMatrix, const math::Matrix* pUserOffsetMatrix)
 		{
 			if (pUserOffsetMatrix != nullptr)
 			{
@@ -168,7 +168,7 @@ namespace est
 
 			m_matSkinning = m_pOriginBone->GetMotionOffsetMatrix() * m_matLocal;
 
-			m_matGlobal = m_matLocal * matWorld;
+			m_matGlobal = m_matLocal * worldMatrix;
 		}
 
 		void SkeletonInstance::Initialize(ISkeleton* pSkeleton)
@@ -202,11 +202,11 @@ namespace est
 			Update(math::Matrix::Identity);
 		}
 
-		void SkeletonInstance::Update(const math::Matrix& matWorld)
+		void SkeletonInstance::Update(const math::Matrix& worldMatrix)
 		{
 			std::for_each(m_bones.begin(), m_bones.end(), [&](BoneInstance& boneInstance)
 			{
-				boneInstance.Update(matWorld, GetUserOffsetMatrix(boneInstance.GetName()));
+				boneInstance.Update(worldMatrix, GetUserOffsetMatrix(boneInstance.GetName()));
 			});
 		}
 

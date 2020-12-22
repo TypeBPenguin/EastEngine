@@ -52,7 +52,7 @@ namespace est
 			MotionInstancingData motionData;
 
 			SkinningInstancingData() = default;
-			SkinningInstancingData(const math::Matrix& matWorld, MotionInstancingData motionData);
+			SkinningInstancingData(const math::Matrix& worldMatrix, MotionInstancingData motionData);
 		};
 	}
 }

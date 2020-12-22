@@ -54,11 +54,13 @@ namespace est
 				void GetVertexBindingDescription(EmVertexFormat::Type emVertexFormat, VkVertexInputBindingDescription* pInputBindingDescription_out);
 				void GetVertexAttributeDescriptions(EmVertexFormat::Type emVertexFormat, const VkVertexInputAttributeDescription** ppAttributeDescriptions_out, uint32_t* pAttributeDescriptionsCount_out);
 
-				VkSamplerCreateInfo GetSamplerCreateInfo(EmSamplerState::Type emSamplerState);
-				VkPipelineRasterizationStateCreateInfo GetRasterizerCreateInfo(EmRasterizerState::Type emRasterizerState);
-				VkPipelineColorBlendAttachmentState GetBlendAttachmentState(EmBlendState::Type emBlendState);
+				VkSamplerCreateInfo GetSamplerCreateInfo(SamplerState::Type samplerState);
+				VkPipelineRasterizationStateCreateInfo GetRasterizerCreateInfo(RasterizerState::Type rasterizerState);
+				VkPipelineColorBlendAttachmentState GetBlendAttachmentState(BlendState::Type blendState);
 				VkPipelineColorBlendStateCreateInfo GetBlendCreateInfo(const VkPipelineColorBlendAttachmentState* pAttachmentState, uint32_t nAttachmentStateCount);
-				VkPipelineDepthStencilStateCreateInfo GetDepthStencilCreateInfo(EmDepthStencilState::Type emDepthStencilState);
+				VkPipelineDepthStencilStateCreateInfo GetDepthStencilCreateInfo(DepthStencilState::Type depthStencilState);
+
+				const VkViewport* Convert(const math::Viewport& viewport);
 			}
 		}
 	}

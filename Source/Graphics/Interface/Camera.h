@@ -1,7 +1,5 @@
 #pragma once
 
-#include "CommonLib/Singleton.h"
-
 namespace est
 {
 	namespace graphics
@@ -24,7 +22,7 @@ namespace est
 			struct DescMove
 			{
 				float moveSpeed{ 5.f };
-				float rotateSpeed{ 2.5f };
+				float rotateSpeed{ 5.f };
 			};
 
 		public:
@@ -98,6 +96,7 @@ namespace est
 			const math::float3& GetRotateByAxis() const { return m_rotateByAxis; }
 
 			const math::float3& GetRotation() const { return m_rotation; }
+			void SetRotation(const math::float3& rotation) { m_rotation = rotation; }
 
 		public:
 			void RotateAxisX(float degree) { m_rotateByAxis.x += degree; }
@@ -121,9 +120,8 @@ namespace est
 			math::float3 m_rotation;
 		};
 
-		class Camera : public Singleton<Camera>
+		class Camera
 		{
-			friend Singleton<Camera>;
 		public:
 			struct DescView
 			{
@@ -142,6 +140,14 @@ namespace est
 				bool isReverseUpDown{ false };
 			};
 
+			struct DescOrthographic
+			{
+				uint32_t width{ 0 };
+				uint32_t height{ 0 };
+				float nearClip{ 0.1f };
+				float farClip{ 1000.f };
+			};
+
 		public:
 			Camera() = default;
 			virtual ~Camera() = default;
@@ -150,24 +156,23 @@ namespace est
 			void Update(float elapsedTime);
 
 		public:
-			void SetView(const DescView& descView) { m_descView = descView; m_isInvalidView = true; }
+			void SetView(const DescView& descView) { m_descView = descView; m_isDirtyView = true; }
 			const DescView& GetView() const { return m_descView; }
 
-			void SetProjection(const DescProjection& descProjection) { m_descProjection = descProjection; m_isInvalidProjection = true; m_isInvalidOrtho = true; }
+			void SetProjection(const DescProjection& descProjection) { m_descProjection = descProjection; m_isDirtyProjection = true; }
 			const DescProjection& GetProjection() const { return m_descProjection; }
 
-			void SetPosition(const math::float3& position) { m_descView.position = position; m_isInvalidView = true; }
+			void SetOrthographic(const DescOrthographic& descOrthographic) { m_descOrthographic = descOrthographic; m_isDirtyOrtho = true; }
+			const DescOrthographic& GetOrthographic() const { return m_descOrthographic; }
+
+			void SetPosition(const math::float3& position) { m_descView.position = position; m_isDirtyView = true; }
 			const math::float3& GetPosition() const { return m_descView.position; }
 
-			void SetLookat(const math::float3& lookat) { m_descView.lookat = lookat; m_isInvalidView = true; }
+			void SetLookat(const math::float3& lookat) { m_descView.lookat = lookat; m_isDirtyView = true; }
 			const math::float3& GetLookat() const { return m_descView.lookat; }
 
-			void SetUp(const math::float3& up) { m_descView.up = up; m_isInvalidView = true; }
+			void SetUp(const math::float3& up) { m_descView.up = up; m_isDirtyView = true; }
 			const math::float3& GetUp() const { return m_descView.up; }
-
-			float GetFov() const { return m_descProjection.fov; }
-			float GetNearClip() const { return m_descProjection.nearClip; }
-			float GetFarClip() const { return m_descProjection.farClip; }
 
 			const math::Matrix& GetViewMatrix() { return UpdateView(); }
 			const math::Matrix& GetProjectionMatrix() { return UpdateProjection(); }
@@ -193,14 +198,15 @@ namespace est
 		private:
 			DescView m_descView;
 			DescProjection m_descProjection;
+			DescOrthographic m_descOrthographic;
 
-			bool m_isInvalidView{ false };
-			bool m_isInvalidProjection{ false };
-			bool m_isInvalidOrtho{ false };
+			bool m_isDirtyView{ false };
+			bool m_isDirtyProjection{ false };
+			bool m_isDirtyOrtho{ false };
 
-			math::Matrix m_matView;
-			math::Matrix m_matProjection;
-			math::Matrix m_matOrtho;
+			math::Matrix m_viewMatrix;
+			math::Matrix m_projectionMatrix;
+			math::Matrix m_orthographicMatrix;
 
 			collision::Frustum m_frustum;
 

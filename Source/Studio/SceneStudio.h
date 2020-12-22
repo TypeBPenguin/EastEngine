@@ -2,22 +2,20 @@
 
 #include "Engine/SceneManager.h"
 
-class SkeletonController;
-class MaterialNodeManager;
-
 namespace est
 {
 	namespace gameobject
 	{
-		class SectorMgr;
-		class ISkybox;
+		class ComponentModel;
+	}
+
+	namespace graphics
+	{
+		class IMaterial;
 	}
 }
 
-namespace Contents
-{
-	class Sun;
-}
+class Minion;
 
 class SceneStudio : public est::IScene
 {
@@ -25,23 +23,34 @@ public:
 	SceneStudio();
 	virtual ~SceneStudio();
 
-	virtual void Enter() override;
-	virtual void Exit() override;
+	static const est::string::StringID Name;
+
+public:
+	virtual void Enter(const std::queue<est::gameobject::ActorPtr>& savedPrevSceneActors) override;
+	virtual void Exit(std::queue<est::gameobject::ActorPtr>& saveSceneActors_out) override;
 
 	virtual void Update(float elapsedTime) override;
 
 private:
 	void ProcessInput(float elapsedTime);
+	void RenderImGui(float elapsedTime);
 
-private:
-	void RenderUI();
 	void ShowConfig();
+	void ShowMotion(bool& isShowMotionMenu, est::gameobject::ComponentModel* pCompModel);
+	void ShowMaterial(bool& isShowMaterial, est::graphics::IMaterial* pMaterial, int index);
+	void ShowSoundWindow(bool& isShowSoundMenu);
+	void ShowActorWindow(bool& isShowActorMenu);
+	void ShowGizmo();
+	void ShowNodeEditer();
 
 private:
-	SkeletonController* m_pSkeletonController;
-	MaterialNodeManager* m_pMaterialNodeManager;
-	est::gameobject::SectorMgr* m_pSectorMgr;
+	std::unique_ptr<Minion> m_pMinion;
 
-	std::vector<Contents::Sun*> m_vecSuns;
-	est::gameobject::ISkybox* m_pSkybox{ nullptr };
+	std::vector<est::graphics::LightPtr> m_pLights;
+
+	std::vector<est::gameobject::ActorPtr> m_actors;
+	std::vector<est::gameobject::TerrainPtr> m_terrains;
+	std::vector<est::gameobject::SkyboxPtr> m_skyboxs;
+
+	est::gameobject::IGameObject::Handle m_selectedActor;
 };

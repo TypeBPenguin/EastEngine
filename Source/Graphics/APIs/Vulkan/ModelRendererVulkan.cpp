@@ -41,7 +41,7 @@ namespace est
 
 				struct ObjectDataBuffer
 				{
-					math::Matrix matWorld;
+					math::Matrix worldMatrix;
 
 					uint32_t nVTFID{ 0 };
 					math::float3 f3Padding;
@@ -57,9 +57,9 @@ namespace est
 					math::Color f4AlbedoColor;
 					math::Color f4EmissiveColor;
 
-					math::float4 f4PaddingRoughMetEmi;
-					math::float4 f4SurSpecTintAniso;
-					math::float4 f4SheenTintClearcoatGloss;
+					math::float4 paddingRoughMetEmi;
+					math::float4 surSpecTintAniso;
+					math::float4 sheenTintClearcoatGloss;
 
 					float stippleTransparencyFactor{ 0.f };
 					math::float3 f3Padding;
@@ -217,13 +217,13 @@ namespace est
 					bool isUsing{ false };
 				};
 
-				void GetPSOState(const PSOKey& key, uint64_t& nMask_out, EmRasterizerState::Type& emRasterizerState_out, EmBlendState::Type& emBlendState_out, EmDepthStencilState::Type& emDepthStencilState_out);
-				PSOKey GetPSOKey(uint64_t mask, EmRasterizerState::Type emRasterizerState, EmBlendState::Type emBlendState, EmDepthStencilState::Type emDepthStencilState);
+				void GetPSOState(const PSOKey& key, uint64_t& nMask_out, RasterizerState::Type& emRasterizerState_out, BlendState::Type& emBlendState_out, DepthStencilState::Type& emDepthStencilState_out);
+				PSOKey GetPSOKey(uint64_t mask, RasterizerState::Type rasterizerState, BlendState::Type blendState, DepthStencilState::Type depthStencilState);
 
 				void CreateRenderPass(VkDevice device);
 				void CreateFrameBuffer(VkDevice device);
 				void CreateDescriptorSetLayout(VkDevice device);
-				void CreatePipelineLayout(VkDevice device, uint64_t mask, EmRasterizerState::Type emRasterizerState, EmBlendState::Type emBlendState, EmDepthStencilState::Type emDepthStencilState);
+				void CreatePipelineLayout(VkDevice device, uint64_t mask, RasterizerState::Type rasterizerState, BlendState::Type blendState, DepthStencilState::Type depthStencilState);
 
 				void CreateDescriptorPool(VkDevice device, uint32_t nFrameCount);
 				void CreateDescriptorSet(VkDevice device, uint32_t nFrameCount);
@@ -323,8 +323,8 @@ namespace est
 				CreateDescriptorSet(device, nFrameCount);
 				CreateUniformBuffer(device, nFrameCount);
 
-				CreatePipelineLayout(device, 0, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Off_Write_On);
-				CreatePipelineLayout(device, modelshader::eUseSkinning, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Off_Write_On);
+				CreatePipelineLayout(device, 0, RasterizerState::eSolidCCW, BlendState::eOff, DepthStencilState::eRead_Off_Write_On);
+				CreatePipelineLayout(device, modelshader::eUseSkinning, RasterizerState::eSolidCCW, BlendState::eOff, DepthStencilState::eRead_Off_Write_On);
 			}
 
 			ModelRenderer::Impl::~Impl()
@@ -404,7 +404,7 @@ namespace est
 
 				VkDevice device = Device::GetInstance()->GetInterface();
 				const uint32_t frameIndex = Device::GetInstance()->GetFrameIndex();
-				const VkViewport* pViewport = Device::GetInstance()->GetViewport();
+				const math::Viewport& viewport = Device::GetInstance()->GetViewport();
 				const VkExtent2D extent = Device::GetInstance()->GetSwapChainExtent2D();
 
 				VkCommandBuffer commandBuffer = Device::GetInstance()->GetCommandBuffer(frameIndex);
@@ -429,7 +429,7 @@ namespace est
 				
 				vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 				
-				vkCmdSetViewport(commandBuffer, 0, 1, pViewport);
+				vkCmdSetViewport(commandBuffer, 0, 1, util::Convert(viewport));
 				
 				VkRect2D scissor{};
 				scissor.extent = extent;
@@ -555,9 +555,9 @@ namespace est
 						uint32_t nTextureCount = 0;
 
 						uint64_t mask = 0;
-						EmRasterizerState::Type emRasterizerState = EmRasterizerState::eSolidCCW;
-						EmBlendState::Type emBlendState = EmBlendState::eOff;
-						EmDepthStencilState::Type emDepthStencilState = EmDepthStencilState::eRead_Write_On;
+						RasterizerState::Type rasterizerState = RasterizerState::eSolidCCW;
+						BlendState::Type blendState = BlendState::eOff;
+						DepthStencilState::Type depthStencilState = DepthStencilState::eRead_Write_On;
 						if (jobStatic.element.pMaterial != nullptr)
 						{
 							auto SetMaterialMask = [&](const IMaterial* pMaterial, IMaterial::Type emType, modelshader::Mask emMask)
@@ -585,12 +585,12 @@ namespace est
 							SetMaterialMask(jobStatic.element.pMaterial.get(), IMaterial::eClearcoat, modelshader::eUseTexClearcoat);
 							SetMaterialMask(jobStatic.element.pMaterial.get(), IMaterial::eClearcoatGloss, modelshader::eUseTexClearcoatGloss);
 
-							emRasterizerState = jobStatic.element.pMaterial->GetRasterizerState();
-							emBlendState = jobStatic.element.pMaterial->GetBlendState();
-							emDepthStencilState = jobStatic.element.pMaterial->GetDepthStencilState();
+							rasterizerState = jobStatic.element.pMaterial->GetRasterizerState();
+							blendState = jobStatic.element.pMaterial->GetBlendState();
+							depthStencilState = jobStatic.element.pMaterial->GetDepthStencilState();
 						}
 
-						PSOKey key = GetPSOKey(mask, emRasterizerState, emBlendState, emDepthStencilState);
+						PSOKey key = GetPSOKey(mask, rasterizerState, blendState, depthStencilState);
 
 						RenderJob& job = umapRenderJobStatic[key].emplace_back();
 						job.pRenderJob = &m_vecStaticJobs[i];
@@ -606,10 +606,10 @@ namespace est
 						const RenderPipeline* pRenderPipeline = nullptr;
 
 						uint64_t mask = 0;
-						EmRasterizerState::Type emRasterizerState = EmRasterizerState::eSolidCCW;
-						EmBlendState::Type emBlendState = EmBlendState::eOff;
-						EmDepthStencilState::Type emDepthStencilState = EmDepthStencilState::eRead_Write_On;
-						GetPSOState(iter.first, mask, emRasterizerState, emBlendState, emDepthStencilState);
+						RasterizerState::Type rasterizerState = RasterizerState::eSolidCCW;
+						BlendState::Type blendState = BlendState::eOff;
+						DepthStencilState::Type depthStencilState = DepthStencilState::eRead_Write_On;
+						GetPSOState(iter.first, mask, rasterizerState, blendState, depthStencilState);
 
 						auto iter_find = m_umapPipelineLayouts.find(iter.first);
 						if (iter_find != m_umapPipelineLayouts.end())
@@ -618,7 +618,7 @@ namespace est
 						}
 						else
 						{
-							CreatePipelineLayout(device, mask, emRasterizerState, emBlendState, emDepthStencilState);
+							CreatePipelineLayout(device, mask, rasterizerState, blendState, depthStencilState);
 
 							iter_find = m_umapPipelineLayouts.find(iter.first);
 							if (iter_find != m_umapPipelineLayouts.end())
@@ -689,7 +689,7 @@ namespace est
 							if ((mask & modelshader::eUseInstancing) != modelshader::eUseInstancing)
 							{
 								modelshader::ObjectDataBuffer* pDataBuffer = m_vecObjectBuffers[frameIndex].Cast(job.nJobIndex);
-								pDataBuffer->matWorld = pJobStatic->element.matWorld;
+								pDataBuffer->worldMatrix = pJobStatic->element.worldMatrix;
 
 								vecDynamicOffsets.emplace_back(static_cast<uint32_t>(job.nJobIndex * m_vecObjectBuffers[frameIndex].Size()));
 							}
@@ -774,7 +774,7 @@ namespace est
 				}
 			}
 
-			void ModelRenderer::Impl::GetPSOState(const PSOKey& key, uint64_t& nMask_out, EmRasterizerState::Type& emRasterizerState_out, EmBlendState::Type& emBlendState_out, EmDepthStencilState::Type& emDepthStencilState_out)
+			void ModelRenderer::Impl::GetPSOState(const PSOKey& key, uint64_t& nMask_out, RasterizerState::Type& emRasterizerState_out, BlendState::Type& emBlendState_out, DepthStencilState::Type& emDepthStencilState_out)
 			{
 				uint32_t r = 0;
 				uint32_t b = 0;
@@ -782,15 +782,15 @@ namespace est
 
 				swscanf_s(key.Value().c_str(), L"%llu_%u_%u_%u", &nMask_out, &r, &b, &d);
 
-				emRasterizerState_out = static_cast<EmRasterizerState::Type>(r);
-				emBlendState_out = static_cast<EmBlendState::Type>(b);
-				emDepthStencilState_out = static_cast<EmDepthStencilState::Type>(d);
+				emRasterizerState_out = static_cast<RasterizerState::Type>(r);
+				emBlendState_out = static_cast<BlendState::Type>(b);
+				emDepthStencilState_out = static_cast<DepthStencilState::Type>(d);
 			}
 
-			PSOKey ModelRenderer::Impl::GetPSOKey(uint64_t mask, EmRasterizerState::Type emRasterizerState, EmBlendState::Type emBlendState, EmDepthStencilState::Type emDepthStencilState)
+			PSOKey ModelRenderer::Impl::GetPSOKey(uint64_t mask, RasterizerState::Type rasterizerState, BlendState::Type blendState, DepthStencilState::Type depthStencilState)
 			{
 				string::StringID strKey;
-				strKey.Format(L"%lld_%d_%d_%d", mask, emRasterizerState, emBlendState, emDepthStencilState);
+				strKey.Format(L"%lld_%d_%d_%d", mask, rasterizerState, blendState, depthStencilState);
 
 				return PSOKey{ strKey };
 			}
@@ -1142,10 +1142,10 @@ namespace est
 				}
 			}
 
-			void ModelRenderer::Impl::CreatePipelineLayout(VkDevice device, uint64_t mask, EmRasterizerState::Type emRasterizerState, EmBlendState::Type emBlendState, EmDepthStencilState::Type emDepthStencilState)
+			void ModelRenderer::Impl::CreatePipelineLayout(VkDevice device, uint64_t mask, RasterizerState::Type rasterizerState, BlendState::Type blendState, DepthStencilState::Type depthStencilState)
 			{
 				VkExtent2D extend = Device::GetInstance()->GetSwapChainExtent2D();
-				const VkViewport* pViewport = Device::GetInstance()->GetViewport();
+				const math::Viewport& viewport = Device::GetInstance()->GetViewport();
 
 				std::vector<ShaderMacro> vecVertMacros = modelshader::GetMacros(0);
 				std::vector<uint32_t> vecCompiledVertShaderCode = util::CompileShader(CompileShaderType::eVertexShader, m_strVertShaderCode.c_str(), m_strVertShaderCode.size(), vecVertMacros.data(), vecVertMacros.size(), modelshader::GetVertexShaderFile());
@@ -1198,7 +1198,7 @@ namespace est
 				VkPipelineViewportStateCreateInfo viewportState{};
 				viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
 				viewportState.viewportCount = 1;
-				viewportState.pViewports = pViewport;
+				viewportState.pViewports = util::Convert(viewport);
 				viewportState.scissorCount = 1;
 				viewportState.pScissors = &scissor;
 
@@ -1207,14 +1207,14 @@ namespace est
 				multisampling.sampleShadingEnable = VK_FALSE;
 				multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
 
-				VkPipelineRasterizationStateCreateInfo rasterizer = util::GetRasterizerCreateInfo(emRasterizerState);
-				VkPipelineDepthStencilStateCreateInfo depthStencil = util::GetDepthStencilCreateInfo(emDepthStencilState);
+				VkPipelineRasterizationStateCreateInfo rasterizer = util::GetRasterizerCreateInfo(rasterizerState);
+				VkPipelineDepthStencilStateCreateInfo depthStencil = util::GetDepthStencilCreateInfo(depthStencilState);
 
 				const VkPipelineColorBlendAttachmentState colorBlendAttachments[]
 				{
-					util::GetBlendAttachmentState(emBlendState),
-					util::GetBlendAttachmentState(emBlendState),
-					util::GetBlendAttachmentState(emBlendState),
+					util::GetBlendAttachmentState(blendState),
+					util::GetBlendAttachmentState(blendState),
+					util::GetBlendAttachmentState(blendState),
 				};
 				VkPipelineColorBlendStateCreateInfo colorBlending = util::GetBlendCreateInfo(colorBlendAttachments, _countof(colorBlendAttachments));
 
@@ -1300,7 +1300,7 @@ namespace est
 					throw_line("failed to create graphics pipeline!");
 				}
 
-				PSOKey key = GetPSOKey(mask, emRasterizerState, emBlendState, emDepthStencilState);
+				PSOKey key = GetPSOKey(mask, rasterizerState, blendState, depthStencilState);
 				RenderPipeline& renderPipeline = m_umapPipelineLayouts[key];
 				renderPipeline.pipelineLayout = pipelineLayout;
 				renderPipeline.pipeline = pipeline;

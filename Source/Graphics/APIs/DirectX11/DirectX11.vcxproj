@@ -103,6 +103,7 @@
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <DisableSpecificWarnings>%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -159,6 +160,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -194,6 +196,7 @@
     <ClInclude Include="RenderManagerDX11.h" />
     <ClInclude Include="RenderTargetDX11.h" />
     <ClInclude Include="EnvironmentRendererDX11.h" />
+    <ClInclude Include="ScreenGrab11.h" />
     <ClInclude Include="ScreenSpaceShadowDX11.h" />
     <ClInclude Include="SSRDX11.h" />
     <ClInclude Include="SSSDX11.h" />
@@ -220,7 +223,9 @@
     <ClCompile Include="GaussianBlurDX11.cpp" />
     <ClCompile Include="GBufferDX11.cpp" />
     <ClCompile Include="HDRFilterDX11.cpp" />
-    <ClCompile Include="imgui_impl_dx11.cpp" />
+    <ClCompile Include="imgui_impl_dx11.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="IndexBufferDX11.cpp" />
     <ClCompile Include="LightResourceManagerDX11.cpp" />
     <ClCompile Include="ModelRendererDX11.cpp" />
@@ -229,6 +234,10 @@
     <ClCompile Include="RenderManagerDX11.cpp" />
     <ClCompile Include="RenderTargetDX11.cpp" />
     <ClCompile Include="EnvironmentRendererDX11.cpp" />
+    <ClCompile Include="ScreenGrab11.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="ScreenSpaceShadowDX11.cpp" />
     <ClCompile Include="SSRDX11.cpp" />
     <ClCompile Include="SSSDX11.cpp" />

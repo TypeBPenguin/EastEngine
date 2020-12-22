@@ -14,9 +14,9 @@ namespace est
 			};
 
 			uint32_t numCascades{ 3 };
-			uint32_t resolution{ 1024 };
-			uint32_t pcfBlurSize{ 5 };
-			float cascadeDistance{ 256.f };
+			uint32_t resolution{ 2048 };
+			uint32_t pcfBlurSize{ 7 };
+			float cascadeDistance{ 128.f };
 			float depthBias{ 0.000001f };
 		};
 

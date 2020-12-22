@@ -3,7 +3,6 @@
 #include "CommonLib/Singleton.h"
 #include "Graphics/Interface/GraphicsInterface.h"
 
-struct D3D11_VIEWPORT;
 struct D3D11_TEXTURE2D_DESC;
 
 struct ID3D11Device;
@@ -40,11 +39,13 @@ namespace est
 				virtual ~Device();
 
 			public:
-				void Initialize(uint32_t width, uint32_t height, bool isFullScreen, const string::StringID& applicationTitle, const string::StringID& applicationName);
-
+				void Initialize(uint32_t width, uint32_t height, bool isFullScreen, const string::StringID& applicationTitle, const string::StringID& applicationName, std::function<HRESULT(HWND, uint32_t, WPARAM, LPARAM)> messageHandler);
 				void Run(std::function<bool()> funcUpdate);
-
 				void Cleanup(float elapsedTime);
+
+			public:
+				bool Resize(uint32_t width, uint32_t height, bool isFullScreen, bool isEnableVSync, std::function<void(bool)> callback);
+				void ScreenShot(ScreenShotFormat format, const std::wstring& path, std::function<void(bool, const std::wstring&)> screenShotCallback);
 
 			public:
 				RenderTarget* GetRenderTarget(const D3D11_TEXTURE2D_DESC* pDesc);
@@ -56,10 +57,13 @@ namespace est
 			public:
 				HWND GetHwnd() const;
 				HINSTANCE GetHInstance() const;
-				void AddMessageHandler(const string::StringID& strName, std::function<void(HWND, uint32_t, WPARAM, LPARAM)> funcHandler);
-				void RemoveMessageHandler(const string::StringID& strName);
+
 				const math::uint2& GetScreenSize() const;
-				const D3D11_VIEWPORT* GetViewport() const;
+				const math::Viewport& GetViewport() const;
+
+				const std::vector<DisplayModeDesc>& GetSupportedDisplayModeDesc() const;
+				size_t GetSelectedDisplayModeIndex() const;
+
 				const GBuffer* GetGBuffer() const;
 				IImageBasedLight* GetImageBasedLight() const;
 				void SetImageBasedLight(IImageBasedLight* pImageBasedLight);
@@ -71,12 +75,11 @@ namespace est
 				ID3D11DeviceContext* GetImmediateContext() const;
 
 				RenderTarget* GetSwapChainRenderTarget() const;
-				RenderTarget* GetBackBufferSwapChainRenderTarget() const;
 
-				ID3D11RasterizerState* GetRasterizerState(EmRasterizerState::Type emType) const;
-				ID3D11BlendState* GetBlendState(EmBlendState::Type emType) const;
-				ID3D11SamplerState* GetSamplerState(EmSamplerState::Type emType) const;
-				ID3D11DepthStencilState* GetDepthStencilState(EmDepthStencilState::Type emType) const;
+				ID3D11RasterizerState* GetRasterizerState(RasterizerState::Type emType) const;
+				ID3D11BlendState* GetBlendState(BlendState::Type emType) const;
+				ID3D11SamplerState* GetSamplerState(SamplerState::Type emType) const;
+				ID3D11DepthStencilState* GetDepthStencilState(DepthStencilState::Type emType) const;
 
 				ID3DUserDefinedAnnotation* GetUserDefinedAnnotation() const;
 

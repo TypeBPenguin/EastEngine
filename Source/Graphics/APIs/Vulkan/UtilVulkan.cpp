@@ -381,18 +381,18 @@ namespace est
 					}
 				}
 
-				VkSamplerCreateInfo GetSamplerCreateInfo(EmSamplerState::Type emSamplerState)
+				VkSamplerCreateInfo GetSamplerCreateInfo(SamplerState::Type samplerState)
 				{
 					VkSamplerCreateInfo samplerCreateInfo{};
 					samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
 
-					switch (emSamplerState)
+					switch (samplerState)
 					{
-					case EmSamplerState::eMinMagMipLinearWrap:
-					case EmSamplerState::eMinMagMipLinearClamp:
-					case EmSamplerState::eMinMagMipLinearBorder:
-					case EmSamplerState::eMinMagMipLinearMirror:
-					case EmSamplerState::eMinMagMipLinearMirrorOnce:
+					case SamplerState::eMinMagMipLinearWrap:
+					case SamplerState::eMinMagMipLinearClamp:
+					case SamplerState::eMinMagMipLinearBorder:
+					case SamplerState::eMinMagMipLinearMirror:
+					case SamplerState::eMinMagMipLinearMirrorOnce:
 						samplerCreateInfo.minFilter = VK_FILTER_LINEAR;
 						samplerCreateInfo.magFilter = VK_FILTER_LINEAR;
 						samplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
@@ -403,29 +403,29 @@ namespace est
 						samplerCreateInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
 						samplerCreateInfo.minLod = 0.f;
 						samplerCreateInfo.maxLod = std::numeric_limits<float>::max();
-						switch (emSamplerState)
+						switch (samplerState)
 						{
-						case EmSamplerState::eMinMagMipLinearWrap:
+						case SamplerState::eMinMagMipLinearWrap:
 							samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 							samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 							samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 							break;
-						case EmSamplerState::eMinMagMipLinearClamp:
+						case SamplerState::eMinMagMipLinearClamp:
 							samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
 							samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
 							samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
 							break;
-						case EmSamplerState::eMinMagMipLinearBorder:
+						case SamplerState::eMinMagMipLinearBorder:
 							samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
 							samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
 							samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
 							break;
-						case EmSamplerState::eMinMagMipLinearMirror:
+						case SamplerState::eMinMagMipLinearMirror:
 							samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
 							samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
 							samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
 							break;
-						case EmSamplerState::eMinMagMipLinearMirrorOnce:
+						case SamplerState::eMinMagMipLinearMirrorOnce:
 							// vkCreateSampler(): A VkSamplerAddressMode value is set to VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE 
 							// but the VK_KHR_sampler_mirror_clamp_to_edge extension has not been enabled. 
 							// The spec valid usage text states 'If the VK_KHR_sampler_mirror_clamp_to_edge extension is not enabled, 
@@ -442,11 +442,11 @@ namespace est
 							break;
 						}
 						break;
-					case EmSamplerState::eMinMagLinearMipPointWrap:
-					case EmSamplerState::eMinMagLinearMipPointClamp:
-					case EmSamplerState::eMinMagLinearMipPointBorder:
-					case EmSamplerState::eMinMagLinearMipPointMirror:
-					case EmSamplerState::eMinMagLinearMipPointMirrorOnce:
+					case SamplerState::eMinMagLinearMipPointWrap:
+					case SamplerState::eMinMagLinearMipPointClamp:
+					case SamplerState::eMinMagLinearMipPointBorder:
+					case SamplerState::eMinMagLinearMipPointMirror:
+					case SamplerState::eMinMagLinearMipPointMirrorOnce:
 						samplerCreateInfo.minFilter = VK_FILTER_LINEAR;
 						samplerCreateInfo.magFilter = VK_FILTER_LINEAR;
 						samplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
@@ -457,29 +457,29 @@ namespace est
 						samplerCreateInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
 						samplerCreateInfo.minLod = 0.f;
 						samplerCreateInfo.maxLod = std::numeric_limits<float>::max();
-						switch (emSamplerState)
+						switch (samplerState)
 						{
-						case EmSamplerState::eMinMagLinearMipPointWrap:
+						case SamplerState::eMinMagLinearMipPointWrap:
 							samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 							samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 							samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 							break;
-						case EmSamplerState::eMinMagLinearMipPointClamp:
+						case SamplerState::eMinMagLinearMipPointClamp:
 							samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
 							samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
 							samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
 							break;
-						case EmSamplerState::eMinMagLinearMipPointBorder:
+						case SamplerState::eMinMagLinearMipPointBorder:
 							samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
 							samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
 							samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
 							break;
-						case EmSamplerState::eMinMagLinearMipPointMirror:
+						case SamplerState::eMinMagLinearMipPointMirror:
 							samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
 							samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
 							samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
 							break;
-						case EmSamplerState::eMinMagLinearMipPointMirrorOnce:
+						case SamplerState::eMinMagLinearMipPointMirrorOnce:
 							// vkCreateSampler(): A VkSamplerAddressMode value is set to VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE 
 							// but the VK_KHR_sampler_mirror_clamp_to_edge extension has not been enabled. 
 							// The spec valid usage text states 'If the VK_KHR_sampler_mirror_clamp_to_edge extension is not enabled, 
@@ -496,11 +496,11 @@ namespace est
 							break;
 						}
 						break;
-					case EmSamplerState::eAnisotropicWrap:
-					case EmSamplerState::eAnisotropicClamp:
-					case EmSamplerState::eAnisotropicBorder:
-					case EmSamplerState::eAnisotropicMirror:
-					case EmSamplerState::eAnisotropicMirrorOnce:
+					case SamplerState::eAnisotropicWrap:
+					case SamplerState::eAnisotropicClamp:
+					case SamplerState::eAnisotropicBorder:
+					case SamplerState::eAnisotropicMirror:
+					case SamplerState::eAnisotropicMirrorOnce:
 						samplerCreateInfo.minFilter = VK_FILTER_LINEAR;
 						samplerCreateInfo.magFilter = VK_FILTER_LINEAR;
 						samplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
@@ -511,29 +511,29 @@ namespace est
 						samplerCreateInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
 						samplerCreateInfo.minLod = 0.f;
 						samplerCreateInfo.maxLod = std::numeric_limits<float>::max();
-						switch (emSamplerState)
+						switch (samplerState)
 						{
-						case EmSamplerState::eAnisotropicWrap:
+						case SamplerState::eAnisotropicWrap:
 							samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 							samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 							samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 							break;
-						case EmSamplerState::eAnisotropicClamp:
+						case SamplerState::eAnisotropicClamp:
 							samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
 							samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
 							samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
 							break;
-						case EmSamplerState::eAnisotropicBorder:
+						case SamplerState::eAnisotropicBorder:
 							samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
 							samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
 							samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
 							break;
-						case EmSamplerState::eAnisotropicMirror:
+						case SamplerState::eAnisotropicMirror:
 							samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
 							samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
 							samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
 							break;
-						case EmSamplerState::eAnisotropicMirrorOnce:
+						case SamplerState::eAnisotropicMirrorOnce:
 							// vkCreateSampler(): A VkSamplerAddressMode value is set to VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE 
 							// but the VK_KHR_sampler_mirror_clamp_to_edge extension has not been enabled. 
 							// The spec valid usage text states 'If the VK_KHR_sampler_mirror_clamp_to_edge extension is not enabled, 
@@ -550,11 +550,11 @@ namespace est
 							break;
 						}
 						break;
-					case EmSamplerState::eMinMagMipPointWrap:
-					case EmSamplerState::eMinMagMipPointClamp:
-					case EmSamplerState::eMinMagMipPointBorder:
-					case EmSamplerState::eMinMagMipPointMirror:
-					case EmSamplerState::eMinMagMipPointMirrorOnce:
+					case SamplerState::eMinMagMipPointWrap:
+					case SamplerState::eMinMagMipPointClamp:
+					case SamplerState::eMinMagMipPointBorder:
+					case SamplerState::eMinMagMipPointMirror:
+					case SamplerState::eMinMagMipPointMirrorOnce:
 						samplerCreateInfo.minFilter = VK_FILTER_NEAREST;
 						samplerCreateInfo.magFilter = VK_FILTER_NEAREST;
 						samplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
@@ -565,29 +565,29 @@ namespace est
 						samplerCreateInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
 						samplerCreateInfo.minLod = 0.f;
 						samplerCreateInfo.maxLod = std::numeric_limits<float>::max();
-						switch (emSamplerState)
+						switch (samplerState)
 						{
-						case EmSamplerState::eMinMagMipPointWrap:
+						case SamplerState::eMinMagMipPointWrap:
 							samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 							samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 							samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 							break;
-						case EmSamplerState::eMinMagMipPointClamp:
+						case SamplerState::eMinMagMipPointClamp:
 							samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
 							samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
 							samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
 							break;
-						case EmSamplerState::eMinMagMipPointBorder:
+						case SamplerState::eMinMagMipPointBorder:
 							samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
 							samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
 							samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
 							break;
-						case EmSamplerState::eMinMagMipPointMirror:
+						case SamplerState::eMinMagMipPointMirror:
 							samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
 							samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
 							samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
 							break;
-						case EmSamplerState::eMinMagMipPointMirrorOnce:
+						case SamplerState::eMinMagMipPointMirrorOnce:
 							// vkCreateSampler(): A VkSamplerAddressMode value is set to VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE 
 							// but the VK_KHR_sampler_mirror_clamp_to_edge extension has not been enabled. 
 							// The spec valid usage text states 'If the VK_KHR_sampler_mirror_clamp_to_edge extension is not enabled, 
@@ -612,12 +612,12 @@ namespace est
 					return samplerCreateInfo;
 				}
 
-				VkPipelineRasterizationStateCreateInfo GetRasterizerCreateInfo(EmRasterizerState::Type emRasterizerState)
+				VkPipelineRasterizationStateCreateInfo GetRasterizerCreateInfo(RasterizerState::Type rasterizerState)
 				{
 					// vulkan, dx 호환을 위해, ccw <-> cw 반대로 셋팅
-					switch (emRasterizerState)
+					switch (rasterizerState)
 					{
-					case EmRasterizerState::eSolidCCW:
+					case RasterizerState::eSolidCCW:
 					{
 						return
 						{
@@ -637,7 +637,7 @@ namespace est
 						};
 					}
 					break;
-					case EmRasterizerState::eSolidCW:
+					case RasterizerState::eSolidCW:
 					{
 						return
 						{
@@ -657,7 +657,7 @@ namespace est
 						};
 					}
 					break;
-					case EmRasterizerState::eSolidCullNone:
+					case RasterizerState::eSolidCullNone:
 					{
 						return
 						{
@@ -677,7 +677,7 @@ namespace est
 						};
 					}
 					break;
-					case EmRasterizerState::eWireframeCCW:
+					case RasterizerState::eWireframeCCW:
 					{
 						return
 						{
@@ -697,7 +697,7 @@ namespace est
 						};
 					}
 					break;
-					case EmRasterizerState::eWireframeCW:
+					case RasterizerState::eWireframeCW:
 					{
 						return
 						{
@@ -717,7 +717,7 @@ namespace est
 						};
 					}
 					break;
-					case EmRasterizerState::eWireframeCullNone:
+					case RasterizerState::eWireframeCullNone:
 					{
 						return
 						{
@@ -740,7 +740,7 @@ namespace est
 					default:
 					{
 						assert(false);
-						// return EmRasterizerState::eSolidCCW;
+						// return RasterizerState::eSolidCCW;
 						return
 						{
 							VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,	// sType
@@ -762,11 +762,11 @@ namespace est
 					}
 				}
 
-				VkPipelineColorBlendAttachmentState GetBlendAttachmentState(EmBlendState::Type emBlendState)
+				VkPipelineColorBlendAttachmentState GetBlendAttachmentState(BlendState::Type blendState)
 				{
-					switch (emBlendState)
+					switch (blendState)
 					{
-					case EmBlendState::eOff:
+					case BlendState::eOff:
 					{
 						return
 						{
@@ -781,7 +781,7 @@ namespace est
 						};
 					}
 					break;
-					case EmBlendState::eLinear:
+					case BlendState::eLinear:
 					{
 						return
 						{
@@ -796,7 +796,7 @@ namespace est
 						};
 					}
 					break;
-					case EmBlendState::eAdditive:
+					case BlendState::eAdditive:
 					{
 						return
 						{
@@ -811,7 +811,7 @@ namespace est
 						};
 					}
 					break;
-					case EmBlendState::eSubTractive:
+					case BlendState::eSubTractive:
 					{
 						return
 						{
@@ -826,7 +826,7 @@ namespace est
 						};
 					}
 					break;
-					case EmBlendState::eMultiplicative:
+					case BlendState::eMultiplicative:
 					{
 						return
 						{
@@ -841,7 +841,7 @@ namespace est
 						};
 					}
 					break;
-					case EmBlendState::eSquared:
+					case BlendState::eSquared:
 					{
 						return
 						{
@@ -856,7 +856,7 @@ namespace est
 						};
 					}
 					break;
-					case EmBlendState::eNegative:
+					case BlendState::eNegative:
 					{
 						return
 						{
@@ -871,7 +871,7 @@ namespace est
 						};
 					}
 					break;
-					case EmBlendState::eOpacity:
+					case BlendState::eOpacity:
 					{
 						return
 						{
@@ -886,7 +886,7 @@ namespace est
 						};
 					}
 					break;
-					case EmBlendState::eAlphaBlend:
+					case BlendState::eAlphaBlend:
 					{
 						return
 						{
@@ -904,7 +904,7 @@ namespace est
 					default:
 					{
 						assert(false);
-						// return EmBlendState::eOff
+						// return BlendState::eOff
 						return
 						{
 							false,	// blendEnable
@@ -936,11 +936,11 @@ namespace est
 					};
 				}
 
-				VkPipelineDepthStencilStateCreateInfo GetDepthStencilCreateInfo(EmDepthStencilState::Type emDepthStencilState)
+				VkPipelineDepthStencilStateCreateInfo GetDepthStencilCreateInfo(DepthStencilState::Type depthStencilState)
 				{
-					switch (emDepthStencilState)
+					switch (depthStencilState)
 					{
-					case EmDepthStencilState::eRead_Write_On:
+					case DepthStencilState::eRead_Write_On:
 					{
 						return
 						{
@@ -975,7 +975,7 @@ namespace est
 						};
 					}
 					break;
-					case EmDepthStencilState::eRead_Write_Off:
+					case DepthStencilState::eRead_Write_Off:
 					{
 						return
 						{
@@ -1010,7 +1010,7 @@ namespace est
 						};
 					}
 					break;
-					case EmDepthStencilState::eRead_On_Write_Off:
+					case DepthStencilState::eRead_On_Write_Off:
 					{
 						return
 						{
@@ -1045,7 +1045,7 @@ namespace est
 						};
 					}
 					break;
-					case EmDepthStencilState::eRead_Off_Write_On:
+					case DepthStencilState::eRead_Off_Write_On:
 					{
 						return
 						{
@@ -1085,7 +1085,7 @@ namespace est
 					{
 						assert(false);
 
-						// return EmDepthStencilState::eRead_Write_On
+						// return DepthStencilState::eRead_Write_On
 						return
 						{
 							VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,	// sType
@@ -1120,6 +1120,11 @@ namespace est
 					}
 					break;
 					}
+				}
+
+				const VkViewport* Convert(const math::Viewport& viewport)
+				{
+					return reinterpret_cast<const VkViewport*>(&viewport);
 				}
 			}
 		}

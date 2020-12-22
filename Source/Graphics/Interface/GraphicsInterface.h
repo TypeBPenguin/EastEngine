@@ -17,6 +17,14 @@ namespace est
 {
 	namespace graphics
 	{
+		struct DisplayModeDesc
+		{
+			uint32_t width{ 0 };
+			uint32_t height{ 0 };
+			uint32_t refreshRate_numerator{ 0 };
+			uint32_t refreshRate_denominator{ 0 };
+		};
+
 		struct TextureDesc
 		{
 			string::StringID name;
@@ -194,7 +202,7 @@ namespace est
 					ModeCount,
 				};
 
-				Mode emMode{ eDepthBuffer_4Samples };
+				Mode emMode{ eVelocityBuffer_4Samples };
 				float blurAmount{ 1.f };
 
 				bool IsDepthMotionBlur() const { return eDepthBuffer_4Samples <= emMode && emMode <= eDepthBuffer_12Samples; }
@@ -202,8 +210,6 @@ namespace est
 			};
 			MotionBlurConfig motionBlurConfig;
 		};
-		Options& GetOptions();
-		Options& GetPrevOptions();
 
 		struct DebugInfo
 		{
@@ -229,8 +235,6 @@ namespace est
 			};
 			OcclusionCulling occlusionCulling;
 		};
-		DebugInfo& GetDebugInfo();
-		DebugInfo& GetPrevDebugInfo();
 
 		class IVertexBuffer : public IResource
 		{
@@ -341,9 +345,9 @@ namespace est
 				math::Color colorAlbedo{ math::Color::White };
 				math::Color colorEmissive{ math::Color::Transparent };
 
-				math::float4 f4PaddingRoughMetEmi;
-				math::float4 f4SurSpecTintAniso;
-				math::float4 f4SheenTintClearcoatGloss;
+				math::float4 paddingRoughMetEmi;
+				math::float4 surSpecTintAniso;
+				math::float4 sheenTintClearcoatGloss;
 
 				float stippleTransparencyFactor{ 0.f };
 				float tessellationFactor{ 256.f };
@@ -353,10 +357,10 @@ namespace est
 
 				std::array<string::StringID, IMaterial::TypeCount> textureNameArray;
 
-				EmSamplerState::Type emSamplerState{ EmSamplerState::eMinMagMipLinearWrap };
-				EmBlendState::Type emBlendState{ EmBlendState::eOff };
-				EmRasterizerState::Type emRasterizerState{ EmRasterizerState::eSolidCCW };
-				EmDepthStencilState::Type emDepthStencilState{ EmDepthStencilState::eRead_Write_On };
+				SamplerState::Type samplerState{ SamplerState::eMinMagMipLinearWrap };
+				BlendState::Type blendState{ BlendState::eOff };
+				RasterizerState::Type rasterizerState{ RasterizerState::eSolidCCW };
+				DepthStencilState::Type depthStencilState{ DepthStencilState::eRead_Write_On };
 			};
 
 		public:
@@ -386,24 +390,24 @@ namespace est
 			virtual TexturePtr GetTexture(IMaterial::Type emType) const = 0;
 			virtual void SetTexture(IMaterial::Type emType, const TexturePtr& pTexture) = 0;
 
-			virtual EmSamplerState::Type GetSamplerState() const = 0;
-			virtual void SetSamplerState(EmSamplerState::Type emSamplerState) = 0;
+			virtual SamplerState::Type GetSamplerState() const = 0;
+			virtual void SetSamplerState(SamplerState::Type samplerState) = 0;
 
-			virtual EmBlendState::Type GetBlendState() const = 0;
-			virtual void SetBlendState(EmBlendState::Type emBlendState) = 0;
+			virtual BlendState::Type GetBlendState() const = 0;
+			virtual void SetBlendState(BlendState::Type blendState) = 0;
 
-			virtual EmRasterizerState::Type GetRasterizerState() const = 0;
-			virtual void SetRasterizerState(EmRasterizerState::Type emRasterizerState) = 0;
+			virtual RasterizerState::Type GetRasterizerState() const = 0;
+			virtual void SetRasterizerState(RasterizerState::Type rasterizerState) = 0;
 
-			virtual EmDepthStencilState::Type GetDepthStencilState() const = 0;
-			virtual void SetDepthStencilState(EmDepthStencilState::Type emDepthStencilState) = 0;
+			virtual DepthStencilState::Type GetDepthStencilState() const = 0;
+			virtual void SetDepthStencilState(DepthStencilState::Type depthStencilState) = 0;
 
 			virtual const math::float4& GetPaddingRoughMetEmi() const = 0;
-			virtual void SetPaddingRoughMetEmi(const math::float4& f4PaddingRoughMetEmi) = 0;
+			virtual void SetPaddingRoughMetEmi(const math::float4& paddingRoughMetEmi) = 0;
 			virtual const math::float4& GetSurSpecTintAniso() const = 0;
-			virtual void SetSurSpecTintAniso(const math::float4& f4SurSpecTintAniso) = 0;
+			virtual void SetSurSpecTintAniso(const math::float4& surSpecTintAniso) = 0;
 			virtual const math::float4& GetSheenTintClearcoatGloss() const = 0;
-			virtual void SetSheenTintClearcoatGloss(const math::float4& f4SheenTintClearcoatGloss) = 0;
+			virtual void SetSheenTintClearcoatGloss(const math::float4& sheenTintClearcoatGloss) = 0;
 
 			virtual float GetDisplacement() const = 0;
 			virtual void SetDisplacement(float fDisplacement) = 0;
@@ -492,6 +496,39 @@ namespace est
 		public:
 			virtual bool Allocate(uint32_t nMatrixCount, math::Matrix** ppDest_Out, uint32_t& nVTFID_Out) = 0;
 		};
+
+		class ICursor
+		{
+		public:
+			ICursor() = default;
+			virtual ~ICursor() = default;
+
+		public:
+			virtual void Update(float elapsedTime) = 0;
+
+		public:
+			struct ImageData
+			{
+				const char* pData{ nullptr };
+				uint32_t dataSize{ 0 };
+			};
+			virtual bool LoadCursor(const string::StringID& key, const std::vector<ImageData>& imageDatas, uint32_t hotSpotX, uint32_t hotSpotY, float playTime, bool isLoop) = 0;
+			virtual bool IsHasCursor(const string::StringID& key) const = 0;
+			virtual void ChangeCursor(const string::StringID& key) = 0;
+			virtual void SetVisible(bool isVisible) = 0;
+			virtual bool IsVisible() = 0;
+
+		public:
+			virtual void SetDefaultCursor(const string::StringID& key) = 0;
+		};
+
+		Options& GetOptions();
+		Options& GetPrevOptions();
+		DebugInfo& GetDebugInfo();
+		DebugInfo& GetPrevDebugInfo();
+		Camera& GetCamera();
+
+		ICursor* GetCursor();
 	}
 }
 

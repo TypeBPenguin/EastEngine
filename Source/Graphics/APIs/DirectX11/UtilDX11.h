@@ -35,6 +35,7 @@ namespace est
 
 				bool CreateConstantBuffer(ID3D11Device* pDevice, size_t nSize, ID3D11Buffer** pBuffer_out, const char* debugName);
 
+				const D3D11_VIEWPORT* Convert(const math::Viewport& viewport);
 				int GetPixelSizeInBytes(DXGI_FORMAT val);
 
 				DXGI_FORMAT GetCascadedShadowFormat();

@@ -47,8 +47,8 @@ namespace est
 			bool IsButtonPressed(mouse::Button emMouseButton) const { return OldMouseDown(emMouseButton) && CurMouseDown(emMouseButton); }
 			bool IsButtonUp(mouse::Button emMouseButton) const { return OldMouseDown(emMouseButton) && !CurMouseDown(emMouseButton); }
 
-			int	GetX() const { return m_nX; }
-			int GetY() const { return m_nY; }
+			int	GetX() const { return m_x; }
+			int GetY() const { return m_y; }
 
 			long GetMoveX() const { return m_CurMouseState.moveX; }				// 마우스 X 이동거리
 			long GetMoveY() const { return m_CurMouseState.moveY; }				// 마우스 Y 이동거리
@@ -63,8 +63,8 @@ namespace est
 			MouseState m_CurMouseState;
 			MouseState m_OldMouseState;
 
-			int m_nX;
-			int m_nY;
+			int m_x;
+			int m_y;
 		};
 	}
 }

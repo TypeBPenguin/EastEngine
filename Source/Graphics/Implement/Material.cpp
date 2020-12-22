@@ -63,9 +63,9 @@ namespace est
 			materialData.path = filePath;
 			materialData.colorAlbedo = binaryReader.Read<math::Color>();
 			materialData.colorEmissive = binaryReader.Read < math::Color>();
-			materialData.f4PaddingRoughMetEmi = binaryReader.Read<math::float4>();
-			materialData.f4SurSpecTintAniso = binaryReader.Read<math::float4>();
-			materialData.f4SheenTintClearcoatGloss = binaryReader.Read<math::float4>();
+			materialData.paddingRoughMetEmi = binaryReader.Read<math::float4>();
+			materialData.surSpecTintAniso = binaryReader.Read<math::float4>();
+			materialData.sheenTintClearcoatGloss = binaryReader.Read<math::float4>();
 
 			materialData.isVisible = binaryReader;
 			materialData.stippleTransparencyFactor = binaryReader;
@@ -82,16 +82,16 @@ namespace est
 			}
 
 			int type = binaryReader;
-			materialData.emSamplerState = static_cast<EmSamplerState::Type>(type);
+			materialData.samplerState = static_cast<SamplerState::Type>(type);
 
 			type = binaryReader;
-			materialData.emBlendState = static_cast<EmBlendState::Type>(type);
+			materialData.blendState = static_cast<BlendState::Type>(type);
 
 			type = binaryReader;
-			materialData.emRasterizerState = static_cast<EmRasterizerState::Type>(type);
+			materialData.rasterizerState = static_cast<RasterizerState::Type>(type);
 
 			type = binaryReader;
-			materialData.emDepthStencilState = static_cast<EmDepthStencilState::Type>(type);
+			materialData.depthStencilState = static_cast<DepthStencilState::Type>(type);
 
 			file.Close();
 

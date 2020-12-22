@@ -49,15 +49,15 @@ namespace est
 
 				struct ObjectDataBuffer
 				{
-					math::Matrix matWorld;
-					math::Matrix matPrevWorld;
+					math::Matrix worldMatrix;
+					math::Matrix prevWorldMatrix;
 
 					math::Color f4AlbedoColor;
 					math::Color f4EmissiveColor;
 
-					math::float4 f4PaddingRoughMetEmi;
-					math::float4 f4SurSpecTintAniso;
-					math::float4 f4SheenTintClearcoatGloss;
+					math::float4 paddingRoughMetEmi;
+					math::float4 surSpecTintAniso;
+					math::float4 sheenTintClearcoatGloss;
 
 					float stippleTransparencyFactor{ 0.f };
 					uint32_t VTFID{ 0 };
@@ -68,8 +68,9 @@ namespace est
 
 				struct VSConstantsBuffer
 				{
-					math::Matrix matViewProj;
-					math::Matrix matPrevViewProj;
+					math::Matrix viewMatrix;
+					math::Matrix viewProjectionMatrix;
+					math::Matrix prevViewPrjectionMatrix;
 
 					uint32_t nTexVTFIndex{ 0 };
 					uint32_t nTexPrevVTFIndex{ 0 };
@@ -177,49 +178,49 @@ namespace est
 
 				PSOKey GetPSOKey(ModelRenderer::Group emGroup, Pass emPass, uint32_t mask, const IMaterial* pMaterial)
 				{
-					EmRasterizerState::Type emRasterizerState = EmRasterizerState::eSolidCCW;
-					EmBlendState::Type emBlendState = EmBlendState::eOff;
-					EmDepthStencilState::Type emDepthStencilState = EmDepthStencilState::eRead_Write_On;
+					RasterizerState::Type rasterizerState = RasterizerState::eSolidCCW;
+					BlendState::Type blendState = BlendState::eOff;
+					DepthStencilState::Type depthStencilState = DepthStencilState::eRead_Write_On;
 
 					if (pMaterial != nullptr)
 					{
-						emBlendState = pMaterial->GetBlendState();
-						emRasterizerState = pMaterial->GetRasterizerState();
-						emDepthStencilState = pMaterial->GetDepthStencilState();
+						blendState = pMaterial->GetBlendState();
+						rasterizerState = pMaterial->GetRasterizerState();
+						depthStencilState = pMaterial->GetDepthStencilState();
 
 						if (emGroup == ModelRenderer::eAlphaBlend &&
 							emPass == shader::ePass_AlphaBlend_Pre)
 						{
-							if (pMaterial->GetDepthStencilState() == EmDepthStencilState::eRead_Write_On)
+							if (pMaterial->GetDepthStencilState() == DepthStencilState::eRead_Write_On)
 							{
-								emRasterizerState = EmRasterizerState::eSolidCullNone;
-								emDepthStencilState = EmDepthStencilState::eRead_On_Write_Off;
+								rasterizerState = RasterizerState::eSolidCullNone;
+								depthStencilState = DepthStencilState::eRead_On_Write_Off;
 							}
-							else if (pMaterial->GetDepthStencilState() == EmDepthStencilState::eRead_Off_Write_On)
+							else if (pMaterial->GetDepthStencilState() == DepthStencilState::eRead_Off_Write_On)
 							{
-								emRasterizerState = EmRasterizerState::eSolidCullNone;
-								emDepthStencilState = EmDepthStencilState::eRead_Write_Off;
+								rasterizerState = RasterizerState::eSolidCullNone;
+								depthStencilState = DepthStencilState::eRead_Write_Off;
 							}
 						}
 					}
 
-					return { mask, emRasterizerState, emBlendState, emDepthStencilState };
+					return { mask, rasterizerState, blendState, depthStencilState };
 				}
 
 				void SetObjectData(ObjectDataBuffer* pObjectDataBuffer,
-					const IMaterial* pMaterial, const math::Matrix& matWorld, const math::Matrix& matPrevWorld, uint32_t VTFID, uint32_t PrevVTFID)
+					const IMaterial* pMaterial, const math::Matrix& worldMatrix, const math::Matrix& prevWorldMatrix, uint32_t VTFID, uint32_t PrevVTFID)
 				{
-					pObjectDataBuffer->matWorld = matWorld.Transpose();
-					pObjectDataBuffer->matPrevWorld = matPrevWorld.Transpose();
+					pObjectDataBuffer->worldMatrix = worldMatrix.Transpose();
+					pObjectDataBuffer->prevWorldMatrix = prevWorldMatrix.Transpose();
 
 					if (pMaterial != nullptr)
 					{
 						pObjectDataBuffer->f4AlbedoColor = pMaterial->GetAlbedoColor();
 						pObjectDataBuffer->f4EmissiveColor = pMaterial->GetEmissiveColor();
 
-						pObjectDataBuffer->f4PaddingRoughMetEmi = pMaterial->GetPaddingRoughMetEmi();
-						pObjectDataBuffer->f4SurSpecTintAniso = pMaterial->GetSurSpecTintAniso();
-						pObjectDataBuffer->f4SheenTintClearcoatGloss = pMaterial->GetSheenTintClearcoatGloss();
+						pObjectDataBuffer->paddingRoughMetEmi = pMaterial->GetPaddingRoughMetEmi();
+						pObjectDataBuffer->surSpecTintAniso = pMaterial->GetSurSpecTintAniso();
+						pObjectDataBuffer->sheenTintClearcoatGloss = pMaterial->GetSheenTintClearcoatGloss();
 
 						pObjectDataBuffer->stippleTransparencyFactor = pMaterial->GetStippleTransparencyFactor();
 						pObjectDataBuffer->VTFID = VTFID;
@@ -232,9 +233,9 @@ namespace est
 						pObjectDataBuffer->f4AlbedoColor = math::Color::White;
 						pObjectDataBuffer->f4EmissiveColor = math::Color::Black;
 
-						pObjectDataBuffer->f4PaddingRoughMetEmi = math::float4::Zero;
-						pObjectDataBuffer->f4SurSpecTintAniso = math::float4::Zero;
-						pObjectDataBuffer->f4SheenTintClearcoatGloss = math::float4::Zero;
+						pObjectDataBuffer->paddingRoughMetEmi = math::float4::Zero;
+						pObjectDataBuffer->surSpecTintAniso = math::float4::Zero;
+						pObjectDataBuffer->sheenTintClearcoatGloss = math::float4::Zero;
 
 						pObjectDataBuffer->stippleTransparencyFactor = 0.f;
 						pObjectDataBuffer->VTFID = VTFID;
@@ -281,7 +282,7 @@ namespace est
 
 			public:
 				void RefreshPSO(ID3D12Device* pDevice);
-				void Render(const RenderElement& renderElement, Group emGroup, const math::Matrix& matPrevViewProjection);
+				void Render(const RenderElement& renderElement, Group emGroup, const math::Matrix& prevViewPrjectionMatrixection);
 				void Cleanup();
 
 			public:
@@ -365,11 +366,11 @@ namespace est
 					std::vector<math::Matrix> instanceData;
 					std::vector<math::Matrix> prevInstanceData;
 
-					JobStaticBatch(const JobStatic* pJob, const math::Matrix& matWorld, const math::Matrix& matPrevWorld)
+					JobStaticBatch(const JobStatic* pJob, const math::Matrix& worldMatrix, const math::Matrix& prevWorldMatrix)
 						: pJob(pJob)
 					{
-						instanceData.emplace_back(matWorld);
-						prevInstanceData.emplace_back(matPrevWorld);
+						instanceData.emplace_back(worldMatrix);
+						prevInstanceData.emplace_back(prevWorldMatrix);
 					}
 				};
 
@@ -398,11 +399,11 @@ namespace est
 					std::vector<SkinningInstancingData> instanceData;
 					std::vector<SkinningInstancingData> prevInstanceData;
 
-					JobSkinnedBatch(const JobSkinned* pJob, const math::Matrix& matWorld, const math::Matrix& matPrevWorld, uint32_t VTFID, uint32_t PrevVTFID)
+					JobSkinnedBatch(const JobSkinned* pJob, const math::Matrix& worldMatrix, const math::Matrix& prevWorldMatrix, uint32_t VTFID, uint32_t PrevVTFID)
 						: pJob(pJob)
 					{
-						instanceData.emplace_back(matWorld, VTFID);
-						prevInstanceData.emplace_back(matPrevWorld, PrevVTFID);
+						instanceData.emplace_back(worldMatrix, VTFID);
+						prevInstanceData.emplace_back(prevWorldMatrix, PrevVTFID);
 					}
 				};
 
@@ -426,15 +427,15 @@ namespace est
 
 				ID3D12Device* pDevice = Device::GetInstance()->GetInterface();
 
-				CreateRenderPipeline(pDevice, { 0, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On });
-				CreateRenderPipeline(pDevice, { shader::eUseInstancing, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On });
-				CreateRenderPipeline(pDevice, { shader::eUseAlphaBlending, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On });
-				CreateRenderPipeline(pDevice, { shader::eUseInstancing | shader::eUseAlphaBlending, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On });
+				CreateRenderPipeline(pDevice, { 0, RasterizerState::eSolidCCW, BlendState::eOff, DepthStencilState::eRead_Write_On });
+				CreateRenderPipeline(pDevice, { shader::eUseInstancing, RasterizerState::eSolidCCW, BlendState::eOff, DepthStencilState::eRead_Write_On });
+				CreateRenderPipeline(pDevice, { shader::eUseAlphaBlending, RasterizerState::eSolidCCW, BlendState::eOff, DepthStencilState::eRead_Write_On });
+				CreateRenderPipeline(pDevice, { shader::eUseInstancing | shader::eUseAlphaBlending, RasterizerState::eSolidCCW, BlendState::eOff, DepthStencilState::eRead_Write_On });
 
-				CreateRenderPipeline(pDevice, { shader::eUseSkinning, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On });
-				CreateRenderPipeline(pDevice, { shader::eUseSkinning | shader::eUseInstancing, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On });
-				CreateRenderPipeline(pDevice, { shader::eUseSkinning | shader::eUseAlphaBlending, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On });
-				CreateRenderPipeline(pDevice, { shader::eUseSkinning | shader::eUseInstancing | shader::eUseAlphaBlending, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On });
+				CreateRenderPipeline(pDevice, { shader::eUseSkinning, RasterizerState::eSolidCCW, BlendState::eOff, DepthStencilState::eRead_Write_On });
+				CreateRenderPipeline(pDevice, { shader::eUseSkinning | shader::eUseInstancing, RasterizerState::eSolidCCW, BlendState::eOff, DepthStencilState::eRead_Write_On });
+				CreateRenderPipeline(pDevice, { shader::eUseSkinning | shader::eUseAlphaBlending, RasterizerState::eSolidCCW, BlendState::eOff, DepthStencilState::eRead_Write_On });
+				CreateRenderPipeline(pDevice, { shader::eUseSkinning | shader::eUseInstancing | shader::eUseAlphaBlending, RasterizerState::eSolidCCW, BlendState::eOff, DepthStencilState::eRead_Write_On });
 
 				m_skinningInstancingDataBuffer.Create(pDevice, shader::eMaxInstancingJobCount, "SkinningInstancingDataBuffer");
 				m_staticInstancingDataBuffer.Create(pDevice, shader::eMaxInstancingJobCount, "StaticInstancingDataBuffer");
@@ -473,7 +474,7 @@ namespace est
 				}
 			}
 
-			void ModelRenderer::Impl::Render(const RenderElement& renderElement, Group emGroup, const math::Matrix& matPrevViewProjection)
+			void ModelRenderer::Impl::Render(const RenderElement& renderElement, Group emGroup, const math::Matrix& prevViewPrjectionMatrixection)
 			{
 				const bool isAlphaBlend = emGroup == Group::eAlphaBlend;
 				if (isAlphaBlend == true && m_jobStaticCount[emGroup] == 0 && m_jobSkinnedCount[emGroup] == 0)
@@ -534,10 +535,12 @@ namespace est
 					Texture* pPrevVTFTexture = pVTFManager->GetPrevTexture();
 
 					shader::VSConstantsBuffer* pVSConstantsBuffer = m_vsConstantsBuffer.Cast(frameIndex);
-					pVSConstantsBuffer->matViewProj = pCamera->GetViewMatrix() * pCamera->GetProjectionMatrix();
-					pVSConstantsBuffer->matViewProj = pVSConstantsBuffer->matViewProj.Transpose();
+					pVSConstantsBuffer->viewMatrix = pCamera->GetViewMatrix().Transpose();
 
-					pVSConstantsBuffer->matPrevViewProj = matPrevViewProjection.Transpose();
+					pVSConstantsBuffer->viewProjectionMatrix = pCamera->GetViewMatrix() * pCamera->GetProjectionMatrix();
+					pVSConstantsBuffer->viewProjectionMatrix = pVSConstantsBuffer->viewProjectionMatrix.Transpose();
+
+					pVSConstantsBuffer->prevViewPrjectionMatrix = prevViewPrjectionMatrixection.Transpose();
 
 					pVSConstantsBuffer->nTexVTFIndex = pVTFTexture->GetDescriptorIndex();
 					pVSConstantsBuffer->nTexPrevVTFIndex = pPrevVTFTexture->GetDescriptorIndex();
@@ -606,7 +609,7 @@ namespace est
 				Group emGroup;
 
 				const MaterialPtr& pMaterial = job.pMaterial;
-				if (pMaterial == nullptr || pMaterial->GetBlendState() == EmBlendState::eOff)
+				if (pMaterial == nullptr || pMaterial->GetBlendState() == BlendState::eOff)
 				{
 					emGroup = eDeferred;
 				}
@@ -634,7 +637,7 @@ namespace est
 				Group emGroup;
 
 				const MaterialPtr& pMaterial = job.pMaterial;
-				if (pMaterial == nullptr || pMaterial->GetBlendState() == EmBlendState::eOff)
+				if (pMaterial == nullptr || pMaterial->GetBlendState() == BlendState::eOff)
 				{
 					emGroup = eDeferred;
 				}
@@ -700,7 +703,7 @@ namespace est
 					CreatePipelineState(pDevice, psoKey, pRenderPipeline);
 
 					stopwatch.Stop();
-					LOG_MESSAGE(L"CreatePipelineState[%u_%d_%d_%d] : ElapsedTime[%lf]", psoKey.mask, psoKey.emRasterizerState, psoKey.emBlendState, psoKey.emDepthStencilState, stopwatch.Elapsed());
+					LOG_MESSAGE(L"CreatePipelineState[%u_%d_%d_%d] : ElapsedTime[%lf]", psoKey.mask, psoKey.rasterizerState, psoKey.blendState, psoKey.depthStencilState, stopwatch.Elapsed());
 					//});
 				}
 
@@ -713,8 +716,8 @@ namespace est
 				DescriptorHeap* pSRVDescriptorHeap = pDeviceInstance->GetSRVDescriptorHeap();
 				DescriptorHeap* pSamplerDescriptorHeap = pDeviceInstance->GetSamplerDescriptorHeap();
 
-				const D3D12_VIEWPORT* pViewport = pDeviceInstance->GetViewport();
-				const D3D12_RECT* pScissorRect = pDeviceInstance->GetScissorRect();
+				const math::Viewport& viewport= pDeviceInstance->GetViewport();
+				const math::Rect& scissorRect = pDeviceInstance->GetScissorRect();
 
 				m_umapJobStaticMasterBatchs.clear();
 
@@ -737,12 +740,12 @@ namespace est
 						auto iter = umapJobStaticBatch.find(job.data.pKey);
 						if (iter != umapJobStaticBatch.end())
 						{
-							iter.value().instanceData.emplace_back(job.data.matWorld.Transpose());
-							iter.value().prevInstanceData.emplace_back(job.data.matWorld.Transpose());
+							iter.value().instanceData.emplace_back(job.data.worldMatrix.Transpose());
+							iter.value().prevInstanceData.emplace_back(job.data.worldMatrix.Transpose());
 						}
 						else
 						{
-							umapJobStaticBatch.emplace(job.data.pKey, JobStaticBatch(&job, job.data.matWorld.Transpose(), job.data.matPrevWorld.Transpose()));
+							umapJobStaticBatch.emplace(job.data.pKey, JobStaticBatch(&job, job.data.worldMatrix.Transpose(), job.data.prevWorldMatrix.Transpose()));
 						}
 					}
 
@@ -810,8 +813,8 @@ namespace est
 						};
 						pCommandList->SetDescriptorHeaps(_countof(pDescriptorHeaps), pDescriptorHeaps);
 
-						pCommandList->RSSetViewports(1, pViewport);
-						pCommandList->RSSetScissorRects(1, pScissorRect);
+						pCommandList->RSSetViewports(1, util::Convert(viewport));
+						pCommandList->RSSetScissorRects(1, &scissorRect);
 						pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 						pCommandList->OMSetRenderTargets(static_cast<uint32_t>(nRTVHandleCount), pRTVHandles, FALSE, pDSVHandle);
@@ -840,7 +843,7 @@ namespace est
 								{
 									const uint32_t mask = (pPSOKey->mask & shader::eUseAlphaBlending) | (pPSOKey->mask & shader::eUseInstancing);
 
-									const PSOKey psoDefaultStaticKey(mask, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On);
+									const PSOKey psoDefaultStaticKey(mask, RasterizerState::eSolidCCW, BlendState::eOff, DepthStencilState::eRead_Write_On);
 									pRenderPipeline = CreateRenderPipeline(pDevice, psoDefaultStaticKey);
 									if (pRenderPipeline == nullptr || pRenderPipeline->psoCache.pPipelineState == nullptr || pRenderPipeline->psoCache.pRootSignature == nullptr)
 									{
@@ -853,7 +856,7 @@ namespace est
 							pCommandList->SetPipelineState(pRenderPipeline->psoCache.pPipelineState);
 							pCommandList->SetGraphicsRootSignature(pRenderPipeline->psoCache.pRootSignature);
 
-							if (pPSOKey->emBlendState != EmBlendState::eOff)
+							if (pPSOKey->blendState != BlendState::eOff)
 							{
 								pCommandList->OMSetBlendFactor(&math::float4::Zero.x);
 							}
@@ -1002,7 +1005,7 @@ namespace est
 										shader::ObjectDataBuffer* pBuffer = m_objectDataBuffer.Cast(frameIndex, objectBufferIndex);
 										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_objectDataBuffer.GPUAddress(frameIndex, objectBufferIndex);
 
-										shader::SetObjectData(pBuffer, job.pMaterial.get(), job.matWorld, job.matPrevWorld, 0, 0);
+										shader::SetObjectData(pBuffer, job.pMaterial.get(), job.worldMatrix, job.prevWorldMatrix, 0, 0);
 
 										pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->rootParameterIndex[eRP_ObjectDataCB], gpuAddress);
 									}
@@ -1057,8 +1060,8 @@ namespace est
 				DescriptorHeap* pSRVDescriptorHeap = pDeviceInstance->GetSRVDescriptorHeap();
 				DescriptorHeap* pSamplerDescriptorHeap = pDeviceInstance->GetSamplerDescriptorHeap();
 
-				const D3D12_VIEWPORT* pViewport = pDeviceInstance->GetViewport();
-				const D3D12_RECT* pScissorRect = pDeviceInstance->GetScissorRect();
+				const math::Viewport& viewport= pDeviceInstance->GetViewport();
+				const math::Rect& scissorRect = pDeviceInstance->GetScissorRect();
 
 				m_umapJobSkinnedMasterBatchs.clear();
 
@@ -1081,12 +1084,12 @@ namespace est
 						auto iter = umapJobSkinnedBatch.find(job.data.pKey);
 						if (iter != umapJobSkinnedBatch.end())
 						{
-							iter.value().instanceData.emplace_back(job.data.matWorld, job.data.VTFID);
-							iter.value().prevInstanceData.emplace_back(job.data.matPrevWorld, job.data.PrevVTFID);
+							iter.value().instanceData.emplace_back(job.data.worldMatrix, job.data.VTFID);
+							iter.value().prevInstanceData.emplace_back(job.data.prevWorldMatrix, job.data.PrevVTFID);
 						}
 						else
 						{
-							umapJobSkinnedBatch.emplace(job.data.pKey, JobSkinnedBatch(&job, job.data.matWorld, job.data.matPrevWorld, job.data.VTFID, job.data.PrevVTFID));
+							umapJobSkinnedBatch.emplace(job.data.pKey, JobSkinnedBatch(&job, job.data.worldMatrix, job.data.prevWorldMatrix, job.data.VTFID, job.data.PrevVTFID));
 						}
 					}
 
@@ -1156,8 +1159,8 @@ namespace est
 						};
 						pCommandList->SetDescriptorHeaps(_countof(pDescriptorHeaps), pDescriptorHeaps);
 
-						pCommandList->RSSetViewports(1, pViewport);
-						pCommandList->RSSetScissorRects(1, pScissorRect);
+						pCommandList->RSSetViewports(1, util::Convert(viewport));
+						pCommandList->RSSetScissorRects(1, &scissorRect);
 						pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 						pCommandList->OMSetRenderTargets(static_cast<uint32_t>(nRTVHandleCount), pRTVHandles, FALSE, pDSVHandle);
@@ -1186,7 +1189,7 @@ namespace est
 								{
 									const uint32_t mask = shader::eUseSkinning | (pPSOKey->mask & shader::eUseAlphaBlending) | (pPSOKey->mask & shader::eUseInstancing);
 
-									const PSOKey psoDefaultSkinnedKey(mask, EmRasterizerState::eSolidCCW, EmBlendState::eOff, EmDepthStencilState::eRead_Write_On);
+									const PSOKey psoDefaultSkinnedKey(mask, RasterizerState::eSolidCCW, BlendState::eOff, DepthStencilState::eRead_Write_On);
 									pRenderPipeline = CreateRenderPipeline(pDevice, psoDefaultSkinnedKey);
 									if (pRenderPipeline == nullptr || pRenderPipeline->psoCache.pPipelineState == nullptr || pRenderPipeline->psoCache.pRootSignature == nullptr)
 									{
@@ -1199,7 +1202,7 @@ namespace est
 							pCommandList->SetPipelineState(pRenderPipeline->psoCache.pPipelineState);
 							pCommandList->SetGraphicsRootSignature(pRenderPipeline->psoCache.pRootSignature);
 
-							if (pPSOKey->emBlendState != EmBlendState::eOff)
+							if (pPSOKey->blendState != BlendState::eOff)
 							{
 								pCommandList->OMSetBlendFactor(&math::float4::Zero.x);
 							}
@@ -1348,7 +1351,7 @@ namespace est
 										shader::ObjectDataBuffer* pBuffer = m_objectDataBuffer.Cast(frameIndex, objectBufferIndex);
 										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_objectDataBuffer.GPUAddress(frameIndex, objectBufferIndex);
 
-										shader::SetObjectData(pBuffer, job.pMaterial.get(), job.matWorld, job.matPrevWorld, job.VTFID, job.PrevVTFID);
+										shader::SetObjectData(pBuffer, job.pMaterial.get(), job.worldMatrix, job.prevWorldMatrix, job.VTFID, job.PrevVTFID);
 
 										pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->rootParameterIndex[eRP_ObjectDataCB], gpuAddress);
 									}
@@ -1451,8 +1454,8 @@ namespace est
 
 					staticSamplers =
 					{
-						util::GetStaticSamplerDesc(EmSamplerState::eMinMagMipPointClamp, 0, 100, D3D12_SHADER_VISIBILITY_PIXEL),
-						util::GetStaticSamplerDesc(EmSamplerState::eMinMagMipLinearClamp, 1, 100, D3D12_SHADER_VISIBILITY_PIXEL),
+						util::GetStaticSamplerDesc(SamplerState::eMinMagMipPointClamp, 0, 100, D3D12_SHADER_VISIBILITY_PIXEL),
+						util::GetStaticSamplerDesc(SamplerState::eMinMagMipLinearClamp, 1, 100, D3D12_SHADER_VISIBILITY_PIXEL),
 					};
 				}
 
@@ -1489,7 +1492,7 @@ namespace est
 					}
 				}
 
-				const std::wstring debugName = string::Format(L"%u_%d_%d_%d", psoKey.mask, psoKey.emRasterizerState, psoKey.emBlendState, psoKey.emDepthStencilState);
+				const std::wstring debugName = string::Format(L"%u_%d_%d_%d", psoKey.mask, psoKey.rasterizerState, psoKey.blendState, psoKey.depthStencilState);
 
 				std::array<uint32_t, eRP_Count> rootParameterIndex;
 				rootParameterIndex.fill(eRP_InvalidIndex);
@@ -1532,8 +1535,8 @@ namespace est
 				psoDesc.pRootSignature = pRootSignature;
 				psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 				psoDesc.SampleMask = 0xffffffff;
-				psoDesc.RasterizerState = util::GetRasterizerDesc(psoKey.emRasterizerState);
-				psoDesc.BlendState = util::GetBlendDesc(psoKey.emBlendState);
+				psoDesc.RasterizerState = util::GetRasterizerDesc(psoKey.rasterizerState);
+				psoDesc.BlendState = util::GetBlendDesc(psoKey.blendState);
 
 				if ((psoKey.mask & shader::eUseAlphaBlending) == shader::eUseAlphaBlending)
 				{
@@ -1566,7 +1569,7 @@ namespace est
 				}
 
 				psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
-				psoDesc.DepthStencilState = util::GetDepthStencilDesc(psoKey.emDepthStencilState);
+				psoDesc.DepthStencilState = util::GetDepthStencilDesc(psoKey.depthStencilState);
 
 				ID3D12PipelineState* pPipelineState = nullptr;
 				HRESULT hr = pDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pPipelineState));
@@ -1605,9 +1608,9 @@ namespace est
 				m_pImpl->RefreshPSO(pDevice);
 			}
 
-			void ModelRenderer::Render(const RenderElement& renderElement, Group emGroup, const math::Matrix& matPrevViewProjection)
+			void ModelRenderer::Render(const RenderElement& renderElement, Group emGroup, const math::Matrix& prevViewPrjectionMatrixection)
 			{
-				m_pImpl->Render(renderElement, emGroup, matPrevViewProjection);
+				m_pImpl->Render(renderElement, emGroup, prevViewPrjectionMatrixection);
 			}
 
 			void ModelRenderer::Cleanup()

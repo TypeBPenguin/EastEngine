@@ -1,8 +1,7 @@
 #pragma once
 
 #include "CommonLib/Singleton.h"
-
-#include "Graphics/Interface/Define.h"
+#include "Graphics/Interface/GraphicsInterface.h"
 
 struct VkDevice_T;
 struct VkCommandPool_T;
@@ -59,7 +58,7 @@ namespace est
 				virtual ~Device();
 
 			public:
-				void Initialize(uint32_t width, uint32_t height, bool isFullScreen, const string::StringID& applicationTitle, const string::StringID& applicationName);
+				void Initialize(uint32_t width, uint32_t height, bool isFullScreen, const string::StringID& applicationTitle, const string::StringID& applicationName, std::function<HRESULT(HWND, uint32_t, WPARAM, LPARAM)> messageHandler);
 
 				void Run(std::function<bool()> funcUpdate);
 
@@ -67,6 +66,10 @@ namespace est
 
 			public:
 				const math::uint2& GetScreenSize() const;
+				const math::Viewport& GetViewport() const;
+
+				const std::vector<DisplayModeDesc>& GetSupportedDisplayModeDesc() const;
+				size_t GetSelectedDisplayModeIndex() const;
 
 				VkDevice GetInterface() const;
 				VkCommandPool GetCommandPool() const;
@@ -78,12 +81,10 @@ namespace est
 				VkFormat GetSwapChainImageFormat() const;
 				VkExtent2D GetSwapChainExtent2D() const;
 
-				const VkViewport* GetViewport() const;
-
 				VkSemaphore GetImageAvailableSemaphore() const;
 				VkSemaphore GetRenderFinishedSemaphore() const;
 
-				VkSampler GetSampler(EmSamplerState::Type emType) const;
+				VkSampler GetSampler(SamplerState::Type emType) const;
 
 			public:
 				GBuffer* GetGBuffer(int frameIndex) const;

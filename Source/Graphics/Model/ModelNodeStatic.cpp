@@ -83,8 +83,8 @@ namespace est
 							IndexBufferPtr pIndexBuffer;
 							geometry::GetDebugModel(geometry::DebugModelType::eBox, &pVertexBuffer, &pIndexBuffer);
 
-							const math::Matrix matWorld = math::Matrix::Compose(occlusionCullingData.aabb.Extents * 2.f, math::Quaternion::Identity, occlusionCullingData.aabb.Center);
-							RenderJobVertex debugJob(pVertexBuffer, pIndexBuffer, matWorld, math::Color::Red);
+							const math::Matrix worldMatrix = math::Matrix::Compose(occlusionCullingData.aabb.Extents * 2.f, math::Quaternion::Identity, occlusionCullingData.aabb.Center);
+							RenderJobVertex debugJob(pVertexBuffer, pIndexBuffer, worldMatrix, math::Color::Red);
 							PushRenderJob(debugJob);
 						}
 					}

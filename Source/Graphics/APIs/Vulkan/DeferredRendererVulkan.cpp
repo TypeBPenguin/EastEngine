@@ -193,13 +193,13 @@ namespace est
 
 				VkDevice device = Device::GetInstance()->GetInterface();
 				const uint32_t frameIndex = Device::GetInstance()->GetFrameIndex();
-				const VkViewport* pViewport = Device::GetInstance()->GetViewport();
+				const math::Viewport& viewport = Device::GetInstance()->GetViewport();
 				const VkExtent2D extent = Device::GetInstance()->GetSwapChainExtent2D();
 
 				const GBuffer* pGBuffer = Device::GetInstance()->GetGBuffer(0);
 				const IImageBasedLight* pImageBasedLight = Device::GetInstance()->GetImageBasedLight();
-				const VkSampler samplerPointClamp = Device::GetInstance()->GetSampler(EmSamplerState::eMinMagMipPointClamp);
-				const VkSampler samplerLinearClamp = Device::GetInstance()->GetSampler(EmSamplerState::eMinMagMipLinearClamp);
+				const VkSampler samplerPointClamp = Device::GetInstance()->GetSampler(SamplerState::eMinMagMipPointClamp);
+				const VkSampler samplerLinearClamp = Device::GetInstance()->GetSampler(SamplerState::eMinMagMipLinearClamp);
 
 				VkCommandBuffer commandBuffer = Device::GetInstance()->GetCommandBuffer(frameIndex);
 
@@ -218,7 +218,7 @@ namespace est
 
 				vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-				vkCmdSetViewport(commandBuffer, 0, 1, pViewport);
+				vkCmdSetViewport(commandBuffer, 0, 1, util::Convert(viewport));
 
 				VkRect2D scissor{};
 				scissor.extent = extent;
@@ -493,7 +493,7 @@ namespace est
 			void DeferredRenderer::Impl::CreatePipelineLayout(VkDevice device)
 			{
 				VkExtent2D extend = Device::GetInstance()->GetSwapChainExtent2D();
-				const VkViewport* pViewport = Device::GetInstance()->GetViewport();
+				const math::Viewport& viewport = Device::GetInstance()->GetViewport();
 
 				std::string strVertShaderCode = util::LoadShaderCode(deferredshader::GetVertexShaderFile());
 				std::string strFragShaderCode = util::LoadShaderCode(deferredshader::GetFragmentShaderFile());
@@ -539,7 +539,7 @@ namespace est
 				VkPipelineViewportStateCreateInfo viewportState{};
 				viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
 				viewportState.viewportCount = 1;
-				viewportState.pViewports = pViewport;
+				viewportState.pViewports = util::Convert(viewport);
 				viewportState.scissorCount = 1;
 				viewportState.pScissors = &scissor;
 
@@ -564,9 +564,9 @@ namespace est
 					0.f,	// depthBiasSlopeFactor
 					1.f	// lineWidth
 				};
-				VkPipelineDepthStencilStateCreateInfo depthStencil = util::GetDepthStencilCreateInfo(EmDepthStencilState::eRead_Write_Off);
+				VkPipelineDepthStencilStateCreateInfo depthStencil = util::GetDepthStencilCreateInfo(DepthStencilState::eRead_Write_Off);
 
-				VkPipelineColorBlendAttachmentState colorBlendAttachment = util::GetBlendAttachmentState(EmBlendState::eOff);
+				VkPipelineColorBlendAttachmentState colorBlendAttachment = util::GetBlendAttachmentState(BlendState::eOff);
 				VkPipelineColorBlendStateCreateInfo colorBlending = util::GetBlendCreateInfo(&colorBlendAttachment, 1);
 
 				VkPipelineLayoutCreateInfo pipelineLayoutInfo{};

@@ -6,10 +6,10 @@ namespace est
 	namespace graphics
 	{
 		RenderJobStatic::RenderJobStatic(const void* pKey, const VertexBufferPtr& pVertexBuffer, const IndexBufferPtr& pIndexBuffer, const MaterialPtr& pMaterial,
-			const math::Matrix& matWorld, const math::Matrix& matPrevWorld, uint32_t startIndex, uint32_t indexCount,
+			const math::Matrix& worldMatrix, const math::Matrix& prevWorldMatrix, uint32_t startIndex, uint32_t indexCount,
 			float depth, const OcclusionCullingData& occlusionCullingData)
 			: pKey(pKey), pVertexBuffer(pVertexBuffer), pIndexBuffer(pIndexBuffer), pMaterial(pMaterial)
-			, matWorld(matWorld), matPrevWorld(matPrevWorld), startIndex(startIndex), indexCount(indexCount)
+			, worldMatrix(worldMatrix), prevWorldMatrix(prevWorldMatrix), startIndex(startIndex), indexCount(indexCount)
 			, depth(depth), occlusionCullingData(occlusionCullingData)
 		{
 		}
@@ -30,8 +30,8 @@ namespace est
 			pVertexBuffer = source.pVertexBuffer;
 			pIndexBuffer = source.pIndexBuffer;
 			pMaterial = source.pMaterial;
-			matWorld = source.matWorld;
-			matPrevWorld = source.matPrevWorld;
+			worldMatrix = source.worldMatrix;
+			prevWorldMatrix = source.prevWorldMatrix;
 			startIndex = source.startIndex;
 			indexCount = source.indexCount;
 			depth = source.depth;
@@ -46,8 +46,8 @@ namespace est
 			pVertexBuffer = std::move(source.pVertexBuffer);
 			pIndexBuffer = std::move(source.pIndexBuffer);
 			pMaterial = std::move(source.pMaterial);
-			matWorld = std::move(source.matWorld);
-			matPrevWorld = std::move(source.matPrevWorld);
+			worldMatrix = std::move(source.worldMatrix);
+			prevWorldMatrix = std::move(source.prevWorldMatrix);
 			startIndex = std::move(source.startIndex);
 			indexCount = std::move(source.indexCount);
 			depth = std::move(source.depth);
@@ -57,11 +57,11 @@ namespace est
 		}
 
 		RenderJobSkinned::RenderJobSkinned(const void* pKey, const VertexBufferPtr& pVertexBuffer, const IndexBufferPtr& pIndexBuffer, const MaterialPtr& pMaterial,
-			const math::Matrix& matWorld, const math::Matrix& matPrevWorld,
+			const math::Matrix& worldMatrix, const math::Matrix& prevWorldMatrix,
 			uint32_t startIndex, uint32_t indexCount, uint32_t VTFID, uint32_t PrevVTFID,
 			float depth, const OcclusionCullingData& occlusionCullingData)
 			: pKey(pKey), pVertexBuffer(pVertexBuffer), pIndexBuffer(pIndexBuffer), pMaterial(pMaterial)
-			, matWorld(matWorld), matPrevWorld(matPrevWorld), startIndex(startIndex), indexCount(indexCount), VTFID(VTFID), PrevVTFID(PrevVTFID)
+			, worldMatrix(worldMatrix), prevWorldMatrix(prevWorldMatrix), startIndex(startIndex), indexCount(indexCount), VTFID(VTFID), PrevVTFID(PrevVTFID)
 			, depth(depth), occlusionCullingData(occlusionCullingData)
 		{
 		}
@@ -82,8 +82,8 @@ namespace est
 			pVertexBuffer = source.pVertexBuffer;
 			pIndexBuffer = source.pIndexBuffer;
 			pMaterial = source.pMaterial;
-			matWorld = source.matWorld;
-			matPrevWorld = source.matPrevWorld;
+			worldMatrix = source.worldMatrix;
+			prevWorldMatrix = source.prevWorldMatrix;
 			startIndex = source.startIndex;
 			indexCount = source.indexCount;
 			VTFID = source.VTFID;
@@ -100,8 +100,8 @@ namespace est
 			pVertexBuffer = std::move(source.pVertexBuffer);
 			pIndexBuffer = std::move(source.pIndexBuffer);
 			pMaterial = std::move(source.pMaterial);
-			matWorld = std::move(source.matWorld);
-			matPrevWorld = std::move(source.matPrevWorld);
+			worldMatrix = std::move(source.worldMatrix);
+			prevWorldMatrix = std::move(source.prevWorldMatrix);
 			startIndex = std::move(source.startIndex);
 			indexCount = std::move(source.indexCount);
 			VTFID = std::move(source.VTFID);
@@ -112,10 +112,10 @@ namespace est
 			return *this;
 		}
 
-		RenderJobVertex::RenderJobVertex(const VertexBufferPtr& pVertexBuffer, const IndexBufferPtr& pIndexBuffer, const math::Matrix& matWorld, const math::Color& color)
+		RenderJobVertex::RenderJobVertex(const VertexBufferPtr& pVertexBuffer, const IndexBufferPtr& pIndexBuffer, const math::Matrix& worldMatrix, const math::Color& color)
 			: pVertexBuffer(pVertexBuffer)
 			, pIndexBuffer(pIndexBuffer)
-			, matWorld(matWorld)
+			, worldMatrix(worldMatrix)
 			, color(color)
 		{
 		}
@@ -134,7 +134,7 @@ namespace est
 		{
 			pVertexBuffer = source.pVertexBuffer;
 			pIndexBuffer = source.pIndexBuffer;
-			matWorld = source.matWorld;
+			worldMatrix = source.worldMatrix;
 			color = source.color;
 			return *this;
 		}
@@ -143,7 +143,7 @@ namespace est
 		{
 			pVertexBuffer = std::move(source.pVertexBuffer);
 			pIndexBuffer = std::move(source.pIndexBuffer);
-			matWorld = std::move(source.matWorld);
+			worldMatrix = std::move(source.worldMatrix);
 			color = std::move(source.color);
 			return *this;
 		}

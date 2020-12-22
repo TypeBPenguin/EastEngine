@@ -109,6 +109,9 @@
     <Filter Include="LightResourceManager">
       <UniqueIdentifier>{582f31ff-63f7-4ea9-85f7-a4dd44293a5b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Util\ScreenGrab">
+      <UniqueIdentifier>{212b54cd-90ca-45e6-bba9-b5e942f6da59}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -210,6 +213,9 @@
     <ClInclude Include="LightResourceManagerDX11.h">
       <Filter>LightResourceManager</Filter>
     </ClInclude>
+    <ClInclude Include="ScreenGrab11.h">
+      <Filter>Util\ScreenGrab</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -307,6 +313,9 @@
     </ClCompile>
     <ClCompile Include="LightResourceManagerDX11.cpp">
       <Filter>LightResourceManager</Filter>
+    </ClCompile>
+    <ClCompile Include="ScreenGrab11.cpp">
+      <Filter>Util\ScreenGrab</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

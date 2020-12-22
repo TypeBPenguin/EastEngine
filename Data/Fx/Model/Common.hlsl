@@ -197,12 +197,14 @@ float4 CalcColor(in float3 posW, in float4 posWV,
 		}
 	}
 
+#ifdef DX11
 	[unroll]
 	for (i = 0; i < g_cascadeShadowCount; ++i)
 	{
 		float shadowIntensity = CalculateCascadedShadow(g_texCascadeShadowMap[i], g_cascadedShadow[i], SamplerShadow, posW, posWV.xyz);
 		diffuse *= shadowIntensity;
 	}
+#endif
 
 	//float shadow = 1.f;
 	//if (g_nEnableShadowCount > 0)

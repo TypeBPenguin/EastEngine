@@ -80,15 +80,18 @@ namespace est
 		s_pTimer = Timer::GetInstance();
 		s_pTimer->SetLimitElapsedTime(initializer.limitElapsedTime);
 
-		graphics::Initialize(initializer.emAPI, initializer.width, initializer.height, initializer.isFullScreen, initializer.isVSync, initializer.applicationTitle, initializer.applicationName);
+		auto SystemMesageHandler = [&](HWND hWnd, uint32_t msg, WPARAM wParam, LPARAM lParam) -> HRESULT
+		{
+			if (s_pInputDevice != nullptr)
+			{
+				input::Device::GetInstance()->HandleMessage(hWnd, msg, wParam, lParam);
+			}
+			return 0;
+		};
+		graphics::Initialize(initializer.emAPI, initializer.width, initializer.height, initializer.isFullScreen, initializer.isVSync, initializer.applicationTitle, initializer.applicationName, SystemMesageHandler);
 
 		s_pInputDevice = input::Device::GetInstance();
 		s_pInputDevice->Initialize(graphics::GetHInstance(), graphics::GetHwnd());
-
-		graphics::AddMessageHandler(sid::Input, [](HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam)
-		{
-			input::Device::GetInstance()->HandleMessage(hWnd, nMsg, wParam, lParam);
-		});
 
 		s_pPhysicsSystem = physics::System::GetInstance();
 		s_pPhysicsSystem->Initialize({});

@@ -20,8 +20,8 @@ namespace est
 			VertexBufferPtr pVertexBuffer{ nullptr };
 			IndexBufferPtr pIndexBuffer{ nullptr };
 			MaterialPtr pMaterial{ nullptr };
-			math::Matrix matWorld;
-			math::Matrix matPrevWorld;
+			math::Matrix worldMatrix;
+			math::Matrix prevWorldMatrix;
 			uint32_t startIndex{ 0 };
 			uint32_t indexCount{ 0 };
 			float depth{ 0.f };
@@ -29,7 +29,7 @@ namespace est
 
 			RenderJobStatic() = default;
 			RenderJobStatic(const void* pKey, const VertexBufferPtr& pVertexBuffer, const IndexBufferPtr& pIndexBuffer, const MaterialPtr& pMaterial,
-				const math::Matrix& matWorld, const math::Matrix& matPrevWorld,
+				const math::Matrix& worldMatrix, const math::Matrix& prevWorldMatrix,
 				uint32_t startIndex, uint32_t indexCount,
 				float depth, const OcclusionCullingData& occlusionCullingData);
 
@@ -46,8 +46,8 @@ namespace est
 			VertexBufferPtr pVertexBuffer{ nullptr };
 			IndexBufferPtr pIndexBuffer{ nullptr };
 			MaterialPtr pMaterial{ nullptr };
-			math::Matrix matWorld;
-			math::Matrix matPrevWorld;
+			math::Matrix worldMatrix;
+			math::Matrix prevWorldMatrix;
 			uint32_t startIndex{ 0 };
 			uint32_t indexCount{ 0 };
 			uint32_t VTFID{ 0 };
@@ -57,7 +57,7 @@ namespace est
 
 			RenderJobSkinned() = default;
 			RenderJobSkinned(const void* pKey, const VertexBufferPtr& pVertexBuffer, const IndexBufferPtr& pIndexBuffer, const MaterialPtr& pMaterial,
-				const math::Matrix& matWorld, const math::Matrix& matPrevWorld,
+				const math::Matrix& worldMatrix, const math::Matrix& prevWorldMatrix,
 				uint32_t startIndex, uint32_t indexCount, uint32_t VTFID, uint32_t PrevVTFID,
 				float depth, const OcclusionCullingData& occlusionCullingData);
 
@@ -81,8 +81,8 @@ namespace est
 			float fDynamicTessFactor{ 50.f };
 			float fStaticTessFactor{ 12.f };
 
-			math::Matrix matWorld;
-			math::Matrix matPrevWorld;
+			math::Matrix worldMatrix;
+			math::Matrix prevWorldMatrix;
 
 			TexturePtr pTexHeightField;
 			TexturePtr pTexColorMap;
@@ -96,11 +96,11 @@ namespace est
 			VertexBufferPtr pVertexBuffer{ nullptr };
 			IndexBufferPtr pIndexBuffer{ nullptr };
 
-			math::Matrix matWorld;
+			math::Matrix worldMatrix;
 			math::Color color;
 
 			RenderJobVertex() = default;
-			RenderJobVertex(const VertexBufferPtr& pVertexBuffer, const IndexBufferPtr& pIndexBuffer, const math::Matrix& matWorld, const math::Color& color);
+			RenderJobVertex(const VertexBufferPtr& pVertexBuffer, const IndexBufferPtr& pIndexBuffer, const math::Matrix& worldMatrix, const math::Color& color);
 
 			RenderJobVertex(const RenderJobVertex& source);
 			RenderJobVertex(RenderJobVertex&& source) noexcept;

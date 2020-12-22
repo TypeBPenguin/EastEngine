@@ -42,7 +42,7 @@ namespace est
 
 		public:
 			virtual const math::Matrix& GetViewMatrix(EmDirection emDirection) const override { return m_matViews[emDirection]; }
-			virtual const math::Matrix& GetProjectionMatrix() const override { return m_matProjection; }
+			virtual const math::Matrix& GetProjectionMatrix() const override { return m_projectionMatrix; }
 			virtual const math::Viewport& GetViewport() const override { return m_viewport; }
 			virtual const collision::Frustum& GetFrustum(EmDirection emDirection) const override { return m_frustums[emDirection]; }
 
@@ -53,7 +53,7 @@ namespace est
 
 		private:
 			std::array<math::Matrix, DirectionCount> m_matViews;
-			math::Matrix m_matProjection;
+			math::Matrix m_projectionMatrix;
 
 			math::Viewport m_viewport;
 

@@ -109,12 +109,12 @@ namespace est
 
 			math::float3 f3Pos = m_pLight->GetPosition() - (m_pLight->GetDirection() * fDepth * 0.1f);
 			const math::float3& f3Target = m_pLight->GetPosition();
-			m_matView = math::Matrix::CreateLookAt(f3Pos, f3Target, math::float3::Up);
+			m_viewMatrix = math::Matrix::CreateLookAt(f3Pos, f3Target, math::float3::Up);
 
-			m_matProjection = math::Matrix::CreatePerspectiveFieldOfView(fFov, 1.f, 0.01f, fDepth);
+			m_projectionMatrix = math::Matrix::CreatePerspectiveFieldOfView(fFov, 1.f, 0.01f, fDepth);
 
-			collision::Frustum::CreateFromMatrix(m_frustum, m_matProjection);
-			m_frustum.Transform(m_matView.Invert());
+			collision::Frustum::CreateFromMatrix(m_frustum, m_projectionMatrix);
+			m_frustum.Transform(m_viewMatrix.Invert());
 
 			// 아래 검증 필요
 			m_fCalcDepthBias = m_fDepthBias * /*(1.f / fDepth * 0.01f) **/ (1.f / (fDepth * fFov));

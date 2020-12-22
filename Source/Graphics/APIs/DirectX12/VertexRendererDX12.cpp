@@ -34,8 +34,8 @@ namespace est
 					math::Color color;
 
 					VertexInstancingData() = default;
-					VertexInstancingData(const math::Matrix& matWorld, const math::Color& color)
-						: worldData(matWorld)
+					VertexInstancingData(const math::Matrix& worldMatrix, const math::Color& color)
+						: worldData(worldMatrix)
 						, color(color)
 					{
 					}
@@ -172,7 +172,7 @@ namespace est
 					JobVertexBatch(const RenderJobVertex& job)
 						: job(job)
 					{
-						instanceData.emplace_back(job.matWorld, job.color);
+						instanceData.emplace_back(job.worldMatrix, job.color);
 					}
 				};
 				tsl::robin_map<VertexBufferPtr, JobVertexBatch> m_umapJobVertexBatchs;
@@ -231,8 +231,8 @@ namespace est
 				Device* pDeviceInstance = Device::GetInstance();
 				Camera* pCamera = renderElement.pCamera;
 
-				const D3D12_VIEWPORT* pViewport = pDeviceInstance->GetViewport();
-				const D3D12_RECT* pScissorRect = pDeviceInstance->GetScissorRect();
+				const math::Viewport& viewport= pDeviceInstance->GetViewport();
+				const math::Rect& scissorRect = pDeviceInstance->GetScissorRect();
 
 				const uint32_t frameIndex = pDeviceInstance->GetFrameIndex();
 
@@ -244,8 +244,8 @@ namespace est
 				ID3D12GraphicsCommandList2* pCommandList = pDeviceInstance->GetCommandList(0);
 				pDeviceInstance->ResetCommandList(0, nullptr);
 
-				pCommandList->RSSetViewports(1, pViewport);
-				pCommandList->RSSetScissorRects(1, pScissorRect);
+				pCommandList->RSSetViewports(1, util::Convert(viewport));
+				pCommandList->RSSetScissorRects(1, &scissorRect);
 				pCommandList->OMSetRenderTargets(renderElement.rtvCount, renderElement.rtvHandles, FALSE, renderElement.GetDSVHandle());
 				pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -263,7 +263,7 @@ namespace est
 					if (size == 1)
 					{
 						shader::SingleContents* pSingleContents = AllocateSingleContents(frameIndex);
-						shader::SetSingleContents(pSingleContents, batch.job.matWorld * matViewProjection, batch.job.color);
+						shader::SetSingleContents(pSingleContents, batch.job.worldMatrix * matViewProjection, batch.job.color);
 
 						pCommandList->SetGraphicsRootConstantBufferView(0, m_singleContentsGPUAddress);
 
@@ -351,7 +351,7 @@ namespace est
 				auto iter = m_umapJobVertexBatchs.find(job.pVertexBuffer);
 				if (iter != m_umapJobVertexBatchs.end())
 				{
-					iter.value().instanceData.emplace_back(job.matWorld, job.color);
+					iter.value().instanceData.emplace_back(job.worldMatrix, job.color);
 				}
 				else
 				{
@@ -447,8 +447,8 @@ namespace est
 				psoDesc.pRootSignature = m_psoCaches[emVSType].pRootSignature;
 				psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 				psoDesc.SampleMask = 0xffffffff;
-				psoDesc.RasterizerState = util::GetRasterizerDesc(EmRasterizerState::Type::eWireframeCullNone);
-				psoDesc.BlendState = util::GetBlendDesc(EmBlendState::eOff);
+				psoDesc.RasterizerState = util::GetRasterizerDesc(RasterizerState::Type::eWireframeCullNone);
+				psoDesc.BlendState = util::GetBlendDesc(BlendState::eOff);
 
 				psoDesc.NumRenderTargets = 1;
 
@@ -463,7 +463,7 @@ namespace est
 				}
 
 				psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
-				psoDesc.DepthStencilState = util::GetDepthStencilDesc(EmDepthStencilState::eRead_Write_Off);
+				psoDesc.DepthStencilState = util::GetDepthStencilDesc(DepthStencilState::eRead_Write_Off);
 
 				HRESULT hr = pDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_psoCaches[emVSType].pPipelineState));
 				if (FAILED(hr))

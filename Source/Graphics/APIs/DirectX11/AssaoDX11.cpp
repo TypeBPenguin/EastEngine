@@ -1546,16 +1546,16 @@ namespace est
 				ID3D11DeviceContext* pDeviceContext = Device::GetInstance()->GetImmediateContext();
 				pDeviceContext->ClearState();
 
-				const D3D11_VIEWPORT* pViewport = Device::GetInstance()->GetViewport();
+				const math::Viewport& viewport = Device::GetInstance()->GetViewport();
 
 				AssaoInputsDX11 inputs;
 				inputs.ScissorLeft = 0;
 				inputs.ScissorTop = 0;
-				inputs.ScissorRight = static_cast<int>(pViewport->Width);
-				inputs.ScissorBottom = static_cast<int>(pViewport->Height);
+				inputs.ScissorRight = static_cast<int>(viewport.width);
+				inputs.ScissorBottom = static_cast<int>(viewport.height);
 				inputs.ProjectionMatrix = pCamera->GetProjectionMatrix();
-				inputs.ViewportWidth = static_cast<int>(pViewport->Width);
-				inputs.ViewportHeight = static_cast<int>(pViewport->Height);
+				inputs.ViewportWidth = static_cast<int>(viewport.width);
+				inputs.ViewportHeight = static_cast<int>(viewport.height);
 				inputs.MatricesRowMajorOrder = true;
 #if SSAO_ENABLE_NORMAL_WORLD_TO_VIEW_CONVERSION
 				inputs.NormalsWorldToViewspaceMatrix = pCamera->GetViewMatrix().Transpose();

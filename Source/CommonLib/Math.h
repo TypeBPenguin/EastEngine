@@ -4,8 +4,6 @@
 #include <random>
 #include <cmath>
 
-struct D3D11_VIEWPORT;
-
 namespace est
 {
 	namespace math
@@ -1306,8 +1304,6 @@ namespace est
 			// Comparison operators
 			bool operator == (const Viewport& vp) const;
 			bool operator != (const Viewport& vp) const;
-
-			const D3D11_VIEWPORT* Get11() const;
 
 			// Assignment operators
 			Viewport& operator= (const Viewport& vp);

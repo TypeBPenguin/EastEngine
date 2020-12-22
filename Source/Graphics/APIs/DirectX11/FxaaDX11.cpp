@@ -117,8 +117,8 @@ namespace est
 
 				pDeviceContext->ClearState();
 
-				const D3D11_VIEWPORT* pViewport = pDeviceInstance->GetViewport();
-				pDeviceContext->RSSetViewports(1, pViewport);
+				const math::Viewport& viewport = pDeviceInstance->GetViewport();
+				pDeviceContext->RSSetViewports(1, util::Convert(viewport));
 
 				ID3D11RenderTargetView* pRTV[] = { pResult->GetRenderTargetView() };
 				pDeviceContext->OMSetRenderTargets(_countof(pRTV), pRTV, nullptr);
@@ -128,19 +128,19 @@ namespace est
 
 				pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-				ID3D11RasterizerState* pRasterizerState = pDeviceInstance->GetRasterizerState(EmRasterizerState::eSolidCCW);
+				ID3D11RasterizerState* pRasterizerState = pDeviceInstance->GetRasterizerState(RasterizerState::eSolidCCW);
 				pDeviceContext->RSSetState(pRasterizerState);
 
-				ID3D11BlendState* pBlendState = pDeviceInstance->GetBlendState(EmBlendState::eOff);
+				ID3D11BlendState* pBlendState = pDeviceInstance->GetBlendState(BlendState::eOff);
 				pDeviceContext->OMSetBlendState(pBlendState, &math::float4::Zero.x, 0xffffffff);
 
-				ID3D11DepthStencilState* pDepthStencilState = pDeviceInstance->GetDepthStencilState(EmDepthStencilState::eRead_Write_Off);
+				ID3D11DepthStencilState* pDepthStencilState = pDeviceInstance->GetDepthStencilState(DepthStencilState::eRead_Write_Off);
 				pDeviceContext->OMSetDepthStencilState(pDepthStencilState, 0);
 
 				ID3D11ShaderResourceView* pSRV = pSource->GetShaderResourceView();
 				pDeviceContext->PSSetShaderResources(shader::eSRV_Source, 1, &pSRV);
 
-				ID3D11SamplerState* pSamplerAnisotropic = pDeviceInstance->GetSamplerState(EmSamplerState::eAnisotropicWrap);
+				ID3D11SamplerState* pSamplerAnisotropic = pDeviceInstance->GetSamplerState(SamplerState::eAnisotropicWrap);
 				pDeviceContext->PSSetSamplers(shader::eSampler_Anisotropic, 1, &pSamplerAnisotropic);
 
 				shader::SetFxaaContents(pDeviceContext, &m_fxaaContents, n2ScreenSize);

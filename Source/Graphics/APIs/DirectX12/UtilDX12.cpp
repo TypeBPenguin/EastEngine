@@ -88,7 +88,7 @@ namespace est
 					}
 					else
 					{
-						pSRVIndexContantBuffer->nSamplerStateIndex = EmSamplerState::eMinMagMipLinearWrap;
+						pSRVIndexContantBuffer->nSamplerStateIndex = SamplerState::eMinMagMipLinearWrap;
 					}
 				}
 			}
@@ -102,28 +102,28 @@ namespace est
 					Device::GetInstance()->ReleaseResource(pResource);
 				}
 
-				void ReleaseResourceRTV(uint32_t& nDescriptorIndex)
+				void ReleaseResourceRTV(uint32_t& descriptorIndex)
 				{
-					Device::GetInstance()->ReleaseResourceRTV(nDescriptorIndex);
-					nDescriptorIndex = eInvalidDescriptorIndex;
+					Device::GetInstance()->ReleaseResourceRTV(descriptorIndex);
+					descriptorIndex = eInvalidDescriptorIndex;
 				}
 
-				void ReleaseResourceSRV(uint32_t& nDescriptorIndex)
+				void ReleaseResourceSRV(uint32_t& descriptorIndex)
 				{
-					Device::GetInstance()->ReleaseResourceSRV(nDescriptorIndex);
-					nDescriptorIndex = eInvalidDescriptorIndex;
+					Device::GetInstance()->ReleaseResourceSRV(descriptorIndex);
+					descriptorIndex = eInvalidDescriptorIndex;
 				}
 
-				void ReleaseResourceDSV(uint32_t& nDescriptorIndex)
+				void ReleaseResourceDSV(uint32_t& descriptorIndex)
 				{
-					Device::GetInstance()->ReleaseResourceDSV(nDescriptorIndex);
-					nDescriptorIndex = eInvalidDescriptorIndex;
+					Device::GetInstance()->ReleaseResourceDSV(descriptorIndex);
+					descriptorIndex = eInvalidDescriptorIndex;
 				}
 
-				void ReleaseResourceUAV(uint32_t& nDescriptorIndex)
+				void ReleaseResourceUAV(uint32_t& descriptorIndex)
 				{
-					Device::GetInstance()->ReleaseResourceUAV(nDescriptorIndex);
-					nDescriptorIndex = eInvalidDescriptorIndex;
+					Device::GetInstance()->ReleaseResourceUAV(descriptorIndex);
+					descriptorIndex = eInvalidDescriptorIndex;
 				}
 
 				void WaitForFence(ID3D12Fence* pFence, uint64_t nCompletionValue, HANDLE hWaitEvent)
@@ -380,6 +380,11 @@ namespace est
 					return false;
 				}
 
+				const D3D12_VIEWPORT* Convert(const math::Viewport& viewport)
+				{
+					return reinterpret_cast<const D3D12_VIEWPORT*>(&viewport);
+				}
+
 				int GetPixelSizeInBytes(DXGI_FORMAT val)
 				{
 					switch (val)
@@ -505,9 +510,9 @@ namespace est
 					return 0;
 				}
 
-				D3D12_STATIC_SAMPLER_DESC GetStaticSamplerDesc(EmSamplerState::Type emSamplerState, uint32_t nShaderRegister, uint32_t nRegisterSpace, D3D12_SHADER_VISIBILITY shaderVisibility)
+				D3D12_STATIC_SAMPLER_DESC GetStaticSamplerDesc(SamplerState::Type samplerState, uint32_t nShaderRegister, uint32_t nRegisterSpace, D3D12_SHADER_VISIBILITY shaderVisibility)
 				{
-					D3D12_SAMPLER_DESC samplerDesc = GetSamplerDesc(emSamplerState);
+					D3D12_SAMPLER_DESC samplerDesc = GetSamplerDesc(samplerState);
 
 					D3D12_STATIC_SAMPLER_DESC staticDesc{};
 					staticDesc.Filter = samplerDesc.Filter;
@@ -540,16 +545,16 @@ namespace est
 					return staticDesc;
 				}
 
-				D3D12_SAMPLER_DESC GetSamplerDesc(EmSamplerState::Type emSamplerState)
+				D3D12_SAMPLER_DESC GetSamplerDesc(SamplerState::Type samplerState)
 				{
 					D3D12_SAMPLER_DESC samplerDesc{};
-					switch (emSamplerState)
+					switch (samplerState)
 					{
-					case EmSamplerState::eMinMagMipLinearWrap:
-					case EmSamplerState::eMinMagMipLinearClamp:
-					case EmSamplerState::eMinMagMipLinearBorder:
-					case EmSamplerState::eMinMagMipLinearMirror:
-					case EmSamplerState::eMinMagMipLinearMirrorOnce:
+					case SamplerState::eMinMagMipLinearWrap:
+					case SamplerState::eMinMagMipLinearClamp:
+					case SamplerState::eMinMagMipLinearBorder:
+					case SamplerState::eMinMagMipLinearMirror:
+					case SamplerState::eMinMagMipLinearMirrorOnce:
 						samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
 						samplerDesc.MipLODBias = MipLODBias;
 						samplerDesc.MaxAnisotropy = 1;
@@ -560,40 +565,40 @@ namespace est
 						samplerDesc.BorderColor[3] = 0;
 						samplerDesc.MinLOD = 0;
 						samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
-						switch (emSamplerState)
+						switch (samplerState)
 						{
-						case EmSamplerState::eMinMagMipLinearWrap:
+						case SamplerState::eMinMagMipLinearWrap:
 							samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
 							samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
 							samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
 							break;
-						case EmSamplerState::eMinMagMipLinearClamp:
+						case SamplerState::eMinMagMipLinearClamp:
 							samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
 							samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
 							samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
 							break;
-						case EmSamplerState::eMinMagMipLinearBorder:
+						case SamplerState::eMinMagMipLinearBorder:
 							samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
 							samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
 							samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
 							break;
-						case EmSamplerState::eMinMagMipLinearMirror:
+						case SamplerState::eMinMagMipLinearMirror:
 							samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_MIRROR;
 							samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_MIRROR;
 							samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_MIRROR;
 							break;
-						case EmSamplerState::eMinMagMipLinearMirrorOnce:
+						case SamplerState::eMinMagMipLinearMirrorOnce:
 							samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_MIRROR_ONCE;
 							samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_MIRROR_ONCE;
 							samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_MIRROR_ONCE;
 							break;
 						}
 						break;
-					case EmSamplerState::eMinMagLinearMipPointWrap:
-					case EmSamplerState::eMinMagLinearMipPointClamp:
-					case EmSamplerState::eMinMagLinearMipPointBorder:
-					case EmSamplerState::eMinMagLinearMipPointMirror:
-					case EmSamplerState::eMinMagLinearMipPointMirrorOnce:
+					case SamplerState::eMinMagLinearMipPointWrap:
+					case SamplerState::eMinMagLinearMipPointClamp:
+					case SamplerState::eMinMagLinearMipPointBorder:
+					case SamplerState::eMinMagLinearMipPointMirror:
+					case SamplerState::eMinMagLinearMipPointMirrorOnce:
 						samplerDesc.Filter = D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT;
 						samplerDesc.MipLODBias = MipLODBias;
 						samplerDesc.MaxAnisotropy = 1;
@@ -604,40 +609,40 @@ namespace est
 						samplerDesc.BorderColor[3] = 0.f;
 						samplerDesc.MinLOD = 0.f;
 						samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
-						switch (emSamplerState)
+						switch (samplerState)
 						{
-						case EmSamplerState::eMinMagLinearMipPointWrap:
+						case SamplerState::eMinMagLinearMipPointWrap:
 							samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
 							samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
 							samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
 							break;
-						case EmSamplerState::eMinMagLinearMipPointClamp:
+						case SamplerState::eMinMagLinearMipPointClamp:
 							samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
 							samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
 							samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
 							break;
-						case EmSamplerState::eMinMagLinearMipPointBorder:
+						case SamplerState::eMinMagLinearMipPointBorder:
 							samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
 							samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
 							samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
 							break;
-						case EmSamplerState::eMinMagLinearMipPointMirror:
+						case SamplerState::eMinMagLinearMipPointMirror:
 							samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_MIRROR;
 							samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_MIRROR;
 							samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_MIRROR;
 							break;
-						case EmSamplerState::eMinMagLinearMipPointMirrorOnce:
+						case SamplerState::eMinMagLinearMipPointMirrorOnce:
 							samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_MIRROR_ONCE;
 							samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_MIRROR_ONCE;
 							samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_MIRROR_ONCE;
 							break;
 						}
 						break;
-					case EmSamplerState::eAnisotropicWrap:
-					case EmSamplerState::eAnisotropicClamp:
-					case EmSamplerState::eAnisotropicBorder:
-					case EmSamplerState::eAnisotropicMirror:
-					case EmSamplerState::eAnisotropicMirrorOnce:
+					case SamplerState::eAnisotropicWrap:
+					case SamplerState::eAnisotropicClamp:
+					case SamplerState::eAnisotropicBorder:
+					case SamplerState::eAnisotropicMirror:
+					case SamplerState::eAnisotropicMirrorOnce:
 						samplerDesc.Filter = D3D12_FILTER_ANISOTROPIC;
 						samplerDesc.MipLODBias = MipLODBias;
 						samplerDesc.MaxAnisotropy = 16;
@@ -648,40 +653,40 @@ namespace est
 						samplerDesc.BorderColor[3] = 0.f;
 						samplerDesc.MinLOD = 0.f;
 						samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
-						switch (emSamplerState)
+						switch (samplerState)
 						{
-						case EmSamplerState::eAnisotropicWrap:
+						case SamplerState::eAnisotropicWrap:
 							samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
 							samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
 							samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
 							break;
-						case EmSamplerState::eAnisotropicClamp:
+						case SamplerState::eAnisotropicClamp:
 							samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
 							samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
 							samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
 							break;
-						case EmSamplerState::eAnisotropicBorder:
+						case SamplerState::eAnisotropicBorder:
 							samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
 							samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
 							samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
 							break;
-						case EmSamplerState::eAnisotropicMirror:
+						case SamplerState::eAnisotropicMirror:
 							samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_MIRROR;
 							samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_MIRROR;
 							samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_MIRROR;
 							break;
-						case EmSamplerState::eAnisotropicMirrorOnce:
+						case SamplerState::eAnisotropicMirrorOnce:
 							samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_MIRROR_ONCE;
 							samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_MIRROR_ONCE;
 							samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_MIRROR_ONCE;
 							break;
 						}
 						break;
-					case EmSamplerState::eMinMagMipPointWrap:
-					case EmSamplerState::eMinMagMipPointClamp:
-					case EmSamplerState::eMinMagMipPointBorder:
-					case EmSamplerState::eMinMagMipPointMirror:
-					case EmSamplerState::eMinMagMipPointMirrorOnce:
+					case SamplerState::eMinMagMipPointWrap:
+					case SamplerState::eMinMagMipPointClamp:
+					case SamplerState::eMinMagMipPointBorder:
+					case SamplerState::eMinMagMipPointMirror:
+					case SamplerState::eMinMagMipPointMirrorOnce:
 						samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
 						samplerDesc.MipLODBias = MipLODBias;
 						samplerDesc.MaxAnisotropy = 1;
@@ -692,29 +697,29 @@ namespace est
 						samplerDesc.BorderColor[3] = 0;
 						samplerDesc.MinLOD = 0;
 						samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
-						switch (emSamplerState)
+						switch (samplerState)
 						{
-						case EmSamplerState::eMinMagMipPointWrap:
+						case SamplerState::eMinMagMipPointWrap:
 							samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
 							samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
 							samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
 							break;
-						case EmSamplerState::eMinMagMipPointClamp:
+						case SamplerState::eMinMagMipPointClamp:
 							samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
 							samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
 							samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
 							break;
-						case EmSamplerState::eMinMagMipPointBorder:
+						case SamplerState::eMinMagMipPointBorder:
 							samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
 							samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
 							samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
 							break;
-						case EmSamplerState::eMinMagMipPointMirror:
+						case SamplerState::eMinMagMipPointMirror:
 							samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_MIRROR;
 							samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_MIRROR;
 							samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_MIRROR;
 							break;
-						case EmSamplerState::eMinMagMipPointMirrorOnce:
+						case SamplerState::eMinMagMipPointMirrorOnce:
 							samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_MIRROR_ONCE;
 							samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_MIRROR_ONCE;
 							samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_MIRROR_ONCE;
@@ -729,11 +734,11 @@ namespace est
 					return samplerDesc;
 				}
 
-				D3D12_RASTERIZER_DESC GetRasterizerDesc(EmRasterizerState::Type emRasterizerState)
+				D3D12_RASTERIZER_DESC GetRasterizerDesc(RasterizerState::Type rasterizerState)
 				{
-					switch (emRasterizerState)
+					switch (rasterizerState)
 					{
-					case EmRasterizerState::eSolidCCW:
+					case RasterizerState::eSolidCCW:
 					{
 						return
 						{
@@ -750,7 +755,7 @@ namespace est
 							D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF	// ConservativeRaster
 						};
 					}
-					case EmRasterizerState::eSolidCW:
+					case RasterizerState::eSolidCW:
 					{
 						return
 						{
@@ -767,7 +772,7 @@ namespace est
 							D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF	// ConservativeRaster
 						};
 					}
-					case EmRasterizerState::eSolidCullNone:
+					case RasterizerState::eSolidCullNone:
 					{
 						return
 						{
@@ -784,7 +789,7 @@ namespace est
 							D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF	// ConservativeRaster
 						};
 					}
-					case EmRasterizerState::eWireframeCCW:
+					case RasterizerState::eWireframeCCW:
 					{
 						return
 						{
@@ -801,7 +806,7 @@ namespace est
 							D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF	// ConservativeRaster
 						};
 					}
-					case EmRasterizerState::eWireframeCW:
+					case RasterizerState::eWireframeCW:
 					{
 						return
 						{
@@ -818,7 +823,7 @@ namespace est
 							D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF	// ConservativeRaster
 						};
 					}
-					case EmRasterizerState::eWireframeCullNone:
+					case RasterizerState::eWireframeCullNone:
 					{
 						return
 						{
@@ -841,12 +846,12 @@ namespace est
 					}
 				}
 
-				D3D12_BLEND_DESC GetBlendDesc(EmBlendState::Type emBlendState)
+				D3D12_BLEND_DESC GetBlendDesc(BlendState::Type blendState)
 				{
 					CD3DX12_BLEND_DESC blendDesc(D3D12_DEFAULT);
-					switch (emBlendState)
+					switch (blendState)
 					{
-					case EmBlendState::eOff:
+					case BlendState::eOff:
 					{
 						blendDesc.AlphaToCoverageEnable = false;
 						blendDesc.IndependentBlendEnable = false;
@@ -865,7 +870,7 @@ namespace est
 						}
 					}
 					break;
-					case EmBlendState::eLinear:
+					case BlendState::eLinear:
 					{
 						blendDesc.AlphaToCoverageEnable = false;
 						blendDesc.IndependentBlendEnable = false;
@@ -884,7 +889,7 @@ namespace est
 						}
 					}
 					break;
-					case EmBlendState::eAdditive:
+					case BlendState::eAdditive:
 					{
 						blendDesc.AlphaToCoverageEnable = false;
 						blendDesc.IndependentBlendEnable = false;
@@ -903,7 +908,7 @@ namespace est
 						}
 					}
 					break;
-					case EmBlendState::eSubTractive:
+					case BlendState::eSubTractive:
 					{
 						blendDesc.AlphaToCoverageEnable = false;
 						blendDesc.IndependentBlendEnable = false;
@@ -922,7 +927,7 @@ namespace est
 						}
 					}
 					break;
-					case EmBlendState::eMultiplicative:
+					case BlendState::eMultiplicative:
 					{
 						blendDesc.AlphaToCoverageEnable = false;
 						blendDesc.IndependentBlendEnable = false;
@@ -941,7 +946,7 @@ namespace est
 						}
 					}
 					break;
-					case EmBlendState::eSquared:
+					case BlendState::eSquared:
 					{
 						blendDesc.AlphaToCoverageEnable = false;
 						blendDesc.IndependentBlendEnable = false;
@@ -960,7 +965,7 @@ namespace est
 						}
 					}
 					break;
-					case EmBlendState::eNegative:
+					case BlendState::eNegative:
 					{
 						blendDesc.AlphaToCoverageEnable = false;
 						blendDesc.IndependentBlendEnable = false;
@@ -979,7 +984,7 @@ namespace est
 						}
 					}
 					break;
-					case EmBlendState::eOpacity:
+					case BlendState::eOpacity:
 					{
 						blendDesc.AlphaToCoverageEnable = false;
 						blendDesc.IndependentBlendEnable = false;
@@ -998,7 +1003,7 @@ namespace est
 						}
 					}
 					break;
-					case EmBlendState::eAlphaBlend:
+					case BlendState::eAlphaBlend:
 					{
 						blendDesc.AlphaToCoverageEnable = false;
 						blendDesc.IndependentBlendEnable = false;
@@ -1025,11 +1030,11 @@ namespace est
 					return blendDesc;
 				}
 
-				D3D12_DEPTH_STENCIL_DESC GetDepthStencilDesc(EmDepthStencilState::Type emDepthStencilState)
+				D3D12_DEPTH_STENCIL_DESC GetDepthStencilDesc(DepthStencilState::Type depthStencilState)
 				{
-					switch (emDepthStencilState)
+					switch (depthStencilState)
 					{
-					case EmDepthStencilState::eRead_Write_On:
+					case DepthStencilState::eRead_Write_On:
 					{
 						return
 						{
@@ -1053,7 +1058,7 @@ namespace est
 							},
 						};
 					}
-					case EmDepthStencilState::eRead_Write_Off:
+					case DepthStencilState::eRead_Write_Off:
 					{
 						return
 						{
@@ -1077,7 +1082,7 @@ namespace est
 							},
 						};
 					}
-					case EmDepthStencilState::eRead_On_Write_Off:
+					case DepthStencilState::eRead_On_Write_Off:
 					{
 						return
 						{
@@ -1101,7 +1106,7 @@ namespace est
 							},
 						};
 					}
-					case EmDepthStencilState::eRead_Off_Write_On:
+					case DepthStencilState::eRead_Off_Write_On:
 					{
 						return
 						{
@@ -1171,11 +1176,11 @@ namespace est
 				}
 			}
 
-			PSOKey::PSOKey(uint32_t mask, EmRasterizerState::Type emRasterizerState, EmBlendState::Type emBlendState, EmDepthStencilState::Type emDepthStencilState)
+			PSOKey::PSOKey(uint32_t mask, RasterizerState::Type rasterizerState, BlendState::Type blendState, DepthStencilState::Type depthStencilState)
 				: mask(mask)
-				, emRasterizerState(emRasterizerState)
-				, emBlendState(emBlendState)
-				, emDepthStencilState(emDepthStencilState)
+				, rasterizerState(rasterizerState)
+				, blendState(blendState)
+				, depthStencilState(depthStencilState)
 			{
 			}
 

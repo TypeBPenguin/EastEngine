@@ -782,7 +782,7 @@ namespace est
 
 		math::Matrix FBXImport::Impl::ParseTransform(fbxsdk::FbxNode* pNode, ATG::ExportFrame* pFrame, const math::Matrix& matParentWorld, const bool isWarnings)
 		{
-			math::Matrix matWorld;
+			math::Matrix worldMatrix;
 			math::Matrix matLocal;
 			bool isProcessDefaultTransform = true;
 
@@ -792,9 +792,9 @@ namespace est
 				if (iter != m_BindPoseMap.end())
 				{
 					const FbxMatrix& PoseMatrix = iter->second;
-					matWorld = ConvertMatrix(PoseMatrix);
+					worldMatrix = ConvertMatrix(PoseMatrix);
 
-					matLocal = matWorld * matParentWorld.Invert();
+					matLocal = worldMatrix * matParentWorld.Invert();
 					isProcessDefaultTransform = false;
 				}
 			}
@@ -821,7 +821,7 @@ namespace est
 
 				FbxMatrix matTransform(Translation, Rotation, Scale);
 				matLocal = ConvertMatrix(matTransform);
-				matWorld = matParentWorld * matLocal;
+				worldMatrix = matParentWorld * matLocal;
 			}
 
 			pFrame->Transform().Initialize(*reinterpret_cast<DirectX::XMFLOAT4X4*>(&matLocal));
@@ -849,7 +849,7 @@ namespace est
 				Transform.Scale().y,
 				Transform.Scale().z);
 
-			return matWorld;
+			return worldMatrix;
 		}
 
 		void FBXImport::Impl::ParseNode(FbxNode* pNode, ATG::ExportFrame* pParentFrame, const math::Matrix& matParentWorld)
@@ -859,7 +859,7 @@ namespace est
 			ExportFrame* pFrame = new ExportFrame(pNode->GetName());
 			pFrame->SetDCCObject(pNode);
 
-			math::Matrix matWorld = ParseTransform(pNode, pFrame, matParentWorld);
+			math::Matrix worldMatrix = ParseTransform(pNode, pFrame, matParentWorld);
 			pParentFrame->AddChild(pFrame);
 
 			if (pNode->GetSubdiv())
@@ -877,7 +877,7 @@ namespace est
 			uint32_t nChildCount = pNode->GetChildCount();
 			for (uint32_t i = 0; i < nChildCount; ++i)
 			{
-				ParseNode(pNode->GetChild(i), pFrame, matWorld);
+				ParseNode(pNode->GetChild(i), pFrame, worldMatrix);
 			}
 		}
 
@@ -981,21 +981,21 @@ namespace est
 		{
 			fbxsdk::FbxNode* pNode = reinterpret_cast<fbxsdk::FbxNode*>(pFrame->GetDCCObject());
 
-			math::Matrix matWorld;
+			math::Matrix worldMatrix;
 			if (pNode != nullptr)
 			{
 				ExportLog::LogMsg(4, "Fixing up frame \"%s\".", pFrame->GetName().SafeString());
-				matWorld = ParseTransform(pNode, pFrame, matParentWorld, false);
+				worldMatrix = ParseTransform(pNode, pFrame, matParentWorld, false);
 			}
 			else
 			{
-				matWorld = matParentWorld;
+				worldMatrix = matParentWorld;
 			}
 
 			size_t nChildCount = pFrame->GetChildCount();
 			for (size_t i = 0; i < nChildCount; ++i)
 			{
-				FixupNode(pFrame->GetChildByIndex(i), matWorld);
+				FixupNode(pFrame->GetChildByIndex(i), worldMatrix);
 			}
 		}
 

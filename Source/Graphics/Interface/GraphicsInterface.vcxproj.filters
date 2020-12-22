@@ -88,14 +88,11 @@
     <Filter Include="Shadow\Cascades">
       <UniqueIdentifier>{c1593f4e-9764-49e0-83bd-fa94e877b029}</UniqueIdentifier>
     </Filter>
-    <Filter Include="imgui\NodeEditor">
-      <UniqueIdentifier>{6dc27cb2-adc1-4bf1-8f5a-93cae79c1c53}</UniqueIdentifier>
+    <Filter Include="imgui\ImGuizmo">
+      <UniqueIdentifier>{c93039e5-eb95-4d62-9a17-9fa9e28d5bf4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="imgui\Gizmo">
-      <UniqueIdentifier>{32326482-dfd4-495b-8575-7b6c90899e58}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="imgui\BlueprintUtilities">
-      <UniqueIdentifier>{02975ffb-6c3b-4d27-b6cb-8d3c58031382}</UniqueIdentifier>
+    <Filter Include="Window\Cursor">
+      <UniqueIdentifier>{16e54f11-e109-4a65-95d3-4305819e8573}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -189,53 +186,26 @@
     <ClInclude Include="CascadedShadows.h">
       <Filter>Shadow\Cascades</Filter>
     </ClInclude>
-    <ClInclude Include="imgui\ImCurveEdit.h">
+    <ClInclude Include="imgui\ImGizmo\ImZoomSlider.h">
       <Filter>imgui</Filter>
     </ClInclude>
-    <ClInclude Include="imgui\ImGradient.h">
-      <Filter>imgui</Filter>
+    <ClInclude Include="imgui\ImGuizmo\ImCurveEdit.h">
+      <Filter>imgui\ImGuizmo</Filter>
     </ClInclude>
-    <ClInclude Include="imgui\imnodes.h">
-      <Filter>imgui</Filter>
+    <ClInclude Include="imgui\ImGuizmo\ImGradient.h">
+      <Filter>imgui\ImGuizmo</Filter>
     </ClInclude>
-    <ClInclude Include="imgui\crude_json.h">
-      <Filter>imgui\NodeEditor</Filter>
+    <ClInclude Include="imgui\ImGuizmo\ImGuizmo.h">
+      <Filter>imgui\ImGuizmo</Filter>
     </ClInclude>
-    <ClInclude Include="imgui\imgui_bezier_math.h">
-      <Filter>imgui\NodeEditor</Filter>
+    <ClInclude Include="imgui\ImGuizmo\ImSequencer.h">
+      <Filter>imgui\ImGuizmo</Filter>
     </ClInclude>
-    <ClInclude Include="imgui\imgui_canvas.h">
-      <Filter>imgui\NodeEditor</Filter>
+    <ClInclude Include="imgui\ImGuizmo\ImZoomSlider.h">
+      <Filter>imgui\ImGuizmo</Filter>
     </ClInclude>
-    <ClInclude Include="imgui\imgui_extra_math.h">
-      <Filter>imgui\NodeEditor</Filter>
-    </ClInclude>
-    <ClInclude Include="imgui\imgui_node_editor.h">
-      <Filter>imgui\NodeEditor</Filter>
-    </ClInclude>
-    <ClInclude Include="imgui\imgui_node_editor_internal.h">
-      <Filter>imgui\NodeEditor</Filter>
-    </ClInclude>
-    <ClInclude Include="imgui\ImGuizmo.h">
-      <Filter>imgui\Gizmo</Filter>
-    </ClInclude>
-    <ClInclude Include="imgui\ImSequencer.h">
-      <Filter>imgui\Gizmo</Filter>
-    </ClInclude>
-    <ClInclude Include="imgui\Builders.h">
-      <Filter>imgui\BlueprintUtilities</Filter>
-    </ClInclude>
-    <ClInclude Include="imgui\Drawing.h">
-      <Filter>imgui\BlueprintUtilities</Filter>
-    </ClInclude>
-    <ClInclude Include="imgui\Math2D.h">
-      <Filter>imgui\BlueprintUtilities</Filter>
-    </ClInclude>
-    <ClInclude Include="imgui\Widgets.h">
-      <Filter>imgui\BlueprintUtilities</Filter>
-    </ClInclude>
-    <ClInclude Include="imgui\Interop.h">
-      <Filter>imgui\BlueprintUtilities</Filter>
+    <ClInclude Include="WindowCursor.h">
+      <Filter>Window\Cursor</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -326,41 +296,23 @@
     <ClCompile Include="CascadedShadows.cpp">
       <Filter>Shadow\Cascades</Filter>
     </ClCompile>
-    <ClCompile Include="imgui\ImCurveEdit.cpp">
+    <ClCompile Include="imgui\ImGuizmo\ImCurveEdit.cpp">
+      <Filter>imgui\ImGuizmo</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\ImGuizmo\ImGradient.cpp">
+      <Filter>imgui\ImGuizmo</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\ImGuizmo\ImGuizmo.cpp">
+      <Filter>imgui\ImGuizmo</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\ImGuizmo\ImSequencer.cpp">
+      <Filter>imgui\ImGuizmo</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\imgui_tables.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
-    <ClCompile Include="imgui\ImGradient.cpp">
-      <Filter>imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="imgui\imnodes.cpp">
-      <Filter>imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="imgui\crude_json.cpp">
-      <Filter>imgui\NodeEditor</Filter>
-    </ClCompile>
-    <ClCompile Include="imgui\imgui_canvas.cpp">
-      <Filter>imgui\NodeEditor</Filter>
-    </ClCompile>
-    <ClCompile Include="imgui\imgui_node_editor.cpp">
-      <Filter>imgui\NodeEditor</Filter>
-    </ClCompile>
-    <ClCompile Include="imgui\imgui_node_editor_api.cpp">
-      <Filter>imgui\NodeEditor</Filter>
-    </ClCompile>
-    <ClCompile Include="imgui\ImGuizmo.cpp">
-      <Filter>imgui\Gizmo</Filter>
-    </ClCompile>
-    <ClCompile Include="imgui\ImSequencer.cpp">
-      <Filter>imgui\Gizmo</Filter>
-    </ClCompile>
-    <ClCompile Include="imgui\Builders.cpp">
-      <Filter>imgui\BlueprintUtilities</Filter>
-    </ClCompile>
-    <ClCompile Include="imgui\Drawing.cpp">
-      <Filter>imgui\BlueprintUtilities</Filter>
-    </ClCompile>
-    <ClCompile Include="imgui\Widgets.cpp">
-      <Filter>imgui\BlueprintUtilities</Filter>
+    <ClCompile Include="WindowCursor.cpp">
+      <Filter>Window\Cursor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -387,18 +339,6 @@
     </None>
     <None Include="MaskedOcclusionCullingCommon.inl">
       <Filter>MaskedOcclusionCulling\Library</Filter>
-    </None>
-    <None Include="imgui\imgui_bezier_math.inl">
-      <Filter>imgui\NodeEditor</Filter>
-    </None>
-    <None Include="imgui\imgui_extra_math.inl">
-      <Filter>imgui\NodeEditor</Filter>
-    </None>
-    <None Include="imgui\imgui_node_editor_internal.inl">
-      <Filter>imgui\NodeEditor</Filter>
-    </None>
-    <None Include="imgui\Math2D.inl">
-      <Filter>imgui\BlueprintUtilities</Filter>
     </None>
   </ItemGroup>
 </Project>

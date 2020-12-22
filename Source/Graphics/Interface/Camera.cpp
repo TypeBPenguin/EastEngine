@@ -166,8 +166,9 @@ namespace est
 
 			m_rotation = transform.rotation.ToEularDegrees();
 
-			const float distance = math::float3::Distance(pCamera->GetPosition(), pCamera->GetLookat());
-			SetDistance(distance);
+			m_distance = math::float3::Distance(pCamera->GetPosition(), pCamera->GetLookat());
+			//const float distance = math::float3::Distance(pCamera->GetPosition(), pCamera->GetLookat());
+			//SetDistance(distance);
 		}
 		
 		void ThirdPersonCameraMan::Update(Camera* pCamera, float elapsedTime)
@@ -251,37 +252,37 @@ namespace est
 
 		const math::Matrix& Camera::UpdateView()
 		{
-			if (m_isInvalidView == true)
+			if (m_isDirtyView == true)
 			{
-				m_matView = math::Matrix::CreateLookAt(m_descView.position, m_descView.lookat, m_descView.up);
-				m_isInvalidView = false;
+				m_viewMatrix = math::Matrix::CreateLookAt(m_descView.position, m_descView.lookat, m_descView.up);
+				m_isDirtyView = false;
 			}
-			return m_matView;
+			return m_viewMatrix;
 		}
 
 		const math::Matrix& Camera::UpdateProjection()
 		{
-			if (m_isInvalidProjection == true)
+			if (m_isDirtyProjection == true)
 			{
-				m_matProjection = math::Matrix::CreatePerspectiveFieldOfView(m_descProjection.fov, static_cast<float>(m_descProjection.width) / static_cast<float>(m_descProjection.height), m_descProjection.nearClip, m_descProjection.farClip);
+				m_projectionMatrix = math::Matrix::CreatePerspectiveFieldOfView(m_descProjection.fov, static_cast<float>(m_descProjection.width) / static_cast<float>(m_descProjection.height), m_descProjection.nearClip, m_descProjection.farClip);
 
 				if (m_descProjection.isReverseUpDown == true)
 				{
-					m_matProjection.m[1][1] *= -1;
+					m_projectionMatrix.m[1][1] *= -1;
 				}
-				m_isInvalidProjection = false;
+				m_isDirtyProjection = false;
 			}
-			return m_matProjection;
+			return m_projectionMatrix;
 		}
 
 		const math::Matrix& Camera::UpdateOrtho()
 		{
-			if (m_isInvalidOrtho == true)
+			if (m_isDirtyOrtho == true)
 			{
-				m_matOrtho = math::Matrix::CreateOrthographic(static_cast<float>(m_descProjection.width), static_cast<float>(m_descProjection.height), m_descProjection.nearClip, m_descProjection.farClip);
-				m_isInvalidOrtho = false;
+				m_orthographicMatrix = math::Matrix::CreateOrthographic(static_cast<float>(m_descProjection.width), static_cast<float>(m_descProjection.height), m_descProjection.nearClip, m_descProjection.farClip);
+				m_isDirtyOrtho = false;
 			}
-			return m_matOrtho;
+			return m_orthographicMatrix;
 		}
 
 		const collision::Frustum& Camera::UpdateFrustum()

@@ -7,8 +7,8 @@ namespace est
 	{
 		MouseInstance::MouseInstance()
 			: m_pMouse(nullptr)
-			, m_nX(0)
-			, m_nY(0)
+			, m_x(0)
+			, m_y(0)
 		{
 			memory::Clear(&m_CurMouseState, sizeof(m_CurMouseState));
 			memory::Clear(&m_OldMouseState, sizeof(m_OldMouseState));
@@ -67,8 +67,8 @@ namespace est
 			switch (nMsg)
 			{
 			case WM_MOUSEMOVE:
-				m_nX = static_cast<short>(LOWORD(lParam)); // GET_X_LPARAM(lParam);
-				m_nY = static_cast<short>(HIWORD(lParam)); // GET_Y_LPARAM(lParam);
+				m_x = static_cast<short>(LOWORD(lParam)); // GET_X_LPARAM(lParam);
+				m_y = static_cast<short>(HIWORD(lParam)); // GET_Y_LPARAM(lParam);
 				break;
 			}
 		}
