@@ -110,7 +110,7 @@
       <UniqueIdentifier>{582f31ff-63f7-4ea9-85f7-a4dd44293a5b}</UniqueIdentifier>
     </Filter>
     <Filter Include="Util\ScreenGrab">
-      <UniqueIdentifier>{212b54cd-90ca-45e6-bba9-b5e942f6da59}</UniqueIdentifier>
+      <UniqueIdentifier>{b6606bbd-3bc0-46b9-9821-e42f16b446b1}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

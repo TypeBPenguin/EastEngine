@@ -44,7 +44,6 @@ namespace est
 				void Cleanup(float elapsedTime);
 
 			public:
-				bool Resize(uint32_t width, uint32_t height, bool isFullScreen, bool isEnableVSync, std::function<void(bool)> callback);
 				void ScreenShot(ScreenShotFormat format, const std::wstring& path, std::function<void(bool, const std::wstring&)> screenShotCallback);
 
 			public:
@@ -61,8 +60,12 @@ namespace est
 				const math::uint2& GetScreenSize() const;
 				const math::Viewport& GetViewport() const;
 
+				bool IsFullScreen() const;
+				void SetFullScreen(bool isFullScreen, std::function<void(bool)> callback);
+
 				const std::vector<DisplayModeDesc>& GetSupportedDisplayModeDesc() const;
 				size_t GetSelectedDisplayModeIndex() const;
+				void ChangeDisplayMode(size_t displayModeIndex, std::function<void(bool)> callback);
 
 				const GBuffer* GetGBuffer() const;
 				IImageBasedLight* GetImageBasedLight() const;

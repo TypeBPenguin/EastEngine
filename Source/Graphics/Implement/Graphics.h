@@ -14,14 +14,21 @@ namespace est
 		void Update(float elapsedTime);
 		void PostUpdate(float elapsedTime);
 
+		void ScreenShot(ScreenShotFormat format, const std::wstring& path, std::function<void(bool, const std::wstring&)> screenShotCallback);
+
 		APIs GetAPI();
 		HWND GetHwnd();
 		HINSTANCE GetHInstance();
 
 		const math::uint2& GetScreenSize();
 		const math::Viewport& GetViewport();
+
+		bool IsFullScreen();
+		void SetFullScreen(bool isFullScreen, std::function<void(bool)> callback);
+
 		const std::vector<DisplayModeDesc>& GetSupportedDisplayModeDesc();
 		size_t GetSelectedDisplayModeIndex();
+		void ChangeDisplayMode(size_t displayModeIndex, std::function<void(bool)> callback);
 
 		IImageBasedLight* GetImageBasedLight();
 		IVTFManager* GetVTFManager();

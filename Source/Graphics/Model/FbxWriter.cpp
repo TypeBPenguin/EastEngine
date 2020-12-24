@@ -10,15 +10,6 @@
 
 #include "CommonLib/FileUtil.h"
 
-#include <DirectXMath.h>
-#include <DirectXPackedVector.h>
-#include <DirectXCollision.h>
-
-#include "ExternLib/FBXExporter/ExportObjects/ExportXmlParser.h"
-#include "ExternLib/FBXExporter/ExportObjects/ExportPath.h"
-#include "ExternLib/FBXExporter/ExportObjects/ExportMaterial.h"
-#include "ExternLib/FBXExporter/ExportObjects/ExportObjects.h"
-
 using namespace ATG;
 
 extern ATG::ExportScene* g_pScene;
@@ -488,7 +479,7 @@ namespace est
 			float time = 0;
 			for (size_t i = 0; i < nDestKeyCount; ++i)
 			{
-				while (isEndKey && time >= EndKey.time)
+				while (isEndKey && time >= EndKey.fTime)
 				{
 					StartKey = EndKey;
 					++nCurrentSrcKey;
@@ -508,8 +499,8 @@ namespace est
 				}
 				else
 				{
-					assert(time <= EndKey.time);
-					float fLerpFactor = (time - StartKey.time) / (EndKey.time - StartKey.time);
+					assert(time <= EndKey.fTime);
+					float fLerpFactor = (time - StartKey.fTime) / (EndKey.fTime - StartKey.fTime);
 					fLerpFactor = std::min(std::max(0.f, fLerpFactor), 1.f);
 
 					DirectX::XMVECTOR v = DirectX::XMLoadFloat3(&StartKey.Position);
@@ -544,7 +535,7 @@ namespace est
 			float time = 0;
 			for (size_t i = 0; i < nDestKeyCount; ++i)
 			{
-				while (isEndKey && time >= EndKey.time)
+				while (isEndKey && time >= EndKey.fTime)
 				{
 					StartKey = EndKey;
 					++nCurrentSrcKey;
@@ -564,8 +555,8 @@ namespace est
 				}
 				else
 				{
-					assert(time <= EndKey.time);
-					float fLerpFactor = (time - StartKey.time) / (EndKey.time - StartKey.time);
+					assert(time <= EndKey.fTime);
+					float fLerpFactor = (time - StartKey.fTime) / (EndKey.fTime - StartKey.fTime);
 					fLerpFactor = std::min(std::max(0.f, fLerpFactor), 1.f);
 
 					DirectX::XMVECTOR v = DirectX::XMLoadFloat4(&StartKey.Orientation);
@@ -600,7 +591,7 @@ namespace est
 			float time = 0;
 			for (size_t i = 0; i < nDestKeyCount; ++i)
 			{
-				while (isEndKey && time >= EndKey.time)
+				while (isEndKey && time >= EndKey.fTime)
 				{
 					StartKey = EndKey;
 					++nCurrentSrcKey;
@@ -620,8 +611,8 @@ namespace est
 				}
 				else
 				{
-					assert(time <= EndKey.time);
-					float fLerpFactor = (time - StartKey.time) / (EndKey.time - StartKey.time);
+					assert(time <= EndKey.fTime);
+					float fLerpFactor = (time - StartKey.fTime) / (EndKey.fTime - StartKey.fTime);
 					fLerpFactor = std::min(std::max(0.f, fLerpFactor), 1.f);
 
 					DirectX::XMVECTOR v = DirectX::XMLoadFloat3(&StartKey.Scale);

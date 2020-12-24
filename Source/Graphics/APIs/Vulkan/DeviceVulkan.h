@@ -59,17 +59,22 @@ namespace est
 
 			public:
 				void Initialize(uint32_t width, uint32_t height, bool isFullScreen, const string::StringID& applicationTitle, const string::StringID& applicationName, std::function<HRESULT(HWND, uint32_t, WPARAM, LPARAM)> messageHandler);
-
 				void Run(std::function<bool()> funcUpdate);
-
 				void Cleanup(float elapsedTime);
+
+			public:
+				void ScreenShot(ScreenShotFormat format, const std::wstring& path, std::function<void(bool, const std::wstring&)> screenShotCallback);
 
 			public:
 				const math::uint2& GetScreenSize() const;
 				const math::Viewport& GetViewport() const;
 
+				bool IsFullScreen() const;
+				void SetFullScreen(bool isFullScreen, std::function<void(bool)> callback);
+
 				const std::vector<DisplayModeDesc>& GetSupportedDisplayModeDesc() const;
 				size_t GetSelectedDisplayModeIndex() const;
+				void ChangeDisplayMode(size_t displayModeIndex, std::function<void(bool)> callback);
 
 				VkDevice GetInterface() const;
 				VkCommandPool GetCommandPool() const;

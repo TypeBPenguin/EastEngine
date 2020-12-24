@@ -167,19 +167,21 @@ namespace est
 			}
 			else
 			{
-				style &= ~(WS_POPUP | WS_CLIPCHILDREN);
-				style |= WS_SYSMENU | WS_CAPTION | WS_MINIMIZEBOX | WS_CLIPCHILDREN;
-
 				if (FAILED(AdjustWindowRectEx(&rect, WS_OVERLAPPEDWINDOW, false, WS_EX_OVERLAPPEDWINDOW)))
 					return false;
+
+				style &= ~(WS_POPUP | WS_CLIPCHILDREN);
+				style |= WS_SYSMENU | WS_CAPTION | WS_MINIMIZEBOX | WS_CLIPCHILDREN;
 			}
 
 			SetWindowLongPtr(m_hWnd, GWL_STYLE, style);
 
-			SetWindowPos(m_hWnd, HWND_TOP, 0, 0, rect.GetWidth(), rect.GetHeight(), m_isFullScreen == true ? NULL : SWP_NOMOVE);
+			SetWindowPos(m_hWnd, HWND_TOP, 0, 0, rect.GetWidth(), rect.GetHeight(), isFullScreen == true ? NULL : SWP_NOMOVE);
 			ShowWindow(m_hWnd, SW_SHOW);
-			m_screenSize = { width, height };
+
+			m_screenSize = { static_cast<uint32_t>(rect.GetWidth()), static_cast<uint32_t>(rect.GetHeight()) };
 			m_isFullScreen = isFullScreen;
+
 			return true;
 		}
 	}

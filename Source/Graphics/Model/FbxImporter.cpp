@@ -16,24 +16,6 @@
 
 #include "FbxWriter.h"
 
-#define FBXSDK_NEW_API
-
-#pragma warning(push)
-#pragma warning( disable : 4616 6011 )
-#include <fbxsdk.h>
-#pragma warning(pop)
-
-#include <DirectXMath.h>
-#include <DirectXPackedVector.h>
-#include <DirectXCollision.h>
-
-#undef USE_OPENEXR
-
-#include "ExternLib/FBXExporter/ExportObjects/ExportXmlParser.h"
-#include "ExternLib/FBXExporter/ExportObjects/ExportPath.h"
-#include "ExternLib/FBXExporter/ExportObjects/ExportMaterial.h"
-#include "ExternLib/FBXExporter/ExportObjects/ExportObjects.h"
-
 namespace DirectX
 {
 	struct XMFLOAT4X4;

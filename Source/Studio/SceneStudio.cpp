@@ -1225,6 +1225,11 @@ void SceneStudio::RenderImGui(float elapsedTime)
 			}
 		}
 
+		if (ImGui::Button("ScreenShot") == true)
+		{
+			graphics::ScreenShot()
+		}
+
 		ImGui::End();
 	}
 
@@ -1246,6 +1251,76 @@ void SceneStudio::ShowConfig()
 	ImGui::Begin("Config", &isShowMainMenu);
 
 	graphics::Options& graphicsOptions = graphics::GetOptions();
+
+	if (ImGui::CollapsingHeader("Display") == true)
+	{
+		bool isFullScreen = est::graphics::IsFullScreen();
+		if (ImGui::Checkbox("FullScreen", &isFullScreen) == true)
+		{
+			graphics::SetFullScreen(isFullScreen, [](bool isSuccess)
+				{
+					if (isSuccess == true)
+					{
+						const math::uint2& screenSize = graphics::GetScreenSize();
+						graphics::Camera& camera = est::graphics::GetCamera();
+						graphics::Camera::DescProjection projectionDesc = camera.GetProjection();
+						projectionDesc.width = screenSize.x;
+						projectionDesc.height = screenSize.y;
+						camera.SetProjection(projectionDesc);
+					}
+				});
+		}
+
+		ImGui::SameLine();
+
+		ImGui::Checkbox("VSync", &graphicsOptions.OnVSync);
+
+		if (isFullScreen == false)
+		{
+			const std::vector<est::graphics::DisplayModeDesc>& displayModeDescs = est::graphics::GetSupportedDisplayModeDesc();
+			int resolutionIndex = static_cast<int>(est::graphics::GetSelectedDisplayModeIndex());
+
+			std::vector<std::string> names;
+			names.reserve(displayModeDescs.size());
+			for (auto& desc : displayModeDescs)
+			{
+				string::StringID name;
+				names.emplace_back(string::WideToMulti(name.Format(L"%u x %u", desc.width, desc.height).c_str()));
+			}
+
+			std::vector<const char*> _names;
+			_names.reserve(names.size());
+			for (auto& name : names)
+			{
+				_names.emplace_back(name.c_str());
+			}
+
+			if (ImGui::Combo("Resolution", &resolutionIndex, _names.data(), static_cast<int>(_names.size())) == true)
+			{
+				est::graphics::ChangeDisplayMode(resolutionIndex, [](bool isSuccess)
+					{
+						if (isSuccess == true)
+						{
+							const math::uint2& screenSize = graphics::GetScreenSize();
+							graphics::Camera& camera = est::graphics::GetCamera();
+							graphics::Camera::DescProjection projectionDesc = camera.GetProjection();
+							projectionDesc.width = screenSize.x;
+							projectionDesc.height = screenSize.y;
+							camera.SetProjection(projectionDesc);
+						}
+					});
+			}
+		}
+
+		float fov = math::ToDegrees(graphics::GetCamera().GetProjection().fov);
+		if (ImGui::DragFloat("FOV", &fov, 0.1f, 0.f, 180.f) == true)
+		{
+			graphics::Camera& camera = est::graphics::GetCamera();
+			graphics::Camera::DescProjection projectionDesc = camera.GetProjection();
+			projectionDesc.fov = math::ToRadians(fov);
+			camera.SetProjection(projectionDesc);
+		}
+	}
 
 	if (ImGui::CollapsingHeader("Debug") == true)
 	{
@@ -1300,17 +1375,6 @@ void SceneStudio::ShowConfig()
 			//		graphics::OcclusionCullingWriteBMP(path);
 			//	}
 			//}
-
-			ImGui::PopID();
-
-			ImGui::TreePop();
-		}
-
-		if (ImGui::TreeNode("VSync"))
-		{
-			ImGui::PushID("VSync");
-
-			ImGui::Checkbox("Apply", &graphicsOptions.OnVSync);
 
 			ImGui::PopID();
 
@@ -2047,6 +2111,8 @@ void SceneStudio::ShowConfig()
 
 				ImGui::TreePop();
 			}
+
+			ImGui::Text("Shoot : Spacebar");
 
 			static float shootingSpeed = 50.f;
 			ImGui::DragFloat("ShootingSpeed", &shootingSpeed, 0.01f, 0.01f, 9999.f);

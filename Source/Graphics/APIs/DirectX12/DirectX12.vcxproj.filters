@@ -106,6 +106,9 @@
     <Filter Include="Renderer\Copy">
       <UniqueIdentifier>{a40c79c6-3cff-43ac-830c-bd76c997d144}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Util\ScreenGrab">
+      <UniqueIdentifier>{82614567-01b4-47b9-8966-6352758a4d25}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -210,6 +213,9 @@
     <ClInclude Include="CopyRendererDX12.h">
       <Filter>Renderer\Copy</Filter>
     </ClInclude>
+    <ClInclude Include="ScreenGrab12.h">
+      <Filter>Util\ScreenGrab</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -307,6 +313,9 @@
     </ClCompile>
     <ClCompile Include="CopyRendererDX12.cpp">
       <Filter>Renderer\Copy</Filter>
+    </ClCompile>
+    <ClCompile Include="ScreenGrab12.cpp">
+      <Filter>Util\ScreenGrab</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

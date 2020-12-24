@@ -125,7 +125,7 @@
     </Link>
     <Lib>
       <AdditionalDependencies>d3d12.lib;dxgi.lib;d3dcompiler.lib;DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ProjectDir)..\..\..\ExternLib\DirectX\DirectXTex\Bin\Desktop_2017_Win10\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)..\..\..\ExternLib\DirectX\DirectXTex\DirectXTex\Bin\Desktop_2019_Win10\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -171,7 +171,7 @@
     </Link>
     <Lib>
       <AdditionalDependencies>d3d12.lib;dxgi.lib;d3dcompiler.lib;DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ProjectDir)..\..\..\ExternLib\DirectX\DirectXTex\Bin\Desktop_2017_Win10\x64\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)..\..\..\ExternLib\DirectX\DirectXTex\DirectXTex\Bin\Desktop_2019_Win10\x64\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -199,6 +199,7 @@
     <ClInclude Include="RendererDX12.h" />
     <ClInclude Include="RenderManagerDX12.h" />
     <ClInclude Include="RenderTargetDX12.h" />
+    <ClInclude Include="ScreenGrab12.h" />
     <ClInclude Include="SSSDX12.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
@@ -236,6 +237,10 @@
     <ClCompile Include="RendererDX12.cpp" />
     <ClCompile Include="RenderManagerDX12.cpp" />
     <ClCompile Include="RenderTargetDX12.cpp" />
+    <ClCompile Include="ScreenGrab12.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="SSSDX12.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

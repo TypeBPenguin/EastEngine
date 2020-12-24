@@ -130,8 +130,8 @@
       <SubSystem>Windows</SubSystem>
     </Link>
     <Lib>
-      <AdditionalDependencies>libfbxsdk-md.lib;ExportObjects.lib;UVAtlas.lib;DirectXMesh.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ProjectDir)..\..\ExternLib\FBX\lib\vs2015\x64\debug;$(ProjectDir)..\..\ExternLib\FBXExporter\ExportObjects\x64\Debug_2017;$(ProjectDir)..\..\ExternLib\FBXExporter\UVAtlas\Bin\Desktop_2017_Win10\x64\Debug;$(ProjectDir)..\..\ExternLib\DirectX\DirectXMesh\Bin\Desktop_2017\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libfbxsdk-md.lib;ExportObjects.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)..\..\ExternLib\FBX\lib\vs2015\x64\debug;$(ProjectDir)..\..\ExternLib\FBXExporter\ExportObjects\x64\Debug_2017;$(ProjectDir)..\..\ExternLib\FBXExporter\UVAtlas\Bin\Desktop_2017_Win10\x64\Debug;$(ProjectDir)..\..\ExternLib\DirectX\ExternLib\DirectX\DirectXMesh\DirectXMesh\Bin\Desktop_2019_Win10\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -184,8 +184,8 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>libfbxsdk-md.lib;ExportObjects.lib;UVAtlas.lib;DirectXMesh.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ProjectDir)..\..\ExternLib\FBX\lib\vs2015\x64\release;$(ProjectDir)..\..\ExternLib\FBXExporter\ExportObjects\x64\Release_2017;$(ProjectDir)..\..\ExternLib\FBXExporter\UVAtlas\Bin\Desktop_2017_Win10\x64\Release;$(ProjectDir)..\..\ExternLib\DirectX\DirectXMesh\Bin\Desktop_2017\x64\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libfbxsdk-md.lib;ExportObjects.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)..\..\ExternLib\FBX\lib\vs2015\x64\release;$(ProjectDir)..\..\ExternLib\FBXExporter\ExportObjects\x64\Release_2017;$(ProjectDir)..\..\ExternLib\FBXExporter\UVAtlas\Bin\Desktop_2017_Win10\x64\Release;$(ProjectDir)..\..\ExternLib\DirectX\DirectXMesh\DirectXMesh\Bin\Desktop_2019_Win10\x64\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>

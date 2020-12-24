@@ -36,7 +36,6 @@
 *.a
 
 # Executables
-*.exe
 *.out
 *.app
 /Source/CommonLib/Release

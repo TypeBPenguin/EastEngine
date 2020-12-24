@@ -1343,6 +1343,11 @@ namespace est
 				m_pImpl->Cleanup(elapsedTime);
 			}
 
+			void Device::ScreenShot(ScreenShotFormat format, const std::wstring& path, std::function<void(bool, const std::wstring&)> screenShotCallback)
+			{
+				//m_pImpl->ScreenShot(format, path, screenShotCallback);
+			}
+
 			const math::uint2& Device::GetScreenSize() const
 			{
 				return m_pImpl->GetScreenSize();
@@ -1353,6 +1358,17 @@ namespace est
 				return m_pImpl->GetViewport();
 			}
 
+			bool Device::IsFullScreen() const
+			{
+				return true;
+				//return Window::GetInstance()->IsFullScreen();
+			}
+
+			void Device::SetFullScreen(bool isFullScreen, std::function<void(bool)> callback)
+			{
+				//return m_pImpl->SetFullScreen(isFullScreen, callback);
+			}
+
 			const std::vector<DisplayModeDesc>& Device::GetSupportedDisplayModeDesc() const
 			{
 				return m_pImpl->GetSupportedDisplayModeDesc();
@@ -1361,6 +1377,11 @@ namespace est
 			size_t Device::GetSelectedDisplayModeIndex() const
 			{
 				return m_pImpl->GetSelectedDisplayModeIndex();
+			}
+
+			void Device::ChangeDisplayMode(size_t displayModeIndex, std::function<void(bool)> callback)
+			{
+				//return m_pImpl->ChangeDisplayMode(displayModeIndex, callback);
 			}
 
 			VkDevice Device::GetInterface() const

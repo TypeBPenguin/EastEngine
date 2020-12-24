@@ -54,14 +54,22 @@ namespace est
 			virtual void PostUpdate(float elapsedTime) = 0;
 
 		public:
+			virtual void ScreenShot(ScreenShotFormat format, const std::wstring& path, std::function<void(bool, const std::wstring&)> screenShotCallback) = 0;
+
+		public:
 			virtual APIs GetType() const = 0;
 			virtual HWND GetHwnd() const = 0;
 			virtual HINSTANCE GetHInstance() const = 0;
 
 			virtual const math::uint2& GetScreenSize() const = 0;
 			virtual const math::Viewport& GetViewport() const = 0;
+
+			virtual bool IsFullScreen() const = 0;
+			virtual void SetFullScreen(bool isFullScreen, std::function<void(bool)> callback) = 0;
+
 			virtual const std::vector<DisplayModeDesc>& GetSupportedDisplayModeDesc() const = 0;
 			virtual size_t GetSelectedDisplayModeIndex() const = 0;
+			virtual void ChangeDisplayMode(size_t displayModeIndex, std::function<void(bool)> callback) = 0;
 
 			virtual IImageBasedLight* GetImageBasedLight() const = 0;
 			virtual IVTFManager* GetVTFManager() const = 0;
@@ -190,6 +198,12 @@ namespace est
 			}
 
 		public:
+			virtual void ScreenShot(ScreenShotFormat format, const std::wstring& path, std::function<void(bool, const std::wstring&)> screenShotCallback) override
+			{
+				Device::GetInstance()->ScreenShot(format, path, screenShotCallback);
+			}
+
+		public:
 			virtual APIs GetType() const override
 			{
 				return APIType;
@@ -229,6 +243,16 @@ namespace est
 				return Device::GetInstance()->GetViewport();
 			}
 
+			virtual bool IsFullScreen() const override
+			{
+				return Device::GetInstance()->IsFullScreen();
+			}
+
+			virtual void SetFullScreen(bool isFullScreen, std::function<void(bool)> callback) override
+			{
+				Device::GetInstance()->SetFullScreen(isFullScreen, callback);
+			}
+
 			virtual const std::vector<DisplayModeDesc>& GetSupportedDisplayModeDesc() const override
 			{
 				return Device::GetInstance()->GetSupportedDisplayModeDesc();
@@ -237,6 +261,11 @@ namespace est
 			virtual size_t GetSelectedDisplayModeIndex() const override
 			{
 				return Device::GetInstance()->GetSelectedDisplayModeIndex();
+			}
+
+			virtual void ChangeDisplayMode(size_t displayModeIndex, std::function<void(bool)> callback) override
+			{
+				Device::GetInstance()->ChangeDisplayMode(displayModeIndex, callback);
 			}
 
 			virtual IImageBasedLight* GetImageBasedLight() const override
@@ -575,6 +604,11 @@ namespace est
 			s_pGraphicsAPI->PostUpdate(elapsedTime);
 		}
 
+		void ScreenShot(ScreenShotFormat format, const std::wstring& path, std::function<void(bool, const std::wstring&)> screenShotCallback)
+		{
+			s_pGraphicsAPI->ScreenShot(format, path, screenShotCallback);
+		}
+
 		APIs GetAPI()
 		{
 			return s_pGraphicsAPI->GetType();
@@ -600,6 +634,16 @@ namespace est
 			return s_pGraphicsAPI->GetViewport();
 		}
 
+		bool IsFullScreen()
+		{
+			return s_pGraphicsAPI->IsFullScreen();
+		}
+
+		void SetFullScreen(bool isFullScreen, std::function<void(bool)> callback)
+		{
+			s_pGraphicsAPI->SetFullScreen(isFullScreen, callback);
+		}
+
 		const std::vector<DisplayModeDesc>& GetSupportedDisplayModeDesc()
 		{
 			return s_pGraphicsAPI->GetSupportedDisplayModeDesc();
@@ -608,6 +652,11 @@ namespace est
 		size_t GetSelectedDisplayModeIndex()
 		{
 			return s_pGraphicsAPI->GetSelectedDisplayModeIndex();
+		}
+
+		void ChangeDisplayMode(size_t displayModeIndex, std::function<void(bool)> callback)
+		{
+			s_pGraphicsAPI->ChangeDisplayMode(displayModeIndex, callback);
 		}
 
 		IImageBasedLight* GetImageBasedLight()

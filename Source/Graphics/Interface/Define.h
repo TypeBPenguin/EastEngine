@@ -16,8 +16,7 @@ namespace est
 
 		enum ScreenShotFormat
 		{
-			eBMP = 0,
-			ePNG,
+			ePNG = 0,
 			eJPEG,
 			eDDS,
 		};

@@ -45,8 +45,6 @@ namespace est
 				void Run(std::function<bool()> funcUpdate);
 				void Cleanup(float elapsedTime);
 
-				void OnScreenShot();
-
 			public:
 				RenderTarget* GetRenderTarget(const D3D11_TEXTURE2D_DESC* pDesc);
 				void ReleaseRenderTargets(RenderTarget** ppRenderTarget, uint32_t nSize);
@@ -56,8 +54,6 @@ namespace est
 
 			public:
 				void MessageHandler(HWND hWnd, uint32_t nMsg, WPARAM wParam, LPARAM lParam);
-				bool Resize(uint32_t width, uint32_t height, bool isFullScreen, bool isEnableVSync, std::function<void(bool)> callback);
-				bool OnResize(uint32_t width, uint32_t height, bool isFullScreen, bool isEnableVSync);
 				void ScreenShot(ScreenShotFormat format, const std::wstring& path, std::function<void(bool, const std::wstring&)> screenShotCallback);
 
 			public:
@@ -82,8 +78,11 @@ namespace est
 				ID3DUserDefinedAnnotation* GetUserDefinedAnnotation() const { return m_pUserDefinedAnnotation; }
 
 			public:
+				void SetFullScreen(bool isFullScreen, std::function<void(bool)> callback);
+
 				const std::vector<DisplayModeDesc>& GetSupportedDisplayModeDesc() const { return m_supportedDisplayModes; }
 				size_t GetSelectedDisplayModeIndex() const { return m_selectedDisplayModeIndex; }
+				void ChangeDisplayMode(size_t displayModeIndex, std::function<void(bool)> callback);
 
 			private:
 				void InitializeD3D();
@@ -91,7 +90,9 @@ namespace est
 				void InitializeBlendState();
 				void InitializeSamplerState();
 				void InitializeDepthStencilState();
-				void Resize(uint32_t width, uint32_t height);
+
+				void OnScreenShot();
+				void OnResize();
 
 			private:
 				bool m_isInitislized{ false };
@@ -159,15 +160,13 @@ namespace est
 				};
 				ScreenShotInfo m_screeShot;
 
-				struct ResizeInfo
+				struct ChangeDisplayModeInfo
 				{
-					uint32_t width{ 0 };
-					uint32_t height{ 0 };
+					size_t changeDisplayModeIndex{ std::numeric_limits<size_t>::max() };
 					bool isFullScreen{ false };
-					bool isEnableVSync{ false };
 					std::function<void(bool)> callback;
 				};
-				std::unique_ptr<ResizeInfo> m_pResizeInfo;
+				std::unique_ptr<ChangeDisplayModeInfo> m_pChangeDisplayModeInfo;
 			};
 
 			Device::Impl::Impl()
@@ -181,6 +180,8 @@ namespace est
 
 			void Device::Impl::Update()
 			{
+				OnResize();
+
 				ImGui_ImplDX11_NewFrame();
 				ImGui_ImplWin32_NewFrame();
 				ImGui::NewFrame();
@@ -402,64 +403,6 @@ namespace est
 				}
 			}
 
-			void Device::Impl::OnScreenShot()
-			{
-				TRACER_EVENT(__FUNCTIONW__);
-				if (m_screeShot.path.empty() == false)
-				{
-					m_screeShot.isProcessed = true;
-
-					CComPtr<ID3D11Texture2D> pBackBufferTexture;
-					m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&pBackBufferTexture));
-
-					if (m_screeShot.format == ScreenShotFormat::eDDS)
-					{
-						m_screeShot.path += L".dds";
-
-						const HRESULT hr = DirectX::SaveDDSTextureToFile(m_pImmediateContext, pBackBufferTexture, m_screeShot.path.c_str());
-						m_screeShot.isSuccess = SUCCEEDED(hr);
-					}
-					else if (m_screeShot.format == ScreenShotFormat::eBMP)
-					{
-						m_screeShot.path += L".bmp";
-
-						const HRESULT hr = DirectX::SaveWICTextureToFile(m_pImmediateContext, pBackBufferTexture, GUID_ContainerFormatBmp, m_screeShot.path.c_str(), &GUID_WICPixelFormat16bppBGR565);
-						m_screeShot.isSuccess = SUCCEEDED(hr);
-					}
-					else
-					{
-						GUID formatGuid{};
-
-						switch (m_screeShot.format)
-						{
-						case ePNG:
-							formatGuid = GUID_ContainerFormatPng;
-							m_screeShot.path += L".png";
-							break;
-							//case eICO:
-							//	formatGuid = GUID_ContainerFormatIco;
-							//	m_screeShot.path += ".ico";
-							//	break;
-						case eJPEG:
-							formatGuid = GUID_ContainerFormatJpeg;
-							m_screeShot.path += L".jpg";
-							break;
-							//case eGIF:
-							//	formatGuid = GUID_ContainerFormatGif;
-							//	m_screeShot.path += ".gif";
-							//	break;
-							//case eWMP:
-							//	formatGuid = GUID_ContainerFormatWmp;
-							//	m_screeShot.path += ".wmp";
-							//	break;
-						}
-
-						const HRESULT hr = DirectX::SaveWICTextureToFile(m_pImmediateContext, pBackBufferTexture, formatGuid, m_screeShot.path.c_str());
-						m_screeShot.isSuccess = SUCCEEDED(hr);
-					}
-				}
-			}
-
 			RenderTarget* Device::Impl::GetRenderTarget(const D3D11_TEXTURE2D_DESC* pDesc)
 			{
 				thread::SRWWriteLock writeLock(&m_srwLock);
@@ -574,79 +517,34 @@ namespace est
 				}
 			}
 
-			bool Device::Impl::Resize(uint32_t width, uint32_t height, bool isFullScreen, bool isEnableVSync, std::function<void(bool)> callback)
-			{
-				const math::uint2& screenSize = Window::GetInstance()->GetScreenSize();
-				if (width == screenSize.x && height == screenSize.y && 
-					Window::GetInstance()->IsFullScreen() == isFullScreen &&
-					isEnableVSync == GetOptions().OnVSync)
-					return false;
-
-				m_pResizeInfo = std::make_unique<ResizeInfo>();
-				m_pResizeInfo->width = width;
-				m_pResizeInfo->height = height;
-				m_pResizeInfo->isFullScreen = isFullScreen;
-				m_pResizeInfo->isEnableVSync = isEnableVSync;
-				m_pResizeInfo->callback = callback;
-				return true;
-			}
-
-			bool Device::Impl::OnResize(uint32_t width, uint32_t height, bool isFullScreen, bool isEnableVSync)
-			{
-				const math::uint2& screenSize = Window::GetInstance()->GetScreenSize();
-				if (width == screenSize.x && height == screenSize.y)
-					return false;
-
-				if (Window::GetInstance()->Resize(width, height, isFullScreen) == false)
-					return false;
-
-				ImGui_ImplDX11_InvalidateDeviceObjects();
-
-				m_renderTargetPool.clear();
-				m_depthStencilPool.clear();
-
-				m_pSwapChainRenderTarget.reset();
-
-				m_pImmediateContext->ClearState();
-
-				HRESULT hr = m_pSwapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
-				if (FAILED(hr))
-				{
-					LOG_WARNING(L"Device Lost : Reason code 0x%08X", (hr == DXGI_ERROR_DEVICE_REMOVED) ? m_pDevice->GetDeviceRemovedReason() : hr);
-					throw_line("failed to resize device dx11");
-				}
-
-				ID3D11Texture2D* pBackBuffer = nullptr;
-				if (FAILED(m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&pBackBuffer))))
-				{
-					throw_line("failed to get back buffer");
-				}
-
-				m_pSwapChainRenderTarget = RenderTarget::Create(pBackBuffer);
-
-				D3D11_TEXTURE2D_DESC desc{};
-				pBackBuffer->GetDesc(&desc);
-
-				m_viewport.x = 0.0f;
-				m_viewport.y = 0.0f;
-				m_viewport.width = static_cast<float>(desc.Width);
-				m_viewport.height = static_cast<float>(desc.Height);
-				m_viewport.minDepth = 0.0f;
-				m_viewport.maxDepth = 1.0f;
-
-				GetOptions().OnVSync = isEnableVSync;
-
-				m_pGBuffer->Resize(width, height);
-
-				ImGui_ImplDX11_CreateDeviceObjects();
-			}
-
 			void Device::Impl::ScreenShot(ScreenShotFormat format, const std::wstring& path, std::function<void(bool, const std::wstring&)> screenShotCallback)
 			{
 				m_screeShot = {};
 				m_screeShot.format = format;
 				m_screeShot.path = path;
 				m_screeShot.callback = screenShotCallback;
+			}
+
+			void Device::Impl::SetFullScreen(bool isFullScreen, std::function<void(bool)> callback)
+			{
+				if (Window::GetInstance()->IsFullScreen() == isFullScreen)
+					return;
+
+				m_pChangeDisplayModeInfo = std::make_unique<ChangeDisplayModeInfo>();
+				m_pChangeDisplayModeInfo->changeDisplayModeIndex = m_selectedDisplayModeIndex;
+				m_pChangeDisplayModeInfo->isFullScreen = isFullScreen;
+				m_pChangeDisplayModeInfo->callback = callback;
+			}
+
+			void Device::Impl::ChangeDisplayMode(size_t displayModeIndex, std::function<void(bool)> callback)
+			{
+				if (m_selectedDisplayModeIndex == displayModeIndex)
+					return;
+
+				m_pChangeDisplayModeInfo = std::make_unique<ChangeDisplayModeInfo>();
+				m_pChangeDisplayModeInfo->changeDisplayModeIndex = displayModeIndex;
+				m_pChangeDisplayModeInfo->isFullScreen = Window::GetInstance()->IsFullScreen();
+				m_pChangeDisplayModeInfo->callback = callback;
 			}
 
 			void Device::Impl::InitializeD3D()
@@ -1458,8 +1356,152 @@ namespace est
 				}
 			}
 
-			void Device::Impl::Resize(uint32_t width, uint32_t height)
+			void Device::Impl::OnScreenShot()
 			{
+				TRACER_EVENT(__FUNCTIONW__);
+				if (m_screeShot.path.empty() == false)
+				{
+					m_screeShot.isProcessed = true;
+
+					CComPtr<ID3D11Texture2D> pBackBufferTexture;
+					m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&pBackBufferTexture));
+
+					if (m_screeShot.format == ScreenShotFormat::eDDS)
+					{
+						m_screeShot.path += L".dds";
+
+						const HRESULT hr = DirectX::SaveDDSTextureToFile(m_pImmediateContext, pBackBufferTexture, m_screeShot.path.c_str());
+						m_screeShot.isSuccess = SUCCEEDED(hr);
+					}
+					else
+					{
+						GUID formatGuid{};
+
+						switch (m_screeShot.format)
+						{
+						case ePNG:
+							formatGuid = GUID_ContainerFormatPng;
+							m_screeShot.path += L".png";
+							break;
+							//case eICO:
+							//	formatGuid = GUID_ContainerFormatIco;
+							//	m_screeShot.path += ".ico";
+							//	break;
+						case eJPEG:
+							formatGuid = GUID_ContainerFormatJpeg;
+							m_screeShot.path += L".jpg";
+							break;
+							//case eGIF:
+							//	formatGuid = GUID_ContainerFormatGif;
+							//	m_screeShot.path += ".gif";
+							//	break;
+							//case eWMP:
+							//	formatGuid = GUID_ContainerFormatWmp;
+							//	m_screeShot.path += ".wmp";
+							//	break;
+						}
+
+						const HRESULT hr = DirectX::SaveWICTextureToFile(m_pImmediateContext, pBackBufferTexture, formatGuid, m_screeShot.path.c_str());
+						m_screeShot.isSuccess = SUCCEEDED(hr);
+					}
+				}
+			}
+
+			void Device::Impl::OnResize()
+			{
+				if (m_pChangeDisplayModeInfo == nullptr)
+					return;
+
+				if (m_pChangeDisplayModeInfo->changeDisplayModeIndex == m_selectedDisplayModeIndex &&
+					m_pChangeDisplayModeInfo->isFullScreen == Window::GetInstance()->IsFullScreen())
+				{
+					if (m_pChangeDisplayModeInfo->callback != nullptr)
+					{
+						m_pChangeDisplayModeInfo->callback(false);
+					}
+					m_pChangeDisplayModeInfo.reset();
+					return;
+				}
+
+				if (m_pChangeDisplayModeInfo->changeDisplayModeIndex >= m_supportedDisplayModes.size())
+				{
+					if (m_pChangeDisplayModeInfo->callback != nullptr)
+					{
+						m_pChangeDisplayModeInfo->callback(false);
+					}
+					m_pChangeDisplayModeInfo.reset();
+					return;
+				}
+
+				uint32_t width = 0;
+				uint32_t height = 0;
+				if (m_pChangeDisplayModeInfo->isFullScreen == true)
+				{
+					width = GetSystemMetrics(SM_CXSCREEN);
+					height = GetSystemMetrics(SM_CYSCREEN);
+				}
+				else
+				{
+					const DisplayModeDesc& displayModeDesc = m_supportedDisplayModes[m_pChangeDisplayModeInfo->changeDisplayModeIndex];
+					width = displayModeDesc.width;
+					height = displayModeDesc.height;
+				}
+				if (Window::GetInstance()->Resize(width, height, m_pChangeDisplayModeInfo->isFullScreen) == false)
+				{
+					if (m_pChangeDisplayModeInfo->callback != nullptr)
+					{
+						m_pChangeDisplayModeInfo->callback(false);
+					}
+					return;
+				}
+
+				ImGui_ImplDX11_InvalidateDeviceObjects();
+
+				m_pGBuffer->Release();
+
+				m_renderTargetPool.clear();
+				m_depthStencilPool.clear();
+
+				m_pSwapChainRenderTarget.reset();
+
+				m_pImmediateContext->ClearState();
+
+				HRESULT hr = m_pSwapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
+				if (FAILED(hr))
+				{
+					LOG_WARNING(L"Device Lost : Reason code 0x%08X", (hr == DXGI_ERROR_DEVICE_REMOVED) ? m_pDevice->GetDeviceRemovedReason() : hr);
+					throw_line("failed to resize device dx11");
+				}
+
+				CComPtr<ID3D11Texture2D> pBackBuffer = nullptr;
+				if (FAILED(m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&pBackBuffer))))
+				{
+					throw_line("failed to get back buffer");
+				}
+
+				m_pSwapChainRenderTarget = RenderTarget::Create(pBackBuffer);
+
+				D3D11_TEXTURE2D_DESC desc{};
+				pBackBuffer->GetDesc(&desc);
+
+				m_viewport.x = 0.0f;
+				m_viewport.y = 0.0f;
+				m_viewport.width = static_cast<float>(desc.Width);
+				m_viewport.height = static_cast<float>(desc.Height);
+				m_viewport.minDepth = 0.0f;
+				m_viewport.maxDepth = 1.0f;
+
+				m_pGBuffer->Resize(desc.Width, desc.Height);
+
+				m_selectedDisplayModeIndex = m_pChangeDisplayModeInfo->changeDisplayModeIndex;
+
+				ImGui_ImplDX11_CreateDeviceObjects();
+
+				if (m_pChangeDisplayModeInfo->callback != nullptr)
+				{
+					m_pChangeDisplayModeInfo->callback(true);
+				}
+				m_pChangeDisplayModeInfo.reset();
 			}
 
 			Device::Device()
@@ -1484,11 +1526,6 @@ namespace est
 			void Device::Cleanup(float elapsedTime)
 			{
 				m_pImpl->Cleanup(elapsedTime);
-			}
-
-			bool Device::Resize(uint32_t width, uint32_t height, bool isFullScreen, bool isEnableVSync, std::function<void(bool)> callback)
-			{
-				m_pImpl->Resize(width, height, isFullScreen, isEnableVSync, callback);
 			}
 
 			void Device::ScreenShot(ScreenShotFormat format, const std::wstring& path, std::function<void(bool, const std::wstring&)> screenShotCallback)
@@ -1536,6 +1573,16 @@ namespace est
 				return m_pImpl->GetViewport();
 			}
 
+			bool Device::IsFullScreen() const
+			{
+				return Window::GetInstance()->IsFullScreen();
+			}
+
+			void Device::SetFullScreen(bool isFullScreen, std::function<void(bool)> callback)
+			{
+				m_pImpl->SetFullScreen(isFullScreen, callback);
+			}
+
 			const std::vector<DisplayModeDesc>& Device::GetSupportedDisplayModeDesc() const
 			{
 				return m_pImpl->GetSupportedDisplayModeDesc();
@@ -1544,6 +1591,11 @@ namespace est
 			size_t Device::GetSelectedDisplayModeIndex() const
 			{
 				return m_pImpl->GetSelectedDisplayModeIndex();
+			}
+
+			void Device::ChangeDisplayMode(size_t displayModeIndex, std::function<void(bool)> callback)
+			{
+				m_pImpl->ChangeDisplayMode(displayModeIndex, callback);
 			}
 
 			const GBuffer* Device::GetGBuffer() const
