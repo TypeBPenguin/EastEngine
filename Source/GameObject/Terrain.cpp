@@ -463,7 +463,7 @@ namespace est
 			}
 
 			graphics::TextureDesc desc;
-			desc.name.Format(L"TerrainHeightMap_%d", s_nTerrainIndex);
+			desc.name = string::Format(L"TerrainHeightMap_%d", s_nTerrainIndex);
 			desc.Width = m_property.size.x;
 			desc.Height = m_property.size.y;
 

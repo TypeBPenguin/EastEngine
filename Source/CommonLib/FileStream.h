@@ -74,6 +74,21 @@ namespace est
 				return *this;
 			}
 
+			Stream& operator << (const wchar_t* value)
+			{
+				if ((m_emOpenMode & OpenMode::eBinary) == 0)
+				{
+					m_file << value;
+				}
+				else
+				{
+					const std::string str = string::WideToMulti(value);
+					*this << static_cast<uint32_t>(str.size() + 1);
+					m_file.write(str.c_str(), str.size() + 1);
+				}
+				return *this;
+			}
+
 			Stream& operator << (const std::string& value)
 			{
 				if ((m_emOpenMode & OpenMode::eBinary) == 0)
@@ -85,6 +100,21 @@ namespace est
 					const size_t size = value.length() + 1;
 					*this << static_cast<uint32_t>(size);
 					m_file.write(value.c_str(), size);
+				}
+				return *this;
+			}
+
+			Stream& operator << (const std::wstring& value)
+			{
+				if ((m_emOpenMode & OpenMode::eBinary) == 0)
+				{
+					m_file << value.c_str();
+				}
+				else
+				{
+					const std::string str = string::WideToMulti(value);
+					*this << static_cast<uint32_t>(str.size() + 1);
+					m_file.write(str.c_str(), str.size() + 1);
 				}
 				return *this;
 			}
@@ -126,6 +156,35 @@ namespace est
 				return *this;
 			}
 
+			Stream& operator >> (std::wstring& value)
+			{
+				if ((m_emOpenMode & OpenMode::eBinary) == 0)
+				{
+					std::string str;
+					ReadLine(str);
+
+					value = string::MultiToWide(str);
+				}
+				else
+				{
+					uint32_t size = 0;
+					*this >> size;
+
+					if (size <= 0)
+						return *this;
+
+					std::string str;
+					str.resize(static_cast<size_t>(size));
+					m_file.read(str.data(), size);
+
+					str = str.substr(0, str.size() - 1);
+
+					value = string::MultiToWide(str);
+				}
+
+				return *this;
+			}
+
 		public:
 			template <typename T>
 			Stream& Write(const T* pValue, uint32_t nCount = 1)
@@ -137,7 +196,7 @@ namespace est
 				return *this;
 			}
 
-			Stream& Write(const char* pValue, size_t nLength)
+			Stream& Write(const char* pValue, size_t length)
 			{
 				if ((m_emOpenMode & OpenMode::eBinary) == 0)
 				{
@@ -145,8 +204,8 @@ namespace est
 				}
 				else
 				{
-					*this << nLength;
-					m_file.write(pValue, nLength);
+					*this << length;
+					m_file.write(pValue, length);
 				}
 
 				return *this;

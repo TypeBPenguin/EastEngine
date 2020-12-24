@@ -1,14 +1,11 @@
 //--------------------------------------------------------------------------------------
 // File: BinaryReader.cpp
 //
-// THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF
-// ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO
-// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
-// PARTICULAR PURPOSE.
-//
 // Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
 //
 // http://go.microsoft.com/fwlink/?LinkId=248929
+// http://go.microsoft.com/fwlink/?LinkID=615561
 //--------------------------------------------------------------------------------------
 
 #include "pch.h"
@@ -19,15 +16,18 @@ using namespace DirectX;
 
 
 // Constructor reads from the filesystem.
-BinaryReader::BinaryReader(_In_z_ wchar_t const* fileName)
+BinaryReader::BinaryReader(_In_z_ wchar_t const* fileName) noexcept(false) :
+    mPos(nullptr),
+    mEnd(nullptr)
 {
     size_t dataSize;
 
     HRESULT hr = ReadEntireFile(fileName, mOwnedData, &dataSize);
-    if ( FAILED(hr) )
+    if (FAILED(hr))
     {
-        DebugTrace( "BinaryReader failed (%08X) to load '%ls'\n", hr, fileName );
-        throw std::exception( "BinaryReader" );
+        DebugTrace("ERROR: BinaryReader failed (%08X) to load '%ls'\n",
+            static_cast<unsigned int>(hr), fileName);
+        throw std::exception("BinaryReader");
     }
 
     mPos = mOwnedData.get();
@@ -36,10 +36,10 @@ BinaryReader::BinaryReader(_In_z_ wchar_t const* fileName)
 
 
 // Constructor reads from an existing memory buffer.
-BinaryReader::BinaryReader(_In_reads_bytes_(dataSize) uint8_t const* dataBlob, size_t dataSize)
+BinaryReader::BinaryReader(_In_reads_bytes_(dataSize) uint8_t const* dataBlob, size_t dataSize) noexcept :
+    mPos(dataBlob),
+    mEnd(dataBlob + dataSize)
 {
-    mPos = dataBlob;
-    mEnd = dataBlob + dataSize;
 }
 
 
@@ -57,27 +57,18 @@ HRESULT BinaryReader::ReadEntireFile(_In_z_ wchar_t const* fileName, _Inout_ std
         return HRESULT_FROM_WIN32(GetLastError());
 
     // Get the file size.
-    LARGE_INTEGER fileSize = { 0 };
-
-#if (_WIN32_WINNT >= _WIN32_WINNT_VISTA)
     FILE_STANDARD_INFO fileInfo;
-
     if (!GetFileInformationByHandleEx(hFile.get(), FileStandardInfo, &fileInfo, sizeof(fileInfo)))
     {
         return HRESULT_FROM_WIN32(GetLastError());
     }
 
-    fileSize = fileInfo.EndOfFile;
-#else
-    GetFileSizeEx(hFile.get(), &fileSize);
-#endif
-
     // File is too big for 32-bit allocation, so reject read.
-    if (fileSize.HighPart > 0)
+    if (fileInfo.EndOfFile.HighPart > 0)
         return E_FAIL;
 
     // Create enough space for the file data.
-    data.reset(new uint8_t[fileSize.LowPart]);
+    data.reset(new uint8_t[fileInfo.EndOfFile.LowPart]);
 
     if (!data)
         return E_OUTOFMEMORY;
@@ -85,15 +76,15 @@ HRESULT BinaryReader::ReadEntireFile(_In_z_ wchar_t const* fileName, _Inout_ std
     // Read the data in.
     DWORD bytesRead = 0;
 
-    if (!ReadFile(hFile.get(), data.get(), fileSize.LowPart, &bytesRead, nullptr))
+    if (!ReadFile(hFile.get(), data.get(), fileInfo.EndOfFile.LowPart, &bytesRead, nullptr))
     {
         return HRESULT_FROM_WIN32(GetLastError());
     }
 
-    if (bytesRead < fileSize.LowPart)
+    if (bytesRead < fileInfo.EndOfFile.LowPart)
         return E_FAIL;
 
     *dataSize = bytesRead;
-    
+
     return S_OK;
 }

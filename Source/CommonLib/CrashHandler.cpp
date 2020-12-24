@@ -3,10 +3,12 @@
 
 #include "StringUtil.h"
 #include "FileUtil.h"
+#include "Lock.h"
 
 #include <tchar.h>
 #include <csignal>
 #include <DbgHelp.h>
+#pragma comment(lib, "Dbghelp.lib")
 
 namespace est
 {
@@ -20,8 +22,117 @@ namespace est
 		static std::unique_ptr<char[]> s_crashDumpBuffer = nullptr;
 		std::wstring s_miniDumpPath;
 
+		thread::SRWLock s_srwLock;
+
 		void SetProcessExceptionHandlers();
 		void SetThreadExceptionHandlers();
+
+		void GetCallStack(const CONTEXT* pContext, std::function<void(const STACKFRAME&, const PIMAGEHLP_SYMBOL, const IMAGEHLP_LINE&, DWORD)> function)
+		{
+			thread::SRWWriteLock writeLock(&s_srwLock);
+
+			// Load dbghelp.dll
+			HMODULE hDbgHelp = LoadLibrary(_T("dbghelp.dll"));
+			if (hDbgHelp == nullptr)
+			{
+				// Error - couldn't load dbghelp.dll
+				return;
+			}
+
+			SymSetOptions(SYMOPT_DEFERRED_LOADS | SYMOPT_UNDNAME | SYMOPT_LOAD_LINES);
+
+			// Initialize DbgHelp
+			if (SymInitializeW(GetCurrentProcess(), file::GetBinPath(), true) == FALSE)
+				return;
+
+			CONTEXT context{};
+			if (pContext != nullptr)
+			{
+				context = *pContext;
+			}
+			else
+			{
+				context.ContextFlags = CONTEXT_FULL;
+				RtlCaptureContext(&context);
+			}
+
+			STACKFRAME frame{};
+			DWORD image = 0;
+#ifdef _M_IX86
+			image = IMAGE_FILE_MACHINE_I386;
+			frame.AddrPC.Offset = context.Eip;
+			frame.AddrPC.Mode = AddrModeFlat;
+			frame.AddrFrame.Offset = context.Ebp;
+			frame.AddrFrame.Mode = AddrModeFlat;
+			frame.AddrStack.Offset = context.Esp;
+			frame.AddrStack.Mode = AddrModeFlat;
+#elif _M_X64
+			image = IMAGE_FILE_MACHINE_AMD64;
+			frame.AddrPC.Offset = context.Rip;
+			frame.AddrPC.Mode = AddrModeFlat;
+			frame.AddrFrame.Offset = context.Rbp;
+			frame.AddrFrame.Mode = AddrModeFlat;
+			frame.AddrStack.Offset = context.Rsp;
+			frame.AddrStack.Mode = AddrModeFlat;
+#elif _M_IA64
+			image = IMAGE_FILE_MACHINE_IA64;
+			frame.AddrPC.Offset = context.StIIP;
+			frame.AddrPC.Mode = AddrModeFlat;
+			frame.AddrFrame.Offset = context.IntSp;
+			frame.AddrFrame.Mode = AddrModeFlat;
+			frame.AddrBStore.Offset = context.RsBSP;
+			frame.AddrBStore.Mode = AddrModeFlat;
+			frame.AddrStack.Offset = context.IntSp;
+			frame.AddrStack.Mode = AddrModeFlat;
+#else
+			// TODO: Stack trace not supported on this architecture
+			return;
+#endif
+
+			const HANDLE thread = GetCurrentThread();
+			const HANDLE process = GetCurrentProcess();
+
+			constexpr size_t MAX_NAMELEN = 1024;
+			constexpr size_t SYMBOL_SYS_SIZE = sizeof(IMAGEHLP_SYMBOL) + MAX_NAMELEN;
+			char symbol_sys[SYMBOL_SYS_SIZE]{};
+			PIMAGEHLP_SYMBOL pSymbol = reinterpret_cast<PIMAGEHLP_SYMBOL>(symbol_sys);
+			pSymbol->SizeOfStruct = sizeof(IMAGEHLP_SYMBOL);
+			pSymbol->MaxNameLength = MAX_NAMELEN;
+
+			IMAGEHLP_LINE line{};
+			line.SizeOfStruct = sizeof(IMAGEHLP_LINE);
+
+			bool ignoreFirstStack = true;
+			DWORD displacement = 0;
+			while (StackWalk(image, process, thread, &frame, &context, NULL, NULL, NULL, NULL))
+			{
+#ifdef _WIN64
+				DWORD64 offsetFromSymbol = 0;
+#else
+				DWORD offsetFromSymbol = 0;
+#endif
+				if (SymGetSymFromAddr(process, frame.AddrPC.Offset, &offsetFromSymbol, pSymbol))
+				{
+					if (SymGetLineFromAddr(process, frame.AddrPC.Offset, &displacement, &line))
+					{
+						if (ignoreFirstStack == true)
+						{
+							ignoreFirstStack = false;
+							continue;
+						}
+						function(frame, pSymbol, line, 0);
+					}
+					else
+					{
+						function(frame, pSymbol, line, GetLastError());
+					}
+				}
+			}
+
+			SymCleanup(GetCurrentProcess());
+
+			FreeLibrary(hDbgHelp);
+		}
 
 		bool Initialize(const wchar_t* path)
 		{

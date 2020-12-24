@@ -342,7 +342,7 @@ void SceneStudio::Enter(const std::queue<gameobject::ActorPtr>& savedPrevSceneAc
 		//
 		//physics::RigidBodyProperty prop;
 		//prop.fRestitution = 0.75f;
-		//prop.strName = sid::Studio_Ground;
+		//prop.name = sid::Studio_Ground;
 		//prop.fMass = 0.f;
 		//prop.nCollisionFlag = physics::CollisionFlag::eStaticObject;
 		//prop.shapeInfo.SetTriangleMesh();
@@ -428,8 +428,7 @@ void SceneStudio::Enter(const std::queue<gameobject::ActorPtr>& savedPrevSceneAc
 
 	for (int i = 0; i < 100; ++i)
 	{
-		string::StringID name;
-		name.Format(L"UnityChan%d", i);
+		const string::StringID name = string::Format(L"UnityChan%d", i);
 
 		path = file::GetEngineDataPath();
 		path.append(L"Model\\UnityChan\\unitychan.emod");
@@ -457,8 +456,7 @@ void SceneStudio::Enter(const std::queue<gameobject::ActorPtr>& savedPrevSceneAc
 			//pathMotion.append(L"Actor\\UnityChan\\Animations\\unitychan_WAIT00.fbx");
 			pathMotion.append(vecAnim[math::Random(0llu, vecAnim.size() - 1)]);
 
-			string::StringID strMotionName;
-			strMotionName.Format(L"%s", file::GetFileName(pathMotion).c_str());
+			const string::StringID strMotionName = string::Format(L"%s", file::GetFileName(pathMotion).c_str());
 			graphics::MotionLoader motionLoader;
 			motionLoader.InitFBX(strMotionName, pathMotion.c_str(), 0.01f);
 			graphics::MotionPtr pMotion = graphics::CreateMotion(motionLoader);
@@ -525,8 +523,7 @@ void SceneStudio::Enter(const std::queue<gameobject::ActorPtr>& savedPrevSceneAc
 	}
 
 	{
-		string::StringID name;
-		name.Format(L"KimJiYoon");
+		const string::StringID name = string::Format(L"KimJiYoon");
 
 		math::float3 pos;
 		pos.x = 2.f;
@@ -542,8 +539,7 @@ void SceneStudio::Enter(const std::queue<gameobject::ActorPtr>& savedPrevSceneAc
 			std::wstring pathMotion(file::GetEngineDataPath());
 			pathMotion.append(L"Model\\KimJiYoon\\AR_Idle_CC.fbx");
 
-			string::StringID strMotionName;
-			strMotionName.Format(L"%s", file::GetFileName(pathMotion).c_str());
+			const string::StringID strMotionName = string::Format(L"%s", file::GetFileName(pathMotion).c_str());
 			graphics::MotionLoader motionLoader;
 			motionLoader.InitFBX(strMotionName, pathMotion.c_str(), 0.01f);
 			graphics::MotionPtr pMotion = graphics::CreateMotion(motionLoader);
@@ -558,8 +554,7 @@ void SceneStudio::Enter(const std::queue<gameobject::ActorPtr>& savedPrevSceneAc
 
 	for (int i = 0; i < 2; ++i)
 	{
-		string::StringID name;
-		name.Format(L"2B_NierAutomata_%d", i);
+		const string::StringID name = string::Format(L"2B_NierAutomata_%d", i);
 
 		math::float3 pos;
 		pos.x = -2.f + (i * -2.f);
@@ -594,8 +589,7 @@ void SceneStudio::Enter(const std::queue<gameobject::ActorPtr>& savedPrevSceneAc
 
 	//if (false)
 	{
-		string::StringID name;
-		name.Format(L"Delia");
+		const string::StringID name = string::Format(L"Delia");
 
 		math::float3 pos;
 		pos.x = 4.f;
@@ -608,8 +602,7 @@ void SceneStudio::Enter(const std::queue<gameobject::ActorPtr>& savedPrevSceneAc
 
 	//if (false)
 	{
-		string::StringID name;
-		name.Format(L"Misaki");
+		const string::StringID name = string::Format(L"Misaki");
 
 		math::float3 pos;
 		pos.x = 6.f;
@@ -622,8 +615,7 @@ void SceneStudio::Enter(const std::queue<gameobject::ActorPtr>& savedPrevSceneAc
 
 	//if (false)
 	{
-		string::StringID name;
-		name.Format(L"Naotora");
+		const string::StringID name = string::Format(L"Naotora");
 
 		math::float3 pos;
 		pos.x = 8.f;
@@ -636,8 +628,7 @@ void SceneStudio::Enter(const std::queue<gameobject::ActorPtr>& savedPrevSceneAc
 
 	//if (false)
 	{
-		string::StringID name;
-		name.Format(L"Naotora_ShirtDress");
+		const string::StringID name = string::Format(L"Naotora_ShirtDress");
 
 		math::float3 pos;
 		pos.x = 10.f;
@@ -650,8 +641,7 @@ void SceneStudio::Enter(const std::queue<gameobject::ActorPtr>& savedPrevSceneAc
 
 	//if (false)
 	{
-		string::StringID name;
-		name.Format(L"Bugeikloth");
+		const string::StringID name = string::Format(L"Bugeikloth");
 
 		math::float3 pos;
 		pos.z = 10.f;
@@ -664,8 +654,7 @@ void SceneStudio::Enter(const std::queue<gameobject::ActorPtr>& savedPrevSceneAc
 
 	//if (false)
 	{
-		string::StringID name;
-		name.Format(L"DarkKnight_Female");
+		const string::StringID name = string::Format(L"DarkKnight_Female");
 
 		math::float3 pos;
 		pos.x = -4.f;
@@ -680,8 +669,7 @@ void SceneStudio::Enter(const std::queue<gameobject::ActorPtr>& savedPrevSceneAc
 
 	//if (false)
 	{
-		string::StringID name;
-		name.Format(L"DarkKnight_Transformed_Female");
+		const string::StringID name = string::Format(L"DarkKnight_Transformed_Female");
 
 		math::float3 pos;
 		pos.x = -2.f;
@@ -696,8 +684,7 @@ void SceneStudio::Enter(const std::queue<gameobject::ActorPtr>& savedPrevSceneAc
 
 	//if (false)
 	{
-		string::StringID name;
-		name.Format(L"Paladin_Female");
+		const string::StringID name = string::Format(L"Paladin_Female");
 
 		math::float3 pos;
 		pos.x = 0.f;
@@ -711,8 +698,7 @@ void SceneStudio::Enter(const std::queue<gameobject::ActorPtr>& savedPrevSceneAc
 
 	//if (false)
 	{
-		string::StringID name;
-		name.Format(L"Paladin_Transformed_Female");
+		const string::StringID name = string::Format(L"Paladin_Transformed_Female");
 
 		math::float3 pos;
 		pos.x = 2.f;
@@ -727,8 +713,7 @@ void SceneStudio::Enter(const std::queue<gameobject::ActorPtr>& savedPrevSceneAc
 
 	//if (false)
 	{
-		string::StringID name;
-		name.Format(L"Evie_Temptress");
+		const string::StringID name = string::Format(L"Evie_Temptress");
 
 		math::float3 pos;
 		pos.x = 4.f;
@@ -742,8 +727,7 @@ void SceneStudio::Enter(const std::queue<gameobject::ActorPtr>& savedPrevSceneAc
 
 	//if (false)
 	{
-		string::StringID name;
-		name.Format(L"Lynn_DancingBlade");
+		const string::StringID name = string::Format(L"Lynn_DancingBlade");
 
 		math::float3 pos;
 		pos.x = 6.f;
@@ -756,8 +740,7 @@ void SceneStudio::Enter(const std::queue<gameobject::ActorPtr>& savedPrevSceneAc
 	}
 
 	{
-		string::StringID name;
-		name.Format(L"ElementalSwordIce");
+		const string::StringID name = string::Format(L"ElementalSwordIce");
 
 		math::float3 pos;
 		pos.y = 1.f;
@@ -827,7 +810,7 @@ void SceneStudio::Enter(const std::queue<gameobject::ActorPtr>& savedPrevSceneAc
 			//rigidProperty.shape.SetTriangleMeshGeometry(math::float3::One, math::Quaternion::Identity, reinterpret_cast<const math::float3*>(pVertices), numVertices, pIndices, numIndices, physics::IGeometry::MeshFlag::eNone);
 			rigidProperty.shape.SetBoxGeometry(halfExtents);
 			rigidProperty.shape.flags = physics::IShape::eSimulationShape | physics::IShape::eSceneQueryShape;
-			rigidProperty.rigidAcotr.name.Format(L"TestBox%d", (i % 10) + 1);
+			rigidProperty.rigidAcotr.name = string::Format(L"TestBox%d", (i % 10) + 1);
 			rigidProperty.rigidAcotr.type = physics::IActor::eRigidDynamic;
 			rigidProperty.rigidAcotr.globalTransform.position = position;
 			physics::IRigidDynamic* pRigidDynamic = static_cast<physics::IRigidDynamic*>(pCompPhysics->CreateRigidActor(rigidProperty));
@@ -853,7 +836,7 @@ void SceneStudio::Enter(const std::queue<gameobject::ActorPtr>& savedPrevSceneAc
 			//
 			//physics::RigidBodyProperty prop;
 			//prop.fRestitution = 0.5f;
-			//prop.strName.Format(L"TestBox_RigidBody%d", i).c_str();
+			//prop.name.Format(L"TestBox_RigidBody%d", i).c_str();
 			//
 			//prop.shapeInfo.SetBox(math::float3(1.f));
 			////prop.shapeInfo.SetCapsule(math::Random(0.5f, 1.f), math::Random(1.f, 2.f));
@@ -1227,7 +1210,19 @@ void SceneStudio::RenderImGui(float elapsedTime)
 
 		if (ImGui::Button("ScreenShot") == true)
 		{
-			graphics::ScreenShot()
+			std::wstring path = file::GetBinPath();
+			path += L"ScreenShot\\";
+
+			CreateDirectory(path.c_str(), nullptr);
+
+			const std::time_t time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+
+			std::tm now{};
+			localtime_s(&now, &time);
+
+			path += string::Format(L"%d%2d%2d_%2d%2d%2d", now.tm_year + 1900, now.tm_mon, now.tm_mday, now.tm_hour, now.tm_min, now.tm_sec);
+
+			graphics::ScreenShot(graphics::ScreenShotFormat::eJPEG, path, {});
 		}
 
 		ImGui::End();
@@ -1284,8 +1279,7 @@ void SceneStudio::ShowConfig()
 			names.reserve(displayModeDescs.size());
 			for (auto& desc : displayModeDescs)
 			{
-				string::StringID name;
-				names.emplace_back(string::WideToMulti(name.Format(L"%u x %u", desc.width, desc.height).c_str()));
+				names.emplace_back(string::WideToMulti(string::Format(L"%u x %u", desc.width, desc.height)));
 			}
 
 			std::vector<const char*> _names;
@@ -2120,8 +2114,7 @@ void SceneStudio::ShowConfig()
 			if (input::keyboard::IsKeyDown(input::keyboard::eSpace) == true)
 			{
 				static size_t shootingObjectID = 0;
-				string::StringID shootingObjectName;
-				shootingObjectName.Format(L"ShootingModel_%d", shootingObjectID++);
+				const string::StringID shootingObjectName = string::Format(L"ShootingModel_%d", shootingObjectID++);
 
 				graphics::Camera& camera = graphics::GetCamera();
 
@@ -3350,22 +3343,20 @@ void SceneStudio::ShowActorWindow(bool& isShowActorMenu)
 									const std::wstring strFileExtension = file::GetFileExtension(ofn.lpstrFile);
 									if (string::IsEqualsNoCase(strFileExtension.c_str(), L".fbx") == true)
 									{
-										string::StringID strName;
-										strName.Format(L"%s(%f)", file::GetFileName(ofn.lpstrFile).c_str(), scaleFactor);
+										const string::StringID name = string::Format(L"%s(%f)", file::GetFileName(ofn.lpstrFile).c_str(), scaleFactor);
 
 										graphics::ModelLoader loader;
-										loader.InitFBX(strName, ofn.lpstrFile, scaleFactor);
+										loader.InitFBX(name, ofn.lpstrFile, scaleFactor);
 										loader.SetEnableThreadLoad(true);
 
 										pCompModel->Add(0, loader);
 									}
 									else if (string::IsEqualsNoCase(strFileExtension.c_str(), L".obj") == true)
 									{
-										string::StringID strName;
-										strName.Format(L"%s(%f)", file::GetFileName(ofn.lpstrFile).c_str(), scaleFactor);
+										const string::StringID name = string::Format(L"%s(%f)", file::GetFileName(ofn.lpstrFile).c_str(), scaleFactor);
 
 										graphics::ModelLoader loader;
-										loader.InitObj(strName, ofn.lpstrFile, scaleFactor);
+										loader.InitObj(name, ofn.lpstrFile, scaleFactor);
 										loader.SetEnableThreadLoad(true);
 
 										pCompModel->Add(0, loader);

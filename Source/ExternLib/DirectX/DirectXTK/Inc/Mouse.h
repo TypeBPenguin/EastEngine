@@ -1,33 +1,24 @@
 //--------------------------------------------------------------------------------------
 // File: Mouse.h
 //
-// THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF
-// ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO
-// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
-// PARTICULAR PURPOSE.
-//
 // Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
 //
 // http://go.microsoft.com/fwlink/?LinkId=248929
+// http://go.microsoft.com/fwlink/?LinkID=615561
 //--------------------------------------------------------------------------------------
 
 #pragma once
 
-// VS 2010/2012 do not support =default =delete
-#ifndef DIRECTX_CTOR_DEFAULT
-#if defined(_MSC_VER) && (_MSC_VER < 1800)
-#define DIRECTX_CTOR_DEFAULT {}
-#define DIRECTX_CTOR_DELETE ;
-#else
-#define DIRECTX_CTOR_DEFAULT =default;
-#define DIRECTX_CTOR_DELETE =delete;
-#endif
-#endif
-
 #include <memory>
 
-#if defined(WINAPI_FAMILY) && (WINAPI_FAMILY == WINAPI_FAMILY_APP)
+#if (defined(WINAPI_FAMILY) && (WINAPI_FAMILY == WINAPI_FAMILY_APP)) || (defined(_XBOX_ONE) && defined(_TITLE) && (_XDK_VER >= 0x42D907D1))
 namespace ABI { namespace Windows { namespace UI { namespace Core { struct ICoreWindow; } } } }
+#endif
+
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunknown-pragmas"
 #endif
 
 
@@ -36,9 +27,13 @@ namespace DirectX
     class Mouse
     {
     public:
-        Mouse();
-        Mouse(Mouse&& moveFrom);
-        Mouse& operator= (Mouse&& moveFrom);
+        Mouse() noexcept(false);
+        Mouse(Mouse&& moveFrom) noexcept;
+        Mouse& operator= (Mouse&& moveFrom) noexcept;
+
+        Mouse(Mouse const&) = delete;
+        Mouse& operator=(Mouse const&) = delete;
+
         virtual ~Mouse();
 
         enum Mode
@@ -77,11 +72,14 @@ namespace DirectX
             ButtonState xButton1;
             ButtonState xButton2;
 
-            ButtonStateTracker() { Reset(); }
+            #pragma prefast(suppress: 26495, "Reset() performs the initialization")
+            ButtonStateTracker() noexcept { Reset(); }
 
-            void __cdecl Update( const State& state );
+            void __cdecl Update(const State& state) noexcept;
 
-            void __cdecl Reset();
+            void __cdecl Reset() noexcept;
+
+            State __cdecl GetLastState() const noexcept { return lastState; }
 
         private:
             State lastState;
@@ -91,27 +89,47 @@ namespace DirectX
         State __cdecl GetState() const;
 
         // Resets the accumulated scroll wheel value
-        void __cdecl ResetScrollWheelValue();
+        void __cdecl ResetScrollWheelValue() noexcept;
 
         // Sets mouse mode (defaults to absolute)
         void __cdecl SetMode(Mode mode);
-        
-#if !defined(WINAPI_FAMILY) || (WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP) && defined(WM_USER)
+
+        // Feature detection
+        bool __cdecl IsConnected() const;
+
+        // Cursor visibility
+        bool __cdecl IsVisible() const noexcept;
+        void __cdecl SetVisible(bool visible);
+
+    #ifdef WM_USER
+    #if !defined(WINAPI_FAMILY) || (WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP)
         void __cdecl SetWindow(HWND window);
         static void __cdecl ProcessMessage(UINT message, WPARAM wParam, LPARAM lParam);
-#endif
+    #elif (WINAPI_FAMILY == WINAPI_FAMILY_GAMES)
+        static void __cdecl ProcessMessage(UINT message, WPARAM wParam, LPARAM lParam);
+        static void __cdecl SetResolution(bool use4k);
+    #endif
+    #endif
 
-#if defined(WINAPI_FAMILY) && (WINAPI_FAMILY == WINAPI_FAMILY_APP)
+    #if (defined(WINAPI_FAMILY) && (WINAPI_FAMILY == WINAPI_FAMILY_APP)) || (defined(_XBOX_ONE) && defined(_TITLE) && (_XDK_VER >= 0x42D907D1))
         void __cdecl SetWindow(ABI::Windows::UI::Core::ICoreWindow* window);
-#ifdef __cplusplus_winrt
+    #ifdef __cplusplus_winrt
         void __cdecl SetWindow(Windows::UI::Core::CoreWindow^ window)
         {
             // See https://msdn.microsoft.com/en-us/library/hh755802.aspx
             SetWindow(reinterpret_cast<ABI::Windows::UI::Core::ICoreWindow*>(window));
         }
-#endif
+    #endif
+    #ifdef CPPWINRT_VERSION
+        void __cdecl SetWindow(winrt::Windows::UI::Core::CoreWindow window)
+        {
+            // See https://docs.microsoft.com/en-us/windows/uwp/cpp-and-winrt-apis/interop-winrt-abi
+            SetWindow(reinterpret_cast<ABI::Windows::UI::Core::ICoreWindow*>(winrt::get_abi(window)));
+        }
+    #endif
+
         static void __cdecl SetDpi(float dpi);
-#endif
+    #endif // WINAPI_FAMILY == WINAPI_FAMILY_APP
 
         // Singleton
         static Mouse& __cdecl Get();
@@ -121,9 +139,9 @@ namespace DirectX
         class Impl;
 
         std::unique_ptr<Impl> pImpl;
-
-        // Prevent copying.
-        Mouse(Mouse const&) DIRECTX_CTOR_DELETE
-        Mouse& operator=(Mouse const&) DIRECTX_CTOR_DELETE
     };
 }
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif

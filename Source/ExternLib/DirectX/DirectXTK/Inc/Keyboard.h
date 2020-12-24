@@ -1,38 +1,25 @@
 //--------------------------------------------------------------------------------------
 // File: Keyboard.h
 //
-// THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF
-// ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO
-// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
-// PARTICULAR PURPOSE.
-//
 // Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
 //
 // http://go.microsoft.com/fwlink/?LinkId=248929
+// http://go.microsoft.com/fwlink/?LinkID=615561
 //--------------------------------------------------------------------------------------
 
 #pragma once
 
-// VS 2010/2012 do not support =default =delete
-#ifndef DIRECTX_CTOR_DEFAULT
-#if defined(_MSC_VER) && (_MSC_VER < 1800)
-#define DIRECTX_CTOR_DEFAULT {}
-#define DIRECTX_CTOR_DELETE ;
-#else
-#define DIRECTX_CTOR_DEFAULT =default;
-#define DIRECTX_CTOR_DELETE =delete;
-#endif
-#endif
-
-#pragma warning(push)
-#pragma warning(disable : 4005)
-#include <stdint.h>
-#pragma warning(pop)
-
+#include <cstdint>
 #include <memory>
 
-#if defined(WINAPI_FAMILY) && (WINAPI_FAMILY == WINAPI_FAMILY_APP)
+#if (defined(WINAPI_FAMILY) && (WINAPI_FAMILY == WINAPI_FAMILY_APP)) || (defined(_XBOX_ONE) && defined(_TITLE))
 namespace ABI { namespace Windows { namespace UI { namespace Core { struct ICoreWindow; } } } }
+#endif
+
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunknown-pragmas"
 #endif
 
 
@@ -41,12 +28,16 @@ namespace DirectX
     class Keyboard
     {
     public:
-        Keyboard();
-        Keyboard(Keyboard&& moveFrom);
-        Keyboard& operator= (Keyboard&& moveFrom);
+        Keyboard() noexcept(false);
+        Keyboard(Keyboard&& moveFrom) noexcept;
+        Keyboard& operator= (Keyboard&& moveFrom) noexcept;
+
+        Keyboard(Keyboard const&) = delete;
+        Keyboard& operator=(Keyboard const&) = delete;
+
         virtual ~Keyboard();
 
-        enum Keys
+        enum Keys : unsigned char
         {
             None                = 0,
 
@@ -413,9 +404,9 @@ namespace DirectX
             bool OemClear : 1;          // VK_OEM_CLEAR, 0xFE
             bool Reserved26: 1;
 
-            bool __cdecl IsKeyDown(Keys key) const
+            bool __cdecl IsKeyDown(Keys key) const noexcept
             {
-                if (key >= 0 && key <= 0xff)
+                if (key <= 0xfe)
                 {
                     auto ptr = reinterpret_cast<const uint32_t*>(this);
                     unsigned int bf = 1u << (key & 0x1f);
@@ -424,9 +415,9 @@ namespace DirectX
                 return false;
             }
 
-            bool __cdecl IsKeyUp(Keys key) const
+            bool __cdecl IsKeyUp(Keys key) const noexcept
             {
-                if (key >= 0 && key <= 0xfe)
+                if (key <= 0xfe)
                 {
                     auto ptr = reinterpret_cast<const uint32_t*>(this);
                     unsigned int bf = 1u << (key & 0x1f);
@@ -442,14 +433,17 @@ namespace DirectX
             State released;
             State pressed;
 
-            KeyboardStateTracker() { Reset(); }
+            #pragma prefast(suppress: 26495, "Reset() performs the initialization")
+            KeyboardStateTracker() noexcept { Reset(); }
 
-            void __cdecl Update(const State& state);
+            void __cdecl Update(const State& state) noexcept;
 
-            void __cdecl Reset();
+            void __cdecl Reset() noexcept;
 
-            bool __cdecl IsKeyPressed(Keys key) const { return pressed.IsKeyDown(key); }
-            bool __cdecl IsKeyReleased(Keys key) const { return released.IsKeyDown(key); }
+            bool __cdecl IsKeyPressed(Keys key) const noexcept { return pressed.IsKeyDown(key); }
+            bool __cdecl IsKeyReleased(Keys key) const noexcept { return released.IsKeyDown(key); }
+
+            State __cdecl GetLastState() const noexcept { return lastState; }
 
         public:
             State lastState;
@@ -459,22 +453,32 @@ namespace DirectX
         State __cdecl GetState() const;
 
         // Reset the keyboard state
-        void __cdecl Reset();
+        void __cdecl Reset() noexcept;
 
-#if !defined(WINAPI_FAMILY) || (WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP) && defined(WM_USER)
+        // Feature detection
+        bool __cdecl IsConnected() const;
+
+    #if (!defined(WINAPI_FAMILY) || (WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP)) && defined(WM_USER)
         static void __cdecl ProcessMessage(UINT message, WPARAM wParam, LPARAM lParam);
-#endif
+    #endif
 
-#if defined(WINAPI_FAMILY) && (WINAPI_FAMILY == WINAPI_FAMILY_APP)
+    #if (defined(WINAPI_FAMILY) && (WINAPI_FAMILY == WINAPI_FAMILY_APP)) || (defined(_XBOX_ONE) && defined(_TITLE))
         void __cdecl SetWindow(ABI::Windows::UI::Core::ICoreWindow* window);
-#ifdef __cplusplus_winrt
+    #ifdef __cplusplus_winrt
         void __cdecl SetWindow(Windows::UI::Core::CoreWindow^ window)
         {
             // See https://msdn.microsoft.com/en-us/library/hh755802.aspx
             SetWindow(reinterpret_cast<ABI::Windows::UI::Core::ICoreWindow*>(window));
         }
-#endif
-#endif
+    #endif
+    #ifdef CPPWINRT_VERSION
+        void __cdecl SetWindow(winrt::Windows::UI::Core::CoreWindow window)
+        {
+            // See https://docs.microsoft.com/en-us/windows/uwp/cpp-and-winrt-apis/interop-winrt-abi
+            SetWindow(reinterpret_cast<ABI::Windows::UI::Core::ICoreWindow*>(winrt::get_abi(window)));
+        }
+    #endif
+    #endif // WINAPI_FAMILY == WINAPI_FAMILY_APP
 
         // Singleton
         static Keyboard& __cdecl Get();
@@ -484,9 +488,9 @@ namespace DirectX
         class Impl;
 
         std::unique_ptr<Impl> pImpl;
-
-        // Prevent copying.
-        Keyboard(Keyboard const&) DIRECTX_CTOR_DELETE
-        Keyboard& operator=(Keyboard const&) DIRECTX_CTOR_DELETE
     };
 }
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif

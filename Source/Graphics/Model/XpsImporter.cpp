@@ -433,7 +433,7 @@ namespace est
 
 							IMaterial::Data materialData;
 							materialData.path = strPath;
-							materialData.name.Format(L"material_%s", mesh.name.c_str());
+							materialData.name = string::Format(L"material_%s", mesh.name.c_str());
 
 							if (mesh.numTextures == 1)
 							{

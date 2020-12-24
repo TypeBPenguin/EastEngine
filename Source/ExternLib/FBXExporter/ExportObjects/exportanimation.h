@@ -18,24 +18,23 @@
 
 namespace ATG
 {
-
 struct ExportAnimationPositionKey
 {
-    float               time;
+    float               fTime;
     DirectX::XMFLOAT3   Position;
 };
 typedef std::vector<ExportAnimationPositionKey> PositionKeyList;
 
 struct ExportAnimationOrientationKey
 {
-    float               time;
+    float               fTime;
     DirectX::XMFLOAT4   Orientation;
 };
 typedef std::vector<ExportAnimationOrientationKey> OrientationKeyList;
 
 struct ExportAnimationScaleKey
 {
-    float               time;
+    float               fTime;
     DirectX::XMFLOAT3   Scale;
 };
 typedef std::vector<ExportAnimationScaleKey> ScaleKeyList;

@@ -132,8 +132,7 @@ namespace est
 
 			RenderTarget::Key RenderTarget::BuildKey(const D3D11_TEXTURE2D_DESC* pDesc)
 			{
-				string::StringID strKey;
-				strKey.Format(L"RenderTarget_%u_%u_%u_%u_%u_%u_%u_%u_%u_%u_%u",
+				return RenderTarget::Key(string::Format(L"RenderTarget_%u_%u_%u_%u_%u_%u_%u_%u_%u_%u_%u",
 					pDesc->Width,
 					pDesc->Height,
 					pDesc->MipLevels,
@@ -144,9 +143,7 @@ namespace est
 					pDesc->Usage,
 					pDesc->BindFlags,
 					pDesc->CPUAccessFlags,
-					pDesc->MiscFlags);
-
-				return RenderTarget::Key(strKey);
+					pDesc->MiscFlags));
 			}
 
 			void RenderTarget::GetDesc2D(D3D11_TEXTURE2D_DESC* pDesc) const

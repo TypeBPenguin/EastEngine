@@ -16,41 +16,51 @@ namespace est
 			StringID();
 			StringID(const char* str);
 			StringID(const wchar_t* str);
-			StringID(const StringID& source);
-			StringID(StringID&& source) noexcept;
-			~StringID();
+			StringID(const std::string& str);
+			StringID(const std::wstring& str);
+			StringID(std::wstring&& str);
+			~StringID() = default;
 
-			StringID& operator = (const StringID& source);
-			StringID& operator = (StringID&& source) noexcept;
+			const wchar_t* c_str() const noexcept { return m_pString->c_str(); }
+			size_t length() const noexcept { return m_pString->size(); }
+			bool empty() const noexcept { return m_pString->empty(); }
 
-			bool operator == (const StringID& rValue) const { return m_pStringData == rValue.m_pStringData; }
-			bool operator == (const wchar_t* rValue) const;
+			const std::wstring* GetData() const { return m_pString; }
+			operator const std::wstring& () const { return *m_pString; }
+			const std::wstring& operator*() const { return *m_pString; }
+			const std::wstring* operator->() const { return m_pString; }
 
-			bool operator != (const StringID& rValue) const { return m_pStringData != rValue.m_pStringData; }
-			bool operator != (const wchar_t* rValue) const;
+			bool operator==(const StringID& rhs) const { return m_pString == rhs.m_pString; }
+			bool operator!=(const StringID& rhs) const { return m_pString != rhs.m_pString; }
+			bool operator==(const wchar_t* rhs) const { return *m_pString == rhs; }
+			bool operator!=(const wchar_t* rhs) const { return *m_pString != rhs; }
 
-			const wchar_t* c_str() const;
-			size_t length() const;
+			int compare(const StringID& other) const { return m_pString->compare(*other); }
+			auto compare_fast(const StringID& other) const { return m_pString - other.m_pString; }
 
-			const StringData* Key() const { return m_pStringData; }
-
-			bool empty() const;
-
-			void clear();
-
-			StringID& Format(const wchar_t* format, ...);
+			bool less(const StringID& other) const { return *m_pString < *other; }
+			bool less_fast(const StringID& other) const { return m_pString < other.m_pString; }
 
 		private:
-			const StringData* m_pStringData{ nullptr };
+			const std::wstring* m_pString{ nullptr };
 		};
-		
+
+		struct StringID_Less
+		{
+			bool operator()(const StringID& a, const StringID& b) const { return a.less(b); }
+		};
+
+		struct StringID_LessFast
+		{
+			bool operator()(const StringID& a, const StringID& b) const { return a.less_fast(b); }
+		};
+
 #define RegisterStringID(name)	static const est::string::StringID name(L#name);
 	};
 }
 
 namespace sid
 {
-	extern const est::string::StringID EmptyString;
 	extern const est::string::StringID None;
 }
 
@@ -61,7 +71,7 @@ namespace std
 	{
 		const size_t operator()(const est::string::StringID& key) const
 		{
-			return reinterpret_cast<size_t>(key.Key());
+			return reinterpret_cast<size_t>(key.GetData());
 		}
 	};
 }

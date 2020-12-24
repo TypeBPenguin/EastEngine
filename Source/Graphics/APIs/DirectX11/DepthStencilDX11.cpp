@@ -118,8 +118,7 @@ namespace est
 
 			DepthStencil::Key DepthStencil::BuildKey(const D3D11_TEXTURE2D_DESC* pDesc)
 			{
-				string::StringID strKey;
-				strKey.Format(L"RenderTarget_%u_%u_%u_%u_%u_%u_%u_%u_%u_%u_%u",
+				return DepthStencil::Key(string::Format(L"RenderTarget_%u_%u_%u_%u_%u_%u_%u_%u_%u_%u_%u",
 					pDesc->Width,
 					pDesc->Height,
 					pDesc->MipLevels,
@@ -130,9 +129,7 @@ namespace est
 					pDesc->Usage,
 					pDesc->BindFlags,
 					pDesc->CPUAccessFlags,
-					pDesc->MiscFlags);
-
-				return DepthStencil::Key(strKey);
+					pDesc->MiscFlags));
 			}
 
 			void DepthStencil::GetDesc2D(D3D11_TEXTURE2D_DESC* pDesc) const

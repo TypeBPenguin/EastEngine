@@ -1,6 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|ARM64">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
@@ -8,6 +12,10 @@
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM64">
+      <Configuration>Release</Configuration>
+      <Platform>ARM64</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|Win32">
       <Configuration>Release</Configuration>
@@ -23,6 +31,7 @@
     <ClInclude Include="Audio\WaveBankReader.h" />
     <ClInclude Include="Audio\WAVFileReader.h" />
     <ClInclude Include="Inc\Audio.h" />
+    <ClInclude Include="Inc\BufferHelpers.h" />
     <ClInclude Include="Inc\CommonStates.h" />
     <ClInclude Include="Inc\DDSTextureLoader.h" />
     <ClInclude Include="Inc\DirectXHelpers.h" />
@@ -33,6 +42,7 @@
     <ClInclude Include="Inc\Keyboard.h" />
     <ClInclude Include="Inc\Model.h" />
     <ClInclude Include="Inc\Mouse.h" />
+    <ClInclude Include="Inc\PostProcess.h" />
     <ClInclude Include="Inc\SimpleMath.h" />
     <ClInclude Include="Inc\SimpleMath.inl" />
     <ClInclude Include="Inc\ScreenGrab.h" />
@@ -43,14 +53,17 @@
     <ClInclude Include="Inc\WICTextureLoader.h" />
     <ClInclude Include="Src\AlignedNew.h" />
     <ClInclude Include="Src\Bezier.h" />
-    <ClInclude Include="Src\ConstantBuffer.h" />
     <ClInclude Include="Src\BinaryReader.h" />
     <ClInclude Include="Src\DemandCreate.h" />
     <ClInclude Include="Src\EffectCommon.h" />
+    <ClInclude Include="Src\Geometry.h" />
+    <ClInclude Include="Src\LoaderHelpers.h" />
     <ClInclude Include="Src\pch.h" />
     <ClInclude Include="Src\PlatformHelpers.h" />
+    <ClInclude Include="Src\SDKMesh.h" />
     <ClInclude Include="Src\SharedResourcePool.h" />
     <ClInclude Include="Src\DDS.h" />
+    <ClInclude Include="Src\vbo.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Audio\AudioEngine.cpp" />
@@ -58,15 +71,21 @@
     <ClCompile Include="Audio\SoundCommon.cpp" />
     <ClCompile Include="Audio\SoundEffect.cpp" />
     <ClCompile Include="Audio\SoundEffectInstance.cpp" />
+    <ClCompile Include="Audio\SoundStreamInstance.cpp" />
     <ClCompile Include="Audio\WaveBank.cpp" />
     <ClCompile Include="Audio\WaveBankReader.cpp" />
     <ClCompile Include="Audio\WAVFileReader.cpp" />
     <ClCompile Include="Src\AlphaTestEffect.cpp" />
     <ClCompile Include="Src\BasicEffect.cpp" />
+    <ClCompile Include="Src\BasicPostProcess.cpp" />
+    <ClCompile Include="Src\BufferHelpers.cpp" />
     <ClCompile Include="Src\CommonStates.cpp" />
     <ClCompile Include="Src\DDSTextureLoader.cpp" />
+    <ClCompile Include="Src\DebugEffect.cpp" />
     <ClCompile Include="Src\DGSLEffect.cpp" />
     <ClCompile Include="Src\DGSLEffectFactory.cpp" />
+    <ClCompile Include="Src\DirectXHelpers.cpp" />
+    <ClCompile Include="Src\DualPostProcess.cpp" />
     <ClCompile Include="Src\DualTextureEffect.cpp" />
     <ClCompile Include="Src\BinaryReader.cpp" />
     <ClCompile Include="Src\EffectCommon.cpp" />
@@ -74,6 +93,7 @@
     <ClCompile Include="Src\EnvironmentMapEffect.cpp" />
     <ClCompile Include="Src\GamePad.cpp" />
     <ClCompile Include="Src\GeometricPrimitive.cpp" />
+    <ClCompile Include="Src\Geometry.cpp" />
     <ClCompile Include="Src\GraphicsMemory.cpp" />
     <ClCompile Include="Src\Keyboard.cpp" />
     <ClCompile Include="Src\Model.cpp" />
@@ -81,11 +101,16 @@
     <ClCompile Include="Src\ModelLoadSDKMESH.cpp" />
     <ClCompile Include="Src\ModelLoadVBO.cpp" />
     <ClCompile Include="Src\Mouse.cpp" />
+    <ClCompile Include="Src\NormalMapEffect.cpp" />
+    <ClCompile Include="Src\PBREffect.cpp" />
+    <ClCompile Include="Src\PBREffectFactory.cpp" />
     <ClCompile Include="Src\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Src\ScreenGrab.cpp" />
     <ClCompile Include="Src\SimpleMath.cpp" />
@@ -93,102 +118,20 @@
     <ClCompile Include="Src\SpriteBatch.cpp" />
     <ClCompile Include="Src\PrimitiveBatch.cpp" />
     <ClCompile Include="Src\SpriteFont.cpp" />
+    <ClCompile Include="Src\ToneMapPostProcess.cpp" />
     <ClCompile Include="Src\VertexTypes.cpp" />
     <ClCompile Include="Src\WICTextureLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Readme.txt" />
+    <None Include="README.md" />
     <None Include="Src\Shaders\Common.fxh" />
-    <None Include="Src\Shaders\Compiled\AlphaTestEffect_PSAlphaTestEqNe.inc" />
-    <None Include="Src\Shaders\Compiled\AlphaTestEffect_PSAlphaTestEqNeNoFog.inc" />
-    <None Include="Src\Shaders\Compiled\AlphaTestEffect_PSAlphaTestLtGt.inc" />
-    <None Include="Src\Shaders\Compiled\AlphaTestEffect_PSAlphaTestLtGtNoFog.inc" />
-    <None Include="Src\Shaders\Compiled\AlphaTestEffect_VSAlphaTest.inc" />
-    <None Include="Src\Shaders\Compiled\AlphaTestEffect_VSAlphaTestNoFog.inc" />
-    <None Include="Src\Shaders\Compiled\AlphaTestEffect_VSAlphaTestVc.inc" />
-    <None Include="Src\Shaders\Compiled\AlphaTestEffect_VSAlphaTestVcNoFog.inc" />
-    <None Include="Src\Shaders\Compiled\BasicEffect_PSBasic.inc" />
-    <None Include="Src\Shaders\Compiled\BasicEffect_PSBasicNoFog.inc" />
-    <None Include="Src\Shaders\Compiled\BasicEffect_PSBasicPixelLighting.inc" />
-    <None Include="Src\Shaders\Compiled\BasicEffect_PSBasicPixelLightingTx.inc" />
-    <None Include="Src\Shaders\Compiled\BasicEffect_PSBasicTx.inc" />
-    <None Include="Src\Shaders\Compiled\BasicEffect_PSBasicTxNoFog.inc" />
-    <None Include="Src\Shaders\Compiled\BasicEffect_PSBasicVertexLighting.inc" />
-    <None Include="Src\Shaders\Compiled\BasicEffect_PSBasicVertexLightingNoFog.inc" />
-    <None Include="Src\Shaders\Compiled\BasicEffect_PSBasicVertexLightingTx.inc" />
-    <None Include="Src\Shaders\Compiled\BasicEffect_PSBasicVertexLightingTxNoFog.inc" />
-    <None Include="Src\Shaders\Compiled\BasicEffect_VSBasic.inc" />
-    <None Include="Src\Shaders\Compiled\BasicEffect_VSBasicNoFog.inc" />
-    <None Include="Src\Shaders\Compiled\BasicEffect_VSBasicOneLight.inc" />
-    <None Include="Src\Shaders\Compiled\BasicEffect_VSBasicOneLightTx.inc" />
-    <None Include="Src\Shaders\Compiled\BasicEffect_VSBasicOneLightTxVc.inc" />
-    <None Include="Src\Shaders\Compiled\BasicEffect_VSBasicOneLightVc.inc" />
-    <None Include="Src\Shaders\Compiled\BasicEffect_VSBasicPixelLighting.inc" />
-    <None Include="Src\Shaders\Compiled\BasicEffect_VSBasicPixelLightingTx.inc" />
-    <None Include="Src\Shaders\Compiled\BasicEffect_VSBasicPixelLightingTxVc.inc" />
-    <None Include="Src\Shaders\Compiled\BasicEffect_VSBasicPixelLightingVc.inc" />
-    <None Include="Src\Shaders\Compiled\BasicEffect_VSBasicTx.inc" />
-    <None Include="Src\Shaders\Compiled\BasicEffect_VSBasicTxNoFog.inc" />
-    <None Include="Src\Shaders\Compiled\BasicEffect_VSBasicTxVc.inc" />
-    <None Include="Src\Shaders\Compiled\BasicEffect_VSBasicTxVcNoFog.inc" />
-    <None Include="Src\Shaders\Compiled\BasicEffect_VSBasicVc.inc" />
-    <None Include="Src\Shaders\Compiled\BasicEffect_VSBasicVcNoFog.inc" />
-    <None Include="Src\Shaders\Compiled\BasicEffect_VSBasicVertexLighting.inc" />
-    <None Include="Src\Shaders\Compiled\BasicEffect_VSBasicVertexLightingTx.inc" />
-    <None Include="Src\Shaders\Compiled\BasicEffect_VSBasicVertexLightingTxVc.inc" />
-    <None Include="Src\Shaders\Compiled\BasicEffect_VSBasicVertexLightingVc.inc" />
-    <None Include="Src\Shaders\Compiled\DGSLEffect_main.inc" />
-    <None Include="Src\Shaders\Compiled\DGSLEffect_main1Bones.inc" />
-    <None Include="Src\Shaders\Compiled\DGSLEffect_main1BonesVc.inc" />
-    <None Include="Src\Shaders\Compiled\DGSLEffect_main2Bones.inc" />
-    <None Include="Src\Shaders\Compiled\DGSLEffect_main2BonesVc.inc" />
-    <None Include="Src\Shaders\Compiled\DGSLEffect_main4Bones.inc" />
-    <None Include="Src\Shaders\Compiled\DGSLEffect_main4BonesVc.inc" />
-    <None Include="Src\Shaders\Compiled\DGSLEffect_mainVc.inc" />
-    <None Include="Src\Shaders\Compiled\DGSLLambert_main.inc" />
-    <None Include="Src\Shaders\Compiled\DGSLLambert_mainTk.inc" />
-    <None Include="Src\Shaders\Compiled\DGSLLambert_mainTx.inc" />
-    <None Include="Src\Shaders\Compiled\DGSLLambert_mainTxTk.inc" />
-    <None Include="Src\Shaders\Compiled\DGSLPhong_main.inc" />
-    <None Include="Src\Shaders\Compiled\DGSLPhong_mainTk.inc" />
-    <None Include="Src\Shaders\Compiled\DGSLPhong_mainTx.inc" />
-    <None Include="Src\Shaders\Compiled\DGSLPhong_mainTxTk.inc" />
-    <None Include="Src\Shaders\Compiled\DGSLUnlit_main.inc" />
-    <None Include="Src\Shaders\Compiled\DGSLUnlit_mainTk.inc" />
-    <None Include="Src\Shaders\Compiled\DGSLUnlit_mainTx.inc" />
-    <None Include="Src\Shaders\Compiled\DGSLUnlit_mainTxTk.inc" />
-    <None Include="Src\Shaders\Compiled\DualTextureEffect_PSDualTexture.inc" />
-    <None Include="Src\Shaders\Compiled\DualTextureEffect_PSDualTextureNoFog.inc" />
-    <None Include="Src\Shaders\Compiled\DualTextureEffect_VSDualTexture.inc" />
-    <None Include="Src\Shaders\Compiled\DualTextureEffect_VSDualTextureNoFog.inc" />
-    <None Include="Src\Shaders\Compiled\DualTextureEffect_VSDualTextureVc.inc" />
-    <None Include="Src\Shaders\Compiled\DualTextureEffect_VSDualTextureVcNoFog.inc" />
-    <None Include="Src\Shaders\Compiled\EnvironmentMapEffect_PSEnvMap.inc" />
-    <None Include="Src\Shaders\Compiled\EnvironmentMapEffect_PSEnvMapNoFog.inc" />
-    <None Include="Src\Shaders\Compiled\EnvironmentMapEffect_PSEnvMapSpecular.inc" />
-    <None Include="Src\Shaders\Compiled\EnvironmentMapEffect_PSEnvMapSpecularNoFog.inc" />
-    <None Include="Src\Shaders\Compiled\EnvironmentMapEffect_VSEnvMap.inc" />
-    <None Include="Src\Shaders\Compiled\EnvironmentMapEffect_VSEnvMapFresnel.inc" />
-    <None Include="Src\Shaders\Compiled\EnvironmentMapEffect_VSEnvMapOneLight.inc" />
-    <None Include="Src\Shaders\Compiled\EnvironmentMapEffect_VSEnvMapOneLightFresnel.inc" />
-    <None Include="Src\Shaders\Compiled\SkinnedEffect_PSSkinnedPixelLighting.inc" />
-    <None Include="Src\Shaders\Compiled\SkinnedEffect_PSSkinnedVertexLighting.inc" />
-    <None Include="Src\Shaders\Compiled\SkinnedEffect_PSSkinnedVertexLightingNoFog.inc" />
-    <None Include="Src\Shaders\Compiled\SkinnedEffect_VSSkinnedOneLightFourBones.inc" />
-    <None Include="Src\Shaders\Compiled\SkinnedEffect_VSSkinnedOneLightOneBone.inc" />
-    <None Include="Src\Shaders\Compiled\SkinnedEffect_VSSkinnedOneLightTwoBones.inc" />
-    <None Include="Src\Shaders\Compiled\SkinnedEffect_VSSkinnedPixelLightingFourBones.inc" />
-    <None Include="Src\Shaders\Compiled\SkinnedEffect_VSSkinnedPixelLightingOneBone.inc" />
-    <None Include="Src\Shaders\Compiled\SkinnedEffect_VSSkinnedPixelLightingTwoBones.inc" />
-    <None Include="Src\Shaders\Compiled\SkinnedEffect_VSSkinnedVertexLightingFourBones.inc" />
-    <None Include="Src\Shaders\Compiled\SkinnedEffect_VSSkinnedVertexLightingOneBone.inc" />
-    <None Include="Src\Shaders\Compiled\SkinnedEffect_VSSkinnedVertexLightingTwoBones.inc" />
-    <None Include="Src\Shaders\Compiled\SpriteEffect_SpritePixelShader.inc" />
-    <None Include="Src\Shaders\Compiled\SpriteEffect_SpriteVertexShader.inc" />
     <None Include="Src\Shaders\CompileShaders.cmd" />
     <None Include="Src\Shaders\Lighting.fxh" />
+    <None Include="Src\Shaders\PBRCommon.fxh" />
+    <None Include="Src\Shaders\PixelPacking_Velocity.hlsli" />
     <None Include="Src\Shaders\SpriteEffect.fx" />
     <None Include="Src\Shaders\Structures.fxh" />
+    <None Include="Src\Shaders\Utilities.fxh" />
     <None Include="Src\TeapotData.inc" />
   </ItemGroup>
   <ItemGroup>
@@ -222,36 +165,71 @@
       <FileType>Document</FileType>
     </None>
   </ItemGroup>
-  <PropertyGroup Label="Globals" />
+  <ItemGroup>
+    <None Include="Src\Shaders\NormalMapEffect.fx">
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Src\Shaders\PostProcess.fx">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Src\Shaders\ToneMap.fx">
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Src\Shaders\PBREffect.fx">
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Src\Shaders\DebugEffect.fx">
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E0B52AE7-E160-4D32-BF3F-910B785E5A8E}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>DirectXTK</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.10586.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -260,10 +238,16 @@
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
@@ -271,35 +255,69 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>Bin\Desktop_2015_Win10\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>Bin\Desktop_2015_Win10\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>Bin\Desktop_2017_Win10\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>Bin\Desktop_2017_Win10\$(Platform)\$(Configuration)\</IntDir>
     <TargetName>DirectXTK</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>Bin\Desktop_2015_Win10\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>Bin\Desktop_2015_Win10\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>Bin\Desktop_2017_Win10\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>Bin\Desktop_2017_Win10\$(Platform)\$(Configuration)\</IntDir>
     <TargetName>DirectXTK</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>Bin\Desktop_2015_Win10\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>Bin\Desktop_2015_Win10\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>Bin\Desktop_2017_Win10\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>Bin\Desktop_2017_Win10\$(Platform)\$(Configuration)\</IntDir>
+    <TargetName>DirectXTK</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+    <OutDir>Bin\Desktop_2017_Win10\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>Bin\Desktop_2017_Win10\$(Platform)\$(Configuration)\</IntDir>
     <TargetName>DirectXTK</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>Bin\Desktop_2015_Win10\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>Bin\Desktop_2015_Win10\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>Bin\Desktop_2017_Win10\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>Bin\Desktop_2017_Win10\$(Platform)\$(Configuration)\</IntDir>
+    <TargetName>DirectXTK</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+    <OutDir>Bin\Desktop_2017_Win10\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>Bin\Desktop_2017_Win10\$(Platform)\$(Configuration)\</IntDir>
     <TargetName>DirectXTK</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <WarningLevel>Level4</WarningLevel>
+      <WarningLevel>EnableAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_WIN32_WINNT=0x0A00;_WIN7_PLATFORM_UPDATE;WIN32;_DEBUG;_LIB;_CRT_STDIO_ARBITRARY_WIDE_SPECIFIERS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>$(ProjectDir)Inc;$(ProjectDir)Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FloatingPointModel>Fast</FloatingPointModel>
       <ProgramDataBaseFileName>$(IntDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <ConformanceMode>true</ConformanceMode>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalOptions>/Zc:__cplusplus /Zc:twoPhase- %(AdditionalOptions)</AdditionalOptions>
+      <SupportJustMyCode>false</SupportJustMyCode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>EnableAllWarnings</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_WIN32_WINNT=0x0A00;_WIN7_PLATFORM_UPDATE;WIN32;_DEBUG;_LIB;_CRT_STDIO_ARBITRARY_WIDE_SPECIFIERS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>$(ProjectDir)Inc;$(ProjectDir)Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <ProgramDataBaseFileName>$(IntDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <ConformanceMode>true</ConformanceMode>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalOptions>/Zc:__cplusplus /Zc:twoPhase- %(AdditionalOptions)</AdditionalOptions>
+      <SupportJustMyCode>false</SupportJustMyCode>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -309,7 +327,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <WarningLevel>Level4</WarningLevel>
+      <WarningLevel>EnableAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_WIN32_WINNT=0x0A00;_WIN7_PLATFORM_UPDATE;WIN32;_DEBUG;_LIB;_CRT_STDIO_ARBITRARY_WIDE_SPECIFIERS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -317,6 +335,10 @@
       <FloatingPointModel>Fast</FloatingPointModel>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <ProgramDataBaseFileName>$(IntDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <ConformanceMode>true</ConformanceMode>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalOptions>/Zc:__cplusplus /Zc:twoPhase- %(AdditionalOptions)</AdditionalOptions>
+      <SupportJustMyCode>false</SupportJustMyCode>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -325,16 +347,38 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <WarningLevel>Level4</WarningLevel>
+      <WarningLevel>EnableAllWarnings</WarningLevel>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <Optimization>MaxSpeed</Optimization>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>_WIN32_WINNT=0x0A00;_WIN7_PLATFORM_UPDATE;WIN32;NDEBUG;_LIB;_CRT_STDIO_ARBITRARY_WIDE_SPECIFIERS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>$(ProjectDir)Inc;$(ProjectDir)Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FloatingPointModel>Fast</FloatingPointModel>
       <ProgramDataBaseFileName>$(IntDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <ConformanceMode>true</ConformanceMode>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalOptions>/Zc:__cplusplus /Zc:twoPhase- %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+    <ClCompile>
+      <WarningLevel>EnableAllWarnings</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <PreprocessorDefinitions>_WIN32_WINNT=0x0A00;_WIN7_PLATFORM_UPDATE;WIN32;NDEBUG;_LIB;_CRT_STDIO_ARBITRARY_WIDE_SPECIFIERS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>$(ProjectDir)Inc;$(ProjectDir)Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <ProgramDataBaseFileName>$(IntDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <ConformanceMode>true</ConformanceMode>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalOptions>/Zc:__cplusplus /Zc:twoPhase- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -345,17 +389,18 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <WarningLevel>Level4</WarningLevel>
+      <WarningLevel>EnableAllWarnings</WarningLevel>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <Optimization>MaxSpeed</Optimization>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>_WIN32_WINNT=0x0A00;_WIN7_PLATFORM_UPDATE;WIN32;NDEBUG;_LIB;_CRT_STDIO_ARBITRARY_WIDE_SPECIFIERS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>$(ProjectDir)Inc;$(ProjectDir)Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FloatingPointModel>Fast</FloatingPointModel>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <ProgramDataBaseFileName>$(IntDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <ConformanceMode>true</ConformanceMode>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalOptions>/Zc:__cplusplus /Zc:twoPhase- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -367,4 +412,23 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <Target Name="ATGEnsureShaders" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <_ATGFXCPath>$(WindowsSDK_ExecutablePath_x64.Split(';')[0])</_ATGFXCPath>
+      <_ATGFXCPath>$(_ATGFXCPath.Replace("x64",""))</_ATGFXCPath>
+      <_ATGFXCPath Condition="'$(_ATGFXCPath)' != '' and !HasTrailingSlash('$(_ATGFXCPath)')">$(_ATGFXCPath)\</_ATGFXCPath>
+    </PropertyGroup>
+    <Exec Condition="!Exists('src/Shaders/Compiled/SpriteEffect_SpriteVertexShader.inc')" WorkingDirectory="$(ProjectDir)src/Shaders" Command="CompileShaders" EnvironmentVariables="WindowsSdkVerBinPath=$(_ATGFXCPath)" />
+    <PropertyGroup>
+      <_ATGFXCPath />
+    </PropertyGroup>
+  </Target>
+  <Target Name="ATGDeleteShaders" AfterTargets="Clean">
+    <ItemGroup>
+      <_ATGShaderHeaders Include="$(ProjectDir)src/Shaders/Compiled/*.inc" Exclude="$(ProjectDir)src/Shaders/Compiled/*Xbox*.inc" />
+      <_ATGShaderSymbols Include="$(ProjectDir)src/Shaders/Compiled/*.pdb" Exclude="$(ProjectDir)src/Shaders/Compiled/*Xbox*.pdb" />
+    </ItemGroup>
+    <Delete Files="@(_ATGShaderHeaders)" />
+    <Delete Files="@(_ATGShaderSymbols)" />
+  </Target>
 </Project>

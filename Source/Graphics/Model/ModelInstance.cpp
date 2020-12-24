@@ -222,7 +222,7 @@ namespace est
 			ModelInstance* pModelInstance = static_cast<ModelInstance*>(pInstance.get());
 			pModelInstance->SetAttachment(true);
 
-			m_attachmentNode.emplace_back(id, std::move(pInstance), sid::EmptyString, matOffset, AttachmentNode::Type::eNone);
+			m_attachmentNode.emplace_back(id, std::move(pInstance), L"", matOffset, AttachmentNode::Type::eNone);
 
 			return true;
 		}

@@ -1,11 +1,9 @@
-// THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF
-// ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO
-// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
-// PARTICULAR PURPOSE.
-//
 // Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
 //
+// http://go.microsoft.com/fwlink/?LinkId=248926
 // http://go.microsoft.com/fwlink/?LinkId=248929
+// http://go.microsoft.com/fwlink/?LinkID=615561
 // http://create.msdn.com/en-US/education/catalog/sample/stock_effects
 
 
@@ -39,7 +37,7 @@ ColorPair ComputeLights(float3 eyeVector, float3 worldNormal, uniform int numLig
     float3 zeroL = step(0, dotL);
 
     float3 diffuse  = zeroL * dotL;
-    float3 specular = pow(max(dotH, 0) * zeroL, SpecularPower);
+    float3 specular = pow(max(dotH, 0) * zeroL, SpecularPower) * dotL;
 
     ColorPair result;
     
@@ -95,3 +93,4 @@ CommonVSOutputPixelLighting ComputeCommonVSOutputPixelLighting(float4 position, 
     vout.PositionPS = cout.Pos_ps; \
     vout.PositionWS = float4(cout.Pos_ws, cout.FogFactor); \
     vout.NormalWS = cout.Normal_ws;
+

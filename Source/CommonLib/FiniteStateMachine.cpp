@@ -243,7 +243,7 @@ namespace est
 				if (pTransitState != nullptr)
 				{
 					m_stateTime = 0.f;
-					pTransitState->Enter(this, eInvalidStateID, sid::EmptyString);
+					pTransitState->Enter(this, eInvalidStateID, L"");
 				}
 			}
 

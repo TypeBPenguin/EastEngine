@@ -2,6 +2,7 @@
 
 #include "Memory.h"
 #include "StringUtil.h"
+#include "CrashHandler.h"
 
 namespace est
 {
@@ -90,7 +91,10 @@ namespace est
 	public:
 		const void* Read(size_t size)
 		{
-			assert(m_bufferSize >= (m_position + size));
+			if (m_bufferSize < (m_position + size))
+			{
+				CrashHandler::ForceCrash();
+			}
 
 			const size_t curPosition = m_position;
 			m_position += size;
@@ -115,6 +119,12 @@ namespace est
 			return reinterpret_cast<const char*>(Read(length));
 		}
 
+		const wchar_t* ReadStringW()
+		{
+			const uint32_t& length = Read<uint32_t>();
+			return reinterpret_cast<const wchar_t*>(Read(length));
+		}
+
 		template <typename T>
 		operator const T&()
 		{
@@ -126,6 +136,11 @@ namespace est
 			return ReadString();
 		}
 
+		operator const wchar_t* ()
+		{
+			return ReadStringW();
+		}
+
 		template <typename T>
 		BinaryReader& operator >> (T& value)
 		{
@@ -135,6 +150,11 @@ namespace est
 		BinaryReader& operator >> (const char*& value)
 		{
 			value = ReadString();
+		}
+
+		BinaryReader& operator >> (const wchar_t*& value)
+		{
+			value = ReadStringW();
 		}
 
 	private:

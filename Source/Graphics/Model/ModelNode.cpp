@@ -35,9 +35,7 @@ namespace est
 				m_modelSubsets[eLv0][i].startIndex = binaryReader;
 				m_modelSubsets[eLv0][i].indexCount = binaryReader;
 				m_modelSubsets[eLv0][i].materialID = binaryReader;
-
-				const int primitiveType = binaryReader;
-				m_modelSubsets[eLv0][i].pimitiveType = static_cast<Primitive>(primitiveType);
+				m_modelSubsets[eLv0][i].pimitiveType = binaryReader;
 			}
 
 			const uint32_t vertexCount = binaryReader;

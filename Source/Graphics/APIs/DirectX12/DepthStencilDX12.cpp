@@ -127,10 +127,7 @@ namespace est
 					srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
 				}
 
-				string::StringID strKey;
-				strKey.Format(L"DepthStencil_%d", s_nDepthStencilIndex++);
-
-				Texture::Key key(strKey);
+				Texture::Key key(string::Format(L"DepthStencil_%d", s_nDepthStencilIndex++));
 				pDepthStencil->m_pTexture = std::make_unique<Texture>(key, &resourceState);
 				if (pDepthStencil->m_pTexture->Bind(pResource, &srvDesc) == false)
 				{

@@ -15,4 +15,5 @@
 #include "Engine/System.h"
 #include "GameObject/GameObject.h"
 
+#include <ctime>
 #include <commdlg.h>

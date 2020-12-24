@@ -53,7 +53,7 @@ namespace est
 		{
 			if (index >= m_skinnedList.size())
 			{
-				skinnedName_out.clear();
+				skinnedName_out = {};
 				pBoneNames_out = nullptr;
 				nElementCount_out = 0;
 				return;

@@ -188,8 +188,7 @@ namespace est
 
 			RenderTarget::Key RenderTarget::BuildKey(const D3D12_RESOURCE_DESC* pDesc, const math::Color& clearColor)
 			{
-				string::StringID strKey;
-				strKey.Format(L"RenderTarget_%d_%llu_%llu_%u_%u_%u_%u_%u_%u_%u_%u_%u_%d_%d",
+				return RenderTarget::Key(string::Format(L"RenderTarget_%d_%llu_%llu_%u_%u_%u_%u_%u_%u_%u_%u_%u_%d_%d",
 					pDesc->Dimension,
 					pDesc->Alignment,
 					pDesc->Width,
@@ -203,9 +202,7 @@ namespace est
 					static_cast<int>(clearColor.r * 255),
 					static_cast<int>(clearColor.g * 255),
 					static_cast<int>(clearColor.b * 255),
-					static_cast<int>(clearColor.a * 255));
-
-				return RenderTarget::Key(strKey);
+					static_cast<int>(clearColor.a * 255)));
 			}
 
 			void RenderTarget::Clear(ID3D12GraphicsCommandList* pCommandList)

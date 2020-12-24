@@ -26,8 +26,7 @@ namespace est
 		{
 			const math::float3 position((float)(nCoordinateX)* fRadius * 1.5f * 1.05f, 1.f, ((float)(nCoordinateY)+(float)(nCoordinateX) * -0.5f) * fRadius * 2.f * 1.05f);
 
-			string::StringID name;
-			name.Format(L"%s_%d/%d", sid::Sector.c_str(), nCoordinateX, nCoordinateY);
+			const string::StringID name(string::Format(L"%s_%d/%d", sid::Sector.c_str(), nCoordinateX, nCoordinateY));
 
 			m_pActor = CreateActor(name);
 			m_pActor->SetPosition(position);

@@ -789,10 +789,7 @@ namespace est
 
 			PSOKey ModelRenderer::Impl::GetPSOKey(uint64_t mask, RasterizerState::Type rasterizerState, BlendState::Type blendState, DepthStencilState::Type depthStencilState)
 			{
-				string::StringID strKey;
-				strKey.Format(L"%lld_%d_%d_%d", mask, rasterizerState, blendState, depthStencilState);
-
-				return PSOKey{ strKey };
+				return PSOKey{ string::Format(L"%lld_%d_%d_%d", mask, rasterizerState, blendState, depthStencilState) };
 			}
 
 			void ModelRenderer::Impl::CreateRenderPass(VkDevice device)

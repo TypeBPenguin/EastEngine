@@ -291,10 +291,10 @@ namespace est
 
 				file << pNode->IsVisible();
 
-				uint32_t nSubsetCount = pNode->GetModelSubsetCount();
-				file << nSubsetCount;
+				uint32_t subsetCount = pNode->GetModelSubsetCount();
+				file << subsetCount;
 
-				for (uint32_t j = 0; j < nSubsetCount; ++j)
+				for (uint32_t j = 0; j < subsetCount; ++j)
 				{
 					const ModelSubset* pModelSubset = pNode->GetModelSubset(j);
 					file << pModelSubset->name.c_str();
@@ -313,13 +313,13 @@ namespace est
 					return false;
 				}
 
-				uint32_t nVertexCount = pVertexBuffer->GetVertexCount();
-				file << nVertexCount;
+				uint32_t vertexCount = pVertexBuffer->GetVertexCount();
+				file << vertexCount;
 
 				if (pNode->GetType() == IModelNode::eStatic)
 				{
 					const VertexPosTexNor* pVertices = reinterpret_cast<const VertexPosTexNor*>(pData);
-					for (uint32_t j = 0; j < nVertexCount; ++j)
+					for (uint32_t j = 0; j < vertexCount; ++j)
 					{
 						file.Write(&pVertices[j].pos.x, 3);
 						file.Write(&pVertices[j].uv.x, 2);
@@ -329,7 +329,7 @@ namespace est
 				else if (pNode->GetType() == IModelNode::eSkinned)
 				{
 					const VertexPosTexNorWeiIdx* pVertices = reinterpret_cast<const VertexPosTexNorWeiIdx*>(pData);
-					for (uint32_t j = 0; j < nVertexCount; ++j)
+					for (uint32_t j = 0; j < vertexCount; ++j)
 					{
 						file.Write(&pVertices[j].pos.x, 3);
 						file.Write(&pVertices[j].uv.x, 2);

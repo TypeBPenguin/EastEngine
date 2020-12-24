@@ -1,19 +1,16 @@
 //--------------------------------------------------------------------------------------
 // File: GamePad.h
 //
-// THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF
-// ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO
-// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
-// PARTICULAR PURPOSE.
-//
 // Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
 //
 // http://go.microsoft.com/fwlink/?LinkId=248929
+// http://go.microsoft.com/fwlink/?LinkID=615561
 //--------------------------------------------------------------------------------------
 
 #pragma once
 
-#if (_WIN32_WINNT < 0x0A00 /*_WIN32_WINNT_WIN10*/)
+#if (_WIN32_WINNT < 0x0A00 /*_WIN32_WINNT_WIN10*/) || defined(_GAMING_DESKTOP)
 #ifndef _XBOX_ONE
 #if !defined(WINAPI_FAMILY) || (WINAPI_FAMILY != WINAPI_FAMILY_PHONE_APP)
 #if (_WIN32_WINNT >= 0x0602 /*_WIN32_WINNT_WIN8*/ )
@@ -25,24 +22,22 @@
 #endif
 #endif
 
-// VS 2010/2012 do not support =default =delete
-#ifndef DIRECTX_CTOR_DEFAULT
-#if defined(_MSC_VER) && (_MSC_VER < 1800)
-#define DIRECTX_CTOR_DEFAULT {}
-#define DIRECTX_CTOR_DELETE ;
-#else
-#define DIRECTX_CTOR_DEFAULT =default;
-#define DIRECTX_CTOR_DELETE =delete;
-#endif
+#if defined(WINAPI_FAMILY) && (WINAPI_FAMILY == WINAPI_FAMILY_GAMES)
+interface IGameInputDevice;
 #endif
 
+#include <cstdint>
 #include <memory>
 
-#pragma warning(push)
-#pragma warning(disable : 4005)
-#include <stdint.h>
-#include <intsafe.h>
-#pragma warning(pop)
+#if (_WIN32_WINNT >= 0x0A00 /*_WIN32_WINNT_WIN10*/) && !defined(_GAMING_DESKTOP)
+#pragma comment(lib,"runtimeobject.lib")
+#include <string>
+#endif
+
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunknown-pragmas"
+#endif
 
 
 namespace DirectX
@@ -50,16 +45,26 @@ namespace DirectX
     class GamePad
     {
     public:
-        GamePad();
-        GamePad(GamePad&& moveFrom);
-        GamePad& operator= (GamePad&& moveFrom);
+        GamePad() noexcept(false);
+        GamePad(GamePad&& moveFrom) noexcept;
+        GamePad& operator= (GamePad&& moveFrom) noexcept;
+
+        GamePad(GamePad const&) = delete;
+        GamePad& operator=(GamePad const&) = delete;
+
         virtual ~GamePad();
 
-#if (_WIN32_WINNT >= 0x0A00 /*_WIN32_WINNT_WIN10*/ ) || defined(_XBOX_ONE)
-        static const int MAX_PLAYER_COUNT = 8;
-#else
-        static const int MAX_PLAYER_COUNT = 4;
-#endif
+    #if ((_WIN32_WINNT >= 0x0A00 /*_WIN32_WINNT_WIN10*/) && !defined(_GAMING_DESKTOP)) || defined(_XBOX_ONE)
+        static constexpr int MAX_PLAYER_COUNT = 8;
+    #else
+        static constexpr int MAX_PLAYER_COUNT = 4;
+    #endif
+
+        static constexpr int c_MostRecent = -1;
+
+    #if defined(WINAPI_FAMILY) && (WINAPI_FAMILY == WINAPI_FAMILY_GAMES)
+        static constexpr int c_MergedInput = -2;
+    #endif
 
         enum DeadZone
         {
@@ -78,8 +83,16 @@ namespace DirectX
             bool rightStick;
             bool leftShoulder;
             bool rightShoulder;
-            bool back;
-            bool start;
+            union
+            {
+                bool back;
+                bool view;
+            };
+            union
+            {
+                bool start;
+                bool menu;
+            };
         };
 
         struct DPad
@@ -103,7 +116,7 @@ namespace DirectX
             float left;
             float right;
         };
-        
+
         struct State
         {
             bool        connected;
@@ -113,42 +126,42 @@ namespace DirectX
             ThumbSticks thumbSticks;
             Triggers    triggers;
 
-            bool __cdecl IsConnected() const { return connected; }
+            bool __cdecl IsConnected() const noexcept { return connected; }
 
             // Is the button pressed currently?
-            bool __cdecl IsAPressed() const { return buttons.a; }
-            bool __cdecl IsBPressed() const { return buttons.b; }
-            bool __cdecl IsXPressed() const { return buttons.x; }
-            bool __cdecl IsYPressed() const { return buttons.y; }
+            bool __cdecl IsAPressed() const noexcept { return buttons.a; }
+            bool __cdecl IsBPressed() const noexcept { return buttons.b; }
+            bool __cdecl IsXPressed() const noexcept { return buttons.x; }
+            bool __cdecl IsYPressed() const noexcept { return buttons.y; }
 
-            bool __cdecl IsLeftStickPressed() const { return buttons.leftStick; }
-            bool __cdecl IsRightStickPressed() const { return buttons.rightStick; }
+            bool __cdecl IsLeftStickPressed() const noexcept { return buttons.leftStick; }
+            bool __cdecl IsRightStickPressed() const noexcept { return buttons.rightStick; }
 
-            bool __cdecl IsLeftShoulderPressed() const { return buttons.leftShoulder; }
-            bool __cdecl IsRightShoulderPressed() const { return buttons.rightShoulder; }
+            bool __cdecl IsLeftShoulderPressed() const noexcept { return buttons.leftShoulder; }
+            bool __cdecl IsRightShoulderPressed() const noexcept { return buttons.rightShoulder; }
 
-            bool __cdecl IsBackPressed() const { return buttons.back; }
-            bool __cdecl IsViewPressed() const { return buttons.back; }
-            bool __cdecl IsStartPressed() const { return buttons.start; }
-            bool __cdecl IsMenuPressed() const { return buttons.start; }
+            bool __cdecl IsBackPressed() const noexcept { return buttons.back; }
+            bool __cdecl IsViewPressed() const noexcept { return buttons.view; }
+            bool __cdecl IsStartPressed() const noexcept { return buttons.start; }
+            bool __cdecl IsMenuPressed() const noexcept { return buttons.menu; }
 
-            bool __cdecl IsDPadDownPressed() const { return dpad.down; };
-            bool __cdecl IsDPadUpPressed() const { return dpad.up; };
-            bool __cdecl IsDPadLeftPressed() const { return dpad.left; };
-            bool __cdecl IsDPadRightPressed() const { return dpad.right; };
+            bool __cdecl IsDPadDownPressed() const noexcept { return dpad.down; }
+            bool __cdecl IsDPadUpPressed() const noexcept { return dpad.up; }
+            bool __cdecl IsDPadLeftPressed() const noexcept { return dpad.left; }
+            bool __cdecl IsDPadRightPressed() const noexcept { return dpad.right; }
 
-            bool __cdecl IsLeftThumbStickUp() const { return (thumbSticks.leftY > 0.5f) != 0; }
-            bool __cdecl IsLeftThumbStickDown() const { return (thumbSticks.leftY < -0.5f) != 0; }
-            bool __cdecl IsLeftThumbStickLeft() const { return (thumbSticks.leftX < -0.5f) != 0; }
-            bool __cdecl IsLeftThumbStickRight() const { return (thumbSticks.leftX > 0.5f) != 0; }
+            bool __cdecl IsLeftThumbStickUp() const noexcept { return (thumbSticks.leftY > 0.5f) != 0; }
+            bool __cdecl IsLeftThumbStickDown() const noexcept { return (thumbSticks.leftY < -0.5f) != 0; }
+            bool __cdecl IsLeftThumbStickLeft() const noexcept { return (thumbSticks.leftX < -0.5f) != 0; }
+            bool __cdecl IsLeftThumbStickRight() const noexcept { return (thumbSticks.leftX > 0.5f) != 0; }
 
-            bool __cdecl IsRightThumbStickUp() const { return (thumbSticks.rightY > 0.5f ) != 0; }
-            bool __cdecl IsRightThumbStickDown() const { return (thumbSticks.rightY < -0.5f) != 0; }
-            bool __cdecl IsRightThumbStickLeft() const { return (thumbSticks.rightX < -0.5f) != 0; }
-            bool __cdecl IsRightThumbStickRight() const { return (thumbSticks.rightX > 0.5f) != 0; }
+            bool __cdecl IsRightThumbStickUp() const noexcept { return (thumbSticks.rightY > 0.5f) != 0; }
+            bool __cdecl IsRightThumbStickDown() const noexcept { return (thumbSticks.rightY < -0.5f) != 0; }
+            bool __cdecl IsRightThumbStickLeft() const noexcept { return (thumbSticks.rightX < -0.5f) != 0; }
+            bool __cdecl IsRightThumbStickRight() const noexcept { return (thumbSticks.rightX > 0.5f) != 0; }
 
-            bool __cdecl IsLeftTriggerPressed() const { return (triggers.left > 0.5f) != 0; }
-            bool __cdecl IsRightTriggerPressed() const { return (triggers.right > 0.5f) != 0; }
+            bool __cdecl IsLeftTriggerPressed() const noexcept { return (triggers.left > 0.5f) != 0; }
+            bool __cdecl IsRightTriggerPressed() const noexcept { return (triggers.right > 0.5f) != 0; }
         };
 
         struct Capabilities
@@ -168,11 +181,21 @@ namespace DirectX
                 ARCADE_PAD = 19,
             };
 
-            bool        connected;
-            Type        gamepadType;
-            uint64_t    id;
+            bool                connected;
+            Type                gamepadType;
+        #if defined(WINAPI_FAMILY) && (WINAPI_FAMILY == WINAPI_FAMILY_GAMES)
+            APP_LOCAL_DEVICE_ID id;
+        #elif (_WIN32_WINNT >= 0x0A00 /*_WIN32_WINNT_WIN10*/) && !defined(_GAMING_DESKTOP)
+            std::wstring        id;
+        #else
+            uint64_t            id;
+        #endif
+            uint16_t            vid;
+            uint16_t            pid;
 
-            bool __cdecl IsConnected() const { return connected; }
+            Capabilities() noexcept : connected(false), gamepadType(UNKNOWN), id{}, vid(0), pid(0) {}
+
+            bool __cdecl IsConnected() const noexcept { return connected; }
         };
 
         class ButtonStateTracker
@@ -197,19 +220,44 @@ namespace DirectX
             ButtonState leftShoulder;
             ButtonState rightShoulder;
 
-            ButtonState back;
-            ButtonState start;
+            union
+            {
+                ButtonState back;
+                ButtonState view;
+            };
+
+            union
+            {
+                ButtonState start;
+                ButtonState menu;
+            };
 
             ButtonState dpadUp;
             ButtonState dpadDown;
             ButtonState dpadLeft;
             ButtonState dpadRight;
 
-            ButtonStateTracker() { Reset(); }
+            ButtonState leftStickUp;
+            ButtonState leftStickDown;
+            ButtonState leftStickLeft;
+            ButtonState leftStickRight;
 
-            void __cdecl Update( const State& state );
+            ButtonState rightStickUp;
+            ButtonState rightStickDown;
+            ButtonState rightStickLeft;
+            ButtonState rightStickRight;
 
-            void __cdecl Reset();
+            ButtonState leftTrigger;
+            ButtonState rightTrigger;
+
+            #pragma prefast(suppress: 26495, "Reset() performs the initialization")
+            ButtonStateTracker() noexcept { Reset(); }
+
+            void __cdecl Update(const State& state) noexcept;
+
+            void __cdecl Reset() noexcept;
+
+            State __cdecl GetLastState() const noexcept { return lastState; }
 
         private:
             State lastState;
@@ -222,11 +270,23 @@ namespace DirectX
         Capabilities __cdecl GetCapabilities(int player);
 
         // Set the vibration motor speeds of the gamepad
-        bool __cdecl SetVibration( int player, float leftMotor, float rightMotor, float leftTrigger = 0.f, float rightTrigger = 0.f );
+        bool __cdecl SetVibration(int player, float leftMotor, float rightMotor, float leftTrigger = 0.f, float rightTrigger = 0.f) noexcept;
 
         // Handle suspending/resuming
-        void __cdecl Suspend();
-        void __cdecl Resume();
+        void __cdecl Suspend() noexcept;
+        void __cdecl Resume() noexcept;
+
+    #if defined(WINAPI_FAMILY) && (WINAPI_FAMILY == WINAPI_FAMILY_GAMES)
+        void __cdecl RegisterEvents(void* ctrlChanged) noexcept;
+    #elif ((_WIN32_WINNT >= 0x0A00 /*_WIN32_WINNT_WIN10*/ ) && !defined(_GAMING_DESKTOP)) || defined(_XBOX_ONE)
+        void __cdecl RegisterEvents(void* ctrlChanged, void* userChanged) noexcept;
+    #endif
+
+    #if defined(WINAPI_FAMILY) && (WINAPI_FAMILY == WINAPI_FAMILY_GAMES)
+        // Underlying device access
+        _Success_(return != false)
+        bool __cdecl GetDevice(int player, _Outptr_ IGameInputDevice** device) noexcept;
+    #endif
 
         // Singleton
         static GamePad& __cdecl Get();
@@ -236,9 +296,9 @@ namespace DirectX
         class Impl;
 
         std::unique_ptr<Impl> pImpl;
-
-        // Prevent copying.
-        GamePad(GamePad const&) DIRECTX_CTOR_DELETE
-        GamePad& operator=(GamePad const&) DIRECTX_CTOR_DELETE
     };
 }
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif

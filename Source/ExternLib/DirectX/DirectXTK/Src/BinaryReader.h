@@ -1,20 +1,18 @@
 //--------------------------------------------------------------------------------------
 // File: BinaryReader.h
 //
-// THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF
-// ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO
-// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
-// PARTICULAR PURPOSE.
-//
 // Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
 //
 // http://go.microsoft.com/fwlink/?LinkId=248929
+// http://go.microsoft.com/fwlink/?LinkID=615561
 //--------------------------------------------------------------------------------------
 
 #pragma once
 
 #include <memory>
 #include <exception>
+#include <stdexcept>
 #include <type_traits>
 
 #include "PlatformHelpers.h"
@@ -26,9 +24,11 @@ namespace DirectX
     class BinaryReader
     {
     public:
-        explicit BinaryReader(_In_z_ wchar_t const* fileName);
-        BinaryReader(_In_reads_bytes_(dataSize) uint8_t const* dataBlob, size_t dataSize);
+        explicit BinaryReader(_In_z_ wchar_t const* fileName) noexcept(false);
+        BinaryReader(_In_reads_bytes_(dataSize) uint8_t const* dataBlob, size_t dataSize) noexcept;
 
+        BinaryReader(BinaryReader const&) = delete;
+        BinaryReader& operator= (BinaryReader const&) = delete;
         
         // Reads a single value.
         template<typename T> T const& Read()
@@ -43,6 +43,9 @@ namespace DirectX
             static_assert(std::is_pod<T>::value, "Can only read plain-old-data types");
 
             uint8_t const* newPos = mPos + sizeof(T) * elementCount;
+
+            if (newPos < mPos)
+                throw std::overflow_error("ReadArray");
 
             if (newPos > mEnd)
                 throw std::exception("End of file");
@@ -65,10 +68,5 @@ namespace DirectX
         uint8_t const* mEnd;
 
         std::unique_ptr<uint8_t[]> mOwnedData;
-
-
-        // Prevent copying.
-        BinaryReader(BinaryReader const&) DIRECTX_CTOR_DELETE
-        BinaryReader& operator= (BinaryReader const&) DIRECTX_CTOR_DELETE
     };
 }

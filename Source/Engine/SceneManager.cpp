@@ -39,8 +39,8 @@ namespace est
 			pScene->Exit(savedPrevSceneActors);
 		}
 
-		m_curSceneID.clear();
-		m_changeSceneID.clear();
+		m_curSceneID = {};
+		m_changeSceneID = {};
 
 		m_umapScene.clear();
 	}
@@ -72,7 +72,7 @@ namespace est
 				TRACER_ENDEVENT();
 			}
 
-			m_changeSceneID.clear();
+			m_changeSceneID = {};
 		}
 
 		IScene* pCurScene = GetScene(m_curSceneID);
@@ -107,7 +107,7 @@ namespace est
 		{
 			if (m_umapScene.empty() == true)
 			{
-				m_curSceneID.clear();
+				m_curSceneID = {};
 			}
 			else
 			{

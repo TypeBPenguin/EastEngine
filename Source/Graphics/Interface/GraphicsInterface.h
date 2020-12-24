@@ -539,7 +539,7 @@ namespace std
 	{
 		const size_t operator()(const est::graphics::ITexture::Key& key) const
 		{
-			return reinterpret_cast<size_t>(key.Value().Key());
+			return reinterpret_cast<size_t>(key.Value().GetData());
 		}
 	};
 }

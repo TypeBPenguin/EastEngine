@@ -62,16 +62,12 @@ namespace est
 				
 				for (int i = 0; i < eFrameBufferCount; ++i)
 				{
-					string::StringID name;
-					name.Format(L"est_VTF_%d", i);
-					Texture::Key key(name);
-
+					Texture::Key key(string::Format(L"est_VTF_%d", i));
 					m_vtfInstance.pVTFs[i] = std::make_unique<Texture>(key);
 					m_vtfInstance.pVTFs[i]->Initialize(&desc);
 				}
 
-				string::StringID name = L"est_VTF_Prev";
-				Texture::Key key(name);
+				Texture::Key key(L"est_VTF_Prev");
 
 				m_pPrevVTF = std::make_unique<Texture>(key);
 				m_pPrevVTF->Initialize(&desc);

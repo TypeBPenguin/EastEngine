@@ -1,12 +1,8 @@
 //--------------------------------------------------------------------------------------
 // File: CommonStates.h
 //
-// THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF
-// ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO
-// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
-// PARTICULAR PURPOSE.
-//
 // Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
 //
 // http://go.microsoft.com/fwlink/?LinkId=248929
 //--------------------------------------------------------------------------------------
@@ -19,17 +15,6 @@
 #include <d3d11_1.h>
 #endif
 
-// VS 2010/2012 do not support =default =delete
-#ifndef DIRECTX_CTOR_DEFAULT
-#if defined(_MSC_VER) && (_MSC_VER < 1800)
-#define DIRECTX_CTOR_DEFAULT {}
-#define DIRECTX_CTOR_DELETE ;
-#else
-#define DIRECTX_CTOR_DEFAULT =default;
-#define DIRECTX_CTOR_DELETE =delete;
-#endif
-#endif
-
 #include <memory>
 
 
@@ -39,8 +24,12 @@ namespace DirectX
     {
     public:
         explicit CommonStates(_In_ ID3D11Device* device);
-        CommonStates(CommonStates&& moveFrom);
-        CommonStates& operator= (CommonStates&& moveFrom);
+        CommonStates(CommonStates&& moveFrom) noexcept;
+        CommonStates& operator= (CommonStates&& moveFrom) noexcept;
+
+        CommonStates(CommonStates const&) = delete;
+        CommonStates& operator= (CommonStates const&) = delete;
+
         virtual ~CommonStates();
 
         // Blend states.
@@ -73,9 +62,5 @@ namespace DirectX
         class Impl;
 
         std::shared_ptr<Impl> pImpl;
-
-        // Prevent copying.
-        CommonStates(CommonStates const&) DIRECTX_CTOR_DELETE
-        CommonStates& operator= (CommonStates const&) DIRECTX_CTOR_DELETE
     };
 }

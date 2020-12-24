@@ -336,7 +336,7 @@ namespace ATG
 			if (g_pScene->Settings().bIgnoreSRGB)
 				wicFlags |= WIC_FLAGS_IGNORE_SRGB;
 
-			HRESULT hr = LoadFromWICFile(wSource, wicFlags, &info, *image);
+			HRESULT hr = LoadFromWICFile(wSource, (DirectX::WIC_FLAGS)wicFlags, &info, *image);
 			if (FAILED(hr))
 			{
 				ExportLog::LogError("Could not load texture \"%s\" (WIC: %08X).", strSourceFileName, hr);

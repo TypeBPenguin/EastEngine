@@ -6,7 +6,6 @@
 
 namespace sid
 {
-	const est::string::StringID EmptyString(L"");
 	const est::string::StringID None(L"None");
 }
 
@@ -14,244 +13,116 @@ namespace est
 {
 	namespace string
 	{
-		struct StringData
+		class Table
 		{
-			wchar_t* pString{ nullptr };
-			size_t length{ 0 };
+		public:
+			Table() = default;
+			~Table() = default;
 
-			~StringData()
-			{
-				free(pString);
-			}
-
-			std::unique_ptr<StringData> pNext;
-		};
-
-		struct StringTable
-		{
-			static const size_t TABLE_SIZE{ 4096 * 512 };
-
-			std::vector<std::unique_ptr<StringData>> tables{ TABLE_SIZE };
-			size_t count{ 0 };
-
-			thread::SRWLock srwLock;
-
-			size_t GetCount() const { return count; }
-
-			const StringData* Register(const wchar_t* str, size_t length)
+		public:
+			const std::wstring& FindOrAdd(const char* str)
 			{
 				if (str == nullptr)
-					return sid::EmptyString.Key();
+					return FindOrAdd(std::wstring{});
 
-				const uint64_t key = Hash(str);
-
-				thread::SRWWriteLock writeLock(&srwLock);
-				{
-					const StringData* pStringData = tables[key % TABLE_SIZE].get();
-					if (pStringData != nullptr)
-					{
-						while (pStringData != nullptr)
-						{
-							if (pStringData->length == length && string::IsEquals(pStringData->pString, str) == true)
-								return pStringData;
-
-							pStringData = pStringData->pNext.get();
-						}
-					}
-				}
-
-				std::unique_ptr<StringData> pNewStringData = std::make_unique<StringData>();
-				pNewStringData->pString = static_cast<wchar_t*>(malloc(sizeof(wchar_t) * (length + 1)));
-				string::Copy(pNewStringData->pString, length + 1, str);
-
-				pNewStringData->length = length;
-
-				pNewStringData->pNext = std::move(tables[key % TABLE_SIZE]);
-				tables[key % TABLE_SIZE] = std::move(pNewStringData);
-
-				++count;
-				return tables[key % TABLE_SIZE].get();
+				return FindOrAdd(string::MultiToWide(str));
 			}
 
-			const StringData* Register(const wchar_t* str)
+			const std::wstring& FindOrAdd(const wchar_t* str)
 			{
 				if (str == nullptr)
-					return sid::EmptyString.Key();
+					return FindOrAdd(std::wstring{});
 
-				const size_t length = string::Length(str);
-
-				return Register(str, length);
+				return FindOrAdd(std::wstring(str));
 			}
 
-			uint64_t Hash(const wchar_t* pString) const
+			const std::wstring& FindOrAdd(const std::string& str)
 			{
-				uint64_t v = 1;
-				while (wchar_t c = *pString++)
-				{
-					v = (v << 6) + (v << 16) - v + c;
-				}
-				return v;
+				return FindOrAdd(string::MultiToWide(str));
 			}
+
+			const std::wstring& FindOrAdd(std::wstring&& str)
+			{
+				thread::SRWWriteLock writeLock(&m_srwLock);
+				const auto result = m_set.insert(std::move(str));
+				if (result.second)
+				{
+					m_memory += result.first->capacity() + 1;
+				}
+				return *result.first;
+			}
+
+			const std::wstring& FindOrAdd(const std::wstring& str)
+			{
+				thread::SRWWriteLock writeLock(&m_srwLock);
+				const auto result = m_set.insert(str);
+				if (result.second)
+				{
+					m_memory += result.first->capacity() + 1;
+				}
+				return *result.first;
+			}
+
+			void Clear()
+			{
+				m_set.clear();
+				m_memory = 0;
+			}
+
+			size_t GetUseCount() const { return m_set.size(); }
+			size_t GetUseMemory() const { return m_memory; }
+
+		private:
+			thread::SRWLock m_srwLock;
+			std::unordered_set<std::wstring> m_set;
+			size_t m_memory{ 0 };
 		};
 
-		// StringTable 을 shared_ptr 또는 unique_ptr로 관리하게 될 경우,
-		// exe 프로젝트에서 한번, 라이브러리 프로젝트에서 한번
-		// 총 2번 초기화 하는 현상이 발생하게 되어, 메모리릭이 생기게 됨
-		static StringTable* s_pStringTable = nullptr;
-
-		bool Init()
-		{ 
-			if (s_pStringTable != nullptr)
-			{
-				LOG_WARNING(L"StringTable is Already Init");
-				return true;
-			}
-
-			s_pStringTable = new StringTable;
-
-			return true;
+		Table& GetTable()
+		{
+			static Table s_stringTable;
+			return s_stringTable;
 		}
 
 		void Release()
 		{
-			if (s_pStringTable == nullptr)
-				return;
-
-			delete s_pStringTable;
-			s_pStringTable = nullptr;
+			GetTable().Clear();
 		}
 
-		const StringData* Register(const wchar_t* str, size_t length)
+		static const std::wstring& GetDefaultString()
 		{
-			if (s_pStringTable == nullptr)
-			{
-				Init();
-			}
-			return s_pStringTable->Register(str, length);
-		}
-
-		const StringData* Register(const char* str)
-		{
-			if (s_pStringTable == nullptr)
-			{
-				Init();
-			}
-
-			const std::wstring wideString = string::MultiToWide(str);
-			return s_pStringTable->Register(wideString.c_str());
-		}
-
-		const StringData* Register(const wchar_t* str)
-		{
-			if (s_pStringTable == nullptr)
-			{
-				Init();
-			}
-			return s_pStringTable->Register(str);
-		}
-
-		size_t GetRegisteredStringCount()
-		{
-			if (s_pStringTable == nullptr)
-				return 0;
-
-			return s_pStringTable->count;
+			static const std::wstring& str = GetTable().FindOrAdd(std::wstring{});
+			return str;
 		}
 
 		StringID::StringID()
+			: m_pString{ &GetDefaultString() }
 		{
 		}
 
 		StringID::StringID(const char* str)
-			: m_pStringData(Register(str))
+			: m_pString(&GetTable().FindOrAdd(str))
 		{
 		}
 
 		StringID::StringID(const wchar_t* str)
-			: m_pStringData(Register(str))
+			: m_pString(&GetTable().FindOrAdd(str))
 		{
 		}
 
-		StringID::StringID(const StringID& source)
-			: m_pStringData(source.m_pStringData)
+		StringID::StringID(const std::string& str)
+			: m_pString(&GetTable().FindOrAdd(str))
 		{
 		}
 
-		StringID::StringID(StringID&& source) noexcept
-			: m_pStringData(std::move(source.m_pStringData))
+		StringID::StringID(const std::wstring& str)
+			: m_pString(&GetTable().FindOrAdd(str))
 		{
 		}
 
-		StringID::~StringID()
+		StringID::StringID(std::wstring&& str)
+			: m_pString(&GetTable().FindOrAdd(std::move(str)))
 		{
-		}
-
-		StringID& StringID::operator = (const StringID& source)
-		{
-			m_pStringData = source.m_pStringData;
-			return *this;
-		}
-
-		StringID& StringID::operator = (StringID&& source) noexcept
-		{
-			m_pStringData = std::move(source.m_pStringData);
-			return *this;
-		}
-
-		bool StringID::operator == (const wchar_t* rValue) const
-		{
-			return string::IsEquals(c_str(), rValue);
-		}
-
-		bool StringID::operator != (const wchar_t* rValue) const
-		{
-			return string::IsEquals(c_str(), rValue) == false;
-		}
-
-		const wchar_t* StringID::c_str() const
-		{
-			if (m_pStringData == nullptr)
-				return L"";
-
-			return m_pStringData->pString;
-		}
-
-		size_t StringID::length() const
-		{
-			if (m_pStringData == nullptr)
-				return 0;
-
-			return m_pStringData->length;
-		}
-
-		bool StringID::empty() const
-		{
-			if (m_pStringData == nullptr)
-				return true;
-
-			return m_pStringData->length == 0;
-		}
-
-		void StringID::clear()
-		{
-			m_pStringData = nullptr;
-		}
-
-		StringID& StringID::Format(const wchar_t* format, ...)
-		{
-			va_list args;
-			va_start(args, format);
-			uint32_t size = std::vswprintf(nullptr, 0, format, args) + 1;
-			va_end(args);
-
-			std::unique_ptr<wchar_t[]> buf = std::make_unique<wchar_t[]>(size);
-			va_start(args, format);
-			std::vswprintf(buf.get(), size, format, args);
-			va_end(args);
-
-			m_pStringData = Register(buf.get(), size);
-
-			return *this;
 		}
 	};
 }

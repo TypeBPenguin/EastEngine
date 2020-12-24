@@ -1,0 +1,2 @@
+D:\Project\EastEngine\Source\ExternLib\FBXExporter\ExportObjects\x64\Debug_2017\ExportObjects.lib
+D:\Project\EastEngine\Source\ExternLib\FBXExporter\ExportObjects\x64\Debug_2017\ExportObjects.pdb

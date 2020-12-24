@@ -239,7 +239,7 @@ namespace est
 				if (isForceRecord == true || time.count() > eTracingThreshold)
 				{
 					const uint32_t processID = GetCurrentProcessId();
-					m_umapEvents[threadID].emplace_back(Event::eEnd, sid::EmptyString, sid::EmptyString, processID, threadID, nowTime);
+					m_umapEvents[threadID].emplace_back(Event::eEnd, L"", L"", processID, threadID, nowTime);
 				}
 				else
 				{
