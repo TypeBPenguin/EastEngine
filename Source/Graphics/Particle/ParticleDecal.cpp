@@ -13,7 +13,6 @@ namespace est
 
 		ParticleDecal::~ParticleDecal()
 		{
-			ReleaseResource(m_pMaterial);
 		}
 
 		void ParticleDecal::Update(float fElapsedTime, const math::Matrix& matInvView, const math::Matrix& matViewProjection, const collision::Frustum& frustum)

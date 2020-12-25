@@ -39,8 +39,11 @@ namespace est
 				const string::StringID& GetName() const { return m_key.Value(); }
 
 			public:
-				const math::uint2& GetSize() const { return m_n2Size; }
+				const math::uint2& GetSize() const { return m_size; }
 				const std::wstring& GetPath() const { return m_path; }
+
+				bool Map(MappedSubResourceData& mappedSubResourceData);
+				void Unmap();
 
 			public:
 				bool Initialize(const D3D12_RESOURCE_DESC* pDesc);
@@ -60,7 +63,7 @@ namespace est
 			private:
 				const ITexture::Key m_key;
 
-				math::uint2 m_n2Size;
+				math::uint2 m_size;
 				std::wstring m_path;
 
 				uint32_t m_descriptorIndex{ eInvalidDescriptorIndex };
@@ -93,6 +96,25 @@ namespace est
 				util::ReleaseResourceSRV(m_descriptorIndex);
 			}
 
+			bool Texture::Impl::Map(MappedSubResourceData& mappedSubResourceData)
+			{
+				D3D12_RANGE readRange{ 0,0 };
+				const HRESULT hr = m_pResource->Map(0, &readRange, &mappedSubResourceData.pData);
+				if (FAILED(hr))
+				{
+					mappedSubResourceData = {};
+					return false;
+				}
+
+				return true;
+			}
+
+			void Texture::Impl::Unmap()
+			{
+				D3D12_RANGE writeRange{ 0,0 };
+				m_pResource->Unmap(0, &writeRange);
+			}
+
 			bool Texture::Impl::Initialize(const D3D12_RESOURCE_DESC* pDesc)
 			{
 				const string::StringID name(m_key);
@@ -109,8 +131,8 @@ namespace est
 					return false;
 				}
 
-				m_n2Size.x = static_cast<uint32_t>(pDesc->Width);
-				m_n2Size.y = static_cast<uint32_t>(pDesc->Height);
+				m_size.x = static_cast<uint32_t>(pDesc->Width);
+				m_size.y = static_cast<uint32_t>(pDesc->Height);
 
 				pResource->SetName(name.c_str());
 
@@ -271,8 +293,8 @@ namespace est
 					return false;
 				}
 
-				m_n2Size.x = static_cast<uint32_t>(textureDesc.Width);
-				m_n2Size.y = static_cast<uint32_t>(textureDesc.Height);
+				m_size.x = static_cast<uint32_t>(textureDesc.Width);
+				m_size.y = static_cast<uint32_t>(textureDesc.Height);
 
 				const std::wstring wname = file::GetFileName(filePath);
 				m_pResource->SetName(wname.c_str());
@@ -422,8 +444,8 @@ namespace est
 				}
 
 				const D3D12_RESOURCE_DESC desc = pResource->GetDesc();
-				m_n2Size.x = static_cast<uint32_t>(desc.Width);
-				m_n2Size.y = static_cast<uint32_t>(desc.Height);
+				m_size.x = static_cast<uint32_t>(desc.Width);
+				m_size.y = static_cast<uint32_t>(desc.Height);
 
 				D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
 				if (pDesc == nullptr)
@@ -516,6 +538,16 @@ namespace est
 			const std::wstring& Texture::GetPath() const
 			{
 				return m_pImpl->GetPath();
+			}
+
+			bool Texture::Map(MappedSubResourceData& mappedSubResourceData)
+			{
+				return m_pImpl->Map(mappedSubResourceData);
+			}
+
+			void Texture::Unmap()
+			{
+				return m_pImpl->Unmap();
 			}
 
 			bool Texture::Initialize(const TextureDesc& desc)

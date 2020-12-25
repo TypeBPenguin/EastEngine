@@ -19,11 +19,6 @@ namespace est
 
 		Material::~Material()
 		{
-			for (auto& pTexture : m_pTextures)
-			{
-				ReleaseResource(pTexture);
-			}
-			m_pTextures.fill(nullptr);
 		}
 
 		std::shared_ptr<Material> Material::Create(const IMaterial::Data* pMaterialData)
@@ -196,7 +191,6 @@ namespace est
 
 		void Material::SetTexture(IMaterial::Type emType, const TexturePtr& pTexture)
 		{
-			ReleaseResource(m_pTextures[emType]);
 			m_pTextures[emType] = pTexture;
 		}
 

@@ -40,7 +40,6 @@ namespace est
 		float GetFPS() const { return m_pFpsChecker->GetFps(); }
 
 	private:
-		void Cleanup(float elapsedTime);
 		void Update(float elapsedTime);
 
 	private:
@@ -154,7 +153,6 @@ namespace est
 			s_pTimer->Tick();
 
 			const float elapsedTime = s_pTimer->GetElapsedTime();
-			Cleanup(elapsedTime);
 			Update(elapsedTime);
 
 			return m_isRunning;
@@ -166,17 +164,12 @@ namespace est
 		m_isRunning = false;
 	}
 
-	void MainSystem::Impl::Cleanup(float elapsedTime)
-	{
-		TRACER_EVENT(__FUNCTIONW__);
-		s_pModelManager->Cleanup(elapsedTime);
-		graphics::Cleanup(elapsedTime);
-	}
-
 	void MainSystem::Impl::Update(float elapsedTime)
 	{
 		TRACER_EVENT(__FUNCTIONW__);
 		performance::tracer::RefreshState();
+
+		s_pModelManager->Cleanup(elapsedTime);
 
 		m_pFpsChecker->Update(elapsedTime);
 		s_pInputDevice->Update(elapsedTime);

@@ -25,7 +25,7 @@ namespace est
 	{
 		namespace dx11
 		{
-			const float MipLODBias = -2.f;
+			const float MipLODBias = 0.f;
 
 			class Device::Impl
 			{
@@ -34,6 +34,7 @@ namespace est
 				~Impl();
 
 			private:
+				void Ready();
 				void Update();
 				void Render();
 				void Present();
@@ -68,6 +69,8 @@ namespace est
 				ID3D11Device* GetInterface() const { return m_pDevice; }
 				ID3D11DeviceContext* GetImmediateContext() const { return m_pImmediateContext; }
 
+				ID3D11DeviceContext* GetRenderContext() const { return m_pRenderContext; }
+
 				RenderTarget* GetSwapChainRenderTarget() const { return m_pSwapChainRenderTarget.get(); }
 
 				ID3D11RasterizerState* GetRasterizerState(RasterizerState::Type emType) const { return m_pRasterizerStates[emType]; }
@@ -96,6 +99,8 @@ namespace est
 
 			private:
 				bool m_isInitislized{ false };
+				bool m_isFirstFrame_Render{ true };
+				bool m_isFirstFrame_ImGui{ true };
 
 				size_t m_videoCardMemory{ 0 };
 				std::wstring m_videoCardDescription;
@@ -109,6 +114,7 @@ namespace est
 
 				CComPtr<ID3D11Device> m_pDevice{ nullptr };
 				CComPtr<ID3D11DeviceContext> m_pImmediateContext{ nullptr };
+				CComPtr<ID3D11DeviceContext> m_pRenderContext{ nullptr };
 				CComPtr<IDXGISwapChain1> m_pSwapChain{ nullptr };
 
 				std::unique_ptr<RenderTarget> m_pSwapChainRenderTarget;
@@ -155,8 +161,6 @@ namespace est
 					std::wstring path;
 					ScreenShotFormat format{ ScreenShotFormat::eJPEG };
 					std::function<void(bool, const std::wstring&)> callback;
-					bool isProcessed{ false };
-					bool isSuccess{ false };
 				};
 				ScreenShotInfo m_screeShot;
 
@@ -167,6 +171,22 @@ namespace est
 					std::function<void(bool)> callback;
 				};
 				std::unique_ptr<ChangeDisplayModeInfo> m_pChangeDisplayModeInfo;
+
+				struct ParallelRender
+				{
+					enum State : uint8_t
+					{
+						eIdle = 0,
+						eProcessing,
+					};
+
+					std::mutex mutex;
+					std::thread thread;
+					std::condition_variable condition;
+					bool isStop{ false };
+					State state{ State::eIdle };
+				};
+				ParallelRender m_parallelRender;
 			};
 
 			Device::Impl::Impl()
@@ -178,10 +198,18 @@ namespace est
 				Release();
 			}
 
+			void Device::Impl::Ready()
+			{
+				Cleanup(Timer::GetInstance()->GetElapsedTime());
+
+				OnResize();
+				OnScreenShot();
+
+				SwapThread();
+			}
+
 			void Device::Impl::Update()
 			{
-				OnResize();
-
 				ImGui_ImplDX11_NewFrame();
 				ImGui_ImplWin32_NewFrame();
 				ImGui::NewFrame();
@@ -189,10 +217,12 @@ namespace est
 
 			void Device::Impl::Render()
 			{
+				ID3D11DeviceContext* pRenderContext = GetRenderContext();
+
 				// UpdateOptions
 				{
-					const Options& options = GetOptions();
-					const Options& prevOptions = GetPrevOptions();
+					const Options& options = RenderOptions();
+					const Options& prevOptions = PrevRenderOptions();
 					if (prevOptions.OnMotionBlur != options.OnMotionBlur ||
 						prevOptions.motionBlurConfig.IsVelocityMotionBlur() != options.motionBlurConfig.IsVelocityMotionBlur())
 					{
@@ -208,49 +238,56 @@ namespace est
 					}
 				}
 
-				const float clearColor[] = { 0.f, 0.2f, 0.4f, 1.f };
-				m_pImmediateContext->ClearRenderTargetView(m_pSwapChainRenderTarget->GetRenderTargetView(), clearColor);
+				if (m_isFirstFrame_Render == true)
+				{
+					m_isFirstFrame_Render = false;
+					return;
+				}
 
-				m_pGBuffer->Clear(m_pImmediateContext);
+				const float clearColor[] = { 0.f, 0.2f, 0.4f, 1.f };
+				pRenderContext->ClearRenderTargetView(GetSwapChainRenderTarget()->GetRenderTargetView(), clearColor);
+
+				m_pGBuffer->Clear(pRenderContext);
 
 				m_pVTFManager->Bake();
 
 				m_pRenderManager->Render();
 
-				ImGui::Render();
-
-				ID3D11RenderTargetView* pRTV[] = { m_pSwapChainRenderTarget->GetRenderTargetView() };
-				m_pImmediateContext->OMSetRenderTargets(_countof(pRTV), pRTV, nullptr);
-				ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-
-				OnScreenShot();
+				{
+					TRACER_EVENT(L"RenderCommandList");
+					CComPtr<ID3D11CommandList> pCommandList = nullptr;
+					pRenderContext->FinishCommandList(FALSE, &pCommandList);
+					m_pImmediateContext->ExecuteCommandList(pCommandList, FALSE);
+				}
 			}
 
 			void Device::Impl::Present()
 			{
+				if (m_isFirstFrame_ImGui == false)
+				{
+					TRACER_EVENT(L"ImGui::Render");
+					ImGui::Render();
+
+					ID3D11RenderTargetView* pRTV[] = { GetSwapChainRenderTarget()->GetRenderTargetView() };
+					m_pImmediateContext->OMSetRenderTargets(_countof(pRTV), pRTV, nullptr);
+
+					ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+				}
+				else
+				{
+					m_isFirstFrame_ImGui = false;
+				}
+
 				DXGI_PRESENT_PARAMETERS presentParam{};
-				HRESULT hr = m_pSwapChain->Present1(GetOptions().OnVSync ? 1 : 0, 0, &presentParam);
+				HRESULT hr = m_pSwapChain->Present1(RenderOptions().OnVSync ? 1 : 0, 0, &presentParam);
 				if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
 				{
 					LOG_ERROR(L"Device Lost : Reason code 0x%08X", (hr == DXGI_ERROR_DEVICE_REMOVED) ? m_pDevice->GetDeviceRemovedReason() : hr);
-
-					//HandleDeviceLost();
 				}
 				else if (FAILED(hr))
 				{
 					throw_line("failed to swapchain present");
 				}
-
-				if (m_screeShot.isProcessed == true)
-				{
-					if (m_screeShot.callback != nullptr)
-					{
-						m_screeShot.callback(m_screeShot.isSuccess, m_screeShot.path);
-					}
-					m_screeShot = {};
-				}
-
-				Cleanup(Timer::GetInstance()->GetElapsedTime());
 			}
 
 			void Device::Impl::Initialize(uint32_t width, uint32_t height, bool isFullScreen, const string::StringID& applicationTitle, const string::StringID& applicationName, std::function<HRESULT(HWND, uint32_t, WPARAM, LPARAM)> messageHandler)
@@ -284,18 +321,34 @@ namespace est
 				ImGui::CreateContext();
 				ImGui_ImplWin32_Init(pWindow->GetHwnd());
 				ImGui_ImplDX11_Init(m_pDevice, m_pImmediateContext);
-
 				m_isInitislized = true;
 			}
 
 			void Device::Impl::Release()
 			{
+				if (m_isInitislized == false)
+					return;
+
+				{
+					{
+						std::lock_guard<std::mutex> lock(m_parallelRender.mutex);
+						m_parallelRender.isStop = true;
+					}
+					m_parallelRender.condition.notify_all();
+
+					if (m_parallelRender.thread.joinable() == true)
+					{
+						m_parallelRender.thread.join();
+					}
+				}
+
 				ImGui_ImplDX11_Shutdown();
 				ImGui_ImplWin32_Shutdown();
 				ImGui::DestroyContext();
 
 				m_pRenderManager.reset();
 				m_pVTFManager.reset();
+				m_pLightResourceManager.reset();
 
 				m_pGBuffer.reset();
 
@@ -326,6 +379,7 @@ namespace est
 
 				m_pSwapChain.Release();
 				m_pImmediateContext.Release();
+				m_pRenderContext.Release();
 
 				util::ReportLiveObjects(m_pDevice);
 				m_pDevice.Release();
@@ -335,22 +389,64 @@ namespace est
 
 			void Device::Impl::Run(std::function<bool()> funcUpdate)
 			{
+				m_parallelRender.thread = std::thread([&]()
+					{
+						while (true)
+						{
+							{
+								std::unique_lock<std::mutex> lock(m_parallelRender.mutex);
+								m_parallelRender.condition.wait(lock, [&]()
+									{
+										return m_parallelRender.isStop == true || m_parallelRender.state == ParallelRender::eProcessing;
+									});
+
+								if (m_parallelRender.isStop == true)
+									return;
+							}
+
+							{
+								TRACER_EVENT(L"GraphicsRender");
+								Render();
+							}
+
+							{
+								std::lock_guard<std::mutex> lock(m_parallelRender.mutex);
+								m_parallelRender.state = ParallelRender::eIdle;
+							}
+							m_parallelRender.condition.notify_all();
+						}
+					});
+
 				auto DeviceUpdate = [&]()
 				{
-					bool isRunning = false;
+					Ready();
+
+					// 업데이트 문을 메인 스레드에서 하기 위함
+					{
+						std::lock_guard<std::mutex> lock(m_parallelRender.mutex);
+						m_parallelRender.state = ParallelRender::eProcessing;
+					}
+					m_parallelRender.condition.notify_all();
+
+					//GetCursor()->Update(Timer::GetInstance()->GetElapsedTime());
+
 					{
 						TRACER_EVENT(L"GraphicsUpdate");
 						Update();
 					}
 
+					bool isRunning = false;
 					{
 						TRACER_EVENT(L"SystemUpdate");
 						isRunning = funcUpdate();
 					}
 
 					{
-						TRACER_EVENT(L"GraphicsRender");
-						Render();
+						std::unique_lock<std::mutex> lock(m_parallelRender.mutex);
+						m_parallelRender.condition.wait(lock, [&]()
+							{
+								return m_parallelRender.isStop == true || m_parallelRender.state == ParallelRender::eIdle;
+							});
 					}
 
 					{
@@ -617,15 +713,17 @@ namespace est
 					throw_line("failed to create device");
 				}
 
-				//{
-				//	CComPtr<ID3D10Multithread> pMultithread = nullptr;
-				//	hr = m_pImmediateContext->QueryInterface<ID3D10Multithread>(&pMultithread);
-				//	if (FAILED(hr))
-				//	{
-				//		throw_line("failed to get multithread object");
-				//	}
-				//	pMultithread->SetMultithreadProtected(TRUE);
-				//}
+				{
+					CComPtr<ID3D10Multithread> pMultithread = nullptr;
+					hr = m_pImmediateContext->QueryInterface<ID3D10Multithread>(&pMultithread);
+					if (FAILED(hr))
+					{
+						throw_line("failed to get multithread object");
+					}
+					pMultithread->SetMultithreadProtected(TRUE);
+				}
+
+				m_pDevice->CreateDeferredContext(0, &m_pRenderContext);
 
 				const math::uint2& screenSize = Window::GetInstance()->GetScreenSize();
 
@@ -749,7 +847,7 @@ namespace est
 
 				D3D11_TEXTURE2D_DESC desc{};
 				pBackBuffer->GetDesc(&desc);
-
+				
 				hr = m_pImmediateContext->QueryInterface(IID_PPV_ARGS(&m_pUserDefinedAnnotation));
 				if (FAILED(hr))
 				{
@@ -1361,7 +1459,7 @@ namespace est
 				TRACER_EVENT(__FUNCTIONW__);
 				if (m_screeShot.path.empty() == false)
 				{
-					m_screeShot.isProcessed = true;
+					bool isSuccess = false;
 
 					CComPtr<ID3D11Texture2D> pBackBufferTexture;
 					m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&pBackBufferTexture));
@@ -1371,7 +1469,7 @@ namespace est
 						m_screeShot.path += L".dds";
 
 						const HRESULT hr = DirectX::SaveDDSTextureToFile(m_pImmediateContext, pBackBufferTexture, m_screeShot.path.c_str());
-						m_screeShot.isSuccess = SUCCEEDED(hr);
+						isSuccess = SUCCEEDED(hr);
 					}
 					else
 					{
@@ -1402,8 +1500,14 @@ namespace est
 						}
 
 						const HRESULT hr = DirectX::SaveWICTextureToFile(m_pImmediateContext, pBackBufferTexture, formatGuid, m_screeShot.path.c_str());
-						m_screeShot.isSuccess = SUCCEEDED(hr);
+						isSuccess = SUCCEEDED(hr);
 					}
+
+					if (m_screeShot.callback != nullptr)
+					{
+						m_screeShot.callback(isSuccess, m_screeShot.path);
+					}
+					m_screeShot = {};
 				}
 			}
 
@@ -1446,6 +1550,7 @@ namespace est
 					width = displayModeDesc.width;
 					height = displayModeDesc.height;
 				}
+
 				if (Window::GetInstance()->Resize(width, height, m_pChangeDisplayModeInfo->isFullScreen) == false)
 				{
 					if (m_pChangeDisplayModeInfo->callback != nullptr)
@@ -1502,6 +1607,9 @@ namespace est
 					m_pChangeDisplayModeInfo->callback(true);
 				}
 				m_pChangeDisplayModeInfo.reset();
+
+				m_isFirstFrame_Render = true;
+				m_isFirstFrame_ImGui = true;
 			}
 
 			Device::Device()
@@ -1636,6 +1744,11 @@ namespace est
 			ID3D11DeviceContext* Device::GetImmediateContext() const
 			{
 				return m_pImpl->GetImmediateContext();
+			}
+
+			ID3D11DeviceContext* Device::GetRenderContext() const
+			{
+				return m_pImpl->GetRenderContext();
 			}
 
 			RenderTarget* Device::GetSwapChainRenderTarget() const

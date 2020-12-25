@@ -216,7 +216,7 @@ namespace est
 				if (pSource == nullptr)
 					return;
 
-				const Options::BloomFilterConfig& bloomFilterConfig = GetOptions().bloomFilterConfig;
+				const Options::BloomFilterConfig& bloomFilterConfig = RenderOptions().bloomFilterConfig;
 
 				const D3D12_RESOURCE_DESC sourceDesc = pSource->GetDesc();
 
@@ -545,7 +545,7 @@ namespace est
 
 				psoDesc.NumRenderTargets = 1;
 
-				if (GetOptions().OnHDR == true)
+				if (RenderOptions().OnHDR == true)
 				{
 					psoDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
 				}

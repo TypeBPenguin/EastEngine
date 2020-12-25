@@ -2,6 +2,7 @@
 #include "VTFManagerDX12.h"
 
 #include "CommonLib/Lock.h"
+#include "Graphics/Interface/ParallelUpdateRender.h"
 
 #include "UtilDX12.h"
 
@@ -22,7 +23,7 @@ namespace est
 				~Impl();
 
 			public:
-				bool Allocate(uint32_t nMatrixCount, math::Matrix** ppDest_Out, uint32_t& nVTFID_Out);
+				bool Allocate(uint32_t matrixCount, math::Matrix** ppDest_Out, uint32_t& vtfID_Out);
 
 			public:
 				bool Bake();
@@ -37,10 +38,10 @@ namespace est
 
 				struct VTFInstance
 				{
-					uint32_t allocatedCount{ 0 };
+					uint32_t allocatedCount[2]{};
 
 					std::array<std::unique_ptr<Texture>, eFrameBufferCount> pVTFs;
-					std::vector<math::Matrix> buffer;
+					std::vector<math::Matrix> buffers[2];
 				};
 				VTFInstance m_vtfInstance;
 
@@ -53,13 +54,16 @@ namespace est
 
 			VTFManager::Impl::Impl()
 			{
-				const uint64_t nBufferSize = util::Align(sizeof(math::Matrix) * static_cast<uint64_t>(eBufferCapacity), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-				m_pUploader = std::make_unique<Uploader>(static_cast<uint32_t>(nBufferSize));
+				const uint64_t bufferSize = util::Align(sizeof(math::Matrix) * static_cast<uint64_t>(eBufferCapacity), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+				m_pUploader = std::make_unique<Uploader>(static_cast<uint32_t>(bufferSize));
 
-				m_vtfInstance.buffer.resize(eBufferCapacity);
+				m_vtfInstance.buffers[UpdateThread()].resize(eBufferCapacity);
+				m_vtfInstance.buffers[RenderThread()].resize(eBufferCapacity);
+
+				m_vtfInstance.allocatedCount[RenderThread()] = 1;
+				EncodeMatrix(m_vtfInstance.buffers[RenderThread()][0]);
 
 				const CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R32G32B32A32_FLOAT, eTextureWidth, eTextureWidth, 1, 1, 1, 0, D3D12_RESOURCE_FLAG_NONE, D3D12_TEXTURE_LAYOUT_UNKNOWN);
-				
 				for (int i = 0; i < eFrameBufferCount; ++i)
 				{
 					Texture::Key key(string::Format(L"est_VTF_%d", i));
@@ -82,21 +86,21 @@ namespace est
 				m_pPrevVTF.reset();
 			}
 
-			bool VTFManager::Impl::Allocate(uint32_t nMatrixCount, math::Matrix** ppDest_Out, uint32_t& nVTFID_Out)
+			bool VTFManager::Impl::Allocate(uint32_t matrixCount, math::Matrix** ppDest_Out, uint32_t& vtfID_Out)
 			{
 				thread::SRWWriteLock writeLock(&m_srwLock);
 
-				if (m_vtfInstance.allocatedCount + nMatrixCount >= eBufferCapacity)
+				if (m_vtfInstance.allocatedCount[UpdateThread()] + matrixCount >= eBufferCapacity)
 				{
 					*ppDest_Out = nullptr;
-					nVTFID_Out = eInvalidVTFID;
+					vtfID_Out = eInvalidVTFID;
 					return false;
 				}
 
-				*ppDest_Out = &m_vtfInstance.buffer[m_vtfInstance.allocatedCount];
-				nVTFID_Out = m_vtfInstance.allocatedCount;
+				*ppDest_Out = &m_vtfInstance.buffers[UpdateThread()][m_vtfInstance.allocatedCount[UpdateThread()]];
+				vtfID_Out = m_vtfInstance.allocatedCount[UpdateThread()];
 
-				m_vtfInstance.allocatedCount += nMatrixCount;
+				m_vtfInstance.allocatedCount[UpdateThread()] += matrixCount;
 
 				return true;
 			}
@@ -106,7 +110,7 @@ namespace est
 				TRACER_EVENT(__FUNCTIONW__);
 				thread::SRWWriteLock writeLock(&m_srwLock);
 
-				if (m_vtfInstance.allocatedCount == 0)
+				if (m_vtfInstance.allocatedCount[RenderThread()] == 0)
 					return true;
 
 				ID3D12Device* pDevice = Device::GetInstance()->GetInterface();
@@ -132,7 +136,7 @@ namespace est
 				}
 
 				uint8_t* dstSubResourceMem = reinterpret_cast<uint8_t*>(uploadMem) + placedTexture2D.Offset;
-				memory::Copy(dstSubResourceMem, nTextureMemSize, m_vtfInstance.buffer.data(), sizeof(math::Matrix) * m_vtfInstance.allocatedCount);
+				memory::Copy(dstSubResourceMem, nTextureMemSize, m_vtfInstance.buffers[RenderThread()].data(), sizeof(math::Matrix) * m_vtfInstance.allocatedCount[RenderThread()]);
 
 				D3D12_TEXTURE_COPY_LOCATION dst{};
 				dst.pResource = m_vtfInstance.pVTFs[m_frameIndex]->GetResource();
@@ -158,7 +162,8 @@ namespace est
 				m_pUploader->EndResourceUpload(uploadContext);
 				m_pUploader->EndFrame(pCommandQueue);
 
-				m_vtfInstance.allocatedCount = 0;
+				m_vtfInstance.allocatedCount[RenderThread()] = 1;
+				EncodeMatrix(m_vtfInstance.buffers[RenderThread()][0]);
 
 				return true;
 			}
@@ -179,9 +184,9 @@ namespace est
 				m_pImpl.reset();
 			}
 
-			bool VTFManager::Allocate(uint32_t nMatrixCount, math::Matrix** ppDest_Out, uint32_t& nVTFID_Out)
+			bool VTFManager::Allocate(uint32_t matrixCount, math::Matrix** ppDest_Out, uint32_t& vtfID_Out)
 			{
-				return m_pImpl->Allocate(nMatrixCount, ppDest_Out, nVTFID_Out);
+				return m_pImpl->Allocate(matrixCount, ppDest_Out, vtfID_Out);
 			}
 
 			bool VTFManager::Bake()

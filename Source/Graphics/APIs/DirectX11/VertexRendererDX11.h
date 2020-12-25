@@ -22,6 +22,7 @@ namespace est
 
 			public:
 				void Render(const RenderElement& renderElement);
+				void AllCleanup();
 				void Cleanup();
 
 			public:

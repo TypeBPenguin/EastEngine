@@ -11,7 +11,7 @@ namespace est
 		{
 			SwapChainBuffer::SwapChainBuffer(const math::uint2& n2Size, VkImage image, VkFormat format)
 			{
-				m_n2Size = n2Size;
+				m_size = n2Size;
 
 				m_image = image;
 				m_format = format;

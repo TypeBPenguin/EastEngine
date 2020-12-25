@@ -1,5 +1,7 @@
 #pragma once
 
+#include "ParallelUpdateRender.h"
+
 namespace est
 {
 	namespace graphics

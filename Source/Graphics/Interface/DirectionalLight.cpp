@@ -31,6 +31,14 @@ namespace est
 			}
 		}
 
+		void DirectionalLight::Cleanup()
+		{
+			if (m_isEnableShadow == true)
+			{
+				m_cascadedShadows.Update(this);
+			}
+		}
+
 		void DirectionalLight::SetEnableShadow(bool isEnableShadow)
 		{
 			if (m_isEnableShadow == isEnableShadow)

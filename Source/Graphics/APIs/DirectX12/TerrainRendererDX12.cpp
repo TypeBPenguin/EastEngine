@@ -112,14 +112,15 @@ namespace est
 			public:
 				void RefreshPSO(ID3D12Device* pDevice);
 				void Render(const RenderElement& renderElement, const math::Matrix& matPrevViewProjection);
+				void AllCleanup();
 				void Cleanup();
 
 			public:
 				void PushJob(const RenderJobTerrain& job)
 				{
-					if (m_vecTerrains.size() < shader::eMaxJobCount)
+					if (m_terrains[UpdateThread()].size() < shader::eMaxJobCount)
 					{
-						m_vecTerrains.emplace_back(job);
+						m_terrains[UpdateThread()].emplace_back(job);
 					}
 					else
 					{
@@ -165,7 +166,7 @@ namespace est
 				D3D12_GPU_VIRTUAL_ADDRESS m_terrainBufferGPUAddress{};
 				uint32_t m_nTerrainBufferIndex{ 0 };
 
-				std::vector<RenderJobTerrain> m_vecTerrains;
+				std::vector<RenderJobTerrain> m_terrains[2];
 			};
 
 			TerrainRenderer::Impl::Impl()
@@ -205,7 +206,7 @@ namespace est
 
 			void TerrainRenderer::Impl::Render(const RenderElement& renderElement, const math::Matrix& matPrevViewProjection)
 			{
-				if (m_vecTerrains.empty() == true)
+				if (m_terrains[RenderThread()].empty() == true)
 					return;
 
 				TRACER_EVENT(__FUNCTIONW__);
@@ -245,7 +246,7 @@ namespace est
 
 				pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_1_CONTROL_POINT_PATCHLIST);
 
-				for (auto& terrainJob : m_vecTerrains)
+				for (auto& terrainJob : m_terrains[RenderThread()])
 				{
 					shader::TerrainContents* pTerrainContents = AllocateTerrainContents(frameIndex);
 					shader::SetTerrainContents(pTerrainContents, terrainJob, matViewProjection, matPrevViewProjection, pCamera->GetPosition(), pCamera->GetDirection());
@@ -267,9 +268,15 @@ namespace est
 				pDeviceInstance->ExecuteCommandList(pCommandList);
 			}
 
+			void TerrainRenderer::Impl::AllCleanup()
+			{
+				m_terrains[UpdateThread()].clear();
+				m_terrains[RenderThread()].clear();
+			}
+
 			void TerrainRenderer::Impl::Cleanup()
 			{
-				m_vecTerrains.clear();
+				m_terrains[RenderThread()].clear();
 			}
 
 			ID3D12RootSignature* TerrainRenderer::Impl::CreateRootSignature(ID3D12Device* pDevice)
@@ -430,6 +437,11 @@ namespace est
 			void TerrainRenderer::Render(const RenderElement& renderElement, const math::Matrix& matPrevViewProjection)
 			{
 				m_pImpl->Render(renderElement, matPrevViewProjection);
+			}
+
+			void TerrainRenderer::AllCleanup()
+			{
+				m_pImpl->AllCleanup();
 			}
 
 			void TerrainRenderer::Cleanup()

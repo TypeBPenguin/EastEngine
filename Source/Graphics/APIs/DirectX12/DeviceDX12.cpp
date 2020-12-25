@@ -2,8 +2,10 @@
 #include "DeviceDX12.h"
 
 #include "CommonLib/Lock.h"
+#include "CommonLib/Timer.h"
 
 #include "Graphics/Interface/Window.h"
+#include "Graphics/Interface/LightManager.h"
 
 #include "UtilDX12.h"
 
@@ -38,6 +40,7 @@ namespace est
 				~Impl();
 
 			private:
+				void Ready();
 				void Update();
 				void Render();
 				void Present();
@@ -72,8 +75,8 @@ namespace est
 				ID3D12Device* GetInterface() const { return m_pDevice; }
 				ID3D12CommandQueue* GetCommandQueue() const { return m_pCommandQueue; }
 
-				ID3D12Fence* GetFence() const { return m_pFences[m_frameIndex]; }
-				uint64_t GetFenceValue() const { return m_nFenceValues[m_frameIndex]; }
+				ID3D12Fence* GetFence() const { return m_pFence; }
+				uint64_t GetFenceValue() const { return m_fenceValues[m_frameIndex]; }
 				uint32_t GetFrameIndex() const { return m_frameIndex; }
 
 				RenderTarget* GetSwapChainRenderTarget(uint32_t frameIndex) const { return m_pSwapChainRenderTargets[frameIndex].get(); }
@@ -94,11 +97,12 @@ namespace est
 				DescriptorHeap* GetSamplerDescriptorHeap() const { return m_pSamplerDescriptorHeap.get(); }
 
 			public:
-				size_t GetCommandListCount() const { return m_vecCommandLists.size(); }
+				size_t GetCommandListCount() const { return m_pCommandLists.size() - 1; }
 
 				void ResetCommandList(size_t index, ID3D12PipelineState* pPipelineState);
 				ID3D12GraphicsCommandList2* GetCommandList(size_t index) const;
-				void GetCommandLists(ID3D12GraphicsCommandList2** ppGraphicsCommandLists_out) const;
+
+				void GetCommandLists(std::vector<ID3D12GraphicsCommandList2*>& commandList_out) const;
 				void ExecuteCommandList(ID3D12CommandList* pCommandList);
 				void ExecuteCommandLists(ID3D12CommandList* const* ppCommandLists, size_t count);
 				void ExecuteCommandLists(ID3D12GraphicsCommandList2* const* ppGraphicsCommandLists, size_t count);
@@ -118,7 +122,8 @@ namespace est
 				void InitializeD3D();
 				void InitializeSampler();
 
-				void WaitForPreviousFrame();
+				void WaitForGPU();
+				void MoveToNextFrame();
 				void EnableShaderBasedValidation();
 
 				void OnScreenShot();
@@ -126,6 +131,8 @@ namespace est
 
 			private:
 				bool m_isInitislized{ false };
+				bool m_isFirstFrame_Render{ true };
+				bool m_isFirstFrame_ImGui{ true };
 
 				size_t m_videoCardMemory{ 0 };
 				std::wstring m_videoCardDescription;
@@ -138,8 +145,8 @@ namespace est
 
 				uint32_t m_frameIndex{ 0 };
 				HANDLE m_hFenceEvent{ INVALID_HANDLE_VALUE };
-				std::array<uint64_t, eFrameBufferCount> m_nFenceValues{ 0 };
-				std::array<ID3D12Fence*, eFrameBufferCount> m_pFences{ nullptr };
+				std::array<uint64_t, eFrameBufferCount> m_fenceValues{ 0 };
+				ID3D12Fence* m_pFence{ nullptr };
 
 				ID3D12Debug1* m_pDebug{ nullptr };
 
@@ -151,8 +158,8 @@ namespace est
 				std::array<std::unique_ptr<RenderTarget>, eFrameBufferCount> m_pBackBufferSwapChains;
 
 				std::array<std::vector<ID3D12CommandAllocator*>, eFrameBufferCount> m_pCommandAllocators;
+				std::vector<ID3D12GraphicsCommandList2*> m_pCommandLists;
 				ID3D12CommandAllocator* m_pBundleAllocators{ nullptr };
-				std::vector<ID3D12GraphicsCommandList2*> m_vecCommandLists;
 
 				std::array<D3D12_DESCRIPTOR_RANGE, eStandardDescriptorRangesCount_SRV> m_standardDescriptorRangeDescs_SRV{};
 
@@ -238,7 +245,7 @@ namespace est
 						return *this;
 					}
 				};
-				std::vector<ReleaseObject> m_vecReleaseResources;
+				std::vector<ReleaseObject> m_releaseResources;
 				thread::SRWLock m_srwLock_releaseResource;
 
 				uint32_t m_nullTextureIndex{ eInvalidDescriptorIndex };
@@ -262,6 +269,22 @@ namespace est
 					std::function<void(bool)> callback;
 				};
 				std::unique_ptr<ChangeDisplayModeInfo> m_pChangeDisplayModeInfo;
+
+				struct ParallelRender
+				{
+					enum State : uint8_t
+					{
+						eIdle = 0,
+						eProcessing,
+					};
+
+					std::mutex mutex;
+					std::thread thread;
+					std::condition_variable condition;
+					bool isStop{ false };
+					State state{ State::eIdle };
+				};
+				ParallelRender m_parallelRender;
 			};
 
 			Device::Impl::Impl()
@@ -273,10 +296,26 @@ namespace est
 				Release();
 			}
 
-			void Device::Impl::Update()
+			void Device::Impl::Ready()
 			{
+				Cleanup(Timer::GetInstance()->GetElapsedTime());
+
 				OnResize();
 
+				if (m_screeShot.isProcessed == true)
+				{
+					if (m_screeShot.callback != nullptr)
+					{
+						m_screeShot.callback(m_screeShot.isSuccess, m_screeShot.path);
+					}
+					m_screeShot = {};
+				}
+
+				SwapThread();
+			}
+
+			void Device::Impl::Update()
+			{
 				ImGui_ImplDX12_NewFrame();
 				ImGui_ImplWin32_NewFrame();
 				ImGui::NewFrame();
@@ -285,7 +324,7 @@ namespace est
 			void Device::Impl::Render()
 			{
 				TRACER_EVENT(__FUNCTIONW__);
-				WaitForPreviousFrame();
+				MoveToNextFrame();
 
 				{
 					TRACER_EVENT(L"CommandAllocatorReset");
@@ -301,8 +340,8 @@ namespace est
 
 				// UpdateOptions
 				{
-					const Options& options = GetOptions();
-					const Options& prevOptions = GetPrevOptions();
+					const Options& options = RenderOptions();
+					const Options& prevOptions = PrevRenderOptions();
 					if (prevOptions.OnMotionBlur != options.OnMotionBlur ||
 						prevOptions.motionBlurConfig.IsVelocityMotionBlur() != options.motionBlurConfig.IsVelocityMotionBlur())
 					{
@@ -324,6 +363,12 @@ namespace est
 					}
 				}
 
+				if (m_isFirstFrame_Render == true)
+				{
+					m_isFirstFrame_Render = false;
+					return;
+				}
+
 				m_pVTFManager->Bake();
 
 				m_pRenderManager->Render();
@@ -337,6 +382,7 @@ namespace est
 					ID3D12GraphicsCommandList2* pCommandList = GetCommandList(0);
 					ResetCommandList(0, nullptr);
 
+					util::ChangeResourceState(pCommandList, m_pSwapChainRenderTargets[m_frameIndex].get(), D3D12_RESOURCE_STATE_PRESENT);
 					util::ChangeResourceState(pCommandList, m_pBackBufferSwapChains[m_frameIndex].get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
 					HRESULT hr = pCommandList->Close();
@@ -352,18 +398,12 @@ namespace est
 
 				m_pUploader->EndFrame(m_pCommandQueue);
 
-				HRESULT hr = m_pCommandQueue->Signal(m_pFences[m_frameIndex], m_nFenceValues[m_frameIndex]);
-				if (FAILED(hr))
-				{
-					throw_line("failed to command queue signal");
-				}
+				OnScreenShot();
 
-				hr = m_pSwapChain->Present(GetOptions().OnVSync ? 1 : 0, 0);
+				HRESULT hr = m_pSwapChain->Present(RenderOptions().OnVSync ? 1 : 0, 0);
 				if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
 				{
 					LOG_ERROR(L"Device Lost : Reason code 0x%08X", (hr == DXGI_ERROR_DEVICE_REMOVED) ? m_pDevice->GetDeviceRemovedReason() : hr);
-
-					//HandleDeviceLost();
 				}
 				else if (FAILED(hr))
 				{
@@ -380,37 +420,47 @@ namespace est
 
 			void Device::Impl::RenderImgui()
 			{
-				RenderTarget* pSwapChainRenderTarget = GetSwapChainRenderTarget(m_frameIndex);
-
-				ID3D12GraphicsCommandList2* pCommandList = GetCommandList(0);
-				ResetCommandList(0, nullptr);
-
-				util::ChangeResourceState(pCommandList, pSwapChainRenderTarget, D3D12_RESOURCE_STATE_RENDER_TARGET);
-
-				const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[] =
+				if (m_isFirstFrame_ImGui == false)
 				{
-					pSwapChainRenderTarget->GetCPUHandle(),
-				};
-				pCommandList->OMSetRenderTargets(_countof(rtvHandles), rtvHandles, FALSE, nullptr);
+					TRACER_EVENT(L"ImGui::Render");
+					ImGui::Render();
 
-				ID3D12DescriptorHeap* pDescriptorHeaps[] =
-				{
-					m_pSRVDescriptorHeap->GetHeap(),
-				};
-				pCommandList->SetDescriptorHeaps(_countof(pDescriptorHeaps), pDescriptorHeaps);
+					RenderTarget* pSwapChainRenderTarget = GetSwapChainRenderTarget(m_frameIndex);
 
-				ImGui::Render();
-				ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), pCommandList);
+					ID3D12GraphicsCommandList2* pCommandList = GetCommandList(0);
+					ResetCommandList(0, nullptr);
 
-				util::ChangeResourceState(pCommandList, pSwapChainRenderTarget, D3D12_RESOURCE_STATE_PRESENT);
+					util::ChangeResourceState(pCommandList, pSwapChainRenderTarget, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
-				HRESULT hr = pCommandList->Close();
-				if (FAILED(hr))
-				{
-					throw_line("failed to close command list");
+					const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[] =
+					{
+						pSwapChainRenderTarget->GetCPUHandle(),
+					};
+					pCommandList->OMSetRenderTargets(_countof(rtvHandles), rtvHandles, FALSE, nullptr);
+
+					ID3D12DescriptorHeap* pDescriptorHeaps[] =
+					{
+						m_pSRVDescriptorHeap->GetHeap(),
+					};
+					pCommandList->SetDescriptorHeaps(_countof(pDescriptorHeaps), pDescriptorHeaps);
+
+					ImGui::Render();
+					ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), pCommandList);
+
+					util::ChangeResourceState(pCommandList, pSwapChainRenderTarget, D3D12_RESOURCE_STATE_PRESENT);
+
+					HRESULT hr = pCommandList->Close();
+					if (FAILED(hr))
+					{
+						throw_line("failed to close command list");
+					}
+
+					ExecuteCommandList(pCommandList);
 				}
-
-				ExecuteCommandList(pCommandList);
+				else
+				{
+					m_isFirstFrame_ImGui = false;
+				}
 			}
 
 			void Device::Impl::Initialize(uint32_t width, uint32_t height, bool isFullScreen, const string::StringID& applicationTitle, const string::StringID& applicationName, std::function<HRESULT(HWND, uint32_t, WPARAM, LPARAM)> messageHandler)
@@ -460,13 +510,20 @@ namespace est
 				if (m_isInitislized == false)
 					return;
 
-				WaitForPreviousFrame();
-
-				HRESULT hr = m_pCommandQueue->Signal(m_pFences[m_frameIndex], m_nFenceValues[m_frameIndex]);
-				if (FAILED(hr))
 				{
-					throw_line("failed to command queue signal");
+					{
+						std::lock_guard<std::mutex> lock(m_parallelRender.mutex);
+						m_parallelRender.isStop = true;
+					}
+					m_parallelRender.condition.notify_all();
+
+					if (m_parallelRender.thread.joinable() == true)
+					{
+						m_parallelRender.thread.join();
+					}
 				}
+
+				WaitForGPU();
 
 				CloseHandle(m_hFenceEvent);
 				m_hFenceEvent = INVALID_HANDLE_VALUE;
@@ -496,7 +553,7 @@ namespace est
 
 				m_renderTargetPool.clear();
 
-				for (auto& releaseObj : m_vecReleaseResources)
+				for (auto& releaseObj : m_releaseResources)
 				{
 					switch (releaseObj.emType)
 					{
@@ -517,7 +574,7 @@ namespace est
 						break;
 					}
 				}
-				m_vecReleaseResources.clear();
+				m_releaseResources.clear();
 
 				m_pUploader.reset();
 
@@ -529,11 +586,11 @@ namespace est
 					m_pSwapChain->SetFullscreenState(FALSE, nullptr);
 				}
 
-				for (ID3D12GraphicsCommandList2* pCommandList : m_vecCommandLists)
+				for (auto pCommandList : m_pCommandLists)
 				{
 					SafeRelease(pCommandList);
 				}
-				m_vecCommandLists.clear();
+				m_pCommandLists.clear();
 
 				SafeRelease(m_pBundleAllocators);
 
@@ -545,10 +602,9 @@ namespace est
 					{
 						SafeRelease(pAllocator);
 					}
-
-					SafeRelease(m_pFences[i]);
 				};
 
+				SafeRelease(m_pFence);
 				SafeRelease(m_pSwapChain);
 
 				m_pRTVDescriptorHeap.reset();
@@ -569,22 +625,69 @@ namespace est
 
 			void Device::Impl::Run(std::function<bool()> funcUpdate)
 			{
+				m_parallelRender.thread = std::thread([&]()
+					{
+						while (true)
+						{
+							{
+								std::unique_lock<std::mutex> lock(m_parallelRender.mutex);
+								m_parallelRender.condition.wait(lock, [&]()
+									{
+										return m_parallelRender.isStop == true || m_parallelRender.state == ParallelRender::eProcessing;
+									});
+
+								if (m_parallelRender.isStop == true)
+									return;
+							}
+
+							{
+								TRACER_EVENT(L"GraphicsRender");
+								Render();
+							}
+
+							{
+								std::lock_guard<std::mutex> lock(m_parallelRender.mutex);
+								m_parallelRender.state = ParallelRender::eIdle;
+							}
+							m_parallelRender.condition.notify_all();
+						}
+					});
+
 				auto DeviceUpdate = [&]()
 				{
-					bool isRunning = false;
+					Ready();
+
+					// 업데이트 문을 메인 스레드에서 하기 위함
+					{
+						std::lock_guard<std::mutex> lock(m_parallelRender.mutex);
+						m_parallelRender.state = ParallelRender::eProcessing;
+					}
+					m_parallelRender.condition.notify_all();
+
+					//GetCursor()->Update(Timer::GetInstance()->GetElapsedTime());
+
 					{
 						TRACER_EVENT(L"GraphicsUpdate");
 						Update();
 					}
 
+					bool isRunning = false;
 					{
 						TRACER_EVENT(L"SystemUpdate");
 						isRunning = funcUpdate();
 					}
 
+					//{
+					//	TRACER_EVENT(L"GraphicsRender");
+					//	Render();
+					//}
+
 					{
-						TRACER_EVENT(L"GraphicsRender");
-						Render();
+						std::unique_lock<std::mutex> lock(m_parallelRender.mutex);
+						m_parallelRender.condition.wait(lock, [&]()
+							{
+								return m_parallelRender.isStop == true || m_parallelRender.state == ParallelRender::eIdle;
+							});
 					}
 
 					{
@@ -604,7 +707,7 @@ namespace est
 
 				{
 					thread::SRWWriteLock writeLock(&m_srwLock_releaseResource);
-					m_vecReleaseResources.erase(std::remove_if(m_vecReleaseResources.begin(), m_vecReleaseResources.end(), [&](ReleaseObject& releaseObj)
+					m_releaseResources.erase(std::remove_if(m_releaseResources.begin(), m_releaseResources.end(), [&](ReleaseObject& releaseObj)
 					{
 						if (releaseObj.frameIndex >= eFrameBufferCount)
 						{
@@ -631,7 +734,7 @@ namespace est
 
 						++releaseObj.frameIndex;
 						return false;
-					}), m_vecReleaseResources.end());
+					}), m_releaseResources.end());
 				}
 
 				m_pRenderManager->Cleanup();
@@ -715,7 +818,7 @@ namespace est
 				if (pResource != nullptr)
 				{
 					thread::SRWWriteLock writeLock(&m_srwLock_releaseResource);
-					m_vecReleaseResources.emplace_back(pResource);
+					m_releaseResources.emplace_back(pResource);
 				}
 			}
 
@@ -724,7 +827,7 @@ namespace est
 				if (descriptorIndex != eInvalidDescriptorIndex)
 				{
 					thread::SRWWriteLock writeLock(&m_srwLock_releaseResource);
-					m_vecReleaseResources.emplace_back(descriptorIndex, ReleaseObject::eDescriptorHeapIndex_RTV);
+					m_releaseResources.emplace_back(descriptorIndex, ReleaseObject::eDescriptorHeapIndex_RTV);
 				}
 			}
 
@@ -733,7 +836,7 @@ namespace est
 				if (descriptorIndex != eInvalidDescriptorIndex)
 				{
 					thread::SRWWriteLock writeLock(&m_srwLock_releaseResource);
-					m_vecReleaseResources.emplace_back(descriptorIndex, ReleaseObject::eDescriptorHeapIndex_SRV);
+					m_releaseResources.emplace_back(descriptorIndex, ReleaseObject::eDescriptorHeapIndex_SRV);
 				}
 			}
 
@@ -742,7 +845,7 @@ namespace est
 				if (descriptorIndex != eInvalidDescriptorIndex)
 				{
 					thread::SRWWriteLock writeLock(&m_srwLock_releaseResource);
-					m_vecReleaseResources.emplace_back(descriptorIndex, ReleaseObject::eDescriptorHeapIndex_DSV);
+					m_releaseResources.emplace_back(descriptorIndex, ReleaseObject::eDescriptorHeapIndex_DSV);
 				}
 			}
 
@@ -751,7 +854,7 @@ namespace est
 				if (descriptorIndex != eInvalidDescriptorIndex)
 				{
 					thread::SRWWriteLock writeLock(&m_srwLock_releaseResource);
-					m_vecReleaseResources.emplace_back(descriptorIndex, ReleaseObject::eDescriptorHeapIndex_UAV);
+					m_releaseResources.emplace_back(descriptorIndex, ReleaseObject::eDescriptorHeapIndex_UAV);
 				}
 			}
 
@@ -784,7 +887,7 @@ namespace est
 
 			void Device::Impl::ResetCommandList(size_t index, ID3D12PipelineState* pPipelineState)
 			{
-				HRESULT hr = m_vecCommandLists[index]->Reset(m_pCommandAllocators[m_frameIndex][index], pPipelineState);
+				HRESULT hr = m_pCommandLists[index]->Reset(m_pCommandAllocators[m_frameIndex][index], pPipelineState);
 				if (FAILED(hr))
 				{
 					throw_line("failed to reset command list");
@@ -793,18 +896,22 @@ namespace est
 
 			ID3D12GraphicsCommandList2* Device::Impl::GetCommandList(size_t index) const
 			{
-				if (index >= m_vecCommandLists.size())
+				if (index >= m_pCommandLists.size())
 					return nullptr;
 
-				return m_vecCommandLists[index];
+				return m_pCommandLists[index];
 			}
 
-			void Device::Impl::GetCommandLists(ID3D12GraphicsCommandList2** ppGraphicsCommandLists_out) const
+			void Device::Impl::GetCommandLists(std::vector<ID3D12GraphicsCommandList2*>& commandList_out) const
 			{
-				const size_t size = m_vecCommandLists.size();
+				commandList_out.clear();
+
+				const size_t size = m_pCommandLists.size();
+				commandList_out.resize(size);
+
 				for (size_t i = 0; i < size; ++i)
 				{
-					ppGraphicsCommandLists_out[i] = m_vecCommandLists[i];
+					commandList_out[i] = m_pCommandLists[i];
 				}
 			}
 
@@ -1079,7 +1186,7 @@ namespace est
 
 				m_frameIndex = m_pSwapChain->GetCurrentBackBufferIndex();
 
-				const uint32_t nThreadCount = std::thread::hardware_concurrency();
+				const uint32_t threadCount = std::thread::hardware_concurrency();
 
 				for (int i = 0; i < eFrameBufferCount; ++i)
 				{
@@ -1094,9 +1201,9 @@ namespace est
 					const D3D12_RESOURCE_DESC desc = pResource->GetDesc();
 					m_pBackBufferSwapChains[i] = RenderTarget::Create(&desc, clearColor, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
-					m_pCommandAllocators[i].resize(nThreadCount);
+					m_pCommandAllocators[i].resize(threadCount);
 
-					for (uint32_t j = 0; j < nThreadCount; ++j)
+					for (uint32_t j = 0; j < threadCount; ++j)
 					{
 						hr = m_pDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_pCommandAllocators[i][j]));
 						if (FAILED(hr))
@@ -1112,29 +1219,26 @@ namespace est
 					throw_line("failed to create command allocator");
 				}
 
-				m_vecCommandLists.resize(nThreadCount);
+				m_pCommandLists.resize(threadCount);
 
-				for (uint32_t i = 0; i < nThreadCount; ++i)
+				for (uint32_t i = 0; i < threadCount; ++i)
 				{
-					hr = m_pDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandAllocators[0][0], nullptr, IID_PPV_ARGS(&m_vecCommandLists[i]));
+					hr = m_pDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandAllocators[0][i], nullptr, IID_PPV_ARGS(&m_pCommandLists[i]));
 					if (FAILED(hr))
 					{
 						throw_line("failed to create command list");
 					}
 
-					m_vecCommandLists[i]->Close();
+					m_pCommandLists[i]->Close();
 				}
 
-				for (int i = 0; i < eFrameBufferCount; ++i)
+				hr = m_pDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_pFence));
+				if (FAILED(hr))
 				{
-					hr = m_pDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_pFences[i]));
-					if (FAILED(hr))
-					{
-						throw_line("failed to create fence");
-					}
+					throw_line("failed to create fence");
 				}
 
-				m_hFenceEvent = CreateEventEx(nullptr, FALSE, FALSE, EVENT_ALL_ACCESS);
+				m_hFenceEvent = CreateEventEx(nullptr, nullptr, 0, EVENT_MODIFY_STATE | SYNCHRONIZE);
 				if (m_hFenceEvent == nullptr || m_hFenceEvent == INVALID_HANDLE_VALUE)
 				{
 					throw_line("failed to create fence event");
@@ -1185,14 +1289,34 @@ namespace est
 				}
 			}
 
-			void Device::Impl::WaitForPreviousFrame()
+			void Device::Impl::WaitForGPU()
+			{
+				// Schedule a Signal command in the GPU queue.
+				if (SUCCEEDED(m_pCommandQueue->Signal(m_pFence, m_fenceValues[m_frameIndex])))
+				{
+					// Wait until the Signal has been processed.
+					if (SUCCEEDED(m_pFence->SetEventOnCompletion(m_fenceValues[m_frameIndex], m_hFenceEvent)))
+					{
+						WaitForSingleObjectEx(m_hFenceEvent, INFINITE, FALSE);
+
+						// Increment the fence value for the current frame.
+						++m_fenceValues[m_frameIndex];
+					}
+				}
+			}
+
+			void Device::Impl::MoveToNextFrame()
 			{
 				TRACER_EVENT(__FUNCTIONW__);
+
+				const UINT64 currentFenceValue = m_fenceValues[m_frameIndex];
+				m_pCommandQueue->Signal(m_pFence, currentFenceValue);
+
 				m_frameIndex = m_pSwapChain->GetCurrentBackBufferIndex();
 
-				util::WaitForFence(m_pFences[m_frameIndex], m_nFenceValues[m_frameIndex], m_hFenceEvent);
+				util::WaitForFence(m_pFence, m_fenceValues[m_frameIndex], m_hFenceEvent);
 
-				++m_nFenceValues[m_frameIndex];
+				m_fenceValues[m_frameIndex] = currentFenceValue + 1;
 			}
 
 			void Device::Impl::EnableShaderBasedValidation()
@@ -1214,8 +1338,7 @@ namespace est
 				{
 					m_screeShot.isProcessed = true;
 
-					CComPtr<ID3D12Resource> pBackBuffer = nullptr;
-					m_pSwapChain->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
+					CComPtr<ID3D12Resource> pBackBuffer = GetSwapChainRenderTarget(m_frameIndex)->GetResource();
 
 					if (m_screeShot.format == ScreenShotFormat::eDDS)
 					{
@@ -1284,8 +1407,21 @@ namespace est
 					return;
 				}
 
-				const DisplayModeDesc& displayModeDesc = m_supportedDisplayModes[m_pChangeDisplayModeInfo->changeDisplayModeIndex];
-				if (Window::GetInstance()->Resize(displayModeDesc.width, displayModeDesc.height, m_pChangeDisplayModeInfo->isFullScreen) == false)
+				uint32_t width = 0;
+				uint32_t height = 0;
+				if (m_pChangeDisplayModeInfo->isFullScreen == true)
+				{
+					width = GetSystemMetrics(SM_CXSCREEN);
+					height = GetSystemMetrics(SM_CYSCREEN);
+				}
+				else
+				{
+					const DisplayModeDesc& displayModeDesc = m_supportedDisplayModes[m_pChangeDisplayModeInfo->changeDisplayModeIndex];
+					width = displayModeDesc.width;
+					height = displayModeDesc.height;
+				}
+
+				if (Window::GetInstance()->Resize(width, height, m_pChangeDisplayModeInfo->isFullScreen) == false)
 				{
 					if (m_pChangeDisplayModeInfo->callback != nullptr)
 					{
@@ -1294,7 +1430,15 @@ namespace est
 					return;
 				}
 
-				WaitForPreviousFrame();
+				WaitForGPU();
+
+				//WaitForPreviousFrame();
+				//
+				//HRESULT hr = m_pCommandQueue->Signal(m_pFences[m_frameIndex], m_fenceValues[m_frameIndex]);
+				//if (FAILED(hr))
+				//{
+				//	throw_line("failed to command queue signal");
+				//}
 
 				ImGui_ImplDX12_InvalidateDeviceObjects();
 
@@ -1303,8 +1447,36 @@ namespace est
 					m_pGBuffers[i]->Release();
 					m_pBackBufferSwapChains[i].reset();
 					m_pSwapChainRenderTargets[i].reset();
+
+					//m_fenceValues[i] = m_fenceValues[m_frameIndex];
 				}
 				m_renderTargetPool.clear();
+
+				{
+					thread::SRWWriteLock writeLock(&m_srwLock_releaseResource);
+					m_releaseResources.erase(std::remove_if(m_releaseResources.begin(), m_releaseResources.end(), [&](ReleaseObject& releaseObj)
+						{
+							switch (releaseObj.emType)
+							{
+							case ReleaseObject::eDeviceChild:
+								SafeRelease(releaseObj.pDeviceChild);
+								break;
+							case ReleaseObject::eDescriptorHeapIndex_RTV:
+								m_pRTVDescriptorHeap->FreePersistent(releaseObj.nDescriptorHeapIndex);
+								break;
+							case ReleaseObject::eDescriptorHeapIndex_SRV:
+								m_pSRVDescriptorHeap->FreePersistent(releaseObj.nDescriptorHeapIndex);
+								break;
+							case ReleaseObject::eDescriptorHeapIndex_DSV:
+								m_pDSVDescriptorHeap->FreePersistent(releaseObj.nDescriptorHeapIndex);
+								break;
+							case ReleaseObject::eDescriptorHeapIndex_UAV:
+								m_pUAVDescriptorHeap->FreePersistent(releaseObj.nDescriptorHeapIndex);
+								break;
+							}
+							return true;
+						}), m_releaseResources.end());
+				}
 
 				HRESULT hr = m_pSwapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
 				if (FAILED(hr))
@@ -1364,6 +1536,8 @@ namespace est
 					m_pChangeDisplayModeInfo->callback(true);
 				}
 				m_pChangeDisplayModeInfo.reset();
+
+				WaitForGPU();
 			}
 
 			Device::Device()
@@ -1585,9 +1759,9 @@ namespace est
 				return m_pImpl->GetCommandList(index);
 			}
 
-			void Device::GetCommandLists(ID3D12GraphicsCommandList2** ppGraphicsCommandLists_out) const
+			void Device::GetCommandLists(std::vector<ID3D12GraphicsCommandList2*>& commandList_out) const
 			{
-				m_pImpl->GetCommandLists(ppGraphicsCommandLists_out);
+				m_pImpl->GetCommandLists(commandList_out);
 			}
 
 			void Device::ExecuteCommandList(ID3D12CommandList* pCommandList)

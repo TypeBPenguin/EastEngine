@@ -14,6 +14,7 @@ namespace est
 
 		public:
 			void Update(float elapsedTime);
+			void Cleanup();
 
 		public:
 			virtual const string::StringID& GetName() const override { return m_name; }

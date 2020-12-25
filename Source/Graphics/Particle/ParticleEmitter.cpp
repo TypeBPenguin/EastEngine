@@ -49,7 +49,6 @@ namespace est
 
 		ParticleEmitter::~ParticleEmitter()
 		{
-			ReleaseResource(m_pTexture);
 		}
 
 		void ParticleEmitter::Update(float elapsedTime, const math::Matrix& matInvView, const math::Matrix& matViewProjection, const collision::Frustum& frustum)

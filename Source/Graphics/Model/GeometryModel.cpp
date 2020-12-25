@@ -2298,16 +2298,7 @@ namespace est
 
 				void Release()
 				{
-					for (auto& pVertexBuffer : m_pVertexBuffer)
-					{
-						ReleaseResource(pVertexBuffer);
-					}
 					m_pVertexBuffer.fill(nullptr);
-
-					for (auto& pIndexBuffer : m_pIndexBuffer)
-					{
-						ReleaseResource(pIndexBuffer);
-					}
 					m_pIndexBuffer.fill(nullptr);
 				}
 

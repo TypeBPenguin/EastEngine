@@ -14,7 +14,7 @@ namespace est
 			}
 
 			ImageBuffer::ImageBuffer(const math::uint2& n2Size, VkFormat format, VkImageUsageFlags usage)
-				: m_n2Size(n2Size)
+				: m_size(n2Size)
 				, m_format(format)
 			{
 				VkImageAspectFlags aspectMask = 0;

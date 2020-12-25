@@ -1543,7 +1543,7 @@ namespace est
 				TRACER_EVENT(L"ASSAO::Apply");
 				DX_PROFILING(ASSAO);
 
-				ID3D11DeviceContext* pDeviceContext = Device::GetInstance()->GetImmediateContext();
+				ID3D11DeviceContext* pDeviceContext = Device::GetInstance()->GetRenderContext();
 				pDeviceContext->ClearState();
 
 				const math::Viewport& viewport = Device::GetInstance()->GetViewport();
@@ -1565,7 +1565,7 @@ namespace est
 				inputs.NormalSRV = pNormalMap->GetShaderResourceView();
 				inputs.OverrideOutputRTV = pResult->GetRenderTargetView();
 
-				const Options::AssaoConfig& config = GetOptions().assaoConfig;
+				const Options::AssaoConfig& config = RenderOptions().assaoConfig;
 				m_pImpl->Draw(config, &inputs);
 			}
 		}

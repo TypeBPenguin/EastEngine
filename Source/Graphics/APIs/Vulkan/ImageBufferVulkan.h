@@ -22,13 +22,13 @@ namespace est
 				virtual ~ImageBuffer();
 
 			public:
-				const math::uint2& GetSize() const { return m_n2Size; }
+				const math::uint2& GetSize() const { return m_size; }
 				VkFormat GetFormat() const { return m_format; }
 				const VkImage GetImage() const { return m_image; }
 				const VkImageView GetImageView() const { return m_imageView; }
 
 			protected:
-				math::uint2 m_n2Size;
+				math::uint2 m_size;
 
 				VkImage m_image{ nullptr };
 				VkImageView m_imageView{ nullptr };

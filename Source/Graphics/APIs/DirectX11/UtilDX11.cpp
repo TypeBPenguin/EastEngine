@@ -13,6 +13,11 @@ namespace est
 	{
 		namespace dx11
 		{
+			size_t UpdateThread{ 0 };
+			size_t RenderThread{ 1 };
+			Camera RenderCamera;
+			Options RenderOption;
+
 			namespace postprocess
 			{
 				namespace gaussianblur

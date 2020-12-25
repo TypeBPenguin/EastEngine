@@ -175,7 +175,7 @@ namespace est
 				DescriptorHeap* pSRVDescriptorHeap = pDeviceInstance->GetSRVDescriptorHeap();
 
 				{
-					const Options& options = GetOptions();
+					const Options& options = RenderOptions();
 					const Options::SSSConfig& config = options.sssConfig;
 
 					shader::SSSContents* pSSSContents = m_sssContents.Cast(frameIndex);
@@ -325,7 +325,7 @@ namespace est
 
 				psoDesc.NumRenderTargets = 1;
 
-				if (GetOptions().OnHDR == true)
+				if (RenderOptions().OnHDR == true)
 				{
 					psoDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
 				}

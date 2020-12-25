@@ -1840,7 +1840,7 @@ namespace est
 				case shader::ePS_NonSmartApply:
 				case shader::ePS_NonSmartHalfApply:
 				{
-					if (GetOptions().OnHDR == true)
+					if (RenderOptions().OnHDR == true)
 					{
 						psoDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
 					}
@@ -1974,7 +1974,7 @@ namespace est
 				inputs.pDescriptorHeapRTV = pDeviceInstance->GetRTVDescriptorHeap();
 				inputs.pDescriptorHeapUAV = pDeviceInstance->GetUAVDescriptorHeap();
 
-				const Options::AssaoConfig& config = GetOptions().assaoConfig;
+				const Options::AssaoConfig& config = RenderOptions().assaoConfig;
 				m_pImpl->Draw(config, &inputs);
 
 				HRESULT hr = pCommandList->Close();

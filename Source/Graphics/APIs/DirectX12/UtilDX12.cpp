@@ -95,7 +95,7 @@ namespace est
 
 			namespace util
 			{
-				const float MipLODBias = -2.f;
+				const float MipLODBias = 0.f;
 
 				void ReleaseResource(ID3D12DeviceChild* pResource)
 				{
@@ -126,16 +126,16 @@ namespace est
 					descriptorIndex = eInvalidDescriptorIndex;
 				}
 
-				void WaitForFence(ID3D12Fence* pFence, uint64_t nCompletionValue, HANDLE hWaitEvent)
+				void WaitForFence(ID3D12Fence* pFence, uint64_t completionValue, HANDLE hWaitEvent)
 				{
-					if (pFence->GetCompletedValue() < nCompletionValue)
+					if (pFence->GetCompletedValue() < completionValue)
 					{
-						if (FAILED(pFence->SetEventOnCompletion(nCompletionValue, hWaitEvent)))
+						if (FAILED(pFence->SetEventOnCompletion(completionValue, hWaitEvent)))
 						{
 							throw_line("failed to wait for fence");
 						}
 
-						WaitForSingleObject(hWaitEvent, INFINITE);
+						WaitForSingleObjectEx(hWaitEvent, INFINITE, FALSE);
 					}
 				}
 
@@ -1170,7 +1170,7 @@ namespace est
 					IDXGIDebug1* pDxgiDebug = nullptr;
 					if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&pDxgiDebug))))
 					{
-						pDxgiDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_FLAGS(DXGI_DEBUG_RLO_SUMMARY | DXGI_DEBUG_RLO_IGNORE_INTERNAL));
+						pDxgiDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_FLAGS(DXGI_DEBUG_RLO_DETAIL | DXGI_DEBUG_RLO_IGNORE_INTERNAL));
 					}
 					SafeRelease(pDxgiDebug);
 				}

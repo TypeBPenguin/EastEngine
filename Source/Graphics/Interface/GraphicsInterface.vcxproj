@@ -191,6 +191,7 @@
     <ClInclude Include="LightManager.h" />
     <ClInclude Include="MaskedOcclusionCulling.h" />
     <ClInclude Include="OcclusionCulling.h" />
+    <ClInclude Include="ParallelUpdateRender.h" />
     <ClInclude Include="PointLight.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RenderJob.h" />
@@ -256,6 +257,7 @@
     <ClCompile Include="MaskedOcclusionCullingAVX2.cpp" />
     <ClCompile Include="MaskedOcclusionCullingAVX512.cpp" />
     <ClCompile Include="OcclusionCulling.cpp" />
+    <ClCompile Include="ParallelUpdateRender.cpp" />
     <ClCompile Include="PointLight.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderJob.cpp" />

@@ -105,7 +105,8 @@ namespace est
 
 				void ResetCommandList(size_t index, ID3D12PipelineState* pPipelineState);
 				ID3D12GraphicsCommandList2* GetCommandList(size_t index) const;
-				void GetCommandLists(ID3D12GraphicsCommandList2** ppCommandLists_out) const;
+
+				void GetCommandLists(std::vector<ID3D12GraphicsCommandList2*>& commandList_out) const;
 				void ExecuteCommandList(ID3D12CommandList* pCommandList);
 				void ExecuteCommandLists(ID3D12CommandList* const* ppCommandList, size_t nCount);
 				void ExecuteCommandLists(ID3D12GraphicsCommandList2* const* ppCommandList, size_t nCount);

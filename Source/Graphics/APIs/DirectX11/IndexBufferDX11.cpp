@@ -48,28 +48,32 @@ namespace est
 				SafeRelease(m_pBuffer);
 			}
 
-			bool IndexBuffer::Map(void** ppData)
+			bool IndexBuffer::Map(MappedSubResourceData& mappedSubResourceData, bool isDiscard)
 			{
-				if (ppData == nullptr)
-					return false;
-
-				D3D11_MAPPED_SUBRESOURCE map{};
-
 				ID3D11DeviceContext* pDeviceContext = Device::GetInstance()->GetImmediateContext();
-				HRESULT hr = pDeviceContext->Map(m_pBuffer, 0, D3D11_MAP_WRITE_NO_OVERWRITE, 0, &map);
-				if (FAILED(hr))
-				{
-					(*ppData) = nullptr;
-					return false;
-				}
-
-				*ppData = map.pData;
-				return true;
+				return Map(pDeviceContext, mappedSubResourceData, isDiscard);
 			}
 
 			void IndexBuffer::Unmap()
 			{
 				ID3D11DeviceContext* pDeviceContext = Device::GetInstance()->GetImmediateContext();
+				Unmap(pDeviceContext);
+			}
+
+			bool IndexBuffer::Map(ID3D11DeviceContext* pDeviceContext, MappedSubResourceData& mappedSubResourceData, bool isDiscard)
+			{
+				const D3D11_MAP mapType = isDiscard == true ? D3D11_MAP_WRITE_DISCARD : D3D11_MAP_WRITE_NO_OVERWRITE;
+				HRESULT hr = pDeviceContext->Map(m_pBuffer, 0, mapType, 0, reinterpret_cast<D3D11_MAPPED_SUBRESOURCE*>(&mappedSubResourceData));
+				if (FAILED(hr))
+				{
+					mappedSubResourceData = {};
+					return false;
+				}
+				return true;
+			}
+
+			void IndexBuffer::Unmap(ID3D11DeviceContext* pDeviceContext)
+			{
 				pDeviceContext->Unmap(m_pBuffer, 0);
 			}
 		}

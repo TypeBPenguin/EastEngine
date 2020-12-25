@@ -20,25 +20,21 @@ namespace est
 			strDiffuseHDR.append(L"DiffuseHDR.dds");
 			TexturePtr pDiffuseHDR = CreateTextureAsync(strDiffuseHDR.c_str());
 			pImageBasedLight->SetDiffuseHDR(pDiffuseHDR);
-			ReleaseResource(pDiffuseHDR);
 
 			std::wstring strSpecularHDR = iblTexturePath;
 			strSpecularHDR.append(L"SpecularHDR.dds");
 			TexturePtr pSpecularHDR = CreateTextureAsync(strSpecularHDR.c_str());
 			pImageBasedLight->SetSpecularHDR(pSpecularHDR);
-			ReleaseResource(pSpecularHDR);
 
 			std::wstring strSpecularBRDF = iblTexturePath;
 			strSpecularBRDF.append(L"Brdf.dds");
 			TexturePtr pSpecularBRDF = CreateTextureAsync(strSpecularBRDF.c_str());
 			pImageBasedLight->SetSpecularBRDF(pSpecularBRDF);
-			ReleaseResource(pSpecularBRDF);
 
 			std::wstring strEnvIBLPath = iblTexturePath;
 			strEnvIBLPath.append(L"EnvHDR.dds");
 			TexturePtr pEnvironmentHDR = CreateTextureAsync(strEnvIBLPath.c_str());
 			pImageBasedLight->SetEnvironmentHDR(pEnvironmentHDR);
-			ReleaseResource(pEnvironmentHDR);
 
 			std::vector<VertexPosTexNor> vertices;
 			std::vector<uint32_t> indices;

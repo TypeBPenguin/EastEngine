@@ -23,6 +23,7 @@ namespace est
 
 			public:
 				void Render(const RenderElement& renderElement, const math::Matrix& matPrevViewProjection);
+				void AllCleanup();
 				void Cleanup();
 
 			public:

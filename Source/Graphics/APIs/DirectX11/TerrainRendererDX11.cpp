@@ -126,10 +126,11 @@ namespace est
 
 			public:
 				void Render(const RenderElement& element, Group group, const math::Matrix& matPrevViewProjection);
+				void AllCleanup();
 				void Cleanup();
 
 			public:
-				void PushJob(const RenderJobTerrain& job) { m_terrains.emplace_back(job); }
+				void PushJob(const RenderJobTerrain& job) { m_terrains[UpdateThread()].emplace_back(job); }
 
 			private:
 				void Draw(ID3D11DeviceContext* pDeviceContext, const math::Matrix& viewProjectionMatrix, const math::Matrix& prevViewProjectionMatrix, const math::float3& cameraPosition, const math::float3& cameraDirection, bool isRnederDepth);
@@ -150,7 +151,7 @@ namespace est
 
 				ConstantBuffer<shader::TerrainContents> m_terrainContents;
 
-				std::vector<RenderJobTerrain> m_terrains;
+				std::vector<RenderJobTerrain> m_terrains[2];
 			};
 
 			TerrainRenderer::Impl::Impl()
@@ -191,7 +192,7 @@ namespace est
 
 			void TerrainRenderer::Impl::Render(const RenderElement& element, Group group, const math::Matrix& matPrevViewProjection)
 			{
-				if (m_terrains.empty())
+				if (m_terrains[RenderThread()].empty())
 					return;
 
 				TRACER_EVENT(__FUNCTIONW__);
@@ -208,7 +209,7 @@ namespace est
 						return;
 				}
 
-				const graphics::Options& graphicsOptions = graphics::GetOptions();
+				const graphics::Options& graphicsOptions = graphics::RenderOptions();
 
 				Camera* pCamera = element.pCamera;
 				const math::Matrix matViewProj = pCamera->GetViewMatrix() * pCamera->GetProjectionMatrix();
@@ -245,7 +246,7 @@ namespace est
 				{
 					shader::PSType emPSType;
 
-					if (GetOptions().OnMotionBlur == true && GetOptions().motionBlurConfig.IsVelocityMotionBlur() == true)
+					if (RenderOptions().OnMotionBlur == true && RenderOptions().motionBlurConfig.IsVelocityMotionBlur() == true)
 					{
 						emPSType = shader::eSolid_MotionBlur;
 
@@ -351,14 +352,20 @@ namespace est
 				}
 			}
 
+			void TerrainRenderer::Impl::AllCleanup()
+			{
+				m_terrains[UpdateThread()].clear();
+				m_terrains[RenderThread()].clear();
+			}
+
 			void TerrainRenderer::Impl::Cleanup()
 			{
-				m_terrains.clear();
+				m_terrains[RenderThread()].clear();
 			}
 
 			void TerrainRenderer::Impl::Draw(ID3D11DeviceContext* pDeviceContext, const math::Matrix& viewProjectionMatrix, const math::Matrix& prevViewProjectionMatrix, const math::float3& cameraPosition, const math::float3& cameraDirection, bool isRnederDepth)
 			{
-				for (auto& renderJob : m_terrains)
+				for (auto& renderJob : m_terrains[RenderThread()])
 				{
 					shader::SetTerrainContents(pDeviceContext, &m_terrainContents, renderJob, viewProjectionMatrix, prevViewProjectionMatrix, cameraPosition, cameraDirection, isRnederDepth);
 					pDeviceContext->HSSetConstantBuffers(shader::eCB_TerrainContents, 1, &m_terrainContents.pBuffer);
@@ -436,6 +443,11 @@ namespace est
 			void TerrainRenderer::Render(const RenderElement& element, Group group, const math::Matrix& matPrevViewProjection)
 			{
 				m_pImpl->Render(element, group, matPrevViewProjection);
+			}
+
+			void TerrainRenderer::AllCleanup()
+			{
+				m_pImpl->AllCleanup();
 			}
 
 			void TerrainRenderer::Cleanup()

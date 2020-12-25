@@ -48,7 +48,7 @@ namespace est
 			const CascadedShadowsConfig& GetConfig() const { return m_config; }
 			void SetConfig(const CascadedShadowsConfig& config) { m_config = config; }
 
-			const CascadedShadowData& GetData() const { return m_data; }
+			const CascadedShadowData& GetRenderData() const;
 
 			math::float2 GetTexelOffset() const { return { 1.f / static_cast<float>((m_config.resolution * m_config.numCascades)), 1.f / static_cast<float>(m_config.resolution) }; }
 
@@ -70,7 +70,7 @@ namespace est
 
 		private:
 			CascadedShadowsConfig m_config;
-			CascadedShadowData m_data;
+			CascadedShadowData m_data[2];
 
 			std::array<math::Matrix, CascadedShadowsConfig::eMaxCascades> m_matViews;
 			std::array<math::Matrix, CascadedShadowsConfig::eMaxCascades> m_matProjections;

@@ -31,6 +31,7 @@ namespace est
 
 			public:
 				void Render(const RenderElement& renderElement, Group emGroup, const math::Matrix& matPrevViewProjection);
+				void AllCleanup();
 				void Cleanup();
 
 			public:

@@ -21,7 +21,7 @@ namespace est
 				uint32_t GetVertexCount() const { return m_vertexCount; }
 				uint32_t GetFormatSize() const { return m_view.StrideInBytes; }
 
-				bool Map(void** ppData);
+				bool Map(MappedSubResourceData& mappedSubResourceData, bool isDiscard = true);
 				void Unmap();
 
 			public:
@@ -141,16 +141,13 @@ namespace est
 				m_pBuffer = nullptr;
 			}
 
-			bool VertexBuffer::Impl::Map(void** ppData)
+			bool VertexBuffer::Impl::Map(MappedSubResourceData& mappedSubResourceData, bool isDiscard)
 			{
-				if (ppData == nullptr)
-					return false;
-
 				D3D12_RANGE readRange{ 0,0 };
-				HRESULT hr = m_pBuffer->Map(0, &readRange, ppData);
+				HRESULT hr = m_pBuffer->Map(0, &readRange, &mappedSubResourceData.pData);
 				if (FAILED(hr))
 				{
-					(*ppData) = nullptr;
+					mappedSubResourceData = {};
 					return false;
 				}
 
@@ -159,8 +156,8 @@ namespace est
 
 			void VertexBuffer::Impl::Unmap()
 			{
-				D3D12_RANGE readRange{ 0,0 };
-				m_pBuffer->Unmap(0, &readRange);
+				D3D12_RANGE writeRange{ 0,0 };
+				m_pBuffer->Unmap(0, &writeRange);
 			}
 
 			VertexBuffer::VertexBuffer(const uint8_t* pData, uint32_t vertexCount, size_t formatSize, bool isDynamic)
@@ -172,14 +169,14 @@ namespace est
 			{
 			}
 
-			bool VertexBuffer::Map(void** ppData)
+			bool VertexBuffer::Map(MappedSubResourceData& mappedSubResourceData, bool isDiscard)
 			{
-				return m_pImpl->Map(ppData);
+				return m_pImpl->Map(mappedSubResourceData, isDiscard);
 			}
 
 			void VertexBuffer::Unmap()
 			{
-				m_pImpl->Unmap();
+				return m_pImpl->Unmap();
 			}
 
 			uint32_t VertexBuffer::GetVertexCount() const

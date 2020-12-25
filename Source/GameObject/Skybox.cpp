@@ -20,9 +20,6 @@ namespace est
 
 		Skybox::~Skybox()
 		{
-			graphics::ReleaseResource(m_pVertexBuffer);
-			graphics::ReleaseResource(m_pIndexBuffer);
-			graphics::ReleaseResource(m_pTexture);
 		}
 
 		void Skybox::Initialize(const SkyboxProperty& skyProperty)
@@ -78,7 +75,6 @@ namespace est
 
 		void Skybox::SetTexture(const graphics::TexturePtr& pTexture)
 		{
-			graphics::ReleaseResource(m_pTexture);
 			m_pTexture = pTexture;
 		}
 	}

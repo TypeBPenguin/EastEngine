@@ -69,7 +69,6 @@ namespace est
 				void RefreshPSO(ID3D12Device* pDevice);
 
 				void Render(const RenderElement& renderElement);
-				void Cleanup();
 
 			private:
 				enum RootParameters : uint32_t
@@ -182,15 +181,15 @@ namespace est
 					pCommonContents->nTexSpecularBRDFIndex = pSpecularBRDF->GetDescriptorIndex();
 
 					const DirectionalLightData* pDirectionalLightData = nullptr;
-					pLightManager->GetDirectionalLightData(&pDirectionalLightData, &pCommonContents->nDirectionalLightCount);
+					pLightManager->GetDirectionalLightRenderData(&pDirectionalLightData, &pCommonContents->nDirectionalLightCount);
 					memory::Copy(pCommonContents->lightDirectional.data(), sizeof(pCommonContents->lightDirectional), pDirectionalLightData, sizeof(DirectionalLightData) * pCommonContents->nDirectionalLightCount);
 
 					const PointLightData* pPointLightData = nullptr;
-					pLightManager->GetPointLightData(&pPointLightData, &pCommonContents->nPointLightCount);
+					pLightManager->GetPointLightRenderData(&pPointLightData, &pCommonContents->nPointLightCount);
 					memory::Copy(pCommonContents->lightPoint.data(), sizeof(pCommonContents->lightPoint), pPointLightData, sizeof(PointLightData) * pCommonContents->nPointLightCount);
 
 					const SpotLightData* pSpotLightData = nullptr;
-					pLightManager->GetSpotLightData(&pSpotLightData, &pCommonContents->nSpotLightCount);
+					pLightManager->GetSpotLightRenderData(&pSpotLightData, &pCommonContents->nSpotLightCount);
 					memory::Copy(pCommonContents->lightSpot.data(), sizeof(pCommonContents->lightSpot), pSpotLightData, sizeof(SpotLightData) * pCommonContents->nSpotLightCount);
 				}
 
@@ -223,10 +222,6 @@ namespace est
 				}
 
 				pDeviceInstance->ExecuteCommandList(pCommandList);
-			}
-
-			void DeferredRenderer::Impl::Cleanup()
-			{
 			}
 
 			ID3D12RootSignature* DeferredRenderer::Impl::CreateRootSignature(ID3D12Device* pDevice)
@@ -317,7 +312,7 @@ namespace est
 				psoDesc.BlendState = util::GetBlendDesc(BlendState::eOff);
 				psoDesc.NumRenderTargets = 1;
 
-				if (GetOptions().OnHDR == true)
+				if (RenderOptions().OnHDR == true)
 				{
 					psoDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
 				}
@@ -395,11 +390,6 @@ namespace est
 			void DeferredRenderer::Render(const RenderElement& renderElement)
 			{
 				m_pImpl->Render(renderElement);
-			}
-
-			void DeferredRenderer::Cleanup()
-			{
-				m_pImpl->Cleanup();
 			}
 		}
 	}

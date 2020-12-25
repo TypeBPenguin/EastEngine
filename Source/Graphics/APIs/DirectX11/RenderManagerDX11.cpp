@@ -3,6 +3,7 @@
 
 #include "Graphics/Interface/Camera.h"
 #include "Graphics/Interface/LightManager.h"
+#include "Graphics/Interface/ParallelUpdateRender.h"
 
 #include "UtilDX11.h"
 #include "DeviceDX11.h"
@@ -40,6 +41,7 @@ namespace est
 				~Impl();
 
 			public:
+				void AllCleanup();
 				void Cleanup();
 				void Render();
 
@@ -98,11 +100,16 @@ namespace est
 			{
 			}
 
+			void RenderManager::Impl::AllCleanup()
+			{
+				GetModelRenderer()->AllCleanup();
+				GetTerrainRenderer()->AllCleanup();
+				GetVertexRenderer()->Cleanup();
+			}
+
 			void RenderManager::Impl::Cleanup()
 			{
 				GetModelRenderer()->Cleanup();
-				GetDeferredRenderer()->Cleanup();
-				GetEnvironmentRenderer()->Cleanup();
 				GetTerrainRenderer()->Cleanup();
 				GetVertexRenderer()->Cleanup();
 			}
@@ -112,14 +119,14 @@ namespace est
 				TRACER_EVENT(__FUNCTIONW__);
 				Device* pDeviceInstance = Device::GetInstance();
 				ID3D11Device* pDevice = pDeviceInstance->GetInterface();
-				ID3D11DeviceContext* pImmediateContext = pDeviceInstance->GetImmediateContext();
+				ID3D11DeviceContext* pImmediateContext = pDeviceInstance->GetRenderContext();
 
 				const GBuffer* pGBuffer = pDeviceInstance->GetGBuffer();
 
-				Camera& camera = GetCamera();
+				Camera& camera = RenderCamera();
 				const math::Matrix matViewProjection = camera.GetViewMatrix() * camera.GetProjectionMatrix();
 
-				const Options& options = GetOptions();
+				const Options& options = RenderOptions();
 
 				UpdateOptions(options);
 
@@ -134,7 +141,7 @@ namespace est
 					pDeviceInstance->GetSwapChainRenderTarget()->GetDesc2D(&swapchainDesc);
 					swapchainDesc.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
 
-					if (GetOptions().OnHDR == true)
+					if (RenderOptions().OnHDR == true)
 					{
 						swapchainDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 					}
@@ -159,7 +166,7 @@ namespace est
 
 					renderElement.pDSV = pGBuffer->GetDepthStencil()->GetDepthStencilView();
 
-					if (GetOptions().OnMotionBlur == true && GetOptions().motionBlurConfig.IsVelocityMotionBlur() == true)
+					if (RenderOptions().OnMotionBlur == true && RenderOptions().motionBlurConfig.IsVelocityMotionBlur() == true)
 					{
 						renderElement.pRTVs[GBufferType::eVelocity] = pGBuffer->GetRenderTarget(GBufferType::eVelocity)->GetRenderTargetView();
 						renderElement.rtvCount = 4;
@@ -195,7 +202,7 @@ namespace est
 						pDeviceInstance->GetSwapChainRenderTarget()->GetDesc2D(&swapchainDesc);
 						swapchainDesc.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
 
-						if (GetOptions().OnHDR == true)
+						if (RenderOptions().OnHDR == true)
 						{
 							swapchainDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 						}
@@ -241,7 +248,7 @@ namespace est
 						swapchainDesc.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
 
 						const DXGI_FORMAT prevFormat = swapchainDesc.Format;
-						if (GetOptions().OnHDR == true)
+						if (RenderOptions().OnHDR == true)
 						{
 							swapchainDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 						}
@@ -256,7 +263,7 @@ namespace est
 						pDeviceInstance->ReleaseRenderTargets(&pLastUsedRenderTarget);
 						pLastUsedRenderTarget = pSSR;
 
-						if (GetOptions().OnHDR == true)
+						if (RenderOptions().OnHDR == true)
 						{
 							swapchainDesc.Format = prevFormat;
 						}
@@ -364,8 +371,8 @@ namespace est
 				{
 					TRACER_EVENT(L"CopyToSwapChain");
 					DX_PROFILING(CopyToSwapChain);
-					RenderTarget* pSwapChainRenderTarget = pDeviceInstance->GetSwapChainRenderTarget();
-					Copy_RGB(pLastUsedRenderTarget, pSwapChainRenderTarget);
+					RenderTarget* pResultRenderTarget = pDeviceInstance->GetSwapChainRenderTarget();
+					Copy_RGB(pLastUsedRenderTarget, pResultRenderTarget);
 				}
 				pDeviceInstance->ReleaseRenderTargets(&pLastUsedRenderTarget);
 
@@ -384,7 +391,7 @@ namespace est
 
 			void RenderManager::Impl::UpdateOptions(const Options& curOptions)
 			{
-				const Options& prevOptions = GetPrevOptions();
+				const Options& prevOptions = PrevRenderOptions();
 				if (prevOptions.OnHDR != curOptions.OnHDR)
 				{
 					if (curOptions.OnHDR == true)
@@ -502,6 +509,11 @@ namespace est
 
 			RenderManager::~RenderManager()
 			{
+			}
+
+			void RenderManager::AllCleanup()
+			{
+				m_pImpl->AllCleanup();
 			}
 
 			void RenderManager::Cleanup()

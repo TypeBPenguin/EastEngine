@@ -163,7 +163,7 @@ namespace est
 				DX_PROFILING(DownScale4SW);
 
 				Device* pDeviceInstance = Device::GetInstance();
-				ID3D11DeviceContext* pDeviceContext = pDeviceInstance->GetImmediateContext();
+				ID3D11DeviceContext* pDeviceContext = pDeviceInstance->GetRenderContext();
 
 				SetRenderState(pDeviceInstance, pDeviceContext);
 
@@ -188,7 +188,7 @@ namespace est
 				DX_PROFILING(DownScale16SW);
 
 				Device* pDeviceInstance = Device::GetInstance();
-				ID3D11DeviceContext* pDeviceContext = pDeviceInstance->GetImmediateContext();
+				ID3D11DeviceContext* pDeviceContext = pDeviceInstance->GetRenderContext();
 
 				SetRenderState(pDeviceInstance, pDeviceContext);
 
@@ -214,7 +214,7 @@ namespace est
 				DX_PROFILING(DownScaleHW);
 
 				Device* pDeviceInstance = Device::GetInstance();
-				ID3D11DeviceContext* pDeviceContext = pDeviceInstance->GetImmediateContext();
+				ID3D11DeviceContext* pDeviceContext = pDeviceInstance->GetRenderContext();
 
 				SetRenderState(pDeviceInstance, pDeviceContext);
 
@@ -229,7 +229,7 @@ namespace est
 				DX_PROFILING(DownScale16HW);
 
 				Device* pDeviceInstance = Device::GetInstance();
-				ID3D11DeviceContext* pDeviceContext = pDeviceInstance->GetImmediateContext();
+				ID3D11DeviceContext* pDeviceContext = pDeviceInstance->GetRenderContext();
 
 				SetRenderState(pDeviceInstance, pDeviceContext);
 

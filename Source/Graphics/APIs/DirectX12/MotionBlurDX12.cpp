@@ -243,7 +243,7 @@ namespace est
 				if (pSource == nullptr || pDepth == nullptr || pResult == nullptr)
 					return;
 
-				const Options::MotionBlurConfig& motionBlurConfig = GetOptions().motionBlurConfig;
+				const Options::MotionBlurConfig& motionBlurConfig = RenderOptions().motionBlurConfig;
 				Device* pDeviceInstance = Device::GetInstance();
 
 				const uint32_t frameIndex = pDeviceInstance->GetFrameIndex();
@@ -272,7 +272,7 @@ namespace est
 				if (pSource == nullptr || pVelocity == nullptr || pResult == nullptr)
 					return;
 
-				const Options::MotionBlurConfig& motionBlurConfig = GetOptions().motionBlurConfig;
+				const Options::MotionBlurConfig& motionBlurConfig = RenderOptions().motionBlurConfig;
 				Device* pDeviceInstance = Device::GetInstance();
 
 				const uint32_t frameIndex = pDeviceInstance->GetFrameIndex();
@@ -297,7 +297,7 @@ namespace est
 				if (pSource == nullptr || pVelocity == nullptr || pPrevVelocity == nullptr || pResult == nullptr)
 					return;
 
-				const Options::MotionBlurConfig& motionBlurConfig = GetOptions().motionBlurConfig;
+				const Options::MotionBlurConfig& motionBlurConfig = RenderOptions().motionBlurConfig;
 				Device* pDeviceInstance = Device::GetInstance();
 
 				const uint32_t frameIndex = pDeviceInstance->GetFrameIndex();
@@ -325,7 +325,7 @@ namespace est
 				const D3D12_RESOURCE_DESC destinationDesc = pResult->GetDesc();
 				const math::float2 destinationDimensions{ static_cast<float>(destinationDesc.Width), static_cast<float>(destinationDesc.Height) };
 
-				const Options::MotionBlurConfig& motionBlurConfig = GetOptions().motionBlurConfig;
+				const Options::MotionBlurConfig& motionBlurConfig = RenderOptions().motionBlurConfig;
 
 				const uint32_t depthDescriptorIndex = pDepth != nullptr ? pDepth->GetTexture()->GetDescriptorIndex() : eInvalidDescriptorIndex;
 				const uint32_t velocityDescriptorIndex = pVelocity != nullptr ? pVelocity->GetTexture()->GetDescriptorIndex() : eInvalidDescriptorIndex;
@@ -488,7 +488,7 @@ namespace est
 
 				psoDesc.NumRenderTargets = 1;
 
-				if (GetOptions().OnHDR == true)
+				if (RenderOptions().OnHDR == true)
 				{
 					psoDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
 				}

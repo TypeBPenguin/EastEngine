@@ -237,7 +237,7 @@ namespace est
 				DX_PROFILING(SSR);
 
 				Device* pDeviceInstance = Device::GetInstance();
-				ID3D11DeviceContext* pDeviceContext = pDeviceInstance->GetImmediateContext();
+				ID3D11DeviceContext* pDeviceContext = pDeviceInstance->GetRenderContext();
 
 				SetRenderState(pDeviceInstance, pDeviceContext);
 
@@ -272,7 +272,7 @@ namespace est
 				ID3D11ShaderResourceView* pNoiseTextureSRV = m_pNoiseTexture->GetShaderResourceView();
 				pDeviceContext->PSSetShaderResources(shader::eSRV_Noise, 1, &pNoiseTextureSRV);
 
-				const graphics::Options::SSRConfig& ssrConfig = graphics::GetOptions().ssrConfig;
+				const graphics::Options::SSRConfig& ssrConfig = graphics::RenderOptions().ssrConfig;
 
 				shader::SetSSRContents(pDeviceContext, &m_SSRContents,
 					pCamera->GetViewMatrix().Invert(), pCamera->GetProjectionMatrix().Invert(),

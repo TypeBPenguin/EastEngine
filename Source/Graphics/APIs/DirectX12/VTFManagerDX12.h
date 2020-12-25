@@ -17,7 +17,7 @@ namespace est
 				virtual ~VTFManager();
 
 			public:
-				virtual bool Allocate(uint32_t nMatrixCount, math::Matrix** ppDest_Out, uint32_t& nVTFID_Out) override;
+				virtual bool Allocate(uint32_t matrixCount, math::Matrix** ppDest_Out, uint32_t& vtfID_Out) override;
 
 			public:
 				bool Bake();

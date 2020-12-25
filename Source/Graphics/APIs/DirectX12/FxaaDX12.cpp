@@ -250,7 +250,7 @@ namespace est
 				psoDesc.BlendState = util::GetBlendDesc(BlendState::eOff);
 				psoDesc.NumRenderTargets = 1;
 
-				if (GetOptions().OnHDR == true)
+				if (RenderOptions().OnHDR == true)
 				{
 					psoDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
 				}

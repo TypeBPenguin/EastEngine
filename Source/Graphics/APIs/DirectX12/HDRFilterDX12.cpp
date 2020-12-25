@@ -312,7 +312,7 @@ namespace est
 
 				ResetHDRPSContents(frameIndex);
 
-				const Options& options = GetOptions();
+				const Options& options = RenderOptions();
 				const Options::HDRConfig& hdrConfig = options.hdrConfig;
 				shader::HDRConstants* pHDRConstants = m_hdrContents.Cast(frameIndex);
 				shader::SetHDRContents(pHDRConstants, hdrConfig, Timer::GetInstance()->GetElapsedTime());

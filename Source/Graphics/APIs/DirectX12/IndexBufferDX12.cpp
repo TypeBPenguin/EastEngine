@@ -20,7 +20,7 @@ namespace est
 			public:
 				uint32_t GetIndexCount() const { return m_indexCount; }
 
-				bool Map(void** ppData);
+				bool Map(MappedSubResourceData& mappedSubResourceData, bool isDiscard = true);
 				void Unmap();
 
 			public:
@@ -151,16 +151,13 @@ namespace est
 				util::ReleaseResource(m_pBuffer);
 			}
 
-			bool IndexBuffer::Impl::Map(void** ppData)
+			bool IndexBuffer::Impl::Map(MappedSubResourceData& mappedSubResourceData, bool isDiscard)
 			{
-				if (ppData == nullptr)
-					return false;
-
 				D3D12_RANGE readRange{ 0,0 };
-				HRESULT hr = m_pBuffer->Map(0, &readRange, ppData);
+				HRESULT hr = m_pBuffer->Map(0, &readRange, &mappedSubResourceData.pData);
 				if (FAILED(hr))
 				{
-					(*ppData) = nullptr;
+					mappedSubResourceData = {};
 					return false;
 				}
 
@@ -169,8 +166,8 @@ namespace est
 
 			void IndexBuffer::Impl::Unmap()
 			{
-				D3D12_RANGE readRange{ 0,0 };
-				m_pBuffer->Unmap(0, &readRange);
+				D3D12_RANGE writeRange{ 0,0 };
+				m_pBuffer->Unmap(0, &writeRange);
 			}
 
 			IndexBuffer::IndexBuffer(const uint8_t* pData, uint32_t indexCount, size_t formatSize, bool isDynamic)
@@ -187,14 +184,14 @@ namespace est
 				return m_pImpl->GetIndexCount();
 			}
 
-			bool IndexBuffer::Map(void** ppData)
+			bool IndexBuffer::Map(MappedSubResourceData& mappedSubResourceData, bool isDiscard)
 			{
-				return m_pImpl->Map(ppData);
+				return m_pImpl->Map(mappedSubResourceData, isDiscard);
 			}
 
 			void IndexBuffer::Unmap()
 			{
-				m_pImpl->Unmap();
+				return m_pImpl->Unmap();
 			}
 
 			ID3D12Resource* IndexBuffer::GetBuffer() const

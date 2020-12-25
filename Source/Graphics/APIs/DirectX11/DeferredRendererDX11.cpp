@@ -88,15 +88,15 @@ namespace est
 					pCommonContents->f3CameraPos = f3CameraPos;
 
 					const DirectionalLightData* pDirectionalLightData = nullptr;
-					pLightResourceManager->GetDirectionalLightData(&pDirectionalLightData, &pCommonContents->directionalLightCount);
+					pLightResourceManager->GetDirectionalLightRenderData(&pDirectionalLightData, &pCommonContents->directionalLightCount);
 					memory::Copy(pCommonContents->lightDirectional.data(), sizeof(pCommonContents->lightDirectional), pDirectionalLightData, sizeof(DirectionalLightData) * pCommonContents->directionalLightCount);
 
 					const PointLightData* pPointLightData = nullptr;
-					pLightResourceManager->GetPointLightData(&pPointLightData, &pCommonContents->pointLightCount);
+					pLightResourceManager->GetPointLightRenderData(&pPointLightData, &pCommonContents->pointLightCount);
 					memory::Copy(pCommonContents->lightPoint.data(), sizeof(pCommonContents->lightPoint), pPointLightData, sizeof(PointLightData) * pCommonContents->pointLightCount);
 
 					const SpotLightData* pSpotLightData = nullptr;
-					pLightResourceManager->GetSpotLightData(&pSpotLightData, &pCommonContents->spotLightCount);
+					pLightResourceManager->GetSpotLightRenderData(&pSpotLightData, &pCommonContents->spotLightCount);
 					memory::Copy(pCommonContents->lightSpot.data(), sizeof(pCommonContents->lightSpot), pSpotLightData, sizeof(SpotLightData) * pCommonContents->spotLightCount);
 
 					pCommonContents->cascadeShadowCount = pLightResourceManager->GetShadowCount(ILight::Type::eDirectional);
@@ -107,7 +107,7 @@ namespace est
 						if (pDirectionalLight != nullptr)
 						{
 							const CascadedShadows& cascadedShadows = pDirectionalLight->GetCascadedShadows();
-							pCommonContents->cascadedShadow[i] = cascadedShadows.GetData();
+							pCommonContents->cascadedShadow[i] = cascadedShadows.GetRenderData();
 						}
 					}
 
@@ -123,7 +123,6 @@ namespace est
 
 			public:
 				void Render(const RenderElement& renderElement);
-				void Cleanup();
 
 			private:
 				ID3D11VertexShader* m_pVertexShader{ nullptr };
@@ -288,10 +287,6 @@ namespace est
 				pDeviceContext->Draw(4, 0);
 			}
 
-			void DeferredRenderer::Impl::Cleanup()
-			{
-			}
-
 			DeferredRenderer::DeferredRenderer()
 				: m_pImpl{ std::make_unique<Impl>() }
 			{
@@ -304,11 +299,6 @@ namespace est
 			void DeferredRenderer::Render(const RenderElement& renderElement)
 			{
 				m_pImpl->Render(renderElement);
-			}
-
-			void DeferredRenderer::Cleanup()
-			{
-				m_pImpl->Cleanup();
 			}
 		}
 	}

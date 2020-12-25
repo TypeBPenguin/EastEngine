@@ -18,7 +18,7 @@ namespace est
 				virtual ~VTFManager();
 
 			public:
-				virtual bool Allocate(uint32_t nMatrixCount, math::Matrix** ppDest_Out, uint32_t& nVTFID_Out) override;
+				virtual bool Allocate(uint32_t matrixCount, math::Matrix** ppDest_Out, uint32_t& vtfID_Out) override;
 
 			public:
 				bool Bake();
@@ -33,10 +33,10 @@ namespace est
 
 				struct VTFInstance
 				{
-					uint32_t allocatedCount{ 0 };
+					uint32_t allocatedCount[2]{};
 
 					std::unique_ptr<Texture> pVTF{ nullptr };
-					std::vector<math::Matrix> buffer;
+					std::vector<math::Matrix> buffers[2];
 				};
 				VTFInstance m_vtfInstance;
 				std::unique_ptr<Texture> m_pPrevVTF{ nullptr };

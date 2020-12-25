@@ -261,15 +261,15 @@ namespace est
 					pCommonContents->nTexSpecularBRDFIndex = pSpecularBRDF->GetDescriptorIndex();
 
 					const DirectionalLightData* pDirectionalLightData = nullptr;
-					pLightManager->GetDirectionalLightData(&pDirectionalLightData, &pCommonContents->nDirectionalLightCount);
+					pLightManager->GetDirectionalLightRenderData(&pDirectionalLightData, &pCommonContents->nDirectionalLightCount);
 					memory::Copy(pCommonContents->lightDirectional, pDirectionalLightData, sizeof(DirectionalLightData) * pCommonContents->nDirectionalLightCount);
 
 					const PointLightData* pPointLightData = nullptr;
-					pLightManager->GetPointLightData(&pPointLightData, &pCommonContents->nPointLightCount);
+					pLightManager->GetPointLightRenderData(&pPointLightData, &pCommonContents->nPointLightCount);
 					memory::Copy(pCommonContents->lightPoint, pPointLightData, sizeof(PointLightData) * pCommonContents->nPointLightCount);
 
 					const SpotLightData* pSpotLightData = nullptr;
-					pLightManager->GetSpotLightData(&pSpotLightData, &pCommonContents->nSpotLightCount);
+					pLightManager->GetSpotLightRenderData(&pSpotLightData, &pCommonContents->nSpotLightCount);
 					memory::Copy(pCommonContents->lightSpot, pSpotLightData, sizeof(SpotLightData) * pCommonContents->nSpotLightCount);
 				}
 			}
@@ -283,6 +283,7 @@ namespace est
 			public:
 				void RefreshPSO(ID3D12Device* pDevice);
 				void Render(const RenderElement& renderElement, Group emGroup, const math::Matrix& prevViewPrjectionMatrixection);
+				void AllCleanup();
 				void Cleanup();
 
 			public:
@@ -374,8 +375,8 @@ namespace est
 					}
 				};
 
-				std::array<std::array<JobStatic, shader::eMaxJobCount>, GroupCount> m_jobStatics;
-				std::array<size_t, GroupCount> m_jobStaticCount{ 0 };
+				std::array<std::array<JobStatic, shader::eMaxJobCount>, GroupCount> m_jobStatics[2];
+				std::array<size_t, GroupCount> m_jobStaticCount[2]{};
 
 				using UMapJobStaticBatch = tsl::robin_map<const void*, JobStaticBatch>;
 				using UMapJobStaticMaterialBatch = tsl::robin_map<MaterialPtr, UMapJobStaticBatch>;
@@ -407,8 +408,8 @@ namespace est
 					}
 				};
 
-				std::array<std::array<JobSkinned, shader::eMaxJobCount>, GroupCount> m_jobSkinneds;
-				std::array<size_t, GroupCount> m_jobSkinnedCount{ 0 };
+				std::array<std::array<JobSkinned, shader::eMaxJobCount>, GroupCount> m_jobSkinneds[2];
+				std::array<size_t, GroupCount> m_jobSkinnedCount[2]{};
 
 				using UMapJobSkinnedBatch = tsl::robin_map<const void*, JobSkinnedBatch>;
 				using UMapJobSkinnedMaterialBatch = tsl::robin_map<MaterialPtr, UMapJobSkinnedBatch>;
@@ -477,7 +478,7 @@ namespace est
 			void ModelRenderer::Impl::Render(const RenderElement& renderElement, Group emGroup, const math::Matrix& prevViewPrjectionMatrixection)
 			{
 				const bool isAlphaBlend = emGroup == Group::eAlphaBlend;
-				if (isAlphaBlend == true && m_jobStaticCount[emGroup] == 0 && m_jobSkinnedCount[emGroup] == 0)
+				if (isAlphaBlend == true && m_jobStaticCount[RenderThread()][emGroup] == 0 && m_jobSkinnedCount[RenderThread()][emGroup] == 0)
 					return;
 
 				Camera* pCamera = renderElement.pCamera;
@@ -489,9 +490,9 @@ namespace est
 					TRACER_EVENT(L"Culling");
 
 					const collision::Frustum& frustum = pCamera->GetFrustum();
-					jobsystem::ParallelFor(m_jobStaticCount[emGroup], [&](size_t i)
+					jobsystem::ParallelFor(m_jobStaticCount[RenderThread()][emGroup], [&](size_t i)
 					{
-						JobStatic& job = m_jobStatics[emGroup][i];
+						JobStatic& job = m_jobStatics[RenderThread()][emGroup][i];
 						const OcclusionCullingData& occlusionCullingData = job.data.occlusionCullingData;
 						if (frustum.Contains(occlusionCullingData.aabb) == collision::EmContainment::eDisjoint)
 						{
@@ -506,9 +507,9 @@ namespace est
 						}
 					});
 
-					jobsystem::ParallelFor(m_jobSkinnedCount[emGroup], [&](size_t i)
+					jobsystem::ParallelFor(m_jobSkinnedCount[RenderThread()][emGroup], [&](size_t i)
 					{
-						JobSkinned& job = m_jobSkinneds[emGroup][i];
+						JobSkinned& job = m_jobSkinneds[RenderThread()][emGroup][i];
 						const OcclusionCullingData& occlusionCullingData = job.data.occlusionCullingData;
 						if (frustum.Contains(occlusionCullingData.aabb) == collision::EmContainment::eDisjoint)
 						{
@@ -593,10 +594,22 @@ namespace est
 				}
 			}
 
+			void ModelRenderer::Impl::AllCleanup()
+			{
+				for (int i = 0; i < GroupCount; ++i)
+				{
+					m_jobStatics[UpdateThread()][i].fill({});
+					m_jobStatics[RenderThread()][i].fill({});
+
+					m_jobSkinneds[UpdateThread()][i].fill({});
+					m_jobSkinneds[RenderThread()][i].fill({});
+				}
+			}
+
 			void ModelRenderer::Impl::Cleanup()
 			{
-				m_jobStaticCount.fill(0);
-				m_jobSkinnedCount.fill(0);
+				m_jobStaticCount[RenderThread()].fill(0);
+				m_jobSkinnedCount[RenderThread()].fill(0);
 
 				m_skinningBufferIndex = 0;
 				m_staticBufferIndex = 0;
@@ -620,15 +633,15 @@ namespace est
 
 				thread::SRWWriteLock writeLock(&m_srwLock_jobStatic);
 
-				if (m_jobStaticCount[emGroup] >= shader::eMaxJobCount)
+				if (m_jobStaticCount[UpdateThread()][emGroup] >= shader::eMaxJobCount)
 				{
 					assert(false);
 				}
 				else
 				{
-					const size_t index = m_jobStaticCount[emGroup];
-					m_jobStatics[emGroup][index].Set(job);
-					++m_jobStaticCount[emGroup];
+					const size_t index = m_jobStaticCount[UpdateThread()][emGroup];
+					m_jobStatics[UpdateThread()][emGroup][index].Set(job);
+					++m_jobStaticCount[UpdateThread()][emGroup];
 				}
 			}
 
@@ -648,15 +661,15 @@ namespace est
 
 				thread::SRWWriteLock writeLock(&m_srwLock_jobSkinned);
 
-				if (m_jobSkinnedCount[emGroup] >= shader::eMaxJobCount)
+				if (m_jobSkinnedCount[UpdateThread()][emGroup] >= shader::eMaxJobCount)
 				{
 					assert(false);
 				}
 				else
 				{
-					const size_t index = m_jobSkinnedCount[emGroup];
-					m_jobSkinneds[emGroup][index].Set(job);
-					++m_jobSkinnedCount[emGroup];
+					const size_t index = m_jobSkinnedCount[UpdateThread()][emGroup];
+					m_jobSkinneds[UpdateThread()][emGroup][index].Set(job);
+					++m_jobSkinnedCount[UpdateThread()][emGroup];
 				}
 			}
 
@@ -721,17 +734,17 @@ namespace est
 
 				m_umapJobStaticMasterBatchs.clear();
 
-				if (m_jobStaticCount[emGroup] > 0)
+				if (m_jobStaticCount[RenderThread()][emGroup] > 0)
 				{
 					bool isEnableVelocityMotionBlur = false;
-					if (GetOptions().OnMotionBlur == true && GetOptions().motionBlurConfig.IsVelocityMotionBlur() == true)
+					if (RenderOptions().OnMotionBlur == true && RenderOptions().motionBlurConfig.IsVelocityMotionBlur() == true)
 					{
 						isEnableVelocityMotionBlur = true;
 					}
 
-					for (size_t i = 0; i < m_jobStaticCount[emGroup]; ++i)
+					for (size_t i = 0; i < m_jobStaticCount[RenderThread()][emGroup]; ++i)
 					{
-						const JobStatic& job = m_jobStatics[emGroup][i];
+						const JobStatic& job = m_jobStatics[RenderThread()][emGroup][i];
 						if (job.isCulled == true)
 							continue;
 
@@ -792,18 +805,17 @@ namespace est
 						}
 					}
 
-					const size_t nCommandListCount = pDeviceInstance->GetCommandListCount();
-					std::vector<ID3D12GraphicsCommandList2*> vecCommandLists(nCommandListCount);
-					pDeviceInstance->GetCommandLists(vecCommandLists.data());
+					std::vector<ID3D12GraphicsCommandList2*> commandLists;
+					pDeviceInstance->GetCommandLists(commandLists);
 
 					auto iter = umapJobStaticMaskBatch.begin();
 
-					jobsystem::ParallelFor(vecCommandLists.size(), [&](const size_t index)
+					jobsystem::ParallelFor(commandLists.size(), [&](const size_t index)
 					{
 						const IVertexBuffer* pPrevVertexBuffer = nullptr;
 						const IIndexBuffer* pPrevIndexBuffer = nullptr;
 
-						ID3D12GraphicsCommandList2* pCommandList = vecCommandLists[index];
+						ID3D12GraphicsCommandList2* pCommandList = commandLists[index];
 						pDeviceInstance->ResetCommandList(index, nullptr);
 
 						ID3D12DescriptorHeap* pDescriptorHeaps[] =
@@ -1048,7 +1060,7 @@ namespace est
 						}
 					});
 
-					pDeviceInstance->ExecuteCommandLists(vecCommandLists.data(), vecCommandLists.size());
+					pDeviceInstance->ExecuteCommandLists(commandLists.data(), commandLists.size());
 				}
 
 				m_umapJobStaticMasterBatchs.clear();
@@ -1065,17 +1077,17 @@ namespace est
 
 				m_umapJobSkinnedMasterBatchs.clear();
 
-				if (m_jobSkinnedCount[emGroup] > 0)
+				if (m_jobSkinnedCount[RenderThread()][emGroup] > 0)
 				{
 					bool isEnableVelocityMotionBlur = false;
-					if (GetOptions().OnMotionBlur == true && GetOptions().motionBlurConfig.IsVelocityMotionBlur() == true)
+					if (RenderOptions().OnMotionBlur == true && RenderOptions().motionBlurConfig.IsVelocityMotionBlur() == true)
 					{
 						isEnableVelocityMotionBlur = true;
 					}
 
-					for (size_t i = 0; i < m_jobSkinnedCount[emGroup]; ++i)
+					for (size_t i = 0; i < m_jobSkinnedCount[RenderThread()][emGroup]; ++i)
 					{
-						const JobSkinned& job = m_jobSkinneds[emGroup][i];
+						const JobSkinned& job = m_jobSkinneds[RenderThread()][emGroup][i];
 						if (job.isCulled == true)
 							continue;
 
@@ -1138,18 +1150,17 @@ namespace est
 						}
 					}
 
-					const size_t nCommandListCount = pDeviceInstance->GetCommandListCount();
-					std::vector<ID3D12GraphicsCommandList2*> vecCommandLists(nCommandListCount);
-					pDeviceInstance->GetCommandLists(vecCommandLists.data());
+					std::vector<ID3D12GraphicsCommandList2*> commandLists;
+					pDeviceInstance->GetCommandLists(commandLists);
 
 					auto iter = umapJobSkinnedMaskBatch.begin();
 
-					jobsystem::ParallelFor(vecCommandLists.size(), [&](const size_t index)
+					jobsystem::ParallelFor(commandLists.size(), [&](const size_t index)
 					{
 						const IVertexBuffer* pPrevVertexBuffer = nullptr;
 						const IIndexBuffer* pPrevIndexBuffer = nullptr;
 
-						ID3D12GraphicsCommandList2* pCommandList = vecCommandLists[index];
+						ID3D12GraphicsCommandList2* pCommandList = commandLists[index];
 						pDeviceInstance->ResetCommandList(index, nullptr);
 
 						ID3D12DescriptorHeap* pDescriptorHeaps[] =
@@ -1394,7 +1405,7 @@ namespace est
 						}
 					});
 
-					pDeviceInstance->ExecuteCommandLists(vecCommandLists.data(), vecCommandLists.size());
+					pDeviceInstance->ExecuteCommandLists(commandLists.data(), commandLists.size());
 				}
 
 				m_umapJobSkinnedMasterBatchs.clear();
@@ -1542,7 +1553,7 @@ namespace est
 				{
 					psoDesc.NumRenderTargets = 1;
 
-					if (GetOptions().OnHDR == true)
+					if (RenderOptions().OnHDR == true)
 					{
 						psoDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
 					}
@@ -1611,6 +1622,11 @@ namespace est
 			void ModelRenderer::Render(const RenderElement& renderElement, Group emGroup, const math::Matrix& prevViewPrjectionMatrixection)
 			{
 				m_pImpl->Render(renderElement, emGroup, prevViewPrjectionMatrixection);
+			}
+
+			void ModelRenderer::AllCleanup()
+			{
+				m_pImpl->AllCleanup();
 			}
 
 			void ModelRenderer::Cleanup()

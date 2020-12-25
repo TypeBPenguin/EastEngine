@@ -10,7 +10,6 @@ namespace est
 		void Initialize(APIs emAPI, uint32_t width, uint32_t height, bool isFullScreen, bool isVSync, const string::StringID& applicationTitle, const string::StringID& applicationName, std::function<HRESULT(HWND, uint32_t, WPARAM, LPARAM)> messageHandler);
 		void Release();
 		void Run(std::function<bool()> funcUpdate);
-		void Cleanup(float elapsedTime);
 		void Update(float elapsedTime);
 		void PostUpdate(float elapsedTime);
 
@@ -48,9 +47,6 @@ namespace est
 		SpotLightPtr CreateSpotLight(const string::StringID& name, bool isEnableShadow, const SpotLightData& lightData);
 		size_t GetLightCount(ILight::Type type);
 		LightPtr GetLight(ILight::Type type, size_t index);
-
-		template <typename T>
-		void ReleaseResource(std::shared_ptr<T>& ppResource);
 
 		void PushRenderJob(const RenderJobStatic& renderJob);
 		void PushRenderJob(const RenderJobSkinned& renderJob);

@@ -95,22 +95,8 @@ namespace est
 
 		ModelNode::~ModelNode()
 		{
-			for (auto& pVertexBuffer : m_pVertexBuffer)
-			{
-				ReleaseResource(pVertexBuffer);
-			}
 			m_pVertexBuffer.fill(nullptr);
-
-			for (auto& pIndexBuffer : m_pIndexBuffer)
-			{
-				ReleaseResource(pIndexBuffer);
-			}
 			m_pIndexBuffer.fill(nullptr);
-
-			for (auto& pMaterial : m_materials)
-			{
-				ReleaseResource(pMaterial);
-			}
 			m_materials.clear();
 
 			m_childNodes.clear();
@@ -129,7 +115,6 @@ namespace est
 			if (emLod > m_emMaxLod)
 				return;
 
-			ReleaseResource(m_pVertexBuffer[emLod]);
 			m_pVertexBuffer[emLod] = pVertexBuffer;
 		}
 
@@ -164,7 +149,6 @@ namespace est
 			if (emLod > m_emMaxLod)
 				return;
 
-			ReleaseResource(m_pIndexBuffer[emLod]);
 			m_pIndexBuffer[emLod] = pIndexBuffer;
 		}
 

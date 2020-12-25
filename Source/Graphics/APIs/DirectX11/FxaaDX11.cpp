@@ -112,7 +112,7 @@ namespace est
 				DX_PROFILING(FXAA);
 
 				Device* pDeviceInstance = Device::GetInstance();
-				ID3D11DeviceContext* pDeviceContext = pDeviceInstance->GetImmediateContext();
+				ID3D11DeviceContext* pDeviceContext = pDeviceInstance->GetRenderContext();
 				const math::uint2& n2ScreenSize = pDeviceInstance->GetScreenSize();
 
 				pDeviceContext->ClearState();

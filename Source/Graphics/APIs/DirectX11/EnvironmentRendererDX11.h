@@ -22,7 +22,6 @@ namespace est
 
 			public:
 				void Render(const RenderElement& element);
-				void Cleanup();
 
 			private:
 				class Impl;

@@ -37,13 +37,36 @@ namespace est
 				SafeRelease(m_pTexture2D);
 			}
 
+			bool Texture::Map(MappedSubResourceData& mappedSubResourceData)
+			{
+				ID3D11DeviceContext* pDeviceContext = Device::GetInstance()->GetImmediateContext();
+				return Map(pDeviceContext, mappedSubResourceData);
+			}
+
+			void Texture::Unmap()
+			{
+				ID3D11DeviceContext* pDeviceContext = Device::GetInstance()->GetImmediateContext();
+				Unmap(pDeviceContext);
+			}
+
+			bool Texture::Map(ID3D11DeviceContext* pDeviceContext, MappedSubResourceData& mappedSubResourceData)
+			{
+				HRESULT hr = pDeviceContext->Map(m_pTexture2D, 0, D3D11_MAP_WRITE_DISCARD, 0, reinterpret_cast<D3D11_MAPPED_SUBRESOURCE*>(&mappedSubResourceData));
+				if (FAILED(hr))
+				{
+					mappedSubResourceData = {};
+					return false;
+				}
+				return true;
+			}
+
+			void Texture::Unmap(ID3D11DeviceContext* pDeviceContext)
+			{
+				pDeviceContext->Unmap(m_pTexture2D, 0);
+			}
+
 			bool Texture::Initialize(const TextureDesc& desc)
 			{
-				D3D11_SUBRESOURCE_DATA subresource_data;
-				subresource_data.pSysMem = desc.subResourceData.pSysMem;
-				subresource_data.SysMemPitch = desc.subResourceData.SysMemPitch;
-				subresource_data.SysMemSlicePitch = desc.subResourceData.SysMemSlicePitch;
-
 				D3D11_TEXTURE2D_DESC tex_desc;
 				tex_desc.Width = desc.Width;
 				tex_desc.Height = desc.Height;
@@ -66,7 +89,18 @@ namespace est
 					tex_desc.CPUAccessFlags = 0;
 				}
 
-				return Initialize(&tex_desc, &subresource_data);
+				if (desc.subResourceData.pSysMem == nullptr)
+				{
+					return Initialize(&tex_desc, nullptr);
+				}
+				else
+				{
+					D3D11_SUBRESOURCE_DATA subresource_data;
+					subresource_data.pSysMem = desc.subResourceData.pSysMem;
+					subresource_data.SysMemPitch = desc.subResourceData.SysMemPitch;
+					subresource_data.SysMemSlicePitch = desc.subResourceData.SysMemSlicePitch;
+					return Initialize(&tex_desc, &subresource_data);
+				}
 			}
 
 			bool Texture::Initialize(const D3D11_TEXTURE2D_DESC* pDesc, const D3D11_SUBRESOURCE_DATA* pInitialData)
@@ -99,8 +133,8 @@ namespace est
 					util::SetDebugName(m_pShaderResourceView, debugName.c_str());
 				}
 
-				m_n2Size.x = static_cast<uint32_t>(pDesc->Width);
-				m_n2Size.y = static_cast<uint32_t>(pDesc->Height);
+				m_size.x = static_cast<uint32_t>(pDesc->Width);
+				m_size.y = static_cast<uint32_t>(pDesc->Height);
 
 				SetState(State::eComplete);
 
@@ -243,8 +277,8 @@ namespace est
 
 				util::SetDebugName(m_pShaderResourceView, debugName);
 
-				m_n2Size.x = static_cast<uint32_t>(metadata.width);
-				m_n2Size.y = static_cast<uint32_t>(metadata.height);
+				m_size.x = static_cast<uint32_t>(metadata.width);
+				m_size.y = static_cast<uint32_t>(metadata.height);
 
 				SetState(State::eComplete);
 

@@ -17,7 +17,7 @@ namespace est
 			public:
 				virtual uint32_t GetIndexCount() const override { return m_indexCount; }
 
-				virtual bool Map(void** ppData) override;
+				virtual bool Map(MappedSubResourceData& mappedSubResourceData, bool isDiscard = true) override;
 				virtual void Unmap() override;
 
 			public:

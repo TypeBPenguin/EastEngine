@@ -152,7 +152,7 @@ namespace est
 				DX_PROFILING(DepthOfField);
 
 				Device* pDeviceInstance = Device::GetInstance();
-				ID3D11DeviceContext* pDeviceContext = pDeviceInstance->GetImmediateContext();
+				ID3D11DeviceContext* pDeviceContext = pDeviceInstance->GetRenderContext();
 
 				pDeviceContext->ClearState();
 
@@ -195,7 +195,7 @@ namespace est
 				pSRV = pDepth->GetShaderResourceView();
 				pDeviceContext->PSSetShaderResources(shader::eSRV_Depth, 1, &pSRV);
 
-				const Options& options = GetOptions();
+				const Options& options = RenderOptions();
 				const Options::DepthOfFieldConfig& config = options.depthOfFieldConfig;
 
 				shader::SetDepthOfFieldContents(pDeviceContext, &m_depthOfFieldContents, pCamera, config.FocalDistnace, config.FocalWidth, desc.Width, desc.Height);

@@ -5,6 +5,8 @@
 #include "PointLight.h"
 #include "SpotLight.h"
 
+#include "ParallelUpdateRender.h"
+
 namespace est
 {
 	namespace graphics
@@ -31,9 +33,9 @@ namespace est
 
 		public:
 			uint32_t GetLightCountInView(ILight::Type emType) const;
-			void GetDirectionalLightData(const DirectionalLightData** ppDirectionalLightData, uint32_t* pSize) const;
-			void GetPointLightData(const PointLightData** ppPointLightData, uint32_t* pSize) const;
-			void GetSpotLightData(const SpotLightData** ppSpotLightData, uint32_t* pSize) const;
+			void GetDirectionalLightRenderData(const DirectionalLightData** ppDirectionalLightData, uint32_t* pSize) const;
+			void GetPointLightRenderData(const PointLightData** ppPointLightData, uint32_t* pSize) const;
+			void GetSpotLightRenderData(const SpotLightData** ppSpotLightData, uint32_t* pSize) const;
 
 			uint32_t GetShadowCount(ILight::Type type) const { return m_shadowCount[type]; }
 			void IncreaseShadowCount(ILight::Type type) { ++m_shadowCount[type]; }
@@ -50,9 +52,9 @@ namespace est
 			std::vector<std::shared_ptr<SpotLight>> m_spotLights;
 			std::vector<std::shared_ptr<PointLight>> m_pointLights;
 
-			std::array<DirectionalLightData, ILight::eMaxDirectionalLightCount> m_directionalLightData;
-			std::array<PointLightData, ILight::eMaxPointLightCount> m_pointLightData;
-			std::array<SpotLightData, ILight::eMaxSpotLightCount> m_spotLightData;
+			std::array<DirectionalLightData, ILight::eMaxDirectionalLightCount> m_directionalLightData[2];
+			std::array<PointLightData, ILight::eMaxPointLightCount> m_pointLightData[2];
+			std::array<SpotLightData, ILight::eMaxSpotLightCount> m_spotLightData[2];
 		};
 
 		LightManager::Impl::Impl()
@@ -301,11 +303,11 @@ namespace est
 			return m_lightCountInView[emType];
 		}
 
-		void LightManager::Impl::GetDirectionalLightData(const DirectionalLightData** ppDirectionalLightData, uint32_t* pSize) const
+		void LightManager::Impl::GetDirectionalLightRenderData(const DirectionalLightData** ppDirectionalLightData, uint32_t* pSize) const
 		{
 			if (ppDirectionalLightData != nullptr)
 			{
-				*ppDirectionalLightData = m_directionalLightData.data();
+				*ppDirectionalLightData = m_directionalLightData[RenderThread()].data();
 			}
 
 			if (pSize != nullptr)
@@ -314,11 +316,11 @@ namespace est
 			}
 		}
 
-		void LightManager::Impl::GetPointLightData(const PointLightData** ppPointLightData, uint32_t* pSize) const
+		void LightManager::Impl::GetPointLightRenderData(const PointLightData** ppPointLightData, uint32_t* pSize) const
 		{
 			if (ppPointLightData != nullptr)
 			{
-				*ppPointLightData = m_pointLightData.data();
+				*ppPointLightData = m_pointLightData[RenderThread()].data();
 			}
 
 			if (pSize != nullptr)
@@ -327,11 +329,11 @@ namespace est
 			}
 		}
 
-		void LightManager::Impl::GetSpotLightData(const SpotLightData** ppSpotLightData, uint32_t* pSize) const
+		void LightManager::Impl::GetSpotLightRenderData(const SpotLightData** ppSpotLightData, uint32_t* pSize) const
 		{
 			if (ppSpotLightData != nullptr)
 			{
-				*ppSpotLightData = m_spotLightData.data();
+				*ppSpotLightData = m_spotLightData[RenderThread()].data();
 			}
 
 			if (pSize != nullptr)
@@ -353,7 +355,7 @@ namespace est
 						uint32_t& lightIndex = m_lightCountInView[ILight::eDirectional];
 						if (lightIndex < ILight::eMaxDirectionalLightCount)
 						{
-							m_directionalLightData[lightIndex] = pLight->GetData();
+							m_directionalLightData[UpdateThread()][lightIndex] = pLight->GetData();
 							++lightIndex;
 						}
 					});
@@ -371,7 +373,7 @@ namespace est
 							uint32_t& lightIndex = m_lightCountInView[ILight::ePoint];
 							if (lightIndex < ILight::eMaxPointLightCount)
 							{
-								m_pointLightData[lightIndex] = pLight->GetData();
+								m_pointLightData[UpdateThread()][lightIndex] = pLight->GetData();
 								++lightIndex;
 							}
 						}
@@ -388,7 +390,7 @@ namespace est
 							uint32_t& lightIndex = m_lightCountInView[ILight::eSpot];
 							if (lightIndex < ILight::eMaxSpotLightCount)
 							{
-								m_spotLightData[lightIndex] = pLight->GetData();
+								m_spotLightData[UpdateThread()][lightIndex] = pLight->GetData();
 								++lightIndex;
 							}
 						}
@@ -455,19 +457,19 @@ namespace est
 			return m_pImpl->GetLightCountInView(emType);
 		}
 
-		void LightManager::GetDirectionalLightData(const DirectionalLightData** ppDirectionalLightData, uint32_t* pSize) const
+		void LightManager::GetDirectionalLightRenderData(const DirectionalLightData** ppDirectionalLightData, uint32_t* pSize) const
 		{
-			m_pImpl->GetDirectionalLightData(ppDirectionalLightData, pSize);
+			m_pImpl->GetDirectionalLightRenderData(ppDirectionalLightData, pSize);
 		}
 
-		void LightManager::GetPointLightData(const PointLightData** ppPointLightData, uint32_t* pSize) const
+		void LightManager::GetPointLightRenderData(const PointLightData** ppPointLightData, uint32_t* pSize) const
 		{
-			m_pImpl->GetPointLightData(ppPointLightData, pSize);
+			m_pImpl->GetPointLightRenderData(ppPointLightData, pSize);
 		}
 
-		void LightManager::GetSpotLightData(const SpotLightData** ppSpotLightData, uint32_t* pSize) const
+		void LightManager::GetSpotLightRenderData(const SpotLightData** ppSpotLightData, uint32_t* pSize) const
 		{
-			m_pImpl->GetSpotLightData(ppSpotLightData, pSize);
+			m_pImpl->GetSpotLightRenderData(ppSpotLightData, pSize);
 		}
 
 		uint32_t LightManager::GetShadowCount(ILight::Type type) const

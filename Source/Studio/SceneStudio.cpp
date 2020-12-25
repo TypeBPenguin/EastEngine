@@ -265,25 +265,25 @@ void SceneStudio::Enter(const std::queue<gameobject::ActorPtr>& savedPrevSceneAc
 	//
 	//	graphics::IImageBasedLight* pImageBasedLight = graphics::GetImageBasedLight();
 	//
-	//	std::wstring strDiffuseHDR = path;
-	//	strDiffuseHDR.append(L"DiffuseHDR.dds");
-	//	graphics::ITexture* pDiffuseHDR = graphics::CreateTextureAsync(strDiffuseHDR.c_str());
+	//	std::wstring diffuseHDR = path;
+	//	diffuseHDR.append(L"DiffuseHDR.dds");
+	//	graphics::ITexture* pDiffuseHDR = graphics::CreateTextureAsync(diffuseHDR.c_str());
 	//	pImageBasedLight->SetDiffuseHDR(pDiffuseHDR);
 	//	graphics::ReleaseResource(&pDiffuseHDR);
 	//
-	//	std::wstring strSpecularHDR = path;
-	//	strSpecularHDR.append(L"SpecularHDR.dds");
-	//	graphics::ITexture* pSpecularHDR = graphics::CreateTextureAsync(strSpecularHDR.c_str());
+	//	std::wstring specularHDR = path;
+	//	specularHDR.append(L"SpecularHDR.dds");
+	//	graphics::ITexture* pSpecularHDR = graphics::CreateTextureAsync(specularHDR.c_str());
 	//	pImageBasedLight->SetSpecularHDR(pSpecularHDR);
 	//	graphics::ReleaseResource(&pSpecularHDR);
 	//
-	//	std::wstring strSpecularBRDF = path;
-	//	strSpecularBRDF.append(L"Brdf.dds");
-	//	graphics::ITexture* pSpecularBRDF = graphics::CreateTextureAsync(strSpecularBRDF.c_str());
+	//	std::wstring specularBRDF = path;
+	//	specularBRDF.append(L"Brdf.dds");
+	//	graphics::ITexture* pSpecularBRDF = graphics::CreateTextureAsync(specularBRDF.c_str());
 	//	pImageBasedLight->SetSpecularBRDF(pSpecularBRDF);
 	//	graphics::ReleaseResource(&pSpecularBRDF);
 	//
-	//	std::wstring strEnvIBLPath = path;
+	//	std::wstring envIBLPath = path;
 	//	strEnvIBLPath.append(L"EnvHDR.dds");
 	//	graphics::ITexture* pEnvironmentHDR = graphics::CreateTextureAsync(strEnvIBLPath.c_str());
 	//	pImageBasedLight->SetEnvironmentHDR(pEnvironmentHDR);
@@ -863,10 +863,6 @@ void SceneStudio::Enter(const std::queue<gameobject::ActorPtr>& savedPrevSceneAc
 void SceneStudio::Exit(std::queue<gameobject::ActorPtr>& saveSceneActors_out)
 {
 	m_pMinion.reset();
-	for (auto& pLight : m_pLights)
-	{
-		graphics::ReleaseResource(pLight);
-	}
 	m_pLights.clear();
 }
 
@@ -1637,29 +1633,25 @@ void SceneStudio::ShowConfig()
 
 			graphics::IImageBasedLight* pImageBasedLight = graphics::GetImageBasedLight();
 
-			std::wstring strDiffuseHDR = path;
-			strDiffuseHDR.append(L"DiffuseHDR.dds");
-			graphics::TexturePtr pDiffuseHDR = graphics::CreateTextureAsync(strDiffuseHDR.c_str());
+			std::wstring diffuseHDR = path;
+			diffuseHDR.append(L"DiffuseHDR.dds");
+			graphics::TexturePtr pDiffuseHDR = graphics::CreateTextureAsync(diffuseHDR.c_str());
 			pImageBasedLight->SetDiffuseHDR(pDiffuseHDR);
-			graphics::ReleaseResource(pDiffuseHDR);
 
-			std::wstring strSpecularHDR = path;
-			strSpecularHDR.append(L"SpecularHDR.dds");
-			graphics::TexturePtr pSpecularHDR = graphics::CreateTextureAsync(strSpecularHDR.c_str());
+			std::wstring specularHDR = path;
+			specularHDR.append(L"SpecularHDR.dds");
+			graphics::TexturePtr pSpecularHDR = graphics::CreateTextureAsync(specularHDR.c_str());
 			pImageBasedLight->SetSpecularHDR(pSpecularHDR);
-			graphics::ReleaseResource(pSpecularHDR);
 
-			std::wstring strSpecularBRDF = path;
-			strSpecularBRDF.append(L"Brdf.dds");
-			graphics::TexturePtr pSpecularBRDF = graphics::CreateTextureAsync(strSpecularBRDF.c_str());
+			std::wstring specularBRDF = path;
+			specularBRDF.append(L"Brdf.dds");
+			graphics::TexturePtr pSpecularBRDF = graphics::CreateTextureAsync(specularBRDF.c_str());
 			pImageBasedLight->SetSpecularBRDF(pSpecularBRDF);
-			graphics::ReleaseResource(pSpecularBRDF);
 
-			std::wstring strEnvIBLPath = path;
-			strEnvIBLPath.append(L"EnvHDR.dds");
-			graphics::TexturePtr pEnvironmentHDR = graphics::CreateTextureAsync(strEnvIBLPath.c_str());
+			std::wstring envIBLPath = path;
+			envIBLPath.append(L"EnvHDR.dds");
+			graphics::TexturePtr pEnvironmentHDR = graphics::CreateTextureAsync(envIBLPath.c_str());
 			pImageBasedLight->SetEnvironmentHDR(pEnvironmentHDR);
-			graphics::ReleaseResource(pEnvironmentHDR);
 		}
 	}
 

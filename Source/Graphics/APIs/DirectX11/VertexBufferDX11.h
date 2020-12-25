@@ -20,8 +20,12 @@ namespace est
 				virtual uint32_t GetVertexCount() const override { return m_vertexCount; }
 				virtual uint32_t GetFormatSize() const override { return m_formatSize; }
 
-				virtual bool Map(void** ppData) override;
+				virtual bool Map(MappedSubResourceData& mappedSubResourceData, bool isDiscard = true) override;
 				virtual void Unmap() override;
+
+			public:
+				bool Map(ID3D11DeviceContext* pDeviceContext, MappedSubResourceData& mappedSubResourceData, bool isDiscard);
+				void Unmap(ID3D11DeviceContext* pDeviceContext);
 
 			public:
 				ID3D11Buffer* GetBuffer() const { return m_pBuffer; }

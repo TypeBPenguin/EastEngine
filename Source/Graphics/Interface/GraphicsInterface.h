@@ -46,6 +46,13 @@ namespace est
 			SubResourceData subResourceData;
 		};
 
+		struct MappedSubResourceData
+		{
+			void* pData{ nullptr };
+			uint32_t RowPitch{ 0 };
+			uint32_t DepthPitch{ 0 };
+		};
+
 		struct Options
 		{
 			bool OnVSync{ false };
@@ -250,7 +257,7 @@ namespace est
 			virtual uint32_t GetVertexCount() const = 0;
 			virtual uint32_t GetFormatSize() const = 0;
 
-			virtual bool Map(void** ppData) = 0;
+			virtual bool Map(MappedSubResourceData& mappedSubResourceData, bool isDiscard = true) = 0;
 			virtual void Unmap() = 0;
 		};
 		using VertexBufferPtr = std::shared_ptr<IVertexBuffer>;
@@ -268,7 +275,7 @@ namespace est
 		public:
 			virtual uint32_t GetIndexCount() const = 0;
 
-			virtual bool Map(void** ppData) = 0;
+			virtual bool Map(MappedSubResourceData& mappedSubResourceData, bool isDiscard = true) = 0;
 			virtual void Unmap() = 0;
 		};
 		using IndexBufferPtr = std::shared_ptr<IIndexBuffer>;
@@ -296,6 +303,9 @@ namespace est
 		public:
 			virtual const math::uint2& GetSize() const = 0;
 			virtual const std::wstring& GetPath() const = 0;
+
+			virtual bool Map(MappedSubResourceData& mappedSubResourceData) = 0;
+			virtual void Unmap() = 0;
 		};
 		using TexturePtr = std::shared_ptr<ITexture>;
 
@@ -490,11 +500,19 @@ namespace est
 			{
 				eTextureWidth = 1024,
 				eBufferCapacity = eTextureWidth * eTextureWidth / 4,
-				eInvalidVTFID = std::numeric_limits<uint32_t>::max(),
+				eInvalidVTFID = 0,
 			};
 
 		public:
-			virtual bool Allocate(uint32_t nMatrixCount, math::Matrix** ppDest_Out, uint32_t& nVTFID_Out) = 0;
+			virtual bool Allocate(uint32_t matrixCount, math::Matrix** ppDest_Out, uint32_t& vtfID_Out) = 0;
+
+			static void EncodeMatrix(math::Matrix& transform)
+			{
+				transform._14 = transform._41;
+				transform._24 = transform._42;
+				transform._34 = transform._43;
+				transform._41 = transform._42 = transform._43 = transform._44 = 0.f;
+			}
 		};
 
 		class ICursor
@@ -523,7 +541,6 @@ namespace est
 		};
 
 		Options& GetOptions();
-		Options& GetPrevOptions();
 		DebugInfo& GetDebugInfo();
 		DebugInfo& GetPrevDebugInfo();
 		Camera& GetCamera();

@@ -2,6 +2,7 @@
 #include "GBufferDX12.h"
 
 #include "DeviceDX12.h"
+#include "Graphics/Interface/ParallelUpdateRender.h"
 
 namespace est
 {
@@ -52,7 +53,7 @@ namespace est
 					}
 				}
 
-				const Options& options = GetOptions();
+				const Options& options = RenderOptions();
 				if (options.OnMotionBlur == true && options.motionBlurConfig.IsVelocityMotionBlur() == true)
 				{
 					desc.Format = static_cast<DXGI_FORMAT>(GBufferFormat(GBufferType::eVelocity));

@@ -18,7 +18,7 @@ namespace est
 				virtual uint32_t GetVertexCount() const override { return m_vertexCount; }
 				virtual uint32_t GetFormatSize() const override { return m_formatSize; }
 
-				virtual bool Map(void** ppData) override;
+				virtual bool Map(MappedSubResourceData& mappedSubResourceData, bool isDiscard = true) override;
 				virtual void Unmap() override;
 
 			public:

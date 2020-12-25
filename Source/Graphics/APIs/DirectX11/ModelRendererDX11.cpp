@@ -272,15 +272,15 @@ namespace est
 					pCommonContents->f3CameraPos = f3CameraPos;
 
 					const DirectionalLightData* pDirectionalLightData = nullptr;
-					pLightResourceManager->GetDirectionalLightData(&pDirectionalLightData, &pCommonContents->directionalLightCount);
+					pLightResourceManager->GetDirectionalLightRenderData(&pDirectionalLightData, &pCommonContents->directionalLightCount);
 					memory::Copy(pCommonContents->lightDirectional.data(), sizeof(pCommonContents->lightDirectional), pDirectionalLightData, sizeof(DirectionalLightData) * pCommonContents->directionalLightCount);
 
 					const PointLightData* pPointLightData = nullptr;
-					pLightResourceManager->GetPointLightData(&pPointLightData, &pCommonContents->pointLightCount);
+					pLightResourceManager->GetPointLightRenderData(&pPointLightData, &pCommonContents->pointLightCount);
 					memory::Copy(pCommonContents->lightPoint.data(), sizeof(pCommonContents->lightPoint), pPointLightData, sizeof(PointLightData) * pCommonContents->pointLightCount);
 
 					const SpotLightData* pSpotLightData = nullptr;
-					pLightResourceManager->GetSpotLightData(&pSpotLightData, &pCommonContents->spotLightCount);
+					pLightResourceManager->GetSpotLightRenderData(&pSpotLightData, &pCommonContents->spotLightCount);
 					memory::Copy(pCommonContents->lightSpot.data(), sizeof(pCommonContents->lightSpot), pSpotLightData, sizeof(SpotLightData) * pCommonContents->spotLightCount);
 
 					pCommonContents->cascadeShadowCount = pLightResourceManager->GetShadowCount(ILight::Type::eDirectional);
@@ -291,7 +291,7 @@ namespace est
 						if (pDirectionalLight != nullptr)
 						{
 							const CascadedShadows& cascadedShadows = pDirectionalLight->GetCascadedShadows();
-							pCommonContents->cascadedShadow[i] = cascadedShadows.GetData();
+							pCommonContents->cascadedShadow[i] = cascadedShadows.GetRenderData();
 						}
 					}
 
@@ -420,6 +420,7 @@ namespace est
 
 			public:
 				void Render(const RenderElement& element, Group emGroup, const math::Matrix& prevViewPrjectionMatrixection);
+				void AllCleanup();
 				void Cleanup();
 
 			public:
@@ -503,8 +504,7 @@ namespace est
 						prevInstanceData.emplace_back(prevWorldMatrix);
 					}
 				};
-
-				std::array<std::vector<JobStatic>, GroupCount> m_jobStatics;
+				std::array<std::vector<JobStatic>, GroupCount> m_jobStatics[2];
 
 				using UMapJobStaticBatch = tsl::robin_map<const void*, JobStaticBatch>;
 				using UMapJobStaticMaterialBatch = tsl::robin_map<MaterialPtr, UMapJobStaticBatch>;
@@ -535,8 +535,7 @@ namespace est
 						prevInstanceData.emplace_back(prevWorldMatrix, PrevVTFID);
 					}
 				};
-
-				std::array<std::vector<JobSkinned>, GroupCount> m_jobSkinneds;
+				std::array<std::vector<JobSkinned>, GroupCount> m_jobSkinneds[2];
 
 				using UMapJobSkinnedBatch = tsl::robin_map<const void*, JobSkinnedBatch>;
 				using UMapJobSkinnedMaterialBatch = tsl::robin_map<MaterialPtr, UMapJobSkinnedBatch>;
@@ -568,8 +567,10 @@ namespace est
 
 				for (int i = 0; i < GroupCount; ++i)
 				{
-					m_jobStatics[i].resize(512);
-					m_jobSkinneds[i].resize(128);
+					m_jobStatics[UpdateThread()][i].reserve(512);
+					m_jobStatics[RenderThread()][i].reserve(512);
+					m_jobSkinneds[UpdateThread()][i].reserve(128);
+					m_jobSkinneds[RenderThread()][i].reserve(128);
 				}
 
 				m_umapJobStaticMasterBatchs.rehash(512);
@@ -643,7 +644,7 @@ namespace est
 				m_condition_createShaderAsync.notify_all();
 				m_thread_createShaderAsync.join();
 
-				Cleanup();
+				AllCleanup();
 
 				m_skinningInstancingDataBuffer.Destroy();
 				m_staticInstancingDataBuffer.Destroy();
@@ -668,7 +669,7 @@ namespace est
 				TRACER_EVENT(__FUNCTIONW__);
 				DX_PROFILING(ModelRenderer);
 
-				if (m_jobStatics[emGroup].empty() == true && m_jobSkinneds[emGroup].empty() == true)
+				if (m_jobStatics[RenderThread()][emGroup].empty() == true && m_jobSkinneds[RenderThread()][emGroup].empty() == true)
 					return;
 
 				Camera* pCamera = element.pCamera;
@@ -690,9 +691,9 @@ namespace est
 					DX_PROFILING(Culling);
 
 					const collision::Frustum& frustum = pCamera->GetFrustum();
-					jobsystem::ParallelFor(m_jobStatics[emGroup].size(), [&](size_t i)
+					jobsystem::ParallelFor(m_jobStatics[RenderThread()][emGroup].size(), [&](size_t i)
 					{
-						JobStatic& job = m_jobStatics[emGroup][i];
+						JobStatic& job = m_jobStatics[RenderThread()][emGroup][i];
 						const OcclusionCullingData& occlusionCullingData = job.data.occlusionCullingData;
 						if (frustum.Contains(occlusionCullingData.aabb) == collision::EmContainment::eDisjoint)
 						{
@@ -707,9 +708,9 @@ namespace est
 						}
 					});
 
-					jobsystem::ParallelFor(m_jobSkinneds[emGroup].size(), [&](size_t i)
+					jobsystem::ParallelFor(m_jobSkinneds[RenderThread()][emGroup].size(), [&](size_t i)
 					{
-						JobSkinned& job = m_jobSkinneds[emGroup][i];
+						JobSkinned& job = m_jobSkinneds[RenderThread()][emGroup][i];
 						const OcclusionCullingData& occlusionCullingData = job.data.occlusionCullingData;
 						if (frustum.Contains(occlusionCullingData.aabb) == collision::EmContainment::eDisjoint)
 						{
@@ -859,12 +860,23 @@ namespace est
 				}
 			}
 
+			void ModelRenderer::Impl::AllCleanup()
+			{
+				for (int i = 0; i < GroupCount; ++i)
+				{
+					m_jobStatics[UpdateThread()][i].clear();
+					m_jobStatics[RenderThread()][i].clear();
+					m_jobSkinneds[UpdateThread()][i].clear();
+					m_jobSkinneds[RenderThread()][i].clear();
+				}
+			}
+
 			void ModelRenderer::Impl::Cleanup()
 			{
 				for (int i = 0; i < GroupCount; ++i)
 				{
-					m_jobStatics[i].clear();
-					m_jobSkinneds[i].clear();
+					m_jobStatics[RenderThread()][i].clear();
+					m_jobSkinneds[RenderThread()][i].clear();
 				}
 
 				m_umapJobStaticMasterBatchs.clear();
@@ -894,13 +906,13 @@ namespace est
 				if (pMaterial == nullptr || pMaterial->GetBlendState() == BlendState::eOff)
 				{
 					const thread::SRWWriteLock writeLock(&m_srwLock_static);
-					m_jobStatics[eDeferred].emplace_back(job);
-					m_jobStatics[eShadow].emplace_back(job);
+					m_jobStatics[UpdateThread()][eDeferred].emplace_back(job);
+					m_jobStatics[UpdateThread()][eShadow].emplace_back(job);
 				}
 				else
 				{
 					const thread::SRWWriteLock writeLock(&m_srwLock_static);
-					m_jobStatics[eAlphaBlend].emplace_back(job);
+					m_jobStatics[UpdateThread()][eAlphaBlend].emplace_back(job);
 				}
 			}
 
@@ -910,13 +922,13 @@ namespace est
 				if (pMaterial == nullptr || pMaterial->GetBlendState() == BlendState::eOff)
 				{
 					thread::SRWWriteLock writeLock(&m_srwLock_skinned);
-					m_jobSkinneds[eDeferred].emplace_back(job);
-					m_jobSkinneds[eShadow].emplace_back(job);
+					m_jobSkinneds[UpdateThread()][eDeferred].emplace_back(job);
+					m_jobSkinneds[UpdateThread()][eShadow].emplace_back(job);
 				}
 				else
 				{
 					thread::SRWWriteLock writeLock(&m_srwLock_skinned);
-					m_jobSkinneds[eAlphaBlend].emplace_back(job);
+					m_jobSkinneds[UpdateThread()][eAlphaBlend].emplace_back(job);
 				}
 			}
 
@@ -927,14 +939,14 @@ namespace est
 				m_umapJobStaticMasterBatchs.clear();
 				{
 					bool isEnableVelocityMotionBlur = false;
-					if (emGroup != Group::eShadow && GetOptions().OnMotionBlur == true && GetOptions().motionBlurConfig.IsVelocityMotionBlur() == true)
+					if (emGroup != Group::eShadow && RenderOptions().OnMotionBlur == true && RenderOptions().motionBlurConfig.IsVelocityMotionBlur() == true)
 					{
 						isEnableVelocityMotionBlur = true;
 					}
 
-					for (size_t i = 0; i < m_jobStatics[emGroup].size(); ++i)
+					for (size_t i = 0; i < m_jobStatics[RenderThread()][emGroup].size(); ++i)
 					{
-						JobStatic& job = m_jobStatics[emGroup][i];
+						JobStatic& job = m_jobStatics[RenderThread()][emGroup][i];
 						if (job.isCulled == true)
 							continue;
 
@@ -1126,14 +1138,14 @@ namespace est
 				if (pVTFTexture != nullptr)
 				{
 					bool isEnableVelocityMotionBlur = false;
-					if (GetOptions().OnMotionBlur == true && GetOptions().motionBlurConfig.IsVelocityMotionBlur() == true)
+					if (RenderOptions().OnMotionBlur == true && RenderOptions().motionBlurConfig.IsVelocityMotionBlur() == true)
 					{
 						isEnableVelocityMotionBlur = true;
 					}
 
-					for (size_t i = 0; i < m_jobSkinneds[emGroup].size(); ++i)
+					for (size_t i = 0; i < m_jobSkinneds[RenderThread()][emGroup].size(); ++i)
 					{
-						JobSkinned& job = m_jobSkinneds[emGroup][i];
+						JobSkinned& job = m_jobSkinneds[RenderThread()][emGroup][i];
 						if (job.isCulled == true)
 							continue;
 
@@ -1446,6 +1458,11 @@ namespace est
 			void ModelRenderer::Render(const RenderElement& element, Group emGroup, const math::Matrix& prevViewPrjectionMatrixection)
 			{
 				m_pImpl->Render(element, emGroup, prevViewPrjectionMatrixection);
+			}
+
+			void ModelRenderer::AllCleanup()
+			{
+				m_pImpl->AllCleanup();
 			}
 
 			void ModelRenderer::Cleanup()

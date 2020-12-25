@@ -150,7 +150,7 @@ namespace est
 				DX_PROFILING(SSS);
 
 				Device* pDeviceInstance = Device::GetInstance();
-				ID3D11DeviceContext* pDeviceContext = pDeviceInstance->GetImmediateContext();
+				ID3D11DeviceContext* pDeviceContext = pDeviceInstance->GetRenderContext();
 
 				pDeviceContext->ClearState();
 
@@ -192,7 +192,7 @@ namespace est
 				ID3D11ShaderResourceView* pDepthSRV = pDepth->GetShaderResourceView();
 				pDeviceContext->PSSetShaderResources(shader::eSRV_Depth, 1, &pDepthSRV);
 
-				const Options& options = GetOptions();
+				const Options& options = RenderOptions();
 				const Options::SSSConfig& config = options.sssConfig;
 
 				shader::SetSSSContents(pDeviceContext, &m_sssContents, config.width);

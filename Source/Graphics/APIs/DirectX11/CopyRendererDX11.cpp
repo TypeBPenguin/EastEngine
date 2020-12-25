@@ -118,7 +118,7 @@ namespace est
 				DX_PROFILING(Copy_RGBA);
 
 				Device* pDeviceInstance = Device::GetInstance();
-				ID3D11DeviceContext* pDeviceContext = pDeviceInstance->GetImmediateContext();
+				ID3D11DeviceContext* pDeviceContext = pDeviceInstance->GetRenderContext();
 
 				CommonReady(pDeviceInstance, pDeviceContext, pSource, pResult);
 				CommonDraw(pDeviceContext, shader::ePS_RGBA, pResult);
@@ -132,7 +132,7 @@ namespace est
 				DX_PROFILING(Copy_RGB);
 
 				Device* pDeviceInstance = Device::GetInstance();
-				ID3D11DeviceContext* pDeviceContext = pDeviceInstance->GetImmediateContext();
+				ID3D11DeviceContext* pDeviceContext = pDeviceInstance->GetRenderContext();
 
 				CommonReady(pDeviceInstance, pDeviceContext, pSource, pResult);
 				CommonDraw(pDeviceContext, shader::ePS_RGB, pResult);

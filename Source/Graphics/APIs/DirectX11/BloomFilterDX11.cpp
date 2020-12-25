@@ -185,7 +185,7 @@ namespace est
 
 				DX_PROFILING(BloomFilter);
 
-				const Options::BloomFilterConfig& bloomFilterConfig = GetOptions().bloomFilterConfig;
+				const Options::BloomFilterConfig& bloomFilterConfig = RenderOptions().bloomFilterConfig;
 
 				SetBloomPreset(bloomFilterConfig.emPreset);
 
@@ -196,7 +196,7 @@ namespace est
 				m_fRadiusMultiplier = static_cast<float>(sourceDesc.Width) / static_cast<float>(sourceDesc.Height);
 
 				Device* pDeviceInstance = Device::GetInstance();
-				ID3D11DeviceContext* pDeviceContext = pDeviceInstance->GetImmediateContext();
+				ID3D11DeviceContext* pDeviceContext = pDeviceInstance->GetRenderContext();
 
 				pDeviceContext->ClearState();
 

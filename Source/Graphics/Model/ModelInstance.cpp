@@ -14,10 +14,6 @@ namespace est
 
 		MaterialInstance::~MaterialInstance()
 		{
-			for (auto& nodeMaterial : m_materials)
-			{
-				ReleaseResource(nodeMaterial.pMaterial);
-			}
 			m_materials.clear();
 		}
 

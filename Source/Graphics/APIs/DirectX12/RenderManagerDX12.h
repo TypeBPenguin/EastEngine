@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Graphics/Interface/Renderer.h"
 #include "Graphics/Interface/RenderJob.h"
 
 namespace est
@@ -20,6 +21,7 @@ namespace est
 				~RenderManager();
 
 			public:
+				void AllCleanup();
 				void Cleanup();
 				void Render();
 

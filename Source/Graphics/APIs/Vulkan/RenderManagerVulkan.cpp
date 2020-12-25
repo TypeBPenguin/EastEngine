@@ -814,6 +814,10 @@ namespace est
 			{
 			}
 
+			void RenderManager::AllCleanup()
+			{
+			}
+
 			void RenderManager::Cleanup()
 			{
 			}

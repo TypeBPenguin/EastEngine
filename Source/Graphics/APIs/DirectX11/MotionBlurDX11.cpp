@@ -217,9 +217,9 @@ namespace est
 				DX_PROFILING(DepthBufferMotionBlur);
 
 				Device* pDeviceInstance = Device::GetInstance();
-				ID3D11DeviceContext* pDeviceContext = pDeviceInstance->GetImmediateContext();
+				ID3D11DeviceContext* pDeviceContext = pDeviceInstance->GetRenderContext();
 
-				const Options::MotionBlurConfig& motionBlurConfig = GetOptions().motionBlurConfig;
+				const Options::MotionBlurConfig& motionBlurConfig = RenderOptions().motionBlurConfig;
 
 				CommonReady(pDeviceInstance, pDeviceContext, pSource, pResult);
 
@@ -241,9 +241,9 @@ namespace est
 				DX_PROFILING(VelocityBufferMotionBlur);
 
 				Device* pDeviceInstance = Device::GetInstance();
-				ID3D11DeviceContext* pDeviceContext = pDeviceInstance->GetImmediateContext();
+				ID3D11DeviceContext* pDeviceContext = pDeviceInstance->GetRenderContext();
 
-				const Options::MotionBlurConfig& motionBlurConfig = GetOptions().motionBlurConfig;
+				const Options::MotionBlurConfig& motionBlurConfig = RenderOptions().motionBlurConfig;
 
 				CommonReady(pDeviceInstance, pDeviceContext, pSource, pResult);
 
@@ -261,9 +261,9 @@ namespace est
 				DX_PROFILING(DualVelocityBufferMotionBlur);
 
 				Device* pDeviceInstance = Device::GetInstance();
-				ID3D11DeviceContext* pDeviceContext = pDeviceInstance->GetImmediateContext();
+				ID3D11DeviceContext* pDeviceContext = pDeviceInstance->GetRenderContext();
 
-				const Options::MotionBlurConfig& motionBlurConfig = GetOptions().motionBlurConfig;
+				const Options::MotionBlurConfig& motionBlurConfig = RenderOptions().motionBlurConfig;
 
 				CommonReady(pDeviceInstance, pDeviceContext, pSource, pResult);
 
@@ -309,7 +309,7 @@ namespace est
 
 				const math::float2 destinationDimensions{ static_cast<float>(destinationDesc.Width), static_cast<float>(destinationDesc.Height) };
 
-				const Options::MotionBlurConfig& motionBlurConfig = GetOptions().motionBlurConfig;
+				const Options::MotionBlurConfig& motionBlurConfig = RenderOptions().motionBlurConfig;
 
 				shader::SetMotionBlur_PSConstants(pDeviceContext, &m_psContents,
 					motionBlurConfig.blurAmount, sourceDimensions, destinationDimensions);

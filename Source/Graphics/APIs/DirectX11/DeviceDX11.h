@@ -77,6 +77,8 @@ namespace est
 				ID3D11Device* GetInterface() const;
 				ID3D11DeviceContext* GetImmediateContext() const;
 
+				ID3D11DeviceContext* GetRenderContext() const;
+
 				RenderTarget* GetSwapChainRenderTarget() const;
 
 				ID3D11RasterizerState* GetRasterizerState(RasterizerState::Type emType) const;

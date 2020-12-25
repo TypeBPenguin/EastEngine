@@ -456,8 +456,8 @@ namespace est
 				{
 					for (uint32_t i = 0; i < eMaxLod; ++i)
 					{
-						ReleaseResource(pVertexBuffer[i]);
-						ReleaseResource(pIndexBuffer[i]);
+						pVertexBuffer[i].reset();
+						pIndexBuffer[i].reset();
 					}
 				};
 
@@ -477,7 +477,6 @@ namespace est
 					if (vecVertices[i].empty() || vecIndices[i].empty())
 						break;
 
-					ReleaseResource(pVertexBuffer[i]);
 					pVertexBuffer[i] = CreateVertexBuffer(reinterpret_cast<uint8_t*>(vecVertices[i].data()), static_cast<uint32_t>(vecVertices[i].size()), sizeof(VertexPosTexNor), true);
 					if (pVertexBuffer[i] == nullptr)
 					{
@@ -485,7 +484,6 @@ namespace est
 						return false;
 					}
 
-					ReleaseResource(pIndexBuffer[i]);
 					pIndexBuffer[i] = CreateIndexBuffer(reinterpret_cast<uint8_t*>(vecIndices[i].data()), static_cast<uint32_t>(vecIndices[i].size()), sizeof(VertexPosTexNor), true);
 					if (pIndexBuffer[i] == nullptr)
 					{
@@ -510,17 +508,6 @@ namespace est
 
 				pModelStatic->AddMaterialArray(&materials.front(), materials.size());
 				pModel->AddNode(std::move(pModelStatic), iter.strGroupName.c_str());
-
-				for (uint32_t i = 0; i < nSize; ++i)
-				{
-					ReleaseResource(pVertexBuffer[i]);
-					ReleaseResource(pIndexBuffer[i]);
-				}
-
-				for (auto& pMaterial : materials)
-				{
-					ReleaseResource(pMaterial);
-				}
 
 				SuccessFunc();
 			}

@@ -23,12 +23,6 @@ namespace est
 
 		Terrain::~Terrain()
 		{
-			graphics::ReleaseResource(m_pTexHeightMap);
-			graphics::ReleaseResource(m_pTexColorMap);
-			graphics::ReleaseResource(m_pTexDetailMap);
-			graphics::ReleaseResource(m_pTexDetailNormalMap);
-
-			graphics::ReleaseResource(m_pHeightField);
 			physics::scene::RemoveActor(std::move(m_pPhysics));
 		}
 

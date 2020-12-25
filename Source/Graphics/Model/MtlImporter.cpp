@@ -424,10 +424,6 @@ namespace est
 
 		void MtlImporter::Release()
 		{
-			for (auto& iter : m_umapNewMtrl)
-			{
-				ReleaseResource(iter.second);
-			}
 			m_umapNewMtrl.clear();
 		}
 	}

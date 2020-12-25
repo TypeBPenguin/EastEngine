@@ -115,7 +115,7 @@ namespace est
 				DX_PROFILING(ColorGrading);
 
 				Device* pDeviceInstance = Device::GetInstance();
-				ID3D11DeviceContext* pDeviceContext = pDeviceInstance->GetImmediateContext();
+				ID3D11DeviceContext* pDeviceContext = pDeviceInstance->GetRenderContext();
 
 				pDeviceContext->ClearState();
 
@@ -152,7 +152,7 @@ namespace est
 				ID3D11ShaderResourceView* pSRV = pSource->GetShaderResourceView();
 				pDeviceContext->PSSetShaderResources(shader::eSRV_Source, 1, &pSRV);
 
-				const Options& options = GetOptions();
+				const Options& options = RenderOptions();
 				const Options::ColorGradingConfig& config = options.colorGradingConfig;
 
 				shader::SetColorGradingContents(pDeviceContext, &m_colorGradingContents, config.colorGuide);

@@ -41,14 +41,14 @@ namespace est
 				vkFreeMemory(device, m_bufferMemory, nullptr);
 			}
 
-			bool IndexBuffer::Map(void** ppData)
+			bool IndexBuffer::Map(MappedSubResourceData& mappedSubResourceData, bool isDiscard)
 			{
 				VkDevice device = Device::GetInstance()->GetInterface();
 
-				VkResult result = vkMapMemory(device, m_bufferMemory, 0, m_bufferSize, 0, ppData);
+				VkResult result = vkMapMemory(device, m_bufferMemory, 0, m_bufferSize, 0, &mappedSubResourceData.pData);
 				if (result != VK_SUCCESS)
 				{
-					(*ppData) = nullptr;
+					mappedSubResourceData = {};
 					return false;
 				}
 

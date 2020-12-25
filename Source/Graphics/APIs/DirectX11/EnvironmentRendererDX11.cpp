@@ -63,7 +63,6 @@ namespace est
 
 			public:
 				void Render(const RenderElement& element);
-				void Cleanup();
 
 			private:
 				ID3D11VertexShader* m_pVertexShader{ nullptr };
@@ -183,10 +182,6 @@ namespace est
 				pDeviceContext->DrawIndexed(pIndexBuffer->GetIndexCount(), 0, 0);
 			}
 
-			void EnvironmentRenderer::Impl::Cleanup()
-			{
-			}
-
 			EnvironmentRenderer::EnvironmentRenderer()
 				: m_pImpl{ std::make_unique<Impl>() }
 			{
@@ -199,11 +194,6 @@ namespace est
 			void EnvironmentRenderer::Render(const RenderElement& element)
 			{
 				m_pImpl->Render(element);
-			}
-
-			void EnvironmentRenderer::Cleanup()
-			{
-				m_pImpl->Cleanup();
 			}
 		}
 	}

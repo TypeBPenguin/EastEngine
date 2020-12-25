@@ -207,6 +207,9 @@
     <ClInclude Include="WindowCursor.h">
       <Filter>Window\Cursor</Filter>
     </ClInclude>
+    <ClInclude Include="ParallelUpdateRender.h">
+      <Filter>Interface</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -313,6 +316,9 @@
     </ClCompile>
     <ClCompile Include="WindowCursor.cpp">
       <Filter>Window\Cursor</Filter>
+    </ClCompile>
+    <ClCompile Include="ParallelUpdateRender.cpp">
+      <Filter>Interface</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

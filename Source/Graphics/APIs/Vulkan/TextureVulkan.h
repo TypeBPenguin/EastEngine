@@ -21,8 +21,11 @@ namespace est
 				virtual const string::StringID& GetName() const override { return m_key.Value(); }
 
 			public:
-				virtual const math::uint2& GetSize() const override { return m_n2Size; }
+				virtual const math::uint2& GetSize() const override { return m_size; }
 				virtual const std::wstring& GetPath() const override { return m_path; }
+
+				virtual bool Map(MappedSubResourceData& mappedSubResourceData) override;
+				virtual void Unmap() override;
 
 			public:
 				bool Initialize(const TextureDesc& desc);
@@ -35,7 +38,7 @@ namespace est
 			private:
 				const ITexture::Key m_key;
 
-				math::uint2 m_n2Size;
+				math::uint2 m_size;
 				std::wstring m_path;
 
 				VkImage m_textureImage{ nullptr };

@@ -21,7 +21,7 @@ namespace est
 				virtual uint32_t GetVertexCount() const override;
 				virtual uint32_t GetFormatSize() const override;
 
-				virtual bool Map(void** ppData) override;
+				virtual bool Map(MappedSubResourceData& mappedSubResourceData, bool isDiscard = true) override;
 				virtual void Unmap() override;
 
 			public:

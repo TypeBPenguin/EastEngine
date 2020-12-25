@@ -38,6 +38,7 @@ namespace est
 				~Impl();
 
 			public:
+				void AllCleanup();
 				void Cleanup();
 				void Render();
 
@@ -92,12 +93,18 @@ namespace est
 			{
 			}
 
+			void RenderManager::Impl::AllCleanup()
+			{
+				TRACER_EVENT(__FUNCTIONW__);
+				GetModelRenderer()->AllCleanup();
+				GetTerrainRenderer()->AllCleanup();
+				GetVertexRenderer()->AllCleanup();
+			}
+
 			void RenderManager::Impl::Cleanup()
 			{
 				TRACER_EVENT(__FUNCTIONW__);
 				GetModelRenderer()->Cleanup();
-				GetDeferredRenderer()->Cleanup();
-				GetEnvironmentRenderer()->Cleanup();
 				GetTerrainRenderer()->Cleanup();
 				GetVertexRenderer()->Cleanup();
 			}
@@ -108,10 +115,10 @@ namespace est
 				Device* pDeviceInstance = Device::GetInstance();
 				const uint32_t frameIndex = pDeviceInstance->GetFrameIndex();
 
-				Camera& camera = GetCamera();
+				Camera& camera = RenderCamera();
 				const math::Matrix matViewProjection = camera.GetViewMatrix() * camera.GetProjectionMatrix();
 
-				const Options& options = GetOptions();
+				const Options& options = RenderOptions();
 
 				UpdateOptions(options);
 
@@ -145,7 +152,7 @@ namespace est
 					pGBuffer->Clear(pCommandList);
 
 					D3D12_RESOURCE_DESC desc = pDeviceInstance->GetSwapChainRenderTarget(frameIndex)->GetDesc();
-					if (GetOptions().OnHDR == true)
+					if (options.OnHDR == true)
 					{
 						desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 					}
@@ -181,7 +188,7 @@ namespace est
 
 					renderElement.SetDSVHandle(pGBuffer->GetDepthStencil()->GetCPUHandle());
 
-					if (GetOptions().OnMotionBlur == true && GetOptions().motionBlurConfig.IsVelocityMotionBlur() == true)
+					if (options.OnMotionBlur == true && options.motionBlurConfig.IsVelocityMotionBlur() == true)
 					{
 						renderElement.pRTVs[GBufferType::eVelocity] = pGBuffer->GetRenderTarget(GBufferType::eVelocity);
 						renderElement.rtvHandles[GBufferType::eVelocity] = pGBuffer->GetRenderTarget(GBufferType::eVelocity)->GetCPUHandle();
@@ -396,7 +403,7 @@ namespace est
 
 			void RenderManager::Impl::UpdateOptions(const Options& curOptions)
 			{
-				const Options& prevOptions = GetPrevOptions();
+				const Options& prevOptions = PrevRenderOptions();
 				if (prevOptions.OnHDR != curOptions.OnHDR)
 				{
 					if (curOptions.OnHDR == true)
@@ -510,6 +517,11 @@ namespace est
 
 			RenderManager::~RenderManager()
 			{
+			}
+
+			void RenderManager::AllCleanup()
+			{
+				m_pImpl->AllCleanup();
 			}
 
 			void RenderManager::Cleanup()

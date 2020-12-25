@@ -345,7 +345,7 @@ namespace est
 				}
 
 				std::ofstream stream(m_saveFilePath.c_str());
-				stream << std::setw(4) << root << std::endl;
+				stream << root << std::endl;
 
 				m_startTime.reset();
 				m_umapEvents.clear();
@@ -381,15 +381,21 @@ namespace est
 
 			void BeginEvent(const wchar_t* title, const wchar_t* category, const wchar_t* file, int line)
 			{
-				s_tracerImpl.BeginEvent(title, category);
+				if (s_tracerImpl.IsTracing() == true)
+				{
+					s_tracerImpl.BeginEvent(title, category);
 
-				s_tracerImpl.PushArgs(L"File", file);
-				s_tracerImpl.PushArgs(L"Line", line);
+					s_tracerImpl.PushArgs(L"File", file);
+					s_tracerImpl.PushArgs(L"Line", line);
+				}
 			}
 
 			void EndEvent(bool isForceRecord)
 			{
-				s_tracerImpl.EndEvent(isForceRecord);
+				if (s_tracerImpl.IsTracing() == true)
+				{
+					s_tracerImpl.EndEvent(isForceRecord);
+				}
 			}
 
 			template <>

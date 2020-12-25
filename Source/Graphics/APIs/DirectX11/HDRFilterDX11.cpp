@@ -281,7 +281,7 @@ namespace est
 				DX_PROFILING(HDR);
 
 				Device* pDeviceInstance = Device::GetInstance();
-				ID3D11DeviceContext* pDeviceContext = pDeviceInstance->GetImmediateContext();
+				ID3D11DeviceContext* pDeviceContext = pDeviceInstance->GetRenderContext();
 
 				pDeviceContext->ClearState();
 
@@ -304,7 +304,7 @@ namespace est
 
 				pDeviceContext->VSSetShader(m_pVertexShader, nullptr, 0);
 
-				const Options::HDRConfig& hdrConfig = GetOptions().hdrConfig;
+				const Options::HDRConfig& hdrConfig = RenderOptions().hdrConfig;
 				shader::SetHDRContents(pDeviceContext, &m_hdrContents, hdrConfig, Timer::GetInstance()->GetElapsedTime());
 				pDeviceContext->PSSetConstantBuffers(shader::eCB_HDR_Constants, 1, &m_hdrContents.pBuffer);
 

@@ -111,10 +111,7 @@ namespace est
 			}
 
 			if (pTexture->GetState() == IResource::State::eInvalid)
-			{
-				ReleaseResource(pTexture);
 				return nullptr;
-			}
 
 			thread::SRWWriteLock wirteLock(&m_srwLock_emitter);
 			std::shared_ptr<ParticleEmitter> pParticle = std::shared_ptr<ParticleEmitter>(m_poolParticleEmitter.Allocate(attributes, pTexture), [&](ParticleEmitter* pParticle)
@@ -133,10 +130,7 @@ namespace est
 				return nullptr;
 
 			if (pMaterial->GetState() == IResource::State::eInvalid)
-			{
-				ReleaseResource(pMaterial);
 				return nullptr;
-			}
 
 			thread::SRWWriteLock wirteLock(&m_srwLock_decal);
 			std::shared_ptr<ParticleDecal> pParticle = std::shared_ptr<ParticleDecal>(m_poolParticleDecal.Allocate(attributes, pMaterial), [&](ParticleDecal* pParticle)

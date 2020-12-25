@@ -66,7 +66,6 @@ namespace est
 			public:
 				void RefreshPSO(ID3D12Device* pDevice);
 				void Render(const RenderElement& renderElement);
-				void Cleanup();
 
 			private:
 				enum RootParameters : uint32_t
@@ -180,10 +179,6 @@ namespace est
 				pDeviceInstance->ExecuteCommandList(pCommandList);
 			}
 
-			void EnvironmentRenderer::Impl::Cleanup()
-			{
-			}
-
 			ID3D12RootSignature* EnvironmentRenderer::Impl::CreateRootSignature(ID3D12Device* pDevice)
 			{
 				std::vector<CD3DX12_ROOT_PARAMETER> vecRootParameters;
@@ -278,7 +273,7 @@ namespace est
 				psoDesc.BlendState = util::GetBlendDesc(BlendState::eOff);
 				psoDesc.NumRenderTargets = 1;
 
-				if (GetOptions().OnHDR == true)
+				if (RenderOptions().OnHDR == true)
 				{
 					psoDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
 				}
@@ -316,11 +311,6 @@ namespace est
 			void EnvironmentRenderer::Render(const RenderElement& renderElement)
 			{
 				m_pImpl->Render(renderElement);
-			}
-
-			void EnvironmentRenderer::Cleanup()
-			{
-				m_pImpl->Cleanup();
 			}
 		}
 	}

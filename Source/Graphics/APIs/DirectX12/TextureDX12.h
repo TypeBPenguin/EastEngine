@@ -35,6 +35,9 @@ namespace est
 				virtual const math::uint2& GetSize() const override;
 				virtual const std::wstring& GetPath() const override;
 
+				virtual bool Map(MappedSubResourceData& mappedSubResourceData) override;
+				virtual void Unmap() override;
+
 			public:
 				bool Initialize(const TextureDesc& desc);
 				bool Initialize(const D3D12_RESOURCE_DESC* pDesc);

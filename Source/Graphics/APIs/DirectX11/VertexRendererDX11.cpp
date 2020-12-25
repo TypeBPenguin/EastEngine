@@ -158,6 +158,7 @@ namespace est
 
 			public:
 				void Render(const RenderElement& renderElement);
+				void AllCleanup();
 				void Cleanup();
 
 			public:
@@ -188,7 +189,7 @@ namespace est
 						instanceData.emplace_back(job.worldMatrix, job.color);
 					}
 				};
-				tsl::robin_map<VertexBufferPtr, JobVertexBatch> m_umapJobVertexBatchs;
+				tsl::robin_map<VertexBufferPtr, JobVertexBatch> m_umapJobVertexBatchs[2];
 			};
 
 			VertexRenderer::Impl::Impl()
@@ -213,7 +214,8 @@ namespace est
 
 				SafeRelease(pShaderBlob);
 
-				m_umapJobVertexBatchs.reserve(256);
+				m_umapJobVertexBatchs[UpdateThread()].reserve(256);
+				m_umapJobVertexBatchs[RenderThread()].reserve(256);
 			}
 
 			VertexRenderer::Impl::~Impl()
@@ -231,7 +233,7 @@ namespace est
 
 			void VertexRenderer::Impl::Render(const RenderElement& renderElement)
 			{
-				if (m_umapJobVertexBatchs.empty() == true)
+				if (m_umapJobVertexBatchs[RenderThread()].empty() == true)
 					return;
 
 				TRACER_EVENT(__FUNCTIONW__);
@@ -266,7 +268,7 @@ namespace est
 
 				const math::Matrix matViewProjection = pCamera->GetViewMatrix() * pCamera->GetProjectionMatrix();
 
-				for (auto& iter : m_umapJobVertexBatchs)
+				for (auto& iter : m_umapJobVertexBatchs[RenderThread()])
 				{
 					const JobVertexBatch& batch = iter.second;
 
@@ -292,23 +294,29 @@ namespace est
 				}
 			}
 
+			void VertexRenderer::Impl::AllCleanup()
+			{
+				m_umapJobVertexBatchs[UpdateThread()].clear();
+				m_umapJobVertexBatchs[RenderThread()].clear();
+			}
+
 			void VertexRenderer::Impl::Cleanup()
 			{
-				m_umapJobVertexBatchs.clear();
+				m_umapJobVertexBatchs[RenderThread()].clear();
 			}
 
 			void VertexRenderer::Impl::PushJob(const RenderJobVertex& job)
 			{
 				thread::SRWWriteLock lock(&m_srwLock);
 
-				auto iter = m_umapJobVertexBatchs.find(job.pVertexBuffer);
-				if (iter != m_umapJobVertexBatchs.end())
+				auto iter = m_umapJobVertexBatchs[UpdateThread()].find(job.pVertexBuffer);
+				if (iter != m_umapJobVertexBatchs[UpdateThread()].end())
 				{
 					iter.value().instanceData.emplace_back(job.worldMatrix, job.color);
 				}
 				else
 				{
-					m_umapJobVertexBatchs.emplace(job.pVertexBuffer, job);
+					m_umapJobVertexBatchs[UpdateThread()].emplace(job.pVertexBuffer, job);
 				}
 			}
 
@@ -373,6 +381,11 @@ namespace est
 			void VertexRenderer::Render(const RenderElement& renderElement)
 			{
 				m_pImpl->Render(renderElement);
+			}
+
+			void VertexRenderer::AllCleanup()
+			{
+				m_pImpl->AllCleanup();
 			}
 
 			void VertexRenderer::Cleanup()

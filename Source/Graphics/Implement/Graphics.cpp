@@ -49,7 +49,6 @@ namespace est
 			virtual void Initialize(uint32_t width, uint32_t height, bool isFullScreen, const string::StringID& applicationTitle, const string::StringID& applicationName, std::function<HRESULT(HWND, uint32_t, WPARAM, LPARAM)> messageHandler) = 0;
 			virtual void Release() = 0;
 			virtual void Run(std::function<bool()> funcUpdate) = 0;
-			virtual void Cleanup(float elapsedTime) = 0;
 			virtual void Update(float elapsedTime) = 0;
 			virtual void PostUpdate(float elapsedTime) = 0;
 
@@ -93,9 +92,6 @@ namespace est
 			virtual void PushRenderJob(const RenderJobSkinned& renderJob) = 0;
 			virtual void PushRenderJob(const RenderJobTerrain& renderJob) = 0;
 			virtual void PushRenderJob(const RenderJobVertex& renderJob) = 0;
-
-			virtual void ReleaseResource(const std::shared_ptr<IResource>& pResource) = 0;
-			virtual void CleanupGarbageCollection() = 0;
 		};
 
 		template <
@@ -138,7 +134,7 @@ namespace est
 			virtual void Release() override
 			{
 				RenderManager* pRenderManager = Device::GetInstance()->GetRenderManager();
-				pRenderManager->Cleanup();
+				pRenderManager->AllCleanup();
 
 				OcclusionCulling::DestroyInstance();
 				s_pOcclusionCulling = nullptr;
@@ -149,14 +145,6 @@ namespace est
 
 				m_pImageBasedLight.reset();
 
-				CleanupGarbageCollection();
-
-				m_umapVertexBuffers.clear();
-				m_umapIndexBuffers.clear();
-				m_umapMaterials.clear();
-
-				m_garbages.clear();
-
 				m_pTextureManager.reset();
 				Device::DestroyInstance();
 			}
@@ -166,16 +154,10 @@ namespace est
 				Device::GetInstance()->Run(funcUpdate);
 			}
 
-			virtual void Cleanup(float elapsedTime) override
-			{
-				CleanupGarbageCollection();
-				m_pTextureManager->Cleanup(elapsedTime);
-				Device::GetInstance()->Cleanup(elapsedTime);
-			}
-
 			virtual void Update(float elapsedTime) override
 			{
-				GetPrevOptions() = GetOptions();
+				m_pTextureManager->Cleanup(elapsedTime);
+
 				GetPrevDebugInfo() = GetDebugInfo();
 				GetDebugInfo() = DebugInfo();
 				GetDebugInfo().isEnableCollection = GetPrevDebugInfo().isEnableCollection;
@@ -287,29 +269,12 @@ namespace est
 
 			virtual VertexBufferPtr CreateVertexBuffer(const uint8_t* pData, uint32_t vertexCount, size_t formatSize, bool isDynamic) override
 			{
-				thread::SRWWriteLock writeLock(&m_srwLock);
-
-				std::shared_ptr<VertexBuffer> pVertexBuffer = std::make_shared<VertexBuffer>(pData, vertexCount, formatSize, isDynamic);
-				auto iter = m_umapVertexBuffers.emplace(pVertexBuffer.get(), pVertexBuffer);
-				if (iter.second == false)
-				{
-					throw_line("failed to vertex buffer emplace to unordered map");
-				}
-				return iter.first->second;
+				return std::make_shared<VertexBuffer>(pData, vertexCount, formatSize, isDynamic);
 			}
 
 			virtual IndexBufferPtr CreateIndexBuffer(const uint8_t* pData, uint32_t indexCount, size_t formatSize, bool isDynamic) override
 			{
-				thread::SRWWriteLock writeLock(&m_srwLock);
-
-				std::shared_ptr<IndexBuffer> pIndexBuffer = std::make_shared<IndexBuffer>(pData, indexCount, formatSize, isDynamic);
-				auto iter = m_umapIndexBuffers.emplace(pIndexBuffer.get(), pIndexBuffer);
-				if (iter.second == false)
-				{
-					throw_line("failed to index buffer emplace to unordered map");
-				}
-
-				return iter.first->second;
+				return std::make_shared<IndexBuffer>(pData, indexCount, formatSize, isDynamic);
 			}
 
 			virtual TexturePtr CreateTexture(const wchar_t* filePath) override
@@ -356,32 +321,12 @@ namespace est
 
 			virtual MaterialPtr CreateMaterial(const IMaterial::Data* pMaterialData) override
 			{
-				std::shared_ptr<Material> pMaterial = Material::Create(pMaterialData);
-
-				thread::SRWWriteLock writeLock(&m_srwLock);
-
-				auto iter = m_umapMaterials.emplace(pMaterial.get(), pMaterial);
-				if (iter.second == false)
-				{
-					throw_line("failed to material emplace to unordered map");
-				}
-
-				return iter.first->second;
+				return Material::Create(pMaterialData);
 			}
 
 			virtual MaterialPtr CreateMaterial(const wchar_t* fileName, const wchar_t* filePath) override
 			{
-				std::shared_ptr<Material> pMaterial = Material::Create(fileName, filePath);
-
-				thread::SRWWriteLock writeLock(&m_srwLock);
-
-				auto iter = m_umapMaterials.emplace(pMaterial.get(), pMaterial);
-				if (iter.second == false)
-				{
-					throw_line("failed to material emplace to unordered map");
-				}
-
-				return iter.first->second;
+				return Material::Create(fileName, filePath);
 			}
 
 			virtual MaterialPtr CloneMaterial(const IMaterial* pMaterialSource) override
@@ -389,17 +334,7 @@ namespace est
 				if (pMaterialSource == nullptr)
 					return nullptr;
 
-				std::shared_ptr<Material> pMaterial = Material::Clone(static_cast<const Material*>(pMaterialSource));
-
-				thread::SRWWriteLock writeLock(&m_srwLock);
-
-				auto iter = m_umapMaterials.emplace(pMaterial.get(), pMaterial);
-				if (iter.second == false)
-				{
-					throw_line("failed to material emplace to unordered map");
-				}
-
-				return iter.first->second;
+				return Material::Clone(static_cast<const Material*>(pMaterialSource));
 			}
 
 			virtual DirectionalLightPtr CreateDirectionalLight(const string::StringID& name, bool isEnableShadow, const DirectionalLightData& lightData) override
@@ -464,61 +399,10 @@ namespace est
 				pRenderManager->PushJob(renderJob);
 			}
 
-			virtual void ReleaseResource(const std::shared_ptr<IResource>& pResource) override
-			{
-				if (pResource->GetResourceType() == sid::Texture ||
-					pResource->GetResourceType() == sid::DirectionalLight ||
-					pResource->GetResourceType() == sid::PointLight ||
-					pResource->GetResourceType() == sid::SpotLight)
-				{
-				}
-				else
-				{
-					thread::SRWWriteLock writeLock(&m_srwLock);
-					m_garbages.emplace_back(pResource);
-				}
-			}
-
-			virtual void CleanupGarbageCollection() override
-			{
-				thread::SRWWriteLock writeLock(&m_srwLock);
-
-				std::sort(m_garbages.begin(), m_garbages.end());
-				m_garbages.erase(std::unique(m_garbages.begin(), m_garbages.end()), m_garbages.end());
-
-				m_garbages.erase(std::remove_if(m_garbages.begin(), m_garbages.end(), [&](const std::shared_ptr<IResource>& pResource)
-				{
-					if (pResource.use_count() <= 2)
-						return false;
-
-					const string::StringID& strResourceType = pResource->GetResourceType();
-					if (strResourceType == sid::VertexBuffer)
-					{
-						m_umapVertexBuffers.erase(pResource.get());
-					}
-					else if (strResourceType == sid::IndexBuffer)
-					{
-						m_umapIndexBuffers.erase(pResource.get());
-					}
-					else if (strResourceType == sid::Material)
-					{
-						m_umapMaterials.erase(pResource.get());
-					}
-					return true;
-				}), m_garbages.end());
-			}
-
 		protected:
-			thread::SRWLock m_srwLock;
-			std::vector<std::shared_ptr<IResource>> m_garbages;
-
 			std::unique_ptr<TextureManager> m_pTextureManager;
 			std::unique_ptr<ImageBasedLight> m_pImageBasedLight;
 
-			tsl::robin_map<IResource*, std::shared_ptr<VertexBuffer>> m_umapVertexBuffers;
-			tsl::robin_map<IResource*, std::shared_ptr<IndexBuffer>> m_umapIndexBuffers;
-			tsl::robin_map<IResource*, std::shared_ptr<Material>> m_umapMaterials;
-			
 			LightManager* s_pLightManager{ nullptr };
 			OcclusionCulling* s_pOcclusionCulling{ nullptr };
 		};
@@ -587,11 +471,6 @@ namespace est
 		void Run(std::function<bool()> funcUpdate)
 		{
 			s_pGraphicsAPI->Run(funcUpdate);
-		}
-
-		void Cleanup(float elapsedTime)
-		{
-			s_pGraphicsAPI->Cleanup(elapsedTime);
 		}
 
 		void Update(float elapsedTime)
@@ -733,26 +612,6 @@ namespace est
 		{
 			return s_pGraphicsAPI->GetLight(type, index);
 		}
-
-#define DeclReleaseResource(type)										\
-		template <>														\
-		void ReleaseResource(std::shared_ptr<type>& pResource)	\
-		{																\
-			if (pResource == nullptr)									\
-				return;													\
-																		\
-			s_pGraphicsAPI->ReleaseResource(pResource);					\
-			pResource.reset();											\
-		}																
-
-		DeclReleaseResource(IVertexBuffer);
-		DeclReleaseResource(IIndexBuffer);
-		DeclReleaseResource(ITexture);
-		DeclReleaseResource(IMaterial);
-		DeclReleaseResource(IDirectionalLight);
-		DeclReleaseResource(IPointLight);
-		DeclReleaseResource(ISpotLight);
-		DeclReleaseResource(ILight);
 
 		void PushRenderJob(const RenderJobStatic& renderJob)
 		{

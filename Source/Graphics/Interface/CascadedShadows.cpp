@@ -2,6 +2,7 @@
 #include "CascadedShadows.h"
 
 #include "GraphicsInterface.h"
+#include "ParallelUpdateRender.h"
 
 #include "Camera.h"
 #include "Light.h"
@@ -109,24 +110,29 @@ namespace est
 				collision::Frustum::CreateFromMatrix(m_frustums[i], m_matProjections[i]);
 				m_frustums[i].Transform(m_matViews[i].Invert());
 
-				m_data.cascadeViewProjectionMatrix[i] = m_matViews[i] * m_matProjections[i];
-				m_data.cascadeViewProjectionMatrix[i] = m_data.cascadeViewProjectionMatrix[i].Transpose();
+				m_data[UpdateThread()].cascadeViewProjectionMatrix[i] = m_matViews[i] * m_matProjections[i];
+				m_data[UpdateThread()].cascadeViewProjectionMatrix[i] = m_data[UpdateThread()].cascadeViewProjectionMatrix[i].Transpose();
 
 				math::Matrix projectionMatrix = m_matProjections[i];
 				projectionMatrix._33 /= camera.GetProjection().farClip;
 				projectionMatrix._43 /= camera.GetProjection().farClip;
 
-				m_data.cascadeViewLinearProjectionMatrix[i] = m_matViews[i] * projectionMatrix;
-				m_data.cascadeViewLinearProjectionMatrix[i] = m_data.cascadeViewLinearProjectionMatrix[i].Transpose();
+				m_data[UpdateThread()].cascadeViewLinearProjectionMatrix[i] = m_matViews[i] * projectionMatrix;
+				m_data[UpdateThread()].cascadeViewLinearProjectionMatrix[i] = m_data[UpdateThread()].cascadeViewLinearProjectionMatrix[i].Transpose();
 
-				m_data.viewPos[i] = math::float4(viewPos.x, viewPos.y, viewPos.z, 0.f);
-				m_data.splitDepths[i] = m_splitDepths[i];
+				m_data[UpdateThread()].viewPos[i] = math::float4(viewPos.x, viewPos.y, viewPos.z, 0.f);
+				m_data[UpdateThread()].splitDepths[i] = m_splitDepths[i];
 			}
 
-			m_data.pcfBlurSize = math::int2(m_config.pcfBlurSize / -2, m_config.pcfBlurSize / 2 + 1);
-			m_data.texelOffset = GetTexelOffset();
-			m_data.numCascades = m_config.numCascades;
-			m_data.depthBias = m_config.depthBias;
+			m_data[UpdateThread()].pcfBlurSize = math::int2(m_config.pcfBlurSize / -2, m_config.pcfBlurSize / 2 + 1);
+			m_data[UpdateThread()].texelOffset = GetTexelOffset();
+			m_data[UpdateThread()].numCascades = m_config.numCascades;
+			m_data[UpdateThread()].depthBias = m_config.depthBias;
+		}
+
+		const CascadedShadowData& CascadedShadows::GetRenderData() const
+		{
+			return m_data[RenderThread()];
 		}
 	}
 }

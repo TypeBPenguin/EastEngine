@@ -38,19 +38,19 @@ namespace est
 				return m_pLightManager->GetLightCountInView(emType);
 			}
 
-			void LightResourceManager::GetDirectionalLightData(const DirectionalLightData** ppDirectionalLightData, uint32_t* pSize) const
+			void LightResourceManager::GetDirectionalLightRenderData(const DirectionalLightData** ppDirectionalLightData, uint32_t* pSize) const
 			{
-				return m_pLightManager->GetDirectionalLightData(ppDirectionalLightData, pSize);
+				return m_pLightManager->GetDirectionalLightRenderData(ppDirectionalLightData, pSize);
 			}
 
-			void LightResourceManager::GetPointLightData(const PointLightData** ppPointLightData, uint32_t* pSize) const
+			void LightResourceManager::GetPointLightRenderData(const PointLightData** ppPointLightData, uint32_t* pSize) const
 			{
-				return m_pLightManager->GetPointLightData(ppPointLightData, pSize);
+				return m_pLightManager->GetPointLightRenderData(ppPointLightData, pSize);
 			}
 
-			void LightResourceManager::GetSpotLightData(const SpotLightData** ppSpotLightData, uint32_t* pSize) const
+			void LightResourceManager::GetSpotLightRenderData(const SpotLightData** ppSpotLightData, uint32_t* pSize) const
 			{
-				return m_pLightManager->GetSpotLightData(ppSpotLightData, pSize);
+				return m_pLightManager->GetSpotLightRenderData(ppSpotLightData, pSize);
 			}
 
 			uint32_t LightResourceManager::GetShadowCount(ILight::Type type) const

@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "VTFManagerDX11.h"
 
+#include "Graphics/Interface/ParallelUpdateRender.h"
+
 #include "DeviceDX11.h"
 #include "TextureDX11.h"
 
@@ -17,7 +19,11 @@ namespace est
 		{
 			VTFManager::VTFManager()
 			{
-				m_vtfInstance.buffer.resize(eBufferCapacity);
+				m_vtfInstance.buffers[UpdateThread()].resize(eBufferCapacity);
+				m_vtfInstance.buffers[RenderThread()].resize(eBufferCapacity);
+
+				m_vtfInstance.allocatedCount[RenderThread()] = 1;
+				EncodeMatrix(m_vtfInstance.buffers[RenderThread()][0]);
 
 				D3D11_TEXTURE2D_DESC desc{};
 				desc.MipLevels = 1;
@@ -32,7 +38,7 @@ namespace est
 				desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 
 				D3D11_SUBRESOURCE_DATA initialData;
-				initialData.pSysMem = m_vtfInstance.buffer.data();
+				initialData.pSysMem = m_vtfInstance.buffers[0].data();
 				initialData.SysMemPitch = eTextureWidth * sizeof(math::float4);
 				initialData.SysMemSlicePitch = 1;
 
@@ -48,21 +54,21 @@ namespace est
 			{
 			}
 
-			bool VTFManager::Allocate(uint32_t nMatrixCount, math::Matrix** ppDest_Out, uint32_t& nVTFID_Out)
+			bool VTFManager::Allocate(uint32_t matrixCount, math::Matrix** ppDest_Out, uint32_t& vtfID_Out)
 			{
 				thread::SRWWriteLock writeLock(&m_srwLock);
 
-				if (m_vtfInstance.allocatedCount + nMatrixCount >= eBufferCapacity)
+				if (m_vtfInstance.allocatedCount[UpdateThread()] + matrixCount >= eBufferCapacity)
 				{
 					*ppDest_Out = nullptr;
-					nVTFID_Out = eInvalidVTFID;
+					vtfID_Out = eInvalidVTFID;
 					return false;
 				}
 
-				*ppDest_Out = &m_vtfInstance.buffer[m_vtfInstance.allocatedCount];
-				nVTFID_Out = m_vtfInstance.allocatedCount;
+				*ppDest_Out = &m_vtfInstance.buffers[UpdateThread()][m_vtfInstance.allocatedCount[UpdateThread()]];
+				vtfID_Out = m_vtfInstance.allocatedCount[UpdateThread()];
 
-				m_vtfInstance.allocatedCount += nMatrixCount;
+				m_vtfInstance.allocatedCount[UpdateThread()] += matrixCount;
 
 				return true;
 			}
@@ -72,7 +78,7 @@ namespace est
 				TRACER_EVENT(__FUNCTIONW__);
 				thread::SRWWriteLock writeLock(&m_srwLock);
 
-				if (m_vtfInstance.allocatedCount == 0)
+				if (m_vtfInstance.allocatedCount[RenderThread()] == 0)
 					return true;
 
 				ID3D11DeviceContext* pDeviceContext = Device::GetInstance()->GetImmediateContext();
@@ -83,11 +89,12 @@ namespace est
 					return false;
 
 				const uint32_t nDestSize = sizeof(math::Matrix) * eBufferCapacity;
-				memory::Copy(mapped.pData, nDestSize, m_vtfInstance.buffer.data(), sizeof(math::Matrix) * m_vtfInstance.allocatedCount);
+				memory::Copy(mapped.pData, nDestSize, m_vtfInstance.buffers[RenderThread()].data(), sizeof(math::Matrix) * m_vtfInstance.allocatedCount[RenderThread()]);
 
 				pDeviceContext->Unmap(m_vtfInstance.pVTF->GetTexture2D(), 0);
 
-				m_vtfInstance.allocatedCount = 0;
+				m_vtfInstance.allocatedCount[RenderThread()] = 1;
+				EncodeMatrix(m_vtfInstance.buffers[RenderThread()][0]);
 
 				return true;
 			}

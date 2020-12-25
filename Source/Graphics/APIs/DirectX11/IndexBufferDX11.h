@@ -19,8 +19,12 @@ namespace est
 			public:
 				virtual uint32_t GetIndexCount() const override { return m_indexCount; }
 
-				virtual bool Map(void** ppData) override;
+				virtual bool Map(MappedSubResourceData& mappedSubResourceData, bool isDiscard = true) override;
 				virtual void Unmap() override;
+
+			public:
+				bool Map(ID3D11DeviceContext* pDeviceContext, MappedSubResourceData& mappedSubResourceData, bool isDiscard);
+				void Unmap(ID3D11DeviceContext* pDeviceContext);
 
 			public:
 				ID3D11Buffer* GetBuffer() const { return m_pBuffer; }

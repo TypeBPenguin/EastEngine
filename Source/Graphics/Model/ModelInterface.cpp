@@ -306,8 +306,8 @@ namespace est
 
 				VertexBufferPtr pVertexBuffer = pNode->GetVertexBuffer();
 
-				void* pData = nullptr;
-				if (pVertexBuffer->Map(&pData) == false)
+				MappedSubResourceData mappedSubResourceData{};
+				if (pVertexBuffer->Map(mappedSubResourceData, false) == false)
 				{
 					LOG_ERROR(L"Can't map vertexbuffer");
 					return false;
@@ -318,7 +318,7 @@ namespace est
 
 				if (pNode->GetType() == IModelNode::eStatic)
 				{
-					const VertexPosTexNor* pVertices = reinterpret_cast<const VertexPosTexNor*>(pData);
+					const VertexPosTexNor* pVertices = reinterpret_cast<const VertexPosTexNor*>(mappedSubResourceData.pData);
 					for (uint32_t j = 0; j < vertexCount; ++j)
 					{
 						file.Write(&pVertices[j].pos.x, 3);
@@ -328,7 +328,7 @@ namespace est
 				}
 				else if (pNode->GetType() == IModelNode::eSkinned)
 				{
-					const VertexPosTexNorWeiIdx* pVertices = reinterpret_cast<const VertexPosTexNorWeiIdx*>(pData);
+					const VertexPosTexNorWeiIdx* pVertices = reinterpret_cast<const VertexPosTexNorWeiIdx*>(mappedSubResourceData.pData);
 					for (uint32_t j = 0; j < vertexCount; ++j)
 					{
 						file.Write(&pVertices[j].pos.x, 3);
@@ -343,8 +343,8 @@ namespace est
 
 				IndexBufferPtr pIndexBuffer = pNode->GetIndexBuffer();
 
-				pData = nullptr;
-				if (pIndexBuffer->Map(&pData) == false)
+				mappedSubResourceData = {};
+				if (pIndexBuffer->Map(mappedSubResourceData, false) == false)
 				{
 					LOG_ERROR(L"Can't map indexbuffer");
 					return false;
@@ -353,7 +353,7 @@ namespace est
 				uint32_t indexCount = pIndexBuffer->GetIndexCount();
 				file << indexCount;
 
-				const uint32_t* pIndices = reinterpret_cast<const uint32_t*>(pData);
+				const uint32_t* pIndices = reinterpret_cast<const uint32_t*>(mappedSubResourceData.pData);
 				for (uint32_t j = 0; j < indexCount; ++j)
 				{
 					file << pIndices[j];

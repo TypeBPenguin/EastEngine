@@ -31,9 +31,9 @@ namespace est
 
 		public:
 			uint32_t GetLightCountInView(ILight::Type emType) const;
-			void GetDirectionalLightData(const DirectionalLightData** ppDirectionalLightData, uint32_t* pSize) const;
-			void GetPointLightData(const PointLightData** ppPointLightData, uint32_t* pSize) const;
-			void GetSpotLightData(const SpotLightData** ppSpotLightData, uint32_t* pSize) const;
+			void GetDirectionalLightRenderData(const DirectionalLightData** ppDirectionalLightData, uint32_t* pSize) const;
+			void GetPointLightRenderData(const PointLightData** ppPointLightData, uint32_t* pSize) const;
+			void GetSpotLightRenderData(const SpotLightData** ppSpotLightData, uint32_t* pSize) const;
 
 		public:
 			uint32_t GetShadowCount(ILight::Type type) const;

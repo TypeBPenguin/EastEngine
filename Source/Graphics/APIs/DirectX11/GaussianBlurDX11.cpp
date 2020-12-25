@@ -150,7 +150,7 @@ namespace est
 				DX_PROFILING(GaussianBlur);
 
 				Device* pDeviceInstance = Device::GetInstance();
-				ID3D11DeviceContext* pDeviceContext = pDeviceInstance->GetImmediateContext();
+				ID3D11DeviceContext* pDeviceContext = pDeviceInstance->GetRenderContext();
 
 				SetRenderState(pDeviceInstance, pDeviceContext);
 
@@ -172,7 +172,7 @@ namespace est
 				DX_PROFILING(GaussianDepthBlur);
 
 				Device* pDeviceInstance = Device::GetInstance();
-				ID3D11DeviceContext* pDeviceContext = pDeviceInstance->GetImmediateContext();
+				ID3D11DeviceContext* pDeviceContext = pDeviceInstance->GetRenderContext();
 
 				SetRenderState(pDeviceInstance, pDeviceContext);
 

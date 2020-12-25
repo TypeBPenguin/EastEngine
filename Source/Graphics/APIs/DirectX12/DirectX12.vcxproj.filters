@@ -230,9 +230,6 @@
     <ClCompile Include="RenderManagerDX12.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
-    <ClCompile Include="TextureDX12.cpp">
-      <Filter>Texture</Filter>
-    </ClCompile>
     <ClCompile Include="VertexBufferDX12.cpp">
       <Filter>VertexBuffer</Filter>
     </ClCompile>
@@ -316,6 +313,9 @@
     </ClCompile>
     <ClCompile Include="ScreenGrab12.cpp">
       <Filter>Util\ScreenGrab</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureDX12.cpp">
+      <Filter>Texture</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

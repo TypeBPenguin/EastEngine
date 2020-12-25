@@ -329,12 +329,6 @@ namespace est
 						pModelNode->AddMaterialArray(materials.data(), materials.size());
 					}
 
-					ReleaseResource(pVertexBuffer);
-					ReleaseResource(pIndexBuffer);
-					for (auto& pMaterial : materials)
-					{
-						ReleaseResource(pMaterial);
-					}
 					materials.clear();
 
 					pModelNode->SetOriginAABB(aabb);

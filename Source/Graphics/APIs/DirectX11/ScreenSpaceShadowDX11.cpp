@@ -143,7 +143,7 @@ namespace est
 				DX_PROFILING(ScreenSpaceShadow);
 
 				Device* pDeviceInstance = Device::GetInstance();
-				ID3D11DeviceContext* pDeviceContext = pDeviceInstance->GetImmediateContext();
+				ID3D11DeviceContext* pDeviceContext = pDeviceInstance->GetRenderContext();
 
 				pDeviceContext->ClearState();
 
@@ -185,7 +185,7 @@ namespace est
 				ID3D11ShaderResourceView* pDepthSRV = pDepth->GetShaderResourceView();
 				pDeviceContext->PSSetShaderResources(shader::eSRV_Depth, 1, &pDepthSRV);
 
-				//const Options& options = GetOptions();
+				//const Options& options = RenderOptions();
 				//const Options::ScreenSpaceShadowConfig& config = options.ScreenSpaceShadowConfig;
 				//
 				//shader::SetScreenSpaceShadowContents(pDeviceContext, &m_screenSpaceShadowContents, config.width);

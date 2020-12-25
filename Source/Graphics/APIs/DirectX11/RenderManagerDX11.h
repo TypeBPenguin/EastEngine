@@ -18,6 +18,7 @@ namespace est
 				~RenderManager();
 
 			public:
+				void AllCleanup();
 				void Cleanup();
 				void Render();
 
