@@ -19,7 +19,7 @@ int main()
 
 	try
 	{
-		est::MainSystem::Initializer initializer;
+		est::Engine::Initializer initializer;
 		initializer.emAPI = est::graphics::eDX11;
 		initializer.width = 1600;
 		initializer.height = 900;
@@ -29,15 +29,12 @@ int main()
 		initializer.applicationName = sid::Studio;
 		initializer.limitElapsedTime = 1.0;
 
-		if (est::MainSystem::GetInstance()->Initialize(initializer) == true)
+		if (est::Engine::GetInstance()->Initialize(initializer) == true)
 		{
-			est::graphics::SetDefaultImageBaseLight();
-			{
-				std::vector<std::unique_ptr<est::IScene>> pScenes;
-				pScenes.emplace_back(std::make_unique<SceneStudio>());
+			std::vector<std::unique_ptr<est::IScene>> pScenes;
+			pScenes.emplace_back(std::make_unique<SceneStudio>());
 
-				est::MainSystem::GetInstance()->Run(std::move(pScenes), SceneStudio::Name);
-			}
+			est::Engine::GetInstance()->Run(std::move(pScenes), SceneStudio::Name);
 		}
 	}
 	catch (const std::exception& e)
@@ -56,7 +53,7 @@ int main()
 	LOG_ERROR(L"1..");
 	Sleep(1000);
 
-	est::MainSystem::DestroyInstance();
+	est::Engine::DestroyInstance();
 
     return 0;
 }

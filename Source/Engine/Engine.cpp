@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "System.h"
+#include "Engine.h"
 
 #include "CommonLib/FileUtil.h"
 #include "CommonLib/Timer.h"
@@ -22,7 +22,7 @@ namespace sid
 
 namespace est
 {
-	class MainSystem::Impl
+	class Engine::Impl
 	{
 	public:
 		Impl();
@@ -56,17 +56,17 @@ namespace est
 		bool m_isRunning{ true };
 	};
 
-	MainSystem::Impl::Impl()
+	Engine::Impl::Impl()
 		: m_pFpsChecker{ std::make_unique<FpsChecker>() }
 	{
 	}
 
-	MainSystem::Impl::~Impl()
+	Engine::Impl::~Impl()
 	{
 		Release();
 	}
 
-	bool MainSystem::Impl::Initialize(const Initializer& initializer)
+	bool Engine::Impl::Initialize(const Initializer& initializer)
 	{
 		std::wstring dumpPath = file::GetBinPath();
 		dumpPath.append(L"Dump\\");
@@ -102,10 +102,12 @@ namespace est
 
 		s_pSceneManager = SceneManager::GetInstance();
 
+		est::graphics::SetDefaultImageBaseLight();
+
 		return true;
 	}
 
-	void MainSystem::Impl::Release()
+	void Engine::Impl::Release()
 	{
 		thread::ThreadPool::DestroyInstance();
 
@@ -136,7 +138,7 @@ namespace est
 		string::Release();
 	}
 
-	void MainSystem::Impl::Run(std::vector<std::unique_ptr<IScene>>&& pScenes, const string::StringID& startSceneName)
+	void Engine::Impl::Run(std::vector<std::unique_ptr<IScene>>&& pScenes, const string::StringID& startSceneName)
 	{
 		for (auto& pScene : pScenes)
 		{
@@ -159,12 +161,12 @@ namespace est
 		});
 	}
 
-	void MainSystem::Impl::Exit()
+	void Engine::Impl::Exit()
 	{
 		m_isRunning = false;
 	}
 
-	void MainSystem::Impl::Update(float elapsedTime)
+	void Engine::Impl::Update(float elapsedTime)
 	{
 		TRACER_EVENT(__FUNCTIONW__);
 		performance::tracer::RefreshState();
@@ -185,31 +187,31 @@ namespace est
 		graphics::PostUpdate(elapsedTime);
 	}
 
-	MainSystem::MainSystem()
+	Engine::Engine()
 		: m_pImpl{ std::make_unique<Impl>() }
 	{	
 	}
 
-	MainSystem::~MainSystem()
+	Engine::~Engine()
 	{
 	}
 
-	bool MainSystem::Initialize(const Initializer& initializer)
+	bool Engine::Initialize(const Initializer& initializer)
 	{
 		return m_pImpl->Initialize(initializer);
 	}
 
-	void MainSystem::Run(std::vector<std::unique_ptr<IScene>>&& pScenes, const string::StringID& startSceneName)
+	void Engine::Run(std::vector<std::unique_ptr<IScene>>&& pScenes, const string::StringID& startSceneName)
 	{
 		m_pImpl->Run(std::move(pScenes), startSceneName);
 	}
 
-	void MainSystem::Exit()
+	void Engine::Exit()
 	{
 		return m_pImpl->Exit();
 	}
 
-	float MainSystem::GetFPS() const
+	float Engine::GetFPS() const
 	{
 		return m_pImpl->GetFPS();
 	}

@@ -1141,7 +1141,7 @@ void SceneStudio::RenderImGui(float elapsedTime)
 		ImGui::SetNextWindowSize(ImVec2(200, 100), ImGuiCond_FirstUseEver);
 		ImGui::Begin("Debug Info", &isShowDebug);
 
-		float fps = MainSystem::GetInstance()->GetFPS();
+		float fps = Engine::GetInstance()->GetFPS();
 		float ms = 1.f / fps * 1000.f;
 		ImGui::Text("FPS : %.2f (%.2f ms)", fps, ms);
 

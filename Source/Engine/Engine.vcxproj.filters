@@ -16,17 +16,14 @@
     <Filter Include="Engine">
       <UniqueIdentifier>{f1b69609-4399-49f1-b624-da3a0122e4da}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Engine\Scene">
-      <UniqueIdentifier>{5ab5a96d-387b-4d81-b95d-b430a53df6d7}</UniqueIdentifier>
+    <Filter Include="FPS">
+      <UniqueIdentifier>{26f169f6-6b7c-475a-9a6f-32bb50c4ea1d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Engine\System">
-      <UniqueIdentifier>{1c5df1e8-32d4-46a9-82da-1b7575b73973}</UniqueIdentifier>
+    <Filter Include="Scene">
+      <UniqueIdentifier>{5cf204c6-db50-4b23-88e8-9b1246e7ac49}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Engine\FPS">
-      <UniqueIdentifier>{09a62c16-87cb-434d-a3c9-dbac7cce942b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Engine\Util">
-      <UniqueIdentifier>{0f1f35b0-09cb-4e79-9716-d56396e01b03}</UniqueIdentifier>
+    <Filter Include="Util">
+      <UniqueIdentifier>{ccce3388-3d92-41cd-b1db-11b917a95f75}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -36,20 +33,20 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="FpsChecker.cpp">
-      <Filter>Engine\FPS</Filter>
+    <ClCompile Include="Engine.cpp">
+      <Filter>Engine</Filter>
     </ClCompile>
-    <ClCompile Include="System.cpp">
-      <Filter>Engine\System</Filter>
+    <ClCompile Include="FpsChecker.cpp">
+      <Filter>FPS</Filter>
     </ClCompile>
     <ClCompile Include="Scene.cpp">
-      <Filter>Engine\Scene</Filter>
+      <Filter>Scene</Filter>
     </ClCompile>
     <ClCompile Include="SceneManager.cpp">
-      <Filter>Engine\Scene</Filter>
+      <Filter>Scene</Filter>
     </ClCompile>
     <ClCompile Include="EngineUtil.cpp">
-      <Filter>Engine\Util</Filter>
+      <Filter>Util</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -59,20 +56,20 @@
     <ClInclude Include="targetver.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="FpsChecker.h">
-      <Filter>Engine\FPS</Filter>
+    <ClInclude Include="Engine.h">
+      <Filter>Engine</Filter>
     </ClInclude>
-    <ClInclude Include="System.h">
-      <Filter>Engine\System</Filter>
+    <ClInclude Include="FpsChecker.h">
+      <Filter>FPS</Filter>
     </ClInclude>
     <ClInclude Include="Scene.h">
-      <Filter>Engine\Scene</Filter>
+      <Filter>Scene</Filter>
     </ClInclude>
     <ClInclude Include="SceneManager.h">
-      <Filter>Engine\Scene</Filter>
+      <Filter>Scene</Filter>
     </ClInclude>
     <ClInclude Include="EngineUtil.h">
-      <Filter>Engine\Util</Filter>
+      <Filter>Util</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

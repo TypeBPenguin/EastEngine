@@ -16,12 +16,12 @@ namespace est
 {
 	class IScene;
 
-	class MainSystem : public Singleton<MainSystem>
+	class Engine : public Singleton<Engine>
 	{
-		friend Singleton<MainSystem>;
+		friend Singleton<Engine>;
 	private:
-		MainSystem();
-		virtual ~MainSystem();
+		Engine();
+		virtual ~Engine();
 
 	public:
 		struct Initializer
