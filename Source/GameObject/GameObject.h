@@ -63,8 +63,6 @@ namespace est
 			virtual ObjectType GetType() const override { return ObjectType::eActor; }
 
 		public:
-			virtual void Update(float elapsedTime) = 0;
-
 			virtual IComponent* CreateComponent(IComponent::Type emComponentType) = 0;
 			virtual void DestroyComponent(IComponent::Type emComponentType) = 0;
 

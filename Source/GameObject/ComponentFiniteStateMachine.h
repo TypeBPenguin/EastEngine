@@ -14,7 +14,7 @@ namespace est
 			virtual ~ComponentFiniteStateMachine();
 
 		public:
-			virtual void Update(float elapsedTime) override;
+			virtual void Update(float elapsedTime, float lodThreshold) override;
 
 		public:
 			FiniteStateMachine& CreateStateMachine(uint32_t id, const string::StringID& name);

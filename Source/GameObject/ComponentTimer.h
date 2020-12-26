@@ -14,7 +14,7 @@ namespace est
 			virtual ~ComponentTimer();
 
 		public:
-			virtual void Update(float elapsedTime) override;
+			virtual void Update(float elapsedTime, float lodThreshold) override;
 
 		public:
 			// Callback Function Parameter : nTimerID(uint32_t), elapsedTime(float), fProcessTime(float)

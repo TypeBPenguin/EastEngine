@@ -37,8 +37,9 @@ namespace est
 
 		public:
 			void Clear(float fStartTime);
+			bool IsEmpty() const { return m_rmapMotionData.empty(); }
 
-		private:
+		public:
 			tsl::robin_map<string::StringID, math::Transform> m_rmapMotionData;
 			std::queue<const IMotionEvent*> m_queueEvents;
 			float m_lastPlayTime{ 0.f };

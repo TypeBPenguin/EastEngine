@@ -193,7 +193,7 @@
       <Filter>Memory\ObjectPool</Filter>
     </ClInclude>
     <ClInclude Include="JobSystem.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>JobSystem</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -261,7 +261,7 @@
       <Filter>Binary</Filter>
     </ClCompile>
     <ClCompile Include="JobSystem.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>JobSystem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

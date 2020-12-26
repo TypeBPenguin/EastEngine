@@ -14,7 +14,7 @@ namespace est
 		{
 		}
 
-		void ComponentBehaviorTree::Update(float elapsedTime)
+		void ComponentBehaviorTree::Update(float elapsedTime, float lodThreshold)
 		{
 			m_behaviorTree.Run(elapsedTime);
 		}

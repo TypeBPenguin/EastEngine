@@ -215,6 +215,9 @@ namespace est
 
 		void Motion::Update(MotionRecorder* pRecorder, float playTime, bool isInverse) const
 		{
+			if (math::IsEqual(pRecorder->GetLastPlayTime(), playTime) == true && pRecorder->IsEmpty() == false)
+				return;
+
 			std::for_each(m_bones.begin(), m_bones.end(), [&](const Bone& bone)
 				{
 					bone.Update(m_frameInterval, pRecorder, playTime, isInverse);

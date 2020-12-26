@@ -95,6 +95,18 @@ namespace est
 
 			if (isPlaying == true)
 			{
+				if (math::IsZero(m_playBackInfo.blendTime) == false && m_blendTime <= m_playBackInfo.blendTime)
+				{
+					m_blendWeight = (m_blendTime / m_playBackInfo.blendTime) * m_playBackInfo.weight;
+
+					m_blendTime += elapsedTime;
+				}
+
+				if (m_playBackInfo.isFreezeAtLastFrame == false || m_isRecordedLastFrame == false)
+				{
+					m_playTime += elapsedTime * m_playBackInfo.speed;
+				}
+
 				const float endTime = m_pMotion->GetEndTime();
 				if (m_playTime >= endTime)
 				{
@@ -128,18 +140,6 @@ namespace est
 
 					Motion* pMotion = static_cast<Motion*>(m_pMotion.get());
 					pMotion->Update(&m_motionRecorder, playTime, m_playBackInfo.isInverse);
-				}
-
-				if (math::IsZero(m_playBackInfo.blendTime) == false && m_blendTime <= m_playBackInfo.blendTime)
-				{
-					m_blendWeight = (m_blendTime / m_playBackInfo.blendTime) * m_playBackInfo.weight;
-
-					m_blendTime += elapsedTime;
-				}
-
-				if (m_playBackInfo.isFreezeAtLastFrame == false || m_isRecordedLastFrame == false)
-				{
-					m_playTime += elapsedTime * m_playBackInfo.speed;
 				}
 
 				return true;

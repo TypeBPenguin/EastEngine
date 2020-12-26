@@ -63,6 +63,8 @@ namespace est
 			bool OnTessellation{ false };
 			bool OnWireframe{ false };
 
+			bool OnAnimationLOD{ false };
+
 			// PostProcessing
 			bool OnHDR{ false };
 			bool OnFXAA{ false };

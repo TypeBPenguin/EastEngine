@@ -29,10 +29,12 @@ namespace est
 		{
 			class RenderManager;
 			class RenderTarget;
+			class DepthStencil;
 			class GBuffer;
 			class Uploader;
 			class DescriptorHeap;
 			class VTFManager;
+			class LightResourceManager;
 
 			class Device : public Singleton<Device>
 			{
@@ -52,6 +54,9 @@ namespace est
 			public:
 				RenderTarget* GetRenderTarget(const D3D12_RESOURCE_DESC* pDesc, const math::Color& clearColor);
 				void ReleaseRenderTargets(RenderTarget** ppRenderTarget, uint32_t nSize = 1);
+
+				DepthStencil* GetDepthStencil(const D3D12_RESOURCE_DESC* pDesc);
+				void ReleaseDepthStencil(DepthStencil** ppDepthStencil);
 
 				void ReleaseResource(ID3D12DeviceChild* pResource);
 				void ReleaseResourceRTV(uint32_t descriptorIndex);
@@ -91,6 +96,7 @@ namespace est
 
 				RenderManager* GetRenderManager() const;
 				VTFManager* GetVTFManager() const;
+				LightResourceManager* GetLightResourceManager() const;
 
 				Uploader* GetUploader() const;
 

@@ -14,7 +14,7 @@ namespace est
 			virtual ~ComponentModel();
 
 		public:
-			virtual void Update(float elapsedTime) override;
+			virtual void Update(float elapsedTime, float lodThreshold) override;
 
 		public:
 			void Add(uint32_t id, graphics::ModelInstancePtr pModelInstnace);
@@ -44,6 +44,8 @@ namespace est
 				}
 			};
 			std::vector<ModelData> m_models;
+
+			float m_lodUpdateTime{ 0.f };
 		};
 	}
 }

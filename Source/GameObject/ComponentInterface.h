@@ -30,7 +30,7 @@ namespace est
 			virtual ~IComponent() = 0;
 
 		public:
-			virtual void Update(float elapsedTime) = 0;
+			virtual void Update(float elapsedTime, float lodThreshold) = 0;
 
 		public:
 			IActor* GetOwner() const { return m_pOwner; }

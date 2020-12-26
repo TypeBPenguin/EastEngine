@@ -203,6 +203,26 @@ namespace est
 			// Actor
 			{
 				TRACER_EVENT(L"Actor");
+				constexpr size_t LodCount = 5;
+				constexpr std::array<float, LodCount> LodThresholds =
+				{
+					0.f,
+					0.05f,
+					0.066f,
+					0.1f,
+					0.2f,
+				};
+
+				constexpr std::array<float, LodCount> LodDistances =
+				{
+					10.f * 10.f,
+					20.f * 20.f,
+					40.f * 40.f,
+					80.f * 80.f,
+					160.f * 160.f,
+				};
+
+				const math::float3 cameraPosition = graphics::GetCamera().GetPosition();
 
 				thread::SRWWriteLock writeLock(&m_srwLockObjects[eActor]);
 
@@ -215,7 +235,19 @@ namespace est
 						}
 						else
 						{
-							pActor->Update(elapsedTime);
+							const float distanceSq = math::float3::DistanceSquared(cameraPosition, pActor->GetPosition());
+
+							float lodThreshold = 0.f;
+							for (size_t i = 0; i < LodCount; ++i)
+							{
+								if (distanceSq < LodDistances[i])
+								{
+									lodThreshold = LodThresholds[i];
+									break;
+								}
+							}
+
+							pActor->Update(elapsedTime, lodThreshold);
 							return false;
 						}
 					}), m_actors.end());

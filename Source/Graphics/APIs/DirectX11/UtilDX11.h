@@ -38,8 +38,6 @@ namespace est
 				const D3D11_VIEWPORT* Convert(const math::Viewport& viewport);
 				int GetPixelSizeInBytes(DXGI_FORMAT val);
 
-				DXGI_FORMAT GetCascadedShadowFormat();
-
 				// debug
 				inline void SetDebugName(_In_  ID3D11DeviceChild* resource, _In_z_ const std::string& debugName)
 				{

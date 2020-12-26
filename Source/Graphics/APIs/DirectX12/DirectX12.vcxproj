@@ -194,6 +194,7 @@
     <ClInclude Include="HDRFilterDX12.h" />
     <ClInclude Include="imgui_impl_dx12.h" />
     <ClInclude Include="IndexBufferDX12.h" />
+    <ClInclude Include="LightResourceManagerDX12.h" />
     <ClInclude Include="ModelRendererDX12.h" />
     <ClInclude Include="MotionBlurDX12.h" />
     <ClInclude Include="RendererDX12.h" />
@@ -232,6 +233,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="IndexBufferDX12.cpp" />
+    <ClCompile Include="LightResourceManagerDX12.cpp" />
     <ClCompile Include="ModelRendererDX12.cpp" />
     <ClCompile Include="MotionBlurDX12.cpp" />
     <ClCompile Include="RendererDX12.cpp" />

@@ -21,7 +21,7 @@ namespace est
 			void Init(graphics::Camera* pMainCamera);
 			void Init(graphics::Camera* pMainCamera, float fLookAtHeight, float fThirdViewDistance = 10.f);
 
-			virtual void Update(float elapsedTime) override;
+			virtual void Update(float elapsedTime, float lodThreshold) override;
 
 		private:
 			graphics::Camera* m_pMainCamera;

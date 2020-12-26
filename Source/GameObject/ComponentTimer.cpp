@@ -14,7 +14,7 @@ namespace est
 		{
 		}
 
-		void ComponentTimer::Update(float elapsedTime)
+		void ComponentTimer::Update(float elapsedTime, float lodThreshold)
 		{
 			m_timeActions.erase(std::remove_if(m_timeActions.begin(), m_timeActions.end(), [elapsedTime](Timer::TimeAction& timeActions)
 			{

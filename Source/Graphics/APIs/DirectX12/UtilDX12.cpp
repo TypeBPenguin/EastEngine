@@ -510,7 +510,7 @@ namespace est
 					return 0;
 				}
 
-				D3D12_STATIC_SAMPLER_DESC GetStaticSamplerDesc(SamplerState::Type samplerState, uint32_t nShaderRegister, uint32_t nRegisterSpace, D3D12_SHADER_VISIBILITY shaderVisibility)
+				D3D12_STATIC_SAMPLER_DESC GetStaticSamplerDesc(SamplerState::Type samplerState, uint32_t shaderRegister, uint32_t registerSpace, D3D12_SHADER_VISIBILITY shaderVisibility)
 				{
 					D3D12_SAMPLER_DESC samplerDesc = GetSamplerDesc(samplerState);
 
@@ -524,8 +524,8 @@ namespace est
 					staticDesc.ComparisonFunc = samplerDesc.ComparisonFunc;
 					staticDesc.MinLOD = samplerDesc.MinLOD;
 					staticDesc.MaxLOD = samplerDesc.MaxLOD;
-					staticDesc.ShaderRegister = nShaderRegister;
-					staticDesc.RegisterSpace = nRegisterSpace;
+					staticDesc.ShaderRegister = shaderRegister;
+					staticDesc.RegisterSpace = registerSpace;
 					staticDesc.ShaderVisibility = shaderVisibility;
 
 					math::Color colorBorder = { samplerDesc.BorderColor[0], samplerDesc.BorderColor[1], samplerDesc.BorderColor[2], samplerDesc.BorderColor[3] };

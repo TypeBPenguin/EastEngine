@@ -14,7 +14,7 @@ namespace est
 			virtual ~ComponentBehaviorTree();
 
 		public:
-			virtual void Update(float elapsedTime) override;
+			virtual void Update(float elapsedTime, float lodThreshold) override;
 
 		public:
 			BehaviorTree& GetBehaviorTree() { return m_behaviorTree; }

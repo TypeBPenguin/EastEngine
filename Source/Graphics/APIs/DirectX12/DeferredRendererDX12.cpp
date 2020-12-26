@@ -9,6 +9,7 @@
 #include "UtilDX12.h"
 #include "DeviceDX12.h"
 #include "GBufferDX12.h"
+#include "LightResourceManagerDX12.h"
 
 #include "DescriptorHeapDX12.h"
 #include "RenderTargetDX12.h"
@@ -23,22 +24,46 @@ namespace est
 			{
 				struct CommonContents
 				{
-					math::float3 f3CameraPos;
-					int nEnableShadowCount{ 0 };
+					math::float3 cameraPosition;
+					float farClip{ 0.f };
 
 					uint32_t nTexDiffuseHDRIndex{ 0 };
 					uint32_t nTexSpecularHDRIndex{ 0 };
 					uint32_t nTexSpecularBRDFIndex{ 0 };
-					uint32_t nTexShadowMapIndex{ 0 };
+					float padding;
+				};
 
-					uint32_t nDirectionalLightCount{ 0 };
-					uint32_t nPointLightCount{ 0 };
-					uint32_t nSpotLightCount{ 0 };
-					uint32_t padding{ 0 };
+				struct DirectionalLightBuffer
+				{
+					uint32_t directionalLightCount{ 0 };
+					math::float3 padding;
 
 					std::array<DirectionalLightData, ILight::eMaxDirectionalLightCount> lightDirectional{};
+				};
+
+				struct PointLightBuffer
+				{
+					uint32_t pointLightCount{ 0 };
+					math::float3 padding;
+
 					std::array<PointLightData, ILight::eMaxPointLightCount> lightPoint{};
+				};
+
+				struct SpotLightBuffer
+				{
+					uint32_t spotLightCount{ 0 };
+					math::float3 padding;
+
 					std::array<SpotLightData, ILight::eMaxSpotLightCount> lightSpot{};
+				};
+
+				struct ShadowBuffer
+				{
+					uint32_t cascadeShadowCount{ 0 };
+					math::float3 padding;
+
+					math::uint4 cascadeShadowIndex[ILight::eMaxDirectionalLightCount]{};
+					std::array<CascadedShadowData, ILight::eMaxDirectionalLightCount> cascadedShadow{};
 				};
 
 				struct DeferredContents
@@ -56,6 +81,10 @@ namespace est
 				{
 					eCB_DeferredContents = 0,
 					eCB_CommonContents = 5,
+					eCB_DirectionalLightBuffer = 6,
+					eCB_PointLightBuffer = 7,
+					eCB_SpotLightBuffer = 8,
+					eCB_ShadowBuffer = 9,
 				};
 			}
 
@@ -77,6 +106,10 @@ namespace est
 
 					eRP_DeferrecContentsCB,
 					eRP_CommonContentsCB,
+					eRP_DirectionalLightCB,
+					eRP_PointLIghtCB,
+					eRP_SpotLightCB,
+					eRP_ShadowCB,
 
 					eRP_Count,
 
@@ -94,6 +127,10 @@ namespace est
 
 				ConstantBuffer<shader::DeferredContents> m_deferredContentsBuffer;
 				ConstantBuffer<shader::CommonContents> m_commonContentsBuffer;
+				ConstantBuffer<shader::DirectionalLightBuffer> m_directionalLightBuffer;
+				ConstantBuffer<shader::PointLightBuffer> m_pointLightBuffer;
+				ConstantBuffer<shader::SpotLightBuffer> m_spotLightBuffer;
+				ConstantBuffer<shader::ShadowBuffer> m_shadowBuffer;
 			};
 
 			DeferredRenderer::Impl::Impl()
@@ -112,6 +149,10 @@ namespace est
 
 				m_deferredContentsBuffer.Create(pDevice, 1, "DeferredContent");
 				m_commonContentsBuffer.Create(pDevice, 1, "CommonContents");
+				m_directionalLightBuffer.Create(pDevice, 1, "DirectionalLightBuffer");
+				m_pointLightBuffer.Create(pDevice, 1, "PointLightBuffer");
+				m_spotLightBuffer.Create(pDevice, 1, "SpotLightBuffer");
+				m_shadowBuffer.Create(pDevice, 1, "ShadowBuffer");
 
 				SafeRelease(pShaderBlob);
 
@@ -122,6 +163,10 @@ namespace est
 			{
 				m_deferredContentsBuffer.Destroy();
 				m_commonContentsBuffer.Destroy();
+				m_directionalLightBuffer.Destroy();
+				m_pointLightBuffer.Destroy();
+				m_spotLightBuffer.Destroy();
+				m_shadowBuffer.Destroy();
 
 				m_psoCache.Destroy();
 
@@ -142,7 +187,7 @@ namespace est
 			{
 				TRACER_EVENT(__FUNCTIONW__);
 				Device* pDeviceInstance = Device::GetInstance();
-				LightManager* pLightManager = LightManager::GetInstance();
+				LightResourceManager* pLightResourceManager = pDeviceInstance->GetLightResourceManager();
 
 				Camera* pCamera = renderElement.pCamera;
 
@@ -167,34 +212,82 @@ namespace est
 
 				{
 					shader::CommonContents* pCommonContents = m_commonContentsBuffer.Cast(frameIndex);
+					{
+						pCommonContents->cameraPosition = pCamera->GetPosition();
 
-					pCommonContents->f3CameraPos = pCamera->GetPosition();
-					pCommonContents->nEnableShadowCount = 0;
+						Texture* pDiffuseHDR = static_cast<Texture*>(pImageBasedLight->GetDiffuseHDR().get());
+						pCommonContents->nTexDiffuseHDRIndex = pDiffuseHDR->GetDescriptorIndex();
 
-					Texture* pDiffuseHDR = static_cast<Texture*>(pImageBasedLight->GetDiffuseHDR().get());
-					pCommonContents->nTexDiffuseHDRIndex = pDiffuseHDR->GetDescriptorIndex();
+						Texture* pSpecularHDR = static_cast<Texture*>(pImageBasedLight->GetSpecularHDR().get());
+						pCommonContents->nTexSpecularHDRIndex = pSpecularHDR->GetDescriptorIndex();
 
-					Texture* pSpecularHDR = static_cast<Texture*>(pImageBasedLight->GetSpecularHDR().get());
-					pCommonContents->nTexSpecularHDRIndex = pSpecularHDR->GetDescriptorIndex();
+						Texture* pSpecularBRDF = static_cast<Texture*>(pImageBasedLight->GetSpecularBRDF().get());
+						pCommonContents->nTexSpecularBRDFIndex = pSpecularBRDF->GetDescriptorIndex();
+					}
 
-					Texture* pSpecularBRDF = static_cast<Texture*>(pImageBasedLight->GetSpecularBRDF().get());
-					pCommonContents->nTexSpecularBRDFIndex = pSpecularBRDF->GetDescriptorIndex();
+					shader::DirectionalLightBuffer* pDirectionalLightBuffer = m_directionalLightBuffer.Cast(frameIndex);
+					{
+						const DirectionalLightData* pDirectionalLightData = nullptr;
+						pLightResourceManager->GetDirectionalLightRenderData(&pDirectionalLightData, &pDirectionalLightBuffer->directionalLightCount);
+						memory::Copy(pDirectionalLightBuffer->lightDirectional, pDirectionalLightData, sizeof(DirectionalLightData) * pDirectionalLightBuffer->directionalLightCount);
+					}
 
-					const DirectionalLightData* pDirectionalLightData = nullptr;
-					pLightManager->GetDirectionalLightRenderData(&pDirectionalLightData, &pCommonContents->nDirectionalLightCount);
-					memory::Copy(pCommonContents->lightDirectional.data(), sizeof(pCommonContents->lightDirectional), pDirectionalLightData, sizeof(DirectionalLightData) * pCommonContents->nDirectionalLightCount);
+					shader::PointLightBuffer* pPointLightBuffer = m_pointLightBuffer.Cast(frameIndex);
+					{
+						const PointLightData* pPointLightData = nullptr;
+						pLightResourceManager->GetPointLightRenderData(&pPointLightData, &pPointLightBuffer->pointLightCount);
+						memory::Copy(pPointLightBuffer->lightPoint, pPointLightData, sizeof(PointLightData) * pPointLightBuffer->pointLightCount);
+					}
 
-					const PointLightData* pPointLightData = nullptr;
-					pLightManager->GetPointLightRenderData(&pPointLightData, &pCommonContents->nPointLightCount);
-					memory::Copy(pCommonContents->lightPoint.data(), sizeof(pCommonContents->lightPoint), pPointLightData, sizeof(PointLightData) * pCommonContents->nPointLightCount);
+					shader::SpotLightBuffer* pSpotLightBuffer = m_spotLightBuffer.Cast(frameIndex);
+					{
+						const SpotLightData* pSpotLightData = nullptr;
+						pLightResourceManager->GetSpotLightRenderData(&pSpotLightData, &pSpotLightBuffer->spotLightCount);
+						memory::Copy(pSpotLightBuffer->lightSpot, pSpotLightData, sizeof(SpotLightData) * pSpotLightBuffer->spotLightCount);
+					}
 
-					const SpotLightData* pSpotLightData = nullptr;
-					pLightManager->GetSpotLightRenderData(&pSpotLightData, &pCommonContents->nSpotLightCount);
-					memory::Copy(pCommonContents->lightSpot.data(), sizeof(pCommonContents->lightSpot), pSpotLightData, sizeof(SpotLightData) * pCommonContents->nSpotLightCount);
+					shader::ShadowBuffer* pShadowBuffer = m_shadowBuffer.Cast(frameIndex);
+					{
+						*pShadowBuffer = {};
+
+						const size_t lightCount = pLightResourceManager->GetLightCount(ILight::Type::eDirectional);
+						for (size_t i = 0; i < lightCount; ++i)
+						{
+							DirectionalLightPtr pDirectionalLight = std::static_pointer_cast<IDirectionalLight>(pLightResourceManager->GetLight(ILight::Type::eDirectional, i));
+							if (pDirectionalLight != nullptr)
+							{
+								DepthStencil* pDepthStencil = static_cast<DepthStencil*>(pDirectionalLight->GetDepthMapResource());
+								if (pDepthStencil != nullptr)
+								{
+									const CascadedShadows& cascadedShadows = pDirectionalLight->GetCascadedShadows();
+
+									const uint32_t index = pShadowBuffer->cascadeShadowCount;
+									pShadowBuffer->cascadedShadow[index] = cascadedShadows.GetRenderData();
+									pShadowBuffer->cascadeShadowIndex[index].x = pDepthStencil->GetTexture()->GetDescriptorIndex();
+
+									++pShadowBuffer->cascadeShadowCount;
+								}
+							}
+						}
+					}
 				}
 
 				ID3D12GraphicsCommandList2* pCommandList = pDeviceInstance->GetCommandList(0);
 				pDeviceInstance->ResetCommandList(0, nullptr);
+
+				const size_t lightCount = pLightResourceManager->GetLightCount(ILight::Type::eDirectional);
+				for (size_t i = 0; i < lightCount; ++i)
+				{
+					DirectionalLightPtr pDirectionalLight = std::static_pointer_cast<IDirectionalLight>(pLightResourceManager->GetLight(ILight::Type::eDirectional, i));
+					if (pDirectionalLight != nullptr)
+					{
+						DepthStencil* pDepthStencil = static_cast<DepthStencil*>(pDirectionalLight->GetDepthMapResource());
+						if (pDepthStencil != nullptr)
+						{
+							util::ChangeResourceState(pCommandList, pDepthStencil, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+						}
+					}
+				}
 
 				util::ChangeResourceState(pCommandList, pGBuffer->GetRenderTarget(GBufferType::eNormals), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 				util::ChangeResourceState(pCommandList, pGBuffer->GetRenderTarget(GBufferType::eColors), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
@@ -205,6 +298,7 @@ namespace est
 				pCommandList->RSSetScissorRects(1, &scissorRect);
 				pCommandList->OMSetRenderTargets(renderElement.rtvCount, renderElement.rtvHandles, FALSE, renderElement.GetDSVHandle());
 
+				pCommandList->SetPipelineState(m_psoCache.pPipelineState);
 				pCommandList->SetGraphicsRootSignature(m_psoCache.pRootSignature);
 
 				ID3D12DescriptorHeap* pDescriptorHeaps[] =
@@ -213,7 +307,21 @@ namespace est
 				};
 				pCommandList->SetDescriptorHeaps(_countof(pDescriptorHeaps), pDescriptorHeaps);
 
-				pCommandList->ExecuteBundle(m_pBundles[frameIndex]);
+				pCommandList->SetGraphicsRootDescriptorTable(eRP_StandardDescriptor, pSRVDescriptorHeap->GetStartGPUHandle());
+				pCommandList->SetGraphicsRootConstantBufferView(eRP_DeferrecContentsCB, m_deferredContentsBuffer.GPUAddress(frameIndex));
+				pCommandList->SetGraphicsRootConstantBufferView(eRP_CommonContentsCB, m_commonContentsBuffer.GPUAddress(frameIndex));
+				pCommandList->SetGraphicsRootConstantBufferView(eRP_DirectionalLightCB, m_directionalLightBuffer.GPUAddress(frameIndex));
+				pCommandList->SetGraphicsRootConstantBufferView(eRP_PointLIghtCB, m_pointLightBuffer.GPUAddress(frameIndex));
+				pCommandList->SetGraphicsRootConstantBufferView(eRP_SpotLightCB, m_spotLightBuffer.GPUAddress(frameIndex));
+				pCommandList->SetGraphicsRootConstantBufferView(eRP_ShadowCB, m_shadowBuffer.GPUAddress(frameIndex));
+
+				pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+				pCommandList->IASetVertexBuffers(0, 0, nullptr);
+				pCommandList->IASetIndexBuffer(nullptr);
+
+				pCommandList->DrawInstanced(4, 1, 0, 0);
+
+				//pCommandList->ExecuteBundle(m_pBundles[frameIndex]);
 
 				HRESULT hr = pCommandList->Close();
 				if (FAILED(hr))
@@ -226,23 +334,51 @@ namespace est
 
 			ID3D12RootSignature* DeferredRenderer::Impl::CreateRootSignature(ID3D12Device* pDevice)
 			{
-				std::vector<CD3DX12_ROOT_PARAMETER> vecRootParameters;
-				CD3DX12_ROOT_PARAMETER& standardDescriptorTable = vecRootParameters.emplace_back();
+				std::vector<CD3DX12_ROOT_PARAMETER> rootParameters;
+				CD3DX12_ROOT_PARAMETER& standardDescriptorTable = rootParameters.emplace_back();
 				standardDescriptorTable.InitAsDescriptorTable(eStandardDescriptorRangesCount_SRV, Device::GetInstance()->GetStandardDescriptorRanges(), D3D12_SHADER_VISIBILITY_PIXEL);
 
-				CD3DX12_ROOT_PARAMETER& deferredContentsParameter = vecRootParameters.emplace_back();
+				CD3DX12_ROOT_PARAMETER& deferredContentsParameter = rootParameters.emplace_back();
 				deferredContentsParameter.InitAsConstantBufferView(shader::eCB_DeferredContents, 0, D3D12_SHADER_VISIBILITY_PIXEL);
 
-				CD3DX12_ROOT_PARAMETER& commonContentsParameter = vecRootParameters.emplace_back();
+				CD3DX12_ROOT_PARAMETER& commonContentsParameter = rootParameters.emplace_back();
 				commonContentsParameter.InitAsConstantBufferView(shader::eCB_CommonContents, 0, D3D12_SHADER_VISIBILITY_PIXEL);
+
+				CD3DX12_ROOT_PARAMETER& directionalLightBuffer = rootParameters.emplace_back();
+				directionalLightBuffer.InitAsConstantBufferView(shader::eCB_DirectionalLightBuffer, 0, D3D12_SHADER_VISIBILITY_PIXEL);
+
+				CD3DX12_ROOT_PARAMETER& pointLightBuffer = rootParameters.emplace_back();
+				pointLightBuffer.InitAsConstantBufferView(shader::eCB_PointLightBuffer, 0, D3D12_SHADER_VISIBILITY_PIXEL);
+
+				CD3DX12_ROOT_PARAMETER& spotLightBuffer = rootParameters.emplace_back();
+				spotLightBuffer.InitAsConstantBufferView(shader::eCB_SpotLightBuffer, 0, D3D12_SHADER_VISIBILITY_PIXEL);
+
+				CD3DX12_ROOT_PARAMETER& shadowBuffer = rootParameters.emplace_back();
+				shadowBuffer.InitAsConstantBufferView(shader::eCB_ShadowBuffer, 0, D3D12_SHADER_VISIBILITY_PIXEL);
+
+				D3D12_STATIC_SAMPLER_DESC shadowSamplerDesc{};
+				shadowSamplerDesc.Filter = D3D12_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
+				shadowSamplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+				shadowSamplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+				shadowSamplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+				shadowSamplerDesc.MipLODBias = 0.f;
+				shadowSamplerDesc.MaxAnisotropy = 0;
+				shadowSamplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_LESS;
+				shadowSamplerDesc.MinLOD = 0.f;
+				shadowSamplerDesc.MaxLOD = 0.f;
+				shadowSamplerDesc.ShaderRegister = 2;
+				shadowSamplerDesc.RegisterSpace = 100;
+				shadowSamplerDesc.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+				shadowSamplerDesc.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
 
 				const D3D12_STATIC_SAMPLER_DESC staticSamplerDesc[]
 				{
 					util::GetStaticSamplerDesc(SamplerState::eMinMagMipPointClamp, 0, 100, D3D12_SHADER_VISIBILITY_PIXEL),
 					util::GetStaticSamplerDesc(SamplerState::eMinMagMipLinearClamp, 1, 100, D3D12_SHADER_VISIBILITY_PIXEL),
+					shadowSamplerDesc,
 				};
 
-				return util::CreateRootSignature(pDevice, static_cast<uint32_t>(vecRootParameters.size()), vecRootParameters.data(),
+				return util::CreateRootSignature(pDevice, static_cast<uint32_t>(rootParameters.size()), rootParameters.data(),
 					_countof(staticSamplerDesc), staticSamplerDesc,
 					D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
 					D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
@@ -358,6 +494,10 @@ namespace est
 					m_pBundles[i]->SetGraphicsRootDescriptorTable(eRP_StandardDescriptor, pSRVDescriptorHeap->GetStartGPUHandle());
 					m_pBundles[i]->SetGraphicsRootConstantBufferView(eRP_DeferrecContentsCB, m_deferredContentsBuffer.GPUAddress(i));
 					m_pBundles[i]->SetGraphicsRootConstantBufferView(eRP_CommonContentsCB, m_commonContentsBuffer.GPUAddress(i));
+					m_pBundles[i]->SetGraphicsRootConstantBufferView(eRP_DirectionalLightCB, m_directionalLightBuffer.GPUAddress(i));
+					m_pBundles[i]->SetGraphicsRootConstantBufferView(eRP_PointLIghtCB, m_pointLightBuffer.GPUAddress(i));
+					m_pBundles[i]->SetGraphicsRootConstantBufferView(eRP_SpotLightCB, m_spotLightBuffer.GPUAddress(i));
+					m_pBundles[i]->SetGraphicsRootConstantBufferView(eRP_ShadowCB, m_shadowBuffer.GPUAddress(i));
 
 					m_pBundles[i]->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 					m_pBundles[i]->IASetVertexBuffers(0, 0, nullptr);

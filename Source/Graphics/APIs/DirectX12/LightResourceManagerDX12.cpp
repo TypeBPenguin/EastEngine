@@ -1,17 +1,17 @@
 #include "stdafx.h"
-#include "LightResourceManagerDX11.h"
+#include "LightResourceManagerDX12.h"
 
 #include "Graphics/Interface/LightManager.h"
 
-#include "DeviceDX11.h"
-#include "UtilDX11.h"
-#include "DepthStencilDX11.h"
+#include "DeviceDX12.h"
+#include "UtilDX12.h"
+#include "DepthStencilDX12.h"
 
 namespace est
 {
 	namespace graphics
 	{
-		namespace dx11
+		namespace dx12
 		{
 			LightResourceManager::LightResourceManager(LightManager* pLightManager)
 				: m_pLightManager(pLightManager)
@@ -98,7 +98,7 @@ namespace est
 				m_depthStencil.clear();
 			}
 
-			DepthStencil* LightResourceManager::GetDepthStencil(Device* pDeviceInstance, ID3D11DeviceContext* pDeviceContext, IDirectionalLight* pDirectionalLight)
+			DepthStencil* LightResourceManager::GetDepthStencil(Device* pDeviceInstance, IDirectionalLight* pDirectionalLight)
 			{
 				if (pDirectionalLight == nullptr)
 					return nullptr;
@@ -110,16 +110,24 @@ namespace est
 				const CascadedShadows& cascadedShadows = pDirectionalLight->GetCascadedShadows();
 				const CascadedShadowsConfig& cascadedShadowsConfig = cascadedShadows.GetConfig();
 
-				CD3D11_TEXTURE2D_DESC depthMapDesc(DXGI_FORMAT_R32_TYPELESS,
-					cascadedShadowsConfig.resolution * cascadedShadowsConfig.numCascades,
-					cascadedShadowsConfig.resolution);
-
-				depthMapDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+				CD3DX12_RESOURCE_DESC depthMapDesc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_D32_FLOAT, cascadedShadowsConfig.resolution * cascadedShadowsConfig.numCascades, cascadedShadowsConfig.resolution);
+				depthMapDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
 				pDepthStencil = pDeviceInstance->GetDepthStencil(&depthMapDesc);
 				if (pDepthStencil != nullptr)
 				{
-					pDeviceContext->ClearDepthStencilView(pDepthStencil->GetDepthStencilView(), D3D11_CLEAR_DEPTH, 1.f, 0);
+					if (pDepthStencil->GetResourceState() != D3D12_RESOURCE_STATE_DEPTH_WRITE)
+					{
+						ID3D12GraphicsCommandList2* pCommandList = pDeviceInstance->GetCommandList(0);
+						pDeviceInstance->ResetCommandList(0, nullptr);
+
+						util::ChangeResourceState(pCommandList, pDepthStencil, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+
+						pDepthStencil->Clear(pCommandList);
+
+						pCommandList->Close();
+						pDeviceInstance->ExecuteCommandList(pCommandList);
+					}
 
 					pDirectionalLight->SetDepthMapResource(pDepthStencil);
 					m_depthStencil.emplace_back(pDepthStencil);

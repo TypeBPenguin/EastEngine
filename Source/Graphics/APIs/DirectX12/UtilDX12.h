@@ -177,14 +177,16 @@ namespace est
 				std::array<ID3D12Resource*, eFrameBufferCount> pUploadHeaps{ nullptr };
 				std::array<uint8_t*, eFrameBufferCount> pViewGPUAddress{ nullptr };
 				std::array<D3D12_GPU_VIRTUAL_ADDRESS, eFrameBufferCount> gpuAddress{ 0 };
+				uint32_t bufferIndex{ 0 };
 
 				static constexpr size_t Size() noexcept { return sizeof(T); }
 				static constexpr size_t AlignedSize() noexcept { return util::Align(sizeof(T), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT); }
 
-				T* Cast(uint32_t frameIndex) { return reinterpret_cast<T*>(pViewGPUAddress[frameIndex]); }
+				T* Cast(uint32_t frameIndex) { return Cast(frameIndex, bufferIndex); }
 				T* Cast(uint32_t frameIndex, size_t index) { return reinterpret_cast<T*>(pViewGPUAddress[frameIndex] + (index * AlignedSize())); }
-				D3D12_GPU_VIRTUAL_ADDRESS GPUAddress(uint32_t frameIndex) const { return gpuAddress[frameIndex]; }
+				D3D12_GPU_VIRTUAL_ADDRESS GPUAddress(uint32_t frameIndex) const { return GPUAddress(frameIndex, bufferIndex); }
 				D3D12_GPU_VIRTUAL_ADDRESS GPUAddress(uint32_t frameIndex, size_t index) const { return gpuAddress[frameIndex] + (index * AlignedSize()); }
+				void SetBufferIndex(uint32_t index) { bufferIndex = index; }
 
 				~ConstantBuffer()
 				{

@@ -11,9 +11,8 @@ namespace est
 	{
 		namespace dx12
 		{
-			static std::atomic<uint32_t> s_nDepthStencilIndex = 0;
-
-			DepthStencil::DepthStencil()
+			DepthStencil::DepthStencil(const Key& key)
+				: m_key(key)
 			{
 			}
 
@@ -26,6 +25,9 @@ namespace est
 			{
 				ID3D12Device* pDevice = Device::GetInstance()->GetInterface();
 				DescriptorHeap* pDescriptorHeap = Device::GetInstance()->GetDSVDescriptorHeap();
+
+				const Key key = DepthStencil::BuildKey(pResourceDesc);
+				const string::StringID name(key);
 
 				D3D12_RESOURCE_DESC desc = *pResourceDesc;
 				desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
@@ -61,7 +63,7 @@ namespace est
 				clearValue.DepthStencil.Depth = 1.f;
 				clearValue.DepthStencil.Stencil = 0;
 
-				std::unique_ptr<DepthStencil> pDepthStencil = std::make_unique<DepthStencil>();
+				std::unique_ptr<DepthStencil> pDepthStencil = std::make_unique<DepthStencil>(key);
 
 				PersistentDescriptorAlloc dsvAlloc = pDescriptorHeap->AllocatePersistent();
 				pDepthStencil->m_descriptorIndex = dsvAlloc.index;
@@ -78,7 +80,7 @@ namespace est
 				{
 					throw_line("failed to create DepthStencil");
 				}
-				pResource->SetName(L"DepthStencil Resource Heap");
+				pResource->SetName(name.c_str());
 
 				D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc{};
 				dsvDesc.Format = pResourceDesc->Format;
@@ -127,14 +129,28 @@ namespace est
 					srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
 				}
 
-				Texture::Key key(string::Format(L"DepthStencil_%d", s_nDepthStencilIndex++));
-				pDepthStencil->m_pTexture = std::make_unique<Texture>(key, &resourceState);
+				pDepthStencil->m_pTexture = std::make_unique<Texture>(Texture::Key(name), &resourceState);
 				if (pDepthStencil->m_pTexture->Bind(pResource, &srvDesc) == false)
 				{
 					throw_line("failed to create depth stencil texture");
 				}
 
 				return pDepthStencil;
+			}
+
+			DepthStencil::Key DepthStencil::BuildKey(const D3D12_RESOURCE_DESC* pDesc)
+			{
+				return DepthStencil::Key(string::Format(L"DepthStencil_%d_%llu_%llu_%u_%u_%u_%u_%u_%u_%u",
+					pDesc->Dimension,
+					pDesc->Alignment,
+					pDesc->Width,
+					pDesc->Height,
+					pDesc->DepthOrArraySize,
+					pDesc->MipLevels,
+					pDesc->Format,
+					pDesc->SampleDesc,
+					pDesc->Layout,
+					pDesc->Flags));
 			}
 
 			void DepthStencil::Clear(ID3D12GraphicsCommandList* pCommandList)
@@ -148,6 +164,11 @@ namespace est
 				m_pTexture->Transition(changeState, &barrier);
 
 				return barrier;
+			}
+
+			const DepthStencil::Key& DepthStencil::GetKey() const
+			{
+				return m_key;
 			}
 
 			D3D12_RESOURCE_DESC DepthStencil::GetDesc() const

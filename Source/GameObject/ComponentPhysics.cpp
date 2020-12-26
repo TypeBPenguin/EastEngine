@@ -24,7 +24,7 @@ namespace est
 		{
 		}
 
-		void ComponentPhysics::Update(float elapsedTime)
+		void ComponentPhysics::Update(float elapsedTime, float lodThreshold)
 		{
 			for (auto& physicsNode : m_physicsNodes)
 			{

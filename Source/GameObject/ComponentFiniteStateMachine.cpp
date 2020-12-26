@@ -14,7 +14,7 @@ namespace est
 		{
 		}
 
-		void ComponentFiniteStateMachine::Update(float elapsedTime)
+		void ComponentFiniteStateMachine::Update(float elapsedTime, float lodThreshold)
 		{
 			for (auto iter = m_umapStateMachines.begin(); iter != m_umapStateMachines.end(); ++iter)
 			{

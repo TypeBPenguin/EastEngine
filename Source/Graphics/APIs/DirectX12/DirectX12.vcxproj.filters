@@ -109,6 +109,9 @@
     <Filter Include="Util\ScreenGrab">
       <UniqueIdentifier>{82614567-01b4-47b9-8966-6352758a4d25}</UniqueIdentifier>
     </Filter>
+    <Filter Include="LightResourceManager">
+      <UniqueIdentifier>{f7771b76-7c4a-4f1f-9843-10c7b2bd561e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -216,6 +219,9 @@
     <ClInclude Include="ScreenGrab12.h">
       <Filter>Util\ScreenGrab</Filter>
     </ClInclude>
+    <ClInclude Include="LightResourceManagerDX12.h">
+      <Filter>LightResourceManager</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -316,6 +322,9 @@
     </ClCompile>
     <ClCompile Include="TextureDX12.cpp">
       <Filter>Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="LightResourceManagerDX12.cpp">
+      <Filter>LightResourceManager</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

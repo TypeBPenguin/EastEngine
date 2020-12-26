@@ -33,20 +33,6 @@ namespace est
 		Actor::~Actor()
 		{
 		}
-
-		void Actor::Update(float elapsedTime)
-		{
-			if (m_isDestroy == true)
-				return;
-
-			for (auto& pComponent : m_pComponents)
-			{
-				if (pComponent == nullptr)
-					continue;
-
-				pComponent->Update(elapsedTime);
-			}
-		}
 		
 		IComponent* Actor::CreateComponent(IComponent::Type emComponentType)
 		{
@@ -103,6 +89,20 @@ namespace est
 				m_matWorld = m_transform.Compose();
 			}
 			return m_matWorld;
+		}
+
+		void Actor::Update(float elapsedTime, float lodThreshold)
+		{
+			if (m_isDestroy == true)
+				return;
+
+			for (auto& pComponent : m_pComponents)
+			{
+				if (pComponent == nullptr)
+					continue;
+
+				pComponent->Update(elapsedTime, lodThreshold);
+			}
 		}
 	}
 };

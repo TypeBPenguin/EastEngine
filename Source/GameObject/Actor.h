@@ -15,8 +15,6 @@ namespace est
 			virtual ~Actor();
 
 		public:
-			virtual void Update(float elapsedTime);
-
 			virtual IComponent* CreateComponent(IComponent::Type emComponentType) override;
 			virtual void DestroyComponent(IComponent::Type emComponentType) override;
 
@@ -42,6 +40,9 @@ namespace est
 
 			virtual void SetVisible(bool bVisible) override { m_isVisible = bVisible; }
 			virtual bool IsVisible() const override { return m_isVisible; }
+
+		public:
+			void Update(float elapsedTime, float lodThreshold);
 
 		public:
 			void SetDestroy(bool isDestroy) { m_isDestroy = isDestroy; }

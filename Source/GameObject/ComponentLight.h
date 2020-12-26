@@ -18,7 +18,7 @@ namespace est
 			virtual ~ComponentLight();
 
 		public:
-			virtual void Update(float elapsedTime) override;
+			virtual void Update(float elapsedTime, float lodThreshold) override;
 
 		private:
 			std::list<graphics::ILight*> m_listLights;

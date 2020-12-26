@@ -17,8 +17,22 @@ namespace est
 			m_models.clear();
 		}
 
-		void ComponentModel::Update(float elapsedTime)
+		void ComponentModel::Update(float elapsedTime, float lodThreshold)
 		{
+			if (graphics::GetOptions().OnAnimationLOD == true && math::IsZero(lodThreshold) == false)
+			{
+				m_lodUpdateTime += elapsedTime;
+				if (m_lodUpdateTime < lodThreshold)
+				{
+					elapsedTime = 0.f;
+				}
+				else
+				{
+					m_lodUpdateTime = std::max(0.f, m_lodUpdateTime - lodThreshold);
+					elapsedTime = lodThreshold;
+				}
+			}
+
 			for (auto& modelData : m_models)
 			{
 				modelData.pModelInstnace->Update(elapsedTime, m_pOwner->GetWorldMatrix());

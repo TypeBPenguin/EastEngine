@@ -21,6 +21,7 @@ namespace est
 				{
 					eDeferred = 0,
 					eAlphaBlend,
+					eShadow,
 
 					GroupCount,
 				};

@@ -671,11 +671,6 @@ namespace est
 					return 0;
 				}
 
-				DXGI_FORMAT GetCascadedShadowFormat()
-				{
-					return DXGI_FORMAT_R32_TYPELESS;
-				}
-
 				void ReportLiveObjects(ID3D11Device* pDevice)
 				{
 					if (pDevice != nullptr)

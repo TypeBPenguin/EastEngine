@@ -15,6 +15,7 @@
 #include "DeviceDX12.h"
 #include "GBufferDX12.h"
 #include "VTFManagerDX12.h"
+#include "LightResourceManagerDX12.h"
 #include "DescriptorHeapDX12.h"
 
 #include "VertexBufferDX12.h"
@@ -79,22 +80,46 @@ namespace est
 
 				struct CommonContents
 				{
-					math::float3 f3CameraPos;
-					int nEnableShadowCount{ 0 };
+					math::float3 cameraPosition;
+					float farClip{ 0.f };
 
 					uint32_t nTexDiffuseHDRIndex{ 0 };
 					uint32_t nTexSpecularHDRIndex{ 0 };
 					uint32_t nTexSpecularBRDFIndex{ 0 };
-					uint32_t nTexShadowMapIndex{ 0 };
+					float padding;
+				};
 
-					uint32_t nDirectionalLightCount{ 0 };
-					uint32_t nPointLightCount{ 0 };
-					uint32_t nSpotLightCount{ 0 };
-					uint32_t padding{ 0 };
+				struct DirectionalLightBuffer
+				{
+					uint32_t directionalLightCount{ 0 };
+					math::float3 padding;
 
 					std::array<DirectionalLightData, ILight::eMaxDirectionalLightCount> lightDirectional{};
+				};
+
+				struct PointLightBuffer
+				{
+					uint32_t pointLightCount{ 0 };
+					math::float3 padding;
+
 					std::array<PointLightData, ILight::eMaxPointLightCount> lightPoint{};
+				};
+
+				struct SpotLightBuffer
+				{
+					uint32_t spotLightCount{ 0 };
+					math::float3 padding;
+
 					std::array<SpotLightData, ILight::eMaxSpotLightCount> lightSpot{};
+				};
+
+				struct ShadowBuffer
+				{
+					uint32_t cascadeShadowCount{ 0 };
+					math::float3 padding;
+
+					math::uint4 cascadeShadowIndex[ILight::eMaxDirectionalLightCount]{};
+					std::array<CascadedShadowData, ILight::eMaxDirectionalLightCount> cascadedShadow{};
 				};
 
 				enum CBSlot
@@ -107,13 +132,10 @@ namespace est
 					eCB_SRVIndex,
 
 					eCB_CommonContents = 5,
-				};
-
-				enum Pass
-				{
-					ePass_Deferred = 0,
-					ePass_AlphaBlend_Pre,
-					ePass_AlphaBlend_Post,
+					eCB_DirectionalLightBuffer = 6,
+					eCB_PointLightBuffer = 7,
+					eCB_SpotLightBuffer = 8,
+					eCB_ShadowBuffer = 9,
 				};
 
 				enum Mask : uint32_t
@@ -122,8 +144,9 @@ namespace est
 					eUseSkinning = 1 << (MaterialMaskCount + 1),
 					eUseAlphaBlending = 1 << (MaterialMaskCount + 2),
 					eUseMotionBlur = 1 << (MaterialMaskCount + 3),
+					eUseWriteDepth = 1 << (shader::MaterialMaskCount + 4),
 
-					MaskCount = MaterialMaskCount + 4,
+					MaskCount = MaterialMaskCount + 5,
 				};
 
 				const char* GetMaskName(uint32_t mask)
@@ -176,7 +199,7 @@ namespace est
 					return vecMacros;
 				}
 
-				PSOKey GetPSOKey(ModelRenderer::Group emGroup, Pass emPass, uint32_t mask, const IMaterial* pMaterial)
+				PSOKey GetPSOKey(ModelRenderer::Group emGroup, uint32_t mask, const IMaterial* pMaterial)
 				{
 					RasterizerState::Type rasterizerState = RasterizerState::eSolidCCW;
 					BlendState::Type blendState = BlendState::eOff;
@@ -187,21 +210,6 @@ namespace est
 						blendState = pMaterial->GetBlendState();
 						rasterizerState = pMaterial->GetRasterizerState();
 						depthStencilState = pMaterial->GetDepthStencilState();
-
-						if (emGroup == ModelRenderer::eAlphaBlend &&
-							emPass == shader::ePass_AlphaBlend_Pre)
-						{
-							if (pMaterial->GetDepthStencilState() == DepthStencilState::eRead_Write_On)
-							{
-								rasterizerState = RasterizerState::eSolidCullNone;
-								depthStencilState = DepthStencilState::eRead_On_Write_Off;
-							}
-							else if (pMaterial->GetDepthStencilState() == DepthStencilState::eRead_Off_Write_On)
-							{
-								rasterizerState = RasterizerState::eSolidCullNone;
-								depthStencilState = DepthStencilState::eRead_Write_Off;
-							}
-						}
 					}
 
 					return { mask, rasterizerState, blendState, depthStencilState };
@@ -244,34 +252,6 @@ namespace est
 						pObjectDataBuffer->padding = 0.f;
 					}
 				}
-
-				void SetCommonContents_ForAlpha(CommonContents* pCommonContents,
-					const IImageBasedLight* pImageBasedLight, const LightManager* pLightManager, const math::float3& f3CameraPos, int nEnableShadowCount)
-				{
-					pCommonContents->f3CameraPos = f3CameraPos;
-					pCommonContents->nEnableShadowCount = nEnableShadowCount;
-
-					Texture* pDiffuseHDR = static_cast<Texture*>(pImageBasedLight->GetDiffuseHDR().get());
-					pCommonContents->nTexDiffuseHDRIndex = pDiffuseHDR->GetDescriptorIndex();
-
-					Texture* pSpecularHDR = static_cast<Texture*>(pImageBasedLight->GetSpecularHDR().get());
-					pCommonContents->nTexSpecularHDRIndex = pSpecularHDR->GetDescriptorIndex();
-
-					Texture* pSpecularBRDF = static_cast<Texture*>(pImageBasedLight->GetSpecularBRDF().get());
-					pCommonContents->nTexSpecularBRDFIndex = pSpecularBRDF->GetDescriptorIndex();
-
-					const DirectionalLightData* pDirectionalLightData = nullptr;
-					pLightManager->GetDirectionalLightRenderData(&pDirectionalLightData, &pCommonContents->nDirectionalLightCount);
-					memory::Copy(pCommonContents->lightDirectional, pDirectionalLightData, sizeof(DirectionalLightData) * pCommonContents->nDirectionalLightCount);
-
-					const PointLightData* pPointLightData = nullptr;
-					pLightManager->GetPointLightRenderData(&pPointLightData, &pCommonContents->nPointLightCount);
-					memory::Copy(pCommonContents->lightPoint, pPointLightData, sizeof(PointLightData) * pCommonContents->nPointLightCount);
-
-					const SpotLightData* pSpotLightData = nullptr;
-					pLightManager->GetSpotLightRenderData(&pSpotLightData, &pCommonContents->nSpotLightCount);
-					memory::Copy(pCommonContents->lightSpot, pSpotLightData, sizeof(SpotLightData) * pCommonContents->nSpotLightCount);
-				}
 			}
 
 			class ModelRenderer::Impl
@@ -291,8 +271,8 @@ namespace est
 				void PushJob(const RenderJobSkinned& job);
 
 			private:
-				void RenderStaticModel(Device* pDeviceInstance, ID3D12Device* pDevice, Camera* pCamera, Group emGroup, shader::Pass emPass, const D3D12_CPU_DESCRIPTOR_HANDLE* pRTVHandles, size_t nRTVHandleCount, const D3D12_CPU_DESCRIPTOR_HANDLE* pDSVHandle, tsl::robin_map<const IMaterial*, uint32_t>& umapMaterialMask);
-				void RenderSkinnedModel(Device* pDeviceInstance, ID3D12Device* pDevice, Camera* pCamera, Group emGroup, shader::Pass emPass, const D3D12_CPU_DESCRIPTOR_HANDLE* pRTVHandles, size_t nRTVHandleCount, const D3D12_CPU_DESCRIPTOR_HANDLE* pDSVHandle, tsl::robin_map<const IMaterial*, uint32_t>& umapMaterialMask);
+				void RenderStaticModel(Device* pDeviceInstance, ID3D12Device* pDevice, Camera* pCamera, const math::Viewport& viewport, const math::Rect& scissorRect, Group emGroup, const D3D12_CPU_DESCRIPTOR_HANDLE* pRTVHandles, size_t rtvHandleCount, const D3D12_CPU_DESCRIPTOR_HANDLE* pDSVHandle, tsl::robin_map<const IMaterial*, uint32_t>& umapMaterialMask);
+				void RenderSkinnedModel(Device* pDeviceInstance, ID3D12Device* pDevice, Camera* pCamera, const math::Viewport& viewport, const math::Rect& scissorRect, Group emGroup, const D3D12_CPU_DESCRIPTOR_HANDLE* pRTVHandles, size_t rtvHandleCount, const D3D12_CPU_DESCRIPTOR_HANDLE* pDSVHandle, tsl::robin_map<const IMaterial*, uint32_t>& umapMaterialMask);
 
 			private:
 				enum RootParameters : uint32_t
@@ -307,6 +287,10 @@ namespace est
 					eRP_StaticInstancingDataCB,
 
 					eRP_CommonContentsCB,
+					eRP_DirectionalLightCB,
+					eRP_PointLIghtCB,
+					eRP_SpotLightCB,
+					eRP_ShadowCB,
 
 					eRP_Count,
 
@@ -348,6 +332,10 @@ namespace est
 
 				ConstantBuffer<shader::VSConstantsBuffer> m_vsConstantsBuffer;
 				ConstantBuffer<shader::CommonContents> m_commonContentsBuffer;
+				ConstantBuffer<shader::DirectionalLightBuffer> m_directionalLightBuffer;
+				ConstantBuffer<shader::PointLightBuffer> m_pointLightBuffer;
+				ConstantBuffer<shader::SpotLightBuffer> m_spotLightBuffer;
+				ConstantBuffer<shader::ShadowBuffer> m_shadowBuffer;
 
 				struct JobStatic
 				{
@@ -442,8 +430,14 @@ namespace est
 				m_staticInstancingDataBuffer.Create(pDevice, shader::eMaxInstancingJobCount, "StaticInstancingDataBuffer");
 				m_objectDataBuffer.Create(pDevice, shader::eMaxJobCount, "ObjectDataBuffer");
 				m_materialSRVIndexConstantsBuffer.Create(pDevice, shader::eMaxJobCount, "MaterialSRVIndexConstantsBuffer");
-				m_vsConstantsBuffer.Create(pDevice, 1, "VSConstantsBuffer");
+
+				constexpr size_t BufferCount = 1ui64 + (ILight::eMaxDirectionalLightCount * CascadedShadowsConfig::eMaxCascades);
+				m_vsConstantsBuffer.Create(pDevice, BufferCount, "VSConstantsBuffer");
 				m_commonContentsBuffer.Create(pDevice, 1, "CommonContentsBuffer");
+				m_directionalLightBuffer.Create(pDevice, 1, "DirectionalLightBuffer");
+				m_pointLightBuffer.Create(pDevice, 1, "PointLightBuffer");
+				m_spotLightBuffer.Create(pDevice, 1, "SpotLightBuffer");
+				m_shadowBuffer.Create(pDevice, 1, "ShadowBuffer");
 
 				m_umapJobStaticMasterBatchs.rehash(512);
 				m_umapJobSkinnedMasterBatchs.rehash(128);
@@ -457,6 +451,10 @@ namespace est
 				m_vsConstantsBuffer.Destroy();
 				m_materialSRVIndexConstantsBuffer.Destroy();
 				m_commonContentsBuffer.Destroy();
+				m_directionalLightBuffer.Destroy();
+				m_pointLightBuffer.Destroy();
+				m_spotLightBuffer.Destroy();
+				m_shadowBuffer.Destroy();
 
 				m_umapRenderPipelines.clear();
 
@@ -477,9 +475,18 @@ namespace est
 
 			void ModelRenderer::Impl::Render(const RenderElement& renderElement, Group emGroup, const math::Matrix& prevViewPrjectionMatrixection)
 			{
-				const bool isAlphaBlend = emGroup == Group::eAlphaBlend;
-				if (isAlphaBlend == true && m_jobStaticCount[RenderThread()][emGroup] == 0 && m_jobSkinnedCount[RenderThread()][emGroup] == 0)
+				if (m_jobStaticCount[RenderThread()][emGroup] == 0 && m_jobSkinnedCount[RenderThread()][emGroup] == 0)
 					return;
+
+				Device* pDeviceInstance = Device::GetInstance();
+				LightResourceManager* pLightResourceManager = pDeviceInstance->GetLightResourceManager();
+				if (emGroup == Group::eShadow)
+				{
+					if (pLightResourceManager->GetShadowCount(ILight::Type::eDirectional) == 0 &&
+						pLightResourceManager->GetShadowCount(ILight::Type::ePoint) == 0 &&
+						pLightResourceManager->GetShadowCount(ILight::Type::eSpot) == 0)
+						return;
+				}
 
 				Camera* pCamera = renderElement.pCamera;
 
@@ -525,38 +532,122 @@ namespace est
 					});
 				}
 
-				Device* pDeviceInstance = Device::GetInstance();
 				ID3D12Device* pDevice = pDeviceInstance->GetInterface();
 
 				const uint32_t frameIndex = pDeviceInstance->GetFrameIndex();
 
+				if (emGroup == Group::eAlphaBlend)
 				{
-					VTFManager* pVTFManager = pDeviceInstance->GetVTFManager();
-					Texture* pVTFTexture = pVTFManager->GetTexture();
-					Texture* pPrevVTFTexture = pVTFManager->GetPrevTexture();
-
-					shader::VSConstantsBuffer* pVSConstantsBuffer = m_vsConstantsBuffer.Cast(frameIndex);
-					pVSConstantsBuffer->viewMatrix = pCamera->GetViewMatrix().Transpose();
-
-					pVSConstantsBuffer->viewProjectionMatrix = pCamera->GetViewMatrix() * pCamera->GetProjectionMatrix();
-					pVSConstantsBuffer->viewProjectionMatrix = pVSConstantsBuffer->viewProjectionMatrix.Transpose();
-
-					pVSConstantsBuffer->prevViewPrjectionMatrix = prevViewPrjectionMatrixection.Transpose();
-
-					pVSConstantsBuffer->nTexVTFIndex = pVTFTexture->GetDescriptorIndex();
-					pVSConstantsBuffer->nTexPrevVTFIndex = pPrevVTFTexture->GetDescriptorIndex();
-				}
-
-				tsl::robin_map<const IMaterial*, uint32_t> umapMaterialMask;
-				umapMaterialMask.rehash(m_umapJobStaticMasterBatchs.size() + m_umapJobSkinnedMasterBatchs.size());
-
-				if (isAlphaBlend == true)
-				{
-					const LightManager* pLightManager = LightManager::GetInstance();
 					const IImageBasedLight* pImageBasedLight = pDeviceInstance->GetImageBasedLight();
 
-					shader::CommonContents* pCommonContents = m_commonContentsBuffer.Cast(frameIndex);
-					shader::SetCommonContents_ForAlpha(pCommonContents, pImageBasedLight, pLightManager, pCamera->GetPosition(), 0);
+					{
+						shader::CommonContents* pCommonContents = m_commonContentsBuffer.Cast(frameIndex);
+						{
+							pCommonContents->cameraPosition = pCamera->GetPosition();
+
+							Texture* pDiffuseHDR = static_cast<Texture*>(pImageBasedLight->GetDiffuseHDR().get());
+							pCommonContents->nTexDiffuseHDRIndex = pDiffuseHDR->GetDescriptorIndex();
+
+							Texture* pSpecularHDR = static_cast<Texture*>(pImageBasedLight->GetSpecularHDR().get());
+							pCommonContents->nTexSpecularHDRIndex = pSpecularHDR->GetDescriptorIndex();
+
+							Texture* pSpecularBRDF = static_cast<Texture*>(pImageBasedLight->GetSpecularBRDF().get());
+							pCommonContents->nTexSpecularBRDFIndex = pSpecularBRDF->GetDescriptorIndex();
+						}
+
+						shader::DirectionalLightBuffer* pDirectionalLightBuffer = m_directionalLightBuffer.Cast(frameIndex);
+						{
+							const DirectionalLightData* pDirectionalLightData = nullptr;
+							pLightResourceManager->GetDirectionalLightRenderData(&pDirectionalLightData, &pDirectionalLightBuffer->directionalLightCount);
+							memory::Copy(pDirectionalLightBuffer->lightDirectional, pDirectionalLightData, sizeof(DirectionalLightData) * pDirectionalLightBuffer->directionalLightCount);
+						}
+
+						shader::PointLightBuffer* pPointLightBuffer = m_pointLightBuffer.Cast(frameIndex);
+						{
+							const PointLightData* pPointLightData = nullptr;
+							pLightResourceManager->GetPointLightRenderData(&pPointLightData, &pPointLightBuffer->pointLightCount);
+							memory::Copy(pPointLightBuffer->lightPoint, pPointLightData, sizeof(PointLightData) * pPointLightBuffer->pointLightCount);
+						}
+
+						shader::SpotLightBuffer* pSpotLightBuffer = m_spotLightBuffer.Cast(frameIndex);
+						{
+							const SpotLightData* pSpotLightData = nullptr;
+							pLightResourceManager->GetSpotLightRenderData(&pSpotLightData, &pSpotLightBuffer->spotLightCount);
+							memory::Copy(pSpotLightBuffer->lightSpot, pSpotLightData, sizeof(SpotLightData) * pSpotLightBuffer->spotLightCount);
+						}
+
+						shader::ShadowBuffer* pShadowBuffer = m_shadowBuffer.Cast(frameIndex);
+						{
+							*pShadowBuffer = {};
+
+							const size_t lightCount = pLightResourceManager->GetLightCount(ILight::Type::eDirectional);
+							for (size_t i = 0; i < lightCount; ++i)
+							{
+								DirectionalLightPtr pDirectionalLight = std::static_pointer_cast<IDirectionalLight>(pLightResourceManager->GetLight(ILight::Type::eDirectional, i));
+								if (pDirectionalLight != nullptr)
+								{
+									DepthStencil* pDepthStencil = static_cast<DepthStencil*>(pDirectionalLight->GetDepthMapResource());
+									if (pDepthStencil != nullptr)
+									{
+										const CascadedShadows& cascadedShadows = pDirectionalLight->GetCascadedShadows();
+
+										const uint32_t index = pShadowBuffer->cascadeShadowCount;
+										pShadowBuffer->cascadedShadow[index] = cascadedShadows.GetRenderData();
+										pShadowBuffer->cascadeShadowIndex[index].x = pDepthStencil->GetTexture()->GetDescriptorIndex();
+
+										++pShadowBuffer->cascadeShadowCount;
+									}
+								}
+							}
+
+							if (pShadowBuffer->cascadeShadowCount > 0)
+							{
+								ID3D12GraphicsCommandList2* pCommandList = pDeviceInstance->GetCommandList(0);
+								pDeviceInstance->ResetCommandList(0, nullptr);
+
+								for (size_t i = 0; i < lightCount; ++i)
+								{
+									DirectionalLightPtr pDirectionalLight = std::static_pointer_cast<IDirectionalLight>(pLightResourceManager->GetLight(ILight::Type::eDirectional, i));
+									if (pDirectionalLight != nullptr)
+									{
+										DepthStencil* pDepthStencil = static_cast<DepthStencil*>(pDirectionalLight->GetDepthMapResource());
+										if (pDepthStencil != nullptr)
+										{
+											util::ChangeResourceState(pCommandList, pDepthStencil, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+										}
+									}
+								}
+
+								pCommandList->Close();
+								pDeviceInstance->ExecuteCommandList(pCommandList);
+							}
+						}
+					}
+				}
+
+				if (emGroup == Group::eDeferred || emGroup == Group::eAlphaBlend)
+				{
+					{
+						VTFManager* pVTFManager = pDeviceInstance->GetVTFManager();
+						Texture* pVTFTexture = pVTFManager->GetTexture();
+						Texture* pPrevVTFTexture = pVTFManager->GetPrevTexture();
+
+						m_vsConstantsBuffer.SetBufferIndex(0);
+
+						shader::VSConstantsBuffer* pVSConstantsBuffer = m_vsConstantsBuffer.Cast(frameIndex);
+						pVSConstantsBuffer->viewMatrix = pCamera->GetViewMatrix().Transpose();
+
+						pVSConstantsBuffer->viewProjectionMatrix = pCamera->GetViewMatrix() * pCamera->GetProjectionMatrix();
+						pVSConstantsBuffer->viewProjectionMatrix = pVSConstantsBuffer->viewProjectionMatrix.Transpose();
+
+						pVSConstantsBuffer->prevViewPrjectionMatrix = prevViewPrjectionMatrixection.Transpose();
+
+						pVSConstantsBuffer->nTexVTFIndex = pVTFTexture->GetDescriptorIndex();
+						pVSConstantsBuffer->nTexPrevVTFIndex = pPrevVTFTexture->GetDescriptorIndex();
+					}
+
+					tsl::robin_map<const IMaterial*, uint32_t> umapMaterialMask;
+					umapMaterialMask.rehash(m_umapJobStaticMasterBatchs.size() + m_umapJobSkinnedMasterBatchs.size());
 
 					if (renderElement.pRTVs[0]->GetResourceState() != D3D12_RESOURCE_STATE_RENDER_TARGET ||
 						renderElement.pDepthStencil->GetResourceState() != D3D12_RESOURCE_STATE_DEPTH_WRITE)
@@ -571,11 +662,11 @@ namespace est
 						pDeviceInstance->ExecuteCommandList(pCommandList);
 					}
 
-					RenderStaticModel(pDeviceInstance, pDevice, pCamera, emGroup, shader::ePass_AlphaBlend_Pre, renderElement.rtvHandles, renderElement.rtvCount, renderElement.GetDSVHandle(), umapMaterialMask);
-					RenderSkinnedModel(pDeviceInstance, pDevice, pCamera, emGroup, shader::ePass_AlphaBlend_Pre, renderElement.rtvHandles, renderElement.rtvCount, renderElement.GetDSVHandle(), umapMaterialMask);
+					const math::Viewport& viewport = pDeviceInstance->GetViewport();
+					const math::Rect& scissorRect = pDeviceInstance->GetScissorRect();
 
-					RenderStaticModel(pDeviceInstance, pDevice, pCamera, emGroup, shader::ePass_AlphaBlend_Post, renderElement.rtvHandles, renderElement.rtvCount, renderElement.GetDSVHandle(), umapMaterialMask);
-					RenderSkinnedModel(pDeviceInstance, pDevice, pCamera, emGroup, shader::ePass_AlphaBlend_Post, renderElement.rtvHandles, renderElement.rtvCount, renderElement.GetDSVHandle(), umapMaterialMask);
+					RenderStaticModel(pDeviceInstance, pDevice, pCamera, viewport, scissorRect, emGroup, renderElement.rtvHandles, renderElement.rtvCount, renderElement.GetDSVHandle(), umapMaterialMask);
+					RenderSkinnedModel(pDeviceInstance, pDevice, pCamera, viewport, scissorRect, emGroup, renderElement.rtvHandles, renderElement.rtvCount, renderElement.GetDSVHandle(), umapMaterialMask);
 
 					{
 						ID3D12GraphicsCommandList2* pCommandList = pDeviceInstance->GetCommandList(0);
@@ -587,10 +678,97 @@ namespace est
 						pDeviceInstance->ExecuteCommandList(pCommandList);
 					}
 				}
-				else
+				else if (emGroup == Group::eShadow)
 				{
-					RenderStaticModel(pDeviceInstance, pDevice, pCamera, emGroup, shader::ePass_Deferred, renderElement.rtvHandles, renderElement.rtvCount, renderElement.GetDSVHandle(), umapMaterialMask);
-					RenderSkinnedModel(pDeviceInstance, pDevice, pCamera, emGroup, shader::ePass_Deferred, renderElement.rtvHandles, renderElement.rtvCount, renderElement.GetDSVHandle(), umapMaterialMask);
+					tsl::robin_map<const IMaterial*, uint32_t> umapMaterialMask;
+					umapMaterialMask.rehash(m_umapJobStaticMasterBatchs.size() + m_umapJobSkinnedMasterBatchs.size());
+
+					size_t bufferIndex = 0;
+
+					for (uint32_t i = 0; i < ILight::eCount; ++i)
+					{
+						const ILight::Type type = static_cast<ILight::Type>(i);
+
+						const size_t lightCount = pLightResourceManager->GetLightCount(type);
+						for (uint32_t j = 0; j < lightCount; ++j)
+						{
+							const LightPtr pLight = pLightResourceManager->GetLight(type, j);
+							switch (type)
+							{
+							case ILight::Type::eDirectional:
+							{
+								IDirectionalLight* pDirectionalLight = static_cast<IDirectionalLight*>(pLight.get());
+								const CascadedShadows& cascadedShadows = pDirectionalLight->GetCascadedShadows();
+								const CascadedShadowsConfig& cascadedShadowsConfig = cascadedShadows.GetConfig();
+
+								DepthStencil* pCascadedDepthStencil = pLightResourceManager->GetDepthStencil(pDeviceInstance, pDirectionalLight);
+								if (pCascadedDepthStencil != nullptr)
+								{
+									if (pCascadedDepthStencil->GetResourceState() != D3D12_RESOURCE_STATE_DEPTH_WRITE)
+									{
+										ID3D12GraphicsCommandList2* pCommandList = pDeviceInstance->GetCommandList(0);
+										pDeviceInstance->ResetCommandList(0, nullptr);
+
+										util::ChangeResourceState(pCommandList, pCascadedDepthStencil, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+
+										pCommandList->Close();
+										pDeviceInstance->ExecuteCommandList(pCommandList);
+									}
+
+									const D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = pCascadedDepthStencil->GetCPUHandle();
+
+									for (uint32_t cascadeLevel = 0; cascadeLevel < cascadedShadowsConfig.numCascades; ++cascadeLevel)
+									{
+										const math::Matrix& viewMatrix = cascadedShadows.GetViewMatrix(cascadeLevel);
+										math::Matrix projectionMatrix = cascadedShadows.GetProjectionMatrix(cascadeLevel);
+										projectionMatrix._33 /= pCamera->GetProjection().farClip;
+										projectionMatrix._43 /= pCamera->GetProjection().farClip;
+
+										{
+											VTFManager* pVTFManager = pDeviceInstance->GetVTFManager();
+											Texture* pVTFTexture = pVTFManager->GetTexture();
+											Texture* pPrevVTFTexture = pVTFManager->GetPrevTexture();
+
+											m_vsConstantsBuffer.SetBufferIndex((ILight::eMaxDirectionalLightCount * bufferIndex) + cascadeLevel + 1);
+
+											shader::VSConstantsBuffer* pVSConstantsBuffer = m_vsConstantsBuffer.Cast(frameIndex);
+											pVSConstantsBuffer->viewMatrix = viewMatrix.Transpose();
+
+											pVSConstantsBuffer->viewProjectionMatrix = viewMatrix * projectionMatrix;
+											pVSConstantsBuffer->viewProjectionMatrix = pVSConstantsBuffer->viewProjectionMatrix.Transpose();
+
+											pVSConstantsBuffer->prevViewPrjectionMatrix = prevViewPrjectionMatrixection.Transpose();
+
+											pVSConstantsBuffer->nTexVTFIndex = pVTFTexture->GetDescriptorIndex();
+											pVSConstantsBuffer->nTexPrevVTFIndex = pPrevVTFTexture->GetDescriptorIndex();
+										}
+
+										const math::Viewport& viewport = cascadedShadows.GetViewport(cascadeLevel);
+										math::Rect scissorRect;
+										scissorRect.left = 0;
+										scissorRect.top = 0;
+										scissorRect.right = viewport.width;
+										scissorRect.bottom = viewport.height;
+
+										RenderStaticModel(pDeviceInstance, pDevice, pCamera, viewport, scissorRect, emGroup, 0, 0, &dsvHandle, umapMaterialMask);
+										RenderSkinnedModel(pDeviceInstance, pDevice, pCamera, viewport, scissorRect, emGroup, 0, 0, &dsvHandle, umapMaterialMask);
+									}
+
+									++bufferIndex;
+								}
+							}
+							break;
+							case ILight::Type::ePoint:
+								break;
+							case ILight::Type::eSpot:
+							{
+							}
+							break;
+							default:
+								continue;
+							}
+						}
+					}
 				}
 			}
 
@@ -619,57 +797,59 @@ namespace est
 
 			void ModelRenderer::Impl::PushJob(const RenderJobStatic& job)
 			{
-				Group emGroup;
-
 				const MaterialPtr& pMaterial = job.pMaterial;
 				if (pMaterial == nullptr || pMaterial->GetBlendState() == BlendState::eOff)
 				{
-					emGroup = eDeferred;
+					thread::SRWWriteLock writeLock(&m_srwLock_jobStatic);
+					{
+						const size_t index = m_jobStaticCount[UpdateThread()][eDeferred];
+						m_jobStatics[UpdateThread()][eDeferred][index].Set(job);
+						++m_jobStaticCount[UpdateThread()][eDeferred];
+					}
+
+					{
+						const size_t index = m_jobStaticCount[UpdateThread()][eShadow];
+						m_jobStatics[UpdateThread()][eShadow][index].Set(job);
+						++m_jobStaticCount[UpdateThread()][eShadow];
+					}
 				}
 				else
 				{
-					emGroup = eAlphaBlend;
-				}
-
-				thread::SRWWriteLock writeLock(&m_srwLock_jobStatic);
-
-				if (m_jobStaticCount[UpdateThread()][emGroup] >= shader::eMaxJobCount)
-				{
-					assert(false);
-				}
-				else
-				{
-					const size_t index = m_jobStaticCount[UpdateThread()][emGroup];
-					m_jobStatics[UpdateThread()][emGroup][index].Set(job);
-					++m_jobStaticCount[UpdateThread()][emGroup];
+					thread::SRWWriteLock writeLock(&m_srwLock_jobStatic);
+					{
+						const size_t index = m_jobStaticCount[UpdateThread()][eAlphaBlend];
+						m_jobStatics[UpdateThread()][eAlphaBlend][index].Set(job);
+						++m_jobStaticCount[UpdateThread()][eAlphaBlend];
+					}
 				}
 			}
 
 			void ModelRenderer::Impl::PushJob(const RenderJobSkinned& job)
 			{
-				Group emGroup;
-
 				const MaterialPtr& pMaterial = job.pMaterial;
 				if (pMaterial == nullptr || pMaterial->GetBlendState() == BlendState::eOff)
 				{
-					emGroup = eDeferred;
+					thread::SRWWriteLock writeLock(&m_srwLock_jobSkinned);
+					{
+						const size_t index = m_jobSkinnedCount[UpdateThread()][eDeferred];
+						m_jobSkinneds[UpdateThread()][eDeferred][index].Set(job);
+						++m_jobSkinnedCount[UpdateThread()][eDeferred];
+					}
+
+					{
+						const size_t index = m_jobSkinnedCount[UpdateThread()][eShadow];
+						m_jobSkinneds[UpdateThread()][eShadow][index].Set(job);
+						++m_jobSkinnedCount[UpdateThread()][eShadow];
+					}
 				}
 				else
 				{
-					emGroup = eAlphaBlend;
-				}
-
-				thread::SRWWriteLock writeLock(&m_srwLock_jobSkinned);
-
-				if (m_jobSkinnedCount[UpdateThread()][emGroup] >= shader::eMaxJobCount)
-				{
-					assert(false);
-				}
-				else
-				{
-					const size_t index = m_jobSkinnedCount[UpdateThread()][emGroup];
-					m_jobSkinneds[UpdateThread()][emGroup][index].Set(job);
-					++m_jobSkinnedCount[UpdateThread()][emGroup];
+					thread::SRWWriteLock writeLock(&m_srwLock_jobSkinned);
+					{
+						const size_t index = m_jobSkinnedCount[UpdateThread()][eAlphaBlend];
+						m_jobSkinneds[UpdateThread()][eAlphaBlend][index].Set(job);
+						++m_jobSkinnedCount[UpdateThread()][eAlphaBlend];
+					}
 				}
 			}
 
@@ -723,14 +903,11 @@ namespace est
 				return pRenderPipeline;
 			}
 
-			void ModelRenderer::Impl::RenderStaticModel(Device* pDeviceInstance, ID3D12Device* pDevice, Camera* pCamera, Group emGroup, shader::Pass emPass, const D3D12_CPU_DESCRIPTOR_HANDLE* pRTVHandles, size_t nRTVHandleCount, const D3D12_CPU_DESCRIPTOR_HANDLE* pDSVHandle, tsl::robin_map<const IMaterial*, uint32_t>& umapMaterialMask)
+			void ModelRenderer::Impl::RenderStaticModel(Device* pDeviceInstance, ID3D12Device* pDevice, Camera* pCamera, const math::Viewport& viewport, const math::Rect& scissorRect, Group emGroup, const D3D12_CPU_DESCRIPTOR_HANDLE* pRTVHandles, size_t rtvHandleCount, const D3D12_CPU_DESCRIPTOR_HANDLE* pDSVHandle, tsl::robin_map<const IMaterial*, uint32_t>& umapMaterialMask)
 			{
 				const uint32_t frameIndex = pDeviceInstance->GetFrameIndex();
 				DescriptorHeap* pSRVDescriptorHeap = pDeviceInstance->GetSRVDescriptorHeap();
 				DescriptorHeap* pSamplerDescriptorHeap = pDeviceInstance->GetSamplerDescriptorHeap();
-
-				const math::Viewport& viewport= pDeviceInstance->GetViewport();
-				const math::Rect& scissorRect = pDeviceInstance->GetScissorRect();
 
 				m_umapJobStaticMasterBatchs.clear();
 
@@ -781,7 +958,10 @@ namespace est
 							}
 							else
 							{
-								mask = shader::GetMaterialMask(jobBatch.pJob->data.pMaterial.get());
+								if (emGroup != Group::eShadow)
+								{
+									mask = shader::GetMaterialMask(jobBatch.pJob->data.pMaterial.get());
+								}
 								umapMaterialMask.emplace(jobBatch.pJob->data.pMaterial.get(), mask);
 							}
 
@@ -794,13 +974,17 @@ namespace est
 							{
 								mask |= shader::eUseAlphaBlending;
 							}
+							else if (emGroup == Group::eShadow)
+							{
+								mask |= shader::eUseWriteDepth;
+							}
 
 							if (isEnableVelocityMotionBlur == true)
 							{
 								mask |= shader::eUseMotionBlur;
 							}
 
-							PSOKey maskKey = GetPSOKey(emGroup, emPass, mask, jobBatch.pJob->data.pMaterial.get());
+							PSOKey maskKey = shader::GetPSOKey(emGroup, mask, jobBatch.pJob->data.pMaterial.get());
 							umapJobStaticMaskBatch[maskKey].emplace_back(&jobBatch);
 						}
 					}
@@ -829,7 +1013,7 @@ namespace est
 						pCommandList->RSSetScissorRects(1, &scissorRect);
 						pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-						pCommandList->OMSetRenderTargets(static_cast<uint32_t>(nRTVHandleCount), pRTVHandles, FALSE, pDSVHandle);
+						pCommandList->OMSetRenderTargets(static_cast<uint32_t>(rtvHandleCount), pRTVHandles, FALSE, pDSVHandle);
 
 						while (true)
 						{
@@ -899,6 +1083,34 @@ namespace est
 								pCommandList->SetGraphicsRootConstantBufferView(
 									pRenderPipeline->rootParameterIndex[eRP_CommonContentsCB],
 									m_commonContentsBuffer.GPUAddress(frameIndex));
+							}
+
+							if (pRenderPipeline->rootParameterIndex[eRP_DirectionalLightCB] != eRP_InvalidIndex)
+							{
+								pCommandList->SetGraphicsRootConstantBufferView(
+									pRenderPipeline->rootParameterIndex[eRP_DirectionalLightCB],
+									m_directionalLightBuffer.GPUAddress(frameIndex));
+							}
+
+							if (pRenderPipeline->rootParameterIndex[eRP_PointLIghtCB] != eRP_InvalidIndex)
+							{
+								pCommandList->SetGraphicsRootConstantBufferView(
+									pRenderPipeline->rootParameterIndex[eRP_PointLIghtCB],
+									m_pointLightBuffer.GPUAddress(frameIndex));
+							}
+
+							if (pRenderPipeline->rootParameterIndex[eRP_SpotLightCB] != eRP_InvalidIndex)
+							{
+								pCommandList->SetGraphicsRootConstantBufferView(
+									pRenderPipeline->rootParameterIndex[eRP_SpotLightCB],
+									m_spotLightBuffer.GPUAddress(frameIndex));
+							}
+
+							if (pRenderPipeline->rootParameterIndex[eRP_ShadowCB] != eRP_InvalidIndex)
+							{
+								pCommandList->SetGraphicsRootConstantBufferView(
+									pRenderPipeline->rootParameterIndex[eRP_ShadowCB],
+									m_shadowBuffer.GPUAddress(frameIndex));
 							}
 
 							if ((pPSOKey->mask & shader::eUseInstancing) == shader::eUseInstancing)
@@ -1066,14 +1278,11 @@ namespace est
 				m_umapJobStaticMasterBatchs.clear();
 			}
 
-			void ModelRenderer::Impl::RenderSkinnedModel(Device* pDeviceInstance, ID3D12Device* pDevice, Camera* pCamera, Group emGroup, shader::Pass emPass, const D3D12_CPU_DESCRIPTOR_HANDLE* pRTVHandles, size_t nRTVHandleCount, const D3D12_CPU_DESCRIPTOR_HANDLE* pDSVHandle, tsl::robin_map<const IMaterial*, uint32_t>& umapMaterialMask)
+			void ModelRenderer::Impl::RenderSkinnedModel(Device* pDeviceInstance, ID3D12Device* pDevice, Camera* pCamera, const math::Viewport& viewport, const math::Rect& scissorRect, Group emGroup, const D3D12_CPU_DESCRIPTOR_HANDLE* pRTVHandles, size_t rtvHandleCount, const D3D12_CPU_DESCRIPTOR_HANDLE* pDSVHandle, tsl::robin_map<const IMaterial*, uint32_t>& umapMaterialMask)
 			{
 				const uint32_t frameIndex = pDeviceInstance->GetFrameIndex();
 				DescriptorHeap* pSRVDescriptorHeap = pDeviceInstance->GetSRVDescriptorHeap();
 				DescriptorHeap* pSamplerDescriptorHeap = pDeviceInstance->GetSamplerDescriptorHeap();
-
-				const math::Viewport& viewport= pDeviceInstance->GetViewport();
-				const math::Rect& scissorRect = pDeviceInstance->GetScissorRect();
 
 				m_umapJobSkinnedMasterBatchs.clear();
 
@@ -1124,7 +1333,10 @@ namespace est
 							}
 							else
 							{
-								mask = shader::GetMaterialMask(jobBatch.pJob->data.pMaterial.get());
+								if (emGroup != Group::eShadow)
+								{
+									mask = shader::GetMaterialMask(jobBatch.pJob->data.pMaterial.get());
+								}
 								umapMaterialMask.emplace(jobBatch.pJob->data.pMaterial.get(), mask);
 							}
 
@@ -1137,6 +1349,10 @@ namespace est
 							{
 								mask |= shader::eUseAlphaBlending;
 							}
+							else if (emGroup == Group::eShadow)
+							{
+								mask |= shader::eUseWriteDepth;
+							}
 
 							if (isEnableVelocityMotionBlur == true)
 							{
@@ -1145,7 +1361,7 @@ namespace est
 
 							mask |= shader::eUseSkinning;
 
-							PSOKey maskKey = GetPSOKey(emGroup, emPass, mask, jobBatch.pJob->data.pMaterial.get());
+							PSOKey maskKey = shader::GetPSOKey(emGroup, mask, jobBatch.pJob->data.pMaterial.get());
 							umapJobSkinnedMaskBatch[maskKey].emplace_back(&jobBatch);
 						}
 					}
@@ -1174,7 +1390,7 @@ namespace est
 						pCommandList->RSSetScissorRects(1, &scissorRect);
 						pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-						pCommandList->OMSetRenderTargets(static_cast<uint32_t>(nRTVHandleCount), pRTVHandles, FALSE, pDSVHandle);
+						pCommandList->OMSetRenderTargets(static_cast<uint32_t>(rtvHandleCount), pRTVHandles, FALSE, pDSVHandle);
 
 						while (true)
 						{
@@ -1244,6 +1460,34 @@ namespace est
 								pCommandList->SetGraphicsRootConstantBufferView(
 									pRenderPipeline->rootParameterIndex[eRP_CommonContentsCB],
 									m_commonContentsBuffer.GPUAddress(frameIndex));
+							}
+
+							if (pRenderPipeline->rootParameterIndex[eRP_DirectionalLightCB] != eRP_InvalidIndex)
+							{
+								pCommandList->SetGraphicsRootConstantBufferView(
+									pRenderPipeline->rootParameterIndex[eRP_DirectionalLightCB],
+									m_directionalLightBuffer.GPUAddress(frameIndex));
+							}
+
+							if (pRenderPipeline->rootParameterIndex[eRP_PointLIghtCB] != eRP_InvalidIndex)
+							{
+								pCommandList->SetGraphicsRootConstantBufferView(
+									pRenderPipeline->rootParameterIndex[eRP_PointLIghtCB],
+									m_pointLightBuffer.GPUAddress(frameIndex));
+							}
+
+							if (pRenderPipeline->rootParameterIndex[eRP_SpotLightCB] != eRP_InvalidIndex)
+							{
+								pCommandList->SetGraphicsRootConstantBufferView(
+									pRenderPipeline->rootParameterIndex[eRP_SpotLightCB],
+									m_spotLightBuffer.GPUAddress(frameIndex));
+							}
+
+							if (pRenderPipeline->rootParameterIndex[eRP_ShadowCB] != eRP_InvalidIndex)
+							{
+								pCommandList->SetGraphicsRootConstantBufferView(
+									pRenderPipeline->rootParameterIndex[eRP_ShadowCB],
+									m_shadowBuffer.GPUAddress(frameIndex));
 							}
 
 							if ((pPSOKey->mask & shader::eUseInstancing) == shader::eUseInstancing)
@@ -1463,10 +1707,42 @@ namespace est
 					commonContentsParameter.InitAsConstantBufferView(shader::eCB_CommonContents, 0, D3D12_SHADER_VISIBILITY_PIXEL);
 					rootParameterIndex_out[eRP_CommonContentsCB] = static_cast<uint32_t>(rootParameters.size() - 1);
 
+					CD3DX12_ROOT_PARAMETER& directionalLightBufferParameter = rootParameters.emplace_back();
+					directionalLightBufferParameter.InitAsConstantBufferView(shader::eCB_DirectionalLightBuffer, 0, D3D12_SHADER_VISIBILITY_PIXEL);
+					rootParameterIndex_out[eRP_DirectionalLightCB] = static_cast<uint32_t>(rootParameters.size() - 1);
+
+					CD3DX12_ROOT_PARAMETER& pointLightBufferParameter = rootParameters.emplace_back();
+					pointLightBufferParameter.InitAsConstantBufferView(shader::eCB_PointLightBuffer, 0, D3D12_SHADER_VISIBILITY_PIXEL);
+					rootParameterIndex_out[eRP_PointLIghtCB] = static_cast<uint32_t>(rootParameters.size() - 1);
+
+					CD3DX12_ROOT_PARAMETER& spotLightBufferParameter = rootParameters.emplace_back();
+					spotLightBufferParameter.InitAsConstantBufferView(shader::eCB_SpotLightBuffer, 0, D3D12_SHADER_VISIBILITY_PIXEL);
+					rootParameterIndex_out[eRP_SpotLightCB] = static_cast<uint32_t>(rootParameters.size() - 1);
+
+					CD3DX12_ROOT_PARAMETER& shadowBufferParameter = rootParameters.emplace_back();
+					shadowBufferParameter.InitAsConstantBufferView(shader::eCB_ShadowBuffer, 0, D3D12_SHADER_VISIBILITY_PIXEL);
+					rootParameterIndex_out[eRP_ShadowCB] = static_cast<uint32_t>(rootParameters.size() - 1);
+
+					D3D12_STATIC_SAMPLER_DESC shadowSamplerDesc{};
+					shadowSamplerDesc.Filter = D3D12_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
+					shadowSamplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+					shadowSamplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+					shadowSamplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+					shadowSamplerDesc.MipLODBias = 0.f;
+					shadowSamplerDesc.MaxAnisotropy = 0;
+					shadowSamplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_LESS;
+					shadowSamplerDesc.MinLOD = 0.f;
+					shadowSamplerDesc.MaxLOD = 0.f;
+					shadowSamplerDesc.ShaderRegister = 2;
+					shadowSamplerDesc.RegisterSpace = 100;
+					shadowSamplerDesc.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+					shadowSamplerDesc.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
+
 					staticSamplers =
 					{
 						util::GetStaticSamplerDesc(SamplerState::eMinMagMipPointClamp, 0, 100, D3D12_SHADER_VISIBILITY_PIXEL),
 						util::GetStaticSamplerDesc(SamplerState::eMinMagMipLinearClamp, 1, 100, D3D12_SHADER_VISIBILITY_PIXEL),
+						shadowSamplerDesc,
 					};
 				}
 
@@ -1493,7 +1769,7 @@ namespace est
 						}
 					}
 
-					if (pRenderPipeline->psoCache.pPSBlob == nullptr)
+					if (pRenderPipeline->psoCache.pPSBlob == nullptr && (psoKey.mask & shader::eUseWriteDepth) == 0)
 					{
 						const bool isSuccess = util::CompileShader(m_pShaderBlob, vecMacros.data(), m_shaderPath.c_str(), "PS", shader::PS_CompileVersion, &pRenderPipeline->psoCache.pPSBlob);
 						if (isSuccess == false)
@@ -1524,8 +1800,11 @@ namespace est
 				psoDesc.VS.BytecodeLength = pRenderPipeline->psoCache.pVSBlob->GetBufferSize();
 				psoDesc.VS.pShaderBytecode = pRenderPipeline->psoCache.pVSBlob->GetBufferPointer();
 
-				psoDesc.PS.BytecodeLength = pRenderPipeline->psoCache.pPSBlob->GetBufferSize();
-				psoDesc.PS.pShaderBytecode = pRenderPipeline->psoCache.pPSBlob->GetBufferPointer();
+				if ((psoKey.mask & shader::eUseWriteDepth) == 0)
+				{
+					psoDesc.PS.BytecodeLength = pRenderPipeline->psoCache.pPSBlob->GetBufferSize();
+					psoDesc.PS.pShaderBytecode = pRenderPipeline->psoCache.pPSBlob->GetBufferPointer();
+				}
 
 				const D3D12_INPUT_ELEMENT_DESC* pInputElements = nullptr;
 				size_t nElementCount = 0;
@@ -1570,6 +1849,10 @@ namespace est
 					psoDesc.RTVFormats[GBufferType::eColors] = static_cast<DXGI_FORMAT>(GBufferFormat(GBufferType::eColors));
 					psoDesc.RTVFormats[GBufferType::eDisneyBRDF] = static_cast<DXGI_FORMAT>(GBufferFormat(GBufferType::eDisneyBRDF));
 					psoDesc.RTVFormats[GBufferType::eVelocity] = static_cast<DXGI_FORMAT>(GBufferFormat(GBufferType::eVelocity));
+				}
+				else if ((psoKey.mask & shader::eUseWriteDepth) == shader::eUseWriteDepth)
+				{
+					psoDesc.NumRenderTargets = 0;
 				}
 				else
 				{

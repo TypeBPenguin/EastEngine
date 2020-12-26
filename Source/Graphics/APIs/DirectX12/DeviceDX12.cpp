@@ -14,6 +14,7 @@
 #include "RenderManagerDX12.h"
 #include "DescriptorHeapDX12.h"
 #include "VTFManagerDX12.h"
+#include "LightResourceManagerDX12.h"
 #include "ScreenGrab12.h"
 
 #include "Graphics/Interface/imguiHelper.h"
@@ -58,6 +59,9 @@ namespace est
 				RenderTarget* GetRenderTarget(const D3D12_RESOURCE_DESC* pDesc, const math::Color& clearColor);
 				void ReleaseRenderTargets(RenderTarget** ppRenderTarget, uint32_t size = 1);
 
+				DepthStencil* GetDepthStencil(const D3D12_RESOURCE_DESC* pDesc);
+				void ReleaseDepthStencil(DepthStencil** ppDepthStencil);
+
 				void ReleaseResource(ID3D12DeviceChild* pResource);
 				void ReleaseResourceRTV(uint32_t descriptorIndex);
 				void ReleaseResourceSRV(uint32_t descriptorIndex);
@@ -87,6 +91,7 @@ namespace est
 				void SetImageBasedLight(IImageBasedLight* pImageBasedLight) { m_pImageBasedLight = pImageBasedLight; }
 				RenderManager* GetRenderManager() const { return m_pRenderManager.get(); }
 				VTFManager* GetVTFManager() const { return m_pVTFManager.get(); }
+				LightResourceManager* GetLightResourceManager() const { return m_pLightResourceManager.get(); }
 
 				Uploader* GetUploader() const { return m_pUploader.get(); }
 
@@ -168,6 +173,7 @@ namespace est
 
 				std::unique_ptr<RenderManager> m_pRenderManager;
 				std::unique_ptr<VTFManager> m_pVTFManager;
+				std::unique_ptr<LightResourceManager> m_pLightResourceManager;
 
 				std::unique_ptr<Uploader> m_pUploader;
 
@@ -177,29 +183,33 @@ namespace est
 				std::unique_ptr<DescriptorHeap> m_pUAVDescriptorHeap;
 				std::unique_ptr<DescriptorHeap> m_pSamplerDescriptorHeap;
 
-				thread::SRWLock m_renderTargetLock;
-
-				struct RenderTargetPool
+				template <typename T>
+				struct ResourcePool
 				{
-					std::unique_ptr<RenderTarget> pRenderTarget;
+					std::unique_ptr<T> pResource;
 					bool isUsing{ false };
 					uint32_t frameIndex{ 0 };
 					float unusedTime{ 0.f };
 
-					RenderTargetPool(std::unique_ptr<RenderTarget> pRenderTarget)
-						: pRenderTarget(std::move(pRenderTarget))
+					ResourcePool(std::unique_ptr<T> pResource)
+						: pResource(std::move(pResource))
 					{
 					}
 
-					RenderTargetPool(RenderTargetPool&& source) noexcept
-						: pRenderTarget(std::move(source.pRenderTarget))
+					ResourcePool(ResourcePool&& source) noexcept
+						: pResource(std::move(source.pResource))
 						, isUsing(std::move(source.isUsing))
 						, frameIndex(std::move(source.frameIndex))
 						, unusedTime(std::move(source.unusedTime))
 					{
 					}
 				};
-				std::unordered_multimap<RenderTarget::Key, RenderTargetPool> m_renderTargetPool;
+
+				thread::SRWLock m_renderTargetLock;
+				thread::SRWLock m_depthStencilLock;
+
+				std::unordered_multimap<RenderTarget::Key, ResourcePool<RenderTarget>> m_renderTargetPool;
+				std::unordered_multimap<DepthStencil::Key, ResourcePool<DepthStencil>> m_depthStencilPool;
 
 				struct ReleaseObject
 				{
@@ -486,8 +496,9 @@ namespace est
 
 				InitializeD3D();
 
-				m_pVTFManager = std::make_unique<VTFManager>();
 				m_pRenderManager = std::make_unique<RenderManager>();
+				m_pVTFManager = std::make_unique<VTFManager>();
+				m_pLightResourceManager = std::make_unique<LightResourceManager>(LightManager::GetInstance());
 
 				PersistentDescriptorAlloc srvAlloc = m_pSRVDescriptorHeap->AllocatePersistent();
 				m_imGuiFontSRVIndex = srvAlloc.index;
@@ -536,6 +547,7 @@ namespace est
 
 				m_pRenderManager.reset();
 				m_pVTFManager.reset();
+				m_pLightResourceManager.reset();
 
 				for (uint32_t i = 0; i < SamplerState::TypeCount; ++i)
 				{
@@ -552,6 +564,7 @@ namespace est
 				}
 
 				m_renderTargetPool.clear();
+				m_depthStencilPool.clear();
 
 				for (auto& releaseObj : m_releaseResources)
 				{
@@ -683,6 +696,7 @@ namespace est
 					//}
 
 					{
+						TRACER_EVENT(L"RenderThreadWait");
 						std::unique_lock<std::mutex> lock(m_parallelRender.mutex);
 						m_parallelRender.condition.wait(lock, [&]()
 							{
@@ -704,6 +718,7 @@ namespace est
 			{
 				TRACER_EVENT(__FUNCTIONW__);
 				m_pGBuffers[m_frameIndex]->Cleanup();
+				m_pLightResourceManager->Cleanup();
 
 				{
 					thread::SRWWriteLock writeLock(&m_srwLock_releaseResource);
@@ -761,6 +776,29 @@ namespace est
 
 					++iter;
 				}
+
+				for (auto iter = m_depthStencilPool.begin(); iter != m_depthStencilPool.end();)
+				{
+					if (iter->second.isUsing == false)
+					{
+						if (iter->second.frameIndex >= eFrameBufferCount)
+						{
+							iter->second.unusedTime += elapsedTime;
+
+							if (iter->second.unusedTime > 5.f)
+							{
+								iter = m_depthStencilPool.erase(iter);
+								continue;
+							}
+						}
+						else
+						{
+							++iter->second.frameIndex;
+						}
+					}
+
+					++iter;
+				}
 			}
 
 			RenderTarget* Device::Impl::GetRenderTarget(const D3D12_RESOURCE_DESC* pDesc, const math::Color& clearColor)
@@ -771,24 +809,24 @@ namespace est
 				auto iter_range = m_renderTargetPool.equal_range(key);
 				for (auto iter = iter_range.first; iter != iter_range.second; ++iter)
 				{
-					RenderTargetPool& pool = iter->second;
+					ResourcePool<RenderTarget>& pool = iter->second;
 					if (pool.isUsing == false)
 					{
 						pool.isUsing = true;
 						pool.frameIndex = 0;
 						pool.unusedTime = 0.f;
-						return pool.pRenderTarget.get();
+						return pool.pResource.get();
 					}
 				}
 
-				RenderTargetPool pool(RenderTarget::Create(pDesc, clearColor, D3D12_RESOURCE_STATE_RENDER_TARGET));
-				if (pool.pRenderTarget == nullptr)
+				ResourcePool<RenderTarget> pool(RenderTarget::Create(pDesc, clearColor, D3D12_RESOURCE_STATE_RENDER_TARGET));
+				if (pool.pResource == nullptr)
 				{
 					throw_line("failed to create render target");
 				}
 
 				auto iter_result = m_renderTargetPool.emplace(key, std::move(pool));
-				return iter_result->second.pRenderTarget.get();
+				return iter_result->second.pResource.get();
 			}
 
 			void Device::Impl::ReleaseRenderTargets(RenderTarget** ppRenderTarget, uint32_t size)
@@ -803,12 +841,59 @@ namespace est
 					auto iter_range = m_renderTargetPool.equal_range(ppRenderTarget[i]->GetKey());
 					for (auto iter = iter_range.first; iter != iter_range.second; ++iter)
 					{
-						if (iter->second.pRenderTarget.get() == ppRenderTarget[i])
+						if (iter->second.pResource.get() == ppRenderTarget[i])
 						{
 							iter->second.isUsing = false;
 							ppRenderTarget[i] = nullptr;
 							break;
 						}
+					}
+				}
+			}
+
+			DepthStencil* Device::Impl::GetDepthStencil(const D3D12_RESOURCE_DESC* pDesc)
+			{
+				thread::SRWWriteLock writeLock(&m_depthStencilLock);
+
+				const DepthStencil::Key key = DepthStencil::BuildKey(pDesc);
+				auto iter_range = m_depthStencilPool.equal_range(key);
+				for (auto iter = iter_range.first; iter != iter_range.second; ++iter)
+				{
+					ResourcePool<DepthStencil>& pool = iter->second;
+					if (pool.isUsing == false)
+					{
+						pool.isUsing = true;
+						pool.frameIndex = 0;
+						pool.unusedTime = 0.f;
+						return pool.pResource.get();
+					}
+				}
+
+				ResourcePool<DepthStencil> pool(DepthStencil::Create(pDesc, D3D12_RESOURCE_STATE_DEPTH_WRITE));
+				if (pool.pResource == nullptr)
+				{
+					throw_line("failed to create render target");
+				}
+
+				auto iter_result = m_depthStencilPool.emplace(key, std::move(pool));
+				return iter_result->second.pResource.get();
+			}
+
+			void Device::Impl::ReleaseDepthStencil(DepthStencil** ppDepthStencil)
+			{
+				if (ppDepthStencil == nullptr || *ppDepthStencil == nullptr)
+					return;
+
+				thread::SRWWriteLock writeLock(&m_depthStencilLock);
+
+				auto iter_range = m_depthStencilPool.equal_range((*ppDepthStencil)->GetKey());
+				for (auto iter = iter_range.first; iter != iter_range.second; ++iter)
+				{
+					if (iter->second.pResource.get() == (*ppDepthStencil))
+					{
+						iter->second.isUsing = false;
+						(*ppDepthStencil) = nullptr;
+						break;
 					}
 				}
 			}
@@ -1451,6 +1536,7 @@ namespace est
 					//m_fenceValues[i] = m_fenceValues[m_frameIndex];
 				}
 				m_renderTargetPool.clear();
+				m_depthStencilPool.clear();
 
 				{
 					thread::SRWWriteLock writeLock(&m_srwLock_releaseResource);
@@ -1577,6 +1663,16 @@ namespace est
 			void Device::ReleaseRenderTargets(RenderTarget** ppRenderTarget, uint32_t size)
 			{
 				m_pImpl->ReleaseRenderTargets(ppRenderTarget, size);
+			}
+
+			DepthStencil* Device::GetDepthStencil(const D3D12_RESOURCE_DESC* pDesc)
+			{
+				return m_pImpl->GetDepthStencil(pDesc);
+			}
+
+			void Device::ReleaseDepthStencil(DepthStencil** ppDepthStencil)
+			{
+				m_pImpl->ReleaseDepthStencil(ppDepthStencil);
 			}
 
 			void Device::ReleaseResource(ID3D12DeviceChild* pResource)
@@ -1712,6 +1808,11 @@ namespace est
 			VTFManager* Device::GetVTFManager() const
 			{
 				return m_pImpl->GetVTFManager();
+			}
+
+			LightResourceManager* Device::GetLightResourceManager() const
+			{
+				return m_pImpl->GetLightResourceManager();
 			}
 
 			Uploader* Device::GetUploader() const

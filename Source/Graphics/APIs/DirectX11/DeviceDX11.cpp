@@ -108,8 +108,6 @@ namespace est
 				size_t m_selectedDisplayModeIndex{ std::numeric_limits<size_t>::max() };
 				std::vector<DisplayModeDesc> m_supportedDisplayModes;
 
-				thread::SRWLock m_srwLock;
-
 				math::Viewport m_viewport{};
 
 				CComPtr<ID3D11Device> m_pDevice{ nullptr };
@@ -138,6 +136,8 @@ namespace est
 					{
 					}
 				};
+
+				thread::SRWLock m_srwLock;
 
 				std::unordered_multimap<RenderTarget::Key, ResourcePool<RenderTarget>> m_renderTargetPool;
 				std::unordered_multimap<DepthStencil::Key, ResourcePool<DepthStencil>> m_depthStencilPool;

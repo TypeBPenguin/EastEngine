@@ -99,13 +99,13 @@ namespace est
 		{
 			if (m_isVisibleTile)
 			{
-				m_pActor->Update(elapsedTime);
+				m_pActor->SetVisible(true);
 			}
 
-			for (auto& iter : m_umapActor)
-			{
-				iter.second->Update(elapsedTime);
-			}
+			//for (auto& iter : m_umapActor)
+			//{
+			//	iter.second->Update(elapsedTime);
+			//}
 		}
 
 		bool Sector::MoveToNearSector(EmSector::Dir emSectorDir, IActor* pActor)

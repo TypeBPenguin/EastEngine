@@ -70,7 +70,7 @@ namespace est
 
 				struct CommonContents
 				{
-					math::float3 f3CameraPos;
+					math::float3 cameraPosition;
 					float farClip{ 0.f };
 
 					uint32_t directionalLightCount{ 0 };
@@ -130,13 +130,6 @@ namespace est
 					eSRV_ShadowMap = 20,
 
 					SRVSlotCount,
-				};
-
-				enum Pass
-				{
-					ePass_Deferred = 0,
-					ePass_AlphaBlend_Pre,
-					ePass_AlphaBlend_Post,
 				};
 
 				enum Mask : uint32_t
@@ -265,11 +258,11 @@ namespace est
 
 				void SetCommonContents_ForAlpha(ID3D11DeviceContext* pDeviceContext,
 					ConstantBuffer<CommonContents>* pCB_CommonContents,
-					const LightResourceManager* pLightResourceManager, const math::float3& f3CameraPos)
+					const LightResourceManager* pLightResourceManager, const math::float3& cameraPosition)
 				{
 					CommonContents* pCommonContents = pCB_CommonContents->Map(pDeviceContext);
 
-					pCommonContents->f3CameraPos = f3CameraPos;
+					pCommonContents->cameraPosition = cameraPosition;
 
 					const DirectionalLightData* pDirectionalLightData = nullptr;
 					pLightResourceManager->GetDirectionalLightRenderData(&pDirectionalLightData, &pCommonContents->directionalLightCount);
@@ -283,15 +276,20 @@ namespace est
 					pLightResourceManager->GetSpotLightRenderData(&pSpotLightData, &pCommonContents->spotLightCount);
 					memory::Copy(pCommonContents->lightSpot.data(), sizeof(pCommonContents->lightSpot), pSpotLightData, sizeof(SpotLightData) * pCommonContents->spotLightCount);
 
-					pCommonContents->cascadeShadowCount = pLightResourceManager->GetShadowCount(ILight::Type::eDirectional);
-
-					for (uint32_t i = 0; i < pCommonContents->directionalLightCount; ++i)
+					const size_t lightCount = pLightResourceManager->GetLightCount(ILight::Type::eDirectional);
+					for (size_t i = 0; i < pCommonContents->directionalLightCount; ++i)
 					{
 						DirectionalLightPtr pDirectionalLight = std::static_pointer_cast<IDirectionalLight>(pLightResourceManager->GetLight(ILight::Type::eDirectional, i));
 						if (pDirectionalLight != nullptr)
 						{
-							const CascadedShadows& cascadedShadows = pDirectionalLight->GetCascadedShadows();
-							pCommonContents->cascadedShadow[i] = cascadedShadows.GetRenderData();
+							DepthStencil* pDepthStencil = static_cast<DepthStencil*>(pDirectionalLight->GetDepthMapResource());
+							if (pDepthStencil != nullptr)
+							{
+								const CascadedShadows& cascadedShadows = pDirectionalLight->GetCascadedShadows();
+								pCommonContents->cascadedShadow[i] = cascadedShadows.GetRenderData();
+
+								++pCommonContents->cascadeShadowCount;
+							}
 						}
 					}
 

@@ -19,7 +19,7 @@ namespace est
 			virtual ~ComponentPhysics();
 
 		public:
-			virtual void Update(float elapsedTime) override;
+			virtual void Update(float elapsedTime, float lodThreshold) override;
 
 		public:
 			physics::IRigidActor* CreateRigidActor(const physics::RigidActorProperty& rigidActorProperty);

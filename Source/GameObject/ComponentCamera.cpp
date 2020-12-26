@@ -30,7 +30,7 @@ namespace est
 		{
 		}
 
-		void ComponentCamera::Update(float elapsedTime)
+		void ComponentCamera::Update(float elapsedTime, float lodThreshold)
 		{
 		}
 	}

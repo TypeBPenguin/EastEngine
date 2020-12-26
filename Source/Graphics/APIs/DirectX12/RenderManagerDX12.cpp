@@ -201,6 +201,7 @@ namespace est
 					GetTerrainRenderer()->Render(renderElement, m_matPrevViewProjection);
 
 					GetModelRenderer()->Render(renderElement, ModelRenderer::eDeferred, m_matPrevViewProjection);
+					GetModelRenderer()->Render(renderElement, ModelRenderer::eShadow, m_matPrevViewProjection);
 				}
 
 				{
