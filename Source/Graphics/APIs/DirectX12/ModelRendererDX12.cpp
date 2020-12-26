@@ -683,7 +683,7 @@ namespace est
 					tsl::robin_map<const IMaterial*, uint32_t> umapMaterialMask;
 					umapMaterialMask.rehash(m_umapJobStaticMasterBatchs.size() + m_umapJobSkinnedMasterBatchs.size());
 
-					size_t bufferIndex = 0;
+					uint32_t bufferIndex = 0;
 
 					for (uint32_t i = 0; i < ILight::eCount; ++i)
 					{
@@ -747,8 +747,8 @@ namespace est
 										math::Rect scissorRect;
 										scissorRect.left = 0;
 										scissorRect.top = 0;
-										scissorRect.right = viewport.width;
-										scissorRect.bottom = viewport.height;
+										scissorRect.right = static_cast<long>(viewport.width);
+										scissorRect.bottom = static_cast<long>(viewport.height);
 
 										RenderStaticModel(pDeviceInstance, pDevice, pCamera, viewport, scissorRect, emGroup, 0, 0, &dsvHandle, umapMaterialMask);
 										RenderSkinnedModel(pDeviceInstance, pDevice, pCamera, viewport, scissorRect, emGroup, 0, 0, &dsvHandle, umapMaterialMask);
@@ -989,250 +989,167 @@ namespace est
 						}
 					}
 
-					std::vector<ID3D12GraphicsCommandList2*> commandLists;
-					pDeviceInstance->GetCommandLists(commandLists);
+					ID3D12GraphicsCommandList2* pCommandList = pDeviceInstance->GetCommandList(0);
+					pDeviceInstance->ResetCommandList(0, nullptr);
 
-					auto iter = umapJobStaticMaskBatch.begin();
+					ID3D12DescriptorHeap* pDescriptorHeaps[] =
+					{
+						pSRVDescriptorHeap->GetHeap(),
+						pSamplerDescriptorHeap->GetHeap(),
+					};
+					pCommandList->SetDescriptorHeaps(_countof(pDescriptorHeaps), pDescriptorHeaps);
 
-					jobsystem::ParallelFor(commandLists.size(), [&](const size_t index)
+					pCommandList->RSSetViewports(1, util::Convert(viewport));
+					pCommandList->RSSetScissorRects(1, &scissorRect);
+					pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+					pCommandList->OMSetRenderTargets(static_cast<uint32_t>(rtvHandleCount), pRTVHandles, FALSE, pDSVHandle);
+
+					for (auto iter = umapJobStaticMaskBatch.begin(); iter != umapJobStaticMaskBatch.end(); ++iter)
 					{
 						const IVertexBuffer* pPrevVertexBuffer = nullptr;
 						const IIndexBuffer* pPrevIndexBuffer = nullptr;
 
-						ID3D12GraphicsCommandList2* pCommandList = commandLists[index];
-						pDeviceInstance->ResetCommandList(index, nullptr);
+						const RenderPipeline* pRenderPipeline = nullptr;
 
-						ID3D12DescriptorHeap* pDescriptorHeaps[] =
+						const PSOKey& psoKey = iter->first;
+						std::vector<const JobStaticBatch*>& jobBatchs = iter.value();
 						{
-							pSRVDescriptorHeap->GetHeap(),
-							pSamplerDescriptorHeap->GetHeap(),
-						};
-						pCommandList->SetDescriptorHeaps(_countof(pDescriptorHeaps), pDescriptorHeaps);
+							pRenderPipeline = CreateRenderPipeline(pDevice, psoKey);
 
-						pCommandList->RSSetViewports(1, util::Convert(viewport));
-						pCommandList->RSSetScissorRects(1, &scissorRect);
-						pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-						pCommandList->OMSetRenderTargets(static_cast<uint32_t>(rtvHandleCount), pRTVHandles, FALSE, pDSVHandle);
-
-						while (true)
-						{
-							const RenderPipeline* pRenderPipeline = nullptr;
-
-							const PSOKey* pPSOKey = nullptr;
-							std::vector<const JobStaticBatch*>* pJobBatchs = nullptr;
+							if (pRenderPipeline == nullptr || pRenderPipeline->psoCache.pPipelineState == nullptr || pRenderPipeline->psoCache.pRootSignature == nullptr)
 							{
-								{
-									thread::SRWWriteLock writeLock(&m_srwLock_logic);
+								const uint32_t mask = (psoKey.mask & shader::eUseAlphaBlending) | (psoKey.mask & shader::eUseInstancing);
 
-									if (iter == umapJobStaticMaskBatch.end())
-										break;
-
-									pPSOKey = &iter->first;
-									pJobBatchs = &iter.value();
-									++iter;
-								}
-
-								pRenderPipeline = CreateRenderPipeline(pDevice, *pPSOKey);
-
+								const PSOKey psoDefaultStaticKey(mask, RasterizerState::eSolidCCW, BlendState::eOff, DepthStencilState::eRead_Write_On);
+								pRenderPipeline = CreateRenderPipeline(pDevice, psoDefaultStaticKey);
 								if (pRenderPipeline == nullptr || pRenderPipeline->psoCache.pPipelineState == nullptr || pRenderPipeline->psoCache.pRootSignature == nullptr)
 								{
-									const uint32_t mask = (pPSOKey->mask & shader::eUseAlphaBlending) | (pPSOKey->mask & shader::eUseInstancing);
-
-									const PSOKey psoDefaultStaticKey(mask, RasterizerState::eSolidCCW, BlendState::eOff, DepthStencilState::eRead_Write_On);
-									pRenderPipeline = CreateRenderPipeline(pDevice, psoDefaultStaticKey);
-									if (pRenderPipeline == nullptr || pRenderPipeline->psoCache.pPipelineState == nullptr || pRenderPipeline->psoCache.pRootSignature == nullptr)
-									{
-										throw_line("invalid default static pipeline state");
-										continue;
-									}
+									throw_line("invalid default static pipeline state");
+									continue;
 								}
 							}
+						}
 
-							pCommandList->SetPipelineState(pRenderPipeline->psoCache.pPipelineState);
-							pCommandList->SetGraphicsRootSignature(pRenderPipeline->psoCache.pRootSignature);
+						pCommandList->SetPipelineState(pRenderPipeline->psoCache.pPipelineState);
+						pCommandList->SetGraphicsRootSignature(pRenderPipeline->psoCache.pRootSignature);
 
-							if (pPSOKey->blendState != BlendState::eOff)
+						if (psoKey.blendState != BlendState::eOff)
+						{
+							pCommandList->OMSetBlendFactor(&math::float4::Zero.x);
+						}
+
+						if (pRenderPipeline->rootParameterIndex[eRP_StandardDescriptor] != eRP_InvalidIndex)
+						{
+							pCommandList->SetGraphicsRootDescriptorTable(
+								pRenderPipeline->rootParameterIndex[eRP_StandardDescriptor],
+								pSRVDescriptorHeap->GetStartGPUHandle());
+						}
+
+						if (pRenderPipeline->rootParameterIndex[eRP_SamplerStates] != eRP_InvalidIndex)
+						{
+							pCommandList->SetGraphicsRootDescriptorTable(
+								pRenderPipeline->rootParameterIndex[eRP_SamplerStates],
+								pSamplerDescriptorHeap->GetStartGPUHandle());
+						}
+
+						if (pRenderPipeline->rootParameterIndex[eRP_VSConstantsCB] != eRP_InvalidIndex)
+						{
+							pCommandList->SetGraphicsRootConstantBufferView(
+								pRenderPipeline->rootParameterIndex[eRP_VSConstantsCB],
+								m_vsConstantsBuffer.GPUAddress(frameIndex));
+						}
+
+						if (pRenderPipeline->rootParameterIndex[eRP_CommonContentsCB] != eRP_InvalidIndex)
+						{
+							pCommandList->SetGraphicsRootConstantBufferView(
+								pRenderPipeline->rootParameterIndex[eRP_CommonContentsCB],
+								m_commonContentsBuffer.GPUAddress(frameIndex));
+						}
+
+						if (pRenderPipeline->rootParameterIndex[eRP_DirectionalLightCB] != eRP_InvalidIndex)
+						{
+							pCommandList->SetGraphicsRootConstantBufferView(
+								pRenderPipeline->rootParameterIndex[eRP_DirectionalLightCB],
+								m_directionalLightBuffer.GPUAddress(frameIndex));
+						}
+
+						if (pRenderPipeline->rootParameterIndex[eRP_PointLIghtCB] != eRP_InvalidIndex)
+						{
+							pCommandList->SetGraphicsRootConstantBufferView(
+								pRenderPipeline->rootParameterIndex[eRP_PointLIghtCB],
+								m_pointLightBuffer.GPUAddress(frameIndex));
+						}
+
+						if (pRenderPipeline->rootParameterIndex[eRP_SpotLightCB] != eRP_InvalidIndex)
+						{
+							pCommandList->SetGraphicsRootConstantBufferView(
+								pRenderPipeline->rootParameterIndex[eRP_SpotLightCB],
+								m_spotLightBuffer.GPUAddress(frameIndex));
+						}
+
+						if (pRenderPipeline->rootParameterIndex[eRP_ShadowCB] != eRP_InvalidIndex)
+						{
+							pCommandList->SetGraphicsRootConstantBufferView(
+								pRenderPipeline->rootParameterIndex[eRP_ShadowCB],
+								m_shadowBuffer.GPUAddress(frameIndex));
+						}
+
+						if ((psoKey.mask & shader::eUseInstancing) == shader::eUseInstancing)
+						{
+							for (auto& pJobBatch : jobBatchs)
 							{
-								pCommandList->OMSetBlendFactor(&math::float4::Zero.x);
-							}
+								const RenderJobStatic& job = pJobBatch->pJob->data;
 
-							if (pRenderPipeline->rootParameterIndex[eRP_StandardDescriptor] != eRP_InvalidIndex)
-							{
-								pCommandList->SetGraphicsRootDescriptorTable(
-									pRenderPipeline->rootParameterIndex[eRP_StandardDescriptor],
-									pSRVDescriptorHeap->GetStartGPUHandle());
-							}
-
-							if (pRenderPipeline->rootParameterIndex[eRP_SamplerStates] != eRP_InvalidIndex)
-							{
-								pCommandList->SetGraphicsRootDescriptorTable(
-									pRenderPipeline->rootParameterIndex[eRP_SamplerStates],
-									pSamplerDescriptorHeap->GetStartGPUHandle());
-							}
-
-							if (pRenderPipeline->rootParameterIndex[eRP_VSConstantsCB] != eRP_InvalidIndex)
-							{
-								pCommandList->SetGraphicsRootConstantBufferView(
-									pRenderPipeline->rootParameterIndex[eRP_VSConstantsCB],
-									m_vsConstantsBuffer.GPUAddress(frameIndex));
-							}
-
-							if (pRenderPipeline->rootParameterIndex[eRP_CommonContentsCB] != eRP_InvalidIndex)
-							{
-								pCommandList->SetGraphicsRootConstantBufferView(
-									pRenderPipeline->rootParameterIndex[eRP_CommonContentsCB],
-									m_commonContentsBuffer.GPUAddress(frameIndex));
-							}
-
-							if (pRenderPipeline->rootParameterIndex[eRP_DirectionalLightCB] != eRP_InvalidIndex)
-							{
-								pCommandList->SetGraphicsRootConstantBufferView(
-									pRenderPipeline->rootParameterIndex[eRP_DirectionalLightCB],
-									m_directionalLightBuffer.GPUAddress(frameIndex));
-							}
-
-							if (pRenderPipeline->rootParameterIndex[eRP_PointLIghtCB] != eRP_InvalidIndex)
-							{
-								pCommandList->SetGraphicsRootConstantBufferView(
-									pRenderPipeline->rootParameterIndex[eRP_PointLIghtCB],
-									m_pointLightBuffer.GPUAddress(frameIndex));
-							}
-
-							if (pRenderPipeline->rootParameterIndex[eRP_SpotLightCB] != eRP_InvalidIndex)
-							{
-								pCommandList->SetGraphicsRootConstantBufferView(
-									pRenderPipeline->rootParameterIndex[eRP_SpotLightCB],
-									m_spotLightBuffer.GPUAddress(frameIndex));
-							}
-
-							if (pRenderPipeline->rootParameterIndex[eRP_ShadowCB] != eRP_InvalidIndex)
-							{
-								pCommandList->SetGraphicsRootConstantBufferView(
-									pRenderPipeline->rootParameterIndex[eRP_ShadowCB],
-									m_shadowBuffer.GPUAddress(frameIndex));
-							}
-
-							if ((pPSOKey->mask & shader::eUseInstancing) == shader::eUseInstancing)
-							{
-								for (auto& pJobBatch : (*pJobBatchs))
+								if (pRenderPipeline->rootParameterIndex[eRP_ObjectDataCB] != eRP_InvalidIndex)
 								{
-									const RenderJobStatic& job = pJobBatch->pJob->data;
+									const size_t objectBufferIndex = m_objectBufferIndex++;
 
-									if (pRenderPipeline->rootParameterIndex[eRP_ObjectDataCB] != eRP_InvalidIndex)
-									{
-										const size_t objectBufferIndex = m_objectBufferIndex++;
+									shader::ObjectDataBuffer* pBuffer = m_objectDataBuffer.Cast(frameIndex, objectBufferIndex);
+									D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_objectDataBuffer.GPUAddress(frameIndex, objectBufferIndex);
 
-										shader::ObjectDataBuffer* pBuffer = m_objectDataBuffer.Cast(frameIndex, objectBufferIndex);
-										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_objectDataBuffer.GPUAddress(frameIndex, objectBufferIndex);
+									shader::SetObjectData(pBuffer, job.pMaterial.get(), math::Matrix::Identity, math::Matrix::Identity, 0, 0);
 
-										shader::SetObjectData(pBuffer, job.pMaterial.get(), math::Matrix::Identity, math::Matrix::Identity, 0, 0);
-
-										pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->rootParameterIndex[eRP_ObjectDataCB], gpuAddress);
-									}
-
-									if (pRenderPipeline->rootParameterIndex[eRP_SRVIndicesCB] != eRP_InvalidIndex)
-									{
-										const size_t srvBufferIndex = m_srvBufferIndex++;
-
-										shader::MaterialSRVIndexConstants* pBuffer = m_materialSRVIndexConstantsBuffer.Cast(frameIndex, srvBufferIndex);
-										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_materialSRVIndexConstantsBuffer.GPUAddress(frameIndex, srvBufferIndex);
-
-										shader::SetMaterial(pBuffer, job.pMaterial.get());
-
-										pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->rootParameterIndex[eRP_SRVIndicesCB], gpuAddress);
-									}
-
-									const math::Matrix* pInstanceData = pJobBatch->instanceData.data();
-									const math::Matrix* pPrevInstanceData = pJobBatch->prevInstanceData.data();
-									const size_t instanceCount = pJobBatch->instanceData.size();
-
-									const size_t loopCount = instanceCount / eMaxInstancingCount + 1;
-									for (size_t i = 0; i < loopCount; ++i)
-									{
-										const size_t enableDrawCount = std::min(eMaxInstancingCount * (i + 1), instanceCount);
-										const size_t drawInstanceCount = enableDrawCount - i * eMaxInstancingCount;
-
-										if (drawInstanceCount <= 0)
-											break;
-
-										const size_t staticBufferIndex = m_staticBufferIndex++;
-
-										shader::StaticInstancingDataBuffer* pStaticInstancingData = m_staticInstancingDataBuffer.Cast(frameIndex, staticBufferIndex);
-										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_staticInstancingDataBuffer.GPUAddress(frameIndex, staticBufferIndex);
-
-										memory::Copy(pStaticInstancingData->data.data(), sizeof(pStaticInstancingData->data),
-											&pInstanceData[i * eMaxInstancingCount], sizeof(math::Matrix) * drawInstanceCount);
-
-										memory::Copy(pStaticInstancingData->prevData.data(), sizeof(pStaticInstancingData->prevData),
-											&pPrevInstanceData[i * eMaxInstancingCount], sizeof(math::Matrix) * drawInstanceCount);
-
-										pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->rootParameterIndex[eRP_StaticInstancingDataCB], gpuAddress);
-
-										if (pPrevVertexBuffer != job.pVertexBuffer.get())
-										{
-											const VertexBuffer* pVertexBuffer = static_cast<const VertexBuffer*>(job.pVertexBuffer.get());
-											pCommandList->IASetVertexBuffers(0, 1, pVertexBuffer->GetView());
-
-											pPrevVertexBuffer = job.pVertexBuffer.get();
-										}
-
-										if (job.pIndexBuffer != nullptr)
-										{
-											if (pPrevIndexBuffer != job.pIndexBuffer.get())
-											{
-												const IndexBuffer* pIndexBuffer = static_cast<const IndexBuffer*>(job.pIndexBuffer.get());
-												pCommandList->IASetIndexBuffer(pIndexBuffer->GetView());
-
-												pPrevIndexBuffer = job.pIndexBuffer.get();
-											}
-
-											pCommandList->DrawIndexedInstanced(job.indexCount, static_cast<uint32_t>(drawInstanceCount), job.startIndex, 0, 0);
-										}
-										else
-										{
-											pCommandList->IASetIndexBuffer(nullptr);
-											pPrevIndexBuffer = nullptr;
-
-											pCommandList->DrawInstanced(job.indexCount, static_cast<uint32_t>(drawInstanceCount), 0, 0);
-										}
-									}
+									pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->rootParameterIndex[eRP_ObjectDataCB], gpuAddress);
 								}
-							}
-							else
-							{
-								std::sort(pJobBatchs->begin(), pJobBatchs->end(), [](const JobStaticBatch* a, const JobStaticBatch* b)
+
+								if (pRenderPipeline->rootParameterIndex[eRP_SRVIndicesCB] != eRP_InvalidIndex)
 								{
-									return a->pJob->data.depth < b->pJob->data.depth;
-								});
+									const size_t srvBufferIndex = m_srvBufferIndex++;
 
-								for (auto& pJobBatch : (*pJobBatchs))
+									shader::MaterialSRVIndexConstants* pBuffer = m_materialSRVIndexConstantsBuffer.Cast(frameIndex, srvBufferIndex);
+									D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_materialSRVIndexConstantsBuffer.GPUAddress(frameIndex, srvBufferIndex);
+
+									shader::SetMaterial(pBuffer, job.pMaterial.get());
+
+									pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->rootParameterIndex[eRP_SRVIndicesCB], gpuAddress);
+								}
+
+								const math::Matrix* pInstanceData = pJobBatch->instanceData.data();
+								const math::Matrix* pPrevInstanceData = pJobBatch->prevInstanceData.data();
+								const size_t instanceCount = pJobBatch->instanceData.size();
+
+								const size_t loopCount = instanceCount / eMaxInstancingCount + 1;
+								for (size_t i = 0; i < loopCount; ++i)
 								{
-									const RenderJobStatic& job = pJobBatch->pJob->data;
+									const size_t enableDrawCount = std::min(eMaxInstancingCount * (i + 1), instanceCount);
+									const size_t drawInstanceCount = enableDrawCount - i * eMaxInstancingCount;
 
-									if (pRenderPipeline->rootParameterIndex[eRP_SRVIndicesCB] != eRP_InvalidIndex)
-									{
-										const size_t srvBufferIndex = m_srvBufferIndex++;
+									if (drawInstanceCount <= 0)
+										break;
 
-										shader::MaterialSRVIndexConstants* pBuffer = m_materialSRVIndexConstantsBuffer.Cast(frameIndex, srvBufferIndex);
-										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_materialSRVIndexConstantsBuffer.GPUAddress(frameIndex, srvBufferIndex);
+									const size_t staticBufferIndex = m_staticBufferIndex++;
 
-										shader::SetMaterial(pBuffer, job.pMaterial.get());
+									shader::StaticInstancingDataBuffer* pStaticInstancingData = m_staticInstancingDataBuffer.Cast(frameIndex, staticBufferIndex);
+									D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_staticInstancingDataBuffer.GPUAddress(frameIndex, staticBufferIndex);
 
-										pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->rootParameterIndex[eRP_SRVIndicesCB], gpuAddress);
-									}
+									memory::Copy(pStaticInstancingData->data.data(), sizeof(pStaticInstancingData->data),
+										&pInstanceData[i * eMaxInstancingCount], sizeof(math::Matrix) * drawInstanceCount);
 
-									if (pRenderPipeline->rootParameterIndex[eRP_ObjectDataCB] != eRP_InvalidIndex)
-									{
-										const size_t objectBufferIndex = m_objectBufferIndex++;
+									memory::Copy(pStaticInstancingData->prevData.data(), sizeof(pStaticInstancingData->prevData),
+										&pPrevInstanceData[i * eMaxInstancingCount], sizeof(math::Matrix) * drawInstanceCount);
 
-										shader::ObjectDataBuffer* pBuffer = m_objectDataBuffer.Cast(frameIndex, objectBufferIndex);
-										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_objectDataBuffer.GPUAddress(frameIndex, objectBufferIndex);
-
-										shader::SetObjectData(pBuffer, job.pMaterial.get(), job.worldMatrix, job.prevWorldMatrix, 0, 0);
-
-										pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->rootParameterIndex[eRP_ObjectDataCB], gpuAddress);
-									}
+									pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->rootParameterIndex[eRP_StaticInstancingDataCB], gpuAddress);
 
 									if (pPrevVertexBuffer != job.pVertexBuffer.get())
 									{
@@ -1252,27 +1169,90 @@ namespace est
 											pPrevIndexBuffer = job.pIndexBuffer.get();
 										}
 
-										pCommandList->DrawIndexedInstanced(job.indexCount, 1, job.startIndex, 0, 0);
+										pCommandList->DrawIndexedInstanced(job.indexCount, static_cast<uint32_t>(drawInstanceCount), job.startIndex, 0, 0);
 									}
 									else
 									{
 										pCommandList->IASetIndexBuffer(nullptr);
 										pPrevIndexBuffer = nullptr;
 
-										pCommandList->DrawInstanced(job.indexCount, 1, 0, 0);
+										pCommandList->DrawInstanced(job.indexCount, static_cast<uint32_t>(drawInstanceCount), 0, 0);
 									}
 								}
 							}
 						}
-
-						HRESULT hr = pCommandList->Close();
-						if (FAILED(hr))
+						else
 						{
-							throw_line("failed to close command list");
-						}
-					});
+							std::sort(jobBatchs.begin(), jobBatchs.end(), [](const JobStaticBatch* a, const JobStaticBatch* b)
+								{
+									return a->pJob->data.depth < b->pJob->data.depth;
+								});
 
-					pDeviceInstance->ExecuteCommandLists(commandLists.data(), commandLists.size());
+							for (auto& pJobBatch : jobBatchs)
+							{
+								const RenderJobStatic& job = pJobBatch->pJob->data;
+
+								if (pRenderPipeline->rootParameterIndex[eRP_SRVIndicesCB] != eRP_InvalidIndex)
+								{
+									const size_t srvBufferIndex = m_srvBufferIndex++;
+
+									shader::MaterialSRVIndexConstants* pBuffer = m_materialSRVIndexConstantsBuffer.Cast(frameIndex, srvBufferIndex);
+									D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_materialSRVIndexConstantsBuffer.GPUAddress(frameIndex, srvBufferIndex);
+
+									shader::SetMaterial(pBuffer, job.pMaterial.get());
+
+									pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->rootParameterIndex[eRP_SRVIndicesCB], gpuAddress);
+								}
+
+								if (pRenderPipeline->rootParameterIndex[eRP_ObjectDataCB] != eRP_InvalidIndex)
+								{
+									const size_t objectBufferIndex = m_objectBufferIndex++;
+
+									shader::ObjectDataBuffer* pBuffer = m_objectDataBuffer.Cast(frameIndex, objectBufferIndex);
+									D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_objectDataBuffer.GPUAddress(frameIndex, objectBufferIndex);
+
+									shader::SetObjectData(pBuffer, job.pMaterial.get(), job.worldMatrix, job.prevWorldMatrix, 0, 0);
+
+									pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->rootParameterIndex[eRP_ObjectDataCB], gpuAddress);
+								}
+
+								if (pPrevVertexBuffer != job.pVertexBuffer.get())
+								{
+									const VertexBuffer* pVertexBuffer = static_cast<const VertexBuffer*>(job.pVertexBuffer.get());
+									pCommandList->IASetVertexBuffers(0, 1, pVertexBuffer->GetView());
+
+									pPrevVertexBuffer = job.pVertexBuffer.get();
+								}
+
+								if (job.pIndexBuffer != nullptr)
+								{
+									if (pPrevIndexBuffer != job.pIndexBuffer.get())
+									{
+										const IndexBuffer* pIndexBuffer = static_cast<const IndexBuffer*>(job.pIndexBuffer.get());
+										pCommandList->IASetIndexBuffer(pIndexBuffer->GetView());
+
+										pPrevIndexBuffer = job.pIndexBuffer.get();
+									}
+
+									pCommandList->DrawIndexedInstanced(job.indexCount, 1, job.startIndex, 0, 0);
+								}
+								else
+								{
+									pCommandList->IASetIndexBuffer(nullptr);
+									pPrevIndexBuffer = nullptr;
+
+									pCommandList->DrawInstanced(job.indexCount, 1, 0, 0);
+								}
+							}
+						}
+					}
+
+					HRESULT hr = pCommandList->Close();
+					if (FAILED(hr))
+					{
+						throw_line("failed to close command list");
+					}
+					pDeviceInstance->ExecuteCommandList(pCommandList);
 				}
 
 				m_umapJobStaticMasterBatchs.clear();
@@ -1366,250 +1346,167 @@ namespace est
 						}
 					}
 
-					std::vector<ID3D12GraphicsCommandList2*> commandLists;
-					pDeviceInstance->GetCommandLists(commandLists);
+					ID3D12GraphicsCommandList2* pCommandList = pDeviceInstance->GetCommandList(1);
+					pDeviceInstance->ResetCommandList(1, nullptr);
 
-					auto iter = umapJobSkinnedMaskBatch.begin();
+					ID3D12DescriptorHeap* pDescriptorHeaps[] =
+					{
+						pSRVDescriptorHeap->GetHeap(),
+						pSamplerDescriptorHeap->GetHeap(),
+					};
+					pCommandList->SetDescriptorHeaps(_countof(pDescriptorHeaps), pDescriptorHeaps);
 
-					jobsystem::ParallelFor(commandLists.size(), [&](const size_t index)
+					pCommandList->RSSetViewports(1, util::Convert(viewport));
+					pCommandList->RSSetScissorRects(1, &scissorRect);
+					pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+					pCommandList->OMSetRenderTargets(static_cast<uint32_t>(rtvHandleCount), pRTVHandles, FALSE, pDSVHandle);
+
+					for (auto iter = umapJobSkinnedMaskBatch.begin(); iter != umapJobSkinnedMaskBatch.end(); ++iter)
 					{
 						const IVertexBuffer* pPrevVertexBuffer = nullptr;
 						const IIndexBuffer* pPrevIndexBuffer = nullptr;
 
-						ID3D12GraphicsCommandList2* pCommandList = commandLists[index];
-						pDeviceInstance->ResetCommandList(index, nullptr);
+						const RenderPipeline* pRenderPipeline = nullptr;
 
-						ID3D12DescriptorHeap* pDescriptorHeaps[] =
+						const PSOKey& psoKey = iter->first;
+						std::vector<const JobSkinnedBatch*>& jobBatchs = iter.value();
 						{
-							pSRVDescriptorHeap->GetHeap(),
-							pSamplerDescriptorHeap->GetHeap(),
-						};
-						pCommandList->SetDescriptorHeaps(_countof(pDescriptorHeaps), pDescriptorHeaps);
+							pRenderPipeline = CreateRenderPipeline(pDevice, psoKey);
 
-						pCommandList->RSSetViewports(1, util::Convert(viewport));
-						pCommandList->RSSetScissorRects(1, &scissorRect);
-						pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-						pCommandList->OMSetRenderTargets(static_cast<uint32_t>(rtvHandleCount), pRTVHandles, FALSE, pDSVHandle);
-
-						while (true)
-						{
-							const RenderPipeline* pRenderPipeline = nullptr;
-
-							const PSOKey* pPSOKey = nullptr;
-							std::vector<const JobSkinnedBatch*>* pJobBatchs = nullptr;
+							if (pRenderPipeline == nullptr || pRenderPipeline->psoCache.pPipelineState == nullptr || pRenderPipeline->psoCache.pRootSignature == nullptr)
 							{
-								{
-									thread::SRWWriteLock writeLock(&m_srwLock_logic);
+								const uint32_t mask = shader::eUseSkinning | (psoKey.mask & shader::eUseAlphaBlending) | (psoKey.mask & shader::eUseInstancing);
 
-									if (iter == umapJobSkinnedMaskBatch.end())
-										break;
-
-									pPSOKey = &iter->first;
-									pJobBatchs = &iter.value();
-									++iter;
-								}
-
-								pRenderPipeline = CreateRenderPipeline(pDevice, *pPSOKey);
-
+								const PSOKey psoDefaultSkinnedKey(mask, RasterizerState::eSolidCCW, BlendState::eOff, DepthStencilState::eRead_Write_On);
+								pRenderPipeline = CreateRenderPipeline(pDevice, psoDefaultSkinnedKey);
 								if (pRenderPipeline == nullptr || pRenderPipeline->psoCache.pPipelineState == nullptr || pRenderPipeline->psoCache.pRootSignature == nullptr)
 								{
-									const uint32_t mask = shader::eUseSkinning | (pPSOKey->mask & shader::eUseAlphaBlending) | (pPSOKey->mask & shader::eUseInstancing);
-
-									const PSOKey psoDefaultSkinnedKey(mask, RasterizerState::eSolidCCW, BlendState::eOff, DepthStencilState::eRead_Write_On);
-									pRenderPipeline = CreateRenderPipeline(pDevice, psoDefaultSkinnedKey);
-									if (pRenderPipeline == nullptr || pRenderPipeline->psoCache.pPipelineState == nullptr || pRenderPipeline->psoCache.pRootSignature == nullptr)
-									{
-										throw_line("invalid default skinned pipeline state");
-										continue;
-									}
+									throw_line("invalid default skinned pipeline state");
+									continue;
 								}
 							}
+						}
 
-							pCommandList->SetPipelineState(pRenderPipeline->psoCache.pPipelineState);
-							pCommandList->SetGraphicsRootSignature(pRenderPipeline->psoCache.pRootSignature);
+						pCommandList->SetPipelineState(pRenderPipeline->psoCache.pPipelineState);
+						pCommandList->SetGraphicsRootSignature(pRenderPipeline->psoCache.pRootSignature);
 
-							if (pPSOKey->blendState != BlendState::eOff)
+						if (psoKey.blendState != BlendState::eOff)
+						{
+							pCommandList->OMSetBlendFactor(&math::float4::Zero.x);
+						}
+
+						if (pRenderPipeline->rootParameterIndex[eRP_StandardDescriptor] != eRP_InvalidIndex)
+						{
+							pCommandList->SetGraphicsRootDescriptorTable(
+								pRenderPipeline->rootParameterIndex[eRP_StandardDescriptor],
+								pSRVDescriptorHeap->GetStartGPUHandle());
+						}
+
+						if (pRenderPipeline->rootParameterIndex[eRP_SamplerStates] != eRP_InvalidIndex)
+						{
+							pCommandList->SetGraphicsRootDescriptorTable(
+								pRenderPipeline->rootParameterIndex[eRP_SamplerStates],
+								pSamplerDescriptorHeap->GetStartGPUHandle());
+						}
+
+						if (pRenderPipeline->rootParameterIndex[eRP_VSConstantsCB] != eRP_InvalidIndex)
+						{
+							pCommandList->SetGraphicsRootConstantBufferView(
+								pRenderPipeline->rootParameterIndex[eRP_VSConstantsCB],
+								m_vsConstantsBuffer.GPUAddress(frameIndex));
+						}
+
+						if (pRenderPipeline->rootParameterIndex[eRP_CommonContentsCB] != eRP_InvalidIndex)
+						{
+							pCommandList->SetGraphicsRootConstantBufferView(
+								pRenderPipeline->rootParameterIndex[eRP_CommonContentsCB],
+								m_commonContentsBuffer.GPUAddress(frameIndex));
+						}
+
+						if (pRenderPipeline->rootParameterIndex[eRP_DirectionalLightCB] != eRP_InvalidIndex)
+						{
+							pCommandList->SetGraphicsRootConstantBufferView(
+								pRenderPipeline->rootParameterIndex[eRP_DirectionalLightCB],
+								m_directionalLightBuffer.GPUAddress(frameIndex));
+						}
+
+						if (pRenderPipeline->rootParameterIndex[eRP_PointLIghtCB] != eRP_InvalidIndex)
+						{
+							pCommandList->SetGraphicsRootConstantBufferView(
+								pRenderPipeline->rootParameterIndex[eRP_PointLIghtCB],
+								m_pointLightBuffer.GPUAddress(frameIndex));
+						}
+
+						if (pRenderPipeline->rootParameterIndex[eRP_SpotLightCB] != eRP_InvalidIndex)
+						{
+							pCommandList->SetGraphicsRootConstantBufferView(
+								pRenderPipeline->rootParameterIndex[eRP_SpotLightCB],
+								m_spotLightBuffer.GPUAddress(frameIndex));
+						}
+
+						if (pRenderPipeline->rootParameterIndex[eRP_ShadowCB] != eRP_InvalidIndex)
+						{
+							pCommandList->SetGraphicsRootConstantBufferView(
+								pRenderPipeline->rootParameterIndex[eRP_ShadowCB],
+								m_shadowBuffer.GPUAddress(frameIndex));
+						}
+
+						if ((psoKey.mask & shader::eUseInstancing) == shader::eUseInstancing)
+						{
+							for (auto& pJobBatch : jobBatchs)
 							{
-								pCommandList->OMSetBlendFactor(&math::float4::Zero.x);
-							}
+								const RenderJobSkinned& job = pJobBatch->pJob->data;
 
-							if (pRenderPipeline->rootParameterIndex[eRP_StandardDescriptor] != eRP_InvalidIndex)
-							{
-								pCommandList->SetGraphicsRootDescriptorTable(
-									pRenderPipeline->rootParameterIndex[eRP_StandardDescriptor],
-									pSRVDescriptorHeap->GetStartGPUHandle());
-							}
-
-							if (pRenderPipeline->rootParameterIndex[eRP_SamplerStates] != eRP_InvalidIndex)
-							{
-								pCommandList->SetGraphicsRootDescriptorTable(
-									pRenderPipeline->rootParameterIndex[eRP_SamplerStates],
-									pSamplerDescriptorHeap->GetStartGPUHandle());
-							}
-
-							if (pRenderPipeline->rootParameterIndex[eRP_VSConstantsCB] != eRP_InvalidIndex)
-							{
-								pCommandList->SetGraphicsRootConstantBufferView(
-									pRenderPipeline->rootParameterIndex[eRP_VSConstantsCB],
-									m_vsConstantsBuffer.GPUAddress(frameIndex));
-							}
-
-							if (pRenderPipeline->rootParameterIndex[eRP_CommonContentsCB] != eRP_InvalidIndex)
-							{
-								pCommandList->SetGraphicsRootConstantBufferView(
-									pRenderPipeline->rootParameterIndex[eRP_CommonContentsCB],
-									m_commonContentsBuffer.GPUAddress(frameIndex));
-							}
-
-							if (pRenderPipeline->rootParameterIndex[eRP_DirectionalLightCB] != eRP_InvalidIndex)
-							{
-								pCommandList->SetGraphicsRootConstantBufferView(
-									pRenderPipeline->rootParameterIndex[eRP_DirectionalLightCB],
-									m_directionalLightBuffer.GPUAddress(frameIndex));
-							}
-
-							if (pRenderPipeline->rootParameterIndex[eRP_PointLIghtCB] != eRP_InvalidIndex)
-							{
-								pCommandList->SetGraphicsRootConstantBufferView(
-									pRenderPipeline->rootParameterIndex[eRP_PointLIghtCB],
-									m_pointLightBuffer.GPUAddress(frameIndex));
-							}
-
-							if (pRenderPipeline->rootParameterIndex[eRP_SpotLightCB] != eRP_InvalidIndex)
-							{
-								pCommandList->SetGraphicsRootConstantBufferView(
-									pRenderPipeline->rootParameterIndex[eRP_SpotLightCB],
-									m_spotLightBuffer.GPUAddress(frameIndex));
-							}
-
-							if (pRenderPipeline->rootParameterIndex[eRP_ShadowCB] != eRP_InvalidIndex)
-							{
-								pCommandList->SetGraphicsRootConstantBufferView(
-									pRenderPipeline->rootParameterIndex[eRP_ShadowCB],
-									m_shadowBuffer.GPUAddress(frameIndex));
-							}
-
-							if ((pPSOKey->mask & shader::eUseInstancing) == shader::eUseInstancing)
-							{
-								for (auto& pJobBatch : (*pJobBatchs))
+								if (pRenderPipeline->rootParameterIndex[eRP_ObjectDataCB] != eRP_InvalidIndex)
 								{
-									const RenderJobSkinned& job = pJobBatch->pJob->data;
+									const size_t objectBufferIndex = m_objectBufferIndex++;
 
-									if (pRenderPipeline->rootParameterIndex[eRP_ObjectDataCB] != eRP_InvalidIndex)
-									{
-										const size_t objectBufferIndex = m_objectBufferIndex++;
+									shader::ObjectDataBuffer* pBuffer = m_objectDataBuffer.Cast(frameIndex, objectBufferIndex);
+									D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_objectDataBuffer.GPUAddress(frameIndex, objectBufferIndex);
 
-										shader::ObjectDataBuffer* pBuffer = m_objectDataBuffer.Cast(frameIndex, objectBufferIndex);
-										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_objectDataBuffer.GPUAddress(frameIndex, objectBufferIndex);
+									shader::SetObjectData(pBuffer, job.pMaterial.get(), math::Matrix::Identity, math::Matrix::Identity, 0, 0);
 
-										shader::SetObjectData(pBuffer, job.pMaterial.get(), math::Matrix::Identity, math::Matrix::Identity, 0, 0);
-
-										pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->rootParameterIndex[eRP_ObjectDataCB], gpuAddress);
-									}
-
-									if (pRenderPipeline->rootParameterIndex[eRP_SRVIndicesCB] != eRP_InvalidIndex)
-									{
-										const size_t srvBufferIndex = m_srvBufferIndex++;
-
-										shader::MaterialSRVIndexConstants* pBuffer = m_materialSRVIndexConstantsBuffer.Cast(frameIndex, srvBufferIndex);
-										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_materialSRVIndexConstantsBuffer.GPUAddress(frameIndex, srvBufferIndex);
-
-										shader::SetMaterial(pBuffer, job.pMaterial.get());
-
-										pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->rootParameterIndex[eRP_SRVIndicesCB], gpuAddress);
-									}
-
-									const SkinningInstancingData* pInstanceData = pJobBatch->instanceData.data();
-									const SkinningInstancingData* pPrevInstanceData = pJobBatch->prevInstanceData.data();
-									const size_t instanceCount = pJobBatch->instanceData.size();
-
-									const size_t loopCount = instanceCount / eMaxInstancingCount + 1;
-									for (size_t i = 0; i < loopCount; ++i)
-									{
-										const size_t enableDrawCount = std::min(eMaxInstancingCount * (i + 1), instanceCount);
-										const size_t drawInstanceCount = enableDrawCount - i * eMaxInstancingCount;
-
-										if (drawInstanceCount <= 0)
-											break;
-
-										const size_t nSkinningBufferIndex = m_skinningBufferIndex++;
-
-										shader::SkinningInstancingDataBuffer* pSkinnedInstancingData = m_skinningInstancingDataBuffer.Cast(frameIndex, nSkinningBufferIndex);
-										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_skinningInstancingDataBuffer.GPUAddress(frameIndex, nSkinningBufferIndex);
-
-										memory::Copy(pSkinnedInstancingData->data.data(), sizeof(pSkinnedInstancingData->data),
-											&pInstanceData[i * eMaxInstancingCount], sizeof(SkinningInstancingData) * drawInstanceCount);
-
-										memory::Copy(pSkinnedInstancingData->prevData.data(), sizeof(pSkinnedInstancingData->prevData),
-											&pPrevInstanceData[i * eMaxInstancingCount], sizeof(SkinningInstancingData) * drawInstanceCount);
-
-										pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->rootParameterIndex[eRP_SkinningInstancingDataCB], gpuAddress);
-
-										if (pPrevVertexBuffer != job.pVertexBuffer.get())
-										{
-											const VertexBuffer* pVertexBuffer = static_cast<const VertexBuffer*>(job.pVertexBuffer.get());
-											pCommandList->IASetVertexBuffers(0, 1, pVertexBuffer->GetView());
-
-											pPrevVertexBuffer = job.pVertexBuffer.get();
-										}
-
-										if (job.pIndexBuffer != nullptr)
-										{
-											if (pPrevIndexBuffer != job.pIndexBuffer.get())
-											{
-												const IndexBuffer* pIndexBuffer = static_cast<const IndexBuffer*>(job.pIndexBuffer.get());
-												pCommandList->IASetIndexBuffer(pIndexBuffer->GetView());
-
-												pPrevIndexBuffer = job.pIndexBuffer.get();
-											}
-
-											pCommandList->DrawIndexedInstanced(job.indexCount, static_cast<uint32_t>(drawInstanceCount), job.startIndex, 0, 0);
-										}
-										else
-										{
-											pCommandList->IASetIndexBuffer(nullptr);
-											pPrevIndexBuffer = nullptr;
-
-											pCommandList->DrawInstanced(job.indexCount, static_cast<uint32_t>(drawInstanceCount), 0, 0);
-										}
-									}
+									pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->rootParameterIndex[eRP_ObjectDataCB], gpuAddress);
 								}
-							}
-							else
-							{
-								std::sort(pJobBatchs->begin(), pJobBatchs->end(), [](const JobSkinnedBatch* a, const JobSkinnedBatch* b)
+
+								if (pRenderPipeline->rootParameterIndex[eRP_SRVIndicesCB] != eRP_InvalidIndex)
 								{
-									return a->pJob->data.depth < b->pJob->data.depth;
-								});
+									const size_t srvBufferIndex = m_srvBufferIndex++;
 
-								for (auto& pJobBatch : (*pJobBatchs))
+									shader::MaterialSRVIndexConstants* pBuffer = m_materialSRVIndexConstantsBuffer.Cast(frameIndex, srvBufferIndex);
+									D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_materialSRVIndexConstantsBuffer.GPUAddress(frameIndex, srvBufferIndex);
+
+									shader::SetMaterial(pBuffer, job.pMaterial.get());
+
+									pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->rootParameterIndex[eRP_SRVIndicesCB], gpuAddress);
+								}
+
+								const SkinningInstancingData* pInstanceData = pJobBatch->instanceData.data();
+								const SkinningInstancingData* pPrevInstanceData = pJobBatch->prevInstanceData.data();
+								const size_t instanceCount = pJobBatch->instanceData.size();
+
+								const size_t loopCount = instanceCount / eMaxInstancingCount + 1;
+								for (size_t i = 0; i < loopCount; ++i)
 								{
-									const RenderJobSkinned& job = pJobBatch->pJob->data;
+									const size_t enableDrawCount = std::min(eMaxInstancingCount * (i + 1), instanceCount);
+									const size_t drawInstanceCount = enableDrawCount - i * eMaxInstancingCount;
 
-									if (pRenderPipeline->rootParameterIndex[eRP_SRVIndicesCB] != eRP_InvalidIndex)
-									{
-										const size_t srvBufferIndex = m_srvBufferIndex++;
+									if (drawInstanceCount <= 0)
+										break;
 
-										shader::MaterialSRVIndexConstants* pBuffer = m_materialSRVIndexConstantsBuffer.Cast(frameIndex, srvBufferIndex);
-										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_materialSRVIndexConstantsBuffer.GPUAddress(frameIndex, srvBufferIndex);
+									const size_t nSkinningBufferIndex = m_skinningBufferIndex++;
 
-										shader::SetMaterial(pBuffer, job.pMaterial.get());
+									shader::SkinningInstancingDataBuffer* pSkinnedInstancingData = m_skinningInstancingDataBuffer.Cast(frameIndex, nSkinningBufferIndex);
+									D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_skinningInstancingDataBuffer.GPUAddress(frameIndex, nSkinningBufferIndex);
 
-										pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->rootParameterIndex[eRP_SRVIndicesCB], gpuAddress);
-									}
+									memory::Copy(pSkinnedInstancingData->data.data(), sizeof(pSkinnedInstancingData->data),
+										&pInstanceData[i * eMaxInstancingCount], sizeof(SkinningInstancingData) * drawInstanceCount);
 
-									if (pRenderPipeline->rootParameterIndex[eRP_ObjectDataCB] != eRP_InvalidIndex)
-									{
-										const size_t objectBufferIndex = m_objectBufferIndex++;
+									memory::Copy(pSkinnedInstancingData->prevData.data(), sizeof(pSkinnedInstancingData->prevData),
+										&pPrevInstanceData[i * eMaxInstancingCount], sizeof(SkinningInstancingData) * drawInstanceCount);
 
-										shader::ObjectDataBuffer* pBuffer = m_objectDataBuffer.Cast(frameIndex, objectBufferIndex);
-										D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_objectDataBuffer.GPUAddress(frameIndex, objectBufferIndex);
-
-										shader::SetObjectData(pBuffer, job.pMaterial.get(), job.worldMatrix, job.prevWorldMatrix, job.VTFID, job.PrevVTFID);
-
-										pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->rootParameterIndex[eRP_ObjectDataCB], gpuAddress);
-									}
+									pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->rootParameterIndex[eRP_SkinningInstancingDataCB], gpuAddress);
 
 									if (pPrevVertexBuffer != job.pVertexBuffer.get())
 									{
@@ -1629,27 +1526,90 @@ namespace est
 											pPrevIndexBuffer = job.pIndexBuffer.get();
 										}
 
-										pCommandList->DrawIndexedInstanced(job.indexCount, 1, job.startIndex, 0, 0);
+										pCommandList->DrawIndexedInstanced(job.indexCount, static_cast<uint32_t>(drawInstanceCount), job.startIndex, 0, 0);
 									}
 									else
 									{
 										pCommandList->IASetIndexBuffer(nullptr);
 										pPrevIndexBuffer = nullptr;
 
-										pCommandList->DrawInstanced(job.indexCount, 1, 0, 0);
+										pCommandList->DrawInstanced(job.indexCount, static_cast<uint32_t>(drawInstanceCount), 0, 0);
 									}
 								}
 							}
 						}
-
-						HRESULT hr = pCommandList->Close();
-						if (FAILED(hr))
+						else
 						{
-							throw_line("failed to close command list");
-						}
-					});
+							std::sort(jobBatchs.begin(), jobBatchs.end(), [](const JobSkinnedBatch* a, const JobSkinnedBatch* b)
+								{
+									return a->pJob->data.depth < b->pJob->data.depth;
+								});
 
-					pDeviceInstance->ExecuteCommandLists(commandLists.data(), commandLists.size());
+							for (auto& pJobBatch : jobBatchs)
+							{
+								const RenderJobSkinned& job = pJobBatch->pJob->data;
+
+								if (pRenderPipeline->rootParameterIndex[eRP_SRVIndicesCB] != eRP_InvalidIndex)
+								{
+									const size_t srvBufferIndex = m_srvBufferIndex++;
+
+									shader::MaterialSRVIndexConstants* pBuffer = m_materialSRVIndexConstantsBuffer.Cast(frameIndex, srvBufferIndex);
+									D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_materialSRVIndexConstantsBuffer.GPUAddress(frameIndex, srvBufferIndex);
+
+									shader::SetMaterial(pBuffer, job.pMaterial.get());
+
+									pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->rootParameterIndex[eRP_SRVIndicesCB], gpuAddress);
+								}
+
+								if (pRenderPipeline->rootParameterIndex[eRP_ObjectDataCB] != eRP_InvalidIndex)
+								{
+									const size_t objectBufferIndex = m_objectBufferIndex++;
+
+									shader::ObjectDataBuffer* pBuffer = m_objectDataBuffer.Cast(frameIndex, objectBufferIndex);
+									D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = m_objectDataBuffer.GPUAddress(frameIndex, objectBufferIndex);
+
+									shader::SetObjectData(pBuffer, job.pMaterial.get(), job.worldMatrix, job.prevWorldMatrix, job.VTFID, job.PrevVTFID);
+
+									pCommandList->SetGraphicsRootConstantBufferView(pRenderPipeline->rootParameterIndex[eRP_ObjectDataCB], gpuAddress);
+								}
+
+								if (pPrevVertexBuffer != job.pVertexBuffer.get())
+								{
+									const VertexBuffer* pVertexBuffer = static_cast<const VertexBuffer*>(job.pVertexBuffer.get());
+									pCommandList->IASetVertexBuffers(0, 1, pVertexBuffer->GetView());
+
+									pPrevVertexBuffer = job.pVertexBuffer.get();
+								}
+
+								if (job.pIndexBuffer != nullptr)
+								{
+									if (pPrevIndexBuffer != job.pIndexBuffer.get())
+									{
+										const IndexBuffer* pIndexBuffer = static_cast<const IndexBuffer*>(job.pIndexBuffer.get());
+										pCommandList->IASetIndexBuffer(pIndexBuffer->GetView());
+
+										pPrevIndexBuffer = job.pIndexBuffer.get();
+									}
+
+									pCommandList->DrawIndexedInstanced(job.indexCount, 1, job.startIndex, 0, 0);
+								}
+								else
+								{
+									pCommandList->IASetIndexBuffer(nullptr);
+									pPrevIndexBuffer = nullptr;
+
+									pCommandList->DrawInstanced(job.indexCount, 1, 0, 0);
+								}
+							}
+						}
+					}
+
+					HRESULT hr = pCommandList->Close();
+					if (FAILED(hr))
+					{
+						throw_line("failed to close command list");
+					}
+					pDeviceInstance->ExecuteCommandList(pCommandList);
 				}
 
 				m_umapJobSkinnedMasterBatchs.clear();
