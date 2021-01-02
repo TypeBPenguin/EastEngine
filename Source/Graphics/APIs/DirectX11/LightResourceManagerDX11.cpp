@@ -107,7 +107,7 @@ namespace est
 				if (pDepthStencil != nullptr)
 					return pDepthStencil;
 
-				const CascadedShadows& cascadedShadows = pDirectionalLight->GetCascadedShadows();
+				const CascadedShadows& cascadedShadows = pDirectionalLight->GetRenderCascadedShadows();
 				const CascadedShadowsConfig& cascadedShadowsConfig = cascadedShadows.GetConfig();
 
 				CD3D11_TEXTURE2D_DESC depthMapDesc(DXGI_FORMAT_R32_TYPELESS,

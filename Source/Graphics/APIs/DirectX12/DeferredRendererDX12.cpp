@@ -259,7 +259,7 @@ namespace est
 								DepthStencil* pDepthStencil = static_cast<DepthStencil*>(pDirectionalLight->GetDepthMapResource());
 								if (pDepthStencil != nullptr)
 								{
-									const CascadedShadows& cascadedShadows = pDirectionalLight->GetCascadedShadows();
+									const CascadedShadows& cascadedShadows = pDirectionalLight->GetRenderCascadedShadows();
 
 									const uint32_t index = pShadowBuffer->cascadeShadowCount;
 									pShadowBuffer->cascadedShadow[index] = cascadedShadows.GetRenderData();

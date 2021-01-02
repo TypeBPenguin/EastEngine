@@ -39,7 +39,8 @@ namespace est
 			virtual void SetDirection(const math::float3& f3Direction) override { m_lightData.direction = f3Direction; }
 
 			virtual const DirectionalLightData& GetData() const override { return m_lightData; }
-			virtual CascadedShadows& GetCascadedShadows() override { return m_cascadedShadows; }
+			virtual CascadedShadows& GetUpdateCascadedShadows() override;
+			virtual const CascadedShadows& GetRenderCascadedShadows() const override;
 
 			virtual void SetDepthMapResource(void* pResource) override { m_depthMapResource = pResource; }
 			virtual void* GetDepthMapResource() const override { return m_depthMapResource; }
@@ -49,7 +50,7 @@ namespace est
 			bool m_isEnableShadow{ false };
 
 			DirectionalLightData m_lightData;
-			CascadedShadows m_cascadedShadows;
+			CascadedShadows m_cascadedShadows[2];
 
 			void* m_depthMapResource{ nullptr };
 		};

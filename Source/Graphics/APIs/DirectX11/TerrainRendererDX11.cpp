@@ -314,7 +314,7 @@ namespace est
 							case ILight::Type::eDirectional:
 							{
 								IDirectionalLight* pDirectionalLight = static_cast<IDirectionalLight*>(pLight.get());
-								const CascadedShadows& cascadedShadows = pDirectionalLight->GetCascadedShadows();
+								const CascadedShadows& cascadedShadows = pDirectionalLight->GetRenderCascadedShadows();
 								const CascadedShadowsConfig& cascadedShadowsConfig = cascadedShadows.GetConfig();
 
 								DepthStencil* pCascadedDepthStencil = pLightResourceManager->GetDepthStencil(pDeviceInstance, pDeviceContext, pDirectionalLight);

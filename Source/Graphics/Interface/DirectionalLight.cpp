@@ -2,6 +2,7 @@
 #include "DirectionalLight.h"
 
 #include "LightManager.h"
+#include "ParallelUpdateRender.h"
 
 namespace est
 {
@@ -27,16 +28,12 @@ namespace est
 		{
 			if (m_isEnableShadow == true)
 			{
-				m_cascadedShadows.Update(this);
+				m_cascadedShadows[UpdateThread()].Update(this);
 			}
 		}
 
 		void DirectionalLight::Cleanup()
 		{
-			if (m_isEnableShadow == true)
-			{
-				m_cascadedShadows.Update(this);
-			}
 		}
 
 		void DirectionalLight::SetEnableShadow(bool isEnableShadow)
@@ -54,6 +51,16 @@ namespace est
 			{
 				LightManager::GetInstance()->DecreaseShadowCount(ILight::Type::eDirectional);
 			}
+		}
+
+		CascadedShadows& DirectionalLight::GetUpdateCascadedShadows()
+		{
+			return m_cascadedShadows[UpdateThread()];
+		}
+
+		const CascadedShadows& DirectionalLight::GetRenderCascadedShadows() const
+		{
+			return m_cascadedShadows[RenderThread()];
 		}
 	}
 }

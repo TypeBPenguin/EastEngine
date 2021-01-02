@@ -589,7 +589,7 @@ namespace est
 									DepthStencil* pDepthStencil = static_cast<DepthStencil*>(pDirectionalLight->GetDepthMapResource());
 									if (pDepthStencil != nullptr)
 									{
-										const CascadedShadows& cascadedShadows = pDirectionalLight->GetCascadedShadows();
+										const CascadedShadows& cascadedShadows = pDirectionalLight->GetRenderCascadedShadows();
 
 										const uint32_t index = pShadowBuffer->cascadeShadowCount;
 										pShadowBuffer->cascadedShadow[index] = cascadedShadows.GetRenderData();
@@ -698,7 +698,7 @@ namespace est
 							case ILight::Type::eDirectional:
 							{
 								IDirectionalLight* pDirectionalLight = static_cast<IDirectionalLight*>(pLight.get());
-								const CascadedShadows& cascadedShadows = pDirectionalLight->GetCascadedShadows();
+								const CascadedShadows& cascadedShadows = pDirectionalLight->GetRenderCascadedShadows();
 								const CascadedShadowsConfig& cascadedShadowsConfig = cascadedShadows.GetConfig();
 
 								DepthStencil* pCascadedDepthStencil = pLightResourceManager->GetDepthStencil(pDeviceInstance, pDirectionalLight);

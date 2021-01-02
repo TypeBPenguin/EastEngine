@@ -120,7 +120,8 @@ namespace est
 			virtual void SetDirection(const math::float3& f3Direction) = 0;
 
 			virtual const DirectionalLightData& GetData() const = 0;
-			virtual CascadedShadows& GetCascadedShadows() = 0;
+			virtual CascadedShadows& GetUpdateCascadedShadows() = 0;
+			virtual const CascadedShadows& GetRenderCascadedShadows() const = 0;
 
 			virtual void SetDepthMapResource(void* pResource) = 0;
 			virtual void* GetDepthMapResource() const = 0;

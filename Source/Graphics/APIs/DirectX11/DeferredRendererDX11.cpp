@@ -106,7 +106,7 @@ namespace est
 						DirectionalLightPtr pDirectionalLight = std::static_pointer_cast<IDirectionalLight>(pLightResourceManager->GetLight(ILight::Type::eDirectional, i));
 						if (pDirectionalLight != nullptr)
 						{
-							const CascadedShadows& cascadedShadows = pDirectionalLight->GetCascadedShadows();
+							const CascadedShadows& cascadedShadows = pDirectionalLight->GetRenderCascadedShadows();
 							pCommonContents->cascadedShadow[i] = cascadedShadows.GetRenderData();
 						}
 					}
