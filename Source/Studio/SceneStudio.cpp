@@ -1710,7 +1710,7 @@ void SceneStudio::ShowConfig()
 						pDirectionalLight->SetEnableShadow(isEnableShadow);
 					}
 
-					graphics::CascadedShadows& cascadedShadows = pDirectionalLight->GetCascadedShadows();
+					graphics::CascadedShadows& cascadedShadows = pDirectionalLight->GetUpdateCascadedShadows();
 					graphics::CascadedShadowsConfig config = cascadedShadows.GetConfig();
 
 					ImGui::DragInt("Cascades Count", reinterpret_cast<int*>(&config.numCascades), 0.01f, 1, graphics::CascadedShadowsConfig::eMaxCascades);
